@@ -137,6 +137,7 @@ models_checkpoints/
 multirun/
 outputs/
 aws_multirun/
-=1.0
+
+rever/
 
 
