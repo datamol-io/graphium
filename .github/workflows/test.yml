@@ -35,7 +35,7 @@ jobs:
         with:
           installer-url: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
           channel-priority: true
-          use-only-tar-bz2: true
+          use-only-tar-bz2: false
           activate-environment: goli
 
       # Only required for datamol
