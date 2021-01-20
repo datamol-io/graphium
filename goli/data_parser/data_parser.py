@@ -131,4 +131,3 @@ def load_sdf(sdf_path):
         data = Chem.SDMolSupplier(sdf_path_temp)
 
     return data
-

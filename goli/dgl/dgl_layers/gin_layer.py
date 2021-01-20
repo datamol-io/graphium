@@ -38,76 +38,112 @@ class GINLayerComplete(BaseDGLLayer):
     weighted: bool, optional
         Whether to take into account the edge weights when copying the nodes
         Default = False
-    
+
     """
-    def __init__(self, apply_func, aggr_type, dropout, batch_norm, activation, weighted=False, residual=False, init_eps=0, learn_eps=False):
-        
-        super().__init__(in_dim=apply_func.mlp.in_dim, out_dim=apply_func.mlp.out_dim, residual=residual, 
-                activation=activation, dropout=dropout, batch_norm=batch_norm)
+
+    def __init__(
+        self,
+        apply_func,
+        aggr_type,
+        dropout,
+        batch_norm,
+        activation,
+        weighted=False,
+        residual=False,
+        init_eps=0,
+        learn_eps=False,
+    ):
+
+        super().__init__(
+            in_dim=apply_func.mlp.in_dim,
+            out_dim=apply_func.mlp.out_dim,
+            residual=residual,
+            activation=activation,
+            dropout=dropout,
+            batch_norm=batch_norm,
+        )
 
         self.apply_func = apply_func
 
-        self._copier = fn.u_mul_e('h', 'w', 'm') if weighted else fn.copy_u('h', 'm')
-        
-        if aggr_type == 'sum':
+        self._copier = fn.u_mul_e("h", "w", "m") if weighted else fn.copy_u("h", "m")
+
+        if aggr_type == "sum":
             self._reducer = fn.sum
-        elif aggr_type == 'max':
+        elif aggr_type == "max":
             self._reducer = fn.max
-        elif aggr_type == 'mean':
+        elif aggr_type == "mean":
             self._reducer = fn.mean
         else:
-            raise KeyError('Aggregator type {} not recognized.'.format(aggr_type))
-        
+            raise KeyError("Aggregator type {} not recognized.".format(aggr_type))
+
         in_dim = apply_func.mlp.in_dim
         out_dim = apply_func.mlp.out_dim
-            
+
         # to specify whether eps is trainable or not.
         if learn_eps:
             self.eps = torch.nn.Parameter(torch.FloatTensor([init_eps]))
         else:
-            self.register_buffer('eps', torch.FloatTensor([init_eps]))
-            
+            self.register_buffer("eps", torch.FloatTensor([init_eps]))
+
         self.bn_node_h = nn.BatchNorm1d(out_dim)
 
     def forward(self, g, h):
-        h_in = h # for residual connection
-        
+        h_in = h  # for residual connection
+
         g = g.local_var()
-        g.ndata['h'] = h
-        g.update_all(self._copier, self._reducer('m', 'neigh'))
-        h = (1 + self.eps) * h + g.ndata['neigh']
+        g.ndata["h"] = h
+        g.update_all(self._copier, self._reducer("m", "neigh"))
+        h = (1 + self.eps) * h + g.ndata["neigh"]
         if self.apply_func is not None:
             h = self.apply_func(h)
 
         if self.batch_norm:
-            h = self.bn_node_h(h) # batch normalization  
-       
-        h = self.activation(h) # non-linear activation
-        
+            h = self.bn_node_h(h)  # batch normalization
+
+        h = self.activation(h)  # non-linear activation
+
         if self.residual:
-            h = h_in + h # residual connection
-        
+            h = h_in + h  # residual connection
+
         h = F.dropout(h, self.dropout, training=self.training)
-        
+
         return h
-    
+
 
 class GINLayer(GINLayerComplete):
-    def __init__(self, in_dim, out_dim, dropout, batch_norm, activation, weighted=False, 
-                residual=False, init_eps=0, learn_eps=False):
-        aggr_type = 'sum'
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        dropout,
+        batch_norm,
+        activation,
+        weighted=False,
+        residual=False,
+        init_eps=0,
+        learn_eps=False,
+    ):
+        aggr_type = "sum"
         apply_func = ApplyNodeFunc(MLP(num_layers=2, in_dim=in_dim, hidden_dim=in_dim, out_dim=out_dim))
-        super().__init__(apply_func=apply_func, aggr_type=aggr_type, 
-                        dropout=dropout, batch_norm=batch_norm, activation=activation, weighted=weighted,
-                        residual=residual, init_eps=init_eps, learn_eps=learn_eps)
+        super().__init__(
+            apply_func=apply_func,
+            aggr_type=aggr_type,
+            dropout=dropout,
+            batch_norm=batch_norm,
+            activation=activation,
+            weighted=weighted,
+            residual=residual,
+            init_eps=init_eps,
+            learn_eps=learn_eps,
+        )
 
 
-    
 class ApplyNodeFunc(nn.Module):
     """
-        This class is used in class GINNet
-        Update the node feature hv with MLP
+    This class is used in class GINNet
+    Update the node feature hv with MLP
     """
+
     def __init__(self, mlp):
         super().__init__()
         self.mlp = mlp
@@ -119,6 +155,7 @@ class ApplyNodeFunc(nn.Module):
 
 class MLP(nn.Module):
     """MLP with linear output"""
+
     def __init__(self, num_layers, in_dim, hidden_dim, out_dim):
 
         super().__init__()

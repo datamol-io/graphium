@@ -5,24 +5,25 @@ from matplotlib import pyplot as plt
 
 from rdkit.Chem import AllChem
 
-def save_im(im_dir, im_name, ext=['svg', 'png'], dpi=600):
+
+def save_im(im_dir, im_name, ext=["svg", "png"], dpi=600):
 
     if not os.path.exists(im_dir):
-        if im_dir[-1] not in ['/', '\\']:
-            im_dir += '/'
+        if im_dir[-1] not in ["/", "\\"]:
+            im_dir += "/"
         os.makedirs(im_dir)
 
     if isinstance(ext, str):
         ext = [ext]
-    
+
     full_name = os.path.join(im_dir, im_name)
     for this_ext in ext:
-        plt.savefig(f'{full_name}.{this_ext}', dpi=dpi, bbox_inches='tight', pad_inches=0)
+        plt.savefig(f"{full_name}.{this_ext}", dpi=dpi, bbox_inches="tight", pad_inches=0)
 
 
 def to_tensor(x, device=None, dtype=None):
     r"""
-    Convert a numpy array to tensor. The tensor type will be 
+    Convert a numpy array to tensor. The tensor type will be
     the same as the original array, unless specify otherwise
 
     Arguments
@@ -35,7 +36,7 @@ def to_tensor(x, device=None, dtype=None):
 
     Returns
     -------
-        New torch.Tensor 
+        New torch.Tensor
 
     """
     if isinstance(x, torch.Tensor):
@@ -48,7 +49,7 @@ def to_tensor(x, device=None, dtype=None):
         x = torch.tensor(x)
 
     x = x.to(dtype=dtype, device=device)
-    
+
     return x
 
 
@@ -137,20 +138,18 @@ def is_device_cuda(device, ignore_errors=False):
         is_cuda: bool
     """
 
-    
     if ignore_errors:
         is_cuda = False
         try:
-            is_cuda = torch.device(device).type == 'cuda'
+            is_cuda = torch.device(device).type == "cuda"
         except:
             pass
     else:
-        is_cuda = torch.device(device).type == 'cuda'
+        is_cuda = torch.device(device).type == "cuda"
     return is_cuda
 
 
 class ModuleListConcat(torch.nn.ModuleList):
-
     def __init__(self, dim=-1):
         super().__init__()
         self.dim = dim
@@ -161,5 +160,3 @@ class ModuleListConcat(torch.nn.ModuleList):
             h.append(module.forward(*args, **kwargs))
 
         return torch.cat(h, dim=self.dim)
-
-

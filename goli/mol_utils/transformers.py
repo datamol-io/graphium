@@ -17,8 +17,7 @@ from rdkit import Chem
 from rdkit.Chem.rdmolops import RenumberAtoms
 
 
-def to_mol(
-    mol, addHs=False, explicitOnly=True, ordered=True, kekulize=True, sanitize=True):
+def to_mol(mol, addHs=False, explicitOnly=True, ordered=True, kekulize=True, sanitize=True):
     r"""
     Convert an imput molecule (smiles representation) into a Chem.Mol
     :raises ValueError: if the input is neither a CHem.Mol nor a string
@@ -49,9 +48,7 @@ def to_mol(
             If the conversion fails None is returned so make sure that you handle this case on your own.
     """
     if not isinstance(mol, (str, Chem.Mol)):
-        raise ValueError(
-            "Input should be a Chem.Mol or a valid SMILES string, received: ", type(mol)
-        )
+        raise ValueError("Input should be a Chem.Mol or a valid SMILES string, received: ", type(mol))
     if isinstance(mol, str):
         mol = Chem.MolFromSmiles(mol, sanitize=sanitize)
         if not sanitize and mol is not None:
@@ -149,15 +146,11 @@ class MoleculeTransformer(TransformerMixin):
             fp = list(fp)
         elif is_dtype_numpy_array(dtype):
             if isinstance(fp, (list, tuple)):
-                fp = np.stack(
-                    [np.array(this_fp, dtype=dtype) for this_fp in fp], axis=0
-                )
+                fp = np.stack([np.array(this_fp, dtype=dtype) for this_fp in fp], axis=0)
             fp = np.array(fp, dtype=dtype)
         elif is_dtype_torch_tensor(dtype):
             if isinstance(fp, (list, tuple)):
-                fp = torch.stack(
-                    [to_tensor(this_fp, device=device, dtype=dtype) for this_fp in fp], dim=0
-                )
+                fp = torch.stack([to_tensor(this_fp, device=device, dtype=dtype) for this_fp in fp], dim=0)
             else:
                 fp = to_tensor(fp, device=device, dtype=dtype)
         else:
@@ -309,8 +302,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         return self.n_bond_feat
 
     def _set_num_features(self):
-        r"""Compute the number of features for each atom and bond
-        """
+        r"""Compute the number of features for each atom and bond"""
         self.n_atom_feat = 0
         # add atom type required
         self.n_atom_feat += len(nmp.ATOM_LIST) + 1
@@ -381,18 +373,10 @@ class AdjGraphTransformer(MoleculeTransformer):
                 # getting the max_n_atoms is why we are doing this stuff
                 # in two loop
                 if self.max_n_atoms and max_atom_update and self.max_n_atoms < num_atom:
-                    warnings.warn(
-                        "Max number of atoms is not enough, Updating to {}".format(
-                            num_atom
-                        )
-                    )
+                    warnings.warn("Max number of atoms is not enough, Updating to {}".format(num_atom))
                     self.max_n_atoms = num_atom
             elif mol is None and not ignore_errors:
-                raise (
-                    ValueError(
-                        "Molecule {} cannot be transformed adjency graph".format(ml)
-                    )
-                )
+                raise (ValueError("Molecule {} cannot be transformed adjency graph".format(ml)))
             mol_list.append(mol)
 
         for mol in mol_list:
@@ -434,8 +418,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         if self.with_bond:
             # Use padding value to fill
             bond_matrix = (
-                np.zeros((n_atoms, self.n_bond_feat * self.max_valence), dtype=np.int)
-                + self.padding_val
+                np.zeros((n_atoms, self.n_bond_feat * self.max_valence), dtype=np.int) + self.padding_val
             )
             # type of bond for each of its neighbor respecting max valence
 
@@ -444,9 +427,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         for a_idx in range(0, min(n_atoms, mol.GetNumAtoms())):
             atom = mol.GetAtomWithIdx(a_idx)
             atom_arrays.append(
-                get_atom_features(
-                    atom, explicit_H=self.explicit_H, use_chirality=self.use_chirality
-                )
+                get_atom_features(atom, explicit_H=self.explicit_H, use_chirality=self.use_chirality)
             )
             # adj_matrix[a_idx, a_idx] = 1  # add self loop
             for n_pos, neighbor in enumerate(atom.GetNeighbors()):
@@ -461,8 +442,7 @@ class AdjGraphTransformer(MoleculeTransformer):
                         bond_feat = get_edge_features(bond)
                         cur_neigb = n_pos % self.max_valence
                         bond_matrix[a_idx][
-                            (self.n_bond_feat * cur_neigb) : (self.n_bond_feat)
-                            * (cur_neigb + 1)
+                            (self.n_bond_feat * cur_neigb) : (self.n_bond_feat) * (cur_neigb + 1)
                         ] = bond_feat
 
         n_atom_shape = len(atom_arrays[0])
@@ -545,4 +525,3 @@ class AdjGraphTransformer(MoleculeTransformer):
         else:
             raise (TypeError("The type {} is not supported".format(dtype)))
         return graphs, ids
-

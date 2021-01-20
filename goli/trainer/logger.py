@@ -49,8 +49,8 @@ class HyperparamsMetricsTensorBoardLogger(TensorBoardLogger):
         params = self._convert_params(params)
         params = self._flatten_dict(params)
         sanitized_params = self._sanitize_params(params)
-        #self.experiment.add_hparams(sanitized_params, {} if metrics is None else metrics)
-        #self._add_hparams(sanitized_params, {} if metrics is None else metrics)
+        # self.experiment.add_hparams(sanitized_params, {} if metrics is None else metrics)
+        # self._add_hparams(sanitized_params, {} if metrics is None else metrics)
         self._add_hparams2(sanitized_params, {} if metrics is None else metrics)
         # self.tags.update(sanitized_params)
 
@@ -70,4 +70,3 @@ class HyperparamsMetricsTensorBoardLogger(TensorBoardLogger):
         self.tf_summary_writer.file_writer.add_summary(sei)
         for k, v in metric_dict.items():
             self.tf_summary_writer.add_scalar(k, v)
-
