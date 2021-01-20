@@ -9,8 +9,7 @@ GOLI (Graph Of LIfe) is a deep learning library focused on graph representation 
 Setup conda and mamba:
 
 ```bash
-# Install conda from
-https://docs.conda.io/en/latest/miniconda.html
+# Install conda from https://docs.conda.io/en/latest/miniconda.html
 
 # Setup conda-forge on your system
 conda config --add channels conda-forge
