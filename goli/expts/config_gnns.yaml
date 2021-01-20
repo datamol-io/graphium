@@ -1,0 +1,217 @@
+gin:
+  layer_type: gin
+  edge_features: False
+
+gcn:
+  layer_type: gcn
+  edge_features: False
+
+gat-4:
+  layer_type: gat
+  num_heads: 4
+  edge_features: False
+
+gat-8:
+  layer_type: gat
+  num_heads: 8
+  edge_features: False
+
+gat-16:
+  layer_type: gat
+  num_heads: 16
+  edge_features: False
+
+gated-gcn:
+  layer_type: gated-gcn
+  edge_features: True
+  in_dim_edges: 14
+
+mpnn-sum:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d: null
+  aggregators: "sum"
+  scalers: "identity"
+  towers: 1
+
+mpnn-max:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d: null
+  aggregators: "max"
+  scalers: "identity"
+  towers: 1
+
+mpnn-e-sum:
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d: null
+  aggregators: "sum"
+  scalers: "identity"
+  towers: 1
+
+mpnn-e-max:
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d: null
+  aggregators: "max"
+  scalers: "identity"
+  towers: 1
+
+pna:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity amplification attenuation"
+  towers: 1
+
+pna-no-scaler:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity"
+  towers: 1
+
+pna-e: 
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity amplification attenuation"
+  towers: 1
+
+pna-e-no-scaler: 
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity"
+  towers: 1
+
+
+mpnn4-sum:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d: null
+  aggregators: "sum"
+  scalers: "identity"
+  towers: 4
+
+mpnn4-max:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d: null
+  aggregators: "max"
+  scalers: "identity"
+  towers: 4
+
+mpnn4-e-sum:
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d: null
+  aggregators: "sum"
+  scalers: "identity"
+  towers: 4
+
+mpnn4-e-max:
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d: null
+  aggregators: "max"
+  scalers: "identity"
+  towers: 4
+
+pna4:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity amplification attenuation"
+  towers: 4
+
+pna4-no-scaler:
+  layer_type: pna
+  edge_features: False
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity"
+  towers: 4
+
+pna4-e: 
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity amplification attenuation"
+  towers: 4
+
+pna4-e-no-scaler: 
+  layer_type: pna
+  edge_features: True
+  edge_dim: 16
+  graph_norm: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity"
+  towers: 4
+
+pna-simple:
+  layer_type: pna-simple
+  edge_features: False
+  avg_d:
+    log: 1
+  aggregators: "mean max min std"
+  scalers: "identity amplification attenuation"
+  posttrans_layers: 1
+
+pna-simple2:
+  layer_type: pna-simple
+  edge_features: False
+  avg_d:
+    log: 1
+  aggregators: "sum mean max min std"
+  scalers: "identity"
+  posttrans_layers: 1
+
+pna-simple3:
+  layer_type: pna-simple
+  edge_features: False
+  avg_d:
+    log: 1
+  aggregators: "sum min max"
+  scalers: "identity"
+  posttrans_layers: 1
+
+

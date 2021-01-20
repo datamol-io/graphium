@@ -127,3 +127,16 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Custom GitIgnore
+*.code-workspace
+data/
+lightning_logs/
+.vscode/
+models_checkpoints/
+multirun/
+outputs/
+aws_multirun/
+=1.0
+
+
