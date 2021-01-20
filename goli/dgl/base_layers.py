@@ -7,8 +7,9 @@ from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, Glo
 from goli.commons.utils import ModuleListConcat
 
 
-SUPPORTED_ACTIVATION_MAP = {'ReLU', 'Sigmoid', 'Tanh', 'ELU', 'SELU', 'GLU', 'LeakyReLU', 'Softplus', 'None'}
+SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 EPS = 1e-5
+
 
 def get_activation(activation):
     """ returns the activation function represented by the input string """
@@ -17,9 +18,9 @@ def get_activation(activation):
         return activation
     # search in SUPPORTED_ACTIVATION_MAP a torch.nn.modules.activation
     activation = [x for x in SUPPORTED_ACTIVATION_MAP if activation.lower() == x.lower()]
-    assert len(activation) == 1 and isinstance(activation[0], str), 'Unhandled activation function'
+    assert len(activation) == 1 and isinstance(activation[0], str), "Unhandled activation function"
     activation = activation[0]
-    if activation.lower() == 'none':
+    if activation.lower() == "none":
         return None
     return vars(torch.nn.modules.activation)[activation]()
 
@@ -72,13 +73,22 @@ class FCLayer(nn.Module):
             Output dimension of the linear layer
     """
 
-    def __init__(self, in_dim, out_dim, activation='relu', dropout=0., batch_norm=False, bias=True, init_fn=None,
-                 device='cpu'):
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        activation="relu",
+        dropout=0.0,
+        batch_norm=False,
+        bias=True,
+        init_fn=None,
+        device="cpu",
+    ):
         super(FCLayer, self).__init__()
 
         self.__params = locals()
-        del self.__params['__class__']
-        del self.__params['self']
+        del self.__params["__class__"]
+        del self.__params["self"]
         self.in_dim = in_dim
         self.out_dim = out_dim
         self.bias = bias
@@ -115,18 +125,27 @@ class FCLayer(nn.Module):
         return h
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_dim) + ' -> ' \
-               + str(self.out_dim) + ')'
+        return self.__class__.__name__ + " (" + str(self.in_dim) + " -> " + str(self.out_dim) + ")"
 
 
 class MLP(nn.Module):
     """
-        Simple multi-layer perceptron, built of a series of FCLayers
+    Simple multi-layer perceptron, built of a series of FCLayers
     """
 
-    def __init__(self, in_dim, hidden_size, out_dim, layers, mid_activation='relu', last_activation='none',
-                 dropout=0., mid_batch_norm=False, last_batch_norm=False, device='cpu'):
+    def __init__(
+        self,
+        in_dim,
+        hidden_size,
+        out_dim,
+        layers,
+        mid_activation="relu",
+        last_activation="none",
+        dropout=0.0,
+        mid_batch_norm=False,
+        last_batch_norm=False,
+        device="cpu",
+    ):
         super(MLP, self).__init__()
 
         self.in_dim = in_dim
@@ -135,16 +154,48 @@ class MLP(nn.Module):
 
         self.fully_connected = nn.ModuleList()
         if layers <= 1:
-            self.fully_connected.append(FCLayer(in_dim, out_dim, activation=last_activation, batch_norm=last_batch_norm,
-                                                device=device, dropout=dropout))
+            self.fully_connected.append(
+                FCLayer(
+                    in_dim,
+                    out_dim,
+                    activation=last_activation,
+                    batch_norm=last_batch_norm,
+                    device=device,
+                    dropout=dropout,
+                )
+            )
         else:
-            self.fully_connected.append(FCLayer(in_dim, hidden_size, activation=mid_activation, batch_norm=mid_batch_norm,
-                                                device=device, dropout=dropout))
+            self.fully_connected.append(
+                FCLayer(
+                    in_dim,
+                    hidden_size,
+                    activation=mid_activation,
+                    batch_norm=mid_batch_norm,
+                    device=device,
+                    dropout=dropout,
+                )
+            )
             for _ in range(layers - 2):
-                self.fully_connected.append(FCLayer(hidden_size, hidden_size, activation=mid_activation,
-                                                    batch_norm=mid_batch_norm, device=device, dropout=dropout))
-            self.fully_connected.append(FCLayer(hidden_size, out_dim, activation=last_activation, batch_norm=last_batch_norm,
-                                                device=device, dropout=dropout))
+                self.fully_connected.append(
+                    FCLayer(
+                        hidden_size,
+                        hidden_size,
+                        activation=mid_activation,
+                        batch_norm=mid_batch_norm,
+                        device=device,
+                        dropout=dropout,
+                    )
+                )
+            self.fully_connected.append(
+                FCLayer(
+                    hidden_size,
+                    out_dim,
+                    activation=last_activation,
+                    batch_norm=last_batch_norm,
+                    device=device,
+                    dropout=dropout,
+                )
+            )
 
     def forward(self, x):
         for fc in self.fully_connected:
@@ -152,14 +203,12 @@ class MLP(nn.Module):
         return x
 
     def __repr__(self):
-        return self.__class__.__name__ + ' (' \
-               + str(self.in_dim) + ' -> ' \
-               + str(self.out_dim) + ')'
+        return self.__class__.__name__ + " (" + str(self.in_dim) + " -> " + str(self.out_dim) + ")"
 
 
 class GRU(nn.Module):
     """
-        Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
+    Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
     """
 
     def __init__(self, input_size, hidden_size, device):
@@ -174,7 +223,7 @@ class GRU(nn.Module):
         :param y:   shape: (B, N, Dh) where Dh <= hidden_size (difference is padded)
         :return:    shape: (B, N, Dh)
         """
-        assert (x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_size)
+        assert x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_size
 
         (B, N, _) = x.shape
         x = x.reshape(1, B * N, -1).contiguous()
@@ -182,9 +231,9 @@ class GRU(nn.Module):
 
         # padding if necessary
         if x.shape[-1] < self.input_size:
-            x = F.pad(input=x, pad=[0, self.input_size - x.shape[-1]], mode='constant', value=0)
+            x = F.pad(input=x, pad=[0, self.input_size - x.shape[-1]], mode="constant", value=0)
         if y.shape[-1] < self.hidden_size:
-            y = F.pad(input=y, pad=[0, self.hidden_size - y.shape[-1]], mode='constant', value=0)
+            y = F.pad(input=y, pad=[0, self.hidden_size - y.shape[-1]], mode="constant", value=0)
 
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)
@@ -193,19 +242,27 @@ class GRU(nn.Module):
 
 class S2SReadout(nn.Module):
     """
-        Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
+    Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
-    def __init__(self, in_dim, hidden_size, out_dim, fc_layers=3, device='cpu', final_activation='relu'):
+    def __init__(self, in_dim, hidden_size, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
         super(S2SReadout, self).__init__()
 
         # set2set aggregation
         self.set2set = Set2Set(in_dim, device=device)
 
         # fully connected layers
-        self.mlp = MLP(in_dim=2 * in_dim, hidden_size=hidden_size, out_dim=out_dim, layers=fc_layers,
-                       mid_activation="relu", last_activation=final_activation, mid_batch_norm=True, last_batch_norm=False,
-                       device=device)
+        self.mlp = MLP(
+            in_dim=2 * in_dim,
+            hidden_size=hidden_size,
+            out_dim=out_dim,
+            layers=fc_layers,
+            mid_activation="relu",
+            last_activation=final_activation,
+            mid_batch_norm=True,
+            last_batch_norm=False,
+            device=device,
+        )
 
     def forward(self, x):
         x = self.set2set(x)
@@ -218,6 +275,7 @@ class StdPooling(nn.Module):
     .. math::
         r^{(i)} = \sigma_{k=1}^{N_i}\left( x^{(i)}_k \right)
     """
+
     def __init__(self):
         super(StdPooling, self).__init__()
         self.sum_pooler = SumPooling()
@@ -241,7 +299,9 @@ class StdPooling(nn.Module):
             :math:`B` refers to the batch size.
         """
 
-        readout = torch.sqrt(self.relu((self.sum_pooler(graph, feat**2)) - (self.sum_pooler(graph, feat) ** 2)) + EPS)
+        readout = torch.sqrt(
+            self.relu((self.sum_pooler(graph, feat ** 2)) - (self.sum_pooler(graph, feat) ** 2)) + EPS
+        )
         return readout
 
 
@@ -280,24 +340,24 @@ def parse_pooling_layer(in_dim, pooling):
     pool_layer = ModuleListConcat()
     out_pool_dim = 0
 
-    for this_pool in re.split('\s+|_', pooling):
+    for this_pool in re.split("\s+|_", pooling):
         out_pool_dim += in_dim
-        if this_pool == 'sum':
+        if this_pool == "sum":
             pool_layer.append(SumPooling())
-        elif this_pool == 'mean':
+        elif this_pool == "mean":
             pool_layer.append(AvgPooling())
-        elif this_pool == 'max':
+        elif this_pool == "max":
             pool_layer.append(MaxPooling())
-        elif this_pool == 'min':
+        elif this_pool == "min":
             pool_layer.append(MinPooling())
-        elif this_pool == 'std':
+        elif this_pool == "std":
             pool_layer.append(StdPooling())
-        elif this_pool == 's2s':
+        elif this_pool == "s2s":
             pool_layer.append(Set2Set(input_dim=in_dim, n_iters=2, n_layers=2))
             out_pool_dim += in_dim
         elif (this_pool == "none") or (this_pool is None):
             pass
         else:
-            raise NotImplementedError(f'Undefined pooling `{this_pool}`')
+            raise NotImplementedError(f"Undefined pooling `{this_pool}`")
 
     return pool_layer, out_pool_dim

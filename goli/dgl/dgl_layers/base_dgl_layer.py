@@ -1,7 +1,7 @@
 import torch.nn as nn
 
-class BaseDGLLayer(nn.Module):
 
+class BaseDGLLayer(nn.Module):
     def __init__(self, in_dim, out_dim, residual, activation, dropout, batch_norm):
         super().__init__()
         self.in_dim = in_dim
@@ -10,7 +10,6 @@ class BaseDGLLayer(nn.Module):
         self.activation = activation
         self.dropout = dropout
         self.batch_norm = batch_norm
-        
 
     @staticmethod
     def _parse_layer_args(in_dims, out_dims, **kwargs):
@@ -19,4 +18,3 @@ class BaseDGLLayer(nn.Module):
         kwargs_keys_to_remove = []
         true_out_dims = out_dims
         return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
-

@@ -3,21 +3,14 @@ from copy import deepcopy
 
 from matplotlib.offsetbox import AnchoredText
 
-def annotate_metric(
-    ax,
-    metrics,
-    x,
-    y,
-    fontsize=10,
-    loc="upper left",
-    **kwargs
-):
+
+def annotate_metric(ax, metrics, x, y, fontsize=10, loc="upper left", **kwargs):
     # Compute each metric from `metrics` on the `x` and `y` data.
     # Then Annotate the plot with with the the results of each metric
     # Compute the metrics and generate strings for each metric
 
     stat_text = ""
-    
+
     for metric_name, metric in metrics.items():
         kwargs_copy = deepcopy(kwargs)
         stat = metric(x, y, **kwargs_copy)
@@ -41,4 +34,3 @@ def _annotate(ax, text, loc="upper left", bbox_to_anchor=(1.2, 1)):
     anchored_text = AnchoredText(text, loc=loc, **text_loc_outside)
     anchored_text.patch._alpha = 0.25
     ax.add_artist(anchored_text)
-

@@ -53,7 +53,6 @@ class DGLGraphTransformer(AdjGraphTransformer):
         if self.edge_labels:
             self.n_bond_feat = 1
 
-
     def _transform(self, mol):
         r"""
         Transforms a molecule into a DGL graph and a set of atom and bond features
@@ -80,9 +79,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
         for a_idx in range(0, n_atoms):
             atom = mol.GetAtomWithIdx(a_idx)
             atom_feats.append(
-                get_atom_features(
-                    atom, explicit_H=self.explicit_H, use_chirality=self.use_chirality
-                )
+                get_atom_features(atom, explicit_H=self.explicit_H, use_chirality=self.use_chirality)
             )
         graph.add_nodes(n_atoms)
 
@@ -107,7 +104,6 @@ class DGLGraphTransformer(AdjGraphTransformer):
         # we need to call torch.stack on atom_feats and bond_feats
         return (graph, np.asarray(atom_feats), np.asarray(bond_feats))
 
-
     @staticmethod
     def to(graphs, dtype, device):
         out = []
@@ -131,11 +127,10 @@ class DGLGraphTransformer(AdjGraphTransformer):
             g.edata["he"] = e
             out.append(g)
 
-        print('---------------------------------')
+        print("---------------------------------")
         print(out[0])
         print(out[0].__dict__)
         return out
-
 
     def __call__(self, mols, dtype=torch.float, device=None, **kwargs):
         r"""
@@ -177,6 +172,5 @@ class DGLGraphTransformer(AdjGraphTransformer):
 
         graphs, ids = super().__call__(mols, dtype=None, **kwargs)
         out = self.to(graphs, dtype=dtype, device=device)
-        
-        return out, ids
 
+        return out, ids

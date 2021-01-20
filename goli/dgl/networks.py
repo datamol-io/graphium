@@ -16,12 +16,22 @@ from goli.dgl.base_layers import FCLayer, get_activation, parse_pooling_layer
 
 
 class FeedForwardNN(nn.Module):
-
-    def __init__(self, in_dim, out_dim, hidden_dims, activation='relu', last_activation='none', 
-                batch_norm=False, dropout=0.25, name='LNN', layer_type=FCLayer, **kwargs):
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        hidden_dims,
+        activation="relu",
+        last_activation="none",
+        batch_norm=False,
+        dropout=0.25,
+        name="LNN",
+        layer_type=FCLayer,
+        **kwargs,
+    ):
 
         super().__init__()
-        
+
         # Hyper-parameters
         self.in_dim = in_dim
         self.out_dim = out_dim
@@ -36,19 +46,19 @@ class FeedForwardNN(nn.Module):
         self.name = name
 
         self.hparams = {
-            f'{self.name}.out_dim': self.out_dim, 
-            f'{self.name}.hidden_dims': self.hidden_dims,
-            f'{self.name}.activation': str(self.activation),
-            f'{self.name}.last_activation': str(self.last_activation),
-            f'{self.name}.layer_type': str(layer_type),
-            f'{self.name}.depth': self.depth,
-            f'{self.name}.dropout': self.dropout,
-            }
+            f"{self.name}.out_dim": self.out_dim,
+            f"{self.name}.hidden_dims": self.hidden_dims,
+            f"{self.name}.activation": str(self.activation),
+            f"{self.name}.last_activation": str(self.last_activation),
+            f"{self.name}.layer_type": str(layer_type),
+            f"{self.name}.depth": self.depth,
+            f"{self.name}.dropout": self.dropout,
+        }
 
         self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
         self.true_in_dims, self.true_out_dims = self.create_layers(
-                    in_dims=self.full_dims[:-1], out_dims=self.full_dims[1:])
-
+            in_dims=self.full_dims[:-1], out_dims=self.full_dims[1:]
+        )
 
     def create_layers(self, in_dims: list, out_dims: list, kwargs_of_lists=None):
 
@@ -63,13 +73,20 @@ class FeedForwardNN(nn.Module):
                 this_kwargs = {}
             else:
                 this_kwargs = {key: value[ii] for key, value in kwargs_of_lists.items()}
-            
-            self.layers.append(self.layer_type(in_dim=in_dims[ii], out_dim=out_dims[ii],
-                                        activation=this_activation, dropout=self.dropout, 
-                                        batch_norm=self.batch_norm, **self.kwargs, **this_kwargs))
+
+            self.layers.append(
+                self.layer_type(
+                    in_dim=in_dims[ii],
+                    out_dim=out_dims[ii],
+                    activation=this_activation,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm,
+                    **self.kwargs,
+                    **this_kwargs,
+                )
+            )
 
         return in_dims, out_dims
-
 
     def forward(self, inputs):
         for layer in self.layers:
@@ -77,11 +94,23 @@ class FeedForwardNN(nn.Module):
         return inputs
 
 
-
 class FeedForwardDGL(FeedForwardNN):
-    def __init__(self, in_dim, out_dim, hidden_dims, activation='relu', last_activation='none', 
-                batch_norm=False, dropout=0.25, edge_features=False, pooling='sum',
-                name='GNN', layer_type='gcn', intermittent_pooling='none', **kwargs):
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        hidden_dims,
+        activation="relu",
+        last_activation="none",
+        batch_norm=False,
+        dropout=0.25,
+        edge_features=False,
+        pooling="sum",
+        name="GNN",
+        layer_type="gcn",
+        intermittent_pooling="none",
+        **kwargs,
+    ):
 
         layer_type, layer_name = self._parse_gnn_layer(layer_type)
 
@@ -96,88 +125,98 @@ class FeedForwardDGL(FeedForwardNN):
             name=name,
             layer_type=layer_type,
             dropout=dropout,
-            **kwargs)
+            **kwargs,
+        )
 
         # Initialize the additional attributes
         self.edge_features = edge_features
         self.pooling = pooling.lower()
         self.intermittent_pooling = intermittent_pooling.lower()
-        
+
         # Register some hparams for cross-validation
-        self.hparams['layer_name'] = layer_name
-        self.hparams['layer_type'] = layer_type
-        self.hparams['edge_features'] = edge_features
-        self.hparams['pooling'] = pooling
-        self.hparams['intermittent_pooling'] = intermittent_pooling
-        self.hparams['activation'] = str(activation)
-        self.hparams['last_activation'] = str(last_activation)
-        self.hparams['batch_norm'] = str(batch_norm)
-        self.hparams['dropout'] = str(dropout)
-        self.hparams['layer_kwargs'] = str(kwargs)
+        self.hparams["layer_name"] = layer_name
+        self.hparams["layer_type"] = layer_type
+        self.hparams["edge_features"] = edge_features
+        self.hparams["pooling"] = pooling
+        self.hparams["intermittent_pooling"] = intermittent_pooling
+        self.hparams["activation"] = str(activation)
+        self.hparams["last_activation"] = str(last_activation)
+        self.hparams["batch_norm"] = str(batch_norm)
+        self.hparams["dropout"] = str(dropout)
+        self.hparams["layer_kwargs"] = str(kwargs)
 
         # Initialize global and intermittent pooling layers
         self.global_pool_layer, out_pool_dim = parse_pooling_layer(out_dim, self.pooling)
         self.intermittent_pool_layers = nn.ModuleList(
-                    [IntermittentPoolingLayer(
-                        in_dim=this_dim, num_layers=2, pooling=self.intermittent_pooling, activation=activation, 
-                        last_activation=last_activation, dropout=dropout, batch_norm=batch_norm, bias=True
-                    ) for ii, this_dim in enumerate(self.true_out_dims[1:])]
-                    )
+            [
+                IntermittentPoolingLayer(
+                    in_dim=this_dim,
+                    num_layers=2,
+                    pooling=self.intermittent_pooling,
+                    activation=activation,
+                    last_activation=last_activation,
+                    dropout=dropout,
+                    batch_norm=batch_norm,
+                    bias=True,
+                )
+                for ii, this_dim in enumerate(self.true_out_dims[1:])
+            ]
+        )
 
         # Initialize input and output linear layers
         self.in_linear = nn.Linear(in_features=self.in_dim, out_features=self.hidden_dims[0])
         self.out_linear = nn.Linear(in_features=out_pool_dim, out_features=self.hidden_dims[-1])
 
-
     def _parse_gnn_layer(self, layer_type):
         # Parse the GNN type from the name
         if isinstance(layer_type, str):
             layer_name = layer_type.lower()
-            if layer_name == 'gcn':
+            if layer_name == "gcn":
                 layer_type = GCNLayer
-            elif layer_name == 'gin':
+            elif layer_name == "gin":
                 layer_type = GINLayer
-            elif layer_name == 'gat':
+            elif layer_name == "gat":
                 layer_type = GATLayer
-            elif layer_name == 'gated-gcn':
+            elif layer_name == "gated-gcn":
                 layer_type = GatedGCNLayer
-            elif layer_name == 'pna':
+            elif layer_name == "pna":
                 layer_type = PNALayer
-            elif layer_name == 'pna-simple':
+            elif layer_name == "pna-simple":
                 layer_type = PNASimpleLayer
             else:
-                raise ValueError(f'Unsupported `layer_type`: {layer_type}')
+                raise ValueError(f"Unsupported `layer_type`: {layer_type}")
         else:
             layer_name = str(layer_type)
-        
-        return layer_type, layer_name
 
+        return layer_type, layer_name
 
     def _get_layers_args(self):
         in_dims = self.hidden_dims[0:1] + self.hidden_dims
         out_dims = self.hidden_dims + [self.out_dim]
 
-        in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove =\
-             self.layer_type._parse_layer_args(in_dims, out_dims, **self.kwargs)
+        (
+            in_dims,
+            out_dims,
+            true_out_dims,
+            kwargs_of_lists,
+            kwargs_keys_to_remove,
+        ) = self.layer_type._parse_layer_args(in_dims, out_dims, **self.kwargs)
 
         return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
 
-
     def create_layers(self, in_dims: list, out_dims: list):
-        
+
         in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove = self._get_layers_args()
         for key in kwargs_keys_to_remove:
             self.kwargs.pop(key)
         super().create_layers(in_dims=in_dims, out_dims=out_dims, kwargs_of_lists=kwargs_of_lists)
         return in_dims, true_out_dims
 
-
     def _forward_pre_layers(self, graph):
-        h = graph.ndata['hv']
-        e = graph.edata['he'] if self.edge_features else None
+        h = graph.ndata["hv"]
+        e = graph.edata["he"] if self.edge_features else None
         h = self.in_linear(h)
         return h, e
-
 
     def _forward_post_layers(self, graph, h):
 
@@ -194,7 +233,6 @@ class FeedForwardDGL(FeedForwardNN):
 
         return pooled_h
 
-
     def _forward_middle_layers(self, cv_layer, graph, h, e):
         if self.edge_features:
             h = cv_layer(graph, h, e)
@@ -204,23 +242,23 @@ class FeedForwardDGL(FeedForwardNN):
             h = cv_layer(graph, h)
             if isinstance(h, tuple):
                 h = h[0]
-        
-        return h, e
 
+        return h, e
 
     def _forward_intermittent_pool_layers(self, graph, h, layer_idx):
         idx = layer_idx - 1
-        if (len(self.intermittent_pool_layers) > 0) and \
-            (idx >= 0) and \
-            (idx < len(self.intermittent_pool_layers)):
+        if (
+            (len(self.intermittent_pool_layers) > 0)
+            and (idx >= 0)
+            and (idx < len(self.intermittent_pool_layers))
+        ):
 
             h = self.intermittent_pool_layers[idx].forward(graph, h)
 
         return h
 
-
     def forward(self, graph):
-        
+
         h, e = self._forward_pre_layers(graph)
 
         # Apply the consecutive graph convolutions
@@ -229,14 +267,28 @@ class FeedForwardDGL(FeedForwardNN):
             h = self._forward_intermittent_pool_layers(graph, h, ii)
 
         pooled_h = self._forward_post_layers(graph, h)
-        
+
         return pooled_h
 
 
 class SkipFeedForwardDGL(FeedForwardDGL):
-    def __init__(self, in_dim, out_dim, hidden_dims, activation='relu', last_activation='none', 
-                batch_norm=False, dropout=0.25, edge_features=False, pooling='sum',
-                skip_steps=2, name='GNN', layer_type='gcn', intermittent_pooling='none', **kwargs):
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        hidden_dims,
+        activation="relu",
+        last_activation="none",
+        batch_norm=False,
+        dropout=0.25,
+        edge_features=False,
+        pooling="sum",
+        skip_steps=2,
+        name="GNN",
+        layer_type="gcn",
+        intermittent_pooling="none",
+        **kwargs,
+    ):
 
         assert isinstance(skip_steps, int)
         self.skip_steps = skip_steps
@@ -252,27 +304,26 @@ class SkipFeedForwardDGL(FeedForwardDGL):
             name=name,
             layer_type=layer_type,
             dropout=dropout,
-            edge_features=edge_features, 
-            pooling=pooling, 
+            edge_features=edge_features,
+            pooling=pooling,
             intermittent_pooling=intermittent_pooling,
-            **kwargs)
+            **kwargs,
+        )
 
-        self.hparams['skip_steps'] = skip_steps
-
+        self.hparams["skip_steps"] = skip_steps
 
     def _get_layers_args(self):
         in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove = super()._get_layers_args()
         for ii in range(1, len(in_dims)):
             if (self.skip_steps != 0) and ((ii % self.skip_steps) == 0):
                 in_dims[ii] *= 2
-                if 'in_dim_e' in kwargs_of_lists.keys():
-                    kwargs_of_lists['in_dim_e'][ii] *= 2
+                if "in_dim_e" in kwargs_of_lists.keys():
+                    kwargs_of_lists["in_dim_e"][ii] *= 2
 
         return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
 
-
     def forward(self, graph):
-        
+
         h, e = self._forward_pre_layers(graph)
 
         # Apply the consecutive graph convolutions
@@ -282,7 +333,7 @@ class SkipFeedForwardDGL(FeedForwardDGL):
                 h = torch.cat([h, h_prev], dim=-1)
                 if e is not None:
                     e = torch.cat([e, e_prev], dim=-1)
-            
+
             h, e = self._forward_middle_layers(cv_layer, graph, h, e)
             h = self._forward_intermittent_pool_layers(graph, h, ii)
 
@@ -291,15 +342,28 @@ class SkipFeedForwardDGL(FeedForwardDGL):
                 e_prev = e
 
         pooled_h = self._forward_post_layers(graph, h)
-        
+
         return pooled_h
 
 
-
 class DenseNetDGL(FeedForwardDGL):
-    def __init__(self, in_dim, out_dim, hidden_dims, activation='relu', last_activation='none', 
-                batch_norm=False, dropout=0.25, edge_features=False, pooling='sum',
-                skip_steps=1, name='GNN', layer_type='gcn', intermittent_pooling='none', **kwargs):
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        hidden_dims,
+        activation="relu",
+        last_activation="none",
+        batch_norm=False,
+        dropout=0.25,
+        edge_features=False,
+        pooling="sum",
+        skip_steps=1,
+        name="GNN",
+        layer_type="gcn",
+        intermittent_pooling="none",
+        **kwargs,
+    ):
 
         assert isinstance(skip_steps, int)
         self.skip_steps = skip_steps
@@ -315,29 +379,28 @@ class DenseNetDGL(FeedForwardDGL):
             name=name,
             layer_type=layer_type,
             dropout=dropout,
-            edge_features=edge_features, 
-            pooling=pooling, 
+            edge_features=edge_features,
+            pooling=pooling,
             intermittent_pooling=intermittent_pooling,
-            **kwargs)
+            **kwargs,
+        )
 
-        self.hparams['skip_steps'] = skip_steps
-
+        self.hparams["skip_steps"] = skip_steps
 
     def _get_layers_args(self):
         in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove = super()._get_layers_args()
         skip_counter = 2
         for ii in range(1, len(in_dims)):
-            if ((ii % self.skip_steps) == 0):
+            if (ii % self.skip_steps) == 0:
                 in_dims[ii] *= skip_counter
-                if 'in_dim_e' in kwargs_of_lists.keys():
-                    kwargs_of_lists['in_dim_e'][ii] *= skip_counter
+                if "in_dim_e" in kwargs_of_lists.keys():
+                    kwargs_of_lists["in_dim_e"][ii] *= skip_counter
                 skip_counter += 1
 
         return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
 
-
     def forward(self, graph):
-        
+
         h, e = self._forward_pre_layers(graph)
 
         # Apply the consecutive graph convolutions
@@ -351,20 +414,34 @@ class DenseNetDGL(FeedForwardDGL):
             if (self.skip_steps != 0) and ((ii % self.skip_steps) == 0) and (ii >= 0):
                 h_prev = h
                 e_prev = e
-            
+
             h, e = self._forward_middle_layers(cv_layer, graph, h, e)
             h = self._forward_intermittent_pool_layers(graph, h, ii)
 
         pooled_h = self._forward_post_layers(graph, h)
-        
+
         return pooled_h
 
 
 class ResNetDGL(FeedForwardDGL):
-    def __init__(self, in_dim, out_dim, hidden_dims, activation='relu', last_activation='none', 
-                batch_norm=False, dropout=0.25, edge_features=False, pooling='sum',
-                skip_steps=2, residual_weights=False, name='GNN', layer_type='gcn', 
-                intermittent_pooling='none', **kwargs):
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        hidden_dims,
+        activation="relu",
+        last_activation="none",
+        batch_norm=False,
+        dropout=0.25,
+        edge_features=False,
+        pooling="sum",
+        skip_steps=2,
+        residual_weights=False,
+        name="GNN",
+        layer_type="gcn",
+        intermittent_pooling="none",
+        **kwargs,
+    ):
 
         assert isinstance(skip_steps, int)
         self.skip_steps = skip_steps
@@ -381,19 +458,19 @@ class ResNetDGL(FeedForwardDGL):
             name=name,
             layer_type=layer_type,
             dropout=dropout,
-            edge_features=edge_features, 
-            pooling=pooling, 
+            edge_features=edge_features,
+            pooling=pooling,
             intermittent_pooling=intermittent_pooling,
-            **kwargs)
+            **kwargs,
+        )
 
-        self.hparams['skip_steps'] = skip_steps
-        self.hparams['residual_weights'] = residual_weights
+        self.hparams["skip_steps"] = skip_steps
+        self.hparams["residual_weights"] = residual_weights
 
         self.h_residual_list = self._make_residual_weigts(residual_weights)
 
-
     def _make_residual_weigts(self, residual_weights: bool):
-        
+
         residual_list = None
         if residual_weights:
             residual_list = nn.ModuleList()
@@ -401,15 +478,21 @@ class ResNetDGL(FeedForwardDGL):
                 this_dim = self.full_dims[ii]
                 residual_list.append(
                     nn.Sequential(
-                    FCLayer(this_dim, this_dim, activation=self.activation, dropout=self.dropout, batch_norm=self.batch_norm, bias=False),
-                    nn.Linear(this_dim, this_dim, bias=False)
+                        FCLayer(
+                            this_dim,
+                            this_dim,
+                            activation=self.activation,
+                            dropout=self.dropout,
+                            batch_norm=self.batch_norm,
+                            bias=False,
+                        ),
+                        nn.Linear(this_dim, this_dim, bias=False),
                     )
-                    )
+                )
         return residual_list
 
-
     def forward(self, graph):
-        
+
         h, e = self._forward_pre_layers(graph)
         skip_count = 0
 
@@ -430,20 +513,24 @@ class ResNetDGL(FeedForwardDGL):
                 e_prev = e
 
                 skip_count += 1
-            
+
             h, e = self._forward_middle_layers(cv_layer, graph, h, e)
             h = self._forward_intermittent_pool_layers(graph, h, ii)
 
         pooled_h = self._forward_post_layers(graph, h)
-        
+
         return pooled_h
 
 
 class DGLGraphNetwork(nn.Module):
-
-    def __init__(self, gnn_kwargs, lnn_kwargs=None, 
-                gnn_architecture='skip-concat', lnn_architecture=None, 
-                name='DGL_GNN'):
+    def __init__(
+        self,
+        gnn_kwargs,
+        lnn_kwargs=None,
+        gnn_architecture="skip-concat",
+        lnn_architecture=None,
+        name="DGL_GNN",
+    ):
 
         # Initialize the parent nn.Module
         super().__init__()
@@ -454,20 +541,20 @@ class DGLGraphNetwork(nn.Module):
         self.gnn = self._parse_gnn_architecture(gnn_architecture, gnn_kwargs)
         self.lnn = self._parse_lnn_architecture(lnn_architecture, lnn_kwargs)
 
-        self.hparams = {f'{self.name}.{key}': elem for key, elem in self.gnn.hparams.items()}
-        self.hparams[f'{self.name}.gnn_architecture'] = self.gnn_architecture
-        self.hparams[f'{self.name}.lnn_architecture'] = self.lnn_architecture
-    
+        self.hparams = {f"{self.name}.{key}": elem for key, elem in self.gnn.hparams.items()}
+        self.hparams[f"{self.name}.gnn_architecture"] = self.gnn_architecture
+        self.hparams[f"{self.name}.lnn_architecture"] = self.lnn_architecture
+
     def _parse_gnn_architecture(self, gnn_architecture, gnn_kwargs):
         gnn_architecture = gnn_architecture.lower()
-        if gnn_architecture == 'skip-concat':
+        if gnn_architecture == "skip-concat":
             gnn = SkipFeedForwardDGL(**gnn_kwargs)
-        elif gnn_architecture == 'resnet':
+        elif gnn_architecture == "resnet":
             gnn = ResNetDGL(**gnn_kwargs)
-        elif gnn_architecture == 'resnet-residualweights':
-            gnn_kwargs['residual_weights'] = True
+        elif gnn_architecture == "resnet-residualweights":
+            gnn_kwargs["residual_weights"] = True
             gnn = ResNetDGL(**gnn_kwargs)
-        elif gnn_architecture == 'densenet':
+        elif gnn_architecture == "densenet":
             gnn = DenseNetDGL(**gnn_kwargs)
         else:
             raise NotImplementedError
@@ -485,8 +572,6 @@ class DGLGraphNetwork(nn.Module):
 
         return lnn
 
-    
-
     def forward(self, graph):
 
         h = self.gnn.forward(graph)
@@ -496,19 +581,21 @@ class DGLGraphNetwork(nn.Module):
 
 
 class SiameseGraphNetwork(DGLGraphNetwork):
-
-    def __init__(self, gnn_kwargs, dist_method, gnn_architecture='skip-concat', name='SiameseGNN'):
+    def __init__(self, gnn_kwargs, dist_method, gnn_architecture="skip-concat", name="SiameseGNN"):
 
         # Initialize the parent nn.Module
-        super().__init__(   gnn_kwargs=gnn_kwargs, lnn_kwargs=None,
-                            gnn_architecture=gnn_architecture, lnn_architecture=None, name=name)
-
+        super().__init__(
+            gnn_kwargs=gnn_kwargs,
+            lnn_kwargs=None,
+            gnn_architecture=gnn_architecture,
+            lnn_architecture=None,
+            name=name,
+        )
 
         self.dist_method = dist_method.lower()
-        self.activation = 'sigmoid'
+        self.activation = "sigmoid"
 
-        self.hparams[f'{self.name}.dist_method'] = self.dist_method
-
+        self.hparams[f"{self.name}.dist_method"] = self.dist_method
 
     def forward(self, graphs):
         graph_1, graph_2 = graphs
@@ -516,24 +603,22 @@ class SiameseGraphNetwork(DGLGraphNetwork):
         out_1 = self.gnn.forward(graph_1)
         out_2 = self.gnn.forward(graph_2)
 
-        if self.dist_method == 'manhattan':
+        if self.dist_method == "manhattan":
             # Normalized L1 distance
             out_1 = out_1 / torch.mean(out_1.abs(), dim=-1, keepdim=True)
             out_2 = out_2 / torch.mean(out_2.abs(), dim=-1, keepdim=True)
             dist = torch.abs(out_1 - out_2)
             out = torch.mean(dist, dim=-1)
 
-        elif self.dist_method == 'euclidean':
+        elif self.dist_method == "euclidean":
             # Normalized Euclidean distance
             out_1 = out_1 / torch.norm(out_1, dim=-1, keepdim=True)
             out_2 = out_2 / torch.norm(out_2, dim=-1, keepdim=True)
             out = torch.norm(out_1 - out_2, dim=-1)
-        elif self.dist_method == 'cosine':
+        elif self.dist_method == "cosine":
             # Cosine distance
             out = torch.sum(out_1 * out_2, dim=-1) / (torch.norm(out_1, dim=-1) * torch.norm(out_2, dim=-1))
         else:
-            raise ValueError(f'Unsupported `dist_method`: {self.dist_method}')
+            raise ValueError(f"Unsupported `dist_method`: {self.dist_method}")
 
         return out
-
-

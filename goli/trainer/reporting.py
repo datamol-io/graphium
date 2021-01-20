@@ -29,9 +29,9 @@ class TrainingProgressFromSummary(pl.Callback):
         log = {}
         for part in module.epoch_summary.summaries.keys():
             results = module.epoch_summary.get_results(part)
-            log[f'loss/{part.value}'] = results.loss
+            log[f"loss/{part.value}"] = results.loss
             for name, metric in self.metrics.items():
-                log[f'{name}/{part.value}'] = metric(results.predictions, results.targets)
+                log[f"{name}/{part.value}"] = metric(results.predictions, results.targets)
         module.logger.log_metrics(log, module.current_epoch)
 
 
@@ -41,19 +41,19 @@ class BestEpochFromSummary(pl.Callback):
     Best epoch := lowest validation loss.
     Like the one above, this one needs the EpochSummary to have collected results.
     Thus, it works together with the `SummarizeEpochs` base module.
-    
+
     Additionally, I need to use a hacked tensorboard logger: `HyperparamsMetricsTensorBoardLogger`.
     This logger works but it also has some issues (see its docstring).
     """
 
     def __init__(self, metrics: Dict):
         super(BestEpochFromSummary, self).__init__()
-        self.best_loss = float('inf')
+        self.best_loss = float("inf")
         self.metrics = metrics
 
     def on_epoch_end(self, trainer: pl.Trainer, module):
         """Gets called by trainer after epoch end"""
-        results = module.epoch_summary.get_results('val')
+        results = module.epoch_summary.get_results("val")
         if results.loss < self.best_loss:
             self.best_loss = results.loss
             self._log_hparams_metrics(module)
@@ -62,9 +62,9 @@ class BestEpochFromSummary(pl.Callback):
         metrics = {}
         for key in module.epoch_summary.summaries.keys():
             results = module.epoch_summary.get_results(key)
-            metrics[f'best-loss/{key}'] = results.loss
+            metrics[f"best-loss/{key}"] = results.loss
             for name, metric in self.metrics.items():
-                metrics[f'best-{name}/{key}'] = metric(results.predictions.cpu(), results.targets.cpu())
+                metrics[f"best-{name}/{key}"] = metric(results.predictions.cpu(), results.targets.cpu())
         module.logger.log_hyperparams_metrics(params=module.hparams, metrics=metrics)
 
 
@@ -105,10 +105,20 @@ class ModelSummaryExtended(ModelSummary):
     MODE_TOP11 = "top11"
     MODE_FULL = "full"
     MODE_DEFAULT = MODE_TOP2
-    MODES =    [MODE_FULL, MODE_TOP, MODE_TOP2, MODE_TOP3,
-                MODE_TOP4, MODE_TOP5, MODE_TOP6, MODE_TOP7,
-                MODE_TOP8, MODE_TOP9, MODE_TOP10, MODE_TOP11,]
-
+    MODES = [
+        MODE_FULL,
+        MODE_TOP,
+        MODE_TOP2,
+        MODE_TOP3,
+        MODE_TOP4,
+        MODE_TOP5,
+        MODE_TOP6,
+        MODE_TOP7,
+        MODE_TOP8,
+        MODE_TOP9,
+        MODE_TOP10,
+        MODE_TOP11,
+    ]
 
     @property
     def named_modules(self) -> List[Tuple[str, nn.Module]]:
@@ -118,12 +128,11 @@ class ModelSummaryExtended(ModelSummary):
         elif self._mode == ModelSummaryExtended.MODE_TOP:
             # the children are the top-level modules
             mods = self._model.named_children()
-        elif self._mode[:3] == 'top':
+        elif self._mode[:3] == "top":
             depth = int(self._mode[3:])
             mods_full = self._model.named_modules()
             mods_full = list(mods_full)[1:]  # do not include root module (LightningModule)
-            mods = [mod for mod in mods_full if mod[0].count('.') < depth]
+            mods = [mod for mod in mods_full if mod[0].count(".") < depth]
         else:
             mods = []
         return list(mods)
-

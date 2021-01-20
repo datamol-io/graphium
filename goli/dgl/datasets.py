@@ -13,26 +13,25 @@ from goli.commons.arg_checker import check_arg_iterator
 
 
 def load_csv_to_dgl_dataset(data_dir, name, smiles_cols, y_col, max_mols, trans, device):
-    
+
     # Get the number of molecules to parse from the CSV file
-    csv_name = os.path.join(data_dir, f'{name}.csv')
-    if (max_mols is None):
+    csv_name = os.path.join(data_dir, f"{name}.csv")
+    if max_mols is None:
         num_mols = None
-    elif (isinstance(max_mols, str)):
-        if (max_mols.lower() in ["null", "none", ""]):
+    elif isinstance(max_mols, str):
+        if max_mols.lower() in ["null", "none", ""]:
             num_mols = None
         else:
-            raise ValueError(f'Unsupported max_mols=`{max_mols}`')
+            raise ValueError(f"Unsupported max_mols=`{max_mols}`")
     else:
         num_mols = min(max_mols, pd.read_csv(csv_name, index_col=0).shape[0])
 
-    
     # If there is already a pickle file, read it. Otherwise, read the CSV file
-    pkl_name = os.path.join(data_dir, f'dataset_{name}_{num_mols}.pkl')
+    pkl_name = os.path.join(data_dir, f"dataset_{name}_{num_mols}.pkl")
     if os.path.isfile(pkl_name):
         print(f'Reading file :"{pkl_name}"')
         dt = joblib.load(pkl_name)
-        print(f'File read successfully')
+        print(f"File read successfully")
     else:
         # Read the CSV file, remove bad smiles, and remove nan values
         smiles_cols = check_arg_iterator(smiles_cols, enforce_type=list)
@@ -49,36 +48,34 @@ def load_csv_to_dgl_dataset(data_dir, name, smiles_cols, y_col, max_mols, trans,
         invalid_ids = np.zeros(df.shape[0], dtype=bool)
         X_list = []
         for col in smiles_cols:
-            print(f'Transforming SMILES column `{col}` into DGL graphs')
+            print(f"Transforming SMILES column `{col}` into DGL graphs")
             X = trans.transform(df[col].values)
             X = trans.to(X, dtype=torch.float32, device=device)
-            
+
             # print(f'Adding edge weights of 1 for SMILES column `{col}`')
             # for x in X:
             #     x.edata['w'] = torch.ones((x.number_of_edges(), 1), dtype=float)
-            
+
             X_list.append(X)
             invalid_ids |= np.array([x is None for x in X])
-
 
         y_filtered = y[~invalid_ids, :].astype(np.float32)
         X_list_filtered = [list(compress(this_X, ~invalid_ids)) for this_X in X_list]
 
-        
-        print(f'Adding DGL graphs to DGLMultiDataset')
+        print(f"Adding DGL graphs to DGLMultiDataset")
         dt = DGLMultiDataset(X_list_filtered, y_filtered, device=device)
 
         # Save the DGL graphs into a pickle file
         print(f'Saving file :"{pkl_name}"')
         joblib.dump(dt, pkl_name)
-        print('file saved successfully')
-    
+        print("file saved successfully")
+
     return dt
 
 
 class DGLMultiDataset(Dataset):
     r"""
-    Dataset class for models that use DGL. 
+    Dataset class for models that use DGL.
 
     Arguments
     ----------
@@ -103,7 +100,7 @@ class DGLMultiDataset(Dataset):
 
     """
 
-    def __init__(self, X_list, y, w=None, device='cpu', e_size=14):
+    def __init__(self, X_list, y, w=None, device="cpu", e_size=14):
 
         G_list = []
         for X in X_list:
@@ -158,5 +155,3 @@ class DGLMultiDataset(Dataset):
                     g.edata["he"] = torch.zeros(g.edata["he"].shape[0], e_size)
 
         return G
-
-

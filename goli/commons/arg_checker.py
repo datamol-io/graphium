@@ -19,13 +19,9 @@ KNOWN_TYPES = {
 
 def _parse_type(type_to_validate, accepted_types):
     # Check if the provided type is accepted
-    if (type_to_validate is not None) and (
-        not isinstance(type_to_validate, accepted_types)
-    ):
+    if (type_to_validate is not None) and (not isinstance(type_to_validate, accepted_types)):
         raise TypeError(
-            "type_to_validate should be None, type or str. {} provided".format(
-                type(type_to_validate)
-            )
+            "type_to_validate should be None, type or str. {} provided".format(type(type_to_validate))
         )
     if isinstance(type_to_validate, str):
         type_to_validate = type_to_validate.lower()
@@ -47,11 +43,7 @@ def _enforce_iter_type(arg, enforce_type):
         elif (enforce_type == tuple) and (not isinstance(arg, tuple)):
             arg = tuple(arg)
         elif enforce_type not in (list, tuple):
-            raise TypeError(
-                'enforce_type should be None, "list" or "tuple", but is {}'.format(
-                    enforce_type
-                )
-            )
+            raise TypeError('enforce_type should be None, "list" or "tuple", but is {}'.format(enforce_type))
     return arg
 
 
@@ -131,15 +123,11 @@ def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtyp
                     else:
                         raise TypeError(
                             "iter subtype is {}, desired subtype is {}, "
-                            "but cast_subtype is set to False".format(
-                                type(arg2[idx]), enforce_subtype
-                            )
+                            "but cast_subtype is set to False".format(type(arg2[idx]), enforce_subtype)
                         )
         except Exception as e:
             raise TypeError(
-                "iterator subtype is {} and cannot be casted to {}\n{}".format(
-                    type(a), enforce_subtype, e
-                )
+                "iterator subtype is {} and cannot be casted to {}\n{}".format(type(a), enforce_subtype, e)
             )
 
         output = _enforce_iter_type(arg2, enforce_type)
@@ -170,7 +158,7 @@ def check_list1_in_list2(list1, list2, throw_error=True):
             throw_error is set to false
 
 
-  """
+    """
 
     list1 = check_arg_iterator(list1)
     list2 = check_arg_iterator(list2)
@@ -179,18 +167,15 @@ def check_list1_in_list2(list1, list2, throw_error=True):
     list1_in_list2 = all(elem in list2 for elem in list1)
     if not list1_in_list2 and throw_error:
         raise ValueError(
-            (
-                "Elements in list1 should be contained in list2."
-                + "\n\nlist1 = {} \n\n list2 = {}"
-            ).format(list1, list2)
+            ("Elements in list1 should be contained in list2." + "\n\nlist1 = {} \n\n list2 = {}").format(
+                list1, list2
+            )
         )
 
     return list1_in_list2
 
 
-def check_columns_choice(
-    dataframe, columns_choice, extra_accepted_cols=None, enforce_type="list"
-):
+def check_columns_choice(dataframe, columns_choice, extra_accepted_cols=None, enforce_type="list"):
     r"""
     Verify if the choice of column `columns_choice` is inside the dataframe or
     the extra_accepted_cols. Otherwise, errors are thrown by the sub-functions.
