@@ -1,0 +1,12 @@
+- name: Dom
+  email: dominique@invivoai.com
+  num_commits: 1
+  first_commit: 2021-01-20 01:31:50
+- name: DomInvivo
+  email: 47570400+DomInvivo@users.noreply.github.com
+  num_commits: 2
+  first_commit: 2021-01-19 15:30:48
+- name: Hadrien Mary
+  email: hadrien.mary@gmail.com
+  num_commits: 5
+  first_commit: 2021-01-20 10:31:10
