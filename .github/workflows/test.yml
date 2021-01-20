@@ -1,0 +1,73 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+    branches:
+      - "*"
+      - "!privpage"
+
+jobs:
+  test:
+    name: Test
+    runs-on: "ubuntu-latest"
+    defaults:
+      run:
+        shell: bash -l {0}
+    env:
+      ANACONDA_USER_TOKEN: ${{ secrets.INVIVOAI_ANACONDA_USER_BOT_TOKEN }}
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+
+      - name: Cache conda
+        uses: actions/cache@v2
+        env:
+          CACHE_NUMBER: 1
+        with:
+          path: ~/conda_pkgs_dir
+          key: conda-${{ runner.os }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('env.yml') }}
+
+      - name: Setup conda
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          installer-url: https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
+          channel-priority: true
+          use-only-tar-bz2: true
+          activate-environment: goli
+
+      # Only required for datamol
+      - name: Anaconda Login
+        run: |
+          # Bypass the installation of anaconda-client
+          TOKEN_DIR="$HOME/.config/binstar"
+          TOKEN_PATH="$TOKEN_DIR/https%3A%2F%2Fapi.anaconda.org.token"
+          mkdir -p $TOKEN_DIR
+          echo -e "${ANACONDA_USER_TOKEN}\c" > $TOKEN_PATH
+
+      - name: Install Dependencies
+        run: mamba env update -f env.yml
+
+      - name: Install library
+        run: python -m pip install .
+
+      - name: Run tests
+        run: |
+          pytest -v .
+          goli --help
+
+      - name: Test building the doc
+        run: |
+          # Build and serve the doc
+          mkdocs build
+
+      - name: Deploy the doc
+        if: ${{ github.ref == 'refs/heads/master' }}
+        run: |
+          # Get the privpage branch
+          git fetch origin privpage
+
+          # Build and serve the doc
+          mkdocs gh-deploy

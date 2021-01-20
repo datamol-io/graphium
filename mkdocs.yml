@@ -1,0 +1,54 @@
+site_name: "goli"
+site_description: "A deep learning library focused on graph representation learning for real-world chemical tasks."
+site_url: "https://github.com/invivoai/goli"
+repo_url: "https://github.com/invivoai/goli"
+repo_name: "invivoai/goli"
+copyright: Copyright 2020 - 2021 InvivoAI
+
+remote_branch: "privpage"
+use_directory_urls: false
+docs_dir: "docs"
+
+nav:
+  - Overview: index.md
+
+theme:
+  name: material
+  palette:
+    primary: teal
+    accent: purple
+  features:
+    # - navigation.instant
+    - navigation.expand
+
+extra_css:
+  - _assets/css/custom.css
+
+markdown_extensions:
+  - admonition
+  - markdown_include.include
+  - pymdownx.emoji
+  - pymdownx.magiclink
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          setup_commands:
+            - import sys
+            - sys.path.append("docs")
+            - sys.path.append("goli")
+          selection:
+            new_path_syntax: yes
+          rendering:
+            show_root_heading: yes
+            heading_level: 3
+  - mkdocs-jupyter:
+      execute: False
+      # kernel_name: python3
