@@ -51,8 +51,7 @@ This folder contains tools that allow to read different kind of molecular data f
 
 This folder contains the code necessary for compatibility with the Deep Graph Library (DGL), and implements many state of the art GNN methods, such as GCN, GIN, MPNN and PNA.
 It also contains major network architecture implemented for DGL (feed-forward, resnet, skip-connections, densenet), along with the DGL graph transformer for molecules.
-
-<span  style="font-weight:bold;color:red">I was thinking of removing most models to avoid having too much maintenance to do, since they either don't perform well on molecular tasks (GAT, RingGNN) or they are generalized by DGN (GCN, GIN, MPNN, PNA, GraphSage)</span>.
+***I was thinking of removing most models to avoid having too much maintenance to do, since they either don't perform well on molecular tasks (GAT, RingGNN) or they are generalized by DGN (GCN, GIN, MPNN, PNA, GraphSage)***.
 
 
 ### mol_utils
@@ -60,7 +59,7 @@ It also contains major network architecture implemented for DGL (feed-forward, r
 Different utilities for molecules, such as Smiles to adjacency graph transformer, molecular property extraction, atomic properties, bond properties, ...
 
 
-<span  style="font-weight:bold;color:red">The MolecularTransformer and AdjGraphTransformer come from ivbase, but I don't like them. I think we should replace them with something simpler and give more flexibility for combining one-hot embedding with physical properties embedding. </span>.
+***The MolecularTransformer and AdjGraphTransformer come from ivbase, but I don't like them. I think we should replace them with something simpler and give more flexibility for combining one-hot embedding with physical properties embedding.***.
 
 
 
@@ -101,8 +100,7 @@ Some loss functions are already implemented in the ModelWrapper, including `mse,
 
 
 ### Changing the metrics used
-
-<span  style="font-weight:bold;color:red">!WARNING! The metrics implementation was done for pytorch-lightning v0.8. There has been major changes to how the metrics are used and defined, so the whole implementation must change</span>.
+***!WARNING! The metrics implementation was done for pytorch-lightning v0.8. There has been major changes to how the metrics are used and defined, so the whole implementation must change.***
 
 Our current code is compatible with the metrics defined by *pytorch-lightning*, which include a great set of metrics. We also added the PearsonR and SpearmanR as they are important correlation metrics. You can define any new metric in the file `goli/trainer/metrics.py`. The metric must inherit from `TensorMetric` and must be added to the dictionary `goli.trainer.metrics.METRICS_DICT`.
 
