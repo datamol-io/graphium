@@ -27,7 +27,7 @@ gated-gcn:
   in_dim_edges: 14
 
 mpnn-sum:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d: null
@@ -36,7 +36,7 @@ mpnn-sum:
   towers: 1
 
 mpnn-max:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d: null
@@ -45,7 +45,7 @@ mpnn-max:
   towers: 1
 
 mpnn-e-sum:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
@@ -55,7 +55,7 @@ mpnn-e-sum:
   towers: 1
 
 mpnn-e-max:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
@@ -65,7 +65,7 @@ mpnn-e-max:
   towers: 1
 
 pna:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d:
@@ -75,7 +75,7 @@ pna:
   towers: 1
 
 pna-no-scaler:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d:
@@ -85,7 +85,7 @@ pna-no-scaler:
   towers: 1
 
 pna-e: 
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
@@ -96,7 +96,7 @@ pna-e:
   towers: 1
 
 pna-e-no-scaler: 
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
@@ -108,7 +108,7 @@ pna-e-no-scaler:
 
 
 mpnn4-sum:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d: null
@@ -117,7 +117,7 @@ mpnn4-sum:
   towers: 4
 
 mpnn4-max:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d: null
@@ -126,7 +126,7 @@ mpnn4-max:
   towers: 4
 
 mpnn4-e-sum:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
@@ -136,7 +136,7 @@ mpnn4-e-sum:
   towers: 4
 
 mpnn4-e-max:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
@@ -146,7 +146,7 @@ mpnn4-e-max:
   towers: 4
 
 pna4:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d:
@@ -156,7 +156,7 @@ pna4:
   towers: 4
 
 pna4-no-scaler:
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: False
   graph_norm: False
   avg_d:
@@ -166,7 +166,7 @@ pna4-no-scaler:
   towers: 4
 
 pna4-e: 
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
@@ -177,7 +177,7 @@ pna4-e:
   towers: 4
 
 pna4-e-no-scaler: 
-  layer_type: pna
+  layer_type: pna-complex
   edge_features: True
   edge_dim: 16
   graph_norm: False
