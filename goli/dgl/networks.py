@@ -15,6 +15,16 @@ from goli.dgl.dgl_layers.intermittent_pooling_layer import IntermittentPoolingLa
 from goli.dgl.base_layers import FCLayer, get_activation, parse_pooling_layer
 
 
+LAYERS_DICT = {
+    'gcn': GCNLayer, 
+    'gin': GINLayer, 
+    'gat': GATLayer, 
+    'gated-gcn': GatedGCNLayer,
+    'pna-complex': PNALayer, 
+    'pna-simple': PNASimpleLayer,
+}
+
+
 class FeedForwardNN(nn.Module):
     def __init__(
         self,
@@ -171,20 +181,7 @@ class FeedForwardDGL(FeedForwardNN):
         # Parse the GNN type from the name
         if isinstance(layer_type, str):
             layer_name = layer_type.lower()
-            if layer_name == "gcn":
-                layer_type = GCNLayer
-            elif layer_name == "gin":
-                layer_type = GINLayer
-            elif layer_name == "gat":
-                layer_type = GATLayer
-            elif layer_name == "gated-gcn":
-                layer_type = GatedGCNLayer
-            elif layer_name == "pna":
-                layer_type = PNALayer
-            elif layer_name == "pna-simple":
-                layer_type = PNASimpleLayer
-            else:
-                raise ValueError(f"Unsupported `layer_type`: {layer_type}")
+            layer_type = LAYERS_DICT[layer_name]
         else:
             layer_name = str(layer_type)
 
