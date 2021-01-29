@@ -245,7 +245,8 @@ class S2SReadout(nn.Module):
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
-    def __init__(self, in_dim, hidden_size, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
+    def __init__(self, in_dim, hidden_size, out_dim, fc_layers=3, 
+                    device="cpu", final_activation="relu"):
         super(S2SReadout, self).__init__()
 
         # set2set aggregation
@@ -334,7 +335,10 @@ class MinPooling(MaxPooling):
         return readout
 
 
-def parse_pooling_layer(in_dim, pooling):
+def parse_pooling_layer(in_dim, pooling, **kwargs):
+
+    # TODO: Add configuration for the pooling layer kwargs
+
     # Create the pooling layer
     pooling = pooling.lower()
     pool_layer = ModuleListConcat()
@@ -343,17 +347,19 @@ def parse_pooling_layer(in_dim, pooling):
     for this_pool in re.split("\s+|_", pooling):
         out_pool_dim += in_dim
         if this_pool == "sum":
-            pool_layer.append(SumPooling())
+            pool_layer.append(SumPooling(**kwargs))
         elif this_pool == "mean":
-            pool_layer.append(AvgPooling())
+            pool_layer.append(AvgPooling(**kwargs))
         elif this_pool == "max":
-            pool_layer.append(MaxPooling())
+            pool_layer.append(MaxPooling(**kwargs))
         elif this_pool == "min":
-            pool_layer.append(MinPooling())
+            pool_layer.append(MinPooling(**kwargs))
         elif this_pool == "std":
-            pool_layer.append(StdPooling())
+            pool_layer.append(StdPooling(**kwargs))
         elif this_pool == "s2s":
-            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=2, n_layers=2))
+            n_iters = kwargs.pop('n_iter', 2)
+            n_layers = kwargs.pop('n_layers', 2)
+            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers, **kwargs))
             out_pool_dim += in_dim
         elif (this_pool == "none") or (this_pool is None):
             pass
@@ -361,3 +367,63 @@ def parse_pooling_layer(in_dim, pooling):
             raise NotImplementedError(f"Undefined pooling `{this_pool}`")
 
     return pool_layer, out_pool_dim
+
+
+class VirtualNode(nn.Module):
+    def __init__(
+        self, dim, dropout, batch_norm=False, bias=True, residual=True, vn_type="sum"
+    ):
+        super().__init__()
+        self.vn_type = vn_type.lower()
+        self.fc_layer = FCLayer(
+            in_size=dim,
+            out_size=dim,
+            activation="relu",
+            dropout=dropout,
+            b_norm=batch_norm,
+            bias=bias,
+        )
+        self.residual = residual
+
+    def forward(self, g, h, vn_h):
+
+        g.ndata["h"] = h
+
+        # Pool the features
+        if self.vn_type == "mean":
+            pool = mean_nodes(g, "h")
+        elif self.vn_type == "sum":
+            pool = sum_nodes(g, "h")
+        elif self.vn_type == "logsum":
+            pool = mean_nodes(g, "h")
+            lognum = torch.log(
+                torch.tensor(g.batch_num_nodes, dtype=h.dtype, device=h.device)
+            )
+            pool = pool * lognum.unsqueeze(-1)
+        else:
+            raise ValueError(
+                f'Undefined input "{self.pooling}". Accepted values are "sum", "mean", "logsum"'
+            )
+
+        # Compute the new virtual node features
+        vn_h_temp = self.fc_layer.forward(vn_h + pool)
+        if self.residual:
+            vn_h = vn_h + vn_h_temp
+        else:
+            vn_h = vn_h_temp
+
+        # Add the virtual node value to the graph features
+        temp_h = torch.cat(
+            [
+                vn_h[ii : ii + 1].repeat(num_nodes, 1)
+                for ii, num_nodes in enumerate(g.batch_num_nodes)
+            ],
+            dim=0,
+        )
+        h = h + temp_h
+
+        return vn_h, h
+
+
+
+
