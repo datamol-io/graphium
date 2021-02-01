@@ -25,6 +25,14 @@ LAYERS_DICT = {
 }
 
 
+ARCHITECTURES_DICT = {
+    "skip-concat": SkipFeedForwardDGL,
+    "resnet": ResNetDGL,
+    "densenet": DenseNetDGL,
+}
+
+
+
 class FeedForwardNN(nn.Module):
     def __init__(
         self,
@@ -280,7 +288,7 @@ class SkipFeedForwardDGL(FeedForwardDGL):
         dropout=0.25,
         edge_features=False,
         pooling="sum",
-        skip_steps=2,
+        skip_steps=1,
         name="GNN",
         layer_type="gcn",
         intermittent_pooling="none",
@@ -432,7 +440,7 @@ class ResNetDGL(FeedForwardDGL):
         dropout=0.25,
         edge_features=False,
         pooling="sum",
-        skip_steps=2,
+        skip_steps=1,
         residual_weights=False,
         name="GNN",
         layer_type="gcn",
@@ -544,17 +552,7 @@ class DGLGraphNetwork(nn.Module):
 
     def _parse_gnn_architecture(self, gnn_architecture, gnn_kwargs):
         gnn_architecture = gnn_architecture.lower()
-        if gnn_architecture == "skip-concat":
-            gnn = SkipFeedForwardDGL(**gnn_kwargs)
-        elif gnn_architecture == "resnet":
-            gnn = ResNetDGL(**gnn_kwargs)
-        elif gnn_architecture == "resnet-residualweights":
-            gnn_kwargs["residual_weights"] = True
-            gnn = ResNetDGL(**gnn_kwargs)
-        elif gnn_architecture == "densenet":
-            gnn = DenseNetDGL(**gnn_kwargs)
-        else:
-            raise NotImplementedError
+        gnn = ARCHITECTURES_DICT[gnn_architecture](**gnn_kwargs)
 
         return gnn
 
@@ -619,3 +617,6 @@ class SiameseGraphNetwork(DGLGraphNetwork):
             raise ValueError(f"Unsupported `dist_method`: {self.dist_method}")
 
         return out
+
+
+

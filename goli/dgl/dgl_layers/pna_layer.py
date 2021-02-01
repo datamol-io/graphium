@@ -126,7 +126,7 @@ class PNAComplexLayer(BasePNALayer):
         self.edge_features = self.edge_dim > 0
         self.pretrans = MLP(
             in_dim=2 * in_dim + edge_dim,
-            hidden_size=in_dim,
+            hidden_dim=in_dim,
             out_dim=in_dim,
             layers=pretrans_layers,
             mid_activation=self.activation,
@@ -134,7 +134,7 @@ class PNAComplexLayer(BasePNALayer):
         )
         self.posttrans = MLP(
             in_dim=(len(self.aggregators) * len(self.scalers) + 1) * in_dim,
-            hidden_size=out_dim,
+            hidden_dim=out_dim,
             out_dim=out_dim,
             layers=posttrans_layers,
             mid_activation=self.activation,

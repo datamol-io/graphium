@@ -20,7 +20,7 @@ from pytorch_lightning import Trainer
 # Current project imports
 from goli.dgl.dgl_graph_transformer import DGLGraphTransformer
 from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
-from goli.dgl.networks import SiameseGraphNetwork, DGLGraphNetwork
+from goli.dgl.architectures import SiameseGraphNetwork, DGLGraphNetwork
 from goli.dgl.datasets import load_csv_to_dgl_dataset
 from goli.dgl.utils import DGLCollate
 from goli.trainer.model_wrapper import ModelWrapper

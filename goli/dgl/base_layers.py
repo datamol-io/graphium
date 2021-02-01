@@ -136,7 +136,7 @@ class MLP(nn.Module):
     def __init__(
         self,
         in_dim,
-        hidden_size,
+        hidden_dim,
         out_dim,
         layers,
         mid_activation="relu",
@@ -149,7 +149,7 @@ class MLP(nn.Module):
         super(MLP, self).__init__()
 
         self.in_dim = in_dim
-        self.hidden_size = hidden_size
+        self.hidden_dim = hidden_dim
         self.out_dim = out_dim
 
         self.fully_connected = nn.ModuleList()
@@ -168,7 +168,7 @@ class MLP(nn.Module):
             self.fully_connected.append(
                 FCLayer(
                     in_dim,
-                    hidden_size,
+                    hidden_dim,
                     activation=mid_activation,
                     batch_norm=mid_batch_norm,
                     device=device,
@@ -178,8 +178,8 @@ class MLP(nn.Module):
             for _ in range(layers - 2):
                 self.fully_connected.append(
                     FCLayer(
-                        hidden_size,
-                        hidden_size,
+                        hidden_dim,
+                        hidden_dim,
                         activation=mid_activation,
                         batch_norm=mid_batch_norm,
                         device=device,
@@ -188,7 +188,7 @@ class MLP(nn.Module):
                 )
             self.fully_connected.append(
                 FCLayer(
-                    hidden_size,
+                    hidden_dim,
                     out_dim,
                     activation=last_activation,
                     batch_norm=last_batch_norm,
@@ -211,19 +211,19 @@ class GRU(nn.Module):
     Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
     """
 
-    def __init__(self, input_size, hidden_size, device):
+    def __init__(self, input_size, hidden_dim, device):
         super(GRU, self).__init__()
         self.input_size = input_size
-        self.hidden_size = hidden_size
-        self.gru = nn.GRU(input_size=input_size, hidden_size=hidden_size).to(device)
+        self.hidden_dim = hidden_dim
+        self.gru = nn.GRU(input_size=input_size, hidden_dim=hidden_dim).to(device)
 
     def forward(self, x, y):
         """
         :param x:   shape: (B, N, Din) where Din <= input_size (difference is padded)
-        :param y:   shape: (B, N, Dh) where Dh <= hidden_size (difference is padded)
+        :param y:   shape: (B, N, Dh) where Dh <= hidden_dim (difference is padded)
         :return:    shape: (B, N, Dh)
         """
-        assert x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_size
+        assert x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_dim
 
         (B, N, _) = x.shape
         x = x.reshape(1, B * N, -1).contiguous()
@@ -232,8 +232,8 @@ class GRU(nn.Module):
         # padding if necessary
         if x.shape[-1] < self.input_size:
             x = F.pad(input=x, pad=[0, self.input_size - x.shape[-1]], mode="constant", value=0)
-        if y.shape[-1] < self.hidden_size:
-            y = F.pad(input=y, pad=[0, self.hidden_size - y.shape[-1]], mode="constant", value=0)
+        if y.shape[-1] < self.hidden_dim:
+            y = F.pad(input=y, pad=[0, self.hidden_dim - y.shape[-1]], mode="constant", value=0)
 
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)
@@ -245,7 +245,7 @@ class S2SReadout(nn.Module):
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
-    def __init__(self, in_dim, hidden_size, out_dim, fc_layers=3, 
+    def __init__(self, in_dim, hidden_dim, out_dim, fc_layers=3, 
                     device="cpu", final_activation="relu"):
         super(S2SReadout, self).__init__()
 
@@ -255,7 +255,7 @@ class S2SReadout(nn.Module):
         # fully connected layers
         self.mlp = MLP(
             in_dim=2 * in_dim,
-            hidden_size=hidden_size,
+            hidden_dim=hidden_dim,
             out_dim=out_dim,
             layers=fc_layers,
             mid_activation="relu",
