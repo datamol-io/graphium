@@ -344,77 +344,62 @@ class FeedForwardDGL(FeedForwardNN):
 
 
 
-class DGLGraphNetwork(nn.Module):
+class FullDGLNetwork(nn.Module):
     def __init__(
         self,
+        pre_nn_kwargs,
         gnn_kwargs,
-        lnn_kwargs=None,
-        gnn_architecture="skip-concat",
-        lnn_architecture=None,
+        post_nn_kwargs,
         name="DGL_GNN",
     ):
 
         # Initialize the parent nn.Module
         super().__init__()
         self.name = name
-        self.gnn_architecture = gnn_architecture
-        self.lnn_architecture = lnn_architecture
+        
+        self.pre_nn, self.post_nn = None, None
+        if pre_nn_kwargs is not None:
+            self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name='NN-pre-trans')            
+        self.gnn = FeedForwardDGL(**gnn_kwargs, name='main-GNN')
+        if post_nn_kwargs is not None:
+            self.post_nn = FeedForwardNN(**post_nn_kwargs, name='NN-post-trans')
+        
+        hparams_temp = {**self.pre_nn.hparams, **self.pre_nn.hparams, **self.pre_nn.hparams}
+        self.hparams = {f"{self.name}.{key}": elem for key, elem in hparams_temp.items()}     
 
-        self.gnn = self._parse_gnn_architecture(gnn_architecture, gnn_kwargs)
-        self.lnn = self._parse_lnn_architecture(lnn_architecture, lnn_kwargs)
-
-        self.hparams = {f"{self.name}.{key}": elem for key, elem in self.gnn.hparams.items()}
-        self.hparams[f"{self.name}.gnn_architecture"] = self.gnn_architecture
-        self.hparams[f"{self.name}.lnn_architecture"] = self.lnn_architecture
-
-    def _parse_gnn_architecture(self, gnn_architecture, gnn_kwargs):
-        gnn_architecture = gnn_architecture.lower()
-        gnn = ARCHITECTURES_DICT[gnn_architecture](**gnn_kwargs)
-
-        return gnn
-
-    def _parse_lnn_architecture(self, lnn_architecture, lnn_kwargs):
-        if lnn_architecture is not None:
-            raise NotImplementedError
-
-        if lnn_kwargs is None:
-            lnn = None
-        else:
-            lnn = FeedForwardNN(**lnn_kwargs)
-
-        return lnn
 
     def forward(self, graph):
-
+        if self.pre_nn is not None:
+            h = graph.ndata["hv"]
+            h = self.pre_nn.forward(h)
+            graph.ndata["hv"] = h
         h = self.gnn.forward(graph)
-        if self.lnn is not None:
-            h = self.lnn.forward(h)
+        if self.post_nn is not None:
+            h = self.post_nn.forward(h)
         return h
 
 
-
-class SiameseGraphNetwork(DGLGraphNetwork):
-    def __init__(self, gnn_kwargs, dist_method, gnn_architecture="skip-concat", name="SiameseGNN"):
+class FullDGLSiameseNetwork(FullDGLNetwork):
+    def __init__(self, pre_nn_kwargs, gnn_kwargs, post_nn_kwargs, dist_method, name="Siamese_DGL_GNN"):
 
         # Initialize the parent nn.Module
         super().__init__(
+            pre_nn_kwargs=pre_nn_kwargs,
             gnn_kwargs=gnn_kwargs,
-            lnn_kwargs=None,
-            gnn_architecture=gnn_architecture,
-            lnn_architecture=None,
+            post_nn_kwargs=post_nn_kwargs,
             name=name,
         )
 
         self.dist_method = dist_method.lower()
         self.activation = "sigmoid"
-
         self.hparams[f"{self.name}.dist_method"] = self.dist_method
+
 
     def forward(self, graphs):
         graph_1, graph_2 = graphs
 
-        out_1 = self.gnn.forward(graph_1)
-        out_2 = self.gnn.forward(graph_2)
+        out_1 = super().forward(graph_1)
+        out_2 = super().forward(graph_2)
 
         if self.dist_method == "manhattan":
             # Normalized L1 distance
