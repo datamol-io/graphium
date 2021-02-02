@@ -20,7 +20,7 @@ from pytorch_lightning import Trainer
 # Current project imports
 from goli.dgl.dgl_graph_transformer import DGLGraphTransformer
 from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
-from goli.dgl.architectures import SiameseGraphNetwork, DGLGraphNetwork
+from goli.dgl.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 from goli.dgl.datasets import load_csv_to_dgl_dataset
 from goli.dgl.utils import DGLCollate
 from goli.trainer.model_wrapper import ModelWrapper
@@ -150,7 +150,7 @@ def config_load_siamese_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype)
     hidden_depth = gnn_kwargs.pop("hidden_depth")
     gnn_kwargs["hidden_dims"] = [hidden_dim] * hidden_depth
 
-    gnn = SiameseGraphNetwork(
+    gnn = FullDGLSiameseNetwork(
         gnn_kwargs=gnn_kwargs,
         gnn_architecture=cfg_model["gnn_architecture"],
         dist_method=cfg_model["dist_method"],
@@ -178,7 +178,7 @@ def config_load_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype):
     lnn_kwargs["hidden_dims"] = [lnn_hidden_dim] * lnn_hidden_depth
 
     # Build the graph network
-    gnn = DGLGraphNetwork(
+    gnn = FullDGLNetwork(
         gnn_kwargs=gnn_kwargs, lnn_kwargs=lnn_kwargs, gnn_architecture=cfg_model["gnn_architecture"]
     )
     gnn = gnn.to(device=device, dtype=dtype)
