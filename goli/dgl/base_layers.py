@@ -375,6 +375,12 @@ class VirtualNode(nn.Module):
         self, dim, dropout, batch_norm=False, bias=True, residual=True, vn_type="sum"
     ):
         super().__init__()
+        if (vn_type is None) or (vn_type.lower()=="none"):
+            self.vn_type = None
+            self.fc_layer = None
+            self.residual = None
+            return
+        
         self.vn_type = vn_type.lower()
         self.fc_layer = FCLayer(
             in_size=dim,
@@ -391,7 +397,9 @@ class VirtualNode(nn.Module):
         g.ndata["h"] = h
 
         # Pool the features
-        if self.vn_type == "mean":
+        if self.vn_type is None:
+            return vn_h, h
+        elif self.vn_type == "mean":
             pool = mean_nodes(g, "h")
         elif self.vn_type == "sum":
             pool = sum_nodes(g, "h")
@@ -403,7 +411,7 @@ class VirtualNode(nn.Module):
             pool = pool * lognum.unsqueeze(-1)
         else:
             raise ValueError(
-                f'Undefined input "{self.pooling}". Accepted values are "sum", "mean", "logsum"'
+                f'Undefined input "{self.pooling}". Accepted values are "none", "sum", "mean", "logsum"'
             )
 
         # Compute the new virtual node features
