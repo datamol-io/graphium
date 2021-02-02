@@ -2,8 +2,6 @@ import torch.nn as nn
 
 
 class BaseDGLLayer(nn.Module):
-
-class BaseDGLLayer(nn.Module):
     def __init__(self, in_dim, out_dim, residual, activation, dropout, batch_norm):
         super().__init__()
 

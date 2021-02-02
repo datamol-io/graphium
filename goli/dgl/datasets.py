@@ -147,11 +147,11 @@ class DGLMultiDataset(Dataset):
         G = list(G)
         for k, g in enumerate(G):
             if ndata:
-                g.ndata["hv"] = to_tensor(ndata[k], device=device)
+                g.ndata["h"] = to_tensor(ndata[k], device=device)
             if edata:
-                g.edata["he"] = to_tensor(edata[k], device=device)
+                g.edata["e"] = to_tensor(edata[k], device=device)
                 was_empty = g.number_of_edges() == 0
                 if was_empty:
-                    g.edata["he"] = torch.zeros(g.edata["he"].shape[0], e_size)
+                    g.edata["e"] = torch.zeros(g.edata["e"].shape[0], e_size)
 
         return G
