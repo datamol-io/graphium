@@ -13,6 +13,7 @@ from goli.dgl.dgl_layers.pna_layer import PNALayer, PNASimpleLayer
 from goli.dgl.dgl_layers.intermittent_pooling_layer import IntermittentPoolingLayer
 
 from goli.dgl.base_layers import FCLayer, get_activation, parse_pooling_layer
+from goli.dgl.residual_connections import RESIDUAL_TYPE_DICT
 
 
 LAYERS_DICT = {
@@ -26,7 +27,7 @@ LAYERS_DICT = {
 
 
 ARCHITECTURES_DICT = {
-    "skip-concat": SkipFeedForwardDGL,
+    "skip-concat": SkipConcatDGL,
     "resnet": ResNetDGL,
     "densenet": DenseNetDGL,
 }
@@ -43,6 +44,7 @@ class FeedForwardNN(nn.Module):
         last_activation="none",
         batch_norm=False,
         dropout=0.25,
+        residual_type="none",
         name="LNN",
         layer_type=FCLayer,
         **kwargs,
@@ -50,7 +52,7 @@ class FeedForwardNN(nn.Module):
 
         super().__init__()
 
-        # Hyper-parameters
+        # Set the class attributes
         self.in_dim = in_dim
         self.out_dim = out_dim
         self.hidden_dims = list(hidden_dims)
@@ -60,9 +62,19 @@ class FeedForwardNN(nn.Module):
         self.dropout = dropout
         self.layer_type = layer_type
         self.batch_norm = batch_norm
+        self.residual_type = residual_type
+        self.residual_skip_steps = residual_skip_steps
         self.kwargs = kwargs
         self.name = name
 
+        self._register_hparams()
+
+        self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
+        self.true_in_dims, self.true_out_dims = self._create_layers()
+
+    
+    def _register_hparams(self):
+        # Register the Hyper-parameters to be compatible with Pytorch-Lightning and Tensorboard
         self.hparams = {
             f"{self.name}.out_dim": self.out_dim,
             f"{self.name}.hidden_dims": self.hidden_dims,
@@ -71,31 +83,55 @@ class FeedForwardNN(nn.Module):
             f"{self.name}.layer_type": str(layer_type),
             f"{self.name}.depth": self.depth,
             f"{self.name}.dropout": self.dropout,
+            f"{self.name}.residual_type": self.residual_type,
+            f"{self.name}.residual_skip_steps": self.residual_skip_steps,
         }
 
-        self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
-        self.true_in_dims, self.true_out_dims = self.create_layers(
-            in_dims=self.full_dims[:-1], out_dims=self.full_dims[1:]
+
+    def _create_layers(self, kwargs_of_lists=None):
+
+        # Create the residual connections
+        self.residual = self._create_residual(
+            residual_type=self.residual_type,
+            skip_steps=self.residual_skip_steps,
+            full_dims=self.full_dims,
+            dropout=self.dropout,
+            activation=self.activation,
+            batch_norm=self.batch_norm,
+            bias=self.bias,
         )
 
-    def create_layers(self, in_dims: list, out_dims: list, kwargs_of_lists=None):
-
-        # Create the layers
+        in_dims = self.full_dims[:-1]
+        out_dims = self.full_dims[1:]
+        cum_out_dims = torch.cumsum(torch.tensor(out_dims))
+        
+        # Create a list for all the layers
         self.layers = nn.ModuleList()
         for ii in range(self.depth):
             this_activation = self.activation
             if ii == self.depth - 1:
                 this_activation = self.last_activation
 
+            # Get specific kwargs for the layer type
             if kwargs_of_lists is None:
                 this_kwargs = {}
             else:
                 this_kwargs = {key: value[ii] for key, value in kwargs_of_lists.items()}
 
+            # Compute the input and output dims depending on the residual type
+            in_dim = in_dims[ii]
+            out_dim = out_dims[ii]
+            if ii > 0:
+                if self.residual.is_bigger_h_dim=="previous":
+                    in_dim += out_dims[ii - 1]
+                elif self.residual.is_bigger_h_dim=="previous":
+                    in_dims += cum_out_dims[ii - 1]
+            
+            # Create the layer
             self.layers.append(
                 self.layer_type(
-                    in_dim=in_dims[ii],
-                    out_dim=out_dims[ii],
+                    in_dim=in_dim,
+                    out_dim=out_dim,
                     activation=this_activation,
                     dropout=self.dropout,
                     batch_norm=self.batch_norm,
@@ -106,10 +142,23 @@ class FeedForwardNN(nn.Module):
 
         return in_dims, out_dims
 
-    def forward(self, inputs):
-        for layer in self.layers:
-            inputs = layer(inputs)
-        return inputs
+    
+    def _create_residual(self, residual_type, skip_steps, **kwargs):
+        residual_class = RESIDUAL_TYPE_DICT[residual_type]
+        if residual_class.has_weights():
+            residual = residual_class(skip_steps=skip_steps, **kwargs)
+        else:
+            residual = residual_class(skip_steps=skip_steps)
+        return residual
+
+
+    def forward(self, h):
+        h_prev = None
+        for ii, layer in enumerate(self.layers):
+            h = layer.forward(h)
+            h, h_prev = self.residual.forward(h, h_prev, step_idx=ii)
+
+        return h
 
 
 class FeedForwardDGL(FeedForwardNN):
@@ -209,12 +258,12 @@ class FeedForwardDGL(FeedForwardNN):
 
         return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
 
-    def create_layers(self, in_dims: list, out_dims: list):
+    def _create_layers(self, in_dims: list, out_dims: list):
 
         in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove = self._get_layers_args()
         for key in kwargs_keys_to_remove:
             self.kwargs.pop(key)
-        super().create_layers(in_dims=in_dims, out_dims=out_dims, kwargs_of_lists=kwargs_of_lists)
+        super()._create_layers(in_dims=in_dims, out_dims=out_dims, kwargs_of_lists=kwargs_of_lists)
         return in_dims, true_out_dims
 
     def _forward_pre_layers(self, graph):
@@ -276,7 +325,7 @@ class FeedForwardDGL(FeedForwardNN):
         return pooled_h
 
 
-class SkipFeedForwardDGL(FeedForwardDGL):
+class SkipConcatDGL(FeedForwardDGL):
     def __init__(
         self,
         in_dim,
@@ -573,6 +622,7 @@ class DGLGraphNetwork(nn.Module):
         if self.lnn is not None:
             h = self.lnn.forward(h)
         return h
+
 
 
 class SiameseGraphNetwork(DGLGraphNetwork):
