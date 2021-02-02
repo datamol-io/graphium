@@ -1,3 +1,7 @@
+"""
+Different types of residual connections, including None, Simple (ResNet-like),
+Concat and DenseNet
+"""
 
 import abc
 import torch
@@ -5,15 +9,6 @@ import torch.nn as nn
 from typing import List
 
 from goli.dgl.base_layers import FCLayer
-
-
-RESIDUAL_TYPE_DICT = {
-    "none": ResidualConnectionNone,
-    "simple": ResidualConnectionSimple,
-    "weighted": ResidualConnectionWeighted,
-    "concat": ResidualConnectionConcat,
-    "densenet": ResidualConnectionDenseNet,
-}
 
 
 class ResidualConnectionBase(nn.Module):
@@ -52,7 +47,7 @@ class ResidualConnectionBase(nn.Module):
             The current layer step index.
 
         """
-        return (self.skip_steps != 0) and ((step_idx % self.skip_steps) == 1)
+        return (self.skip_steps != 0) and ((step_idx % self.skip_steps) == 0)
 
     @staticmethod
     @abc.abstractmethod
@@ -77,19 +72,19 @@ class ResidualConnectionBase(nn.Module):
         ...
 
 
-    def get_true_out_dims(self, in_dims: List, out_dims: List):
+    def get_true_out_dims(self, out_dims: List):
 
 
         true_out_dims = [out_dims[0]]
-        out_dims_at_skip = [0]
-        for ii in range(1, len(in_dims)):
+        out_dims_at_skip = [out_dims[0]]
+        for ii in range(1, len(out_dims)):
             
             # For the `None` type, don't change the output dims
-            if self.h_dim_increase_type is None:
+            if self.h_dim_increase_type() is None:
                 true_out_dims.append(out_dims[ii])
             
             # For the "previous" type, add the previous layers when the skip connection applies
-            elif self.h_dim_increase_type == "previous":
+            elif self.h_dim_increase_type() == "previous":
                 if self._bool_apply_skip_step(step_idx=ii):
                     true_out_dims.append(out_dims[ii] + out_dims_at_skip[-1])
                     out_dims_at_skip.append(out_dims[ii])
@@ -97,14 +92,14 @@ class ResidualConnectionBase(nn.Module):
                     true_out_dims.append(out_dims[ii])
             
             # For the "cumulative" type, add all previous layers when the skip connection applies
-            elif self.h_dim_increase_type == "cumulative":
+            elif self.h_dim_increase_type() == "cumulative":
                 if self._bool_apply_skip_step(step_idx=ii):
                     true_out_dims.append(out_dims[ii] + out_dims_at_skip[-1])
                     out_dims_at_skip.append(true_out_dims[ii])
                 else:
                     true_out_dims.append(out_dims[ii])
             else:
-                raise ValueError(f'undefined value: {self.h_dim_increase_type}')
+                raise ValueError(f'undefined value: {self.h_dim_increase_type()}')
 
         return true_out_dims
 
@@ -173,6 +168,17 @@ class ResidualConnectionNone(ResidualConnectionBase):
 
 
 class ResidualConnectionSimple(ResidualConnectionBase):
+    r"""
+    Class for the simple residual connections proposed by ResNet,
+    where the current layer output is summed to a
+    previous layer output.
+
+    Parameters
+    -------------
+
+    skip_steps: int, Default=1
+        The number of steps to skip between the residual connections.
+    """
     def __init__(self, skip_steps: int=1):
         super().__init__(skip_steps=skip_steps)
     
@@ -232,7 +238,7 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
         """
         if self._bool_apply_skip_step(step_idx):
-            if step_idx > 1:
+            if step_idx > 0:
                 h = h + h_prev
             h_prev = h
         
@@ -240,28 +246,59 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
 
 class ResidualConnectionWeighted(ResidualConnectionBase):
-    def __init__(self, depth, full_dims, skip_steps: int=1, dropout=0., 
+    r"""
+    Class for the simple residual connections proposed by ResNet,
+    with an added layer in the residual connection itself.
+    The layer output is summed to a a non-linear transformation
+    of a previous layer output.
+
+    Parameters
+    -------------
+
+    skip_steps: int, Default=1
+        The number of steps to skip between the residual connections.
+
+    full_dims: list(int)
+        list of all input and output dimensions for the network
+        that will use this residual connection.
+        E.g. ``full_dims = [4, 8, 8, 8, 2]`` means that the network has
+        an input of dimension 4, an output of dimension 2, and 3 hidden
+        layers of dimension 8.
+
+    dropout: float, Default=0.
+        value between 0 and 1.0 representing the percentage of dropout
+        to use in the weights
+
+    activation: str, Callable, Default='none'
+        The activation function to use after the skip weights
+
+    batch_norm: bool, Default=False
+        Whether to apply batch normalisation after the weights
+
+    bias: bool, Default=False
+        Whether to apply add a bias after the weights
+    
+    """
+    def __init__(self, full_dims, skip_steps: int=1, dropout=0., 
                 activation='none', batch_norm=False, bias=False):
         super().__init__(skip_steps=skip_steps)
         
         self.residual_list = nn.ModuleList()
         self.skip_count = 0
+        self.full_dims = full_dims
 
-        for ii in range(1, self.depth, self.skip_steps):
+        for ii in range(1, len(self.full_dims), self.skip_steps):
             this_dim = self.full_dims[ii]
             self.residual_list.append(
-                nn.Sequential(
                     FCLayer(
                         this_dim,
                         this_dim,
-                        activation=self.activation,
-                        dropout=self.dropout,
-                        batch_norm=self.batch_norm,
+                        activation=activation,
+                        dropout=dropout,
+                        batch_norm=batch_norm,
                         bias=False,
-                    ),
-                    nn.Linear(this_dim, this_dim, bias=False),
+                    )
                 )
-            )
 
     
     @staticmethod
@@ -320,7 +357,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         """
 
         if self._bool_apply_skip_step(step_idx):
-            if step_idx > 1:
+            if step_idx > 0:
                 h = h + self.residual_list[self.skip_count].forward(h_prev)
                 self.skip_count += 1
             h_prev = h
@@ -329,6 +366,17 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
 
 class ResidualConnectionConcat(ResidualConnectionBase):
+    r"""
+    Class for the simple residual connections proposed but where
+    the skip connection features are concatenated to the current
+    layer features.
+
+    Parameters
+    -------------
+
+    skip_steps: int, Default=1
+        The number of steps to skip between the residual connections.
+    """
     def __init__(self, skip_steps: int=1):
         super().__init__(skip_steps=skip_steps)
 
@@ -391,7 +439,7 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
         if self._bool_apply_skip_step(step_idx):
             h_in = h
-            if step_idx > 1:
+            if step_idx > 0:
                 h = torch.cat([h, h_prev], dim=-1)
             h_prev = h_in
         
@@ -400,6 +448,17 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
 
 class ResidualConnectionDenseNet(ResidualConnectionBase):
+    r"""
+    Class for the residual connections proposed by DenseNet, where
+    all previous skip connection features are concatenated to the current
+    layer features.
+
+    Parameters
+    -------------
+
+    skip_steps: int, Default=1
+        The number of steps to skip between the residual connections.
+    """
     def __init__(self, skip_steps: int=1):
         super().__init__(skip_steps=skip_steps)
 
@@ -461,10 +520,20 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
         """
 
         if self._bool_apply_skip_step(step_idx):
-            if step_idx > 1:
+            if step_idx > 0:
                 h = torch.cat([h, h_prev], dim=-1)
             h_prev = h
         
         return h, h_prev
+
+
+
+RESIDUAL_TYPE_DICT = {
+    "none": ResidualConnectionNone,
+    "simple": ResidualConnectionSimple,
+    "weighted": ResidualConnectionWeighted,
+    "concat": ResidualConnectionConcat,
+    "densenet": ResidualConnectionDenseNet,
+}
 
 
