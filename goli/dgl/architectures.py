@@ -5,6 +5,7 @@ import math
 from copy import deepcopy
 import dgl
 from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
+from typing import List, Dict
 
 from goli.dgl.dgl_layers.gcn_layer import GCNLayer
 from goli.dgl.dgl_layers.gin_layer import GINLayer
@@ -66,7 +67,8 @@ class FeedForwardNN(nn.Module):
         self._register_hparams()
 
         self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
-        self.true_in_dims, self.true_out_dims = self._create_layers()
+        self.true_in_dims, self.true_out_dims = self._create_layers(
+            in_dims=self.full_dims[:-1], out_dims=self.full_dims[1:])
 
     
     def _register_hparams(self):
@@ -106,15 +108,15 @@ class FeedForwardNN(nn.Module):
         in_dim = in_dims[step_idx]
         out_dim = out_dims[step_idx]
         if step_idx > 0:
-            if self.residual.is_bigger_h_dim=="previous":
+            if self.residual.h_dim_increase_type()=="previous":
                 in_dim += out_dims[step_idx - 1]
-            elif self.residual.is_bigger_h_dim=="previous":
+            elif self.residual.h_dim_increase_type()=="cumulative":
                 in_dim += cum_out_dims[step_idx - 1]
         
         return in_dim, out_dim
 
 
-    def _create_layers(self, kwargs_of_lists=None):
+    def _create_layers(self, in_dims, out_dims, kwargs_of_lists=None):
 
         # Create the residual connections
         self.residual = self._create_residual(
@@ -126,9 +128,6 @@ class FeedForwardNN(nn.Module):
             batch_norm=self.batch_norm,
             bias=self.bias,
         )
-
-        in_dims = self.full_dims[:-1]
-        out_dims = self.full_dims[1:]
         
         # Create a list for all the layers
         self.layers = nn.ModuleList()
@@ -255,7 +254,7 @@ class FeedForwardDGL(FeedForwardNN):
 
         return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
 
-    def _create_layers(self, in_dims: list, out_dims: list):
+    def _create_layers(self, in_dims: List, out_dims: List):
 
         in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove = self._get_layers_args()
         for key in kwargs_keys_to_remove:
@@ -284,8 +283,8 @@ class FeedForwardDGL(FeedForwardNN):
 
 
     def _forward_pre_layers(self, graph):
-        h = graph.ndata["hv"]
-        e = graph.edata["he"] if self.edge_features else None
+        h = graph.ndata["h"]
+        e = graph.edata["e"] if self.edge_features else None
         h = self.in_linear(h)
         return h, e
 
@@ -370,9 +369,9 @@ class FullDGLNetwork(nn.Module):
 
     def forward(self, graph):
         if self.pre_nn is not None:
-            h = graph.ndata["hv"]
+            h = graph.ndata["h"]
             h = self.pre_nn.forward(h)
-            graph.ndata["hv"] = h
+            graph.ndata["h"] = h
         h = self.gnn.forward(graph)
         if self.post_nn is not None:
             h = self.post_nn.forward(h)
@@ -391,7 +390,6 @@ class FullDGLSiameseNetwork(FullDGLNetwork):
         )
 
         self.dist_method = dist_method.lower()
-        self.activation = "sigmoid"
         self.hparams[f"{self.name}.dist_method"] = self.dist_method
 
 

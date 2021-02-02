@@ -123,8 +123,8 @@ class DGLGraphTransformer(AdjGraphTransformer):
                 raise (TypeError("The type {} is not supported".format(dtype)))
 
             g = g.to(device=device)
-            g.ndata["hv"] = v
-            g.edata["he"] = e
+            g.ndata["h"] = v
+            g.edata["e"] = e
             out.append(g)
 
         print("---------------------------------")
