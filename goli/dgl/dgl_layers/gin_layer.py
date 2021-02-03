@@ -137,4 +137,3 @@ class GINLayer(GINLayerComplete):
             init_eps=init_eps,
             learn_eps=learn_eps,
         )
-

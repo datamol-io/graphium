@@ -4,7 +4,7 @@ from typing import List, Dict, Tuple
 
 
 class BaseDGLLayer(nn.Module):
-    def __init__(self, in_dim: int, out_dim: int, activation, dropout: float, batch_norm:bool):
+    def __init__(self, in_dim: int, out_dim: int, activation, dropout: float, batch_norm: bool):
         super().__init__()
 
         # Initializing attributes
@@ -13,7 +13,6 @@ class BaseDGLLayer(nn.Module):
         self.activation = activation
         self.dropout = dropout
         self.batch_norm = batch_norm
-
 
     @staticmethod
     @abc.abstractmethod
@@ -24,7 +23,7 @@ class BaseDGLLayer(nn.Module):
 
         Returns
         ---------
-        
+
         supports_edges: bool
             Whether the layer supports the use of edges
         """
@@ -40,34 +39,32 @@ class BaseDGLLayer(nn.Module):
 
         Returns
         ---------
-        
+
         uses_edges: bool
             Whether the layer uses edges
         """
         ...
 
-
     @abc.abstractmethod
     def get_out_dim_factor(self) -> int:
         r"""
         Get the factor by which the output dimension is multiplied for
-        the next layer. 
+        the next layer.
 
         For standard layers, this will return ``1``.
-        
-        But for others, such as ``GatLayer``, the output is the concatenation 
+
+        But for others, such as ``GatLayer``, the output is the concatenation
         of the outputs from each head, so the out_dim gets multiplied by
         the number of heads, and this function should return the number
         of heads.
 
         Returns
         ---------
-        
+
         dim_factor: int
             The factor that multiplies the dimensions
         """
         ...
-
 
     @abc.abstractmethod
     def get_true_out_dims(self, out_dims: List[int]) -> List[int]:
@@ -89,7 +86,6 @@ class BaseDGLLayer(nn.Module):
 
         """
         ...
-
 
     @abc.abstractmethod
     def get_layer_wise_kwargs(self, num_layers, **kwargs) -> Tuple(Dict[List], List[str]):
@@ -120,10 +116,8 @@ class BaseDGLLayer(nn.Module):
         """
         ...
 
-
     def __repr__(self):
         r"""
         Controls how the class is printed
         """
-        return f'{self.__class__.__name__}(in_dim={self.in_dim}, out_dim={self.out_dim}, activation={self.activation})'
-
+        return f"{self.__class__.__name__}(in_dim={self.in_dim}, out_dim={self.out_dim}, activation={self.activation})"
