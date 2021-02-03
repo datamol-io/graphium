@@ -19,13 +19,13 @@ from goli.dgl.residual_connections import RESIDUAL_TYPE_DICT
 
 
 LAYERS_DICT = {
-    'fc': FCLayer,
-    'gcn': GCNLayer, 
-    'gin': GINLayer, 
-    'gat': GATLayer, 
-    'gated-gcn': GatedGCNLayer,
-    'pna-complex': PNAComplexLayer, 
-    'pna-simple': PNASimpleLayer,
+    "fc": FCLayer,
+    "gcn": GCNLayer,
+    "gin": GINLayer,
+    "gat": GATLayer,
+    "gated-gcn": GatedGCNLayer,
+    "pna-complex": PNAComplexLayer,
+    "pna-simple": PNASimpleLayer,
 }
 
 
@@ -68,9 +68,9 @@ class FeedForwardNN(nn.Module):
 
         self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
         self.true_in_dims, self.true_out_dims = self._create_layers(
-            in_dims=self.full_dims[:-1], out_dims=self.full_dims[1:])
+            in_dims=self.full_dims[:-1], out_dims=self.full_dims[1:]
+        )
 
-    
     def _register_hparams(self):
         # Register the Hyper-parameters to be compatible with Pytorch-Lightning and Tensorboard
         self.hparams = {
@@ -87,7 +87,6 @@ class FeedForwardNN(nn.Module):
             f"{self.name}.layer_kwargs": str(self.layer_kwargs),
         }
 
-
     def _parse_layer(self, layer_type):
         # Parse the GNN type from the name
         if isinstance(layer_type, str):
@@ -98,7 +97,6 @@ class FeedForwardNN(nn.Module):
 
         return layer_type, layer_name
 
-
     def _get_residual_in_out_dim(self, step_idx):
         in_dims = self.full_dims[:-1]
         out_dims = self.full_dims[1:]
@@ -108,13 +106,12 @@ class FeedForwardNN(nn.Module):
         in_dim = in_dims[step_idx]
         out_dim = out_dims[step_idx]
         if step_idx > 0:
-            if self.residual.h_dim_increase_type()=="previous":
+            if self.residual.h_dim_increase_type() == "previous":
                 in_dim += out_dims[step_idx - 1]
-            elif self.residual.h_dim_increase_type()=="cumulative":
+            elif self.residual.h_dim_increase_type() == "cumulative":
                 in_dim += cum_out_dims[step_idx - 1]
-        
-        return in_dim, out_dim
 
+        return in_dim, out_dim
 
     def _create_layers(self, in_dims, out_dims, kwargs_of_lists=None):
 
@@ -128,7 +125,7 @@ class FeedForwardNN(nn.Module):
             batch_norm=self.batch_norm,
             bias=self.bias,
         )
-        
+
         # Create a list for all the layers
         self.layers = nn.ModuleList()
         for ii in range(self.depth):
@@ -144,7 +141,7 @@ class FeedForwardNN(nn.Module):
 
             # Compute the input and output dims depending on the residual type
             in_dim, out_dim = self._get_residual_in_out_dim(step_idx=ii)
-            
+
             # Create the layer
             self.layers.append(
                 self.layer_type(
@@ -160,7 +157,6 @@ class FeedForwardNN(nn.Module):
 
         return in_dims, out_dims
 
-    
     def _create_residual(self, residual_type, skip_steps, **kwargs):
         residual_class = RESIDUAL_TYPE_DICT[residual_type]
         if residual_class.has_weights():
@@ -168,7 +164,6 @@ class FeedForwardNN(nn.Module):
         else:
             residual = residual_class(skip_steps=skip_steps)
         return residual
-
 
     def forward(self, h):
         h_prev = None
@@ -198,7 +193,6 @@ class FeedForwardDGL(FeedForwardNN):
         virtual_node="none",
         **kwargs,
     ):
-
 
         # Initialize the parent `FeedForwardNN`
         super().__init__(
@@ -232,13 +226,11 @@ class FeedForwardDGL(FeedForwardNN):
         self.in_linear = nn.Linear(in_features=self.in_dim, out_features=self.hidden_dims[0])
         self.out_linear = nn.Linear(in_features=out_pool_dim, out_features=self.hidden_dims[-1])
 
-
     def _register_hparams(self):
         return super()._register_hparams()
         self.hparams["edge_features"] = self.edge_features
         self.hparams["pooling"] = self.pooling
         self.hparams["intermittent_pooling"] = self.intermittent_pooling
-
 
     def _get_layers_args(self):
         in_dims = self.hidden_dims[0:1] + self.hidden_dims
@@ -262,7 +254,6 @@ class FeedForwardDGL(FeedForwardNN):
         super()._create_layers(in_dims=in_dims, out_dims=out_dims, kwargs_of_lists=kwargs_of_lists)
         return in_dims, true_out_dims
 
-
     def _initialize_virtual_node_layers(self):
         self.virtual_node_layers = nn.ModuleList()
         in_dims = self.full_dims[:-1]
@@ -273,21 +264,22 @@ class FeedForwardDGL(FeedForwardNN):
             # Compute the input and output dims depending on the residual type
             in_dim, out_dim = self._get_residual_in_out_dim(step_idx=ii)
 
-            self.virtual_node_layers.append(VirtualNode(
-                dim=out_dim, 
-                dropout=self.dropout, 
-                batch_norm=self.batch_norm,
-                bias=True, 
-                vn_type=self.virtual_node, 
-                residual=self.residual))
-
+            self.virtual_node_layers.append(
+                VirtualNode(
+                    dim=out_dim,
+                    dropout=self.dropout,
+                    batch_norm=self.batch_norm,
+                    bias=True,
+                    vn_type=self.virtual_node,
+                    residual=self.residual,
+                )
+            )
 
     def _forward_pre_layers(self, graph):
         h = graph.ndata["h"]
         e = graph.edata["e"] if self.edge_features else None
         h = self.in_linear(h)
         return h, e
-
 
     def _forward_post_layers(self, graph, h):
 
@@ -304,7 +296,6 @@ class FeedForwardDGL(FeedForwardNN):
 
         return pooled_h
 
-
     def _forward_middle_layers(self, cv_layer, graph, h, e):
         if self.edge_features:
             h = cv_layer(graph, h, e)
@@ -317,7 +308,6 @@ class FeedForwardDGL(FeedForwardNN):
 
         return h, e
 
-
     def _virtual_node_forward(self, g, h, vn_h, step_idx):
         if step_idx == 0:
             vn_h = 0
@@ -325,7 +315,6 @@ class FeedForwardDGL(FeedForwardNN):
             vn_h, h = self.virtual_node_layers[step_idx].forward(g, h, vn_h)
 
         return vn_h, h
-
 
     def forward(self, graph):
 
@@ -342,7 +331,6 @@ class FeedForwardDGL(FeedForwardNN):
         return pooled_h
 
 
-
 class FullDGLNetwork(nn.Module):
     def __init__(
         self,
@@ -355,17 +343,16 @@ class FullDGLNetwork(nn.Module):
         # Initialize the parent nn.Module
         super().__init__()
         self.name = name
-        
+
         self.pre_nn, self.post_nn = None, None
         if pre_nn_kwargs is not None:
-            self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name='NN-pre-trans')            
-        self.gnn = FeedForwardDGL(**gnn_kwargs, name='main-GNN')
+            self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name="NN-pre-trans")
+        self.gnn = FeedForwardDGL(**gnn_kwargs, name="main-GNN")
         if post_nn_kwargs is not None:
-            self.post_nn = FeedForwardNN(**post_nn_kwargs, name='NN-post-trans')
-        
-        hparams_temp = {**self.pre_nn.hparams, **self.pre_nn.hparams, **self.pre_nn.hparams}
-        self.hparams = {f"{self.name}.{key}": elem for key, elem in hparams_temp.items()}     
+            self.post_nn = FeedForwardNN(**post_nn_kwargs, name="NN-post-trans")
 
+        hparams_temp = {**self.pre_nn.hparams, **self.pre_nn.hparams, **self.pre_nn.hparams}
+        self.hparams = {f"{self.name}.{key}": elem for key, elem in hparams_temp.items()}
 
     def forward(self, graph):
         if self.pre_nn is not None:
@@ -392,7 +379,6 @@ class FullDGLSiameseNetwork(FullDGLNetwork):
         self.dist_method = dist_method.lower()
         self.hparams[f"{self.name}.dist_method"] = self.dist_method
 
-
     def forward(self, graphs):
         graph_1, graph_2 = graphs
 
@@ -418,6 +404,3 @@ class FullDGLSiameseNetwork(FullDGLNetwork):
             raise ValueError(f"Unsupported `dist_method`: {self.dist_method}")
 
         return out
-
-
-

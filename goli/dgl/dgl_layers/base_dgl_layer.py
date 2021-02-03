@@ -13,7 +13,6 @@ class BaseDGLLayer(nn.Module):
         self.batch_norm = batch_norm
         self.residual = False if in_dim != out_dim else residual
 
-
     @staticmethod
     def _parse_layer_args(in_dims, out_dims, **kwargs):
 
@@ -23,5 +22,4 @@ class BaseDGLLayer(nn.Module):
         return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
 
     def __repr__(self):
-        return f'{self.__class__.__name__}(in_dim={self.in_dim}, out_dim={self.out_dim})'
-
+        return f"{self.__class__.__name__}(in_dim={self.in_dim}, out_dim={self.out_dim})"

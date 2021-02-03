@@ -246,8 +246,7 @@ class S2SReadout(nn.Module):
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
-    def __init__(self, in_dim, hidden_dim, out_dim, fc_layers=3, 
-                    device="cpu", final_activation="relu"):
+    def __init__(self, in_dim, hidden_dim, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
         super(S2SReadout, self).__init__()
 
         # set2set aggregation
@@ -336,11 +335,11 @@ class MinPooling(MaxPooling):
         return readout
 
 
-def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int=2, n_layers: int=2):
+def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_layers: int = 2):
     r"""
     Select the pooling layers from a list of strings, and put them
-    in a Module that concatenates their outputs. 
-    
+    in a Module that concatenates their outputs.
+
     Parameters
     ------------
 
@@ -351,15 +350,15 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int=2, n_layer
         The list of pooling layers to use. The accepted strings are:
 
         - "sum": SumPooling
-        
+
         - "mean": MeanPooling
-        
+
         - "max": MaxPooling
-        
+
         - "min": MinPooling
-        
+
         - "std": StdPooling
-        
+
         - "s2s": Set2Set
 
     n_iters: int, Default=2
@@ -401,16 +400,14 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int=2, n_layer
 
 
 class VirtualNode(nn.Module):
-    def __init__(
-        self, dim, dropout, batch_norm=False, bias=True, residual=True, vn_type="sum"
-    ):
+    def __init__(self, dim, dropout, batch_norm=False, bias=True, residual=True, vn_type="sum"):
         super().__init__()
-        if (vn_type is None) or (vn_type.lower()=="none"):
+        if (vn_type is None) or (vn_type.lower() == "none"):
             self.vn_type = None
             self.fc_layer = None
             self.residual = None
             return
-        
+
         self.vn_type = vn_type.lower()
         self.fc_layer = FCLayer(
             in_size=dim,
@@ -435,9 +432,7 @@ class VirtualNode(nn.Module):
             pool = sum_nodes(g, "h")
         elif self.vn_type == "logsum":
             pool = mean_nodes(g, "h")
-            lognum = torch.log(
-                torch.tensor(g.batch_num_nodes, dtype=h.dtype, device=h.device)
-            )
+            lognum = torch.log(torch.tensor(g.batch_num_nodes, dtype=h.dtype, device=h.device))
             pool = pool * lognum.unsqueeze(-1)
         else:
             raise ValueError(
@@ -453,16 +448,9 @@ class VirtualNode(nn.Module):
 
         # Add the virtual node value to the graph features
         temp_h = torch.cat(
-            [
-                vn_h[ii : ii + 1].repeat(num_nodes, 1)
-                for ii, num_nodes in enumerate(g.batch_num_nodes)
-            ],
+            [vn_h[ii : ii + 1].repeat(num_nodes, 1) for ii, num_nodes in enumerate(g.batch_num_nodes)],
             dim=0,
         )
         h = h + temp_h
 
         return vn_h, h
-
-
-
-
