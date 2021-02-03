@@ -2,17 +2,78 @@ import torch.nn as nn
 import abc
 from typing import List, Dict, Tuple
 
+from goli.dgl.base_layers import get_activation
+
 
 class BaseDGLLayer(nn.Module):
-    def __init__(self, in_dim: int, out_dim: int, activation, dropout: float, batch_norm: bool):
+    def __init__(
+        self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
+    ):
+        r"""
+        Abstract class used to standardize the implementation of DGL layers
+        in the current library. It will allow a network to seemlesly swap between
+        different GNN layers by better understanding the expected inputs
+        and outputs.
+
+        Parameters
+        ------------
+
+        in_dim: int
+            Input feature dimensions of the layer
+
+        out_dim: int
+            Output feature dimensions of the layer
+
+        activation: str, Callable, Default="relu"
+            activation function to use in the layer
+
+        dropout: float, Default=0.
+            The ratio of units to dropout. Must be between 0 and 1
+
+        batch_norm: bool, Default=False
+            Whether to use batch normalization
+        """
+
         super().__init__()
 
-        # Initializing attributes
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.activation = activation
-        self.dropout = dropout
-        self.batch_norm = batch_norm
+        self.activation = get_activation(activation)
+
+        self.dropout = None
+        if dropout > 0:
+            self.dropout = nn.Dropout(p=dropout)
+
+        self.batch_norm = None
+        if batch_norm:
+            self.batch_norm = nn.BatchNorm1d(out_dim)
+
+    def apply_norm_dropout(self, h):
+        r"""
+        Apply the different normalization and the dropout to the
+        output layer.
+
+        Parameters
+        ------------
+
+        h: torch.Tensor()
+            Feature tensor, to be normalized
+
+        Returns
+        ---------
+
+        h: torch.Tensor()
+            Normalized and dropped-out features
+
+        """
+
+        if self.dropout is not None:
+            h = self.dropout(h)
+
+        if self.batch_norm is not None:
+            h = self.batchnorm_h(h)
+
+        return h
 
     @staticmethod
     @abc.abstractmethod
@@ -48,6 +109,7 @@ class BaseDGLLayer(nn.Module):
     @abc.abstractmethod
     def get_out_dim_factor(self) -> int:
         r"""
+        Abstract method.
         Get the factor by which the output dimension is multiplied for
         the next layer.
 
