@@ -336,7 +336,40 @@ class MinPooling(MaxPooling):
         return readout
 
 
-def parse_pooling_layer(in_dim, pooling, **kwargs):
+def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int=2, n_layers: int=2):
+    r"""
+    Select the pooling layers from a list of strings, and put them
+    in a Module that concatenates their outputs. 
+    
+    Parameters
+    ------------
+
+    in_dim: int
+        The dimension at the input layer of the pooling
+
+    pooling: list(str)
+        The list of pooling layers to use. The accepted strings are:
+
+        - "sum": SumPooling
+        
+        - "mean": MeanPooling
+        
+        - "max": MaxPooling
+        
+        - "min": MinPooling
+        
+        - "std": StdPooling
+        
+        - "s2s": Set2Set
+
+    n_iters: int, Default=2
+        IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
+        The number of iterations.
+
+    n_layers : int, Default=2
+        IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
+        The number of recurrent layers.
+    """
 
     # TODO: Add configuration for the pooling layer kwargs
 
@@ -348,19 +381,16 @@ def parse_pooling_layer(in_dim, pooling, **kwargs):
     for this_pool in re.split("\s+|_", pooling):
         out_pool_dim += in_dim
         if this_pool == "sum":
-            pool_layer.append(SumPooling(**kwargs))
+            pool_layer.append(SumPooling())
         elif this_pool == "mean":
-            pool_layer.append(AvgPooling(**kwargs))
+            pool_layer.append(AvgPooling())
         elif this_pool == "max":
-            pool_layer.append(MaxPooling(**kwargs))
+            pool_layer.append(MaxPooling())
         elif this_pool == "min":
-            pool_layer.append(MinPooling(**kwargs))
+            pool_layer.append(MinPooling())
         elif this_pool == "std":
-            pool_layer.append(StdPooling(**kwargs))
-        elif this_pool == "s2s":
-            n_iters = kwargs.pop('n_iter', 2)
-            n_layers = kwargs.pop('n_layers', 2)
-            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers, **kwargs))
+            pool_layer.append(StdPooling())
+            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers))
             out_pool_dim += in_dim
         elif (this_pool == "none") or (this_pool is None):
             pass
