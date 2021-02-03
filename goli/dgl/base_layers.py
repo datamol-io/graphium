@@ -4,6 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import re
 from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, GlobalAttentionPooling
+from dgl import mean_nodes, sum_nodes, max_nodes
 
 from goli.commons.utils import ModuleListConcat
 
@@ -401,6 +402,8 @@ class VirtualNode(nn.Module):
             return vn_h, h
         elif self.vn_type == "mean":
             pool = mean_nodes(g, "h")
+        elif self.vn_type == "max":
+            pool = max_nodes(g, "h")
         elif self.vn_type == "sum":
             pool = sum_nodes(g, "h")
         elif self.vn_type == "logsum":
