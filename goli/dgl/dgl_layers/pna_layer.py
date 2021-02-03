@@ -17,11 +17,27 @@ from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
 
 class BasePNALayer(BaseDGLLayer):
-    def __init__(self, in_dim, out_dim, aggregators, scalers, avg_d, 
-                residual, activation, dropout, batch_norm, graph_norm):
-        super().__init__(in_dim=in_dim, out_dim=out_dim, residual=residual,
-                        activation=activation, dropout=dropout, 
-                        batch_norm=batch_norm)
+    def __init__(
+        self,
+        in_dim,
+        out_dim,
+        aggregators,
+        scalers,
+        avg_d,
+        residual,
+        activation,
+        dropout,
+        batch_norm,
+        graph_norm,
+    ):
+        super().__init__(
+            in_dim=in_dim,
+            out_dim=out_dim,
+            residual=residual,
+            activation=activation,
+            dropout=dropout,
+            batch_norm=batch_norm,
+        )
 
         # Initializing basic attributes
         self.graph_norm = graph_norm
@@ -36,14 +52,12 @@ class BasePNALayer(BaseDGLLayer):
         if self.batch_norm:
             self.batchnorm_h = nn.BatchNorm1d(out_dim)
 
-
     def message_func(self, edges):
         return {"e": edges.data["e"]}
 
-
     def reduce_func(self, nodes):
-        h_in = nodes.data['h']
-        h = nodes.mailbox['e']
+        h_in = nodes.data["h"]
+        h = nodes.mailbox["e"]
         D = h.shape[-2]
         to_cat = []
         for aggregate in self.aggregators:
@@ -57,8 +71,7 @@ class BasePNALayer(BaseDGLLayer):
         if len(self.scalers) > 1:
             h = torch.cat([scale(h, D=D, avg_d=self.avg_d) for scale in self.scalers], dim=1)
 
-        return {'h': h}
-
+        return {"h": h}
 
     def post_forward(self, h, h_in, snorm_n):
         # graph and batch normalization, residual and dropout
@@ -73,6 +86,7 @@ class BasePNALayer(BaseDGLLayer):
         h = F.dropout(h, self.dropout, training=self.training)
 
         return h
+
 
 class PNAComplexLayer(BasePNALayer):
     def __init__(
