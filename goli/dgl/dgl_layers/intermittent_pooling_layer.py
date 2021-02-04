@@ -45,7 +45,7 @@ class IntermittentPoolingLayer(nn.Module):
         in_dim = self.pool_out_dim + in_dim if (len(self.pool_layer) > 0) else in_dim
         self.mlp = MLP(
             in_dim=in_dim,
-            hidden_size=in_dim,
+            hidden_dim=in_dim,
             out_dim=in_dim,
             layers=num_layers,
             mid_activation=activation,

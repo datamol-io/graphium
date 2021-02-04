@@ -1,3 +1,4 @@
+import abc
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -5,6 +6,7 @@ import re
 from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, GlobalAttentionPooling
 
 from goli.commons.utils import ModuleListConcat
+from typing import List
 
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
@@ -136,7 +138,7 @@ class MLP(nn.Module):
     def __init__(
         self,
         in_dim,
-        hidden_size,
+        hidden_dim,
         out_dim,
         layers,
         mid_activation="relu",
@@ -149,7 +151,7 @@ class MLP(nn.Module):
         super(MLP, self).__init__()
 
         self.in_dim = in_dim
-        self.hidden_size = hidden_size
+        self.hidden_dim = hidden_dim
         self.out_dim = out_dim
 
         self.fully_connected = nn.ModuleList()
@@ -168,7 +170,7 @@ class MLP(nn.Module):
             self.fully_connected.append(
                 FCLayer(
                     in_dim,
-                    hidden_size,
+                    hidden_dim,
                     activation=mid_activation,
                     batch_norm=mid_batch_norm,
                     device=device,
@@ -178,8 +180,8 @@ class MLP(nn.Module):
             for _ in range(layers - 2):
                 self.fully_connected.append(
                     FCLayer(
-                        hidden_size,
-                        hidden_size,
+                        hidden_dim,
+                        hidden_dim,
                         activation=mid_activation,
                         batch_norm=mid_batch_norm,
                         device=device,
@@ -188,7 +190,7 @@ class MLP(nn.Module):
                 )
             self.fully_connected.append(
                 FCLayer(
-                    hidden_size,
+                    hidden_dim,
                     out_dim,
                     activation=last_activation,
                     batch_norm=last_batch_norm,
@@ -211,19 +213,19 @@ class GRU(nn.Module):
     Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
     """
 
-    def __init__(self, input_size, hidden_size, device):
+    def __init__(self, input_size, hidden_dim, device):
         super(GRU, self).__init__()
         self.input_size = input_size
-        self.hidden_size = hidden_size
-        self.gru = nn.GRU(input_size=input_size, hidden_size=hidden_size).to(device)
+        self.hidden_dim = hidden_dim
+        self.gru = nn.GRU(input_size=input_size, hidden_dim=hidden_dim).to(device)
 
     def forward(self, x, y):
         """
         :param x:   shape: (B, N, Din) where Din <= input_size (difference is padded)
-        :param y:   shape: (B, N, Dh) where Dh <= hidden_size (difference is padded)
+        :param y:   shape: (B, N, Dh) where Dh <= hidden_dim (difference is padded)
         :return:    shape: (B, N, Dh)
         """
-        assert x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_size
+        assert x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_dim
 
         (B, N, _) = x.shape
         x = x.reshape(1, B * N, -1).contiguous()
@@ -232,8 +234,8 @@ class GRU(nn.Module):
         # padding if necessary
         if x.shape[-1] < self.input_size:
             x = F.pad(input=x, pad=[0, self.input_size - x.shape[-1]], mode="constant", value=0)
-        if y.shape[-1] < self.hidden_size:
-            y = F.pad(input=y, pad=[0, self.hidden_size - y.shape[-1]], mode="constant", value=0)
+        if y.shape[-1] < self.hidden_dim:
+            y = F.pad(input=y, pad=[0, self.hidden_dim - y.shape[-1]], mode="constant", value=0)
 
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)
@@ -245,7 +247,7 @@ class S2SReadout(nn.Module):
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
-    def __init__(self, in_dim, hidden_size, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
+    def __init__(self, in_dim, hidden_dim, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
         super(S2SReadout, self).__init__()
 
         # set2set aggregation
@@ -254,7 +256,7 @@ class S2SReadout(nn.Module):
         # fully connected layers
         self.mlp = MLP(
             in_dim=2 * in_dim,
-            hidden_size=hidden_size,
+            hidden_dim=hidden_dim,
             out_dim=out_dim,
             layers=fc_layers,
             mid_activation="relu",
@@ -334,7 +336,43 @@ class MinPooling(MaxPooling):
         return readout
 
 
-def parse_pooling_layer(in_dim, pooling):
+def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_layers: int = 2):
+    r"""
+    Select the pooling layers from a list of strings, and put them
+    in a Module that concatenates their outputs.
+
+    Parameters
+    ------------
+
+    in_dim: int
+        The dimension at the input layer of the pooling
+
+    pooling: list(str)
+        The list of pooling layers to use. The accepted strings are:
+
+        - "sum": SumPooling
+
+        - "mean": MeanPooling
+
+        - "max": MaxPooling
+
+        - "min": MinPooling
+
+        - "std": StdPooling
+
+        - "s2s": Set2Set
+
+    n_iters: int, Default=2
+        IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
+        The number of iterations.
+
+    n_layers : int, Default=2
+        IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
+        The number of recurrent layers.
+    """
+
+    # TODO: Add configuration for the pooling layer kwargs
+
     # Create the pooling layer
     pooling = pooling.lower()
     pool_layer = ModuleListConcat()
@@ -352,8 +390,7 @@ def parse_pooling_layer(in_dim, pooling):
             pool_layer.append(MinPooling())
         elif this_pool == "std":
             pool_layer.append(StdPooling())
-        elif this_pool == "s2s":
-            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=2, n_layers=2))
+            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers))
             out_pool_dim += in_dim
         elif (this_pool == "none") or (this_pool is None):
             pass
@@ -361,3 +398,60 @@ def parse_pooling_layer(in_dim, pooling):
             raise NotImplementedError(f"Undefined pooling `{this_pool}`")
 
     return pool_layer, out_pool_dim
+
+
+class VirtualNode(nn.Module):
+    def __init__(self, dim, dropout, batch_norm=False, bias=True, residual=True, vn_type="sum"):
+        super().__init__()
+        if (vn_type is None) or (vn_type.lower() == "none"):
+            self.vn_type = None
+            self.fc_layer = None
+            self.residual = None
+            return
+
+        self.vn_type = vn_type.lower()
+        self.fc_layer = FCLayer(
+            in_size=dim,
+            out_size=dim,
+            activation="relu",
+            dropout=dropout,
+            b_norm=batch_norm,
+            bias=bias,
+        )
+        self.residual = residual
+
+    def forward(self, g, h, vn_h):
+
+        g.ndata["h"] = h
+
+        # Pool the features
+        if self.vn_type is None:
+            return vn_h, h
+        elif self.vn_type == "mean":
+            pool = mean_nodes(g, "h")
+        elif self.vn_type == "sum":
+            pool = sum_nodes(g, "h")
+        elif self.vn_type == "logsum":
+            pool = mean_nodes(g, "h")
+            lognum = torch.log(torch.tensor(g.batch_num_nodes, dtype=h.dtype, device=h.device))
+            pool = pool * lognum.unsqueeze(-1)
+        else:
+            raise ValueError(
+                f'Undefined input "{self.pooling}". Accepted values are "none", "sum", "mean", "logsum"'
+            )
+
+        # Compute the new virtual node features
+        vn_h_temp = self.fc_layer.forward(vn_h + pool)
+        if self.residual:
+            vn_h = vn_h + vn_h_temp
+        else:
+            vn_h = vn_h_temp
+
+        # Add the virtual node value to the graph features
+        temp_h = torch.cat(
+            [vn_h[ii : ii + 1].repeat(num_nodes, 1) for ii, num_nodes in enumerate(g.batch_num_nodes)],
+            dim=0,
+        )
+        h = h + temp_h
+
+        return vn_h, h
