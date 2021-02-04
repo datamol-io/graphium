@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import dgl.function as fn
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.dgl.base_layers import MLP
 
 """
     GIN: Graph Isomorphism Networks
@@ -124,7 +125,7 @@ class GINLayer(GINLayerComplete):
         learn_eps=False,
     ):
         aggr_type = "sum"
-        apply_func = ApplyNodeFunc(MLP(num_layers=2, in_dim=in_dim, hidden_dim=in_dim, out_dim=out_dim))
+        apply_func = MLP(in_dim=in_dim, hidden_dim=in_dim, out_dim=out_dim, layers=2)
         super().__init__(
             apply_func=apply_func,
             aggr_type=aggr_type,
@@ -136,60 +137,3 @@ class GINLayer(GINLayerComplete):
             init_eps=init_eps,
             learn_eps=learn_eps,
         )
-
-
-class ApplyNodeFunc(nn.Module):
-    """
-    This class is used in class GINNet
-    Update the node feature hv with MLP
-    """
-
-    def __init__(self, mlp):
-        super().__init__()
-        self.mlp = mlp
-
-    def forward(self, h):
-        h = self.mlp(h)
-        return h
-
-
-class MLP(nn.Module):
-    """MLP with linear output"""
-
-    def __init__(self, num_layers, in_dim, hidden_dim, out_dim):
-
-        super().__init__()
-        self.linear_or_not = True  # default is linear model
-        self.num_layers = num_layers
-        self.out_dim = out_dim
-        self.in_dim = in_dim
-
-        if num_layers < 1:
-            raise ValueError("number of layers should be positive!")
-        elif num_layers == 1:
-            # Linear model
-            self.linear = nn.Linear(in_dim, out_dim)
-        else:
-            # Multi-layer model
-            self.linear_or_not = False
-            self.linears = torch.nn.ModuleList()
-            self.batch_norms = torch.nn.ModuleList()
-
-            self.linears.append(nn.Linear(in_dim, hidden_dim))
-            for layer in range(num_layers - 2):
-                self.linears.append(nn.Linear(hidden_dim, hidden_dim))
-            self.linears.append(nn.Linear(hidden_dim, out_dim))
-
-            for layer in range(num_layers - 1):
-                self.batch_norms.append(nn.BatchNorm1d((hidden_dim)))
-
-    def forward(self, x):
-        if self.linear_or_not:
-            # If linear model
-            return self.linear(x)
-        else:
-            # If MLP
-            h = x
-            for i in range(self.num_layers - 1):
-                h = F.relu(self.batch_norms[i](self.linears[i](h)))
-            return self.linears[-1](h)
