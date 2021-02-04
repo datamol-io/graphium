@@ -111,10 +111,26 @@ class BaseDGLLayer(nn.Module):
         ...
 
     @abc.abstractmethod
-    def layer_uses_edges(self) -> bool:
+    def layer_inputs_edges(self) -> bool:
         r"""
         Abstract method. Return a boolean specifying if the layer type
-        uses edges or not.
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns
+        ---------
+
+        uses_edges: bool
+            Whether the layer uses edges
+        """
+        ...
+
+    @abc.abstractmethod
+    def layer_outputs_edges(self) -> bool:
+        r"""
+        Abstract method. Return a boolean specifying if the layer type
+        uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 

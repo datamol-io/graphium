@@ -4,30 +4,30 @@ import numpy as np
 EPS = 1e-5
 
 
-def aggregate_mean(h):
+def aggregate_mean(h, **kwargs):
     return torch.mean(h, dim=1)
 
 
-def aggregate_max(h):
+def aggregate_max(h, **kwargs):
     return torch.max(h, dim=1)[0]
 
 
-def aggregate_min(h):
+def aggregate_min(h, **kwargs):
     return torch.min(h, dim=1)[0]
 
 
-def aggregate_std(h):
+def aggregate_std(h, **kwargs):
     return torch.sqrt(aggregate_var(h) + EPS)
 
 
-def aggregate_var(h):
+def aggregate_var(h, **kwargs):
     h_mean_squares = torch.mean(h * h, dim=-2)
     h_mean = torch.mean(h, dim=-2)
     var = torch.relu(h_mean_squares - h_mean * h_mean)
     return var
 
 
-def aggregate_moment(h, n=3):
+def aggregate_moment(h, n=3, **kwargs):
     # for each node (E[(X-E[X])^n])^{1/n}
     # EPS is added to the absolute value of expectation before taking the nth root for stability
     h_mean = torch.mean(h, dim=1, keepdim=True)
@@ -36,19 +36,19 @@ def aggregate_moment(h, n=3):
     return rooted_h_n
 
 
-def aggregate_moment_3(h):
+def aggregate_moment_3(h, **kwargs):
     return aggregate_moment(h, n=3)
 
 
-def aggregate_moment_4(h):
+def aggregate_moment_4(h, **kwargs):
     return aggregate_moment(h, n=4)
 
 
-def aggregate_moment_5(h):
+def aggregate_moment_5(h, **kwargs):
     return aggregate_moment(h, n=5)
 
 
-def aggregate_sum(h):
+def aggregate_sum(h, **kwargs):
     return torch.sum(h, dim=1)
 
 
@@ -70,7 +70,7 @@ def scale_attenuation(h, D, avg_d):
     return h * (avg_d["log"] / np.log(D + 1))
 
 
-AGGREGATORS = {
+PNA_AGGREGATORS = {
     "mean": aggregate_mean,
     "sum": aggregate_sum,
     "max": aggregate_max,
@@ -82,7 +82,8 @@ AGGREGATORS = {
     "moment5": aggregate_moment_5,
 }
 
-SCALERS = {
+
+PNA_SCALERS = {
     "identity": scale_identity,
     "amplification": scale_amplification,
     "attenuation": scale_attenuation,

@@ -11,7 +11,7 @@ from goli.dgl.dgl_layers.gcn_layer import GCNLayer
 from goli.dgl.dgl_layers.gin_layer import GINLayer
 from goli.dgl.dgl_layers.gat_layer import GATLayer
 from goli.dgl.dgl_layers.gated_gcn_layer import GatedGCNLayer
-from goli.dgl.dgl_layers.pna_layer import PNAComplexLayer, PNASimpleLayer
+from goli.dgl.dgl_layers.pna_layer import PNAMessagePassingLayer, PNAConvolutionalLayer
 from goli.dgl.dgl_layers.intermittent_pooling_layer import IntermittentPoolingLayer
 
 from goli.dgl.base_layers import FCLayer, get_activation, parse_pooling_layer, VirtualNode
@@ -24,8 +24,8 @@ LAYERS_DICT = {
     "gin": GINLayer,
     "gat": GATLayer,
     "gated-gcn": GatedGCNLayer,
-    "pna-complex": PNAComplexLayer,
-    "pna-simple": PNASimpleLayer,
+    "pna-msgpass": PNAMessagePassingLayer,
+    "pna-conv": PNAConvolutionalLayer,
 }
 
 

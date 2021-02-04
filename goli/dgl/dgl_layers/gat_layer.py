@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from dgl.nn.pytorch import GATConv
+from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
@@ -15,23 +16,32 @@ from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
 class GATLayer(BaseDGLLayer):
     """
-    Parameters
-    ----------
-    in_dim :
-        Number of input features.
-    out_dim :
-        Number of output features.
-    num_heads : int
-        Number of heads in Multi-Head Attention.
-    dropout :
-        Required for dropout of attn and feat in GATConv
-    batch_norm :
-        boolean flag for batch_norm layer.
-    activation : callable activation function/layer or None, optional.
-        If not None, applies an activation function to the updated node features.
+    GAT: Graph Attention Network
+    Graph Attention Networks (Veličković et al., ICLR 2018)
+    https://arxiv.org/abs/1710.10903
 
-    Using dgl builtin GATConv by default:
-    https://github.com/graphdeeplearning/benchmarking-gnns/commit/206e888ecc0f8d941c54e061d5dffcc7ae2142fc
+    The implementation is built on top of the DGL ``GATCONV`` layer
+
+        Parameters
+        ------------
+
+        in_dim: int
+            Input feature dimensions of the layer
+
+        out_dim: int
+            Output feature dimensions of the layer
+
+        num_heads: int
+            Number of heads in Multi-Head Attention
+
+        activation: str, Callable, Default="relu"
+            activation function to use in the layer
+
+        dropout: float, Default=0.
+            The ratio of units to dropout. Must be between 0 and 1
+
+        batch_norm: bool, Default=False
+            Whether to use batch normalization
     """
 
     def __init__(
@@ -63,7 +73,29 @@ class GATLayer(BaseDGLLayer):
             activation=None,  # Activation is applied after
         )
 
-    def forward(self, g, h):
+    def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
+        r"""
+        Apply the graph convolutional layer, with the specified activations,
+        normalizations and dropout.
+
+        Parameters
+        ------------
+
+        g: dgl.DGLGraph
+            graph on which the convolution is done
+
+        h: torch.Tensor(..., N, Din)
+            Node feature tensor, before convolution.
+            N is the number of nodes, Din is the input dimension
+
+        Returns
+        ---------
+
+        h: torch.Tensor(..., N, Dout)
+            Node feature tensor, after convolution.
+            N is the number of nodes, Dout is the output dimension
+
+        """
 
         h = self.gatconv(g, h).flatten(1)
         self.apply_norm_activation_dropout(h, batch_norm=True, activation=True, dropout=False)
@@ -83,11 +115,10 @@ class GATLayer(BaseDGLLayer):
         """
         return False
 
-    @abc.abstractmethod
-    def layer_uses_edges(self) -> bool:
+    def layer_inputs_edges(self) -> bool:
         r"""
         Return a boolean specifying if the layer type
-        uses edges or not.
+        uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
@@ -99,7 +130,21 @@ class GATLayer(BaseDGLLayer):
         """
         return False
 
-    @abc.abstractmethod
+    def layer_outputs_edges(self) -> bool:
+        r"""
+        Abstract method. Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns
+        ---------
+
+        uses_edges: bool
+            Always ``False`` for the current class
+        """
+        return False
+
     def get_out_dim_factor(self) -> int:
         r"""
         Get the factor by which the output dimension is multiplied for
