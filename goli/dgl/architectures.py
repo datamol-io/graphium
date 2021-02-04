@@ -7,12 +7,15 @@ import dgl
 from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
 from typing import List, Dict
 
-from goli.dgl.dgl_layers.gcn_layer import GCNLayer
-from goli.dgl.dgl_layers.gin_layer import GINLayer
-from goli.dgl.dgl_layers.gat_layer import GATLayer
-from goli.dgl.dgl_layers.gated_gcn_layer import GatedGCNLayer
-from goli.dgl.dgl_layers.pna_layer import PNAMessagePassingLayer, PNAConvolutionalLayer
-from goli.dgl.dgl_layers.intermittent_pooling_layer import IntermittentPoolingLayer
+from goli.dgl.dgl_layers import (
+    GATLayer,
+    GCNLayer,
+    GINLayer,
+    GatedGCNLayer,
+    PNAConvolutionalLayer,
+    PNAMessagePassingLayer,
+)
+
 
 from goli.dgl.base_layers import FCLayer, get_activation, parse_pooling_layer, VirtualNode
 from goli.dgl.residual_connections import RESIDUAL_TYPE_DICT

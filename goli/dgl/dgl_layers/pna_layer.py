@@ -115,7 +115,6 @@ class BasePNALayer(BaseDGLLayer):
 
         return {"h": h}
 
-
     def layer_outputs_edges(self) -> bool:
         r"""
         Abstract method. Return a boolean specifying if the layer type
@@ -162,7 +161,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         activation="relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
-        avg_d: Dict[str, float] = {"log" :1.0},
+        avg_d: Dict[str, float] = {"log": 1.0},
         last_activation="none",
         posttrans_layers: int = 1,
     ):
@@ -321,7 +320,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         activation="relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
-        avg_d: Dict[str, float] = {"log" :1.0},
+        avg_d: Dict[str, float] = {"log": 1.0},
         last_activation="none",
         posttrans_layers: int = 1,
         pretrans_layers: int = 1,

@@ -19,7 +19,7 @@ def get_activation(activation):
     if activation and callable(activation):
         # activation is already a function
         return activation
-        
+
     if (activation is None) or (activation.lower() == "none"):
         return None
 
@@ -27,7 +27,7 @@ def get_activation(activation):
     activation = [x for x in SUPPORTED_ACTIVATION_MAP if activation.lower() == x.lower()]
     assert len(activation) == 1 and isinstance(activation[0], str), "Unhandled activation function"
     activation = activation[0]
-    
+
     return vars(torch.nn.modules.activation)[activation]()
 
 
