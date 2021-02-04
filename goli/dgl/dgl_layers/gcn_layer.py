@@ -75,14 +75,14 @@ class GCNLayer(BaseDGLLayer):
 
         h: torch.Tensor(..., N, Din)
             Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension
+            N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         Returns
         ---------
 
         h: torch.Tensor(..., N, Dout)
             Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension
+            N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
         """
 

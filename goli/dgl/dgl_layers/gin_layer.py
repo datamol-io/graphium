@@ -67,7 +67,7 @@ class GINLayer(BaseDGLLayer):
         )
 
         # Specify to consider the edges weight in the aggregation
-        self._copier = fn.u_mul_e("h", "w", "m")
+        
 
         # to specify whether eps is trainable or not.
         if learn_eps:
@@ -85,15 +85,48 @@ class GINLayer(BaseDGLLayer):
             last_activation="none",
             mid_batch_norm=self.batch_norm,
             last_batch_norm=False,
-            bias=True,
         )
 
+    def _copier(self, g):
+        r"""
+        If edge weights are provided, use them to weight the messages
+        """
+
+        if "w" in g.edata.keys():
+            func = fn.u_mul_e("h", "w", "m")
+        else:
+            func = fn.copy_u("h", "m")
+        return func
+
     def forward(self, g, h):
+        r"""
+        Apply the GIN convolutional layer, with the specified activations,
+        normalizations and dropout.
+
+        Parameters
+        ------------
+
+        g: dgl.DGLGraph
+            graph on which the convolution is done
+
+        h: torch.Tensor(..., N, Din)
+            Node feature tensor, before convolution.
+            N is the number of nodes, Din is the input dimension ``self.in_dim``
+
+        Returns
+        ---------
+
+        h: torch.Tensor(..., N, Dout)
+            Node feature tensor, after convolution.
+            N is the number of nodes, Dout is the output dimension ``self.out_dim``
+
+        """
 
         # Aggregate the message
         g = g.local_var()
         g.ndata["h"] = h
-        g.update_all(self._copier, fn.sum("m", "neigh"))
+        func = fn.copy_u("h", "m")
+        g.update_all(self._copier(g), fn.sum("m", "neigh"))
         h = (1 + self.eps) * h + g.ndata["neigh"]
 
         # Apply the MLP

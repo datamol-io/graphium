@@ -45,7 +45,7 @@ mpnn-max:
 mpnn-e-sum:
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d: null
   aggregators: "sum"
   scalers: "identity"
@@ -54,7 +54,7 @@ mpnn-e-sum:
 mpnn-e-max:
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d: null
   aggregators: "max"
   scalers: "identity"
@@ -81,7 +81,7 @@ pna-no-scaler:
 pna-e: 
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -91,7 +91,7 @@ pna-e:
 pna-e-no-scaler: 
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -118,7 +118,7 @@ mpnn4-max:
 mpnn4-e-sum:
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d: null
   aggregators: "sum"
   scalers: "identity"
@@ -127,7 +127,7 @@ mpnn4-e-sum:
 mpnn4-e-max:
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d: null
   aggregators: "max"
   scalers: "identity"
@@ -154,7 +154,7 @@ pna4-no-scaler:
 pna4-e: 
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -164,7 +164,7 @@ pna4-e:
 pna4-e-no-scaler: 
   layer_type: pna-msgpass
   edge_features: True
-  edge_dim: 16
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
