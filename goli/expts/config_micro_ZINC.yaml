@@ -25,7 +25,7 @@ datasets:
 
 
 model:
-  layer_name: pna-e  # gcn, gin, pna-e, gat-4, mpnn-max, pna-simple3 ...
+  layer_name: pna-e  # gcn, gin, pna-e, gat-4, mpnn-max, pna-conv3 ...
   gnn_architecture: resnet  # skip-concat, resnet, resnet-residualweights
   gnn_kwargs:
     hidden_dim: 32

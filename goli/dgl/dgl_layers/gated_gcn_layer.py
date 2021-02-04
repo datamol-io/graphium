@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from copy import deepcopy
+from typing import Tuple
+from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
@@ -13,10 +15,6 @@ from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
 
 class GatedGCNLayer(BaseDGLLayer):
-    """
-    Param: []
-    """
-
     def __init__(
         self,
         in_dim: int,
@@ -59,7 +57,37 @@ class GatedGCNLayer(BaseDGLLayer):
         )  # hi = Ahi + sum_j eta_ij/sum_j' eta_ij' * Bhj <= dense attention
         return {"h": h}
 
-    def forward(self, g, h, e):
+    def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor) -> Tuple(torch.Tensor, torch.Tensor):
+        r"""
+        Apply the graph convolutional layer, with the specified activations,
+        normalizations and dropout.
+
+        Parameters
+        ------------
+
+        g: dgl.DGLGraph
+            graph on which the convolution is done
+
+        h: torch.Tensor(..., N, Din)
+            Node feature tensor, before convolution.
+            N is the number of nodes, Din is the input dimension
+
+        e: torch.Tensor(..., N, Din_edges)
+            Edge feature tensor, before convolution.
+            N is the number of nodes, Din is the input edge dimension
+
+        Returns
+        ---------
+
+        h: torch.Tensor(..., N, Dout)
+            Node feature tensor, after convolution.
+            N is the number of nodes, Dout is the output dimension
+
+        e: torch.Tensor(..., N, Dout_edges)
+            Edge feature tensor, after convolution.
+            N is the number of nodes, Dout_edges is the output edge dimension
+
+        """
 
         g.ndata["h"] = h
         g.ndata["Ah"] = self.A(h)
@@ -90,11 +118,10 @@ class GatedGCNLayer(BaseDGLLayer):
         """
         return True
 
-    @abc.abstractmethod
-    def layer_uses_edges(self) -> bool:
+    def layer_inputs_edges(self) -> bool:
         r"""
         Return a boolean specifying if the layer type
-        uses edges or not.
+        uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
@@ -106,7 +133,21 @@ class GatedGCNLayer(BaseDGLLayer):
         """
         return True
 
-    @abc.abstractmethod
+    def layer_outputs_edges(self) -> bool:
+        r"""
+        Abstract method. Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns
+        ---------
+
+        uses_edges: bool
+            Always ``True`` for the current class
+        """
+        return True
+
     def get_out_dim_factor(self) -> int:
         r"""
         Get the factor by which the output dimension is multiplied for

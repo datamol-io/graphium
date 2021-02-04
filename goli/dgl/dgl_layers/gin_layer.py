@@ -15,25 +15,33 @@ from goli.dgl.base_layers import MLP
 
 class GINLayer(BaseDGLLayer):
     """
+    GIN: Graph Isomorphism Networks
+    HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
+    https://arxiv.org/pdf/1810.00826.pdf
+
     [!] code adapted from dgl implementation of GINConv
 
     Parameters
     ----------
-    apply_func : callable activation function/layer or None
-        If not None, apply this function to the updated node feature,
-        the :math:`f_\Theta` in the formula.
-    aggr_type :
-        Aggregator type to use (``sum``, ``max`` or ``mean``).
-    out_dim :
-        Rquired for batch norm layer; should match out_dim of apply_func if not None.
-    dropout :
-        Required for dropout of output features.
-    batch_norm :
-        boolean flag for batch_norm layer.
-    residual :
-        boolean flag for using residual connection.
+
+    in_dim: int
+        Input feature dimensions of the layer
+
+    out_dim: int
+        Output feature dimensions of the layer
+
+    activation: str, Callable, Default="relu"
+        activation function to use in the layer
+
+    dropout: float, Default=0.
+        The ratio of units to dropout. Must be between 0 and 1
+
+    batch_norm: bool, Default=False
+        Whether to use batch normalization
+
     init_eps : optional
         Initial :math:`\epsilon` value, default: ``0``.
+
     learn_eps : bool, optional
         If True, :math:`\epsilon` will be a learnable parameter.
 
@@ -107,10 +115,25 @@ class GINLayer(BaseDGLLayer):
         """
         return False
 
-    def layer_uses_edges(self) -> bool:
+    def layer_inputs_edges(self) -> bool:
         r"""
         Return a boolean specifying if the layer type
-        uses edges or not.
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns
+        ---------
+
+        uses_edges: bool
+            Always ``False`` for the current class
+        """
+        return False
+
+    def layer_outputs_edges(self) -> bool:
+        r"""
+        Abstract method. Return a boolean specifying if the layer type
+        uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
