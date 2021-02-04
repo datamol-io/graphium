@@ -54,7 +54,9 @@ class BaseDGLLayer(nn.Module):
         if batch_norm:
             self.batch_norm_layer = nn.BatchNorm1d(out_dim)
 
-    def apply_norm_activation_dropout(self, h):
+    def apply_norm_activation_dropout(
+        self, h, batch_norm: bool = True, activation: bool = True, dropout: bool = True
+    ):
         r"""
         Apply the different normalization and the dropout to the
         output layer.
@@ -65,6 +67,15 @@ class BaseDGLLayer(nn.Module):
         h: torch.Tensor()
             Feature tensor, to be normalized
 
+        batch_norm: bool, Default=True
+            Whether to apply the batch_norm layer
+
+        activation: bool, Default=True
+            Whether to apply the activation layer
+
+        dropout: bool, Default=True
+            Whether to apply the dropout layer
+
         Returns
         ---------
 
@@ -73,13 +84,13 @@ class BaseDGLLayer(nn.Module):
 
         """
 
-        if self.batch_norm_layer is not None:
+        if batch_norm and (self.batch_norm_layer is not None):
             h = self.batch_norm_layer(h)
 
-        if self.activation_layer is not None:
+        if activation and (self.activation_layer is not None):
             h = self.activation_layer(h)
 
-        if self.dropout_layer is not None:
+        if dropout and (self.dropout_layer is not None):
             h = self.dropout_layer(h)
 
         return h
@@ -134,56 +145,6 @@ class BaseDGLLayer(nn.Module):
 
         dim_factor: int
             The factor that multiplies the dimensions
-        """
-        ...
-
-    @abc.abstractmethod
-    def get_true_out_dims(self, out_dims: List[int]) -> List[int]:
-        r"""
-        Take a list of output dimensions, and return the same list, but
-        multiplied by the value returned by ``self.get_out_dim_factor()``
-
-        Parameters
-        -------------
-
-        out_dims: list(int)
-            The output dimensions desired for the model
-
-        Returns
-        ------------
-
-        true_out_dims: list(int)
-            The true output dimensions returned by the model
-
-        """
-        ...
-
-    @abc.abstractmethod
-    def get_layer_wise_kwargs(self, num_layers, **kwargs) -> Tuple(Dict[List], List[str]):
-        r"""
-        Abstract method that transforms some set of arguments into a list of
-        arguments, such that they can have different values for each layer.
-
-        Parameters
-        -------------
-
-        num_layers: int
-            The number of layers in the global model
-
-        kwargs:
-            The set of key-word arguments, containing at least the key that
-            we want to convert to a layer-wise argument.
-
-        Returns
-        ------------
-
-        layer_wise_kwargs: Dict(List)
-            The set of key-word arguments, with each key associated to a list
-            of the same size as ``num_layers``.
-
-        kwargs_keys_to_remove: List(str)
-            Key-word arguments to remove from the initializatio of the layer
-
         """
         ...
 
