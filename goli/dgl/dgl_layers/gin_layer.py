@@ -67,7 +67,6 @@ class GINLayer(BaseDGLLayer):
         )
 
         # Specify to consider the edges weight in the aggregation
-        
 
         # to specify whether eps is trainable or not.
         if learn_eps:
