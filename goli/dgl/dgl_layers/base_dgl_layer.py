@@ -36,19 +36,25 @@ class BaseDGLLayer(nn.Module):
 
         super().__init__()
 
+        # Basic attributes
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.activation = get_activation(activation)
+        self.batch_norm = batch_norm
+        self.dropout = dropout
+        self.activation = activation
 
-        self.dropout = None
+        # Build the layers
+        self.activation_layer = get_activation(activation)
+
+        self.dropout_layer = None
         if dropout > 0:
-            self.dropout = nn.Dropout(p=dropout)
+            self.dropout_layer = nn.Dropout(p=dropout)
 
-        self.batch_norm = None
+        self.batch_norm_layer = None
         if batch_norm:
-            self.batch_norm = nn.BatchNorm1d(out_dim)
+            self.batch_norm_layer = nn.BatchNorm1d(out_dim)
 
-    def apply_norm_dropout(self, h):
+    def apply_norm_activation_dropout(self, h):
         r"""
         Apply the different normalization and the dropout to the
         output layer.
@@ -67,11 +73,14 @@ class BaseDGLLayer(nn.Module):
 
         """
 
-        if self.dropout is not None:
-            h = self.dropout(h)
+        if self.batch_norm_layer is not None:
+            h = self.batch_norm_layer(h)
 
-        if self.batch_norm is not None:
-            h = self.batchnorm_h(h)
+        if self.activation_layer is not None:
+            h = self.activation_layer(h)
+
+        if self.dropout_layer is not None:
+            h = self.dropout_layer(h)
 
         return h
 

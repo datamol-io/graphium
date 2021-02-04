@@ -85,7 +85,6 @@ class FCLayer(nn.Module):
         batch_norm=False,
         bias=True,
         init_fn=None,
-        device="cpu",
     ):
         super(FCLayer, self).__init__()
 
@@ -95,13 +94,13 @@ class FCLayer(nn.Module):
         self.in_dim = in_dim
         self.out_dim = out_dim
         self.bias = bias
-        self.linear = nn.Linear(in_dim, out_dim, bias=bias).to(device)
+        self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         self.dropout = None
         self.batch_norm = None
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         if batch_norm:
-            self.batch_norm = nn.BatchNorm1d(out_dim).to(device)
+            self.batch_norm = nn.BatchNorm1d(out_dim)
         self.activation = get_activation(activation)
         self.init_fn = nn.init.xavier_uniform_
 
@@ -116,19 +115,21 @@ class FCLayer(nn.Module):
 
     def forward(self, x):
         h = self.linear(x)
-        if self.activation is not None:
-            h = self.activation(h)
-        if self.dropout is not None:
-            h = self.dropout(h)
+
         if self.batch_norm is not None:
             if h.shape[1] != self.out_dim:
                 h = self.batch_norm(h.transpose(1, 2)).transpose(1, 2)
             else:
                 h = self.batch_norm(h)
+        if self.activation is not None:
+            h = self.activation(h)
+        if self.dropout is not None:
+            h = self.dropout(h)
+
         return h
 
     def __repr__(self):
-        return self.__class__.__name__ + " (" + str(self.in_dim) + " -> " + str(self.out_dim) + ")"
+        return f"{self.__class__.__name__}(in_dim={self.in_dim}, out_dim={self.out_dim}, activation={self.activation})"
 
 
 class MLP(nn.Module):

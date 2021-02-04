@@ -13,7 +13,7 @@ from goli.dgl.base_layers import MLP
 """
 
 
-class GINLayerComplete(BaseDGLLayer):
+class GINLayer(BaseDGLLayer):
     """
     [!] code adapted from dgl implementation of GINConv
 
@@ -36,49 +36,30 @@ class GINLayerComplete(BaseDGLLayer):
         Initial :math:`\epsilon` value, default: ``0``.
     learn_eps : bool, optional
         If True, :math:`\epsilon` will be a learnable parameter.
-    weighted: bool, optional
-        Whether to take into account the edge weights when copying the nodes
-        Default = False
 
     """
 
     def __init__(
-        self,
-        apply_func,
-        aggr_type,
-        dropout,
-        batch_norm,
-        activation,
-        weighted=False,
-        residual=False,
+        self, 
+        in_dim: int, 
+        out_dim: int, 
+        activation="relu", 
+        dropout: float = 0.0, 
+        batch_norm: bool = False,
         init_eps=0,
-        learn_eps=False,
+        learn_eps=True,
     ):
 
         super().__init__(
-            in_dim=apply_func.mlp.in_dim,
-            out_dim=apply_func.mlp.out_dim,
-            residual=residual,
+            in_dim=in_dim,
+            out_dim=out_dim,
             activation=activation,
             dropout=dropout,
             batch_norm=batch_norm,
         )
 
-        self.apply_func = apply_func
-
-        self._copier = fn.u_mul_e("h", "w", "m") if weighted else fn.copy_u("h", "m")
-
-        if aggr_type == "sum":
-            self._reducer = fn.sum
-        elif aggr_type == "max":
-            self._reducer = fn.max
-        elif aggr_type == "mean":
-            self._reducer = fn.mean
-        else:
-            raise KeyError("Aggregator type {} not recognized.".format(aggr_type))
-
-        in_dim = apply_func.mlp.in_dim
-        out_dim = apply_func.mlp.out_dim
+        # Specify to consider the edges weight in the aggregation
+        self._copier = fn.u_mul_e("h", "w", "m")
 
         # to specify whether eps is trainable or not.
         if learn_eps:
@@ -86,54 +67,135 @@ class GINLayerComplete(BaseDGLLayer):
         else:
             self.register_buffer("eps", torch.FloatTensor([init_eps]))
 
-        self.bn_node_h = nn.BatchNorm1d(out_dim)
+        # The weights of the model, applied after the aggregation
+        self.mlp = MLP(
+            in_dim=self.in_dim, 
+            hidden_dim=self.in_dim, 
+            out_dim=self.out_dim, 
+            layers=2,
+            mid_activation=self.activation_layer, 
+            last_activation='none',
+            mid_batch_norm=self.batch_norm,
+            last_batch_norm=False,
+            bias=True,
+            )
+
 
     def forward(self, g, h):
-        h_in = h  # for residual connection
 
+        # Aggregate the message
         g = g.local_var()
         g.ndata["h"] = h
-        g.update_all(self._copier, self._reducer("m", "neigh"))
+        g.update_all(self._copier, fn.sum("m", "neigh"))
         h = (1 + self.eps) * h + g.ndata["neigh"]
-        if self.apply_func is not None:
-            h = self.apply_func(h)
 
-        if self.batch_norm:
-            h = self.bn_node_h(h)  # batch normalization
-
-        h = self.activation(h)  # non-linear activation
-
-        if self.residual:
-            h = h_in + h  # residual connection
-
-        h = F.dropout(h, self.dropout, training=self.training)
+        # Apply the MLP
+        h = self.mlp(h)
+        h = self.apply_norm_activation_dropout(h)
 
         return h
 
 
-class GINLayer(GINLayerComplete):
-    def __init__(
-        self,
-        in_dim,
-        out_dim,
-        dropout,
-        batch_norm,
-        activation,
-        weighted=False,
-        residual=False,
-        init_eps=0,
-        learn_eps=False,
-    ):
-        aggr_type = "sum"
-        apply_func = MLP(in_dim=in_dim, hidden_dim=in_dim, out_dim=out_dim, layers=2)
-        super().__init__(
-            apply_func=apply_func,
-            aggr_type=aggr_type,
-            dropout=dropout,
-            batch_norm=batch_norm,
-            activation=activation,
-            weighted=weighted,
-            residual=residual,
-            init_eps=init_eps,
-            learn_eps=learn_eps,
-        )
+    @staticmethod
+    def layer_supports_edges() -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
+
+        Returns
+        ---------
+
+        supports_edges: bool
+            Always ``False`` for the current class
+        """
+        return False
+
+    @abc.abstractmethod
+    def layer_uses_edges(self) -> bool:
+        r"""
+        Return a boolean specifying if the layer type
+        uses edges or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns
+        ---------
+
+        uses_edges: bool
+            Always ``False`` for the current class
+        """
+        return False
+
+    @abc.abstractmethod
+    def get_out_dim_factor(self) -> int:
+        r"""
+        Get the factor by which the output dimension is multiplied for
+        the next layer.
+
+        For standard layers, this will return ``1``.
+
+        But for others, such as ``GatLayer``, the output is the concatenation
+        of the outputs from each head, so the out_dim gets multiplied by
+        the number of heads, and this function should return the number
+        of heads.
+
+        Returns
+        ---------
+
+        dim_factor: int
+            Always ``1`` for the current class
+        """
+        return 1
+
+    @abc.abstractmethod
+    def get_true_out_dims(self, out_dims: List[int]) -> List[int]:
+        r"""
+        Take a list of output dimensions, and return the same list, but
+        multiplied by the value returned by ``self.get_out_dim_factor()``
+
+        Parameters
+        -------------
+
+        out_dims: list(int)
+            The output dimensions desired for the model
+
+        Returns
+        ------------
+
+        true_out_dims: list(int)
+            The true output dimensions returned by the model
+            Always ``out_dims`` for the current class
+
+        """
+        return out_dims
+
+    @abc.abstractmethod
+    def get_layer_wise_kwargs(self, num_layers, **kwargs) -> Tuple(Dict[List], List[str]):
+        r"""
+        Abstract method that transforms some set of arguments into a list of
+        arguments, such that they can have different values for each layer.
+
+        Parameters
+        -------------
+
+        num_layers: int
+            The number of layers in the global model
+
+        kwargs:
+            The set of key-word arguments, containing at least the key that
+            we want to convert to a layer-wise argument.
+
+        Returns
+        ------------
+
+        layer_wise_kwargs: Dict(List)
+            The set of key-word arguments, with each key associated to a list
+            of the same size as ``num_layers``.
+            Always ``{}`` for the current class
+
+        kwargs_keys_to_remove: List(str)
+            Key-word arguments to remove from the initializatio of the layer
+            Always ``[]`` for the current class
+
+        """
+        return {}, []
+

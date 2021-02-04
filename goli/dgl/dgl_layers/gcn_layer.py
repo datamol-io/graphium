@@ -18,7 +18,12 @@ from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
 class GCNLayer(BaseDGLLayer):
     def __init__(
-        self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
+        self, 
+        in_dim: int, 
+        out_dim: int, 
+        activation="relu", 
+        dropout: float = 0.0, 
+        batch_norm: bool = False
     ):
         r"""
         Graph convolutional network (GCN) layer from
@@ -58,7 +63,7 @@ class GCNLayer(BaseDGLLayer):
             norm="both",
             weight=True,
             bias=True,
-            activation=self.activation,
+            activation=None,
             allow_zero_in_degree=False,
         )
 
@@ -87,7 +92,7 @@ class GCNLayer(BaseDGLLayer):
         """
 
         h = self.conv(g, h)
-        h = self.apply_norm_dropout(h)
+        h = self.apply_norm_activation_dropout(h)
 
         return h
 
