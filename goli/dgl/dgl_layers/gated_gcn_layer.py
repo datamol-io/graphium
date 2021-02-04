@@ -17,27 +17,30 @@ class GatedGCNLayer(BaseDGLLayer):
     Param: []
     """
 
-    def __init__(self, in_dim, out_dim, in_dim_e, out_dim_e, dropout, batch_norm, activation, residual=False):
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        in_dim_edges: int,
+        out_dim_edges: int,
+        activation="relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
+    ):
 
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
-            residual=residual,
             activation=activation,
             dropout=dropout,
             batch_norm=batch_norm,
         )
 
-        self.in_channels = in_dim
-        self.out_channels = out_dim
-
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)
-        self.C = nn.Linear(in_dim_e, out_dim_e, bias=True)
+        self.C = nn.Linear(in_dim_edges, out_dim_edges, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
-        self.bn_node_h = nn.BatchNorm1d(out_dim)
-        self.bn_node_e = nn.BatchNorm1d(out_dim)
 
     def message_func(self, edges):
         Bh_j = edges.src["Bh"]
@@ -58,9 +61,6 @@ class GatedGCNLayer(BaseDGLLayer):
 
     def forward(self, g, h, e):
 
-        h_in = h  # for residual connection
-        e_in = e  # for residual connection
-
         g.ndata["h"] = h
         g.ndata["Ah"] = self.A(h)
         g.ndata["Bh"] = self.B(h)
@@ -72,37 +72,57 @@ class GatedGCNLayer(BaseDGLLayer):
         h = g.ndata["h"]  # result of graph convolution
         e = g.edata["e"]  # result of graph convolution
 
-        if self.batch_norm:
-            h = self.bn_node_h(h)  # batch normalization
-            e = self.bn_node_e(e)  # batch normalization
-
-        h = self.activation(h)  # non-linear activation
-        e = self.activation(e)  # non-linear activation
-
-        if self.residual:
-            h = h_in + h  # residual connection
-            e = e_in + e  # residual connection
-
-        h = F.dropout(h, self.dropout, training=self.training)
-        e = F.dropout(e, self.dropout, training=self.training)
+        h = self.apply_norm_activation_dropout(h)
+        e = self.apply_norm_activation_dropout(e)
 
         return h, e
 
-    def __repr__(self):
-        return "{}(in_channels={}, out_channels={})".format(
-            self.__class__.__name__, self.in_channels, self.out_channels
-        )
-
     @staticmethod
-    def _parse_layer_args(in_dims, out_dims, **kwargs):
+    def layer_supports_edges() -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
 
-        kwargs_of_lists = {}
-        kwargs_keys_to_remove = ["in_dim_edges"]
-        in_dim_e = deepcopy(in_dims)
-        in_dim_e[0] = kwargs["in_dim_edges"]
+        Returns
+        ---------
 
-        kwargs_of_lists["in_dim_e"] = in_dim_e
-        kwargs_of_lists["out_dim_e"] = out_dims
-        true_out_dims = in_dims[1:] + out_dims[-1:]
+        supports_edges: bool
+            Always ``True`` for the current class
+        """
+        return True
 
-        return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
+    @abc.abstractmethod
+    def layer_uses_edges(self) -> bool:
+        r"""
+        Return a boolean specifying if the layer type
+        uses edges or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns
+        ---------
+
+        uses_edges: bool
+            Always ``True`` for the current class
+        """
+        return True
+
+    @abc.abstractmethod
+    def get_out_dim_factor(self) -> int:
+        r"""
+        Get the factor by which the output dimension is multiplied for
+        the next layer.
+
+        For standard layers, this will return ``1``.
+
+        But for others, such as ``GatLayer``, the output is the concatenation
+        of the outputs from each head, so the out_dim gets multiplied by
+        the number of heads, and this function should return the number
+        of heads.
+
+        Returns
+        ---------
+
+        dim_factor: int
+            Always ``1`` for the current class
+        """
+        return 1

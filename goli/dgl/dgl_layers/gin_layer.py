@@ -40,11 +40,11 @@ class GINLayer(BaseDGLLayer):
     """
 
     def __init__(
-        self, 
-        in_dim: int, 
-        out_dim: int, 
-        activation="relu", 
-        dropout: float = 0.0, 
+        self,
+        in_dim: int,
+        out_dim: int,
+        activation="relu",
+        dropout: float = 0.0,
         batch_norm: bool = False,
         init_eps=0,
         learn_eps=True,
@@ -69,17 +69,16 @@ class GINLayer(BaseDGLLayer):
 
         # The weights of the model, applied after the aggregation
         self.mlp = MLP(
-            in_dim=self.in_dim, 
-            hidden_dim=self.in_dim, 
-            out_dim=self.out_dim, 
+            in_dim=self.in_dim,
+            hidden_dim=self.in_dim,
+            out_dim=self.out_dim,
             layers=2,
-            mid_activation=self.activation_layer, 
-            last_activation='none',
+            mid_activation=self.activation_layer,
+            last_activation="none",
             mid_batch_norm=self.batch_norm,
             last_batch_norm=False,
             bias=True,
-            )
-
+        )
 
     def forward(self, g, h):
 
@@ -95,7 +94,6 @@ class GINLayer(BaseDGLLayer):
 
         return h
 
-
     @staticmethod
     def layer_supports_edges() -> bool:
         r"""
@@ -109,7 +107,6 @@ class GINLayer(BaseDGLLayer):
         """
         return False
 
-    @abc.abstractmethod
     def layer_uses_edges(self) -> bool:
         r"""
         Return a boolean specifying if the layer type
@@ -125,7 +122,6 @@ class GINLayer(BaseDGLLayer):
         """
         return False
 
-    @abc.abstractmethod
     def get_out_dim_factor(self) -> int:
         r"""
         Get the factor by which the output dimension is multiplied for
@@ -145,57 +141,3 @@ class GINLayer(BaseDGLLayer):
             Always ``1`` for the current class
         """
         return 1
-
-    @abc.abstractmethod
-    def get_true_out_dims(self, out_dims: List[int]) -> List[int]:
-        r"""
-        Take a list of output dimensions, and return the same list, but
-        multiplied by the value returned by ``self.get_out_dim_factor()``
-
-        Parameters
-        -------------
-
-        out_dims: list(int)
-            The output dimensions desired for the model
-
-        Returns
-        ------------
-
-        true_out_dims: list(int)
-            The true output dimensions returned by the model
-            Always ``out_dims`` for the current class
-
-        """
-        return out_dims
-
-    @abc.abstractmethod
-    def get_layer_wise_kwargs(self, num_layers, **kwargs) -> Tuple(Dict[List], List[str]):
-        r"""
-        Abstract method that transforms some set of arguments into a list of
-        arguments, such that they can have different values for each layer.
-
-        Parameters
-        -------------
-
-        num_layers: int
-            The number of layers in the global model
-
-        kwargs:
-            The set of key-word arguments, containing at least the key that
-            we want to convert to a layer-wise argument.
-
-        Returns
-        ------------
-
-        layer_wise_kwargs: Dict(List)
-            The set of key-word arguments, with each key associated to a list
-            of the same size as ``num_layers``.
-            Always ``{}`` for the current class
-
-        kwargs_keys_to_remove: List(str)
-            Key-word arguments to remove from the initializatio of the layer
-            Always ``[]`` for the current class
-
-        """
-        return {}, []
-
