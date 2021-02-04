@@ -15,6 +15,34 @@ from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
 
 class GatedGCNLayer(BaseDGLLayer):
+    """
+    ResGatedGCN: Residual Gated Graph ConvNets
+    An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and Thomas Laurent, ICLR 2018)
+    https://arxiv.org/pdf/1711.07553v2.pdf
+
+    Parameters
+    ----------
+
+    in_dim: int
+        Input feature dimensions of the layer
+
+    out_dim: int
+        Output feature dimensions of the layer, and for the edges
+
+    in_dim_edges: int
+        Input edge-feature dimensions of the layer
+
+    activation: str, Callable, Default="relu"
+        activation function to use in the layer
+
+    dropout: float, Default=0.
+        The ratio of units to dropout. Must be between 0 and 1
+
+    batch_norm: bool, Default=False
+        Whether to use batch normalization
+
+    """
+
     def __init__(
         self,
         in_dim: int,
@@ -36,7 +64,7 @@ class GatedGCNLayer(BaseDGLLayer):
 
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)
-        self.C = nn.Linear(in_dim_edges, out_dim_edges, bias=True)
+        self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
 
@@ -57,7 +85,7 @@ class GatedGCNLayer(BaseDGLLayer):
         )  # hi = Ahi + sum_j eta_ij/sum_j' eta_ij' * Bhj <= dense attention
         return {"h": h}
 
-    def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor) -> Tuple(torch.Tensor, torch.Tensor):
+    def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
@@ -70,22 +98,22 @@ class GatedGCNLayer(BaseDGLLayer):
 
         h: torch.Tensor(..., N, Din)
             Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension
+            N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         e: torch.Tensor(..., N, Din_edges)
             Edge feature tensor, before convolution.
-            N is the number of nodes, Din is the input edge dimension
+            N is the number of nodes, Din is the input edge dimension  ``self.in_dim_edges``
 
         Returns
         ---------
 
         h: torch.Tensor(..., N, Dout)
             Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension
+            N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
-        e: torch.Tensor(..., N, Dout_edges)
+        e: torch.Tensor(..., N, Dout)
             Edge feature tensor, after convolution.
-            N is the number of nodes, Dout_edges is the output edge dimension
+            N is the number of nodes, Dout_edges is the output edge dimension ``self.out_dim``
 
         """
 

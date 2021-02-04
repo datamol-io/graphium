@@ -2,7 +2,6 @@
 Unit tests for the file goli/dgl/residual_connections.py
 """
 
-import os
 import numpy as np
 import torch
 import unittest as ut

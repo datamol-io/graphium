@@ -19,12 +19,15 @@ def get_activation(activation):
     if activation and callable(activation):
         # activation is already a function
         return activation
+        
+    if (activation is None) or (activation.lower() == "none"):
+        return None
+
     # search in SUPPORTED_ACTIVATION_MAP a torch.nn.modules.activation
     activation = [x for x in SUPPORTED_ACTIVATION_MAP if activation.lower() == x.lower()]
     assert len(activation) == 1 and isinstance(activation[0], str), "Unhandled activation function"
     activation = activation[0]
-    if activation.lower() == "none":
-        return None
+    
     return vars(torch.nn.modules.activation)[activation]()
 
 
@@ -148,7 +151,6 @@ class MLP(nn.Module):
         dropout=0.0,
         mid_batch_norm=False,
         last_batch_norm=False,
-        device="cpu",
     ):
         super(MLP, self).__init__()
 
@@ -164,7 +166,6 @@ class MLP(nn.Module):
                     out_dim,
                     activation=last_activation,
                     batch_norm=last_batch_norm,
-                    device=device,
                     dropout=dropout,
                 )
             )
@@ -175,7 +176,6 @@ class MLP(nn.Module):
                     hidden_dim,
                     activation=mid_activation,
                     batch_norm=mid_batch_norm,
-                    device=device,
                     dropout=dropout,
                 )
             )
@@ -186,7 +186,6 @@ class MLP(nn.Module):
                         hidden_dim,
                         activation=mid_activation,
                         batch_norm=mid_batch_norm,
-                        device=device,
                         dropout=dropout,
                     )
                 )
@@ -196,7 +195,6 @@ class MLP(nn.Module):
                     out_dim,
                     activation=last_activation,
                     batch_norm=last_batch_norm,
-                    device=device,
                     dropout=dropout,
                 )
             )

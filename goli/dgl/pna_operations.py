@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+from functools import partial
 
 EPS = 1e-5
 
@@ -21,8 +22,8 @@ def aggregate_std(h, **kwargs):
 
 
 def aggregate_var(h, **kwargs):
-    h_mean_squares = torch.mean(h * h, dim=-2)
-    h_mean = torch.mean(h, dim=-2)
+    h_mean_squares = torch.mean(h * h, dim=1)
+    h_mean = torch.mean(h, dim=1)
     var = torch.relu(h_mean_squares - h_mean * h_mean)
     return var
 
@@ -31,21 +32,9 @@ def aggregate_moment(h, n=3, **kwargs):
     # for each node (E[(X-E[X])^n])^{1/n}
     # EPS is added to the absolute value of expectation before taking the nth root for stability
     h_mean = torch.mean(h, dim=1, keepdim=True)
-    h_n = torch.mean(torch.pow(h - h_mean, n))
+    h_n = torch.mean(torch.pow(h - h_mean, n), dim=1)
     rooted_h_n = torch.sign(h_n) * torch.pow(torch.abs(h_n) + EPS, 1.0 / n)
     return rooted_h_n
-
-
-def aggregate_moment_3(h, **kwargs):
-    return aggregate_moment(h, n=3)
-
-
-def aggregate_moment_4(h, **kwargs):
-    return aggregate_moment(h, n=4)
-
-
-def aggregate_moment_5(h, **kwargs):
-    return aggregate_moment(h, n=5)
 
 
 def aggregate_sum(h, **kwargs):
@@ -77,9 +66,9 @@ PNA_AGGREGATORS = {
     "min": aggregate_min,
     "std": aggregate_std,
     "var": aggregate_var,
-    "moment3": aggregate_moment_3,
-    "moment4": aggregate_moment_4,
-    "moment5": aggregate_moment_5,
+    "moment3": partial(aggregate_moment, n=3),
+    "moment4": partial(aggregate_moment, n=4),
+    "moment5": partial(aggregate_moment, n=5),
 }
 
 

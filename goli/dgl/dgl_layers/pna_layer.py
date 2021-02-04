@@ -115,18 +115,6 @@ class BasePNALayer(BaseDGLLayer):
 
         return {"h": h}
 
-    @staticmethod
-    def layer_supports_edges() -> bool:
-        r"""
-        Return a boolean specifying if the layer type supports edges or not.
-
-        Returns
-        ---------
-
-        supports_edges: bool
-            Always ``True`` for the current class
-        """
-        return True
 
     def layer_outputs_edges(self) -> bool:
         r"""
@@ -174,7 +162,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         activation="relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
-        avg_d: float = 1.0,
+        avg_d: Dict[str, float] = {"log" :1.0},
         last_activation="none",
         posttrans_layers: int = 1,
     ):
@@ -217,7 +205,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         batch_norm: bool, Default=False
             Whether to use batch normalization
 
-        avg_d: float, Default=1.
+        avg_d: Dict(str, float), Default={"log": 1.}
             Average degree of nodes in the training set, used by scalers to normalize
 
         last_activation: str, Callable, Default="none"
@@ -243,7 +231,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         # MLP used on the aggregated messages of the neighbours
         self.posttrans = MLP(
             in_dim=(len(aggregators) * len(scalers)) * self.in_dim,
-            hidden_size=self.out_dim,
+            hidden_dim=self.out_dim,
             out_dim=self.out_dim,
             layers=posttrans_layers,
             mid_activation=self.activation,
@@ -271,14 +259,14 @@ class PNAConvolutionalLayer(BasePNALayer):
 
         h: torch.Tensor(..., N, Din)
             Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension
+            N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         Returns
         ---------
 
         h: torch.Tensor(..., N, Dout)
             Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension
+            N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
         """
 
@@ -309,6 +297,19 @@ class PNAConvolutionalLayer(BasePNALayer):
         """
         return False
 
+    @staticmethod
+    def layer_supports_edges() -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
+
+        Returns
+        ---------
+
+        supports_edges: bool
+            Always ``False`` for the current class
+        """
+        return False
+
 
 class PNAMessagePassingLayer(BasePNALayer):
     def __init__(
@@ -320,11 +321,11 @@ class PNAMessagePassingLayer(BasePNALayer):
         activation="relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
-        avg_d: float = 1.0,
+        avg_d: Dict[str, float] = {"log" :1.0},
         last_activation="none",
         posttrans_layers: int = 1,
         pretrans_layers: int = 1,
-        edge_dim: int = 0,
+        in_dim_edges: int = 0,
     ):
         r"""
         Implementation of the convolutional architecture of the PNA layer,
@@ -365,7 +366,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         batch_norm: bool, Default=False
             Whether to use batch normalization
 
-        avg_d: float, Default=1.
+        avg_d: Dict(str, float), Default={"log": 1.}
             Average degree of nodes in the training set, used by scalers to normalize
 
         last_activation: str, Callable, Default="none"
@@ -377,7 +378,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         pretrans_layers: int, Default=1
             number of layers in the transformation before the aggregation
 
-        edge_dim: int, Default=0
+        in_dim_edges: int, Default=0
             size of the edge features. If 0, edges are ignored
 
         """
@@ -394,12 +395,12 @@ class PNAMessagePassingLayer(BasePNALayer):
             last_activation=last_activation,
         )
 
-        self.edge_dim = edge_dim
-        self.edge_features = self.edge_dim > 0
+        self.in_dim_edges = in_dim_edges
+        self.edge_features = self.in_dim_edges > 0
 
         # MLP used on each pair of nodes with their edge MLP(h_u, h_v, e_uv)
         self.pretrans = MLP(
-            in_dim=2 * in_dim + edge_dim,
+            in_dim=2 * in_dim + in_dim_edges,
             hidden_dim=in_dim,
             out_dim=in_dim,
             layers=pretrans_layers,
@@ -436,7 +437,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
     def forward(
         self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None
-    ) -> Tuple(torch.Tensor, torch.Tensor):
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the PNA Message passing layer, with the specified pre/post transformations
 
@@ -448,7 +449,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         h: torch.Tensor(..., N, Din)
             Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension
+            N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         e: torch.Tensor(..., N, Din_edges) or None, Default=None
             Edge feature tensor, before convolution.
@@ -462,7 +463,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         h: torch.Tensor(..., N, Dout)
             Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension
+            N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
         """
 
@@ -496,3 +497,16 @@ class PNAMessagePassingLayer(BasePNALayer):
             Returns ``self.edge_features``
         """
         return self.edge_features
+
+    @staticmethod
+    def layer_supports_edges() -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
+
+        Returns
+        ---------
+
+        supports_edges: bool
+            Always ``True`` for the current class
+        """
+        return True
