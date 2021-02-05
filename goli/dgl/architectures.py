@@ -254,8 +254,12 @@ class FeedForwardDGL(FeedForwardNN):
 
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
+            if ii > 1:
+                this_out_dim *= layers[ii-1].out_dim_factor
             if ii == self.depth - 1:
                 this_activation = self.last_activation
+
+            # TODO: CONSIDER THE TRUE OUTPUT DIM OF THE LAYER USING `out_dim_factor`
 
             # Create the layer
             self.layers.append(
@@ -310,11 +314,11 @@ class FeedForwardDGL(FeedForwardNN):
         return pooled_h
 
     def _layer_forward(self, layer, graph, h, e):
-        if layer.layer_inputs_edges() and layer.layer_outputs_edges():
+        if layer.layer_inputs_edges and layer.layer_outputs_edges:
             h, e = layer(g=graph, h=h, e=e)
-        elif layer.layer_inputs_edges():
+        elif layer.layer_inputs_edges:
             h = layer(g=graph, h=h, e=e)
-        elif layer.layer_outputs_edges():
+        elif layer.layer_outputs_edges:
             h, e = layer(g=graph, h=h)
         else:
             h = layer(g=graph, h=h)
@@ -342,7 +346,7 @@ class FeedForwardDGL(FeedForwardNN):
         for ii, layer in enumerate(self.layers):
             h, e = self._layer_forward(layer=layer, graph=graph, h=h, e=e)
             h, h_prev = self.residual.forward(h, h_prev, step_idx=ii)
-            # ADD RESIDUAL CONNECTION FOR EDGES IF APPLICABLE
+            # TODO: ADD RESIDUAL CONNECTION FOR EDGES IF APPLICABLE
             vn_h, h = self._virtual_node_forward(graph, h, vn_h, step_idx=ii)
 
         pooled_h = self._pool_layer_forward(graph, h)

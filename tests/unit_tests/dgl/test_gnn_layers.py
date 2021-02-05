@@ -44,15 +44,15 @@ class test_DGL_Layers(ut.TestCase):
         layer = GCNLayer(in_dim=self.in_dim, out_dim=self.out_dim).to(float)
 
         # Check the re-implementation of abstract methods
-        self.assertFalse(layer.layer_supports_edges())
-        self.assertFalse(layer.layer_inputs_edges())
-        self.assertFalse(layer.layer_outputs_edges())
-        self.assertEqual(layer.get_out_dim_factor(), 1)
+        self.assertFalse(layer.layer_supports_edges)
+        self.assertFalse(layer.layer_inputs_edges)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
 
         # Apply layer
         h = layer.forward(g=bg, h=h_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
-        self.assertEqual(h.shape[1], self.out_dim * layer.get_out_dim_factor())
+        self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_ginlayer(self):
 
@@ -62,15 +62,15 @@ class test_DGL_Layers(ut.TestCase):
         layer = GINLayer(in_dim=self.in_dim, out_dim=self.out_dim).to(float)
 
         # Check the re-implementation of abstract methods
-        self.assertFalse(layer.layer_supports_edges())
-        self.assertFalse(layer.layer_inputs_edges())
-        self.assertFalse(layer.layer_outputs_edges())
-        self.assertEqual(layer.get_out_dim_factor(), 1)
+        self.assertFalse(layer.layer_supports_edges)
+        self.assertFalse(layer.layer_inputs_edges)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
 
         # Apply layer
         h = layer.forward(g=bg, h=h_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
-        self.assertEqual(h.shape[1], self.out_dim * layer.get_out_dim_factor())
+        self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_gatlayer(self):
 
@@ -81,15 +81,15 @@ class test_DGL_Layers(ut.TestCase):
         layer = GATLayer(in_dim=self.in_dim, out_dim=self.out_dim, num_heads=num_heads).to(float)
 
         # Check the re-implementation of abstract methods
-        self.assertFalse(layer.layer_supports_edges())
-        self.assertFalse(layer.layer_inputs_edges())
-        self.assertFalse(layer.layer_outputs_edges())
-        self.assertEqual(layer.get_out_dim_factor(), num_heads)
+        self.assertFalse(layer.layer_supports_edges)
+        self.assertFalse(layer.layer_inputs_edges)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, num_heads)
 
         # Apply layer
         h = layer.forward(g=bg, h=h_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
-        self.assertEqual(h.shape[1], self.out_dim * layer.get_out_dim_factor())
+        self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_gatedgcnlayer(self):
 
@@ -104,10 +104,13 @@ class test_DGL_Layers(ut.TestCase):
         ).to(float)
 
         # Check the re-implementation of abstract methods
-        self.assertTrue(layer.layer_supports_edges())
-        self.assertTrue(layer.layer_inputs_edges())
-        self.assertTrue(layer.layer_outputs_edges())
-        self.assertEqual(layer.get_out_dim_factor(), 1)
+        self.assertTrue(layer.layer_supports_edges)
+        self.assertTrue(layer.layer_inputs_edges)
+        self.assertTrue(layer.layer_outputs_edges)
+        self.assertIsInstance(layer.layer_supports_edges, bool)
+        self.assertIsInstance(layer.layer_inputs_edges, bool)
+        self.assertIsInstance(layer.layer_outputs_edges, bool)
+        self.assertEqual(layer.out_dim_factor, 1)
 
         # Apply layer without edges
         with self.assertRaises(TypeError):
@@ -116,7 +119,7 @@ class test_DGL_Layers(ut.TestCase):
         # Apply layer with edges
         h, e = layer.forward(g=bg, h=h_in, e=e_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
-        self.assertEqual(h.shape[1], self.out_dim * layer.get_out_dim_factor())
+        self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_pnaconvolutionallayer(self):
 
@@ -130,15 +133,15 @@ class test_DGL_Layers(ut.TestCase):
         ).to(float)
 
         # Check the re-implementation of abstract methods
-        self.assertFalse(layer.layer_supports_edges())
-        self.assertFalse(layer.layer_inputs_edges())
-        self.assertFalse(layer.layer_outputs_edges())
-        self.assertEqual(layer.get_out_dim_factor(), 1)
+        self.assertFalse(layer.layer_supports_edges)
+        self.assertFalse(layer.layer_inputs_edges)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
 
         # Apply layer
         h = layer.forward(g=bg, h=h_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
-        self.assertEqual(h.shape[1], self.out_dim * layer.get_out_dim_factor())
+        self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_pnamessagepassinglayer(self):
 
@@ -153,15 +156,16 @@ class test_DGL_Layers(ut.TestCase):
         ).to(float)
 
         # Check the re-implementation of abstract methods
-        self.assertTrue(layer.layer_supports_edges())
-        self.assertFalse(layer.layer_inputs_edges())
-        self.assertFalse(layer.layer_outputs_edges())
-        self.assertEqual(layer.get_out_dim_factor(), 1)
+        self.assertTrue(layer.layer_supports_edges)
+        self.assertIsInstance(layer.layer_supports_edges, bool)
+        self.assertFalse(layer.layer_inputs_edges)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
 
         # Apply layer
         h = layer.forward(g=bg, h=h_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
-        self.assertEqual(h.shape[1], self.out_dim * layer.get_out_dim_factor())
+        self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
         # Now try with edges
         layer = PNAMessagePassingLayer(
@@ -173,10 +177,12 @@ class test_DGL_Layers(ut.TestCase):
         ).to(float)
 
         # Check the re-implementation of abstract methods
-        self.assertTrue(layer.layer_supports_edges())
-        self.assertTrue(layer.layer_inputs_edges())
-        self.assertFalse(layer.layer_outputs_edges())
-        self.assertEqual(layer.get_out_dim_factor(), 1)
+        self.assertTrue(layer.layer_supports_edges)
+        self.assertTrue(layer.layer_inputs_edges)
+        self.assertIsInstance(layer.layer_supports_edges, bool)
+        self.assertIsInstance(layer.layer_inputs_edges, bool)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
 
         # Apply layer
         with self.assertRaises(Exception):
@@ -184,7 +190,7 @@ class test_DGL_Layers(ut.TestCase):
 
         h = layer.forward(g=bg, h=h_in, e=e_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
-        self.assertEqual(h.shape[1], self.out_dim * layer.get_out_dim_factor())
+        self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
 
 if __name__ == "__main__":
