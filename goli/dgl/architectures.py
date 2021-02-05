@@ -165,7 +165,6 @@ class FeedForwardNN(nn.Module):
             this_in_dim = residual_out_dims[ii]
 
         self.out_linear = nn.Linear(in_features=this_in_dim, out_features=self.out_dim)
-        
 
     def forward(self, h):
         h_prev = None
@@ -252,7 +251,6 @@ class FeedForwardDGL(FeedForwardNN):
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
 
-        
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
 
@@ -273,10 +271,9 @@ class FeedForwardDGL(FeedForwardNN):
 
             # Get the true input dimension of the next layer,
             # by factoring both the residual connection and GNN layer type
-            this_in_dim = residual_out_dims[ii] * layers[ii-1].out_dim_factor
+            this_in_dim = residual_out_dims[ii] * layers[ii - 1].out_dim_factor
 
         self.out_linear = nn.Linear(in_features=this_in_dim, out_features=self.out_dim)
-        
 
     def _initialize_virtual_node_layers(self):
         self.virtual_node_layers = nn.ModuleList()

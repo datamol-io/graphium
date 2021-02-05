@@ -148,7 +148,6 @@ class GATLayer(BaseDGLLayer):
         """
         return False
 
-
     @property
     def out_dim_factor(self) -> int:
         r"""

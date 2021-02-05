@@ -8,6 +8,7 @@ from dgl import mean_nodes, sum_nodes, max_nodes
 from goli.dgl.base_layers import MLP, FCLayer
 from goli.commons.utils import ModuleListConcat
 
+
 class S2SReadout(nn.Module):
     """
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
@@ -165,7 +166,6 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
             raise NotImplementedError(f"Undefined pooling `{this_pool}`")
 
     return pool_layer, out_pool_dim
-
 
 
 class VirtualNode(nn.Module):
