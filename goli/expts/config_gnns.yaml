@@ -1,33 +1,33 @@
 gin:
-  layer_type: gin
+  layer_class: gin
   edge_features: False
 
 gcn:
-  layer_type: gcn
+  layer_class: gcn
   edge_features: False
 
 gat-4:
-  layer_type: gat
+  layer_class: gat
   num_heads: 4
   edge_features: False
 
 gat-8:
-  layer_type: gat
+  layer_class: gat
   num_heads: 8
   edge_features: False
 
 gat-16:
-  layer_type: gat
+  layer_class: gat
   num_heads: 16
   edge_features: False
 
 gated-gcn:
-  layer_type: gated-gcn
+  layer_class: gated-gcn
   edge_features: True
   in_dim_edges: 14
 
 mpnn-sum:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d: null
   aggregators: "sum"
@@ -35,7 +35,7 @@ mpnn-sum:
   towers: 1
 
 mpnn-max:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d: null
   aggregators: "max"
@@ -43,7 +43,7 @@ mpnn-max:
   towers: 1
 
 mpnn-e-sum:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d: null
@@ -52,7 +52,7 @@ mpnn-e-sum:
   towers: 1
 
 mpnn-e-max:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d: null
@@ -61,7 +61,7 @@ mpnn-e-max:
   towers: 1
 
 pna:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d:
     log: 1
@@ -70,7 +70,7 @@ pna:
   towers: 1
 
 pna-no-scaler:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d:
     log: 1
@@ -79,7 +79,7 @@ pna-no-scaler:
   towers: 1
 
 pna-e: 
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d:
@@ -89,7 +89,7 @@ pna-e:
   towers: 1
 
 pna-e-no-scaler: 
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d:
@@ -100,7 +100,7 @@ pna-e-no-scaler:
 
 
 mpnn4-sum:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d: null
   aggregators: "sum"
@@ -108,7 +108,7 @@ mpnn4-sum:
   towers: 4
 
 mpnn4-max:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d: null
   aggregators: "max"
@@ -116,7 +116,7 @@ mpnn4-max:
   towers: 4
 
 mpnn4-e-sum:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d: null
@@ -125,7 +125,7 @@ mpnn4-e-sum:
   towers: 4
 
 mpnn4-e-max:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d: null
@@ -134,7 +134,7 @@ mpnn4-e-max:
   towers: 4
 
 pna4:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d:
     log: 1
@@ -143,7 +143,7 @@ pna4:
   towers: 4
 
 pna4-no-scaler:
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: False
   avg_d:
     log: 1
@@ -152,7 +152,7 @@ pna4-no-scaler:
   towers: 4
 
 pna4-e: 
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d:
@@ -162,7 +162,7 @@ pna4-e:
   towers: 4
 
 pna4-e-no-scaler: 
-  layer_type: pna-msgpass
+  layer_class: pna-msgpass
   edge_features: True
   in_dim_edges: 16
   avg_d:
@@ -172,7 +172,7 @@ pna4-e-no-scaler:
   towers: 4
 
 pna-conv:
-  layer_type: pna-conv
+  layer_class: pna-conv
   edge_features: False
   avg_d:
     log: 1
@@ -181,7 +181,7 @@ pna-conv:
   posttrans_layers: 1
 
 pna-conv2:
-  layer_type: pna-conv
+  layer_class: pna-conv
   edge_features: False
   avg_d:
     log: 1
@@ -190,7 +190,7 @@ pna-conv2:
   posttrans_layers: 1
 
 pna-conv3:
-  layer_type: pna-conv
+  layer_class: pna-conv
   edge_features: False
   avg_d:
     log: 1

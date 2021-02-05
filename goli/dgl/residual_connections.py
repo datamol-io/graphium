@@ -48,6 +48,12 @@ class ResidualConnectionBase(nn.Module):
         """
         return (self.skip_steps != 0) and ((step_idx % self.skip_steps) == 0)
 
+    def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
+        return f"{self.__class__.__name__}(skip_steps={self.skip_steps})"
+
     @staticmethod
     @abc.abstractmethod
     def h_dim_increase_type():
@@ -520,12 +526,3 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
             h_prev = h
 
         return h, h_prev
-
-
-RESIDUAL_TYPE_DICT = {
-    "none": ResidualConnectionNone,
-    "simple": ResidualConnectionSimple,
-    "weighted": ResidualConnectionWeighted,
-    "concat": ResidualConnectionConcat,
-    "densenet": ResidualConnectionDenseNet,
-}
