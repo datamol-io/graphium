@@ -8,6 +8,7 @@ from dgl.nn.pytorch import GraphConv
 from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.commons.decorators import classproperty
 
 """
     GCN: Graph Convolutional Networks
@@ -91,8 +92,8 @@ class GCNLayer(BaseDGLLayer):
 
         return h
 
-    @staticmethod
-    def layer_supports_edges() -> bool:
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
         r"""
         Return a boolean specifying if the layer type supports edges or not.
 
@@ -104,6 +105,7 @@ class GCNLayer(BaseDGLLayer):
         """
         return False
 
+    @property
     def layer_inputs_edges(self) -> bool:
         r"""
         Return a boolean specifying if the layer type
@@ -119,6 +121,7 @@ class GCNLayer(BaseDGLLayer):
         """
         return False
 
+    @property
     def layer_outputs_edges(self) -> bool:
         r"""
         Abstract method. Return a boolean specifying if the layer type
@@ -134,7 +137,8 @@ class GCNLayer(BaseDGLLayer):
         """
         return False
 
-    def get_out_dim_factor(self) -> int:
+    @property
+    def out_dim_factor(self) -> int:
         r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.

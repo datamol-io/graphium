@@ -3,7 +3,7 @@ import abc
 from typing import List, Dict, Tuple
 
 from goli.dgl.base_layers import get_activation
-
+from goli.commons.decorators import classproperty
 
 class BaseDGLLayer(nn.Module):
     def __init__(
@@ -95,9 +95,8 @@ class BaseDGLLayer(nn.Module):
 
         return h
 
-    @staticmethod
-    @abc.abstractmethod
-    def layer_supports_edges() -> bool:
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
         r"""
         Abstract method. Return a boolean specifying if the layer type
         supports edges or not.
@@ -110,6 +109,7 @@ class BaseDGLLayer(nn.Module):
         """
         ...
 
+    @property
     @abc.abstractmethod
     def layer_inputs_edges(self) -> bool:
         r"""
@@ -126,6 +126,7 @@ class BaseDGLLayer(nn.Module):
         """
         ...
 
+    @property
     @abc.abstractmethod
     def layer_outputs_edges(self) -> bool:
         r"""
@@ -142,8 +143,9 @@ class BaseDGLLayer(nn.Module):
         """
         ...
 
+    @property
     @abc.abstractmethod
-    def get_out_dim_factor(self) -> int:
+    def out_dim_factor(self) -> int:
         r"""
         Abstract method.
         Get the factor by which the output dimension is multiplied for

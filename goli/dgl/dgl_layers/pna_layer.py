@@ -10,6 +10,7 @@ from typing import Dict, List, Tuple
 from goli.dgl.pna_operations import PNA_AGGREGATORS, PNA_SCALERS
 from goli.dgl.base_layers import MLP, FCLayer, get_activation
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.commons.decorators import classproperty
 
 """
     PNA: Principal Neighbourhood Aggregation 
@@ -115,6 +116,7 @@ class BasePNALayer(BaseDGLLayer):
 
         return {"h": h}
 
+    @property
     def layer_outputs_edges(self) -> bool:
         r"""
         Abstract method. Return a boolean specifying if the layer type
@@ -130,7 +132,8 @@ class BasePNALayer(BaseDGLLayer):
         """
         return False
 
-    def get_out_dim_factor(self) -> int:
+    @property
+    def out_dim_factor(self) -> int:
         r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.
@@ -281,6 +284,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
         return h
 
+    @property
     def layer_inputs_edges(self) -> bool:
         r"""
         Return a boolean specifying if the layer type
@@ -296,8 +300,8 @@ class PNAConvolutionalLayer(BasePNALayer):
         """
         return False
 
-    @staticmethod
-    def layer_supports_edges() -> bool:
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
         r"""
         Return a boolean specifying if the layer type supports edges or not.
 
@@ -455,7 +459,7 @@ class PNAMessagePassingLayer(BasePNALayer):
             N is the number of nodes, Din is the input edge dimension
 
             Can be set to None if the layer does not use edge features
-            i.e. ``self.layer_inputs_edges() -> False``
+            i.e. ``self.layer_inputs_edges -> False``
 
         Returns
         ---------
@@ -482,6 +486,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         return h
 
+    @property
     def layer_inputs_edges(self) -> bool:
         r"""
         Return a boolean specifying if the layer type
@@ -497,8 +502,8 @@ class PNAMessagePassingLayer(BasePNALayer):
         """
         return self.edge_features
 
-    @staticmethod
-    def layer_supports_edges() -> bool:
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
         r"""
         Return a boolean specifying if the layer type supports edges or not.
 
