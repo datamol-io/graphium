@@ -4,7 +4,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 EPS = 1e-5
 
@@ -235,4 +234,3 @@ class GRU(nn.Module):
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)
         return x
-

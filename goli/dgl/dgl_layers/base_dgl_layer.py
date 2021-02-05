@@ -5,6 +5,7 @@ from typing import List, Dict, Tuple
 from goli.dgl.base_layers import get_activation
 from goli.commons.decorators import classproperty
 
+
 class BaseDGLLayer(nn.Module):
     def __init__(
         self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
