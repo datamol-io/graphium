@@ -169,7 +169,9 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
 
 
 class VirtualNode(nn.Module):
-    def __init__(self, dim, dropout, batch_norm=False, bias=True, residual=True, vn_type="sum"):
+    def __init__(
+        self, dim, dropout, batch_norm=False, bias=True, activation="relu", residual=True, vn_type="sum"
+    ):
         super().__init__()
         if (vn_type is None) or (vn_type.lower() == "none"):
             self.vn_type = None
@@ -178,15 +180,15 @@ class VirtualNode(nn.Module):
             return
 
         self.vn_type = vn_type.lower()
+        self.residual = residual
         self.fc_layer = FCLayer(
             in_size=dim,
             out_size=dim,
-            activation="relu",
+            activation=activation,
             dropout=dropout,
             b_norm=batch_norm,
             bias=bias,
         )
-        self.residual = residual
 
     def forward(self, g, h, vn_h):
 
