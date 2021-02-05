@@ -100,7 +100,7 @@ class BaseDGLLayer(nn.Module):
     def layer_supports_edges(cls) -> bool:
         r"""
         Abstract method. Return a boolean specifying if the layer type
-        supports edges or not.
+        supports output edges edges or not.
 
         Returns
         ---------
@@ -116,14 +116,14 @@ class BaseDGLLayer(nn.Module):
         r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
-        It is different from ``layer_supports_edges`` since a layer that
+        It is different from ``layer_supports_input_edges`` since a layer that
         supports edges can decide to not use them.
 
         Returns
         ---------
 
         uses_edges: bool
-            Whether the layer uses edges
+            Whether the layer uses input edges in the forward pass
         """
         ...
 
@@ -133,14 +133,14 @@ class BaseDGLLayer(nn.Module):
         r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
-        It is different from ``layer_supports_edges`` since a layer that
+        It is different from ``layer_supports_output_edges`` since a layer that
         supports edges can decide to not use them.
 
         Returns
         ---------
 
         uses_edges: bool
-            Whether the layer uses edges
+            Whether the layer outputs edges in the forward pass
         """
         ...
 

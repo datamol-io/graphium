@@ -9,6 +9,7 @@ import torch.nn as nn
 from typing import List
 
 from goli.dgl.base_layers import FCLayer
+from goli.commons.decorators import classproperty
 
 
 class ResidualConnectionBase(nn.Module):
@@ -54,9 +55,9 @@ class ResidualConnectionBase(nn.Module):
         """
         return f"{self.__class__.__name__}(skip_steps={self.skip_steps})"
 
-    @staticmethod
+    @classproperty
     @abc.abstractmethod
-    def h_dim_increase_type():
+    def h_dim_increase_type(cls):
         r"""
         How does the dimension of the output features increases after each layer?
 
@@ -83,11 +84,11 @@ class ResidualConnectionBase(nn.Module):
         for ii in range(1, len(out_dims)):
 
             # For the `None` type, don't change the output dims
-            if self.h_dim_increase_type() is None:
+            if self.h_dim_increase_type is None:
                 true_out_dims.append(out_dims[ii])
 
             # For the "previous" type, add the previous layers when the skip connection applies
-            elif self.h_dim_increase_type() == "previous":
+            elif self.h_dim_increase_type == "previous":
                 if self._bool_apply_skip_step(step_idx=ii):
                     true_out_dims.append(out_dims[ii] + out_dims_at_skip[-1])
                     out_dims_at_skip.append(out_dims[ii])
@@ -95,20 +96,20 @@ class ResidualConnectionBase(nn.Module):
                     true_out_dims.append(out_dims[ii])
 
             # For the "cumulative" type, add all previous layers when the skip connection applies
-            elif self.h_dim_increase_type() == "cumulative":
+            elif self.h_dim_increase_type == "cumulative":
                 if self._bool_apply_skip_step(step_idx=ii):
                     true_out_dims.append(out_dims[ii] + out_dims_at_skip[-1])
                     out_dims_at_skip.append(true_out_dims[ii])
                 else:
                     true_out_dims.append(out_dims[ii])
             else:
-                raise ValueError(f"undefined value: {self.h_dim_increase_type()}")
+                raise ValueError(f"undefined value: {self.h_dim_increase_type}")
 
         return true_out_dims
 
-    @staticmethod
+    @classproperty
     @abc.abstractmethod
-    def has_weights():
+    def has_weights(cls):
         r"""
         Returns
         --------
@@ -129,8 +130,8 @@ class ResidualConnectionNone(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
         super().__init__(skip_steps=skip_steps)
 
-    @staticmethod
-    def h_dim_increase_type():
+    @classproperty
+    def h_dim_increase_type(cls):
         r"""
         Returns
         --------
@@ -141,8 +142,8 @@ class ResidualConnectionNone(ResidualConnectionBase):
 
         return None
 
-    @staticmethod
-    def has_weights():
+    @classproperty
+    def has_weights(cls):
         r"""
         Returns
         --------
@@ -186,8 +187,8 @@ class ResidualConnectionSimple(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
         super().__init__(skip_steps=skip_steps)
 
-    @staticmethod
-    def h_dim_increase_type():
+    @classproperty
+    def h_dim_increase_type(cls):
         r"""
         Returns
         --------
@@ -198,8 +199,8 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
         return None
 
-    @staticmethod
-    def has_weights():
+    @classproperty
+    def has_weights(cls):
         r"""
         Returns
         --------
@@ -261,12 +262,10 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
     skip_steps: int, Default=1
         The number of steps to skip between the residual connections.
 
-    full_dims: list(int)
-        list of all input and output dimensions for the network
+    out_dims: list(int)
+        list of all output dimensions for the network
         that will use this residual connection.
-        E.g. ``full_dims = [4, 8, 8, 8, 2]`` means that the network has
-        an input of dimension 4, an output of dimension 2, and 3 hidden
-        layers of dimension 8.
+        E.g. ``out_dims = [4, 8, 8, 8, 2]``.
 
     dropout: float, Default=0.
         value between 0 and 1.0 representing the percentage of dropout
@@ -284,16 +283,16 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
     """
 
     def __init__(
-        self, full_dims, skip_steps: int = 1, dropout=0.0, activation="none", batch_norm=False, bias=False
+        self, out_dims, skip_steps: int = 1, dropout=0.0, activation="none", batch_norm=False, bias=False
     ):
         super().__init__(skip_steps=skip_steps)
 
         self.residual_list = nn.ModuleList()
         self.skip_count = 0
-        self.full_dims = full_dims
+        self.out_dims = out_dims
 
-        for ii in range(1, len(self.full_dims), self.skip_steps):
-            this_dim = self.full_dims[ii]
+        for ii in range(0, len(self.out_dims), self.skip_steps):
+            this_dim = self.out_dims[ii]
             self.residual_list.append(
                 FCLayer(
                     this_dim,
@@ -305,8 +304,8 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
                 )
             )
 
-    @staticmethod
-    def h_dim_increase_type():
+    @classproperty
+    def h_dim_increase_type(cls):
         r"""
         Returns
         --------
@@ -316,8 +315,8 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         """
         return None
 
-    @staticmethod
-    def has_weights():
+    @classproperty
+    def has_weights(cls):
         r"""
         Returns
         --------
@@ -384,8 +383,8 @@ class ResidualConnectionConcat(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
         super().__init__(skip_steps=skip_steps)
 
-    @staticmethod
-    def h_dim_increase_type():
+    @classproperty
+    def h_dim_increase_type(cls):
         r"""
         Returns
         --------
@@ -396,8 +395,8 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
         return "previous"
 
-    @staticmethod
-    def has_weights():
+    @classproperty
+    def has_weights(cls):
         r"""
         Returns
         --------
@@ -464,8 +463,8 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
         super().__init__(skip_steps=skip_steps)
 
-    @staticmethod
-    def h_dim_increase_type():
+    @classproperty
+    def h_dim_increase_type(cls):
         r"""
         Returns
         --------
@@ -476,8 +475,8 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
         return "cumulative"
 
-    @staticmethod
-    def has_weights():
+    @classproperty
+    def has_weights(cls):
         r"""
         Returns
         --------
