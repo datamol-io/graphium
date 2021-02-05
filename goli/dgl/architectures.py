@@ -7,7 +7,8 @@ import dgl
 from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
 from typing import List, Dict
 
-from goli.dgl.base_layers import FCLayer, get_activation, parse_pooling_layer, VirtualNode
+from goli.dgl.base_layers import FCLayer, get_activation
+from goli.dgl.dgl_layers.pooling import parse_pooling_layer, VirtualNode
 
 from goli.dgl.dgl_layers import (
     GATLayer,
@@ -87,8 +88,7 @@ class FeedForwardNN(nn.Module):
         self._register_hparams()
 
         self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
-        last_out_dim = self._create_layers()
-        self.out_linear = nn.Linear(in_features=last_out_dim, out_features=self.out_dim)
+        self._create_layers()
 
     def _register_hparams(self):
         # Register the Hyper-parameters to be compatible with Pytorch-Lightning and Tensorboard
@@ -162,9 +162,10 @@ class FeedForwardNN(nn.Module):
                 )
             )
 
-            this_in_dim = this_out_dim
+            this_in_dim = residual_out_dims[ii]
 
-        return this_out_dim
+        self.out_linear = nn.Linear(in_features=this_in_dim, out_features=self.out_dim)
+        
 
     def forward(self, h):
         h_prev = None
@@ -235,7 +236,6 @@ class FeedForwardDGL(FeedForwardNN):
 
         # Initialize input and output linear layers
         self.in_linear = nn.Linear(in_features=self.in_dim, out_features=self.hidden_dims[0])
-        self.out_linear = nn.Linear(in_features=out_pool_dim, out_features=self.out_dim)
 
     def _register_hparams(self):
         return super()._register_hparams()
@@ -252,14 +252,12 @@ class FeedForwardDGL(FeedForwardNN):
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
 
+        
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
-            if ii > 1:
-                this_out_dim *= layers[ii-1].out_dim_factor
+
             if ii == self.depth - 1:
                 this_activation = self.last_activation
-
-            # TODO: CONSIDER THE TRUE OUTPUT DIM OF THE LAYER USING `out_dim_factor`
 
             # Create the layer
             self.layers.append(
@@ -273,9 +271,12 @@ class FeedForwardDGL(FeedForwardNN):
                 )
             )
 
-            this_in_dim = this_out_dim
+            # Get the true input dimension of the next layer,
+            # by factoring both the residual connection and GNN layer type
+            this_in_dim = residual_out_dims[ii] * layers[ii-1].out_dim_factor
 
-        return this_out_dim
+        self.out_linear = nn.Linear(in_features=this_in_dim, out_features=self.out_dim)
+        
 
     def _initialize_virtual_node_layers(self):
         self.virtual_node_layers = nn.ModuleList()
