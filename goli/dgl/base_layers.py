@@ -86,7 +86,7 @@ class FCLayer(nn.Module):
         bias=True,
         init_fn=None,
     ):
-        super(FCLayer, self).__init__()
+        super().__init__()
 
         self.__params = locals()
         del self.__params["__class__"]
@@ -149,7 +149,7 @@ class MLP(nn.Module):
         mid_batch_norm=False,
         last_batch_norm=False,
     ):
-        super(MLP, self).__init__()
+        super().__init__()
 
         self.in_dim = in_dim
         self.hidden_dim = hidden_dim
@@ -211,7 +211,7 @@ class GRU(nn.Module):
     """
 
     def __init__(self, input_size, hidden_dim, device):
-        super(GRU, self).__init__()
+        super().__init__()
         self.input_size = input_size
         self.hidden_dim = hidden_dim
         self.gru = nn.GRU(input_size=input_size, hidden_dim=hidden_dim).to(device)

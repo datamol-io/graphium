@@ -15,7 +15,7 @@ class S2SReadout(nn.Module):
     """
 
     def __init__(self, in_dim, hidden_dim, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
-        super(S2SReadout, self).__init__()
+        super().__init__()
 
         # set2set aggregation
         self.set2set = Set2Set(in_dim, device=device)
@@ -46,7 +46,7 @@ class StdPooling(nn.Module):
     """
 
     def __init__(self):
-        super(StdPooling, self).__init__()
+        super().__init__()
         self.sum_pooler = SumPooling()
         self.relu = nn.ReLU()
 
@@ -90,13 +90,12 @@ class MinPooling(MaxPooling):
                 :math:`N` is the number of nodes in the graph.
 
         Returns:
-            torch.Tensor
+            readout: torch.Tensor
                 The output feature with shape :math:`(B, *)`, where
                 :math:`B` refers to the batch size.
         """
 
-        readout = -super().forward(graph, -feat)
-        return readout
+        return -super().forward(graph, -feat)
 
 
 def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_layers: int = 2):
@@ -113,15 +112,10 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
             The list of pooling layers to use. The accepted strings are:
 
             - "sum": SumPooling
-
             - "mean": MeanPooling
-
             - "max": MaxPooling
-
             - "min": MinPooling
-
             - "std": StdPooling
-
             - "s2s": Set2Set
 
         n_iters: int, Default=2
