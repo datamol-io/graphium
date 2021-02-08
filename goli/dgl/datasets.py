@@ -74,18 +74,18 @@ def load_csv_to_dgl_dataset(data_dir, name, smiles_cols, y_col, max_mols, trans,
 
 
 class DGLMultiDataset(Dataset):
-    r"""
+    """
     Dataset class for models that use DGL.
 
-    Arguments:
+    Parameters:
         X_list: List of all featurized data returned by the DGLTransformer, given by a triple:
             [(graph 1, atom features 1 and bond features 1), (graph 2, atom features 2 and bond features 2), ...]
             You can also use a list of dgl object with features already set
-        y: array, optional
+        y: array
             output matrix that contains the readout for each graph.
-        w: array, optional
+        w: array
             sample or prediction weights to be used in a cost function
-        device: torch.device, optional
+        device: torch.device
             The device on which to run the computation
 
     Attributes:

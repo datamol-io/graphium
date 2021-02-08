@@ -16,38 +16,6 @@ from goli.commons.decorators import classproperty
 
 
 class GINLayer(BaseDGLLayer):
-    """
-    GIN: Graph Isomorphism Networks
-    HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
-    https://arxiv.org/pdf/1810.00826.pdf
-
-    [!] code adapted from dgl implementation of GINConv
-
-    Parameters:
-
-        in_dim: int
-            Input feature dimensions of the layer
-
-        out_dim: int
-            Output feature dimensions of the layer
-
-        activation: str, Callable, Default="relu"
-            activation function to use in the layer
-
-        dropout: float, Default=0.
-            The ratio of units to dropout. Must be between 0 and 1
-
-        batch_norm: bool, Default=False
-            Whether to use batch normalization
-
-        init_eps : optional
-            Initial :math:`\epsilon` value, default: ``0``.
-
-        learn_eps : bool, optional
-            If True, :math:`\epsilon` will be a learnable parameter.
-
-    """
-
     def __init__(
         self,
         in_dim: int,
@@ -55,9 +23,40 @@ class GINLayer(BaseDGLLayer):
         activation="relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
-        init_eps=0,
+        init_eps=0.0,
         learn_eps=True,
     ):
+        """
+        GIN: Graph Isomorphism Networks
+        HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
+        https://arxiv.org/pdf/1810.00826.pdf
+
+        [!] code adapted from dgl implementation of GINConv
+
+        Parameters:
+
+            in_dim: int
+                Input feature dimensions of the layer
+
+            out_dim: int
+                Output feature dimensions of the layer
+
+            activation: str, Callable
+                activation function to use in the layer
+
+            dropout: float
+                The ratio of units to dropout. Must be between 0 and 1
+
+            batch_norm: bool
+                Whether to use batch normalization
+
+            init_eps : float
+                Initial :math:`\epsilon` value, default: ``0``.
+
+            learn_eps : bool
+                If True, :math:`\epsilon` will be a learnable parameter.
+
+        """
 
         super().__init__(
             in_dim=in_dim,
@@ -88,7 +87,7 @@ class GINLayer(BaseDGLLayer):
         )
 
     def message_func(self, g):
-        r"""
+        """
         If edge weights are provided, use them to weight the messages
         """
 
@@ -99,7 +98,7 @@ class GINLayer(BaseDGLLayer):
         return func
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Apply the GIN convolutional layer, with the specified activations,
         normalizations and dropout.
 
@@ -135,7 +134,7 @@ class GINLayer(BaseDGLLayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
@@ -147,7 +146,7 @@ class GINLayer(BaseDGLLayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -162,7 +161,7 @@ class GINLayer(BaseDGLLayer):
 
     @property
     def layer_outputs_edges(self) -> bool:
-        r"""
+        """
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -177,7 +176,7 @@ class GINLayer(BaseDGLLayer):
 
     @property
     def out_dim_factor(self) -> int:
-        r"""
+        """
         Get the factor by which the output dimension is multiplied for
         the next layer.
 

@@ -164,14 +164,14 @@ def config_load_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype):
     layer_name = cfg_model["layer_name"]
     gnn_layer_kwargs = cfg_gnns[layer_name]
 
-    # Parse the GNN arguments
+    # Parse the GNN Parameters
     gnn_kwargs = dict(in_dim=in_dim, **cfg_model["gnn_kwargs"], **gnn_layer_kwargs)
     gnn_hidden_dim = gnn_kwargs.pop("hidden_dim")
     gnn_hidden_depth = gnn_kwargs.pop("hidden_depth")
     gnn_kwargs["hidden_dims"] = [gnn_hidden_dim] * gnn_hidden_depth
     gnn_kwargs["out_dim"] = gnn_hidden_dim
 
-    # Parse the LNN arguments
+    # Parse the LNN Parameters
     lnn_kwargs = dict(in_dim=gnn_kwargs["out_dim"], out_dim=out_dim, **cfg_model["lnn_kwargs"])
     lnn_hidden_dim = lnn_kwargs.pop("hidden_dim")
     lnn_hidden_depth = lnn_kwargs.pop("hidden_depth")

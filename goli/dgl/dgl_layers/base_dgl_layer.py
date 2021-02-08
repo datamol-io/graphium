@@ -10,7 +10,7 @@ class BaseDGLLayer(nn.Module):
     def __init__(
         self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
     ):
-        r"""
+        """
         Abstract class used to standardize the implementation of DGL layers
         in the current library. It will allow a network to seemlesly swap between
         different GNN layers by better understanding the expected inputs
@@ -24,13 +24,13 @@ class BaseDGLLayer(nn.Module):
             out_dim: int
                 Output feature dimensions of the layer
 
-            activation: str, Callable, Default="relu"
+            activation: str, Callable
                 activation function to use in the layer
 
-            dropout: float, Default=0.
+            dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool, Default=False
+            batch_norm: bool
                 Whether to use batch normalization
         """
 
@@ -57,7 +57,7 @@ class BaseDGLLayer(nn.Module):
     def apply_norm_activation_dropout(
         self, h, batch_norm: bool = True, activation: bool = True, dropout: bool = True
     ):
-        r"""
+        """
         Apply the different normalization and the dropout to the
         output layer.
 
@@ -66,13 +66,13 @@ class BaseDGLLayer(nn.Module):
             h: torch.Tensor()
                 Feature tensor, to be normalized
 
-            batch_norm: bool, Default=True
+            batch_norm: bool
                 Whether to apply the batch_norm layer
 
-            activation: bool, Default=True
+            activation: bool
                 Whether to apply the activation layer
 
-            dropout: bool, Default=True
+            dropout: bool
                 Whether to apply the dropout layer
 
         Returns:
@@ -95,7 +95,7 @@ class BaseDGLLayer(nn.Module):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        r"""
+        """
         Abstract method. Return a boolean specifying if the layer type
         supports output edges edges or not.
 
@@ -109,7 +109,7 @@ class BaseDGLLayer(nn.Module):
     @property
     @abc.abstractmethod
     def layer_inputs_edges(self) -> bool:
-        r"""
+        """
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_input_edges`` since a layer that
@@ -125,7 +125,7 @@ class BaseDGLLayer(nn.Module):
     @property
     @abc.abstractmethod
     def layer_outputs_edges(self) -> bool:
-        r"""
+        """
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_output_edges`` since a layer that
@@ -141,7 +141,7 @@ class BaseDGLLayer(nn.Module):
     @property
     @abc.abstractmethod
     def out_dim_factor(self) -> int:
-        r"""
+        """
         Abstract method.
         Get the factor by which the output dimension is multiplied for
         the next layer.
@@ -161,7 +161,7 @@ class BaseDGLLayer(nn.Module):
         ...
 
     def __repr__(self):
-        r"""
+        """
         Controls how the class is printed
         """
         return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}, activation={self.activation})"

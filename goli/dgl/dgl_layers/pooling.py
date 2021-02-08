@@ -39,10 +39,9 @@ class S2SReadout(nn.Module):
 
 
 class StdPooling(nn.Module):
-    r"""Apply standard deviation pooling over the nodes in the graph.
+    """Apply standard deviation pooling over the nodes in the graph.
 
-    .. math::
-        r^{(i)} = \sigma_{k=1}^{N_i}\left( x^{(i)}_k \right)
+    $$r^{(i)} = \sigma_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
     """
 
     def __init__(self):
@@ -51,7 +50,7 @@ class StdPooling(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self, graph, feat):
-        r"""Compute standard deviation pooling.
+        """Compute standard deviation pooling.
 
         Parameters:
             graph : DGLGraph
@@ -73,14 +72,13 @@ class StdPooling(nn.Module):
 
 
 class MinPooling(MaxPooling):
-    r"""Apply min pooling over the nodes in the graph.
+    """Apply min pooling over the nodes in the graph.
 
-    .. math::
-        r^{(i)} = \min_{k=1}^{N_i}\left( x^{(i)}_k \right)
+    $$r^{(i)} = \min_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
     """
 
     def forward(self, graph, feat):
-        r"""Compute max pooling.
+        """Compute max pooling.
 
         Parameters:
             graph : DGLGraph
@@ -99,7 +97,7 @@ class MinPooling(MaxPooling):
 
 
 def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_layers: int = 2):
-    r"""
+    """
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
 
@@ -118,11 +116,11 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
             - "std": StdPooling
             - "s2s": Set2Set
 
-        n_iters: int, Default=2
+        n_iters: int
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
             The number of iterations.
 
-        n_layers : int, Default=2
+        n_layers : int
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
             The number of recurrent layers.
     """
