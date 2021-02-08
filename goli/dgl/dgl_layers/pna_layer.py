@@ -32,7 +32,7 @@ class BasePNALayer(BaseDGLLayer):
         avg_d: float = 1.0,
         last_activation="none",
     ):
-        r"""
+        """
         Abstract class used to standardize the implementation of PNA layers
         in the current library.
 
@@ -60,19 +60,19 @@ class BasePNALayer(BaseDGLLayer):
                 e.g. "identidy", "amplification", "attenuation"
                 The results from all scalers will be concatenated
 
-            activation: str, Callable, Default="relu"
+            activation: str, Callable
                 activation function to use in the layer
 
-            dropout: float, Default=0.
+            dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool, Default=False
+            batch_norm: bool
                 Whether to use batch normalization
 
-            avg_d: float, Default=1.
+            avg_d: float
                 Average degree of nodes in the training set, used by scalers to normalize
 
-            last_activation: str, Callable, Default="none"
+            last_activation: str, Callable
                 activation function to use in the last layer of the internal MLP
 
         """
@@ -94,13 +94,13 @@ class BasePNALayer(BaseDGLLayer):
         self.scalers = [PNA_SCALERS[scale] for scale in scalers]
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        r"""
+        """
         The message function to generate messages along the edges.
         """
         return {"e": edges.data["e"]}
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        r"""
+        """
         The reduce function to aggregate the messages.
         Apply the aggregators and scalers, and concatenate the results.
         """
@@ -117,7 +117,7 @@ class BasePNALayer(BaseDGLLayer):
 
     @property
     def layer_outputs_edges(self) -> bool:
-        r"""
+        """
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -132,7 +132,7 @@ class BasePNALayer(BaseDGLLayer):
 
     @property
     def out_dim_factor(self) -> int:
-        r"""
+        """
         Get the factor by which the output dimension is multiplied for
         the next layer.
 
@@ -165,7 +165,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         last_activation="none",
         posttrans_layers: int = 1,
     ):
-        r"""
+        """
         Implementation of the convolutional architecture of the PNA layer,
         previously known as `PNASimpleLayer`. This layer aggregates the
         neighbouring messages using multiple aggregators and scalers,
@@ -194,22 +194,22 @@ class PNAConvolutionalLayer(BasePNALayer):
                 e.g. "identidy", "amplification", "attenuation"
                 The results from all scalers will be concatenated
 
-            activation: str, Callable, Default="relu"
+            activation: str, Callable
                 activation function to use in the layer
 
-            dropout: float, Default=0.
+            dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool, Default=False
+            batch_norm: bool
                 Whether to use batch normalization
 
-            avg_d: Dict(str, float), Default={"log": 1.}
+            avg_d: Dict(str, float)
                 Average degree of nodes in the training set, used by scalers to normalize
 
-            last_activation: str, Callable, Default="none"
+            last_activation: str, Callable
                 activation function to use in the last layer of the internal MLP
 
-            posttrans_layers: int, Default=1
+            posttrans_layers: int
                 number of layers in the MLP transformation after the aggregation
 
         """
@@ -240,13 +240,13 @@ class PNAConvolutionalLayer(BasePNALayer):
         )
 
     def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:
-        r"""
+        """
         Return a mapping to the features of the source nodes.
         """
         return {"e": edges.src["h"]}
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Apply the PNA convolutional layer, with the specified post transformation
 
         Parameters:
@@ -280,7 +280,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -295,7 +295,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
@@ -322,7 +322,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         pretrans_layers: int = 1,
         in_dim_edges: int = 0,
     ):
-        r"""
+        """
         Implementation of the convolutional architecture of the PNA layer,
         previously known as `PNASimpleLayer`. This layer aggregates the
         neighbouring messages using multiple aggregators and scalers,
@@ -351,28 +351,28 @@ class PNAMessagePassingLayer(BasePNALayer):
                 e.g. "identidy", "amplification", "attenuation"
                 The results from all scalers will be concatenated
 
-            activation: str, Callable, Default="relu"
+            activation: str, Callable
                 activation function to use in the layer
 
-            dropout: float, Default=0.
+            dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool, Default=False
+            batch_norm: bool
                 Whether to use batch normalization
 
-            avg_d: Dict(str, float), Default={"log": 1.}
+            avg_d: Dict(str, float)
                 Average degree of nodes in the training set, used by scalers to normalize
 
-            last_activation: str, Callable, Default="none"
+            last_activation: str, Callable
                 activation function to use in the last layer of the internal MLP
 
-            posttrans_layers: int, Default=1
+            posttrans_layers: int
                 number of layers in the MLP transformation after the aggregation
 
-            pretrans_layers: int, Default=1
+            pretrans_layers: int
                 number of layers in the transformation before the aggregation
 
-            in_dim_edges: int, Default=0
+            in_dim_edges: int
                 size of the edge features. If 0, edges are ignored
 
         """
@@ -419,7 +419,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         )
 
     def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:
-        r"""
+        """
         Return a mapping to the concatenation of the features from
         the source node, the destination node, and the edge between them (if applicable).
         """
@@ -432,7 +432,7 @@ class PNAMessagePassingLayer(BasePNALayer):
     def forward(
         self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        r"""
+        """
         Apply the PNA Message passing layer, with the specified pre/post transformations
 
         Parameters:
@@ -444,7 +444,7 @@ class PNAMessagePassingLayer(BasePNALayer):
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-            e: torch.Tensor(..., N, Din_edges) or None, Default=None
+            e: torch.Tensor(..., N, Din_edges) or None
                 Edge feature tensor, before convolution.
                 N is the number of nodes, Din is the input edge dimension
 
@@ -477,7 +477,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -492,7 +492,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:

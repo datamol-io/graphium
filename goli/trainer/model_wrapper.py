@@ -9,7 +9,7 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.dataset import Dataset
 
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
@@ -57,7 +57,7 @@ class ModelWrapper(pl.LightningModule):
         collate_fn=None,
         additional_hparams=None,
     ):
-        r"""
+        """
 
         A class that allows to use regression or classification models easily
         with Pytorch-Lightning.
@@ -77,22 +77,22 @@ class ModelWrapper(pl.LightningModule):
                 Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
                 Otherwise, a callable object must be provided, with a method ``loss_fun._get_name()``.
 
-            lr: float, Default=1e-4
+            lr: float
                 The learning rate used during the training.
 
-            batch_size: int, Default=4
+            batch_size: int
                 The batch size used during the training.
 
-            validation_split: float, torch.utils.data.Dataset, Default=0.2
+            validation_split: float, torch.utils.data.Dataset
                 If ``validation_split`` is a ``float``, the ``dataset`` will be splitted into train/val sets.
                 The float value must be greater than 0 and smaller than 1.
                 If ``validation_split`` is a ``torch.utils.data.Dataset``, then ``dataset`` variable is the training set,
                 and ``validation_split`` is the validation set.
 
-            random_seed: int, Default=42
+            random_seed: int
                 The random seed used by Pytorch to initialize random tensors.
 
-            num_workers: int, Default=0
+            num_workers: int
                 The number of workers used to load the data at each training step.
                 ``num_workers`` should be 1 on the GPU
 
@@ -102,16 +102,16 @@ class ModelWrapper(pl.LightningModule):
 
                 - int: Specify any value for the number of cores to use for data loading.Any
 
-            dtype: torch.dtype, Default=torch.float32
+            dtype: torch.dtype
                 The desired floating point type of the floating point parameters and buffers in this module.
 
-            device: torch.device, Default='cpu'
+            device: torch.device
                 the desired device of the parameters and buffers in this module
 
-            weight_decay: float, Default=0.
+            weight_decay: float
                 Weight decay used to regularize the optimizer
 
-            target_nan_mask: int, float, str, None: Default=None
+            target_nan_mask: int, float, str, None
 
                 - None: Do not change behaviour if there are nans
 
@@ -120,19 +120,19 @@ class ModelWrapper(pl.LightningModule):
 
                 - 'ignore': Nans will be ignored when computing the loss. NOT YET IMPLEMENTED
 
-            metrics: dict(str, Callable), None, Default=None,
+            metrics: dict(str, Callable), None
                 A dictionnary of metrics to compute on the prediction, other than the loss function.
                 These metrics will be logged into TensorBoard.
 
-            metrics_on_progress_bar: list(str), Default=[],
+            metrics_on_progress_bar: list(str)
                 The metrics names from ``metrics`` to display also on the progress bar of the training
 
-            collate_fn: Callable, Default=None,
+            collate_fn: Callable
                 Merges a list of samples to form a mini-batch of Tensor(s).
                 Used when using batched loading from a map-style dataset.
                 See ``torch.utils.data.DataLoader.__init__``
 
-            additional_hparams: dict(str, Other), Default=None
+            additional_hparams: dict(str, Other)
                 additionnal hyper-parameters to log in the TensorBoard file.
 
         """

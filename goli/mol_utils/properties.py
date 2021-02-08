@@ -127,16 +127,16 @@ def get_props_from_mol(mol, properties="autocorr3d"):
 
 
 def one_of_k_encoding(val, num_classes, dtype=int):
-    r"""Converts a single value to a one-hot vector.
+    """Converts a single value to a one-hot vector.
 
-    Arguments:
+    Parameters:
         val: int
             class to be converted into a one hot vector
             (integers from 0 to num_classes).
         num_classes: iterator
             a list or 1D array of allowed
             choices for val to take
-        dtype: type, optional
+        dtype: type
             data type of the the return.
             (Default value = int). Other possible types are float, bool, ...
     Returns:
@@ -155,7 +155,7 @@ def one_of_k_encoding(val, num_classes, dtype=int):
 
 
 def get_atom_features(atom, explicit_H=False, use_chirality=True):
-    r"""
+    """
     Get the following set of features for any given atom
 
     * One-hot representation of the atom
@@ -167,12 +167,12 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
     * The atom's number of radical electrons
     * Whether the atom is in a ring
 
-    Additionally, the following features can be set, depending on the value of input arguments
+    Additionally, the following features can be set, depending on the value of input Parameters
 
     * One-hot representation of the number of hydrogen atom in the the current atom neighborhood if `explicit_H` is false
     * One-hot encoding of the atom chirality, and whether such configuration is even possible
 
-    Arguments:
+    Parameters:
         mol: `rdkit.Chem.Molecule`
             the molecule of interest
 
@@ -215,7 +215,7 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
 
 
 def get_edge_features(bond):
-    r"""
+    """
     Get the following set of features for any given bond
     See `goli.mol_utils.nmp` for allowed values in one hot encoding
 
@@ -225,7 +225,7 @@ def get_edge_features(bond):
     * Whether the bond is conjugated
     * Whether the bond is in a ring
 
-    Arguments:
+    Parameters:
         mol: rdkit.Chem.Molecule
             the molecule of interest
 
@@ -248,12 +248,12 @@ def get_edge_features(bond):
 
 
 def mol_to_graph(mol, explicit_H=False, use_chirality=False):
-    r"""
+    """
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom (and bond) features.
     :raises ValueError: when input molecule is None
 
-    Arguments:
+    Parameters:
         mol (rdkit.Chem.Mol): The molecule to be converted
 
     Returns:

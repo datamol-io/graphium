@@ -22,15 +22,15 @@ def save_im(im_dir, im_name, ext=["svg", "png"], dpi=600):
 
 
 def to_tensor(x, device=None, dtype=None):
-    r"""
+    """
     Convert a numpy array to tensor. The tensor type will be
     the same as the original array, unless specify otherwise
 
-    Arguments:
+    Parameters:
         x: numpy.ndarray
             Numpy array to convert to tensor type
-        device: torch.device, optional
-        dtype: torch.dtype, optional
+        device: torch.device
+        dtype: torch.dtype
             Enforces new data type for the output
 
     Returns:
@@ -52,10 +52,10 @@ def to_tensor(x, device=None, dtype=None):
 
 
 def is_dtype_torch_tensor(dtype):
-    r"""
+    """
     Verify if the dtype is a torch dtype
 
-    Arguments:
+    Parameters:
         dtype: dtype
             The dtype of a value. E.g. np.int32, str, torch.float
 
@@ -66,10 +66,10 @@ def is_dtype_torch_tensor(dtype):
 
 
 def is_dtype_numpy_array(dtype):
-    r"""
+    """
     Verify if the dtype is a numpy dtype
 
-    Arguments:
+    Parameters:
         dtype: dtype
             The dtype of a value. E.g. np.int32, str, torch.float
 
@@ -87,16 +87,16 @@ def is_dtype_numpy_array(dtype):
 
 
 def one_of_k_encoding(val, num_classes, dtype=int):
-    r"""Converts a single value to a one-hot vector.
+    """Converts a single value to a one-hot vector.
 
-    Arguments:
+    Parameters:
         val: int
             class to be converted into a one hot vector
             (integers from 0 to num_classes).
         num_classes: iterator
             a list or 1D array of allowed
             choices for val to take
-        dtype: type, optional
+        dtype: type
             data type of the the return.
             (Default value = int). Other possible types are float, bool, ...
     Returns:
@@ -115,15 +115,14 @@ def one_of_k_encoding(val, num_classes, dtype=int):
 
 
 def is_device_cuda(device, ignore_errors=False):
-    r"""Check wheter the given device is a cuda device.
+    """Check wheter the given device is a cuda device.
 
-    Arguments:
+    Parameters:
         device: str, torch.device
             object to check for cuda
-        ignore_errors: bool, Optional
+        ignore_errors: bool
             Whether to ignore the error if the device is not recognized.
             Otherwise, ``False`` is returned in case of errors.
-            (Default=False)
     Returns:
         is_cuda: bool
     """

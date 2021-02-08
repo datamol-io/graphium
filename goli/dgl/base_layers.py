@@ -26,7 +26,7 @@ def get_activation(activation):
 
 
 class FCLayer(nn.Module):
-    r"""
+    """
     A simple fully connected and customizable layer. This layer is centered around a torch.nn.Linear module.
     The order in which transformations are applied is:
     #. Dense Layer
@@ -42,19 +42,18 @@ class FCLayer(nn.Module):
             Output dimension of the layer.
         dropout:
             type: float
-            Default:0.
             The ratio of units to dropout. No dropout by default.
             (Default value = 0.)
-        activation: str or callable, optional
+        activation: str or callable
             Activation function to use.
             (Default value = relu)
-        batch_norm: bool, optional
+        batch_norm: bool
             Whether to use batch normalization
             (Default value = False)
-        bias: bool, optional
+        bias: bool
             Whether to enable bias in for the linear layer.
             (Default value = True)
-        init_fn: callable, optional
+        init_fn: callable
             Initialization function to use for the weight of the layer. Default is
             :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` with :math:`k=\frac{1}{ \text{in_dim}}`
             (Default value = None)

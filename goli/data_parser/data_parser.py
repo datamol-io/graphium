@@ -9,7 +9,7 @@ from rdkit.Chem.Descriptors import ExactMolWt
 
 
 def read_file(filepath, as_ext=None, **kwargs):
-    r"""
+    """
     Allow to read different file format and parse them into a MolecularDataFrame.
     Supported formats are:
     * csv (.csv, .smile, .smiles)
@@ -18,16 +18,15 @@ def read_file(filepath, as_ext=None, **kwargs):
     * sdf (.sdf)
     * pkl (.pkl)
 
-    Arguments:
+    Parameters:
 
         filepath: str
             The full path and name of the file to read.
             It also supports the s3 url path.
-        as_ext: str, Optional
+        as_ext: str
             The file extension used to read the file. If None, the extension is deduced
             from the extension of the file. Otherwise, no matter the file extension,
             the file will be read according to the specified ``as_ext``.
-            (Default=None)
         **kwargs: All the optional parameters required for the desired file reader.
 
     TODO: unit test to make sure it works well with all extensions
@@ -64,20 +63,19 @@ def read_file(filepath, as_ext=None, **kwargs):
 
 
 def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
-    r"""
+    """
     Allows to read an SDF file containing molecular informations, convert
     it to a pandas DataFrame and convert the molecules to SMILES. It also
     lists a warning of all the molecules that couldn't be read.
 
-    Arguments:
+    Parameters:
 
         sdf_path: str
             The full path and name of the sdf file to read
-        as_cxsmiles: bool, optional
+        as_cxsmiles: bool
             Whether to use the CXSMILES notation, which preserves atomic coordinates,
             stereocenters, and much more.
             See `https://dl.chemaxon.com/marvin-archive/latest/help/formats/cxsmiles-doc.html`
-            (Default=True)
 
     TODO: Use pandas tools?
     TODO: Parallelize the loop to make it faster
@@ -119,7 +117,7 @@ def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
 
 
 def load_sdf(sdf_path):
-    r""" Load sdf file from local or s3 path. """
+    """ Load sdf file from local or s3 path. """
 
     if "s3://" not in sdf_path:
         data = Chem.SDMolSupplier(sdf_path)

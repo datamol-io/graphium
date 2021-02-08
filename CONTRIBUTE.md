@@ -58,7 +58,7 @@ Some loss functions are already implemented in the ModelWrapper, including `mse,
 
 Our current code is compatible with the metrics defined by _pytorch-lightning_, which include a great set of metrics. We also added the PearsonR and SpearmanR as they are important correlation metrics. You can define any new metric in the file `goli/trainer/metrics.py`. The metric must inherit from `TensorMetric` and must be added to the dictionary `goli.trainer.metrics.METRICS_DICT`.
 
-To use the metric, you can easily add it's name from `METRICS_DICT` in the yaml configuration file, at the address `metrics.metrics_dict`. Each metric has an underlying dictionnary with a mandatory `threshold` key containing information on how to threshold the prediction/target before computing the metric. Any `kwargs` arguments of the metric must also be added.
+To use the metric, you can easily add it's name from `METRICS_DICT` in the yaml configuration file, at the address `metrics.metrics_dict`. Each metric has an underlying dictionnary with a mandatory `threshold` key containing information on how to threshold the prediction/target before computing the metric. Any `kwargs` Parameters of the metric must also be added.
 
 ## Running a hyper-parameter search
 
