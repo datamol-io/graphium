@@ -98,7 +98,7 @@ def one_of_k_encoding(val, num_classes, dtype=int):
             choices for val to take
         dtype: type
             data type of the the return.
-            (Default value = int). Other possible types are float, bool, ...
+            Possible types are int, float, bool, ...
     Returns:
         A numpy 1D array of length len(num_classes) + 1
     """

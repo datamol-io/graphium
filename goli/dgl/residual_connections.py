@@ -424,18 +424,19 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
 
 class ResidualConnectionDenseNet(ResidualConnectionBase):
-    """
-    Class for the residual connections proposed by DenseNet, where
-    all previous skip connection features are concatenated to the current
-    layer features.
-
-    Parameters:
-
-        skip_steps: int
-            The number of steps to skip between the residual connections.
-    """
 
     def __init__(self, skip_steps: int = 1):
+        """
+        Class for the residual connections proposed by DenseNet, where
+        all previous skip connection features are concatenated to the current
+        layer features.
+
+        Parameters:
+
+            skip_steps: int
+                The number of steps to skip between the residual connections.
+        """
+
         super().__init__(skip_steps=skip_steps)
 
     @classproperty

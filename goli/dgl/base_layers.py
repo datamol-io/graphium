@@ -26,54 +26,6 @@ def get_activation(activation):
 
 
 class FCLayer(nn.Module):
-    """
-    A simple fully connected and customizable layer. This layer is centered around a torch.nn.Linear module.
-    The order in which transformations are applied is:
-    #. Dense Layer
-    #. Activation
-    #. Dropout (if applicable)
-    #. Batch Normalization (if applicable)
-
-    Parameters:
-        in_dim:
-            type: int
-            Input dimension of the layer (the torch.nn.Linear)
-        out_dim: int
-            Output dimension of the layer.
-        dropout:
-            type: float
-            The ratio of units to dropout. No dropout by default.
-            (Default value = 0.)
-        activation: str or callable
-            Activation function to use.
-            (Default value = relu)
-        batch_norm: bool
-            Whether to use batch normalization
-            (Default value = False)
-        bias: bool
-            Whether to enable bias in for the linear layer.
-            (Default value = True)
-        init_fn: callable
-            Initialization function to use for the weight of the layer. Default is
-            :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` with :math:`k=\frac{1}{ \text{in_dim}}`
-            (Default value = None)
-
-    Attributes:
-        dropout: int
-            The ratio of units to dropout.
-        batch_norm: int
-            Whether to use batch normalization
-        linear: torch.nn.Linear
-            The linear layer
-        activation: the torch.nn.Module
-            The activation layer
-        init_fn: function
-            Initialization function used for the weight of the layer
-        in_dim: int
-            Input dimension of the linear layer
-        out_dim: int
-            Output dimension of the linear layer
-    """
 
     def __init__(
         self,
@@ -85,6 +37,49 @@ class FCLayer(nn.Module):
         bias=True,
         init_fn=None,
     ):
+
+        """
+        A simple fully connected and customizable layer. This layer is centered around a torch.nn.Linear module.
+        The order in which transformations are applied is:
+        #. Dense Layer
+        #. Activation
+        #. Dropout (if applicable)
+        #. Batch Normalization (if applicable)
+
+        Parameters:
+            in_dim: int
+                Input dimension of the layer (the torch.nn.Linear)
+            out_dim: int
+                Output dimension of the layer.
+            dropout:
+                The ratio of units to dropout. No dropout by default.
+            activation: str or callable
+                Activation function to use.
+            batch_norm: bool
+                Whether to use batch normalization
+            bias: bool
+                Whether to enable bias in for the linear layer.
+            init_fn: callable
+                Initialization function to use for the weight of the layer. Default is
+                :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` with :math:`k=\frac{1}{ \text{in_dim}}`
+
+        Attributes:
+            dropout: int
+                The ratio of units to dropout.
+            batch_norm: int
+                Whether to use batch normalization
+            linear: torch.nn.Linear
+                The linear layer
+            activation: the torch.nn.Module
+                The activation layer
+            init_fn: function
+                Initialization function used for the weight of the layer
+            in_dim: int
+                Input dimension of the linear layer
+            out_dim: int
+                Output dimension of the linear layer
+        """
+
         super().__init__()
 
         self.__params = locals()
