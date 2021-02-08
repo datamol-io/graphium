@@ -35,12 +35,12 @@ class FCLayer(nn.Module):
     #. Batch Normalization (if applicable)
 
     Parameters:
-        in_dim: 
+        in_dim:
             type: int
             Input dimension of the layer (the torch.nn.Linear)
         out_dim: int
             Output dimension of the layer.
-        dropout: 
+        dropout:
             type: float
             Default:0.
             The ratio of units to dropout. No dropout by default.
