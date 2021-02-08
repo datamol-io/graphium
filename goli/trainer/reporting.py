@@ -17,7 +17,7 @@ class TrainingProgressFromSummary(pl.Callback):
         """
         :param metrics: map metric name to Metric class (name will be appended with partition)
         """
-        super(TrainingProgressFromSummary, self).__init__()
+        super().__init__()
         self.metrics = {}
         self.metrics = metrics
 
@@ -47,7 +47,7 @@ class BestEpochFromSummary(pl.Callback):
     """
 
     def __init__(self, metrics: Dict):
-        super(BestEpochFromSummary, self).__init__()
+        super().__init__()
         self.best_loss = float("inf")
         self.metrics = metrics
 

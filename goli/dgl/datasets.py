@@ -77,8 +77,7 @@ class DGLMultiDataset(Dataset):
     r"""
     Dataset class for models that use DGL.
 
-    Arguments
-    ----------
+    Arguments:
         X_list: List of all featurized data returned by the DGLTransformer, given by a triple:
             [(graph 1, atom features 1 and bond features 1), (graph 2, atom features 2 and bond features 2), ...]
             You can also use a list of dgl object with features already set
@@ -89,8 +88,7 @@ class DGLMultiDataset(Dataset):
         device: torch.device, optional
             The device on which to run the computation
 
-    Attributes
-    ----------
+    Attributes:
         G: list(tuple(dgl.DGLGraph, dgl.DGLGraph))
             A dgl object that contains the graph and the atom features
         edata: array

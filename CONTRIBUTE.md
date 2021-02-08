@@ -67,7 +67,7 @@ In the current repository, we use `hydra-core` to launch multiple experiments in
 Below is an example of running a set of 3\*2\*2\*2=24 experiments, 3 variations of the gnn type _layer_name_, 2 variations of the learning rate _lr_, 2 variations of the hidden dimension _hidden_dim_, 2 variations of the network depth _hidden_depth_. All parameters not mentionned in the code below are unchanged from the file `expts/main_micro_ZINC.py`.
 
     python expts/main_micro_ZINC.py --multirun \
-    model.layer_name=gin,gcn,pna-simple3 \
+    model.layer_name=gin,gcn,pna-conv3 \
     constants.exp_name="testing_hydra" \
     constants.device="cuda:0" \
     constants.ignore_train_error=true \

@@ -26,16 +26,14 @@ def to_tensor(x, device=None, dtype=None):
     Convert a numpy array to tensor. The tensor type will be
     the same as the original array, unless specify otherwise
 
-    Arguments
-    ----------
+    Arguments:
         x: numpy.ndarray
             Numpy array to convert to tensor type
         device: torch.device, optional
         dtype: torch.dtype, optional
             Enforces new data type for the output
 
-    Returns
-    -------
+    Returns:
         New torch.Tensor
 
     """
@@ -57,13 +55,11 @@ def is_dtype_torch_tensor(dtype):
     r"""
     Verify if the dtype is a torch dtype
 
-    Arguments
-    ----------
+    Arguments:
         dtype: dtype
             The dtype of a value. E.g. np.int32, str, torch.float
 
-    Returns
-    -------
+    Returns:
         A boolean saying if the dtype is a torch dtype
     """
     return isinstance(dtype, torch.dtype) or (dtype == torch.Tensor)
@@ -73,13 +69,11 @@ def is_dtype_numpy_array(dtype):
     r"""
     Verify if the dtype is a numpy dtype
 
-    Arguments
-    ----------
+    Arguments:
         dtype: dtype
             The dtype of a value. E.g. np.int32, str, torch.float
 
-    Returns
-    -------
+    Returns:
         A boolean saying if the dtype is a numpy dtype
     """
     is_torch = is_dtype_torch_tensor(dtype)
@@ -95,8 +89,7 @@ def is_dtype_numpy_array(dtype):
 def one_of_k_encoding(val, num_classes, dtype=int):
     r"""Converts a single value to a one-hot vector.
 
-    Arguments
-    ----------
+    Arguments:
         val: int
             class to be converted into a one hot vector
             (integers from 0 to num_classes).
@@ -106,8 +99,7 @@ def one_of_k_encoding(val, num_classes, dtype=int):
         dtype: type, optional
             data type of the the return.
             (Default value = int). Other possible types are float, bool, ...
-    Returns
-    -------
+    Returns:
         A numpy 1D array of length len(num_classes) + 1
     """
 
@@ -125,16 +117,14 @@ def one_of_k_encoding(val, num_classes, dtype=int):
 def is_device_cuda(device, ignore_errors=False):
     r"""Check wheter the given device is a cuda device.
 
-    Arguments
-    ----------
+    Arguments:
         device: str, torch.device
             object to check for cuda
         ignore_errors: bool, Optional
             Whether to ignore the error if the device is not recognized.
             Otherwise, ``False`` is returned in case of errors.
             (Default=False)
-    Returns
-    -------
+    Returns:
         is_cuda: bool
     """
 

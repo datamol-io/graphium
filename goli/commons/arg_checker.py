@@ -47,7 +47,7 @@ def _enforce_iter_type(arg, enforce_type):
     return arg
 
 
-def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtype=True):
+def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtype: bool = True):
     r"""
     Verify if the type is an iterator. If it is `None`, convert to an empty list/tuple. If it is
     not a list/tuple/str, try to convert to an iterator. If it is a str or cannot be converted to
@@ -56,8 +56,7 @@ def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtyp
     Possibly enforce the subtype to any given type if `enforce_subtype` is not None,
     and decide whether to cast the subtype or to throw an error.
 
-    Arguments
-    ----------
+    Arguments:
         arg: (any type)
             The input to verify/convert to an iterator (list or tuple). If None, an empty iterator
             is returned.
@@ -72,14 +71,12 @@ def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtyp
             Accepted strings are ['none', 'str', 'list', 'tuple', 'dict', 'int',
             'float', 'complex', 'bool', 'callable']
             (Default = None)
-        cast_subtype: bool, optional
+        cast_subtype:
             If True, then the type specified by `enforce_subtype` is used to cast the
             elements inside the iterator. If False, then an error is thrown if the
             types do not match.
-            (Default = True)
 
-    Returns
-    -------
+    Returns:
         output: iterator
             An iterator based on the input of the desired type (list or tuple) and
             the desired subtypes.
@@ -141,8 +138,7 @@ def check_list1_in_list2(list1, list2, throw_error=True):
     r"""
     Verify if the list1 (iterator) is included in list2 (iterator). If not, raise an error.
 
-    Arguments
-    ----------
+    Arguments:
         list1, list2: list, tuple or object
             A list or tuple containing the elements to verify the inclusion.
             If an object is provided other than a list or tuple,
@@ -151,8 +147,7 @@ def check_list1_in_list2(list1, list2, throw_error=True):
             Whether to throw an error if list1 is not in list2
             (Default = True)
 
-    Returns
-    -------
+    Returns:
         list1_in_list2: bool
             A boolean representing the inclusion of list1 in list2. It is returned if
             throw_error is set to false
@@ -180,8 +175,7 @@ def check_columns_choice(dataframe, columns_choice, extra_accepted_cols=None, en
     Verify if the choice of column `columns_choice` is inside the dataframe or
     the extra_accepted_cols. Otherwise, errors are thrown by the sub-functions.
 
-    Arguments
-    ----------
+    Arguments:
         dataframe: (pd.DataFrame)
             The dataframe on which to verify if the column choice is valid.
             columns_choice: str, iterator(str)
@@ -195,8 +189,7 @@ def check_columns_choice(dataframe, columns_choice, extra_accepted_cols=None, en
             If `None`, then the iterator type is not enforced.
             (Default = None)
 
-    Returns
-    -------
+    Returns:
         output: iterator
             A str iterator based on the input of the desired type (list or tuple)
 

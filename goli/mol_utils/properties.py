@@ -43,8 +43,7 @@ def get_props_from_mol(mol, properties="autocorr3d"):
     Function to get a given set of desired properties from a molecule,
     and output a property list.
 
-    Parameters
-    ---------------
+    Parameters:
         mol: rdkit Mol, str
             The molecule from which to compute the properties, or the SMILES representation
             of the molecule.
@@ -57,8 +56,7 @@ def get_props_from_mol(mol, properties="autocorr3d"):
             - 'whim'
             - 'all'
 
-    Returns
-    -----------
+    Returns:
         props: np.array(float)
             The array of properties for the desired molecule
         classes_start_idx: list(int)
@@ -131,8 +129,7 @@ def get_props_from_mol(mol, properties="autocorr3d"):
 def one_of_k_encoding(val, num_classes, dtype=int):
     r"""Converts a single value to a one-hot vector.
 
-    Arguments
-    ----------
+    Arguments:
         val: int
             class to be converted into a one hot vector
             (integers from 0 to num_classes).
@@ -142,8 +139,7 @@ def one_of_k_encoding(val, num_classes, dtype=int):
         dtype: type, optional
             data type of the the return.
             (Default value = int). Other possible types are float, bool, ...
-    Returns
-    -------
+    Returns:
         A numpy 1D array of length len(num_classes) + 1
     """
 
@@ -176,13 +172,11 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
     * One-hot representation of the number of hydrogen atom in the the current atom neighborhood if `explicit_H` is false
     * One-hot encoding of the atom chirality, and whether such configuration is even possible
 
-    Arguments
-    ----------
+    Arguments:
         mol: `rdkit.Chem.Molecule`
             the molecule of interest
 
-    Returns
-    -------
+    Returns:
         features: `numpy.ndarray(float)`
             a numpy array of the above-mentionned features
 
@@ -231,13 +225,11 @@ def get_edge_features(bond):
     * Whether the bond is conjugated
     * Whether the bond is in a ring
 
-    Arguments
-    ----------
+    Arguments:
         mol: rdkit.Chem.Molecule
             the molecule of interest
 
-    Returns
-    -------
+    Returns:
         features: float numpy.ndarray
             list of the above-mentionned features
 
@@ -261,12 +253,10 @@ def mol_to_graph(mol, explicit_H=False, use_chirality=False):
     and a set of atom (and bond) features.
     :raises ValueError: when input molecule is None
 
-    Arguments
-    ----------
+    Arguments:
         mol (rdkit.Chem.Mol): The molecule to be converted
 
-    Returns
-    -------
+    Returns:
         features: a tuple (A, X), where A is the adjacency matrix of size (N, N) for N atoms
             and X the feature matrix of size (N,D) for D features
     """

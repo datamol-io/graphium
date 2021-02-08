@@ -1,54 +1,43 @@
 import torch
 import numpy as np
+from functools import partial
 
 EPS = 1e-5
 
 
-def aggregate_mean(h):
+def aggregate_mean(h, **kwargs):
     return torch.mean(h, dim=1)
 
 
-def aggregate_max(h):
+def aggregate_max(h, **kwargs):
     return torch.max(h, dim=1)[0]
 
 
-def aggregate_min(h):
+def aggregate_min(h, **kwargs):
     return torch.min(h, dim=1)[0]
 
 
-def aggregate_std(h):
+def aggregate_std(h, **kwargs):
     return torch.sqrt(aggregate_var(h) + EPS)
 
 
-def aggregate_var(h):
-    h_mean_squares = torch.mean(h * h, dim=-2)
-    h_mean = torch.mean(h, dim=-2)
+def aggregate_var(h, **kwargs):
+    h_mean_squares = torch.mean(h * h, dim=1)
+    h_mean = torch.mean(h, dim=1)
     var = torch.relu(h_mean_squares - h_mean * h_mean)
     return var
 
 
-def aggregate_moment(h, n=3):
+def aggregate_moment(h, n=3, **kwargs):
     # for each node (E[(X-E[X])^n])^{1/n}
     # EPS is added to the absolute value of expectation before taking the nth root for stability
     h_mean = torch.mean(h, dim=1, keepdim=True)
-    h_n = torch.mean(torch.pow(h - h_mean, n))
+    h_n = torch.mean(torch.pow(h - h_mean, n), dim=1)
     rooted_h_n = torch.sign(h_n) * torch.pow(torch.abs(h_n) + EPS, 1.0 / n)
     return rooted_h_n
 
 
-def aggregate_moment_3(h):
-    return aggregate_moment(h, n=3)
-
-
-def aggregate_moment_4(h):
-    return aggregate_moment(h, n=4)
-
-
-def aggregate_moment_5(h):
-    return aggregate_moment(h, n=5)
-
-
-def aggregate_sum(h):
+def aggregate_sum(h, **kwargs):
     return torch.sum(h, dim=1)
 
 
@@ -70,19 +59,20 @@ def scale_attenuation(h, D, avg_d):
     return h * (avg_d["log"] / np.log(D + 1))
 
 
-AGGREGATORS = {
+PNA_AGGREGATORS = {
     "mean": aggregate_mean,
     "sum": aggregate_sum,
     "max": aggregate_max,
     "min": aggregate_min,
     "std": aggregate_std,
     "var": aggregate_var,
-    "moment3": aggregate_moment_3,
-    "moment4": aggregate_moment_4,
-    "moment5": aggregate_moment_5,
+    "moment3": partial(aggregate_moment, n=3),
+    "moment4": partial(aggregate_moment, n=4),
+    "moment5": partial(aggregate_moment, n=5),
 }
 
-SCALERS = {
+
+PNA_SCALERS = {
     "identity": scale_identity,
     "amplification": scale_amplification,
     "attenuation": scale_attenuation,
