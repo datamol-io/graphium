@@ -22,29 +22,28 @@ class GINLayer(BaseDGLLayer):
 
     [!] code adapted from dgl implementation of GINConv
 
-    Parameters
-    ----------
+    Parameters:
 
-    in_dim: int
-        Input feature dimensions of the layer
+        in_dim: int
+            Input feature dimensions of the layer
 
-    out_dim: int
-        Output feature dimensions of the layer
+        out_dim: int
+            Output feature dimensions of the layer
 
-    activation: str, Callable, Default="relu"
-        activation function to use in the layer
+        activation: str, Callable, Default="relu"
+            activation function to use in the layer
 
-    dropout: float, Default=0.
-        The ratio of units to dropout. Must be between 0 and 1
+        dropout: float, Default=0.
+            The ratio of units to dropout. Must be between 0 and 1
 
-    batch_norm: bool, Default=False
-        Whether to use batch normalization
+        batch_norm: bool, Default=False
+            Whether to use batch normalization
 
-    init_eps : optional
-        Initial :math:`\epsilon` value, default: ``0``.
+        init_eps : optional
+            Initial :math:`\epsilon` value, default: ``0``.
 
-    learn_eps : bool, optional
-        If True, :math:`\epsilon` will be a learnable parameter.
+        learn_eps : bool, optional
+            If True, :math:`\epsilon` will be a learnable parameter.
 
     """
 
@@ -103,22 +102,20 @@ class GINLayer(BaseDGLLayer):
         Apply the GIN convolutional layer, with the specified activations,
         normalizations and dropout.
 
-        Parameters
-        ------------
+        Parameters:
 
-        g: dgl.DGLGraph
-            graph on which the convolution is done
+            g: dgl.DGLGraph
+                graph on which the convolution is done
 
-        h: torch.Tensor(..., N, Din)
-            Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension ``self.in_dim``
+            h: torch.Tensor(..., N, Din)
+                Node feature tensor, before convolution.
+                N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-        Returns
-        ---------
+        Returns:
 
-        h: torch.Tensor(..., N, Dout)
-            Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension ``self.out_dim``
+            h: torch.Tensor(..., N, Dout)
+                Node feature tensor, after convolution.
+                N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
         """
 
@@ -140,11 +137,10 @@ class GINLayer(BaseDGLLayer):
         r"""
         Return a boolean specifying if the layer type supports edges or not.
 
-        Returns
-        ---------
+        Returns:
 
-        supports_edges: bool
-            Always ``False`` for the current class
+            supports_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -156,11 +152,10 @@ class GINLayer(BaseDGLLayer):
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Always ``False`` for the current class
+            uses_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -172,11 +167,10 @@ class GINLayer(BaseDGLLayer):
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Always ``False`` for the current class
+            uses_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -193,10 +187,9 @@ class GINLayer(BaseDGLLayer):
         the number of heads, and this function should return the number
         of heads.
 
-        Returns
-        ---------
+        Returns:
 
-        dim_factor: int
-            Always ``1`` for the current class
+            dim_factor: int
+                Always ``1`` for the current class
         """
         return 1

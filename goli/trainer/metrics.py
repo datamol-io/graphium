@@ -93,8 +93,7 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
     """
     Computes the pearsonr correlation.
 
-    Arguments
-    ------------
+    Arguments:
         preds: estimated labels
         target: ground truth labels
         reduction: a method to reduce metric score over labels.
@@ -102,8 +101,7 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
             - ``'sum'``: takes the sum
             - ``'none'``: no reduction will be applied
 
-    Returns
-    -------------
+    Returns:
         Tensor with the pearsonr
 
     Example:
@@ -128,8 +126,7 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
     """
     Computes the spearmanr correlation.
 
-    Arguments
-    ------------
+    Arguments:
         preds: estimated labels
         target: ground truth labels
         reduction: a method to reduce metric score over labels.
@@ -137,8 +134,7 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
             - ``'sum'``: takes the sum
             - ``'none'``: no reduction will be applied
 
-    Returns
-    -------------
+    Returns:
         Tensor with the spearmanr
 
     Example:

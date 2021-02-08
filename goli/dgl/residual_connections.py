@@ -21,14 +21,12 @@ class ResidualConnectionBase(nn.Module):
     The following methods must be implemented in a children class
 
     - ``h_dim_increase_type()``
-
     - ``has_weights()``
 
-    Parameters
-    -------------
+    Parameters:
 
-    skip_steps: int, Default=1
-        The number of steps to skip between the residual connections.
+        skip_steps: int, Default=1
+            The number of steps to skip between the residual connections.
     """
 
     def __init__(self, skip_steps: int = 1):
@@ -40,11 +38,10 @@ class ResidualConnectionBase(nn.Module):
         Whether to apply the skip connection, depending on the
         ``step_idx`` and ``self.skip_steps``.
 
-        Parameters
-        -------------
+        Parameters:
 
-        step_idx: int
-            The current layer step index.
+            step_idx: int
+                The current layer step index.
 
         """
         return (self.skip_steps != 0) and ((step_idx % self.skip_steps) == 0)
@@ -61,18 +58,17 @@ class ResidualConnectionBase(nn.Module):
         r"""
         How does the dimension of the output features increases after each layer?
 
-        Returns
-        --------
+        Returns:
 
-        h_dim_increase_type: None or str
-            - ``None``: The dimension of the output features do not change at each layer.
-              E.g. ResNet.
+            h_dim_increase_type: None or str
+                - ``None``: The dimension of the output features do not change at each layer.
+                E.g. ResNet.
 
-            - "previous": The dimension of the output features is the concatenation of
-              the previous layer with the new layer.
+                - "previous": The dimension of the output features is the concatenation of
+                the previous layer with the new layer.
 
-            - "cumulative": The dimension of the output features is the concatenation
-              of all previous layers.
+                - "cumulative": The dimension of the output features is the concatenation
+                of all previous layers.
 
         """
         ...
@@ -111,11 +107,10 @@ class ResidualConnectionBase(nn.Module):
     @abc.abstractmethod
     def has_weights(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        has_weights: bool
-            Whether the residual connection uses weights
+            has_weights: bool
+                Whether the residual connection uses weights
 
         """
         ...
@@ -133,11 +128,10 @@ class ResidualConnectionNone(ResidualConnectionBase):
     @classproperty
     def h_dim_increase_type(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        None:
-            The dimension of the output features do not change at each layer.
+            None:
+                The dimension of the output features do not change at each layer.
         """
 
         return None
@@ -145,11 +139,10 @@ class ResidualConnectionNone(ResidualConnectionBase):
     @classproperty
     def has_weights(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        False
-            The current class does not use weights
+            False
+                The current class does not use weights
 
         """
         return False
@@ -158,14 +151,13 @@ class ResidualConnectionNone(ResidualConnectionBase):
         r"""
         Ignore the skip connection.
 
-        Returns
-        --------
+        Returns:
 
-        h: torch.Tensor(..., m)
-            Return same as input.
+            h: torch.Tensor(..., m)
+                Return same as input.
 
-        h_prev: torch.Tensor(..., m)
-            Return same as input.
+            h_prev: torch.Tensor(..., m)
+                Return same as input.
 
         """
         return h, h_prev
@@ -177,11 +169,10 @@ class ResidualConnectionSimple(ResidualConnectionBase):
     where the current layer output is summed to a
     previous layer output.
 
-    Parameters
-    -------------
+    Parameters:
 
-    skip_steps: int, Default=1
-        The number of steps to skip between the residual connections.
+        skip_steps: int, Default=1
+            The number of steps to skip between the residual connections.
     """
 
     def __init__(self, skip_steps: int = 1):
@@ -190,11 +181,10 @@ class ResidualConnectionSimple(ResidualConnectionBase):
     @classproperty
     def h_dim_increase_type(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        None:
-            The dimension of the output features do not change at each layer.
+            None:
+                The dimension of the output features do not change at each layer.
         """
 
         return None
@@ -202,11 +192,10 @@ class ResidualConnectionSimple(ResidualConnectionBase):
     @classproperty
     def has_weights(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        False
-            The current class does not use weights
+            False
+                The current class does not use weights
 
         """
         return False
@@ -216,29 +205,27 @@ class ResidualConnectionSimple(ResidualConnectionBase):
         Add ``h`` with the previous layers with skip connection ``h_prev``,
         similar to ResNet.
 
-        Parameters
-        -----------
+        Parameters:
 
-        h: torch.Tensor(..., m)
-            The current layer features
+            h: torch.Tensor(..., m)
+                The current layer features
 
-        h_prev: torch.Tensor(..., m), None
-            The features from the previous layer with a skip connection.
-            At ``step_idx==0``, ``h_prev`` can be set to ``None``.
+            h_prev: torch.Tensor(..., m), None
+                The features from the previous layer with a skip connection.
+                At ``step_idx==0``, ``h_prev`` can be set to ``None``.
 
-        step_idx: int
-            Current layer index or step index in the forward loop of the architecture.
+            step_idx: int
+                Current layer index or step index in the forward loop of the architecture.
 
-        Returns
-        --------
+        Returns:
 
-        h: torch.Tensor(..., m)
-            Either return ``h`` unchanged, or the sum with
-            on ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
+            h: torch.Tensor(..., m)
+                Either return ``h`` unchanged, or the sum with
+                on ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
 
-        h_prev: torch.Tensor(..., m)
-            Either return ``h_prev`` unchanged, or the same value as ``h``,
-            depending on the ``step_idx`` and ``self.skip_steps``.
+            h_prev: torch.Tensor(..., m)
+                Either return ``h_prev`` unchanged, or the same value as ``h``,
+                depending on the ``step_idx`` and ``self.skip_steps``.
 
         """
         if self._bool_apply_skip_step(step_idx):
@@ -256,29 +243,28 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
     The layer output is summed to a a non-linear transformation
     of a previous layer output.
 
-    Parameters
-    -------------
+    Parameters:
 
-    skip_steps: int, Default=1
-        The number of steps to skip between the residual connections.
+        skip_steps: int, Default=1
+            The number of steps to skip between the residual connections.
 
-    out_dims: list(int)
-        list of all output dimensions for the network
-        that will use this residual connection.
-        E.g. ``out_dims = [4, 8, 8, 8, 2]``.
+        out_dims: list(int)
+            list of all output dimensions for the network
+            that will use this residual connection.
+            E.g. ``out_dims = [4, 8, 8, 8, 2]``.
 
-    dropout: float, Default=0.
-        value between 0 and 1.0 representing the percentage of dropout
-        to use in the weights
+        dropout: float, Default=0.
+            value between 0 and 1.0 representing the percentage of dropout
+            to use in the weights
 
-    activation: str, Callable, Default='none'
-        The activation function to use after the skip weights
+        activation: str, Callable, Default='none'
+            The activation function to use after the skip weights
 
-    batch_norm: bool, Default=False
-        Whether to apply batch normalisation after the weights
+        batch_norm: bool, Default=False
+            Whether to apply batch normalisation after the weights
 
-    bias: bool, Default=False
-        Whether to apply add a bias after the weights
+        bias: bool, Default=False
+            Whether to apply add a bias after the weights
 
     """
 
@@ -307,22 +293,20 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
     @classproperty
     def h_dim_increase_type(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        None:
-            The dimension of the output features do not change at each layer.
+            None:
+                The dimension of the output features do not change at each layer.
         """
         return None
 
     @classproperty
     def has_weights(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        True
-            The current class uses weights
+            True
+                The current class uses weights
 
         """
         return True
@@ -332,29 +316,27 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         Add ``h`` with the previous layers with skip connection ``h_prev``, after
         a feed-forward layer.
 
-        Parameters
-        -----------
+        Parameters:
 
-        h: torch.Tensor(..., m)
-            The current layer features
+            h: torch.Tensor(..., m)
+                The current layer features
 
-        h_prev: torch.Tensor(..., m), None
-            The features from the previous layer with a skip connection.
-            At ``step_idx==0``, ``h_prev`` can be set to ``None``.
+            h_prev: torch.Tensor(..., m), None
+                The features from the previous layer with a skip connection.
+                At ``step_idx==0``, ``h_prev`` can be set to ``None``.
 
-        step_idx: int
-            Current layer index or step index in the forward loop of the architecture.
+            step_idx: int
+                Current layer index or step index in the forward loop of the architecture.
 
-        Returns
-        --------
+        Returns:
 
-        h: torch.Tensor(..., m)
-            Either return ``h`` unchanged, or the sum with the output of a NN layer
-            on ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
+            h: torch.Tensor(..., m)
+                Either return ``h`` unchanged, or the sum with the output of a NN layer
+                on ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
 
-        h_prev: torch.Tensor(..., m)
-            Either return ``h_prev`` unchanged, or the same value as ``h``,
-            depending on the ``step_idx`` and ``self.skip_steps``.
+            h_prev: torch.Tensor(..., m)
+                Either return ``h_prev`` unchanged, or the same value as ``h``,
+                depending on the ``step_idx`` and ``self.skip_steps``.
 
         """
 
@@ -373,11 +355,10 @@ class ResidualConnectionConcat(ResidualConnectionBase):
     the skip connection features are concatenated to the current
     layer features.
 
-    Parameters
-    -------------
+    Parameters:
 
-    skip_steps: int, Default=1
-        The number of steps to skip between the residual connections.
+        skip_steps: int, Default=1
+            The number of steps to skip between the residual connections.
     """
 
     def __init__(self, skip_steps: int = 1):
@@ -386,11 +367,10 @@ class ResidualConnectionConcat(ResidualConnectionBase):
     @classproperty
     def h_dim_increase_type(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        "previous":
-            The dimension of the output layer is the concatenation with the previous layer.
+            "previous":
+                The dimension of the output layer is the concatenation with the previous layer.
         """
 
         return "previous"
@@ -398,11 +378,10 @@ class ResidualConnectionConcat(ResidualConnectionBase):
     @classproperty
     def has_weights(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        False
-            The current class does not use weights
+            False
+                The current class does not use weights
 
         """
         return False
@@ -411,30 +390,28 @@ class ResidualConnectionConcat(ResidualConnectionBase):
         r"""
         Concatenate ``h`` with the previous layers with skip connection ``h_prev``.
 
-        Parameters
-        -----------
+        Parameters:
 
-        h: torch.Tensor(..., m)
-            The current layer features
+            h: torch.Tensor(..., m)
+                The current layer features
 
-        h_prev: torch.Tensor(..., n), None
-            The features from the previous layer with a skip connection.
-            Usually, we have ``n`` equal to ``m``.
-            At ``step_idx==0``, ``h_prev`` can be set to ``None``.
+            h_prev: torch.Tensor(..., n), None
+                The features from the previous layer with a skip connection.
+                Usually, we have ``n`` equal to ``m``.
+                At ``step_idx==0``, ``h_prev`` can be set to ``None``.
 
-        step_idx: int
-            Current layer index or step index in the forward loop of the architecture.
+            step_idx: int
+                Current layer index or step index in the forward loop of the architecture.
 
-        Returns
-        --------
+        Returns:
 
-        h: torch.Tensor(..., m) or torch.Tensor(..., m + n)
-            Either return ``h`` unchanged, or the concatenation
-            with ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
+            h: torch.Tensor(..., m) or torch.Tensor(..., m + n)
+                Either return ``h`` unchanged, or the concatenation
+                with ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
 
-        h_prev: torch.Tensor(..., m) or torch.Tensor(..., m + n)
-            Either return ``h_prev`` unchanged, or the same value as ``h``,
-            depending on the ``step_idx`` and ``self.skip_steps``.
+            h_prev: torch.Tensor(..., m) or torch.Tensor(..., m + n)
+                Either return ``h_prev`` unchanged, or the same value as ``h``,
+                depending on the ``step_idx`` and ``self.skip_steps``.
 
         """
 
@@ -453,11 +430,10 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
     all previous skip connection features are concatenated to the current
     layer features.
 
-    Parameters
-    -------------
+    Parameters:
 
-    skip_steps: int, Default=1
-        The number of steps to skip between the residual connections.
+        skip_steps: int, Default=1
+            The number of steps to skip between the residual connections.
     """
 
     def __init__(self, skip_steps: int = 1):
@@ -466,11 +442,10 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
     @classproperty
     def h_dim_increase_type(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        "cumulative":
-            The dimension of the output layer is the concatenation of all the previous layer.
+            "cumulative":
+                The dimension of the output layer is the concatenation of all the previous layer.
         """
 
         return "cumulative"
@@ -478,11 +453,10 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
     @classproperty
     def has_weights(cls):
         r"""
-        Returns
-        --------
+        Returns:
 
-        False
-            The current class does not use weights
+            False
+                The current class does not use weights
 
         """
         return False
@@ -491,31 +465,29 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
         r"""
         Concatenate ``h`` with all the previous layers with skip connection ``h_prev``.
 
-        Parameters
-        -----------
+        Parameters:
 
-        h: torch.Tensor(..., m)
-            The current layer features
+            h: torch.Tensor(..., m)
+                The current layer features
 
-        h_prev: torch.Tensor(..., n), None
-            The features from the previous layers.
-            n = ((step_idx // self.skip_steps) + 1) * m
+            h_prev: torch.Tensor(..., n), None
+                The features from the previous layers.
+                n = ((step_idx // self.skip_steps) + 1) * m
 
-            At ``step_idx==0``, ``h_prev`` can be set to ``None``.
+                At ``step_idx==0``, ``h_prev`` can be set to ``None``.
 
-        step_idx: int
-            Current layer index or step index in the forward loop of the architecture.
+            step_idx: int
+                Current layer index or step index in the forward loop of the architecture.
 
-        Returns
-        --------
+        Returns:
 
-        h: torch.Tensor(..., m) or torch.Tensor(..., m + n)
-            Either return ``h`` unchanged, or the concatenation
-            with ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
+            h: torch.Tensor(..., m) or torch.Tensor(..., m + n)
+                Either return ``h`` unchanged, or the concatenation
+                with ``h_prev``, depending on the ``step_idx`` and ``self.skip_steps``.
 
-        h_prev: torch.Tensor(..., m) or torch.Tensor(..., m + n)
-            Either return ``h_prev`` unchanged, or the same value as ``h``,
-            depending on the ``step_idx`` and ``self.skip_steps``.
+            h_prev: torch.Tensor(..., m) or torch.Tensor(..., m + n)
+                Either return ``h_prev`` unchanged, or the same value as ``h``,
+                depending on the ``step_idx`` and ``self.skip_steps``.
 
         """
 

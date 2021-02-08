@@ -33,13 +33,16 @@ class FCLayer(nn.Module):
     #. Activation
     #. Dropout (if applicable)
     #. Batch Normalization (if applicable)
-    Arguments
-    ----------
-        in_dim: int
+
+    Parameters:
+        in_dim: 
+            type: int
             Input dimension of the layer (the torch.nn.Linear)
         out_dim: int
             Output dimension of the layer.
-        dropout: float, optional
+        dropout: 
+            type: float
+            Default:0.
             The ratio of units to dropout. No dropout by default.
             (Default value = 0.)
         activation: str or callable, optional
@@ -55,8 +58,8 @@ class FCLayer(nn.Module):
             Initialization function to use for the weight of the layer. Default is
             :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` with :math:`k=\frac{1}{ \text{in_dim}}`
             (Default value = None)
-    Attributes
-    ----------
+
+    Attributes:
         dropout: int
             The ratio of units to dropout.
         batch_norm: int
@@ -75,8 +78,8 @@ class FCLayer(nn.Module):
 
     def __init__(
         self,
-        in_dim,
-        out_dim,
+        in_dim: int,
+        out_dim: int,
         activation="relu",
         dropout=0.0,
         batch_norm=False,

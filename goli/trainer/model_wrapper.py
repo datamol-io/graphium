@@ -62,8 +62,7 @@ class ModelWrapper(pl.LightningModule):
         A class that allows to use regression or classification models easily
         with Pytorch-Lightning.
 
-        Parameters
-        ---------------
+        Parameters:
             model: torch.nn.Module
                 Pytorch model trained on the classification/regression task
 

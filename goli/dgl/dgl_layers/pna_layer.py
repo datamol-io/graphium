@@ -42,39 +42,38 @@ class BasePNALayer(BaseDGLLayer):
 
         Method ``layer_inputs_edges()`` needs to be implemented in children classes
 
-        Parameters
-        ------------
+        Parameters:
 
-        in_dim: int
-            Input feature dimensions of the layer
+            in_dim: int
+                Input feature dimensions of the layer
 
-        out_dim: int
-            Output feature dimensions of the layer
+            out_dim: int
+                Output feature dimensions of the layer
 
-        aggregators: list(str)
-            Set of aggregation function identifiers,
-            e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
-            The results from all aggregators will be concatenated.
+            aggregators: list(str)
+                Set of aggregation function identifiers,
+                e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
+                The results from all aggregators will be concatenated.
 
-        scalers: list(str)
-            Set of scaling functions identifiers
-            e.g. "identidy", "amplification", "attenuation"
-            The results from all scalers will be concatenated
+            scalers: list(str)
+                Set of scaling functions identifiers
+                e.g. "identidy", "amplification", "attenuation"
+                The results from all scalers will be concatenated
 
-        activation: str, Callable, Default="relu"
-            activation function to use in the layer
+            activation: str, Callable, Default="relu"
+                activation function to use in the layer
 
-        dropout: float, Default=0.
-            The ratio of units to dropout. Must be between 0 and 1
+            dropout: float, Default=0.
+                The ratio of units to dropout. Must be between 0 and 1
 
-        batch_norm: bool, Default=False
-            Whether to use batch normalization
+            batch_norm: bool, Default=False
+                Whether to use batch normalization
 
-        avg_d: float, Default=1.
-            Average degree of nodes in the training set, used by scalers to normalize
+            avg_d: float, Default=1.
+                Average degree of nodes in the training set, used by scalers to normalize
 
-        last_activation: str, Callable, Default="none"
-            activation function to use in the last layer of the internal MLP
+            last_activation: str, Callable, Default="none"
+                activation function to use in the last layer of the internal MLP
 
         """
 
@@ -124,11 +123,10 @@ class BasePNALayer(BaseDGLLayer):
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Always ``False`` for the current class
+            uses_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -145,11 +143,10 @@ class BasePNALayer(BaseDGLLayer):
         the number of heads, and this function should return the number
         of heads.
 
-        Returns
-        ---------
+        Returns:
 
-        dim_factor: int
-            Always ``1`` for the current class
+            dim_factor: int
+                Always ``1`` for the current class
         """
         return 1
 
@@ -179,42 +176,41 @@ class PNAConvolutionalLayer(BasePNALayer):
         Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
         https://arxiv.org/abs/2004.05718
 
-        Parameters
-        ------------
+        Parameters:
 
-        in_dim: int
-            Input feature dimensions of the layer
+            in_dim: int
+                Input feature dimensions of the layer
 
-        out_dim: int
-            Output feature dimensions of the layer
+            out_dim: int
+                Output feature dimensions of the layer
 
-        aggregators: list(str)
-            Set of aggregation function identifiers,
-            e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
-            The results from all aggregators will be concatenated.
+            aggregators: list(str)
+                Set of aggregation function identifiers,
+                e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
+                The results from all aggregators will be concatenated.
 
-        scalers: list(str)
-            Set of scaling functions identifiers
-            e.g. "identidy", "amplification", "attenuation"
-            The results from all scalers will be concatenated
+            scalers: list(str)
+                Set of scaling functions identifiers
+                e.g. "identidy", "amplification", "attenuation"
+                The results from all scalers will be concatenated
 
-        activation: str, Callable, Default="relu"
-            activation function to use in the layer
+            activation: str, Callable, Default="relu"
+                activation function to use in the layer
 
-        dropout: float, Default=0.
-            The ratio of units to dropout. Must be between 0 and 1
+            dropout: float, Default=0.
+                The ratio of units to dropout. Must be between 0 and 1
 
-        batch_norm: bool, Default=False
-            Whether to use batch normalization
+            batch_norm: bool, Default=False
+                Whether to use batch normalization
 
-        avg_d: Dict(str, float), Default={"log": 1.}
-            Average degree of nodes in the training set, used by scalers to normalize
+            avg_d: Dict(str, float), Default={"log": 1.}
+                Average degree of nodes in the training set, used by scalers to normalize
 
-        last_activation: str, Callable, Default="none"
-            activation function to use in the last layer of the internal MLP
+            last_activation: str, Callable, Default="none"
+                activation function to use in the last layer of the internal MLP
 
-        posttrans_layers: int, Default=1
-            number of layers in the MLP transformation after the aggregation
+            posttrans_layers: int, Default=1
+                number of layers in the MLP transformation after the aggregation
 
         """
 
@@ -253,22 +249,20 @@ class PNAConvolutionalLayer(BasePNALayer):
         r"""
         Apply the PNA convolutional layer, with the specified post transformation
 
-        Parameters
-        ------------
+        Parameters:
 
-        g: dgl.DGLGraph
-            graph on which the convolution is done
+            g: dgl.DGLGraph
+                graph on which the convolution is done
 
-        h: torch.Tensor(..., N, Din)
-            Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension ``self.in_dim``
+            h: torch.Tensor(..., N, Din)
+                Node feature tensor, before convolution.
+                N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-        Returns
-        ---------
+        Returns:
 
-        h: torch.Tensor(..., N, Dout)
-            Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension ``self.out_dim``
+            h: torch.Tensor(..., N, Dout)
+                Node feature tensor, after convolution.
+                N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
         """
 
@@ -292,11 +286,10 @@ class PNAConvolutionalLayer(BasePNALayer):
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Always ``False`` for the current class
+            uses_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -305,11 +298,10 @@ class PNAConvolutionalLayer(BasePNALayer):
         r"""
         Return a boolean specifying if the layer type supports edges or not.
 
-        Returns
-        ---------
+        Returns:
 
-        supports_edges: bool
-            Always ``False`` for the current class
+            supports_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -341,48 +333,47 @@ class PNAMessagePassingLayer(BasePNALayer):
         Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
         https://arxiv.org/abs/2004.05718
 
-        Parameters
-        ------------
+        Parameters:
 
-        in_dim: int
-            Input feature dimensions of the layer
+            in_dim: int
+                Input feature dimensions of the layer
 
-        out_dim: int
-            Output feature dimensions of the layer
+            out_dim: int
+                Output feature dimensions of the layer
 
-        aggregators: list(str)
-            Set of aggregation function identifiers,
-            e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
-            The results from all aggregators will be concatenated.
+            aggregators: list(str)
+                Set of aggregation function identifiers,
+                e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
+                The results from all aggregators will be concatenated.
 
-        scalers: list(str)
-            Set of scaling functions identifiers
-            e.g. "identidy", "amplification", "attenuation"
-            The results from all scalers will be concatenated
+            scalers: list(str)
+                Set of scaling functions identifiers
+                e.g. "identidy", "amplification", "attenuation"
+                The results from all scalers will be concatenated
 
-        activation: str, Callable, Default="relu"
-            activation function to use in the layer
+            activation: str, Callable, Default="relu"
+                activation function to use in the layer
 
-        dropout: float, Default=0.
-            The ratio of units to dropout. Must be between 0 and 1
+            dropout: float, Default=0.
+                The ratio of units to dropout. Must be between 0 and 1
 
-        batch_norm: bool, Default=False
-            Whether to use batch normalization
+            batch_norm: bool, Default=False
+                Whether to use batch normalization
 
-        avg_d: Dict(str, float), Default={"log": 1.}
-            Average degree of nodes in the training set, used by scalers to normalize
+            avg_d: Dict(str, float), Default={"log": 1.}
+                Average degree of nodes in the training set, used by scalers to normalize
 
-        last_activation: str, Callable, Default="none"
-            activation function to use in the last layer of the internal MLP
+            last_activation: str, Callable, Default="none"
+                activation function to use in the last layer of the internal MLP
 
-        posttrans_layers: int, Default=1
-            number of layers in the MLP transformation after the aggregation
+            posttrans_layers: int, Default=1
+                number of layers in the MLP transformation after the aggregation
 
-        pretrans_layers: int, Default=1
-            number of layers in the transformation before the aggregation
+            pretrans_layers: int, Default=1
+                number of layers in the transformation before the aggregation
 
-        in_dim_edges: int, Default=0
-            size of the edge features. If 0, edges are ignored
+            in_dim_edges: int, Default=0
+                size of the edge features. If 0, edges are ignored
 
         """
 
@@ -444,29 +435,27 @@ class PNAMessagePassingLayer(BasePNALayer):
         r"""
         Apply the PNA Message passing layer, with the specified pre/post transformations
 
-        Parameters
-        ------------
+        Parameters:
 
-        g: dgl.DGLGraph
-            graph on which the convolution is done
+            g: dgl.DGLGraph
+                graph on which the convolution is done
 
-        h: torch.Tensor(..., N, Din)
-            Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension ``self.in_dim``
+            h: torch.Tensor(..., N, Din)
+                Node feature tensor, before convolution.
+                N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-        e: torch.Tensor(..., N, Din_edges) or None, Default=None
-            Edge feature tensor, before convolution.
-            N is the number of nodes, Din is the input edge dimension
+            e: torch.Tensor(..., N, Din_edges) or None, Default=None
+                Edge feature tensor, before convolution.
+                N is the number of nodes, Din is the input edge dimension
 
-            Can be set to None if the layer does not use edge features
-            i.e. ``self.layer_inputs_edges -> False``
+                Can be set to None if the layer does not use edge features
+                i.e. ``self.layer_inputs_edges -> False``
 
-        Returns
-        ---------
+        Returns:
 
-        h: torch.Tensor(..., N, Dout)
-            Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension ``self.out_dim``
+            h: torch.Tensor(..., N, Dout)
+                Node feature tensor, after convolution.
+                N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
         """
 
@@ -494,11 +483,10 @@ class PNAMessagePassingLayer(BasePNALayer):
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Returns ``self.edge_features``
+            uses_edges: bool
+                Returns ``self.edge_features``
         """
         return self.edge_features
 
@@ -507,10 +495,9 @@ class PNAMessagePassingLayer(BasePNALayer):
         r"""
         Return a boolean specifying if the layer type supports edges or not.
 
-        Returns
-        ---------
+        Returns:
 
-        supports_edges: bool
-            Always ``True`` for the current class
+            supports_edges: bool
+                Always ``True`` for the current class
         """
         return True

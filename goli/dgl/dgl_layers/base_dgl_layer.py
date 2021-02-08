@@ -16,23 +16,22 @@ class BaseDGLLayer(nn.Module):
         different GNN layers by better understanding the expected inputs
         and outputs.
 
-        Parameters
-        ------------
+        Parameters:
 
-        in_dim: int
-            Input feature dimensions of the layer
+            in_dim: int
+                Input feature dimensions of the layer
 
-        out_dim: int
-            Output feature dimensions of the layer
+            out_dim: int
+                Output feature dimensions of the layer
 
-        activation: str, Callable, Default="relu"
-            activation function to use in the layer
+            activation: str, Callable, Default="relu"
+                activation function to use in the layer
 
-        dropout: float, Default=0.
-            The ratio of units to dropout. Must be between 0 and 1
+            dropout: float, Default=0.
+                The ratio of units to dropout. Must be between 0 and 1
 
-        batch_norm: bool, Default=False
-            Whether to use batch normalization
+            batch_norm: bool, Default=False
+                Whether to use batch normalization
         """
 
         super().__init__()
@@ -62,26 +61,24 @@ class BaseDGLLayer(nn.Module):
         Apply the different normalization and the dropout to the
         output layer.
 
-        Parameters
-        ------------
+        Parameters:
 
-        h: torch.Tensor()
-            Feature tensor, to be normalized
+            h: torch.Tensor()
+                Feature tensor, to be normalized
 
-        batch_norm: bool, Default=True
-            Whether to apply the batch_norm layer
+            batch_norm: bool, Default=True
+                Whether to apply the batch_norm layer
 
-        activation: bool, Default=True
-            Whether to apply the activation layer
+            activation: bool, Default=True
+                Whether to apply the activation layer
 
-        dropout: bool, Default=True
-            Whether to apply the dropout layer
+            dropout: bool, Default=True
+                Whether to apply the dropout layer
 
-        Returns
-        ---------
+        Returns:
 
-        h: torch.Tensor()
-            Normalized and dropped-out features
+            h: torch.Tensor()
+                Normalized and dropped-out features
 
         """
 
@@ -102,11 +99,10 @@ class BaseDGLLayer(nn.Module):
         Abstract method. Return a boolean specifying if the layer type
         supports output edges edges or not.
 
-        Returns
-        ---------
+        Returns:
 
-        supports_edges: bool
-            Whether the layer supports the use of edges
+            supports_edges: bool
+                Whether the layer supports the use of edges
         """
         ...
 
@@ -119,11 +115,10 @@ class BaseDGLLayer(nn.Module):
         It is different from ``layer_supports_input_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Whether the layer uses input edges in the forward pass
+            uses_edges: bool
+                Whether the layer uses input edges in the forward pass
         """
         ...
 
@@ -136,11 +131,10 @@ class BaseDGLLayer(nn.Module):
         It is different from ``layer_supports_output_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Whether the layer outputs edges in the forward pass
+            uses_edges: bool
+                Whether the layer outputs edges in the forward pass
         """
         ...
 
@@ -159,11 +153,10 @@ class BaseDGLLayer(nn.Module):
         the number of heads, and this function should return the number
         of heads.
 
-        Returns
-        ---------
+        Returns:
 
-        dim_factor: int
-            The factor that multiplies the dimensions
+            dim_factor: int
+                The factor that multiplies the dimensions
         """
         ...
 

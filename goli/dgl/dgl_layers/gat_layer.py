@@ -23,8 +23,7 @@ class GATLayer(BaseDGLLayer):
 
     The implementation is built on top of the DGL ``GATCONV`` layer
 
-        Parameters
-        ------------
+    Parameters:
 
         in_dim: int
             Input feature dimensions of the layer
@@ -35,7 +34,7 @@ class GATLayer(BaseDGLLayer):
         num_heads: int
             Number of heads in Multi-Head Attention
 
-        activation: str, Callable, Default="relu"
+        activation: str, Callable, Default="elu"
             activation function to use in the layer
 
         dropout: float, Default=0.
@@ -79,22 +78,20 @@ class GATLayer(BaseDGLLayer):
         Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
 
-        Parameters
-        ------------
+        Parameters:
 
-        g: dgl.DGLGraph
-            graph on which the convolution is done
+            g: dgl.DGLGraph
+                graph on which the convolution is done
 
-        h: torch.Tensor(..., N, Din)
-            Node feature tensor, before convolution.
-            N is the number of nodes, Din is the input dimension ``self.in_dim``
+            h: torch.Tensor(..., N, Din)
+                Node feature tensor, before convolution.
+                N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-        Returns
-        ---------
+            Returns:
 
-        h: torch.Tensor(..., N, Dout)
-            Node feature tensor, after convolution.
-            N is the number of nodes, Dout is the output dimension ``self.out_dim``
+            h: torch.Tensor(..., N, Dout)
+                Node feature tensor, after convolution.
+                N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
         """
 
@@ -108,11 +105,10 @@ class GATLayer(BaseDGLLayer):
         r"""
         Return a boolean specifying if the layer type supports edges or not.
 
-        Returns
-        ---------
+        Returns:
 
-        supports_edges: bool
-            Always ``False`` for the current class
+            supports_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -124,11 +120,10 @@ class GATLayer(BaseDGLLayer):
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Always ``False`` for the current class
+            uses_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -140,11 +135,10 @@ class GATLayer(BaseDGLLayer):
         It is different from ``layer_supports_edges`` since a layer that
         supports edges can decide to not use them.
 
-        Returns
-        ---------
+        Returns:
 
-        uses_edges: bool
-            Always ``False`` for the current class
+            uses_edges: bool
+                Always ``False`` for the current class
         """
         return False
 
@@ -161,10 +155,9 @@ class GATLayer(BaseDGLLayer):
         the number of heads, and this function should return the number
         of heads.
 
-        Returns
-        ---------
+        Returns:
 
-        dim_factor: int
-            Always ``self.num_heads`` for the current class
+            dim_factor: int
+                Always ``self.num_heads`` for the current class
         """
         return self.num_heads

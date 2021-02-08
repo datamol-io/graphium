@@ -16,6 +16,8 @@ nav:
     - goli.commons: api/goli.commons.md
     # - goli.data_parser: api/goli.data_parser.md
     - goli.dgl: api/goli.dgl.md
+    - goli.mol_utils: api/goli.mol_utils.md
+    - goli.trainer: api/goli.trainer.md
 
 theme:
   name: material
