@@ -90,9 +90,9 @@ class FeedForwardNN(nn.Module):
 
         self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
         self._create_layers()
-        self._check_bad_Parameters()
+        self._check_bad_arguments()
 
-    def _check_bad_Parameters(self):
+    def _check_bad_arguments(self):
         if (self.residual_type == "simple") and (self.hidden_dims[:-1] == self.hidden_dims[1:]):
             raise ValueError(
                 f"When using the residual_type={self.residual_type}"
@@ -245,8 +245,8 @@ class FeedForwardDGL(FeedForwardNN):
         # Initialize input and output linear layers
         self.in_linear = nn.Linear(in_features=self.in_dim, out_features=self.hidden_dims[0])
 
-    def _check_bad_Parameters(self):
-        super()._check_bad_Parameters()
+    def _check_bad_arguments(self):
+        super()._check_bad_arguments()
         if self.edge_features and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
 

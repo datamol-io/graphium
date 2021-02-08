@@ -346,8 +346,8 @@ class ModelWrapper(pl.LightningModule):
         return prog_dict
 
     def summarize(
-        self, mode: Optional[str] = ModelSummaryExtended.MODE_DEFAULT
-    ) -> Optional[ModelSummaryExtended]:
+        self, mode: str = ModelSummaryExtended.MODE_DEFAULT
+    ) -> ModelSummaryExtended:
         model_summary = None
 
         if mode in ModelSummaryExtended.MODES:

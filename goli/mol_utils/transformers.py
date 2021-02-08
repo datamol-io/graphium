@@ -164,7 +164,6 @@ class MoleculeTransformer(TransformerMixin):
                 SMILES of the molecules to be transformed
             ignore_errors: bool
                 Whether to ignore errors and silently fallback
-                (Default value = True)
             kwargs: Named parameters for the transform method
 
         Returns:
@@ -213,26 +212,25 @@ class AdjGraphTransformer(MoleculeTransformer):
         max_n_atoms: int
             Maximum number of atom, to set the size of the graph.
             Use default value None, to allow graph with different size that will be packed together later
-            (Default value = None)
+            
         with_bond: bool
             Whether to enable the feature of the bond formed by each atom in the atom feature
-            (Default value = False)
+            
         explicit_H: bool
             Whether to consider hydrogen atoms explicitely. If this option
             is set to False, the number of hydrogen bond formed by the atom will be considered as a feature.
-            (Default value = False)
+            
         chirality: bool
             Use chirality as a feature.
-            (Default value = True)
+            
         max_valence: int
             Maximum number of neighbor for each atom.
             This option is required if you want to return use bond features
-            (Default value = 4)
+            
         padding_val: int
             Padding value to fill missing edges features
             when the atom valence is lower than the maximum allowed valence
-            (Default value = 0)
-
+            
     Attributes:
         n_atom_feat: Number of features per atom. This is computed dynamically according to the
             input parameters
@@ -329,11 +327,10 @@ class AdjGraphTransformer(MoleculeTransformer):
                 Molecules to transform into graphs
             ignore_errors: bool
                 Whether to silently ignore errors
-                (Default value = True)
+                
             max_atom_update: bool
                 Whether the maximum number of atoms in the graph be dynamically updated for eacher longuer molecule seen ?
                 If you are using this, all molecules should be transformed before batching
-                (Default value = False)
 
         Returns:
             features: A list of tuple (A, x), where A is an adjacency matrix
@@ -452,7 +449,6 @@ class AdjGraphTransformer(MoleculeTransformer):
                 Expect a tensor if you provide a torch dtype, a numpy array if you provide a
                 numpy dtype (supports valid strings) or a vanilla int/float. Any other option will
                 return the output of the transform function.
-                (Default value = torch.float)
             device: torch.device
                 The device on which to run the computation
             kwargs: named parameters for transform
