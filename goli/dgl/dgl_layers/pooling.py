@@ -53,19 +53,17 @@ class StdPooling(nn.Module):
     def forward(self, graph, feat):
         r"""Compute standard deviation pooling.
 
-        Parameters
-        ----------
-        graph : DGLGraph
-            The graph.
-        feat : torch.Tensor
-            The input feature with shape :math:`(N, *)` where
-            :math:`N` is the number of nodes in the graph.
+        Parameters:
+            graph : DGLGraph
+                The graph.
+            feat : torch.Tensor
+                The input feature with shape :math:`(N, *)` where
+                :math:`N` is the number of nodes in the graph.
 
-        Returns
-        -------
-        torch.Tensor
-            The output feature with shape :math:`(B, *)`, where
-            :math:`B` refers to the batch size.
+        Returns:
+            torch.Tensor
+                The output feature with shape :math:`(B, *)`, where
+                :math:`B` refers to the batch size.
         """
 
         readout = torch.sqrt(
@@ -84,19 +82,17 @@ class MinPooling(MaxPooling):
     def forward(self, graph, feat):
         r"""Compute max pooling.
 
-        Parameters
-        ----------
-        graph : DGLGraph
-            The graph.
-        feat : torch.Tensor
-            The input feature with shape :math:`(N, *)` where
-            :math:`N` is the number of nodes in the graph.
+        Parameters:
+            graph : DGLGraph
+                The graph.
+            feat : torch.Tensor
+                The input feature with shape :math:`(N, *)` where
+                :math:`N` is the number of nodes in the graph.
 
-        Returns
-        -------
-        torch.Tensor
-            The output feature with shape :math:`(B, *)`, where
-            :math:`B` refers to the batch size.
+        Returns:
+            torch.Tensor
+                The output feature with shape :math:`(B, *)`, where
+                :math:`B` refers to the batch size.
         """
 
         readout = -super().forward(graph, -feat)
@@ -108,34 +104,33 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
 
-    Parameters
-    ------------
+    Parameters:
 
-    in_dim: int
-        The dimension at the input layer of the pooling
+        in_dim: int
+            The dimension at the input layer of the pooling
 
-    pooling: list(str)
-        The list of pooling layers to use. The accepted strings are:
+        pooling: list(str)
+            The list of pooling layers to use. The accepted strings are:
 
-        - "sum": SumPooling
+            - "sum": SumPooling
 
-        - "mean": MeanPooling
+            - "mean": MeanPooling
 
-        - "max": MaxPooling
+            - "max": MaxPooling
 
-        - "min": MinPooling
+            - "min": MinPooling
 
-        - "std": StdPooling
+            - "std": StdPooling
 
-        - "s2s": Set2Set
+            - "s2s": Set2Set
 
-    n_iters: int, Default=2
-        IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
-        The number of iterations.
+        n_iters: int, Default=2
+            IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
+            The number of iterations.
 
-    n_layers : int, Default=2
-        IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
-        The number of recurrent layers.
+        n_layers : int, Default=2
+            IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
+            The number of recurrent layers.
     """
 
     # TODO: Add configuration for the pooling layer kwargs

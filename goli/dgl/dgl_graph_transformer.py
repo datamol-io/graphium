@@ -56,13 +56,11 @@ class DGLGraphTransformer(AdjGraphTransformer):
         Transforms a molecule into a DGL graph and a set of atom and bond features
         :raises ValueError: when input molecule is None
 
-        Arguments
-        ----------
+        Arguments:
             mol: rdkit.Chem.Mol
                 The molecule to be converted
 
-        Returns
-        -------
+        Returns:
             features: A tuple (G, V, E), where G is the DGL graph, V is the node features
                 and E is the edge features
         """
@@ -140,8 +138,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
             and not a list of tuples. It's important to understand the difference,
             as the `__call__` method is seen as a shortcut to speed up data processing in most experiments.
 
-        Arguments
-        ----------
+        Arguments:
             mols: (str or rdkit.Chem.Mol) iterable
                 The list of input smiles or molecules
             dtype: torch.dtype or None
@@ -153,8 +150,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
                 The device on which to run the computation
             kwargs: named parameters for transform (see below)
 
-        Returns
-        -------
+        Returns:
             features: list of DGL object
                 By convention, the atom features are saved in `g.ndata['hv']`
                 and the bond features are saved in `g.edata['he']`, where `g` corresponds to a DGL graph.

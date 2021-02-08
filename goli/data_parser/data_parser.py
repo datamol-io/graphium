@@ -18,8 +18,7 @@ def read_file(filepath, as_ext=None, **kwargs):
     * sdf (.sdf)
     * pkl (.pkl)
 
-    Arguments
-    -----------
+    Arguments:
 
         filepath: str
             The full path and name of the file to read.
@@ -33,8 +32,7 @@ def read_file(filepath, as_ext=None, **kwargs):
 
     TODO: unit test to make sure it works well with all extensions
 
-    Returns
-    ---------
+    Returns:
         df: pandas.DataFrame
             The ``pandas.DataFrame`` containing the parsed data
 
@@ -71,8 +69,7 @@ def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
     it to a pandas DataFrame and convert the molecules to SMILES. It also
     lists a warning of all the molecules that couldn't be read.
 
-    Arguments
-    -----------
+    Arguments:
 
         sdf_path: str
             The full path and name of the sdf file to read
