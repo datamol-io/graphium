@@ -20,8 +20,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
     r"""
     Transforms a molecule into a DGL graph for neural message passing algorithms
 
-    Arguments
-    ----------
+    Arguments:
         explicit_H: bool, optional
             Whether to consider hydrogen atoms explicitely. If this option
             is set to False, the number of hydrogen bond formed by the atom will be considered as a feature.
@@ -33,8 +32,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
             Do not compute bond features, and only use edge type as features
             (Default value = False)
 
-    Attributes
-    ----------
+    Attributes:
         n_atom_feat: Number of features per atom. This is computed dynamically according to the
             input parameters
         n_bond_feat: Number of bond features. This attribute is also computed dynamically
