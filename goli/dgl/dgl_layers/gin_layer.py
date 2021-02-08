@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
+from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.dgl.base_layers import MLP
@@ -86,7 +87,7 @@ class GINLayer(BaseDGLLayer):
             last_batch_norm=False,
         )
 
-    def message_func(self, g) -> Dict:
+    def message_func(self, g):
         r"""
         If edge weights are provided, use them to weight the messages
         """
