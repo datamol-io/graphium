@@ -86,7 +86,7 @@ class GINLayer(BaseDGLLayer):
             last_batch_norm=False,
         )
 
-    def _copier(self, g):
+    def message_func(self, g) -> Dict:
         r"""
         If edge weights are provided, use them to weight the messages
         """
@@ -97,7 +97,7 @@ class GINLayer(BaseDGLLayer):
             func = fn.copy_u("h", "m")
         return func
 
-    def forward(self, g, h):
+    def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
         r"""
         Apply the GIN convolutional layer, with the specified activations,
         normalizations and dropout.
@@ -123,7 +123,7 @@ class GINLayer(BaseDGLLayer):
         g = g.local_var()
         g.ndata["h"] = h
         func = fn.copy_u("h", "m")
-        g.update_all(self._copier(g), fn.sum("m", "neigh"))
+        g.update_all(self.message_func(g), fn.sum("m", "neigh"))
         h = (1 + self.eps) * h + g.ndata["neigh"]
 
         # Apply the MLP

@@ -93,13 +93,13 @@ class BasePNALayer(BaseDGLLayer):
         self.aggregators = [PNA_AGGREGATORS[aggr] for aggr in aggregators]
         self.scalers = [PNA_SCALERS[scale] for scale in scalers]
 
-    def message_func(self, edges) -> Dict:
+    def message_func(self, edges) -> Dict[str, torch.Tensor]:
         r"""
         The message function to generate messages along the edges.
         """
         return {"e": edges.data["e"]}
 
-    def reduce_func(self, nodes) -> Dict:
+    def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
         r"""
         The reduce function to aggregate the messages.
         Apply the aggregators and scalers, and concatenate the results.
@@ -239,7 +239,7 @@ class PNAConvolutionalLayer(BasePNALayer):
             last_batch_norm=batch_norm,
         )
 
-    def pretrans_edges(self, edges) -> Dict:
+    def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:
         r"""
         Return a mapping to the features of the source nodes.
         """
@@ -418,7 +418,7 @@ class PNAMessagePassingLayer(BasePNALayer):
             last_batch_norm=batch_norm,
         )
 
-    def pretrans_edges(self, edges) -> Dict:
+    def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:
         r"""
         Return a mapping to the concatenation of the features from
         the source node, the destination node, and the edge between them (if applicable).
