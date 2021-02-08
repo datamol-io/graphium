@@ -11,6 +11,11 @@ docs_dir: "docs"
 
 nav:
   - Overview: index.md
+  - API:
+    # - goli.cli: api/goli.cli.md
+    - goli.commons: api/goli.commons.md
+    # - goli.data_parser: api/goli.data_parser.md
+    - goli.dgl: api/goli.dgl.md
 
 theme:
   name: material
