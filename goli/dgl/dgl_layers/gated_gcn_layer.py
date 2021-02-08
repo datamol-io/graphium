@@ -2,8 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from copy import deepcopy
+from typing import Tuple
+from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.commons.decorators import classproperty
 
 """
     ResGatedGCN: Residual Gated Graph ConvNets
@@ -14,30 +17,56 @@ from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
 class GatedGCNLayer(BaseDGLLayer):
     """
-    Param: []
+    ResGatedGCN: Residual Gated Graph ConvNets
+    An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and Thomas Laurent, ICLR 2018)
+    https://arxiv.org/pdf/1711.07553v2.pdf
+
+    Parameters:
+
+        in_dim: int
+            Input feature dimensions of the layer
+
+        out_dim: int
+            Output feature dimensions of the layer, and for the edges
+
+        in_dim_edges: int
+            Input edge-feature dimensions of the layer
+
+        activation: str, Callable, Default="relu"
+            activation function to use in the layer
+
+        dropout: float, Default=0.
+            The ratio of units to dropout. Must be between 0 and 1
+
+        batch_norm: bool, Default=False
+            Whether to use batch normalization
+
     """
 
-    def __init__(self, in_dim, out_dim, in_dim_e, out_dim_e, dropout, batch_norm, activation, residual=False):
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        in_dim_edges: int,
+        out_dim_edges: int,
+        activation="relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
+    ):
 
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
-            residual=residual,
             activation=activation,
             dropout=dropout,
             batch_norm=batch_norm,
         )
 
-        self.in_channels = in_dim
-        self.out_channels = out_dim
-
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)
-        self.C = nn.Linear(in_dim_e, out_dim_e, bias=True)
+        self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
-        self.bn_node_h = nn.BatchNorm1d(out_dim)
-        self.bn_node_e = nn.BatchNorm1d(out_dim)
 
     def message_func(self, edges):
         Bh_j = edges.src["Bh"]
@@ -56,10 +85,35 @@ class GatedGCNLayer(BaseDGLLayer):
         )  # hi = Ahi + sum_j eta_ij/sum_j' eta_ij' * Bhj <= dense attention
         return {"h": h}
 
-    def forward(self, g, h, e):
+    def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        r"""
+        Apply the graph convolutional layer, with the specified activations,
+        normalizations and dropout.
 
-        h_in = h  # for residual connection
-        e_in = e  # for residual connection
+        Parameters:
+
+            g: dgl.DGLGraph
+                graph on which the convolution is done
+
+            h: torch.Tensor(..., N, Din)
+                Node feature tensor, before convolution.
+                N is the number of nodes, Din is the input dimension ``self.in_dim``
+
+            e: torch.Tensor(..., N, Din_edges)
+                Edge feature tensor, before convolution.
+                N is the number of nodes, Din is the input edge dimension  ``self.in_dim_edges``
+
+        Returns:
+
+            h: torch.Tensor(..., N, Dout)
+                Node feature tensor, after convolution.
+                N is the number of nodes, Dout is the output dimension ``self.out_dim``
+
+            e: torch.Tensor(..., N, Dout)
+                Edge feature tensor, after convolution.
+                N is the number of nodes, Dout_edges is the output edge dimension ``self.out_dim``
+
+        """
 
         g.ndata["h"] = h
         g.ndata["Ah"] = self.A(h)
@@ -72,37 +126,69 @@ class GatedGCNLayer(BaseDGLLayer):
         h = g.ndata["h"]  # result of graph convolution
         e = g.edata["e"]  # result of graph convolution
 
-        if self.batch_norm:
-            h = self.bn_node_h(h)  # batch normalization
-            e = self.bn_node_e(e)  # batch normalization
-
-        h = self.activation(h)  # non-linear activation
-        e = self.activation(e)  # non-linear activation
-
-        if self.residual:
-            h = h_in + h  # residual connection
-            e = e_in + e  # residual connection
-
-        h = F.dropout(h, self.dropout, training=self.training)
-        e = F.dropout(e, self.dropout, training=self.training)
+        h = self.apply_norm_activation_dropout(h)
+        e = self.apply_norm_activation_dropout(e)
 
         return h, e
 
-    def __repr__(self):
-        return "{}(in_channels={}, out_channels={})".format(
-            self.__class__.__name__, self.in_channels, self.out_channels
-        )
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
 
-    @staticmethod
-    def _parse_layer_args(in_dims, out_dims, **kwargs):
+        Returns:
 
-        kwargs_of_lists = {}
-        kwargs_keys_to_remove = ["in_dim_edges"]
-        in_dim_e = deepcopy(in_dims)
-        in_dim_e[0] = kwargs["in_dim_edges"]
+            supports_edges: bool
+                Always ``True`` for the current class
+        """
+        return True
 
-        kwargs_of_lists["in_dim_e"] = in_dim_e
-        kwargs_of_lists["out_dim_e"] = out_dims
-        true_out_dims = in_dims[1:] + out_dims[-1:]
+    @property
+    def layer_inputs_edges(self) -> bool:
+        r"""
+        Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
 
-        return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
+        Returns:
+
+            uses_edges: bool
+                Always ``True`` for the current class
+        """
+        return True
+
+    @property
+    def layer_outputs_edges(self) -> bool:
+        r"""
+        Abstract method. Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns:
+
+            uses_edges: bool
+                Always ``True`` for the current class
+        """
+        return True
+
+    @property
+    def out_dim_factor(self) -> int:
+        r"""
+        Get the factor by which the output dimension is multiplied for
+        the next layer.
+
+        For standard layers, this will return ``1``.
+
+        But for others, such as ``GatLayer``, the output is the concatenation
+        of the outputs from each head, so the out_dim gets multiplied by
+        the number of heads, and this function should return the number
+        of heads.
+
+        Returns:
+
+            dim_factor: int
+                Always ``1`` for the current class
+        """
+        return 1

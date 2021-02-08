@@ -2,7 +2,6 @@
 Unit tests for the file goli/dgl/residual_connections.py
 """
 
-import os
 import numpy as np
 import torch
 import unittest as ut
@@ -83,7 +82,7 @@ class test_ResidualConnectionWeighted(ut.TestCase):
     def test_get_true_out_dims_weighted(self):
         full_dims = [4, 6, 8, 10, 12]
         in_dims, out_dims = full_dims[:-1], full_dims[1:]
-        rc = ResidualConnectionWeighted(skip_steps=1, full_dims=full_dims)
+        rc = ResidualConnectionWeighted(skip_steps=1, out_dims=full_dims[1:])
         true_out_dims = rc.get_true_out_dims(out_dims)
         expected_out_dims = out_dims
 
@@ -96,7 +95,7 @@ class test_ResidualConnectionWeighted(ut.TestCase):
             shape = (3, 11)
             full_dims = [shape[1]] * (num_loops + 1)
             rc = ResidualConnectionWeighted(
-                skip_steps=skip_steps, full_dims=full_dims, activation="none", batch_norm=False, bias=False
+                skip_steps=skip_steps, out_dims=full_dims[1:], activation="none", batch_norm=False, bias=False
             )
 
             h_original = [torch.ones(shape) * (ii + 1) for ii in range(num_loops)]

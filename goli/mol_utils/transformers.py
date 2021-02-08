@@ -22,8 +22,7 @@ def to_mol(mol, addHs=False, explicitOnly=True, ordered=True, kekulize=True, san
     Convert an imput molecule (smiles representation) into a Chem.Mol
     :raises ValueError: if the input is neither a CHem.Mol nor a string
 
-    Arguments
-    ----------
+    Arguments:
         mol: str or rdkit.Chem.Mol
             SMILES of a molecule or a molecule
         addHs: bool, optional): Whether hydrogens should be added the molecule.
@@ -41,8 +40,7 @@ def to_mol(mol, addHs=False, explicitOnly=True, ordered=True, kekulize=True, san
         sanitize: bool optional, default=True
             Whether to apply rdkit sanitization when input is a smiles
 
-    Returns
-    -------
+    Returns:
         mol: rdkit.Chem.Molecule
             the molecule if some conversion have been made.
             If the conversion fails None is returned so make sure that you handle this case on your own.
@@ -82,13 +80,11 @@ class MoleculeTransformer(TransformerMixin):
         Compute features for a single molecule.
         This method need to be implemented by each child that inherits from MoleculeTransformer
         :raises NotImplementedError: if the method is not implemented by the child class
-        Arguments
-        ----------
+        Arguments:
             mol: Chem.Mol
                 molecule to transform into features
 
-        Returns
-        -------
+        Returns:
             features: the list of features
 
         """
@@ -105,8 +101,7 @@ class MoleculeTransformer(TransformerMixin):
             corresponding molecule. This is done, so you can find the positions
             of these molecules and filter them out according to your own logic.
 
-        Arguments
-        ----------
+        Arguments:
             mols: list(Chem.Mol) or list(str)
                 a list containing smiles or Chem.Mol objects
             ignore_errors: bool, optional
@@ -114,8 +109,7 @@ class MoleculeTransformer(TransformerMixin):
             kwargs:
                 named arguments that are to be passed to the `to_mol` function.
 
-        Returns
-        --------
+        Returns:
             features: a list of features for each molecule in the input set
         """
 
@@ -165,8 +159,7 @@ class MoleculeTransformer(TransformerMixin):
         mainly as a shortcut for data preprocessing. Note that most Transfomers allow you to specify
         a return datatype.
 
-        Arguments
-        ----------
+        Arguments:
             mols: (str or rdkit.Chem.Mol) iterable
                 SMILES of the molecules to be transformed
             ignore_errors: bool, optional
@@ -174,8 +167,7 @@ class MoleculeTransformer(TransformerMixin):
                 (Default value = True)
             kwargs: Named parameters for the transform method
 
-        Returns
-        -------
+        Returns:
             feats: array
                 list of valid features
             ids: array
@@ -218,8 +210,7 @@ class AdjGraphTransformer(MoleculeTransformer):
     Transforms a molecule into a molecular graph representation formed by an
     adjacency matrix of atoms and a set of features for each atom (and potentially bond).
 
-    Arguments
-    ----------
+    Arguments:
         max_n_atoms: int, optional
             Maximum number of atom, to set the size of the graph.
             Use default value None, to allow graph with different size that will be packed together later
@@ -243,8 +234,7 @@ class AdjGraphTransformer(MoleculeTransformer):
             when the atom valence is lower than the maximum allowed valence
             (Default value = 0)
 
-    Attributes
-    ----------
+    Attributes:
         n_atom_feat: Number of features per atom. This is computed dynamically according to the
             input parameters
         n_bond_feat: Number of bond features. This attribute is also computed dynamically
@@ -282,8 +272,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         r"""
         Get the number of features per atom
 
-        Returns
-        -------
+        Returns:
             atom_dim: int
                 Number of atom features
         """
@@ -294,8 +283,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         r"""
         Get the number of features for a bond
 
-        Returns
-        -------
+        Returns:
             bond_dim: int
                 Number of bond features
         """
@@ -337,8 +325,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         Transforms a batch of N molecules or smiles into an Adjacency graph with a set of
         atom feature
 
-        Arguments
-        ----------
+        Arguments:
             mols: (str or rdkit.Chem.Mol) iterable
                 Molecules to transform into graphs
             ignore_errors: bool, optional
@@ -349,8 +336,7 @@ class AdjGraphTransformer(MoleculeTransformer):
                 If you are using this, all molecules should be transformed before batching
                 (Default value = False)
 
-        Returns
-        -------
+        Returns:
             features: A list of tuple (A, x), where A is an adjacency matrix
                 and x is the set of atom features
 
@@ -399,12 +385,10 @@ class AdjGraphTransformer(MoleculeTransformer):
         and a set of atom (and bond) features.
         :raises ValueError: when input molecule is None
 
-        Arguments
-        ----------
+        Arguments:
             mol (rdkit.Chem.Mol): The molecule to be converted
 
-        Returns
-        -------
+        Returns:
             features: a tuple (A, X), where A is the adjacency matrix of size (N, N) for N atoms
                 and X the feature matrix of size (N,D) for D features
         """
@@ -461,8 +445,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         atom feature and return the transformation in the desired data type format and
         the set of valid indexes.
 
-        Arguments
-        ----------
+        Arguments:
             mols: (str or rdkit.Chem.Mol) iterable
                 The list of input smiles or molecules
             dtype: torch.dtype or numpy.dtype, optional
@@ -475,8 +458,7 @@ class AdjGraphTransformer(MoleculeTransformer):
                 The device on which to run the computation
             kwargs: named parameters for transform
 
-        Returns
-        -------
+        Returns:
             features : (list of tuple)
                 see `transform` method for more information
             ids: array

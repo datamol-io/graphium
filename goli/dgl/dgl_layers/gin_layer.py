@@ -2,9 +2,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
+from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.dgl.base_layers import MLP
+from goli.commons.decorators import classproperty
 
 """
     GIN: Graph Isomorphism Networks
@@ -13,72 +15,59 @@ from goli.dgl.base_layers import MLP
 """
 
 
-class GINLayerComplete(BaseDGLLayer):
+class GINLayer(BaseDGLLayer):
     """
+    GIN: Graph Isomorphism Networks
+    HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
+    https://arxiv.org/pdf/1810.00826.pdf
+
     [!] code adapted from dgl implementation of GINConv
 
-    Parameters
-    ----------
-    apply_func : callable activation function/layer or None
-        If not None, apply this function to the updated node feature,
-        the :math:`f_\Theta` in the formula.
-    aggr_type :
-        Aggregator type to use (``sum``, ``max`` or ``mean``).
-    out_dim :
-        Rquired for batch norm layer; should match out_dim of apply_func if not None.
-    dropout :
-        Required for dropout of output features.
-    batch_norm :
-        boolean flag for batch_norm layer.
-    residual :
-        boolean flag for using residual connection.
-    init_eps : optional
-        Initial :math:`\epsilon` value, default: ``0``.
-    learn_eps : bool, optional
-        If True, :math:`\epsilon` will be a learnable parameter.
-    weighted: bool, optional
-        Whether to take into account the edge weights when copying the nodes
-        Default = False
+    Parameters:
+
+        in_dim: int
+            Input feature dimensions of the layer
+
+        out_dim: int
+            Output feature dimensions of the layer
+
+        activation: str, Callable, Default="relu"
+            activation function to use in the layer
+
+        dropout: float, Default=0.
+            The ratio of units to dropout. Must be between 0 and 1
+
+        batch_norm: bool, Default=False
+            Whether to use batch normalization
+
+        init_eps : optional
+            Initial :math:`\epsilon` value, default: ``0``.
+
+        learn_eps : bool, optional
+            If True, :math:`\epsilon` will be a learnable parameter.
 
     """
 
     def __init__(
         self,
-        apply_func,
-        aggr_type,
-        dropout,
-        batch_norm,
-        activation,
-        weighted=False,
-        residual=False,
+        in_dim: int,
+        out_dim: int,
+        activation="relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
         init_eps=0,
-        learn_eps=False,
+        learn_eps=True,
     ):
 
         super().__init__(
-            in_dim=apply_func.mlp.in_dim,
-            out_dim=apply_func.mlp.out_dim,
-            residual=residual,
+            in_dim=in_dim,
+            out_dim=out_dim,
             activation=activation,
             dropout=dropout,
             batch_norm=batch_norm,
         )
 
-        self.apply_func = apply_func
-
-        self._copier = fn.u_mul_e("h", "w", "m") if weighted else fn.copy_u("h", "m")
-
-        if aggr_type == "sum":
-            self._reducer = fn.sum
-        elif aggr_type == "max":
-            self._reducer = fn.max
-        elif aggr_type == "mean":
-            self._reducer = fn.mean
-        else:
-            raise KeyError("Aggregator type {} not recognized.".format(aggr_type))
-
-        in_dim = apply_func.mlp.in_dim
-        out_dim = apply_func.mlp.out_dim
+        # Specify to consider the edges weight in the aggregation
 
         # to specify whether eps is trainable or not.
         if learn_eps:
@@ -86,54 +75,122 @@ class GINLayerComplete(BaseDGLLayer):
         else:
             self.register_buffer("eps", torch.FloatTensor([init_eps]))
 
-        self.bn_node_h = nn.BatchNorm1d(out_dim)
+        # The weights of the model, applied after the aggregation
+        self.mlp = MLP(
+            in_dim=self.in_dim,
+            hidden_dim=self.in_dim,
+            out_dim=self.out_dim,
+            layers=2,
+            mid_activation=self.activation_layer,
+            last_activation="none",
+            mid_batch_norm=self.batch_norm,
+            last_batch_norm=False,
+        )
 
-    def forward(self, g, h):
-        h_in = h  # for residual connection
+    def message_func(self, g):
+        r"""
+        If edge weights are provided, use them to weight the messages
+        """
 
+        if "w" in g.edata.keys():
+            func = fn.u_mul_e("h", "w", "m")
+        else:
+            func = fn.copy_u("h", "m")
+        return func
+
+    def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
+        r"""
+        Apply the GIN convolutional layer, with the specified activations,
+        normalizations and dropout.
+
+        Parameters:
+
+            g: dgl.DGLGraph
+                graph on which the convolution is done
+
+            h: torch.Tensor(..., N, Din)
+                Node feature tensor, before convolution.
+                N is the number of nodes, Din is the input dimension ``self.in_dim``
+
+        Returns:
+
+            h: torch.Tensor(..., N, Dout)
+                Node feature tensor, after convolution.
+                N is the number of nodes, Dout is the output dimension ``self.out_dim``
+
+        """
+
+        # Aggregate the message
         g = g.local_var()
         g.ndata["h"] = h
-        g.update_all(self._copier, self._reducer("m", "neigh"))
+        func = fn.copy_u("h", "m")
+        g.update_all(self.message_func(g), fn.sum("m", "neigh"))
         h = (1 + self.eps) * h + g.ndata["neigh"]
-        if self.apply_func is not None:
-            h = self.apply_func(h)
 
-        if self.batch_norm:
-            h = self.bn_node_h(h)  # batch normalization
-
-        h = self.activation(h)  # non-linear activation
-
-        if self.residual:
-            h = h_in + h  # residual connection
-
-        h = F.dropout(h, self.dropout, training=self.training)
+        # Apply the MLP
+        h = self.mlp(h)
+        h = self.apply_norm_activation_dropout(h)
 
         return h
 
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
 
-class GINLayer(GINLayerComplete):
-    def __init__(
-        self,
-        in_dim,
-        out_dim,
-        dropout,
-        batch_norm,
-        activation,
-        weighted=False,
-        residual=False,
-        init_eps=0,
-        learn_eps=False,
-    ):
-        aggr_type = "sum"
-        apply_func = MLP(in_dim=in_dim, hidden_dim=in_dim, out_dim=out_dim, layers=2)
-        super().__init__(
-            apply_func=apply_func,
-            aggr_type=aggr_type,
-            dropout=dropout,
-            batch_norm=batch_norm,
-            activation=activation,
-            weighted=weighted,
-            residual=residual,
-            init_eps=init_eps,
-            learn_eps=learn_eps,
-        )
+        Returns:
+
+            supports_edges: bool
+                Always ``False`` for the current class
+        """
+        return False
+
+    @property
+    def layer_inputs_edges(self) -> bool:
+        r"""
+        Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns:
+
+            uses_edges: bool
+                Always ``False`` for the current class
+        """
+        return False
+
+    @property
+    def layer_outputs_edges(self) -> bool:
+        r"""
+        Abstract method. Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns:
+
+            uses_edges: bool
+                Always ``False`` for the current class
+        """
+        return False
+
+    @property
+    def out_dim_factor(self) -> int:
+        r"""
+        Get the factor by which the output dimension is multiplied for
+        the next layer.
+
+        For standard layers, this will return ``1``.
+
+        But for others, such as ``GatLayer``, the output is the concatenation
+        of the outputs from each head, so the out_dim gets multiplied by
+        the number of heads, and this function should return the number
+        of heads.
+
+        Returns:
+
+            dim_factor: int
+                Always ``1`` for the current class
+        """
+        return 1

@@ -3,8 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from dgl.nn.pytorch import GATConv
+from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.commons.decorators import classproperty
 
 """
     GAT: Graph Attention Network
@@ -15,65 +17,147 @@ from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 
 class GATLayer(BaseDGLLayer):
     """
-    Parameters
-    ----------
-    in_dim :
-        Number of input features.
-    out_dim :
-        Number of output features.
-    num_heads : int
-        Number of heads in Multi-Head Attention.
-    dropout :
-        Required for dropout of attn and feat in GATConv
-    batch_norm :
-        boolean flag for batch_norm layer.
-    residual :
-        If True, use residual connection inside this layer. Default: ``False``.
-    activation : callable activation function/layer or None, optional.
-        If not None, applies an activation function to the updated node features.
+    GAT: Graph Attention Network
+    Graph Attention Networks (Veličković et al., ICLR 2018)
+    https://arxiv.org/abs/1710.10903
 
-    Using dgl builtin GATConv by default:
-    https://github.com/graphdeeplearning/benchmarking-gnns/commit/206e888ecc0f8d941c54e061d5dffcc7ae2142fc
+    The implementation is built on top of the DGL ``GATCONV`` layer
+
+    Parameters:
+
+        in_dim: int
+            Input feature dimensions of the layer
+
+        out_dim: int
+            Output feature dimensions of the layer
+
+        num_heads: int
+            Number of heads in Multi-Head Attention
+
+        activation: str, Callable, Default="elu"
+            activation function to use in the layer
+
+        dropout: float, Default=0.
+            The ratio of units to dropout. Must be between 0 and 1
+
+        batch_norm: bool, Default=False
+            Whether to use batch normalization
     """
 
-    def __init__(self, in_dim, out_dim, num_heads, dropout, batch_norm, residual=False, activation=F.elu):
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        num_heads,
+        activation="elu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
+    ):
+
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
-            residual=residual,
             activation=activation,
             dropout=dropout,
             batch_norm=batch_norm,
         )
 
-        self.gatconv = GATConv(in_dim, out_dim, num_heads, dropout, batch_norm)
+        self.num_heads = num_heads
 
-        if self.batch_norm:
-            self.batchnorm_h = nn.BatchNorm1d(out_dim * num_heads)
+        self.gatconv = GATConv(
+            in_feats=self.in_dim,
+            out_feats=self.out_dim,
+            num_heads=self.num_heads,
+            feat_drop=self.dropout,
+            attn_drop=self.dropout,
+            activation=None,  # Activation is applied after
+        )
 
-    def forward(self, g, h):
-        h_in = h  # for residual connection
+    def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
+        r"""
+        Apply the graph convolutional layer, with the specified activations,
+        normalizations and dropout.
+
+        Parameters:
+
+            g: dgl.DGLGraph
+                graph on which the convolution is done
+
+            h: torch.Tensor(..., N, Din)
+                Node feature tensor, before convolution.
+                N is the number of nodes, Din is the input dimension ``self.in_dim``
+
+            Returns:
+
+            h: torch.Tensor(..., N, Dout)
+                Node feature tensor, after convolution.
+                N is the number of nodes, Dout is the output dimension ``self.out_dim``
+
+        """
 
         h = self.gatconv(g, h).flatten(1)
-
-        if self.activation:
-            h = self.activation(h)
-
-        if self.residual:
-            h = h_in + h  # residual connection
+        self.apply_norm_activation_dropout(h, batch_norm=True, activation=True, dropout=False)
 
         return h
 
-    @staticmethod
-    def _parse_layer_args(in_dims, out_dims, **kwargs):
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
 
-        kwargs_of_lists = {}
-        kwargs_keys_to_remove = ["num_heads"]
+        Returns:
 
-        num_heads = kwargs.pop("num_heads")
-        num_heads_list = [num_heads for ii in range(len(in_dims) - 1)] + [1]
-        in_dims[1:] = [this_dim * num_heads for this_dim in in_dims[1:]]
-        kwargs_of_lists["num_heads"] = num_heads_list
-        true_out_dims = in_dims[1:] + out_dims[-1:]
+            supports_edges: bool
+                Always ``False`` for the current class
+        """
+        return False
 
-        return in_dims, out_dims, true_out_dims, kwargs_of_lists, kwargs_keys_to_remove
+    @property
+    def layer_inputs_edges(self) -> bool:
+        r"""
+        Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns:
+
+            uses_edges: bool
+                Always ``False`` for the current class
+        """
+        return False
+
+    @property
+    def layer_outputs_edges(self) -> bool:
+        r"""
+        Abstract method. Return a boolean specifying if the layer type
+        uses edges as input or not.
+        It is different from ``layer_supports_edges`` since a layer that
+        supports edges can decide to not use them.
+
+        Returns:
+
+            uses_edges: bool
+                Always ``False`` for the current class
+        """
+        return False
+
+    @property
+    def out_dim_factor(self) -> int:
+        r"""
+        Get the factor by which the output dimension is multiplied for
+        the next layer.
+
+        For standard layers, this will return ``1``.
+
+        But for others, such as ``GatLayer``, the output is the concatenation
+        of the outputs from each head, so the out_dim gets multiplied by
+        the number of heads, and this function should return the number
+        of heads.
+
+        Returns:
+
+            dim_factor: int
+                Always ``self.num_heads`` for the current class
+        """
+        return self.num_heads

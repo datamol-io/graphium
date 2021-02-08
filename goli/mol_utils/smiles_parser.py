@@ -7,16 +7,14 @@ def is_iterable(obj):
     r"""
     Return whether an object is iterable or not (list, numpy array, tuple, dict)
 
-    Parameters
-    ------------
+    Parameters:
 
-    obj: any object
-        The object to check if it is an iterable
+        obj: any object
+            The object to check if it is an iterable
 
-    Returns
-    ----------
-    is_iterable: bool
-        Whether obj is an iterable (list, numpy array, tuple, dict)
+    Returns:
+        is_iterable: bool
+            Whether obj is an iterable (list, numpy array, tuple, dict)
 
     """
 
@@ -33,20 +31,21 @@ class SuppressRdkit(object):
     `with` statement such that the error is only suppressed
     for the execution of specific lines of code.
 
-    mute_errors: bool, optional
-        Whether to mute the rdkit messages or not
+    Parameters:
 
-    error_str: str, optional
-        The type of rdkit errors to mute
+        mute_errors: bool, optional
+            Whether to mute the rdkit messages or not
 
-        - 'rdApp.*': Mute everything
-        - 'rdApp.error': Mute errors only
-        - any other rdApp type
+        error_str: str, optional
+            The type of rdkit errors to mute
 
-        (Default='rdApp.*')
+            - 'rdApp.*': Mute everything
+            - 'rdApp.error': Mute errors only
+            - any other rdApp type
 
-    Example
-    ----------------
+            (Default='rdApp.*')
+
+    Example:
         with SuppressRdkit(mute_errors=mute_errors) :
             mol = Chem.MolFromSmiles(smiles_str, sanitize=sanitize)
     """
@@ -72,8 +71,7 @@ def is_smiles(smiles_str, sanitize=False, check_mass=True, mute_errors=True):
     If ``sanitize`` is ``True``, it checks also for the molecular structure and the
     molecular bonds.
 
-    Attributes
-    --------------
+    Attributes:
         smiles_str: str
             The SMILES to check for validity
         sanitize: bool, Optional
@@ -90,13 +88,11 @@ def is_smiles(smiles_str, sanitize=False, check_mass=True, mute_errors=True):
         mute_errors: bool, Optional
             Whether to mute the errors from rdkit when a string does not parse
             (Default=True)
-    Returns
-    -----------
+    Returns:
         is_valid_smiles: bool
             Whether the SMILES has a valid syntax and characters.
 
-    See Also
-    -----------
+    See Also:
         ivbase.utils.commons.is_smiles_iterable:
         ivbase.utils.commons.any_smiles_iterable:
         ivbase.utils.commons.is_fingerprint:
@@ -133,8 +129,7 @@ def any_smiles_iterable(smiles, sanitize=False, check_mass=True, min_count=1, mu
     If ``sanitize`` is ``True``, it checks also for the molecular structure and the
     molecular bonds.
 
-    Attributes
-    --------------
+    Attributes:
         smiles: str, iterator(str) or numpy.ndarray(str)
             The iterator of SMILES to check for validity.
             If a string is passed, the smiles is put in a list.
@@ -156,13 +151,11 @@ def any_smiles_iterable(smiles, sanitize=False, check_mass=True, min_count=1, mu
             Whether to mute the errors from rdkit when a string does not parse
             (Default=True)
 
-    Returns
-    -----------
+    Returns:
         is_any_smiles: bool
             Whether there is at least 1 SMILES in the array
 
-    See Also
-    -----------
+    See Also:
         ivbase.utils.commons.is_smiles:
         ivbase.utils.commons.is_smiles_iterable:
         ivbase.utils.commons.is_fingerprint:
@@ -200,8 +193,7 @@ def all_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=Tru
     If ``sanitize`` is ``True``, it checks also for the molecular structure and the
     molecular bonds.
 
-    Attributes
-    --------------
+    Attributes:
         smiles: str, iterator(str) or numpy.ndarray(str)
             The iterator of SMILES to check for validity.
             If a string is passed, the smiles is put in a list.
@@ -220,14 +212,12 @@ def all_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=Tru
             Whether to mute the errors from rdkit when a string does not parse
             (Default=True)
 
-    Returns
-    -----------
+    Returns:
         is_all_smiles: bool
             Whether all the elements are valid smiles. The function returns as soon as a
             single invalid smiles is found.
 
-    See Also
-    -----------
+    See Also:
         ivbase.utils.commons.is_smiles:
         ivbase.utils.commons.any_smiles_iterable:
         ivbase.utils.commons.is_smiles_iterable:
@@ -265,8 +255,7 @@ def is_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=True
     If ``sanitize`` is ``True``, it checks also for the molecular structure and the
     molecular bonds.
 
-    Attributes
-    --------------
+    Attributes:
         smiles: str, iterator(str) or numpy.ndarray(str)
             The iterator of SMILES to check for validity.
             If a string is passed, the smiles is put in a list.
@@ -292,15 +281,13 @@ def is_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=True
 
             (Default = 0)
 
-    Returns
-    -----------
+    Returns:
         is_smiles_array: bool, iterator(bool) or numpy.ndarray(bool)
             Whether each of the SMILES has a valid syntax and characters.
             The iterator or array has the same shape as the original input.
             If a single ``str`` is passed, then the output is a boolean
 
-    See Also
-    -----------
+    See Also:
         ivbase.utils.commons.is_smiles:
         ivbase.utils.commons.any_smiles_iterable:
         ivbase.utils.commons.is_fingerprint:
@@ -367,8 +354,7 @@ def filter_bad_smiles(
     If ``sanitize`` is ``True``, it checks also for the molecular structure and the
     molecular bonds.
 
-    Parameters
-    --------------
+    Parameters:
         dataframe: pd.DataFrame
             The dataframe on which the rows will be filtered.
         smiles_cols: list
@@ -393,8 +379,7 @@ def filter_bad_smiles(
 
             (Default = 0)
 
-    Returns
-    -----------
+    Returns:
         df: pd.DataFrame
             The DataFrame with the rows filtered according to the
             bad detected SMILES.
@@ -402,8 +387,7 @@ def filter_bad_smiles(
             The array containing boolean ``True`` value at the indexes where
             the SMILES are valid, and ``False`` elsewhere.
 
-    See Also
-    -----------
+    See Also:
         ivbase.transformers.features.molecules.is_smiles_iterable:
 
     """

@@ -1,73 +1,68 @@
 gin:
-  layer_type: gin
+  layer_class: gin
   edge_features: False
 
 gcn:
-  layer_type: gcn
+  layer_class: gcn
   edge_features: False
 
 gat-4:
-  layer_type: gat
+  layer_class: gat
   num_heads: 4
   edge_features: False
 
 gat-8:
-  layer_type: gat
+  layer_class: gat
   num_heads: 8
   edge_features: False
 
 gat-16:
-  layer_type: gat
+  layer_class: gat
   num_heads: 16
   edge_features: False
 
 gated-gcn:
-  layer_type: gated-gcn
+  layer_class: gated-gcn
   edge_features: True
   in_dim_edges: 14
 
 mpnn-sum:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d: null
   aggregators: "sum"
   scalers: "identity"
   towers: 1
 
 mpnn-max:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d: null
   aggregators: "max"
   scalers: "identity"
   towers: 1
 
 mpnn-e-sum:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d: null
   aggregators: "sum"
   scalers: "identity"
   towers: 1
 
 mpnn-e-max:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d: null
   aggregators: "max"
   scalers: "identity"
   towers: 1
 
 pna:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -75,9 +70,8 @@ pna:
   towers: 1
 
 pna-no-scaler:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -85,10 +79,9 @@ pna-no-scaler:
   towers: 1
 
 pna-e: 
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -96,10 +89,9 @@ pna-e:
   towers: 1
 
 pna-e-no-scaler: 
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -108,47 +100,42 @@ pna-e-no-scaler:
 
 
 mpnn4-sum:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d: null
   aggregators: "sum"
   scalers: "identity"
   towers: 4
 
 mpnn4-max:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d: null
   aggregators: "max"
   scalers: "identity"
   towers: 4
 
 mpnn4-e-sum:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d: null
   aggregators: "sum"
   scalers: "identity"
   towers: 4
 
 mpnn4-e-max:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d: null
   aggregators: "max"
   scalers: "identity"
   towers: 4
 
 pna4:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -156,9 +143,8 @@ pna4:
   towers: 4
 
 pna4-no-scaler:
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: False
-  graph_norm: False
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -166,10 +152,9 @@ pna4-no-scaler:
   towers: 4
 
 pna4-e: 
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
@@ -177,18 +162,17 @@ pna4-e:
   towers: 4
 
 pna4-e-no-scaler: 
-  layer_type: pna-complex
+  layer_class: pna-msgpass
   edge_features: True
-  edge_dim: 16
-  graph_norm: False
+  in_dim_edges: 16
   avg_d:
     log: 1
   aggregators: "mean max min std"
   scalers: "identity"
   towers: 4
 
-pna-simple:
-  layer_type: pna-simple
+pna-conv:
+  layer_class: pna-conv
   edge_features: False
   avg_d:
     log: 1
@@ -196,8 +180,8 @@ pna-simple:
   scalers: "identity amplification attenuation"
   posttrans_layers: 1
 
-pna-simple2:
-  layer_type: pna-simple
+pna-conv2:
+  layer_class: pna-conv
   edge_features: False
   avg_d:
     log: 1
@@ -205,8 +189,8 @@ pna-simple2:
   scalers: "identity"
   posttrans_layers: 1
 
-pna-simple3:
-  layer_type: pna-simple
+pna-conv3:
+  layer_class: pna-conv
   edge_features: False
   avg_d:
     log: 1
