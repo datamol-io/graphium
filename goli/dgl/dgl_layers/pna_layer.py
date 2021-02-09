@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
 from dgl import DGLGraph
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union, Callable
 
 from goli.dgl.pna_operations import PNA_AGGREGATORS, PNA_SCALERS
 from goli.dgl.base_layers import MLP, FCLayer, get_activation
@@ -26,11 +26,11 @@ class BasePNALayer(BaseDGLLayer):
         out_dim: int,
         aggregators: List[str],
         scalers: List[str],
-        activation="relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
         avg_d: float = 1.0,
-        last_activation="none",
+        last_activation: Union[Callable, str] = "none",
     ):
         r"""
         Abstract class used to standardize the implementation of PNA layers
@@ -158,11 +158,11 @@ class PNAConvolutionalLayer(BasePNALayer):
         out_dim: int,
         aggregators: List[str],
         scalers: List[str],
-        activation="relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
         avg_d: Dict[str, float] = {"log": 1.0},
-        last_activation="none",
+        last_activation: Union[Callable, str] = "none",
         posttrans_layers: int = 1,
     ):
         r"""
@@ -313,11 +313,11 @@ class PNAMessagePassingLayer(BasePNALayer):
         out_dim: int,
         aggregators: List[str],
         scalers: List[str],
-        activation="relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
         avg_d: Dict[str, float] = {"log": 1.0},
-        last_activation="none",
+        last_activation: Union[Callable, str] = "none",
         posttrans_layers: int = 1,
         pretrans_layers: int = 1,
         in_dim_edges: int = 0,

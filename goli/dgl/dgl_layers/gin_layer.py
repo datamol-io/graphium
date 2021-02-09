@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
 from dgl import DGLGraph
+from typing import Callable, Union
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.dgl.base_layers import MLP
@@ -20,11 +21,11 @@ class GINLayer(BaseDGLLayer):
         self,
         in_dim: int,
         out_dim: int,
-        activation="relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
-        init_eps=0.0,
-        learn_eps=True,
+        init_eps: float = 0.0,
+        learn_eps: bool = True,
     ):
         r"""
         GIN: Graph Isomorphism Networks

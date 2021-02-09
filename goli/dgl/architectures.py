@@ -93,7 +93,7 @@ class FeedForwardNN(nn.Module):
         self._check_bad_arguments()
 
     def _check_bad_arguments(self):
-        if (self.residual_type == "simple") and (self.hidden_dims[:-1] == self.hidden_dims[1:]):
+        if (self.residual_type == "simple") and not (self.hidden_dims[:-1] == self.hidden_dims[1:]):
             raise ValueError(
                 f"When using the residual_type={self.residual_type}"
                 + f", all elements in the hidden_dims must be equal. Provided:{self.hidden_dims}"
@@ -119,7 +119,7 @@ class FeedForwardNN(nn.Module):
         if isinstance(name_or_class, str):
             obj_name = name_or_class.lower()
             obj_class = class_dict[obj_name]
-        elif isinstance(callable):
+        elif callable(name_or_class):
             obj_name = str(name_or_class)
             obj_class = name_or_class
         else:
@@ -132,11 +132,11 @@ class FeedForwardNN(nn.Module):
         if self.residual_class.has_weights:
             residual_layer = self.residual_class(
                 skip_steps=self.residual_skip_steps,
-                full_dims=out_dims,
+                out_dims=out_dims,
                 dropout=self.dropout,
                 activation=self.activation,
                 batch_norm=self.batch_norm,
-                bias=self.bias,
+                bias=False,
             )
         else:
             residual_layer = self.residual_class(skip_steps=self.residual_skip_steps)
@@ -171,17 +171,16 @@ class FeedForwardNN(nn.Module):
                 )
             )
 
-            this_in_dim = residual_out_dims[ii]
+            if ii < len(residual_out_dims):
+                this_in_dim = residual_out_dims[ii]
 
-        self.out_linear = nn.Linear(in_features=this_in_dim, out_features=self.out_dim)
 
     def forward(self, h):
         h_prev = None
         for ii, layer in enumerate(self.layers):
             h = layer.forward(h)
-            h, h_prev = self.residual.forward(h, h_prev, step_idx=ii)
-
-        h = self.out_linear.forward(h)
+            if ii < len(self.layers) - 1:
+                h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=ii)
 
         return h
 

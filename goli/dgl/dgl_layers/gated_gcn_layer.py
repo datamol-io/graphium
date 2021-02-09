@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from copy import deepcopy
-from typing import Tuple
+from typing import Tuple, Union, Callable
 from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
@@ -22,7 +22,7 @@ class GatedGCNLayer(BaseDGLLayer):
         out_dim: int,
         in_dim_edges: int,
         out_dim_edges: int,
-        activation="relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
     ):
