@@ -174,7 +174,6 @@ class FeedForwardNN(nn.Module):
             if ii < len(residual_out_dims):
                 this_in_dim = residual_out_dims[ii]
 
-
     def forward(self, h):
         h_prev = None
         for ii, layer in enumerate(self.layers):
