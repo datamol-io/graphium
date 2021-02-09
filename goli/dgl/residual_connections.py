@@ -424,7 +424,6 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
 
 class ResidualConnectionDenseNet(ResidualConnectionBase):
-
     def __init__(self, skip_steps: int = 1):
         r"""
         Class for the residual connections proposed by DenseNet, where

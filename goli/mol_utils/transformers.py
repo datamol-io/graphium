@@ -212,25 +212,25 @@ class AdjGraphTransformer(MoleculeTransformer):
         max_n_atoms: int
             Maximum number of atom, to set the size of the graph.
             Use default value None, to allow graph with different size that will be packed together later
-            
+
         with_bond: bool
             Whether to enable the feature of the bond formed by each atom in the atom feature
-            
+
         explicit_H: bool
             Whether to consider hydrogen atoms explicitely. If this option
             is set to False, the number of hydrogen bond formed by the atom will be considered as a feature.
-            
+
         chirality: bool
             Use chirality as a feature.
-            
+
         max_valence: int
             Maximum number of neighbor for each atom.
             This option is required if you want to return use bond features
-            
+
         padding_val: int
             Padding value to fill missing edges features
             when the atom valence is lower than the maximum allowed valence
-            
+
     Attributes:
         n_atom_feat: Number of features per atom. This is computed dynamically according to the
             input parameters
@@ -327,7 +327,7 @@ class AdjGraphTransformer(MoleculeTransformer):
                 Molecules to transform into graphs
             ignore_errors: bool
                 Whether to silently ignore errors
-                
+
             max_atom_update: bool
                 Whether the maximum number of atoms in the graph be dynamically updated for eacher longuer molecule seen ?
                 If you are using this, all molecules should be transformed before batching
