@@ -128,7 +128,6 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
     # TODO: Add configuration for the pooling layer kwargs
 
     # Create the pooling layer
-    pooling = pooling.lower()
     pool_layer = ModuleListConcat()
     out_pool_dim = 0
 
