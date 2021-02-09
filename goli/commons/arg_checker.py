@@ -47,7 +47,7 @@ def _enforce_iter_type(arg, enforce_type):
     return arg
 
 
-def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtype: bool = True):
+def check_arg_iterator(arg, enforce_type= None, enforce_subtype=None, cast_subtype: bool = True):
     r"""
     Verify if the type is an iterator. If it is `None`, convert to an empty list/tuple. If it is
     not a list/tuple/str, try to convert to an iterator. If it is a str or cannot be converted to
@@ -57,15 +57,15 @@ def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtyp
     and decide whether to cast the subtype or to throw an error.
 
     Parameters:
-        arg: (any type)
+        arg (any type):
             The input to verify/convert to an iterator (list or tuple). If None, an empty iterator
             is returned.
-        enforce_type: str or type
+        enforce_type (str or type):
             The type to enforce the iterator. The valid choices are :
             `None`, `list`, `tuple`, `'none'`, `'list'`, `'tuple'`.
             If `None`, then the iterator type is not enforced.
 
-        enforce_subtype: type, np.dtype or str representing basic type
+        enforce_subtype (type, np.dtype or str representing basic type):
             Verify if all the elements inside the iterator are the desired type.
             If `None`, then the sub-type is not enforced.
             Accepted strings are ['none', 'str', 'list', 'tuple', 'dict', 'int',
@@ -77,7 +77,7 @@ def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtyp
             types do not match.
 
     Returns:
-        output: iterator
+        output (iterator):
             An iterator based on the input of the desired type (list or tuple) and
             the desired subtypes.
 
