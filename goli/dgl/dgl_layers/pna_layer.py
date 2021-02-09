@@ -94,13 +94,13 @@ class BasePNALayer(BaseDGLLayer):
         self.scalers = [PNA_SCALERS[scale] for scale in scalers]
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        """
+        r"""
         The message function to generate messages along the edges.
         """
         return {"e": edges.data["e"]}
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        """
+        r"""
         The reduce function to aggregate the messages.
         Apply the aggregators and scalers, and concatenate the results.
         """
@@ -117,7 +117,7 @@ class BasePNALayer(BaseDGLLayer):
 
     @property
     def layer_outputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -132,7 +132,7 @@ class BasePNALayer(BaseDGLLayer):
 
     @property
     def out_dim_factor(self) -> int:
-        """
+        r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.
 
@@ -240,13 +240,13 @@ class PNAConvolutionalLayer(BasePNALayer):
         )
 
     def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:
-        """
+        r"""
         Return a mapping to the features of the source nodes.
         """
         return {"e": edges.src["h"]}
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        """
+        r"""
         Apply the PNA convolutional layer, with the specified post transformation
 
         Parameters:
@@ -280,7 +280,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -295,7 +295,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
@@ -419,7 +419,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         )
 
     def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:
-        """
+        r"""
         Return a mapping to the concatenation of the features from
         the source node, the destination node, and the edge between them (if applicable).
         """
@@ -432,7 +432,7 @@ class PNAMessagePassingLayer(BasePNALayer):
     def forward(
         self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
+        r"""
         Apply the PNA Message passing layer, with the specified pre/post transformations
 
         Parameters:
@@ -477,7 +477,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -492,7 +492,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:

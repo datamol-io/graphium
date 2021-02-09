@@ -63,7 +63,7 @@ class GCNLayer(BaseDGLLayer):
         )
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        """
+        r"""
         Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
 
@@ -91,7 +91,7 @@ class GCNLayer(BaseDGLLayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
@@ -103,7 +103,7 @@ class GCNLayer(BaseDGLLayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -118,7 +118,7 @@ class GCNLayer(BaseDGLLayer):
 
     @property
     def layer_outputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -133,7 +133,7 @@ class GCNLayer(BaseDGLLayer):
 
     @property
     def out_dim_factor(self) -> int:
-        """
+        r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.
 

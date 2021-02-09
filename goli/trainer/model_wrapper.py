@@ -18,7 +18,7 @@ from goli.trainer.reporting import ModelSummaryExtended
 
 
 class EpochSummary:
-    """Container for collecting epoch-wise results"""
+    r"""Container for collecting epoch-wise results"""
 
     class Results:
         def __init__(self, targets: torch.Tensor, predictions: torch.Tensor, loss: float, metrics: dict):

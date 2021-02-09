@@ -5,13 +5,14 @@ import math
 from copy import deepcopy
 import dgl
 from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
-from typing import List, Dict
+from typing import List, Dict, Tuple, Union, Callable
 import inspect
 
 from goli.dgl.base_layers import FCLayer, get_activation
 from goli.dgl.dgl_layers.pooling import parse_pooling_layer, VirtualNode
 
 from goli.dgl.dgl_layers import (
+    BaseDGLLayer,
     GATLayer,
     GCNLayer,
     GINLayer,
@@ -21,6 +22,7 @@ from goli.dgl.dgl_layers import (
 )
 
 from goli.dgl.residual_connections import (
+    ResidualConnectionBase,
     ResidualConnectionConcat,
     ResidualConnectionDenseNet,
     ResidualConnectionNone,
@@ -52,17 +54,17 @@ RESIDUALS_DICT = {
 class FeedForwardNN(nn.Module):
     def __init__(
         self,
-        in_dim,
-        out_dim,
-        hidden_dims,
-        activation="relu",
-        last_activation="none",
-        batch_norm=False,
-        dropout=0.25,
-        residual_type="none",
-        residual_skip_steps=1,
-        name="LNN",
-        layer_type=FCLayer,
+        in_dim: int,
+        out_dim: int,
+        hidden_dims: List[int],
+        activation: Union[str, Callable] = "relu",
+        last_activation: Union[str, Callable] = "none",
+        batch_norm: bool = False,
+        dropout: float = 0.25,
+        residual_type: str = "none",
+        residual_skip_steps: int = 1,
+        name: str = "LNN",
+        layer_type: Union[str, nn.Module] = "fc",
         **layer_kwargs,
     ):
 
@@ -93,6 +95,9 @@ class FeedForwardNN(nn.Module):
         self._check_bad_arguments()
 
     def _check_bad_arguments(self):
+        r"""
+        Raise comprehensive errors if the arguments seem wrong
+        """
         if (self.residual_type == "simple") and not (self.hidden_dims[:-1] == self.hidden_dims[1:]):
             raise ValueError(
                 f"When using the residual_type={self.residual_type}"
@@ -100,7 +105,9 @@ class FeedForwardNN(nn.Module):
             )
 
     def _register_hparams(self):
-        # Register the Hyper-parameters to be compatible with Pytorch-Lightning and Tensorboard
+        r"""
+        Register the hyperparameters for tracking by Pytorch-lightning
+        """
         self.hparams = {
             f"{self.name}.out_dim": self.out_dim,
             f"{self.name}.hidden_dims": self.hidden_dims,
@@ -115,7 +122,12 @@ class FeedForwardNN(nn.Module):
             f"{self.name}.layer_kwargs": str(self.layer_kwargs),
         }
 
-    def _parse_class_from_dict(self, name_or_class, class_dict):
+    def _parse_class_from_dict(
+        self, name_or_class: Union[type, str], class_dict: Dict[str, type]
+    ) -> Tuple[type, str]:
+        r"""
+        Register the hyperparameters for tracking by Pytorch-lightning
+        """
         if isinstance(name_or_class, str):
             obj_name = name_or_class.lower()
             obj_class = class_dict[obj_name]
@@ -127,8 +139,11 @@ class FeedForwardNN(nn.Module):
 
         return obj_class, obj_name
 
-    def _create_residual_connection(self, out_dims):
-
+    def _create_residual_connection(self, out_dims: List[int]) -> Tuple[ResidualConnectionBase, List[int]]:
+        r"""
+        Create the residual connection classes.
+        The out_dims is only used if the residual classes requires weights
+        """
         if self.residual_class.has_weights:
             residual_layer = self.residual_class(
                 skip_steps=self.residual_skip_steps,
@@ -197,21 +212,21 @@ class FeedForwardNN(nn.Module):
 class FeedForwardDGL(FeedForwardNN):
     def __init__(
         self,
-        in_dim,
-        out_dim,
-        hidden_dims,
-        activation="relu",
-        last_activation="none",
-        batch_norm=False,
-        dropout=0.25,
-        residual_type="none",
-        residual_skip_steps=1,
-        in_dim_edges=0,
-        hidden_dims_edges=[],
-        pooling=["sum"],
-        name="GNN",
-        layer_type="gcn",
-        virtual_node="none",
+        in_dim: int,
+        out_dim: int,
+        hidden_dims: List[int],
+        activation: Union[str, Callable] = "relu",
+        last_activation: Union[str, Callable] = "none",
+        batch_norm: bool = False,
+        dropout: float = 0.25,
+        residual_type: str = "none",
+        residual_skip_steps: int = 1,
+        in_dim_edges: int = 0,
+        hidden_dims_edges: List[int] = [],
+        pooling: List[Union[str, Callable]] = ["sum"],
+        name: str = "GNN",
+        layer_type: Union[str, nn.Module] = "gcn",
+        virtual_node: str = "none",
         **layer_kwargs,
     ):
 
@@ -242,6 +257,9 @@ class FeedForwardDGL(FeedForwardNN):
         )
 
     def _check_bad_arguments(self):
+        r"""
+        Raise comprehensive errors if the arguments seem wrong
+        """
         super()._check_bad_arguments()
         if (
             (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
@@ -249,6 +267,9 @@ class FeedForwardDGL(FeedForwardNN):
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
 
     def _register_hparams(self):
+        r"""
+        Register the hyperparameters for tracking by Pytorch-lightning
+        """
         return super()._register_hparams()
         self.hparams["hidden_edge_dim"] = self.hidden_edge_dim
         self.hparams["pooling"] = self.pooling
@@ -321,18 +342,45 @@ class FeedForwardDGL(FeedForwardNN):
 
         layer_out_dims = [layer.out_dim_factor * layer.out_dim for layer in self.layers]
 
-        # Initialize residual, pooling and output layers
+        # Initialize residual and pooling layers
         self.residual_layer, _ = self._create_residual_connection(out_dims=layer_out_dims)
         if len(layer_out_dims_edges) > 0:
             self.residual_edges_layer, _ = self._create_residual_connection(out_dims=layer_out_dims_edges)
         else:
             self.residual_edges_layer = None
         self.global_pool_layer, out_pool_dim = parse_pooling_layer(layer_out_dims[-1], self.pooling)
-        self.out_linear = nn.Linear(in_features=out_pool_dim, out_features=self.out_dim)
+
+        # Output linear layer
+        self.out_linear = FCLayer(
+            in_dim=out_pool_dim,
+            out_dim=self.out_dim,
+            activation="none",
+            dropout=self.dropout,
+            batch_norm=self.batch_norm,
+        )
 
     def _pool_layer_forward(self, graph, h):
+        r"""
+        Apply the graph pooling layer, followed by the linear output layer.
 
-        # Pool the nodes together
+        Parameters:
+
+            g: dgl.DGLGraph
+                graph on which the convolution is done
+
+            h (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the output size of the last DGL layer
+
+        Returns:
+
+            h (torch.Tensor[..., M, Din)] or (torch.Tensor[..., N, Din)]:
+                Node feature tensor, after convolution.
+                `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
+                If the pooling is `None`, the dimension is `N`, otherwise it is `M`
+
+        """
+
         if len(self.global_pool_layer) > 0:
             pooled_h = []
             for this_pool in self.global_pool_layer:
@@ -345,17 +393,74 @@ class FeedForwardDGL(FeedForwardNN):
 
         return pooled_h
 
-    def _dgl_layer_forward(self, layer, graph, h, e, h_prev, e_prev, step_idx):
+    def _dgl_layer_forward(
+        self,
+        layer: BaseDGLLayer,
+        g: dgl.DGLGraph,
+        h: torch.Tensor,
+        e: Union[torch.Tensor, None],
+        h_prev: Union[torch.Tensor, None],
+        e_prev: Union[torch.Tensor, None],
+        step_idx: int,
+    ) -> Tuple[torch.Tensor, Union[torch.Tensor, None], Union[torch.Tensor, None], Union[torch.Tensor, None]]:
+        r"""
+        Apply the *i-th* DGL graph layer, where *i* is the index given by `step_idx`.
+        The layer is applied differently depending if there are edge features or not.
+
+        Then, the residual is also applied on both the features and the edges (if applicable)
+
+        Parameters:
+
+            layer:
+                The DGL layer used for the convolution
+
+            g:
+                graph on which the convolution is done
+
+            h (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the input features
+
+            e (torch.Tensor[..., N, Ein]):
+                Edge feature tensor, before convolution.
+                `N` is the number of nodes, `Ein` is the input edge features
+
+            h_prev:
+                Node feature of the previous residual connection, or `None`
+
+            e_prev:
+                Edge feature of the previous residual connection, or `None`
+
+            step_idx:
+                The current step idx in the forward loop
+
+        Returns:
+
+            h (torch.Tensor[..., N, Dout]):
+                Node feature tensor, after convolution and residual.
+                `N` is the number of nodes, `Dout` is the output features of the layer and residual
+
+            e:
+                Edge feature tensor, after convolution and residual.
+                `N` is the number of nodes, `Ein` is the input edge features
+
+            h_prev:
+                Node feature tensor to be used at the next residual connection, or `None`
+
+            e_prev:
+                Edge feature tensor to be used at the next residual connection, or `None`
+
+        """
 
         # Apply the GNN layer with the right inputs/outputs
         if layer.layer_inputs_edges and layer.layer_outputs_edges:
-            h, e = layer(g=graph, h=h, e=e)
+            h, e = layer(g=g, h=h, e=e)
         elif layer.layer_inputs_edges:
-            h = layer(g=graph, h=h, e=e)
+            h = layer(g=g, h=h, e=e)
         elif layer.layer_outputs_edges:
-            h, e = layer(g=graph, h=h)
+            h, e = layer(g=g, h=h)
         else:
-            h = layer(g=graph, h=h)
+            h = layer(g=g, h=h)
 
         # Apply the residual layers on the features and edges (if applicable)
         h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
@@ -364,8 +469,40 @@ class FeedForwardDGL(FeedForwardNN):
 
         return h, e, h_prev, e_prev
 
-    def _virtual_node_forward(self, g, h, vn_h, step_idx):
-        # Apply the Virtual Node
+    def _virtual_node_forward(
+        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        r"""
+        Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
+
+        Parameters:
+
+            g:
+                graph on which the convolution is done
+
+            h (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the input features
+
+            vn_h (torch.Tensor[..., M, Din]):
+                Graph feature of the previous virtual node, or `None`
+                `M` is the number of graphs, `Din` is the input features
+
+            step_idx:
+                The current step idx in the forward loop
+
+        Returns:
+
+            h (torch.Tensor[..., N, Dout]):
+                Node feature tensor, after convolution and residual.
+                `N` is the number of nodes, `Dout` is the output features of the layer and residual
+
+            vn_h (torch.Tensor[..., M, Dout]):
+                Graph feature tensor to be used at the next virtual node, or `None`
+                `M` is the number of graphs, `Dout` is the output features
+
+        """
+
         if step_idx == 0:
             vn_h = 0
         if step_idx < len(self.virtual_node_layers):
@@ -375,7 +512,7 @@ class FeedForwardDGL(FeedForwardNN):
 
     def forward(self, graph):
 
-        # Get graph features and apply linear layer
+        # Get node and edge features
         h = graph.ndata["h"]
         e = graph.edata["e"] if self.in_dim_edges > 0 else None
 
@@ -385,7 +522,7 @@ class FeedForwardDGL(FeedForwardNN):
         for ii, layer in enumerate(self.layers):
             # print("----------------------", ii)
             h, e, h_prev, e_prev = self._dgl_layer_forward(
-                layer=layer, graph=graph, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
+                layer=layer, g=graph, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
             h, vn_h = self._virtual_node_forward(graph, h, vn_h, step_idx=ii)
 
@@ -399,9 +536,9 @@ class FeedForwardDGL(FeedForwardNN):
         Controls how the class is printed
         """
         class_str = f"{self.__class__.__name__}(depth={self.depth}, {self.residual_layer})"
-        layer_str = f"[{self.layer_name}[{' -> '.join(map(str, self.full_dims))}]"
+        layer_str = f"[{self.layer_class}[{' -> '.join(map(str, self.full_dims))}]"
         pool_str = f"-> Pooling({self.pooling})"
-        out_str = " -> Linear({self.out_dim})"
+        out_str = f" -> {self.out_linear}"
 
         return class_str + layer_str + pool_str + out_str
 
