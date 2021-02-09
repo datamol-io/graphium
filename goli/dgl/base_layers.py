@@ -123,7 +123,7 @@ class FCLayer(nn.Module):
         return h
 
     def __repr__(self):
-        return f"{self.__class__.__name__}(in_dim={self.in_dim}, out_dim={self.out_dim}, activation={self.activation})"
+        return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}, activation={self.activation})"
 
 
 class MLP(nn.Module):
