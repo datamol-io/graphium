@@ -9,7 +9,7 @@ EPS = 1e-5
 
 
 def get_activation(activation):
-    """ returns the activation function represented by the input string """
+    r""" returns the activation function represented by the input string """
     if activation and callable(activation):
         # activation is already a function
         return activation
@@ -128,7 +128,7 @@ class FCLayer(nn.Module):
 
 
 class MLP(nn.Module):
-    """
+    r"""
     Simple multi-layer perceptron, built of a series of FCLayers
     """
 
@@ -201,7 +201,7 @@ class MLP(nn.Module):
 
 
 class GRU(nn.Module):
-    """
+    r"""
     Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
     """
 
@@ -212,7 +212,7 @@ class GRU(nn.Module):
         self.gru = nn.GRU(input_size=input_size, hidden_dim=hidden_dim).to(device)
 
     def forward(self, x, y):
-        """
+        r"""
         :param x:   shape: (B, N, Din) where Din <= input_size (difference is padded)
         :param y:   shape: (B, N, Dh) where Dh <= hidden_dim (difference is padded)
         :return:    shape: (B, N, Dh)

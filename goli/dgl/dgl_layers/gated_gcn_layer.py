@@ -26,7 +26,7 @@ class GatedGCNLayer(BaseDGLLayer):
         dropout: float = 0.0,
         batch_norm: bool = False,
     ):
-        """
+        r"""
         ResGatedGCN: Residual Gated Graph ConvNets
         An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and Thomas Laurent, ICLR 2018)
         https://arxiv.org/pdf/1711.07553v2.pdf

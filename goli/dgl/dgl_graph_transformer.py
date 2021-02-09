@@ -19,7 +19,7 @@ from goli.mol_utils.properties import get_atom_features, get_edge_features
 class DGLGraphTransformer(AdjGraphTransformer):
 
     def __init__(self, explicit_H=False, chirality=True, edge_label_only=False):
-        """
+        r"""
         Transforms a molecule into a DGL graph for neural message passing algorithms
 
         Parameters:
@@ -49,7 +49,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
             self.n_bond_feat = 1
 
     def _transform(self, mol):
-        """
+        r"""
         Transforms a molecule into a DGL graph and a set of atom and bond features
         :raises ValueError: when input molecule is None
 
@@ -126,7 +126,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
         return out
 
     def __call__(self, mols, dtype=torch.float, device=None, **kwargs):
-        """
+        r"""
         Transforms a batch of N molecules into a DGL representation.
 
         !!! note

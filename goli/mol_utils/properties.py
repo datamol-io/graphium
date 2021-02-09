@@ -16,7 +16,7 @@ def get_weight(mol):
 
 
 def get_prop_or_none(prop, n, *args, **kwargs):
-    """
+    r"""
     return properties. If error, return list of `None` with lenght `n`.
     """
     try:
@@ -26,7 +26,7 @@ def get_prop_or_none(prop, n, *args, **kwargs):
 
 
 def mol_from_smiles_or_mol(smiles_or_mol):
-    """
+    r"""
     Return an rdkit molecule based on the smiles or input molecule.
     """
     if isinstance(smiles_or_mol, str):
@@ -39,7 +39,7 @@ def mol_from_smiles_or_mol(smiles_or_mol):
 
 
 def get_props_from_mol(mol, properties="autocorr3d"):
-    """
+    r"""
     Function to get a given set of desired properties from a molecule,
     and output a property list.
 
@@ -127,7 +127,7 @@ def get_props_from_mol(mol, properties="autocorr3d"):
 
 
 def one_of_k_encoding(val, num_classes, dtype=int):
-    """Converts a single value to a one-hot vector.
+    r"""Converts a single value to a one-hot vector.
 
     Parameters:
         val: int
@@ -155,7 +155,7 @@ def one_of_k_encoding(val, num_classes, dtype=int):
 
 
 def get_atom_features(atom, explicit_H=False, use_chirality=True):
-    """
+    r"""
     Get the following set of features for any given atom
 
     * One-hot representation of the atom
@@ -215,7 +215,7 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
 
 
 def get_edge_features(bond):
-    """
+    r"""
     Get the following set of features for any given bond
     See `goli.mol_utils.nmp` for allowed values in one hot encoding
 
@@ -248,7 +248,7 @@ def get_edge_features(bond):
 
 
 def mol_to_graph(mol, explicit_H=False, use_chirality=False):
-    """
+    r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom (and bond) features.
     :raises ValueError: when input molecule is None

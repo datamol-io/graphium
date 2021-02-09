@@ -32,7 +32,7 @@ class BasePNALayer(BaseDGLLayer):
         avg_d: float = 1.0,
         last_activation="none",
     ):
-        """
+        r"""
         Abstract class used to standardize the implementation of PNA layers
         in the current library.
 
@@ -165,7 +165,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         last_activation="none",
         posttrans_layers: int = 1,
     ):
-        """
+        r"""
         Implementation of the convolutional architecture of the PNA layer,
         previously known as `PNASimpleLayer`. This layer aggregates the
         neighbouring messages using multiple aggregators and scalers,
@@ -322,7 +322,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         pretrans_layers: int = 1,
         in_dim_edges: int = 0,
     ):
-        """
+        r"""
         Implementation of the convolutional architecture of the PNA layer,
         previously known as `PNASimpleLayer`. This layer aggregates the
         neighbouring messages using multiple aggregators and scalers,

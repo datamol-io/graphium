@@ -186,7 +186,7 @@ class FeedForwardNN(nn.Module):
         return h
 
     def __repr__(self):
-        """
+        r"""
         Controls how the class is printed
         """
         class_str = f"{self.__class__.__name__}(depth={self.depth})"
@@ -392,7 +392,7 @@ class FeedForwardDGL(FeedForwardNN):
         return pooled_h
 
     def __repr__(self):
-        """
+        r"""
         Controls how the class is printed
         """
         class_str = f"{self.__class__.__name__}(depth={self.depth})"

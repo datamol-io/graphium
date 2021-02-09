@@ -10,7 +10,7 @@ from goli.commons.utils import ModuleListConcat
 
 
 class S2SReadout(nn.Module):
-    """
+    r"""
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
@@ -39,7 +39,7 @@ class S2SReadout(nn.Module):
 
 
 class StdPooling(nn.Module):
-    """Apply standard deviation pooling over the nodes in the graph.
+    r"""Apply standard deviation pooling over the nodes in the graph.
 
     $$r^{(i)} = \sigma_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
     """
@@ -50,7 +50,7 @@ class StdPooling(nn.Module):
         self.relu = nn.ReLU()
 
     def forward(self, graph, feat):
-        """Compute standard deviation pooling.
+        r"""Compute standard deviation pooling.
 
         Parameters:
             graph : DGLGraph
@@ -72,13 +72,13 @@ class StdPooling(nn.Module):
 
 
 class MinPooling(MaxPooling):
-    """Apply min pooling over the nodes in the graph.
+    r"""Apply min pooling over the nodes in the graph.
 
     $$r^{(i)} = \min_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
     """
 
     def forward(self, graph, feat):
-        """Compute max pooling.
+        r"""Compute max pooling.
 
         Parameters:
             graph : DGLGraph
@@ -97,7 +97,7 @@ class MinPooling(MaxPooling):
 
 
 def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_layers: int = 2):
-    """
+    r"""
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
 

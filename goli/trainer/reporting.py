@@ -6,7 +6,7 @@ import itertools
 
 
 class TrainingProgressFromSummary(pl.Callback):
-    """
+    r"""
     Callback for logging epoch-wise metrics at the end of each epoch.
     Basically the same as TrainingProgress, but much cleaner.
     A EpochSummary class has collected the epoch results.
@@ -14,7 +14,7 @@ class TrainingProgressFromSummary(pl.Callback):
     """
 
     def __init__(self, metrics: Dict):
-        """
+        r"""
         :param metrics: map metric name to Metric class (name will be appended with partition)
         """
         super().__init__()
@@ -22,7 +22,7 @@ class TrainingProgressFromSummary(pl.Callback):
         self.metrics = metrics
 
     def on_epoch_end(self, trainer: pl.Trainer, module):
-        """Gets called by trainer after epoch end"""
+        r"""Gets called by trainer after epoch end"""
         self._log_metrics(module)
 
     def _log_metrics(self, module):
@@ -36,7 +36,7 @@ class TrainingProgressFromSummary(pl.Callback):
 
 
 class BestEpochFromSummary(pl.Callback):
-    """
+    r"""
     Reporting and updating metrics of the best epoch.
     Best epoch := lowest validation loss.
     Like the one above, this one needs the EpochSummary to have collected results.
@@ -52,7 +52,7 @@ class BestEpochFromSummary(pl.Callback):
         self.metrics = metrics
 
     def on_epoch_end(self, trainer: pl.Trainer, module):
-        """Gets called by trainer after epoch end"""
+        r"""Gets called by trainer after epoch end"""
         results = module.epoch_summary.get_results("val")
         if results.loss < self.best_loss:
             self.best_loss = results.loss
@@ -69,7 +69,7 @@ class BestEpochFromSummary(pl.Callback):
 
 
 class ModelSummaryExtended(ModelSummary):
-    """
+    r"""
     Generates a summary of all layers in a :class:`~pytorch_lightning.core.lightning.LightningModule`.
     The summary is extended to allow different levels.
 

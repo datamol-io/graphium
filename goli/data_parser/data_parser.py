@@ -9,7 +9,7 @@ from rdkit.Chem.Descriptors import ExactMolWt
 
 
 def read_file(filepath, as_ext=None, **kwargs):
-    """
+    r"""
     Allow to read different file format and parse them into a MolecularDataFrame.
     Supported formats are:
     * csv (.csv, .smile, .smiles)
@@ -63,7 +63,7 @@ def read_file(filepath, as_ext=None, **kwargs):
 
 
 def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
-    """
+    r"""
     Allows to read an SDF file containing molecular informations, convert
     it to a pandas DataFrame and convert the molecules to SMILES. It also
     lists a warning of all the molecules that couldn't be read.
@@ -117,7 +117,7 @@ def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
 
 
 def load_sdf(sdf_path):
-    """ Load sdf file from local or s3 path. """
+    r""" Load sdf file from local or s3 path. """
 
     if "s3://" not in sdf_path:
         data = Chem.SDMolSupplier(sdf_path)

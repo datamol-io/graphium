@@ -57,7 +57,7 @@ class ModelWrapper(pl.LightningModule):
         collate_fn=None,
         additional_hparams=None,
     ):
-        """
+        r"""
 
         A class that allows to use regression or classification models easily
         with Pytorch-Lightning.
@@ -202,7 +202,7 @@ class ModelWrapper(pl.LightningModule):
         return loss_fun
 
     def forward(self, *inputs: List[torch.Tensor]):
-        """"""
+        r""""""
 
         out = self.model(*inputs)
         if out.ndim == 1:
