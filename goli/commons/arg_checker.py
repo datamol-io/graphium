@@ -47,7 +47,7 @@ def _enforce_iter_type(arg, enforce_type):
     return arg
 
 
-def check_arg_iterator(arg, enforce_type= None, enforce_subtype=None, cast_subtype: bool = True):
+def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtype: bool = True):
     r"""
     Verify if the type is an iterator. If it is `None`, convert to an empty list/tuple. If it is
     not a list/tuple/str, try to convert to an iterator. If it is a str or cannot be converted to
