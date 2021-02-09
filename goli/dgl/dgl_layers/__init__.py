@@ -1,3 +1,4 @@
+from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.dgl.dgl_layers.gat_layer import GATLayer
 from goli.dgl.dgl_layers.gcn_layer import GCNLayer
 from goli.dgl.dgl_layers.gin_layer import GINLayer

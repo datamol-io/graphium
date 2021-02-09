@@ -212,9 +212,15 @@ class GRU(nn.Module):
 
     def forward(self, x, y):
         r"""
-        :param x:   shape: (B, N, Din) where Din <= input_size (difference is padded)
-        :param y:   shape: (B, N, Dh) where Dh <= hidden_dim (difference is padded)
-        :return:    shape: (B, N, Dh)
+        Parameters:
+            x (torch.Tensor[B, N, Din]):
+                where Din <= input_size (difference is padded)
+            y (torch.Tensor[B, N, Dh]):
+                where Dh <= hidden_dim (difference is padded)
+
+        Returns:
+            new_x (torch.Tensor[B, N, Dh]):
+
         """
         assert x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_dim
 

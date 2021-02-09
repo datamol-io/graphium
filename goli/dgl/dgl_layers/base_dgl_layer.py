@@ -95,7 +95,7 @@ class BaseDGLLayer(nn.Module):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         supports output edges edges or not.
 
@@ -109,7 +109,7 @@ class BaseDGLLayer(nn.Module):
     @property
     @abc.abstractmethod
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_input_edges`` since a layer that
@@ -125,7 +125,7 @@ class BaseDGLLayer(nn.Module):
     @property
     @abc.abstractmethod
     def layer_outputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_output_edges`` since a layer that
@@ -141,7 +141,7 @@ class BaseDGLLayer(nn.Module):
     @property
     @abc.abstractmethod
     def out_dim_factor(self) -> int:
-        """
+        r"""
         Abstract method.
         Get the factor by which the output dimension is multiplied for
         the next layer.

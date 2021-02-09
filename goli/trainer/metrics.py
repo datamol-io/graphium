@@ -90,7 +90,7 @@ class MetricFunctionToClass(nn.Module):
 
 
 def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
-    """
+    r"""
     Computes the pearsonr correlation.
 
     Parameters:
@@ -125,7 +125,7 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
 
 
 def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
-    """
+    r"""
     Computes the spearmanr correlation.
 
     Parameters:
