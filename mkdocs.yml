@@ -53,6 +53,8 @@ markdown_extensions:
 plugins:
   - search
   - mkdocstrings:
+      watch:
+        - goli/
       handlers:
         python:
           setup_commands:
