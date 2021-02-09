@@ -17,30 +17,26 @@ from goli.mol_utils.properties import get_atom_features, get_edge_features
 
 
 class DGLGraphTransformer(AdjGraphTransformer):
-    r"""
-    Transforms a molecule into a DGL graph for neural message passing algorithms
-
-    Arguments:
-        explicit_H: bool, optional
-            Whether to consider hydrogen atoms explicitely. If this option
-            is set to False, the number of hydrogen bond formed by the atom will be considered as a feature.
-            (Default value = False)
-        chirality: bool, optional
-            Use chirality as a feature.
-            (Default value = True)
-        edge_label_only: bool, optional
-            Do not compute bond features, and only use edge type as features
-            (Default value = False)
-
-    Attributes:
-        n_atom_feat: Number of features per atom. This is computed dynamically according to the
-            input parameters
-        n_bond_feat: Number of bond features. This attribute is also computed dynamically
-
-
-    """
-
     def __init__(self, explicit_H=False, chirality=True, edge_label_only=False):
+        r"""
+        Transforms a molecule into a DGL graph for neural message passing algorithms
+
+        Parameters:
+            explicit_H: bool
+                Whether to consider hydrogen atoms explicitely. If this option
+                is set to False, the number of hydrogen bond formed by the atom will be considered as a feature.
+            chirality: bool
+                Use chirality as a feature.
+            edge_label_only: bool
+                Do not compute bond features, and only use edge type as features
+
+        Attributes:
+            n_atom_feat: Number of features per atom. This is computed dynamically according to the
+                input parameters
+            n_bond_feat: Number of bond features. This attribute is also computed dynamically
+
+        """
+
         super().__init__(
             max_n_atoms=None,
             with_bond=False,
@@ -56,7 +52,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
         Transforms a molecule into a DGL graph and a set of atom and bond features
         :raises ValueError: when input molecule is None
 
-        Arguments:
+        Parameters:
             mol: rdkit.Chem.Mol
                 The molecule to be converted
 
@@ -132,21 +128,20 @@ class DGLGraphTransformer(AdjGraphTransformer):
         r"""
         Transforms a batch of N molecules into a DGL representation.
 
-        .. note::
+        !!! note
             In contrast to the transform method for this class (DGLGraphTransformer),
             the __call__ returns a list of DGL objects (with atom and bond features already added),
             and not a list of tuples. It's important to understand the difference,
             as the `__call__` method is seen as a shortcut to speed up data processing in most experiments.
 
-        Arguments:
+        Parameters:
             mols: (str or rdkit.Chem.Mol) iterable
                 The list of input smiles or molecules
             dtype: torch.dtype or None
                 Datatype of the transformed variable.
                 Expect a tensor if you provide a torch dtype, a numpy array if you provide anything
                 else that remains a valid (numpy) dtype.
-                (Default value = torch.long)
-            device: torch.device, optional
+            device: torch.device
                 The device on which to run the computation
             kwargs: named parameters for transform (see below)
 
@@ -158,9 +153,8 @@ class DGLGraphTransformer(AdjGraphTransformer):
             ids: array
                 all valid molecule positions that did not failed during featurization
 
-        See Also
-        --------
-            :func:`~goli.mol_utils.MolGraphTransformer.transform`
+        !!! seealso
+            `goli.mol_utils.MolGraphTransformer.transform`
 
         """
 

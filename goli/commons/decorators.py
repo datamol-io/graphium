@@ -3,16 +3,13 @@ class classproperty(property):
     Decorator used to declare a static property, defined for the class
     without needing to instanciate an object.
 
-    Example
-    -----------
+    !!! Example
 
-        .. code-block:: python
-
-                @classproperty
-
-                def my_static_property(cls):
-                    return 5
-
+        ``` python linenums="1"
+            @classproperty
+            def my_static_property(cls):
+                return 5
+        ```
     """
 
     def __get__(self, cls, owner):

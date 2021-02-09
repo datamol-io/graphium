@@ -93,7 +93,7 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
     """
     Computes the pearsonr correlation.
 
-    Arguments:
+    Parameters:
         preds: estimated labels
         target: ground truth labels
         reduction: a method to reduce metric score over labels.
@@ -104,11 +104,13 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
     Returns:
         Tensor with the pearsonr
 
-    Example:
-        >>> x = torch.tensor([0., 1, 2, 3])
-        >>> y = torch.tensor([0., 1, 2, 2])
-        >>> pearsonr(x, y)
-        tensor(0.9439)
+    !!! Example
+        ``` python linenums="1"
+        x = torch.tensor([0., 1, 2, 3])
+        y = torch.tensor([0., 1, 2, 2])
+        pearsonr(x, y)
+        >>> tensor(0.9439)
+        ```
     """
 
     shifted_x = preds - torch.mean(preds, dim=0)
@@ -126,7 +128,7 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
     """
     Computes the spearmanr correlation.
 
-    Arguments:
+    Parameters:
         preds: estimated labels
         target: ground truth labels
         reduction: a method to reduce metric score over labels.
@@ -137,10 +139,10 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
     Returns:
         Tensor with the spearmanr
 
-    Example:
-        >>> x = torch.tensor([0., 1, 2, 3])
-        >>> y = torch.tensor([0., 1, 2, 1.5])
-        >>> spearmanr(x, y)
+    !!! Example
+        x = torch.tensor([0., 1, 2, 3])
+        y = torch.tensor([0., 1, 2, 1.5])
+        spearmanr(x, y)
         tensor(0.8)
     """
 

@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable
 import torch.nn as nn
 import pytorch_lightning as pl
 from pytorch_lightning.core.memory import ModelSummary
@@ -6,26 +6,25 @@ import itertools
 
 
 class TrainingProgressFromSummary(pl.Callback):
-    """
+    r"""
     Callback for logging epoch-wise metrics at the end of each epoch.
     Basically the same as TrainingProgress, but much cleaner.
     A EpochSummary class has collected the epoch results.
     The fitting base module would be `SummarizeEpochs`.
     """
 
-    def __init__(self, metrics: Dict):
-        """
+    def __init__(self, metrics: Dict[str, Callable]):
+        r"""
         :param metrics: map metric name to Metric class (name will be appended with partition)
         """
         super().__init__()
-        self.metrics = {}
         self.metrics = metrics
 
-    def on_epoch_end(self, trainer: pl.Trainer, module):
-        """Gets called by trainer after epoch end"""
+    def on_epoch_end(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
+        r"""Gets called by trainer after epoch end"""
         self._log_metrics(module)
 
-    def _log_metrics(self, module):
+    def _log_metrics(self, module: pl.LightningModule) -> None:
         log = {}
         for part in module.epoch_summary.summaries.keys():
             results = module.epoch_summary.get_results(part)
@@ -36,7 +35,7 @@ class TrainingProgressFromSummary(pl.Callback):
 
 
 class BestEpochFromSummary(pl.Callback):
-    """
+    r"""
     Reporting and updating metrics of the best epoch.
     Best epoch := lowest validation loss.
     Like the one above, this one needs the EpochSummary to have collected results.
@@ -46,19 +45,19 @@ class BestEpochFromSummary(pl.Callback):
     This logger works but it also has some issues (see its docstring).
     """
 
-    def __init__(self, metrics: Dict):
+    def __init__(self, metrics: Dict[str, Callable]):
         super().__init__()
         self.best_loss = float("inf")
         self.metrics = metrics
 
-    def on_epoch_end(self, trainer: pl.Trainer, module):
-        """Gets called by trainer after epoch end"""
+    def on_epoch_end(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
+        r"""Gets called by trainer after epoch end"""
         results = module.epoch_summary.get_results("val")
         if results.loss < self.best_loss:
             self.best_loss = results.loss
             self._log_hparams_metrics(module)
 
-    def _log_hparams_metrics(self, module):
+    def _log_hparams_metrics(self, module: pl.LightningModule) -> None:
         metrics = {}
         for key in module.epoch_summary.summaries.keys():
             results = module.epoch_summary.get_results(key)
@@ -69,7 +68,7 @@ class BestEpochFromSummary(pl.Callback):
 
 
 class ModelSummaryExtended(ModelSummary):
-    """
+    r"""
     Generates a summary of all layers in a :class:`~pytorch_lightning.core.lightning.LightningModule`.
     The summary is extended to allow different levels.
 

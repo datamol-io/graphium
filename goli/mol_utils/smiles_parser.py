@@ -26,31 +26,30 @@ def is_iterable(obj):
 
 
 class SuppressRdkit(object):
-    r"""
-    Class meant to suppress the rdkit errors using a
-    `with` statement such that the error is only suppressed
-    for the execution of specific lines of code.
-
-    Parameters:
-
-        mute_errors: bool, optional
-            Whether to mute the rdkit messages or not
-
-        error_str: str, optional
-            The type of rdkit errors to mute
-
-            - 'rdApp.*': Mute everything
-            - 'rdApp.error': Mute errors only
-            - any other rdApp type
-
-            (Default='rdApp.*')
-
-    Example:
-        with SuppressRdkit(mute_errors=mute_errors) :
-            mol = Chem.MolFromSmiles(smiles_str, sanitize=sanitize)
-    """
-
     def __init__(self, mute_errors=True, error_str="rdApp.*"):
+
+        """
+        Class meant to suppress the rdkit errors using a
+        `with` statement such that the error is only suppressed
+        for the execution of specific lines of code.
+
+        Parameters:
+
+            mute_errors: bool
+                Whether to mute the rdkit messages or not
+
+            error_str: str
+                The type of rdkit errors to mute
+
+                - 'rdApp.*': Mute everything
+                - 'rdApp.error': Mute errors only
+                - any other rdApp type
+
+        !!! Example
+            with SuppressRdkit(mute_errors=mute_errors) :
+                mol = Chem.MolFromSmiles(smiles_str, sanitize=sanitize)
+        """
+
         self.mute_errors = mute_errors
         self.error_str = error_str
 
@@ -74,20 +73,20 @@ def is_smiles(smiles_str, sanitize=False, check_mass=True, mute_errors=True):
     Attributes:
         smiles_str: str
             The SMILES to check for validity
-        sanitize: bool, Optional
+        sanitize: bool
             If ``True``, the molecule will be generated to validate the bonds and structure.
             If ``False``, only the SMILES syntax is taken into account.
             Use ``False`` for faster computation, and ``True`` for more precise molecular
             validation.
-            (Default = False)
-        check_mass: bool, Optional
+
+        check_mass: bool
             If ``True``, it will verify that the mass of the molecule is greater
             than 0. It is only used if ``sanitize`` is set to ``True``, otherwise
             it is ignored.
-            (Default = True)
-        mute_errors: bool, Optional
+
+        mute_errors: bool
             Whether to mute the errors from rdkit when a string does not parse
-            (Default=True)
+
     Returns:
         is_valid_smiles: bool
             Whether the SMILES has a valid syntax and characters.
@@ -133,23 +132,23 @@ def any_smiles_iterable(smiles, sanitize=False, check_mass=True, min_count=1, mu
         smiles: str, iterator(str) or numpy.ndarray(str)
             The iterator of SMILES to check for validity.
             If a string is passed, the smiles is put in a list.
-        sanitize: bool, Optional
+        sanitize: bool
             If ``True``, the molecule will be generated to validate the bonds and structure.
             If ``False``, only the SMILES syntax is taken into account.
             Use ``False`` for faster computation, and ``True`` for more precise molecular
             validation.
-            (Default = False)
-        check_mass: bool, Optional
+
+        check_mass: bool
             If ``True``, it will verify that the mass of the molecule is greater
             than 0. It is only used if ``sanitize`` is set to ``True``, otherwise
             it is ignored.
-            (Default = True)
-        min_count: int, Optional
+
+        min_count: int
             The number of counts of smiles for the function output ``True``.
-            (Default=1)
-        mute_errors: bool, Optional
+
+        mute_errors: bool
             Whether to mute the errors from rdkit when a string does not parse
-            (Default=True)
+
 
     Returns:
         is_any_smiles: bool
@@ -197,20 +196,20 @@ def all_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=Tru
         smiles: str, iterator(str) or numpy.ndarray(str)
             The iterator of SMILES to check for validity.
             If a string is passed, the smiles is put in a list.
-        sanitize: bool, Optional
+        sanitize: bool
             If ``True``, the molecule will be generated to validate the bonds and structure.
             If ``False``, only the SMILES syntax is taken into account.
             Use ``False`` for faster computation, and ``True`` for more precise molecular
             validation.
-            (Default = False)
-        check_mass: bool, Optional
+
+        check_mass: bool
             If ``True``, it will verify that the mass of the molecule is greater
             than 0. It is only used if ``sanitize`` is set to ``True``, otherwise
             it is ignored.
-            (Default = True)
-        mute_errors: bool, Optional
+
+        mute_errors: bool
             Whether to mute the errors from rdkit when a string does not parse
-            (Default=True)
+
 
     Returns:
         is_all_smiles: bool
@@ -259,27 +258,27 @@ def is_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=True
         smiles: str, iterator(str) or numpy.ndarray(str)
             The iterator of SMILES to check for validity.
             If a string is passed, the smiles is put in a list.
-        sanitize: bool, Optional
+        sanitize: bool
             If ``True``, the molecule will be generated to validate the bonds and structure.
             If ``False``, only the SMILES syntax is taken into account.
             Use ``False`` for faster computation, and ``True`` for more precise molecular
             validation.
-            (Default = False)
-        check_mass: bool, Optional
+
+        check_mass: bool
             If ``True``, it will verify that the mass of the molecule is greater
             than 0. It is only used if ``sanitize`` is set to ``True``, otherwise
             it is ignored.
-            (Default = True)
-        mute_errors: bool, Optional
+
+        mute_errors: bool
             Whether to mute the errors from rdkit when a string does not parse
-            (Default=True)
-        verbose: int, Optional
+
+        verbose: int
             - 0: Don't print anything
             - 1: Print a summary of the number of good and bad SMILES.
             - 2: Print every 100,000 molecules tested.
             - 3: Print the bad smiles
 
-            (Default = 0)
+
 
     Returns:
         is_smiles_array: bool, iterator(bool) or numpy.ndarray(bool)
@@ -287,11 +286,11 @@ def is_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=True
             The iterator or array has the same shape as the original input.
             If a single ``str`` is passed, then the output is a boolean
 
-    See Also:
-        ivbase.utils.commons.is_smiles:
-        ivbase.utils.commons.any_smiles_iterable:
-        ivbase.utils.commons.is_fingerprint:
-        ivbase.utils.commons.all_smiles_iterable:
+    !!! seealso
+        `ivbase.utils.commons.is_smiles`
+        `ivbase.utils.commons.any_smiles_iterable`
+        `ivbase.utils.commons.is_fingerprint`
+        `ivbase.utils.commons.all_smiles_iterable`
 
 
     """
@@ -359,31 +358,29 @@ def filter_bad_smiles(
             The dataframe on which the rows will be filtered.
         smiles_cols: list
             The name of the column to be used to filter the bad smiles.
-        sanitize: bool, Optional
+        sanitize: bool
             If ``True``, the molecule will be generated to validate the bonds and structure.
             If ``False``, only the SMILES syntax is taken into account.
             Use ``False`` for faster computation, and ``True`` for more precise molecular
             validation.
-            (Default = False)
-        return_valid_smiles_idx: bool, Optional
+
+        return_valid_smiles_idx: bool
             Whether to return the boolean array of valid indexes.
-            (Default = False)
-        reset_index: bool, Optional
+
+        reset_index: bool
             Whether to reset the indexes after the smiles are filtered.
-            (Default = True)
-        verbose: int, Optional
+
+        verbose: int
             - 0: Don't print anything
             - 1: Print a summary of the number of good and bad SMILES.
             - 2: Print progress every 100,000 molecules tested.
             - 3: Print the bad smiles
 
-            (Default = 0)
-
     Returns:
         df: pd.DataFrame
             The DataFrame with the rows filtered according to the
             bad detected SMILES.
-        is_smiles: numpy.ndarray(bool), Optional
+        is_smiles: numpy.ndarray(bool)
             The array containing boolean ``True`` value at the indexes where
             the SMILES are valid, and ``False`` elsewhere.
 

@@ -16,7 +16,7 @@ def get_weight(mol):
 
 
 def get_prop_or_none(prop, n, *args, **kwargs):
-    """
+    r"""
     return properties. If error, return list of `None` with lenght `n`.
     """
     try:
@@ -26,7 +26,7 @@ def get_prop_or_none(prop, n, *args, **kwargs):
 
 
 def mol_from_smiles_or_mol(smiles_or_mol):
-    """
+    r"""
     Return an rdkit molecule based on the smiles or input molecule.
     """
     if isinstance(smiles_or_mol, str):
@@ -39,7 +39,7 @@ def mol_from_smiles_or_mol(smiles_or_mol):
 
 
 def get_props_from_mol(mol, properties="autocorr3d"):
-    """
+    r"""
     Function to get a given set of desired properties from a molecule,
     and output a property list.
 
@@ -129,16 +129,16 @@ def get_props_from_mol(mol, properties="autocorr3d"):
 def one_of_k_encoding(val, num_classes, dtype=int):
     r"""Converts a single value to a one-hot vector.
 
-    Arguments:
+    Parameters:
         val: int
             class to be converted into a one hot vector
             (integers from 0 to num_classes).
         num_classes: iterator
             a list or 1D array of allowed
             choices for val to take
-        dtype: type, optional
+        dtype: type
             data type of the the return.
-            (Default value = int). Other possible types are float, bool, ...
+            Possible types are int, float, bool, ...
     Returns:
         A numpy 1D array of length len(num_classes) + 1
     """
@@ -167,12 +167,12 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
     * The atom's number of radical electrons
     * Whether the atom is in a ring
 
-    Additionally, the following features can be set, depending on the value of input arguments
+    Additionally, the following features can be set, depending on the value of input Parameters
 
     * One-hot representation of the number of hydrogen atom in the the current atom neighborhood if `explicit_H` is false
     * One-hot encoding of the atom chirality, and whether such configuration is even possible
 
-    Arguments:
+    Parameters:
         mol: `rdkit.Chem.Molecule`
             the molecule of interest
 
@@ -225,7 +225,7 @@ def get_edge_features(bond):
     * Whether the bond is conjugated
     * Whether the bond is in a ring
 
-    Arguments:
+    Parameters:
         mol: rdkit.Chem.Molecule
             the molecule of interest
 
@@ -253,7 +253,7 @@ def mol_to_graph(mol, explicit_H=False, use_chirality=False):
     and a set of atom (and bond) features.
     :raises ValueError: when input molecule is None
 
-    Arguments:
+    Parameters:
         mol (rdkit.Chem.Mol): The molecule to be converted
 
     Returns:
