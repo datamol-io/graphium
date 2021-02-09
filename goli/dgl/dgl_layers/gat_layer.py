@@ -16,43 +16,42 @@ from goli.commons.decorators import classproperty
 
 
 class GATLayer(BaseDGLLayer):
-    """
-    GAT: Graph Attention Network
-    Graph Attention Networks (Veličković et al., ICLR 2018)
-    https://arxiv.org/abs/1710.10903
-
-    The implementation is built on top of the DGL ``GATCONV`` layer
-
-    Parameters:
-
-        in_dim: int
-            Input feature dimensions of the layer
-
-        out_dim: int
-            Output feature dimensions of the layer
-
-        num_heads: int
-            Number of heads in Multi-Head Attention
-
-        activation: str, Callable, Default="elu"
-            activation function to use in the layer
-
-        dropout: float, Default=0.
-            The ratio of units to dropout. Must be between 0 and 1
-
-        batch_norm: bool, Default=False
-            Whether to use batch normalization
-    """
-
     def __init__(
         self,
         in_dim: int,
         out_dim: int,
-        num_heads,
+        num_heads: int,
         activation="elu",
         dropout: float = 0.0,
         batch_norm: bool = False,
     ):
+        r"""
+        GAT: Graph Attention Network
+        Graph Attention Networks (Veličković et al., ICLR 2018)
+        https://arxiv.org/abs/1710.10903
+
+        The implementation is built on top of the DGL ``GATCONV`` layer
+
+        Parameters:
+
+            in_dim: int
+                Input feature dimensions of the layer
+
+            out_dim: int
+                Output feature dimensions of the layer
+
+            num_heads: int
+                Number of heads in Multi-Head Attention
+
+            activation: str, Callable
+                activation function to use in the layer
+
+            dropout: float
+                The ratio of units to dropout. Must be between 0 and 1
+
+            batch_norm: bool
+                Whether to use batch normalization
+        """
 
         super().__init__(
             in_dim=in_dim,
@@ -74,7 +73,7 @@ class GATLayer(BaseDGLLayer):
         )
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        r"""
+        """
         Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
 
@@ -87,7 +86,7 @@ class GATLayer(BaseDGLLayer):
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-            Returns:
+        Returns:
 
             h: torch.Tensor(..., N, Dout)
                 Node feature tensor, after convolution.
@@ -102,7 +101,7 @@ class GATLayer(BaseDGLLayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
@@ -114,7 +113,7 @@ class GATLayer(BaseDGLLayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        r"""
+        """
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -129,7 +128,7 @@ class GATLayer(BaseDGLLayer):
 
     @property
     def layer_outputs_edges(self) -> bool:
-        r"""
+        """
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -144,7 +143,7 @@ class GATLayer(BaseDGLLayer):
 
     @property
     def out_dim_factor(self) -> int:
-        r"""
+        """
         Get the factor by which the output dimension is multiplied for
         the next layer.
 

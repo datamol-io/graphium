@@ -9,7 +9,7 @@ EPS = 1e-5
 
 
 def get_activation(activation):
-    """ returns the activation function represented by the input string """
+    r""" returns the activation function represented by the input string """
     if activation and callable(activation):
         # activation is already a function
         return activation
@@ -26,56 +26,6 @@ def get_activation(activation):
 
 
 class FCLayer(nn.Module):
-    r"""
-    A simple fully connected and customizable layer. This layer is centered around a torch.nn.Linear module.
-    The order in which transformations are applied is:
-    #. Dense Layer
-    #. Activation
-    #. Dropout (if applicable)
-    #. Batch Normalization (if applicable)
-
-    Parameters:
-        in_dim:
-            type: int
-            Input dimension of the layer (the torch.nn.Linear)
-        out_dim: int
-            Output dimension of the layer.
-        dropout:
-            type: float
-            Default:0.
-            The ratio of units to dropout. No dropout by default.
-            (Default value = 0.)
-        activation: str or callable, optional
-            Activation function to use.
-            (Default value = relu)
-        batch_norm: bool, optional
-            Whether to use batch normalization
-            (Default value = False)
-        bias: bool, optional
-            Whether to enable bias in for the linear layer.
-            (Default value = True)
-        init_fn: callable, optional
-            Initialization function to use for the weight of the layer. Default is
-            :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` with :math:`k=\frac{1}{ \text{in_dim}}`
-            (Default value = None)
-
-    Attributes:
-        dropout: int
-            The ratio of units to dropout.
-        batch_norm: int
-            Whether to use batch normalization
-        linear: torch.nn.Linear
-            The linear layer
-        activation: the torch.nn.Module
-            The activation layer
-        init_fn: function
-            Initialization function used for the weight of the layer
-        in_dim: int
-            Input dimension of the linear layer
-        out_dim: int
-            Output dimension of the linear layer
-    """
-
     def __init__(
         self,
         in_dim: int,
@@ -86,6 +36,50 @@ class FCLayer(nn.Module):
         bias=True,
         init_fn=None,
     ):
+
+        r"""
+        A simple fully connected and customizable layer. This layer is centered around a torch.nn.Linear module.
+        The order in which transformations are applied is:
+
+        - Dense Layer
+        - Activation
+        - Dropout (if applicable)
+        - Batch Normalization (if applicable)
+
+        Parameters:
+            in_dim: int
+                Input dimension of the layer (the torch.nn.Linear)
+            out_dim: int
+                Output dimension of the layer.
+            dropout:
+                The ratio of units to dropout. No dropout by default.
+            activation: str or callable
+                Activation function to use.
+            batch_norm: bool
+                Whether to use batch normalization
+            bias: bool
+                Whether to enable bias in for the linear layer.
+            init_fn: callable
+                Initialization function to use for the weight of the layer. Default is
+                $$\mathcal{U}(-\sqrt{k}, \sqrt{k})$$ with $$k=\frac{1}{ \text{in_dim}}$$
+
+        Attributes:
+            dropout: int
+                The ratio of units to dropout.
+            batch_norm: int
+                Whether to use batch normalization
+            linear: torch.nn.Linear
+                The linear layer
+            activation: the torch.nn.Module
+                The activation layer
+            init_fn: function
+                Initialization function used for the weight of the layer
+            in_dim: int
+                Input dimension of the linear layer
+            out_dim: int
+                Output dimension of the linear layer
+        """
+
         super().__init__()
 
         self.__params = locals()
@@ -133,7 +127,7 @@ class FCLayer(nn.Module):
 
 
 class MLP(nn.Module):
-    """
+    r"""
     Simple multi-layer perceptron, built of a series of FCLayers
     """
 
@@ -206,7 +200,7 @@ class MLP(nn.Module):
 
 
 class GRU(nn.Module):
-    """
+    r"""
     Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
     """
 
@@ -217,7 +211,7 @@ class GRU(nn.Module):
         self.gru = nn.GRU(input_size=input_size, hidden_dim=hidden_dim).to(device)
 
     def forward(self, x, y):
-        """
+        r"""
         :param x:   shape: (B, N, Din) where Din <= input_size (difference is padded)
         :param y:   shape: (B, N, Dh) where Dh <= hidden_dim (difference is padded)
         :return:    shape: (B, N, Dh)

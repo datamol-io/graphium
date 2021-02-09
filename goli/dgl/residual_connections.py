@@ -13,23 +13,23 @@ from goli.commons.decorators import classproperty
 
 
 class ResidualConnectionBase(nn.Module):
-    r"""
-    Abstract class for the residual connections. Using this class,
-    we implement different types of residual connections, such as
-    the ResNet, weighted-ResNet, skip-concat and DensNet.
-
-    The following methods must be implemented in a children class
-
-    - ``h_dim_increase_type()``
-    - ``has_weights()``
-
-    Parameters:
-
-        skip_steps: int, Default=1
-            The number of steps to skip between the residual connections.
-    """
-
     def __init__(self, skip_steps: int = 1):
+        r"""
+        Abstract class for the residual connections. Using this class,
+        we implement different types of residual connections, such as
+        the ResNet, weighted-ResNet, skip-concat and DensNet.
+
+        The following methods must be implemented in a children class
+
+        - ``h_dim_increase_type()``
+        - ``has_weights()``
+
+        Parameters:
+
+            skip_steps: int
+                The number of steps to skip between the residual connections.
+        """
+
         super().__init__()
         self.skip_steps = skip_steps
 
@@ -164,18 +164,17 @@ class ResidualConnectionNone(ResidualConnectionBase):
 
 
 class ResidualConnectionSimple(ResidualConnectionBase):
-    r"""
-    Class for the simple residual connections proposed by ResNet,
-    where the current layer output is summed to a
-    previous layer output.
-
-    Parameters:
-
-        skip_steps: int, Default=1
-            The number of steps to skip between the residual connections.
-    """
-
     def __init__(self, skip_steps: int = 1):
+        r"""
+        Class for the simple residual connections proposed by ResNet,
+        where the current layer output is summed to a
+        previous layer output.
+
+        Parameters:
+
+            skip_steps: int
+                The number of steps to skip between the residual connections.
+        """
         super().__init__(skip_steps=skip_steps)
 
     @classproperty
@@ -237,40 +236,40 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
 
 class ResidualConnectionWeighted(ResidualConnectionBase):
-    r"""
-    Class for the simple residual connections proposed by ResNet,
-    with an added layer in the residual connection itself.
-    The layer output is summed to a a non-linear transformation
-    of a previous layer output.
-
-    Parameters:
-
-        skip_steps: int, Default=1
-            The number of steps to skip between the residual connections.
-
-        out_dims: list(int)
-            list of all output dimensions for the network
-            that will use this residual connection.
-            E.g. ``out_dims = [4, 8, 8, 8, 2]``.
-
-        dropout: float, Default=0.
-            value between 0 and 1.0 representing the percentage of dropout
-            to use in the weights
-
-        activation: str, Callable, Default='none'
-            The activation function to use after the skip weights
-
-        batch_norm: bool, Default=False
-            Whether to apply batch normalisation after the weights
-
-        bias: bool, Default=False
-            Whether to apply add a bias after the weights
-
-    """
-
     def __init__(
         self, out_dims, skip_steps: int = 1, dropout=0.0, activation="none", batch_norm=False, bias=False
     ):
+        r"""
+        Class for the simple residual connections proposed by ResNet,
+        with an added layer in the residual connection itself.
+        The layer output is summed to a a non-linear transformation
+        of a previous layer output.
+
+        Parameters:
+
+            skip_steps: int
+                The number of steps to skip between the residual connections.
+
+            out_dims: list(int)
+                list of all output dimensions for the network
+                that will use this residual connection.
+                E.g. ``out_dims = [4, 8, 8, 8, 2]``.
+
+            dropout: float
+                value between 0 and 1.0 representing the percentage of dropout
+                to use in the weights
+
+            activation: str, Callable
+                The activation function to use after the skip weights
+
+            batch_norm: bool
+                Whether to apply batch normalisation after the weights
+
+            bias: bool
+                Whether to apply add a bias after the weights
+
+        """
+
         super().__init__(skip_steps=skip_steps)
 
         self.residual_list = nn.ModuleList()
@@ -350,18 +349,18 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
 
 class ResidualConnectionConcat(ResidualConnectionBase):
-    r"""
-    Class for the simple residual connections proposed but where
-    the skip connection features are concatenated to the current
-    layer features.
-
-    Parameters:
-
-        skip_steps: int, Default=1
-            The number of steps to skip between the residual connections.
-    """
-
     def __init__(self, skip_steps: int = 1):
+        r"""
+        Class for the simple residual connections proposed but where
+        the skip connection features are concatenated to the current
+        layer features.
+
+        Parameters:
+
+            skip_steps: int
+                The number of steps to skip between the residual connections.
+        """
+
         super().__init__(skip_steps=skip_steps)
 
     @classproperty
@@ -425,18 +424,18 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
 
 class ResidualConnectionDenseNet(ResidualConnectionBase):
-    r"""
-    Class for the residual connections proposed by DenseNet, where
-    all previous skip connection features are concatenated to the current
-    layer features.
-
-    Parameters:
-
-        skip_steps: int, Default=1
-            The number of steps to skip between the residual connections.
-    """
-
     def __init__(self, skip_steps: int = 1):
+        r"""
+        Class for the residual connections proposed by DenseNet, where
+        all previous skip connection features are concatenated to the current
+        layer features.
+
+        Parameters:
+
+            skip_steps: int
+                The number of steps to skip between the residual connections.
+        """
+
         super().__init__(skip_steps=skip_steps)
 
     @classproperty

@@ -10,7 +10,7 @@ from goli.commons.utils import ModuleListConcat
 
 
 class S2SReadout(nn.Module):
-    """
+    r"""
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
@@ -41,8 +41,7 @@ class S2SReadout(nn.Module):
 class StdPooling(nn.Module):
     r"""Apply standard deviation pooling over the nodes in the graph.
 
-    .. math::
-        r^{(i)} = \sigma_{k=1}^{N_i}\left( x^{(i)}_k \right)
+    $$r^{(i)} = \sigma_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
     """
 
     def __init__(self):
@@ -75,8 +74,7 @@ class StdPooling(nn.Module):
 class MinPooling(MaxPooling):
     r"""Apply min pooling over the nodes in the graph.
 
-    .. math::
-        r^{(i)} = \min_{k=1}^{N_i}\left( x^{(i)}_k \right)
+    $$r^{(i)} = \min_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
     """
 
     def forward(self, graph, feat):
@@ -118,11 +116,11 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
             - "std": StdPooling
             - "s2s": Set2Set
 
-        n_iters: int, Default=2
+        n_iters: int
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
             The number of iterations.
 
-        n_layers : int, Default=2
+        n_layers : int
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
             The number of recurrent layers.
     """

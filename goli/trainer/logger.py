@@ -19,7 +19,7 @@ from torch.utils.tensorboard.summary import hparams
 
 
 class HyperparamsMetricsTensorBoardLogger(TensorBoardLogger):
-    """
+    r"""
     By default hyperparameters would be logged without any metric at the beginning of the training.
     That's why I silence the "normal" `log_hyperparams` call by pytorch lightning.
     Next, to actually log hyperparameters I am using my own adaption of the original `log_hyperparams`.
