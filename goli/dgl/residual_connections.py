@@ -77,7 +77,7 @@ class ResidualConnectionBase(nn.Module):
 
         true_out_dims = [out_dims[0]]
         out_dims_at_skip = [out_dims[0]]
-        for ii in range(1, len(out_dims)-1):
+        for ii in range(1, len(out_dims) - 1):
 
             # For the `None` type, don't change the output dims
             if self.h_dim_increase_type is None:
@@ -276,7 +276,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         self.skip_count = 0
         self.out_dims = out_dims
 
-        for ii in range(0, len(self.out_dims)-1, self.skip_steps):
+        for ii in range(0, len(self.out_dims) - 1, self.skip_steps):
             this_dim = self.out_dims[ii]
             self.residual_list.append(
                 FCLayer(

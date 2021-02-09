@@ -22,7 +22,7 @@ class test_FeedForwardNN(ut.TestCase):
         "batch_norm": False,
         "dropout": 0.2,
         "name": "LNN",
-        "layer_type":FCLayer,
+        "layer_type": FCLayer,
     }
 
     def test_forward_no_residual(self):
@@ -133,7 +133,6 @@ class test_FeedForwardNN(ut.TestCase):
 
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
 
-
     def test_forward_concat_residual_2(self):
         in_dim = 8
         out_dim = 16
@@ -161,7 +160,6 @@ class test_FeedForwardNN(ut.TestCase):
         h_out = lnn.forward(h)
 
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
-
 
     def test_forward_densenet_residual_1(self):
         in_dim = 8
@@ -191,7 +189,6 @@ class test_FeedForwardNN(ut.TestCase):
 
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
 
-
     def test_forward_densenet_residual_2(self):
         in_dim = 8
         out_dim = 16
@@ -219,7 +216,6 @@ class test_FeedForwardNN(ut.TestCase):
         h_out = lnn.forward(h)
 
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
-
 
     def test_forward_weighted_residual_1(self):
         in_dim = 8
@@ -280,9 +276,6 @@ class test_FeedForwardNN(ut.TestCase):
         h_out = lnn.forward(h)
 
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
-
-
-
 
 
 if __name__ == "__main__":
