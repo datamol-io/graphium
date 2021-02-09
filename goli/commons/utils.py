@@ -2,11 +2,12 @@ import os
 import torch
 import numpy as np
 from matplotlib import pyplot as plt
+from typing import List, Union
 
 from rdkit.Chem import AllChem
 
 
-def save_im(im_dir, im_name, ext=["svg", "png"], dpi=600):
+def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 600) -> None:
 
     if not os.path.exists(im_dir):
         if im_dir[-1] not in ["/", "\\"]:
@@ -21,7 +22,11 @@ def save_im(im_dir, im_name, ext=["svg", "png"], dpi=600):
         plt.savefig(f"{full_name}.{this_ext}", dpi=dpi, bbox_inches="tight", pad_inches=0)
 
 
-def to_tensor(x, device=None, dtype=None):
+def to_tensor(
+    x: np.ndarray,
+    device: Union[torch.device, type(None)] = None,
+    dtype: Union[torch.dtype, type(None)] = None,
+) -> torch.Tensor:
     r"""
     Convert a numpy array to tensor. The tensor type will be
     the same as the original array, unless specify otherwise
@@ -51,7 +56,7 @@ def to_tensor(x, device=None, dtype=None):
     return x
 
 
-def is_dtype_torch_tensor(dtype):
+def is_dtype_torch_tensor(dtype: Union[np.dtype, torch.dtype]) -> bool:
     r"""
     Verify if the dtype is a torch dtype
 
@@ -65,7 +70,7 @@ def is_dtype_torch_tensor(dtype):
     return isinstance(dtype, torch.dtype) or (dtype == torch.Tensor)
 
 
-def is_dtype_numpy_array(dtype):
+def is_dtype_numpy_array(dtype: Union[np.dtype, torch.dtype]) -> bool:
     r"""
     Verify if the dtype is a numpy dtype
 
@@ -86,7 +91,7 @@ def is_dtype_numpy_array(dtype):
     return (is_num or is_numpy) and not is_torch
 
 
-def one_of_k_encoding(val, num_classes, dtype=int):
+def one_of_k_encoding(val: int, num_classes: int, dtype=int) -> np.ndarray:
     r"""Converts a single value to a one-hot vector.
 
     Parameters:
@@ -114,7 +119,7 @@ def one_of_k_encoding(val, num_classes, dtype=int):
     return encoding
 
 
-def is_device_cuda(device, ignore_errors=False):
+def is_device_cuda(device: torch.device, ignore_errors: bool = False) -> bool:
     r"""Check wheter the given device is a cuda device.
 
     Parameters:
@@ -139,11 +144,11 @@ def is_device_cuda(device, ignore_errors=False):
 
 
 class ModuleListConcat(torch.nn.ModuleList):
-    def __init__(self, dim=-1):
+    def __init__(self, dim: int = -1):
         super().__init__()
         self.dim = dim
 
-    def forward(self, *args, **kwargs):
+    def forward(self, *args, **kwargs) -> torch.Tensor:
         h = []
         for module in self:
             h.append(module.forward(*args, **kwargs))

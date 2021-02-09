@@ -1,4 +1,4 @@
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Callable
 import torch.nn as nn
 import pytorch_lightning as pl
 from pytorch_lightning.core.memory import ModelSummary
@@ -13,19 +13,18 @@ class TrainingProgressFromSummary(pl.Callback):
     The fitting base module would be `SummarizeEpochs`.
     """
 
-    def __init__(self, metrics: Dict):
+    def __init__(self, metrics: Dict[str, Callable]):
         r"""
         :param metrics: map metric name to Metric class (name will be appended with partition)
         """
         super().__init__()
-        self.metrics = {}
         self.metrics = metrics
 
-    def on_epoch_end(self, trainer: pl.Trainer, module):
+    def on_epoch_end(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
         r"""Gets called by trainer after epoch end"""
         self._log_metrics(module)
 
-    def _log_metrics(self, module):
+    def _log_metrics(self, module: pl.LightningModule) -> None:
         log = {}
         for part in module.epoch_summary.summaries.keys():
             results = module.epoch_summary.get_results(part)
@@ -46,19 +45,19 @@ class BestEpochFromSummary(pl.Callback):
     This logger works but it also has some issues (see its docstring).
     """
 
-    def __init__(self, metrics: Dict):
+    def __init__(self, metrics: Dict[str, Callable]):
         super().__init__()
         self.best_loss = float("inf")
         self.metrics = metrics
 
-    def on_epoch_end(self, trainer: pl.Trainer, module):
+    def on_epoch_end(self, trainer: pl.Trainer, module: pl.LightningModule) -> None:
         r"""Gets called by trainer after epoch end"""
         results = module.epoch_summary.get_results("val")
         if results.loss < self.best_loss:
             self.best_loss = results.loss
             self._log_hparams_metrics(module)
 
-    def _log_hparams_metrics(self, module):
+    def _log_hparams_metrics(self, module: pl.LightningModule) -> None:
         metrics = {}
         for key in module.epoch_summary.summaries.keys():
             results = module.epoch_summary.get_results(key)

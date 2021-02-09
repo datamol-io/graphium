@@ -20,7 +20,7 @@ class GATLayer(BaseDGLLayer):
         self,
         in_dim: int,
         out_dim: int,
-        num_heads,
+        num_heads: int,
         activation="elu",
         dropout: float = 0.0,
         batch_norm: bool = False,
@@ -86,7 +86,7 @@ class GATLayer(BaseDGLLayer):
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-            Returns:
+        Returns:
 
             h: torch.Tensor(..., N, Dout)
                 Node feature tensor, after convolution.

@@ -26,7 +26,6 @@ def get_activation(activation):
 
 
 class FCLayer(nn.Module):
-
     def __init__(
         self,
         in_dim: int,

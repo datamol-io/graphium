@@ -17,7 +17,6 @@ from goli.mol_utils.properties import get_atom_features, get_edge_features
 
 
 class DGLGraphTransformer(AdjGraphTransformer):
-
     def __init__(self, explicit_H=False, chirality=True, edge_label_only=False):
         r"""
         Transforms a molecule into a DGL graph for neural message passing algorithms
@@ -37,7 +36,7 @@ class DGLGraphTransformer(AdjGraphTransformer):
             n_bond_feat: Number of bond features. This attribute is also computed dynamically
 
         """
-    
+
         super().__init__(
             max_n_atoms=None,
             with_bond=False,
