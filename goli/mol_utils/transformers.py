@@ -18,7 +18,7 @@ from rdkit.Chem.rdmolops import RenumberAtoms
 
 
 def to_mol(mol, addHs=False, explicitOnly=True, ordered=True, kekulize=True, sanitize=True):
-    """
+    r"""
     Convert an imput molecule (smiles representation) into a Chem.Mol
     :raises ValueError: if the input is neither a CHem.Mol nor a string
 
@@ -64,7 +64,7 @@ def to_mol(mol, addHs=False, explicitOnly=True, ordered=True, kekulize=True, san
 
 
 class MoleculeTransformer(TransformerMixin):
-    """
+    r"""
     Transform a molecule (rdkit.Chem.Mol object) into a feature representation.
     This class is an abstract class, and all its children are expected to implement the `_transform` method.
     """
@@ -76,7 +76,7 @@ class MoleculeTransformer(TransformerMixin):
         return self
 
     def _transform(self, mol):
-        """
+        r"""
         Compute features for a single molecule.
         This method need to be implemented by each child that inherits from MoleculeTransformer
         :raises NotImplementedError: if the method is not implemented by the child class
@@ -91,7 +91,7 @@ class MoleculeTransformer(TransformerMixin):
         raise NotImplementedError("Missing implementation of _transform.")
 
     def transform(self, mols, ignore_errors=True, **kwargs):
-        """
+        r"""
         Compute the features for a set of molecules.
 
         !!! note
@@ -153,7 +153,7 @@ class MoleculeTransformer(TransformerMixin):
         return fp
 
     def __call__(self, mols, ignore_errors=True, **kwargs):
-        """
+        r"""
         Calculate features for molecules. Using __call__, instead of transform. This function
         will force ignore_errors to be true, regardless of your original settings, and is offered
         mainly as a shortcut for data preprocessing. Note that most Transfomers allow you to specify
@@ -204,7 +204,7 @@ class MoleculeTransformer(TransformerMixin):
 
 
 class AdjGraphTransformer(MoleculeTransformer):
-    """
+    r"""
     Transforms a molecule into a molecular graph representation formed by an
     adjacency matrix of atoms and a set of features for each atom (and potentially bond).
 
@@ -266,7 +266,7 @@ class AdjGraphTransformer(MoleculeTransformer):
 
     @property
     def atom_dim(self):
-        """
+        r"""
         Get the number of features per atom
 
         Returns:
@@ -277,7 +277,7 @@ class AdjGraphTransformer(MoleculeTransformer):
 
     @property
     def bond_dim(self):
-        """
+        r"""
         Get the number of features for a bond
 
         Returns:
@@ -287,7 +287,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         return self.n_bond_feat
 
     def _set_num_features(self):
-        """Compute the number of features for each atom and bond"""
+        r"""Compute the number of features for each atom and bond"""
         self.n_atom_feat = 0
         # add atom type required
         self.n_atom_feat += len(nmp.ATOM_LIST) + 1
@@ -318,7 +318,7 @@ class AdjGraphTransformer(MoleculeTransformer):
             self.n_atom_feat += self.n_bond_feat * (self.max_valence)
 
     def transform(self, mols, ignore_errors=True, max_atom_update=False):
-        """
+        r"""
         Transforms a batch of N molecules or smiles into an Adjacency graph with a set of
         atom feature
 
@@ -376,7 +376,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         return features
 
     def _transform(self, mol):
-        """
+        r"""
         Transforms a molecule into an adjacency matrix representing the molecular graph
         and a set of atom (and bond) features.
         :raises ValueError: when input molecule is None
@@ -436,7 +436,7 @@ class AdjGraphTransformer(MoleculeTransformer):
         return (adj_matrix, atom_matrix)
 
     def __call__(self, mols, dtype=torch.float, device=None, **kwargs):
-        """
+        r"""
         Transforms a batch of N molecules or smiles into an Adjacency graph with a set of
         atom feature and return the transformation in the desired data type format and
         the set of valid indexes.

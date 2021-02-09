@@ -26,7 +26,7 @@ class GINLayer(BaseDGLLayer):
         init_eps=0.0,
         learn_eps=True,
     ):
-        """
+        r"""
         GIN: Graph Isomorphism Networks
         HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
         https://arxiv.org/pdf/1810.00826.pdf
@@ -87,7 +87,7 @@ class GINLayer(BaseDGLLayer):
         )
 
     def message_func(self, g):
-        """
+        r"""
         If edge weights are provided, use them to weight the messages
         """
 

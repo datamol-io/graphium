@@ -48,7 +48,7 @@ def _enforce_iter_type(arg, enforce_type):
 
 
 def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtype: bool = True):
-    """
+    r"""
     Verify if the type is an iterator. If it is `None`, convert to an empty list/tuple. If it is
     not a list/tuple/str, try to convert to an iterator. If it is a str or cannot be converted to
     an iterator, then put the `arg` inside an iterator.
@@ -135,7 +135,7 @@ def check_arg_iterator(arg, enforce_type=None, enforce_subtype=None, cast_subtyp
 
 
 def check_list1_in_list2(list1, list2, throw_error=True):
-    """
+    r"""
     Verify if the list1 (iterator) is included in list2 (iterator). If not, raise an error.
 
     Parameters:
@@ -170,7 +170,7 @@ def check_list1_in_list2(list1, list2, throw_error=True):
 
 
 def check_columns_choice(dataframe, columns_choice, extra_accepted_cols=None, enforce_type="list"):
-    """
+    r"""
     Verify if the choice of column `columns_choice` is inside the dataframe or
     the extra_accepted_cols. Otherwise, errors are thrown by the sub-functions.
 

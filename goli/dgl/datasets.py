@@ -74,7 +74,7 @@ def load_csv_to_dgl_dataset(data_dir, name, smiles_cols, y_col, max_mols, trans,
 
 
 class DGLMultiDataset(Dataset):
-    """
+    r"""
     Dataset class for models that use DGL.
 
     Parameters:

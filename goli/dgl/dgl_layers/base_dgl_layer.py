@@ -10,7 +10,7 @@ class BaseDGLLayer(nn.Module):
     def __init__(
         self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
     ):
-        """
+        r"""
         Abstract class used to standardize the implementation of DGL layers
         in the current library. It will allow a network to seemlesly swap between
         different GNN layers by better understanding the expected inputs
@@ -57,7 +57,7 @@ class BaseDGLLayer(nn.Module):
     def apply_norm_activation_dropout(
         self, h, batch_norm: bool = True, activation: bool = True, dropout: bool = True
     ):
-        """
+        r"""
         Apply the different normalization and the dropout to the
         output layer.
 
@@ -161,7 +161,7 @@ class BaseDGLLayer(nn.Module):
         ...
 
     def __repr__(self):
-        """
+        r"""
         Controls how the class is printed
         """
         return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}, activation={self.activation})"

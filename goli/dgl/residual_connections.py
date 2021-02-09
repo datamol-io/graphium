@@ -14,7 +14,7 @@ from goli.commons.decorators import classproperty
 
 class ResidualConnectionBase(nn.Module):
     def __init__(self, skip_steps: int = 1):
-        """
+        r"""
         Abstract class for the residual connections. Using this class,
         we implement different types of residual connections, such as
         the ResNet, weighted-ResNet, skip-concat and DensNet.
@@ -34,7 +34,7 @@ class ResidualConnectionBase(nn.Module):
         self.skip_steps = skip_steps
 
     def _bool_apply_skip_step(self, step_idx: int):
-        """
+        r"""
         Whether to apply the skip connection, depending on the
         ``step_idx`` and ``self.skip_steps``.
 
@@ -47,7 +47,7 @@ class ResidualConnectionBase(nn.Module):
         return (self.skip_steps != 0) and ((step_idx % self.skip_steps) == 0)
 
     def __repr__(self):
-        """
+        r"""
         Controls how the class is printed
         """
         return f"{self.__class__.__name__}(skip_steps={self.skip_steps})"
@@ -55,7 +55,7 @@ class ResidualConnectionBase(nn.Module):
     @classproperty
     @abc.abstractmethod
     def h_dim_increase_type(cls):
-        """
+        r"""
         How does the dimension of the output features increases after each layer?
 
         Returns:
@@ -106,7 +106,7 @@ class ResidualConnectionBase(nn.Module):
     @classproperty
     @abc.abstractmethod
     def has_weights(cls):
-        """
+        r"""
         Returns:
 
             has_weights: bool
@@ -117,7 +117,7 @@ class ResidualConnectionBase(nn.Module):
 
 
 class ResidualConnectionNone(ResidualConnectionBase):
-    """
+    r"""
     No residual connection.
     This class is only used for simpler code compatibility
     """
@@ -127,7 +127,7 @@ class ResidualConnectionNone(ResidualConnectionBase):
 
     @classproperty
     def h_dim_increase_type(cls):
-        """
+        r"""
         Returns:
 
             None:
@@ -138,7 +138,7 @@ class ResidualConnectionNone(ResidualConnectionBase):
 
     @classproperty
     def has_weights(cls):
-        """
+        r"""
         Returns:
 
             False
@@ -148,7 +148,7 @@ class ResidualConnectionNone(ResidualConnectionBase):
         return False
 
     def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
-        """
+        r"""
         Ignore the skip connection.
 
         Returns:
@@ -165,7 +165,7 @@ class ResidualConnectionNone(ResidualConnectionBase):
 
 class ResidualConnectionSimple(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
-        """
+        r"""
         Class for the simple residual connections proposed by ResNet,
         where the current layer output is summed to a
         previous layer output.
@@ -179,7 +179,7 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
     @classproperty
     def h_dim_increase_type(cls):
-        """
+        r"""
         Returns:
 
             None:
@@ -190,7 +190,7 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
     @classproperty
     def has_weights(cls):
-        """
+        r"""
         Returns:
 
             False
@@ -200,7 +200,7 @@ class ResidualConnectionSimple(ResidualConnectionBase):
         return False
 
     def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
-        """
+        r"""
         Add ``h`` with the previous layers with skip connection ``h_prev``,
         similar to ResNet.
 
@@ -239,7 +239,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
     def __init__(
         self, out_dims, skip_steps: int = 1, dropout=0.0, activation="none", batch_norm=False, bias=False
     ):
-        """
+        r"""
         Class for the simple residual connections proposed by ResNet,
         with an added layer in the residual connection itself.
         The layer output is summed to a a non-linear transformation
@@ -291,7 +291,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
     @classproperty
     def h_dim_increase_type(cls):
-        """
+        r"""
         Returns:
 
             None:
@@ -301,7 +301,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
     @classproperty
     def has_weights(cls):
-        """
+        r"""
         Returns:
 
             True
@@ -311,7 +311,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         return True
 
     def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
-        """
+        r"""
         Add ``h`` with the previous layers with skip connection ``h_prev``, after
         a feed-forward layer.
 
@@ -350,7 +350,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
 class ResidualConnectionConcat(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
-        """
+        r"""
         Class for the simple residual connections proposed but where
         the skip connection features are concatenated to the current
         layer features.
@@ -365,7 +365,7 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
     @classproperty
     def h_dim_increase_type(cls):
-        """
+        r"""
         Returns:
 
             "previous":
@@ -376,7 +376,7 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
     @classproperty
     def has_weights(cls):
-        """
+        r"""
         Returns:
 
             False
@@ -386,7 +386,7 @@ class ResidualConnectionConcat(ResidualConnectionBase):
         return False
 
     def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
-        """
+        r"""
         Concatenate ``h`` with the previous layers with skip connection ``h_prev``.
 
         Parameters:
@@ -426,7 +426,7 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 class ResidualConnectionDenseNet(ResidualConnectionBase):
 
     def __init__(self, skip_steps: int = 1):
-        """
+        r"""
         Class for the residual connections proposed by DenseNet, where
         all previous skip connection features are concatenated to the current
         layer features.
@@ -441,7 +441,7 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
     @classproperty
     def h_dim_increase_type(cls):
-        """
+        r"""
         Returns:
 
             "cumulative":
@@ -452,7 +452,7 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
     @classproperty
     def has_weights(cls):
-        """
+        r"""
         Returns:
 
             False
@@ -462,7 +462,7 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
         return False
 
     def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
-        """
+        r"""
         Concatenate ``h`` with all the previous layers with skip connection ``h_prev``.
 
         Parameters:

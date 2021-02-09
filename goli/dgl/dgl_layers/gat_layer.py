@@ -25,7 +25,7 @@ class GATLayer(BaseDGLLayer):
         dropout: float = 0.0,
         batch_norm: bool = False,
     ):
-        """
+        r"""
         GAT: Graph Attention Network
         Graph Attention Networks (Veličković et al., ICLR 2018)
         https://arxiv.org/abs/1710.10903

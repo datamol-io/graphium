@@ -1,5 +1,5 @@
 class classproperty(property):
-    """
+    r"""
     Decorator used to declare a static property, defined for the class
     without needing to instanciate an object.
 

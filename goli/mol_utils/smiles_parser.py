@@ -4,7 +4,7 @@ from rdkit.Chem.Descriptors import ExactMolWt
 
 
 def is_iterable(obj):
-    """
+    r"""
     Return whether an object is iterable or not (list, numpy array, tuple, dict)
 
     Parameters:
@@ -63,7 +63,7 @@ class SuppressRdkit(object):
 
 
 def is_smiles(smiles_str, sanitize=False, check_mass=True, mute_errors=True):
-    """
+    r"""
     Verify whether the provided `smiles_str` is a valid molecular SMILES.
     If ``sanitize`` is ``False``, this function verifies only if the SMILES syntax is valid.
     It checks for unautaurized characters and parentheses closure in the string.
@@ -121,7 +121,7 @@ def is_smiles(smiles_str, sanitize=False, check_mass=True, mute_errors=True):
 
 
 def any_smiles_iterable(smiles, sanitize=False, check_mass=True, min_count=1, mute_errors=True):
-    """
+    r"""
     Verify at least ``min_count`` of the provided ``smiles`` is a valid molecular SMILES.
     If ``sanitize`` is ``False``, this function verifies only if the SMILES syntax is valid.
     It checks for unautaurized characters and parentheses closure in the string.
@@ -185,7 +185,7 @@ def any_smiles_iterable(smiles, sanitize=False, check_mass=True, min_count=1, mu
 
 
 def all_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=True):
-    """
+    r"""
     Verify all of the provided ``smiles`` is a valid molecular SMILES.
     If ``sanitize`` is ``False``, this function verifies only if the SMILES syntax is valid.
     It checks for unautaurized characters and parentheses closure in the string.
@@ -247,7 +247,7 @@ def all_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=Tru
 
 
 def is_smiles_iterable(smiles, sanitize=False, check_mass=True, mute_errors=True, verbose=0):
-    """
+    r"""
     Verify whether each of the provided `smiles` is a valid molecular SMILES.
     If ``sanitize`` is ``False``, this function verifies only if the SMILES syntax is valid.
     It checks for unautaurized characters and parentheses closure in the string.
@@ -345,7 +345,7 @@ def filter_bad_smiles(
     reset_index=True,
     verbose=2,
 ):
-    """
+    r"""
     Verify whether each of the provided `smiles` is a valid SMILES.
     Then remove all the rows with invalid smiles.
     If ``sanitize`` is ``False``, this function verifies only if the SMILES syntax is valid.
