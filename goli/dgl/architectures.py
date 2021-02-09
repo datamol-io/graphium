@@ -187,7 +187,7 @@ class FeedForwardNN(nn.Module):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.__class__.__name__}(depth={self.depth})"
+        class_str = f"{self.__class__.__name__}(depth={self.depth}, {self.residual_layer})"
         layer_str = f"[{self.layer_name}[{' -> '.join(map(str, self.full_dims))}]"
         out_str = " -> Linear({self.out_dim})"
 
@@ -210,7 +210,7 @@ class FeedForwardDGL(FeedForwardNN):
         hidden_dims_edges=[],
         pooling=["sum"],
         name="GNN",
-        layer_class="gcn",
+        layer_type="gcn",
         virtual_node="none",
         **layer_kwargs,
     ):
@@ -218,11 +218,12 @@ class FeedForwardDGL(FeedForwardNN):
         # Initialize the additional attributes
         self.in_dim_edges = in_dim_edges
         self.hidden_dims_edges = hidden_dims_edges
-        self.edge_features = len(self.hidden_dims_edges) > 0
         self.full_dims_edges = None
-        if self.edge_features:
+        if len(self.hidden_dims_edges) > 0:
             self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
+
         self.virtual_node = virtual_node.lower()
+        self.pooling = pooling
 
         # Initialize the parent `FeedForwardNN`
         super().__init__(
@@ -235,17 +236,16 @@ class FeedForwardDGL(FeedForwardNN):
             residual_type=residual_type,
             residual_skip_steps=residual_skip_steps,
             name=name,
-            layer_class=layer_class,
+            layer_type=layer_type,
             dropout=dropout,
             **layer_kwargs,
         )
 
-        # Initialize input and output linear layers
-        self.in_linear = nn.Linear(in_features=self.in_dim, out_features=self.hidden_dims[0])
-
     def _check_bad_arguments(self):
         super()._check_bad_arguments()
-        if self.edge_features and not self.layer_class.layer_supports_edges:
+        if (
+            (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
+        ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
 
     def _register_hparams(self):
@@ -266,7 +266,9 @@ class FeedForwardDGL(FeedForwardNN):
         this_in_dim_edges, this_out_dim_edges = None, None
         if self.full_dims_edges is not None:
             this_in_dim_edges, this_out_dim_edges = self.full_dims_edges[0:2]
-            residual_out_dims_edges = residual_layer_temp.get_true_out_dims(full_dims_edges[1:])
+            residual_out_dims_edges = residual_layer_temp.get_true_out_dims(self.full_dims_edges[1:])
+        elif self.in_dim_edges > 0:
+            this_in_dim_edges = self.in_dim_edges
 
         this_activation = self.activation
         layer_out_dims_edges = []
@@ -278,7 +280,7 @@ class FeedForwardDGL(FeedForwardNN):
                 this_activation = self.last_activation
 
             this_edge_kwargs = {}
-            if self.layer_class.layer_supports_edges() and self.edge_features:
+            if self.layer_class.layer_supports_edges and self.in_dim_edges > 0:
                 this_edge_kwargs["in_dim_edges"] = this_in_dim_edges
                 if "out_dim_edges" in inspect.signature(self.layer_class.__init__).parameters.keys():
                     layer_out_dims_edges.append(self.full_dims_edges[ii + 1])
@@ -306,14 +308,16 @@ class FeedForwardDGL(FeedForwardNN):
                     batch_norm=self.batch_norm,
                     bias=True,
                     vn_type=self.virtual_node,
-                    residual=self.residual,
+                    residual=self.residual_type is not None,
                 )
             )
 
             # Get the true input dimension of the next layer,
             # by factoring both the residual connection and GNN layer type
-            this_in_dim = residual_out_dims[ii] * layers[ii - 1].out_dim_factor
-            this_in_dim_edges = residual_out_dims_edges[ii] * layers[ii - 1].out_dim_factor
+            if ii < len(residual_out_dims):
+                this_in_dim = residual_out_dims[ii] * self.layers[ii - 1].out_dim_factor
+                if self.full_dims_edges is not None:
+                    this_in_dim_edges = residual_out_dims_edges[ii] * self.layers[ii - 1].out_dim_factor
 
         layer_out_dims = [layer.out_dim_factor * layer.out_dim for layer in self.layers]
 
@@ -367,24 +371,25 @@ class FeedForwardDGL(FeedForwardNN):
         if step_idx < len(self.virtual_node_layers):
             vn_h, h = self.virtual_node_layers[step_idx].forward(g, h, vn_h)
 
-        return vn_h, h
+        return h, vn_h
 
     def forward(self, graph):
 
         # Get graph features and apply linear layer
         h = graph.ndata["h"]
-        e = graph.edata["e"] if self.edge_features else None
-        h = self.in_linear(h)
+        e = graph.edata["e"] if self.in_dim_edges > 0 else None
 
         h_prev = None
         e_prev = None
         vn_h = 0
         for ii, layer in enumerate(self.layers):
+            # print("----------------------", ii)
             h, e, h_prev, e_prev = self._dgl_layer_forward(
                 layer=layer, graph=graph, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
-            vn_h, h = self._virtual_node_forward(graph, h, vn_h, step_idx=ii)
+            h, vn_h = self._virtual_node_forward(graph, h, vn_h, step_idx=ii)
 
+        # print("---------- end loop")
         pooled_h = self._pool_layer_forward(graph, h)
 
         return pooled_h
@@ -393,7 +398,7 @@ class FeedForwardDGL(FeedForwardNN):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.__class__.__name__}(depth={self.depth})"
+        class_str = f"{self.__class__.__name__}(depth={self.depth}, {self.residual_layer})"
         layer_str = f"[{self.layer_name}[{' -> '.join(map(str, self.full_dims))}]"
         pool_str = f"-> Pooling({self.pooling})"
         out_str = " -> Linear({self.out_dim})"

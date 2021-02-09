@@ -278,5 +278,76 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
 
 
+class test_FeedForwardDGL(ut.TestCase):
+
+    kwargs = {
+        "activation": "relu",
+        "last_activation": "none",
+        "batch_norm": False,
+        "dropout": 0.2,
+        "name": "LNN",
+    }
+
+    in_dim = 7
+    out_dim = 11
+    in_dim_edges = 13
+    hidden_dims = [6, 6, 6, 6, 6]
+
+    g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
+    g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
+    g1.ndata["h"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
+    g1.edata["e"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
+    g2.ndata["h"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
+    g2.edata["e"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    bg = dgl.batch([g1, g2])
+    bg = dgl.add_self_loop(bg)
+
+    virtual_nodes = ["none", "mean", "sum"]
+    pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
+
+    layers_kwargs = {
+        "gcn": {},
+        "gin": {},
+        "gat": {"num_heads": 3},
+        "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "pna-conv": {**pna_kwargs},
+        "pna-msgpass#1": {**pna_kwargs, "in_dim_edges": 0},
+        "pna-msgpass#2": {**pna_kwargs, "in_dim_edges": in_dim_edges},
+    }
+
+    def test_forward_no_residual(self):
+        out_dim = 16
+
+        for virtual_node in self.virtual_nodes:
+            for layer_name, this_kwargs in self.layers_kwargs.items():
+                err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}"
+                layer_type = layer_name.split("#")[0]
+
+                gnn = FeedForwardDGL(
+                    in_dim=self.in_dim,
+                    out_dim=self.out_dim,
+                    hidden_dims=self.hidden_dims,
+                    residual_type="none",
+                    residual_skip_steps=1,
+                    layer_type=layer_type,
+                    **this_kwargs,
+                    **self.kwargs,
+                )
+                gnn.to(torch.float32)
+
+                self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+
+                bg = deepcopy(self.bg)
+                h_out = gnn.forward(bg)
+
+                self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+
+
 if __name__ == "__main__":
     ut.main()
