@@ -1,4 +1,3 @@
-import abc
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -6,7 +5,6 @@ import torch.nn.functional as F
 from typing import Union, Callable
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
-EPS = 1e-5
 
 
 def get_activation(activation: Union[type(None), str, Callable]) -> Union[type(None), Callable]:
