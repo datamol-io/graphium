@@ -254,13 +254,13 @@ class PNAConvolutionalLayer(BasePNALayer):
             g: dgl.DGLGraph
                 graph on which the convolution is done
 
-            h: torch.Tensor(..., N, Din)
+            h: `torch.Tensor[..., N, Din]`
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         Returns:
 
-            h: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution.
                 N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
@@ -429,9 +429,7 @@ class PNAMessagePassingLayer(BasePNALayer):
             z2 = torch.cat([edges.src["h"], edges.dst["h"]], dim=1)
         return {"e": self.pretrans(z2)}
 
-    def forward(
-        self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None) -> torch.Tensor:
         r"""
         Apply the PNA Message passing layer, with the specified pre/post transformations
 
@@ -440,11 +438,11 @@ class PNAMessagePassingLayer(BasePNALayer):
             g: dgl.DGLGraph
                 graph on which the convolution is done
 
-            h: torch.Tensor(..., N, Din)
+            h: `torch.Tensor[..., N, Din]`
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-            e: torch.Tensor(..., N, Din_edges) or None
+            e: `torch.Tensor(..., N, Din_edges)` or `None`
                 Edge feature tensor, before convolution.
                 N is the number of nodes, Din is the input edge dimension
 
@@ -453,7 +451,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         Returns:
 
-            h: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution.
                 N is the number of nodes, Dout is the output dimension ``self.out_dim``
 

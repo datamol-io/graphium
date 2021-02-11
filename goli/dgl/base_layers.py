@@ -31,9 +31,9 @@ class FCLayer(nn.Module):
         in_dim: int,
         out_dim: int,
         activation="relu",
-        dropout:float=0.0,
-        batch_norm:bool=False,
-        bias:bool=True,
+        dropout: float = 0.0,
+        batch_norm: bool = False,
+        bias: bool = True,
         init_fn=None,
     ):
 
