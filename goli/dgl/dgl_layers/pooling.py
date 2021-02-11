@@ -109,12 +109,12 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
         pooling: list(str)
             The list of pooling layers to use. The accepted strings are:
 
-            - "sum": SumPooling
-            - "mean": MeanPooling
-            - "max": MaxPooling
-            - "min": MinPooling
-            - "std": StdPooling
-            - "s2s": Set2Set
+            - "sum": `SumPooling`
+            - "mean": `MeanPooling`
+            - "max": `MaxPooling`
+            - "min": `MinPooling`
+            - "std": `StdPooling`
+            - "s2s": `Set2Set`
 
         n_iters: int
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
@@ -144,6 +144,7 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
             pool_layer.append(MinPooling())
         elif this_pool == "std":
             pool_layer.append(StdPooling())
+        elif this_pool == "s2s":
             pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers))
             out_pool_dim += in_dim
         elif (this_pool == "none") or (this_pool is None):

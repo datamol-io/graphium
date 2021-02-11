@@ -59,14 +59,71 @@ class FeedForwardNN(nn.Module):
         hidden_dims: List[int],
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
+        dropout: float = 0.0,
         batch_norm: bool = False,
-        dropout: float = 0.25,
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         name: str = "LNN",
         layer_type: Union[str, nn.Module] = "fc",
         **layer_kwargs,
     ):
+        r"""
+        A flexible neural network architecture, with variable hidden dimensions,
+        support for multiple layer types, and support for different residual
+        connections.
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the layer
+
+            out_dim:
+                Output feature dimensions of the layer
+
+            hidden_dims:
+                List of dimensions in the hidden layers.
+                Be careful, the "simple" residual type only supports
+                hidden dimensions of the same value.
+
+            activation:
+                activation function to use in the hidden layers.
+
+            last_activation:
+                activation function to use in the last layer.
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            batch_norm:
+                Whether to use batch normalization
+
+            residual_type:
+                - "none": No residual connection
+                - "simple": Residual connection similar to the ResNet architecture.
+                  See class `ResidualConnectionSimple`
+                - "weighted": Residual connection similar to the Resnet architecture,
+                  but with weights applied before the summation. See class `ResidualConnectionWeighted`
+                - "concat": Residual connection where the residual is concatenated instead
+                  of being added.
+                - "densenet": Residual connection where the residual of all previous layers
+                  are concatenated. This leads to a strong increase in the number of parameters
+                  if there are multiple hidden layers.
+
+            residual_skip_steps:
+                The number of steps to skip between each residual connection.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
+
+            name:
+                Name attributed to the current network, for display and printing
+                purposes.
+
+            layer_type:
+                The type of layers to use in the network.
+                Either "fc" as the `FCLayer`, or a class representing the `nn.Module`
+                to use.
+
+        """
 
         super().__init__()
 
@@ -161,6 +218,13 @@ class FeedForwardNN(nn.Module):
         return residual_layer, residual_out_dims
 
     def _create_layers(self):
+        r"""
+        Create all the necessary layers for the network.
+        It's a bit complicated to explain what's going on in this function,
+        but it must manage the varying features sizes caused by:
+
+        - The presence of different types of residual connections
+        """
 
         self.residual_layer, residual_out_dims = self._create_residual_connection(out_dims=self.full_dims[1:])
 
@@ -202,7 +266,7 @@ class FeedForwardNN(nn.Module):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.__class__.__name__}(depth={self.depth}, {self.residual_layer})"
+        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})"
         layer_str = f"[{self.layer_name}[{' -> '.join(map(str, self.full_dims))}]"
         out_str = " -> Linear({self.out_dim})"
 
@@ -217,8 +281,8 @@ class FeedForwardDGL(FeedForwardNN):
         hidden_dims: List[int],
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
+        dropout: float = 0.0,
         batch_norm: bool = False,
-        dropout: float = 0.25,
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
@@ -229,6 +293,105 @@ class FeedForwardDGL(FeedForwardNN):
         virtual_node: str = "none",
         **layer_kwargs,
     ):
+        r"""
+        A flexible neural network architecture, with variable hidden dimensions,
+        support for multiple layer types, and support for different residual
+        connections.
+
+        This class is meant to work with different DGL-based graph neural networks
+        layers. Any layer must inherit from `goli.dgl.dgl_layers.BaseDGLLayer`.
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the layer
+
+            out_dim:
+                Output feature dimensions of the layer
+
+            hidden_dims:
+                List of dimensions in the hidden layers.
+                Be careful, the "simple" residual type only supports
+                hidden dimensions of the same value.
+
+            activation:
+                activation function to use in the hidden layers.
+
+            last_activation:
+                activation function to use in the last layer.
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            batch_norm:
+                Whether to use batch normalization
+
+            residual_type:
+                - "none": No residual connection
+                - "simple": Residual connection similar to the ResNet architecture.
+                  See class `ResidualConnectionSimple`
+                - "weighted": Residual connection similar to the Resnet architecture,
+                  but with weights applied before the summation. See class `ResidualConnectionWeighted`
+                - "concat": Residual connection where the residual is concatenated instead
+                  of being added.
+                - "densenet": Residual connection where the residual of all previous layers
+                  are concatenated. This leads to a strong increase in the number of parameters
+                  if there are multiple hidden layers.
+
+            residual_skip_steps:
+                The number of steps to skip between each residual connection.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
+
+            in_dim_edges: int
+                Input edge-feature dimensions of the network. Keep at 0 if not using
+                edge features, or if the layer doesn't support edges.
+
+            hidden_dim_edges:
+                Hidden dimensions for the edges. Most models don't support it, so it
+                should only be used for those that do, i.e. `GatedGCNLayer`
+
+            pooling:
+                The pooling types to use. Multiple pooling can be used, and their
+                results will be concatenated.
+                For node feature predictions, use `["none"]`.
+                For graph feature predictions see `goli.dgl.dgl_layers.pooling.parse_pooling_layer`.
+                The list must either contain Callables, or the string below
+
+                - "none": No pooling is applied
+                - "sum": `SumPooling`
+                - "mean": `MeanPooling`
+                - "max": `MaxPooling`
+                - "min": `MinPooling`
+                - "std": `StdPooling`
+                - "s2s": `Set2Set`
+
+            name:
+                Name attributed to the current network, for display and printing
+                purposes.
+
+            layer_type:
+                The type of layers to use in the network.
+                Either a class that inherits from `goli.dgl.dgl_layers.BaseDGLLayer`,
+                or one of the following strings
+
+                - "gcn": `GCNLayer`
+                - "gin": `GINLayer`
+                - "gat": `GATLayer`
+                - "gated-gcn": `GatedGCNLayer`
+                - "pna-conv": `PNAConvolutionalLayer`
+                - "pna-msgpass": `PNAMessagePassingLayer`
+
+            virtual_node:
+                A string associated to the type of virtual node to use,
+                either `None`, "none", "mean", "sum", "max", "logsum".
+                See `goli.dgl.dgl_layers.VirtualNode`.
+
+                The virtual node will not use any residual connection if `residual_type`
+                is "none". Otherwise, it will use a simple ResNet like residual
+                connection.
+
+        """
 
         # Initialize the additional attributes
         self.in_dim_edges = in_dim_edges
@@ -276,6 +439,17 @@ class FeedForwardDGL(FeedForwardNN):
         self.hparams["intermittent_pooling"] = self.intermittent_pooling
 
     def _create_layers(self):
+        r"""
+        Create all the necessary layers for the network.
+        It's a bit complicated to explain what's going on in this function,
+        but it must manage the varying features sizes caused by:
+
+        - The presence of different types of residual connections
+        - The presence or absence of edges
+        - The output dimensions varying for different networks i.e. `GatLayer` outputs different feature sizes according to the number of heads
+        - The presence or absence of virtual nodes
+        - The different possible pooling, and the concatenation of multiple pooling together.
+        """
 
         residual_layer_temp, residual_out_dims = self._create_residual_connection(out_dims=self.full_dims[1:])
 
@@ -320,18 +494,19 @@ class FeedForwardDGL(FeedForwardNN):
                 )
             )
 
-            # Create the Virtual Node layer
-            self.virtual_node_layers.append(
-                VirtualNode(
-                    dim=this_out_dim,
-                    activation=this_activation,
-                    dropout=self.dropout,
-                    batch_norm=self.batch_norm,
-                    bias=True,
-                    vn_type=self.virtual_node,
-                    residual=self.residual_type is not None,
+            if ii < len(residual_out_dims):
+                # Create the Virtual Node layer
+                self.virtual_node_layers.append(
+                    VirtualNode(
+                        dim=this_out_dim,
+                        activation=this_activation,
+                        dropout=self.dropout,
+                        batch_norm=self.batch_norm,
+                        bias=True,
+                        vn_type=self.virtual_node,
+                        residual=self.residual_type is not None,
+                    )
                 )
-            )
 
             # Get the true input dimension of the next layer,
             # by factoring both the residual connection and GNN layer type
@@ -463,9 +638,10 @@ class FeedForwardDGL(FeedForwardNN):
             h = layer(g=g, h=h)
 
         # Apply the residual layers on the features and edges (if applicable)
-        h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
-        if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
-            e, e_prev = self.residual_layer.forward(e, e_prev, step_idx=step_idx)
+        if step_idx < len(self.layers) - 1:
+            h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
+            if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
+                e, e_prev = self.residual_edges_layer.forward(e, e_prev, step_idx=step_idx)
 
         return h, e, h_prev, e_prev
 
@@ -520,13 +696,11 @@ class FeedForwardDGL(FeedForwardNN):
         e_prev = None
         vn_h = 0
         for ii, layer in enumerate(self.layers):
-            # print("----------------------", ii)
             h, e, h_prev, e_prev = self._dgl_layer_forward(
                 layer=layer, g=graph, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
             h, vn_h = self._virtual_node_forward(graph, h, vn_h, step_idx=ii)
 
-        # print("---------- end loop")
         pooled_h = self._pool_layer_forward(graph, h)
 
         return pooled_h
@@ -535,7 +709,7 @@ class FeedForwardDGL(FeedForwardNN):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.__class__.__name__}(depth={self.depth}, {self.residual_layer})"
+        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})"
         layer_str = f"[{self.layer_class}[{' -> '.join(map(str, self.full_dims))}]"
         pool_str = f"-> Pooling({self.pooling})"
         out_str = f" -> {self.out_linear}"

@@ -28,6 +28,8 @@ class ResidualConnectionBase(nn.Module):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
 
         super().__init__()
@@ -174,6 +176,8 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
         super().__init__(skip_steps=skip_steps)
 
@@ -249,6 +253,8 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
 
             out_dims: list(int)
                 list of all output dimensions for the network
@@ -359,6 +365,8 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
 
         super().__init__(skip_steps=skip_steps)
@@ -434,6 +442,8 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
 
         super().__init__(skip_steps=skip_steps)
