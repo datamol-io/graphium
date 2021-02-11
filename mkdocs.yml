@@ -13,6 +13,7 @@ nav:
   - Overview: index.md
   - Examples:
       - Using GNN layers: examples/GNN_layer_basics.ipynb
+      - Creating GNN layers: examples/creating_gnn_layers.ipynb
   - API:
     # - goli.cli: api/goli.cli.md
     - goli.commons: api/goli.commons.md

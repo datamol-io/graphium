@@ -6,15 +6,15 @@ EPS = 1e-5
 
 
 def aggregate_mean(h, **kwargs):
-    return torch.mean(h, dim=1)
+    return torch.mean(h, dim=-2)
 
 
 def aggregate_max(h, **kwargs):
-    return torch.max(h, dim=1)[0]
+    return torch.max(h, dim=-2)[0]
 
 
 def aggregate_min(h, **kwargs):
-    return torch.min(h, dim=1)[0]
+    return torch.min(h, dim=-2)[0]
 
 
 def aggregate_std(h, **kwargs):
@@ -22,8 +22,8 @@ def aggregate_std(h, **kwargs):
 
 
 def aggregate_var(h, **kwargs):
-    h_mean_squares = torch.mean(h * h, dim=1)
-    h_mean = torch.mean(h, dim=1)
+    h_mean_squares = torch.mean(h * h, dim=-2)
+    h_mean = torch.mean(h, dim=-2)
     var = torch.relu(h_mean_squares - h_mean * h_mean)
     return var
 
@@ -31,14 +31,14 @@ def aggregate_var(h, **kwargs):
 def aggregate_moment(h, n=3, **kwargs):
     # for each node (E[(X-E[X])^n])^{1/n}
     # EPS is added to the absolute value of expectation before taking the nth root for stability
-    h_mean = torch.mean(h, dim=1, keepdim=True)
-    h_n = torch.mean(torch.pow(h - h_mean, n), dim=1)
+    h_mean = torch.mean(h, dim=-2, keepdim=True)
+    h_n = torch.mean(torch.pow(h - h_mean, n), dim=-2)
     rooted_h_n = torch.sign(h_n) * torch.pow(torch.abs(h_n) + EPS, 1.0 / n)
     return rooted_h_n
 
 
 def aggregate_sum(h, **kwargs):
-    return torch.sum(h, dim=1)
+    return torch.sum(h, dim=-2)
 
 
 # each scaler is a function that takes as input X (B x N x Din), adj (B x N x N) and
