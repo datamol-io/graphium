@@ -36,25 +36,25 @@ class GINLayer(BaseDGLLayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
 
-            init_eps : float
+            init_eps :
                 Initial :math:`\epsilon` value, default: ``0``.
 
-            learn_eps : bool
+            learn_eps :
                 If True, :math:`\epsilon` will be a learnable parameter.
 
         """
@@ -81,9 +81,9 @@ class GINLayer(BaseDGLLayer):
             hidden_dim=self.in_dim,
             out_dim=self.out_dim,
             layers=2,
-            mid_activation=self.activation_layer,
+            actibation=self.activation_layer,
             last_activation="none",
-            mid_batch_norm=self.batch_norm,
+            batch_norm=self.batch_norm,
             last_batch_norm=False,
         )
 
@@ -105,7 +105,7 @@ class GINLayer(BaseDGLLayer):
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -155,7 +155,7 @@ class GINLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -170,7 +170,7 @@ class GINLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -190,7 +190,7 @@ class GINLayer(BaseDGLLayer):
 
         Returns:
 
-            dim_factor: int
+            int:
                 Always ``1`` for the current class
         """
         return 1

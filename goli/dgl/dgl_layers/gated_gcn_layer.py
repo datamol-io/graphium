@@ -33,22 +33,22 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer, and for the edges
 
-            in_dim_edges: int
+            in_dim_edges:
                 Input edge-feature dimensions of the layer
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
 
         """
@@ -91,7 +91,7 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -136,7 +136,7 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Returns:
 
-            supports_edges: bool
+            bool:
                 Always ``True`` for the current class
         """
         return True
@@ -151,7 +151,7 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``True`` for the current class
         """
         return True
@@ -166,7 +166,7 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``True`` for the current class
         """
         return True
@@ -186,7 +186,7 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Returns:
 
-            dim_factor: int
+            int:
                 Always ``1`` for the current class
         """
         return 1

@@ -1,6 +1,7 @@
+import torch
 import torch.nn as nn
 import abc
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union, Callable
 
 from goli.dgl.base_layers import get_activation
 from goli.commons.decorators import classproperty
@@ -8,7 +9,12 @@ from goli.commons.decorators import classproperty
 
 class BaseDGLLayer(nn.Module):
     def __init__(
-        self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
+        self,
+        in_dim: int,
+        out_dim: int,
+        activation: Union[str, Callable] = "relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -18,19 +24,19 @@ class BaseDGLLayer(nn.Module):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
         """
 
@@ -55,7 +61,7 @@ class BaseDGLLayer(nn.Module):
             self.batch_norm_layer = nn.BatchNorm1d(out_dim)
 
     def apply_norm_activation_dropout(
-        self, h, batch_norm: bool = True, activation: bool = True, dropout: bool = True
+        self, h: torch.Tensor, batch_norm: bool = True, activation: bool = True, dropout: bool = True
     ):
         r"""
         Apply the different normalization and the dropout to the
@@ -63,21 +69,21 @@ class BaseDGLLayer(nn.Module):
 
         Parameters:
 
-            h: torch.Tensor()
+            h:
                 Feature tensor, to be normalized
 
-            batch_norm: bool
+            batch_norm:
                 Whether to apply the batch_norm layer
 
-            activation: bool
+            activation:
                 Whether to apply the activation layer
 
-            dropout: bool
+            dropout:
                 Whether to apply the dropout layer
 
         Returns:
 
-            h: torch.Tensor()
+            h:
                 Normalized and dropped-out features
 
         """
@@ -101,7 +107,7 @@ class BaseDGLLayer(nn.Module):
 
         Returns:
 
-            supports_edges: bool
+            bool:
                 Whether the layer supports the use of edges
         """
         ...
@@ -117,7 +123,7 @@ class BaseDGLLayer(nn.Module):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Whether the layer uses input edges in the forward pass
         """
         ...
@@ -133,7 +139,7 @@ class BaseDGLLayer(nn.Module):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Whether the layer outputs edges in the forward pass
         """
         ...
@@ -155,8 +161,8 @@ class BaseDGLLayer(nn.Module):
 
         Returns:
 
-            dim_factor: int
-                The factor that multiplies the dimensions
+            int:
+                The factor that multiplies the output dimensions
         """
         ...
 

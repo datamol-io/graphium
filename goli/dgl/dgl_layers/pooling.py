@@ -18,7 +18,15 @@ class S2SReadout(nn.Module):
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
-    def __init__(self, in_dim, hidden_dim, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
+    def __init__(
+        self,
+        in_dim,
+        hidden_dim,
+        out_dim,
+        fc_layers=3,
+        device="cpu",
+        final_activation: Union[str, Callable] = "relu",
+    ):
         super().__init__()
 
         # set2set aggregation
@@ -30,9 +38,9 @@ class S2SReadout(nn.Module):
             hidden_dim=hidden_dim,
             out_dim=out_dim,
             layers=fc_layers,
-            mid_activation="relu",
+            actibation="relu",
             last_activation=final_activation,
-            mid_batch_norm=True,
+            batch_norm=True,
             last_batch_norm=False,
             device=device,
         )
