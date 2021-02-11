@@ -1,12 +1,16 @@
 import torch
 import torch.nn as nn
-from typing import List
+from typing import List, Union, Callable, Tuple
 
+import dgl
 from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, GlobalAttentionPooling
 from dgl import mean_nodes, sum_nodes, max_nodes
 
 from goli.dgl.base_layers import MLP, FCLayer
 from goli.commons.utils import ModuleListConcat
+
+
+EPS = 1e-6
 
 
 class S2SReadout(nn.Module):
@@ -157,8 +161,42 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
 
 class VirtualNode(nn.Module):
     def __init__(
-        self, dim, dropout, batch_norm=False, bias=True, activation="relu", residual=True, vn_type="sum"
+        self,
+        dim: int,
+        vn_type: Union[type(None), str] = "sum",
+        activation: Union[str, Callable] = "relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
+        bias: bool = True,
+        residual: bool = True,
     ):
+        r"""
+        The VirtualNode is a layer that pool the features of the graph,
+        applies a neural network layer on the pooled features,
+        then add the result back to the node features of every node.
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the virtual node layer
+
+            activation:
+                activation function to use in the neural network layer.
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            batch_norm:
+                Whether to use batch normalization
+
+            bias:
+                Whether to add a bias to the neural network
+
+            residual:
+                Whether all virtual nodes should be connected together
+                via a residual connection
+
+        """
         super().__init__()
         if (vn_type is None) or (vn_type.lower() == "none"):
             self.vn_type = None
@@ -177,13 +215,43 @@ class VirtualNode(nn.Module):
             bias=bias,
         )
 
-    def forward(self, g, h, vn_h):
+    def forward(
+        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        r"""
+        Apply the virtual node layer.
+
+        Parameters:
+
+            g:
+                graph on which the convolution is done
+
+            h (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the input features
+
+            vn_h (torch.Tensor[..., M, Din]):
+                Graph feature of the previous virtual node, or `None`
+                `M` is the number of graphs, `Din` is the input features.
+                It is added to the result after the MLP, as a residual connection
+
+        Returns:
+
+            `h = torch.Tensor[..., N, Dout]`:
+                Node feature tensor, after convolution and residual.
+                `N` is the number of nodes, `Dout` is the output features of the layer and residual
+
+            `vn_h = torch.Tensor[..., M, Dout]`:
+                Graph feature tensor to be used at the next virtual node, or `None`
+                `M` is the number of graphs, `Dout` is the output features
+
+        """
 
         g.ndata["h"] = h
 
         # Pool the features
         if self.vn_type is None:
-            return vn_h, h
+            return h, vn_h
         elif self.vn_type == "mean":
             pool = mean_nodes(g, "h")
         elif self.vn_type == "max":
@@ -213,4 +281,4 @@ class VirtualNode(nn.Module):
         )
         h = h + temp_h
 
-        return vn_h, h
+        return h, vn_h

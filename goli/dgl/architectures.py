@@ -5,7 +5,7 @@ import math
 from copy import deepcopy
 import dgl
 from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
-from typing import List, Dict, Tuple, Union, Callable
+from typing import List, Dict, Tuple, Union, Callable, Any
 import inspect
 
 from goli.dgl.base_layers import FCLayer, get_activation
@@ -682,26 +682,27 @@ class FeedForwardDGL(FeedForwardNN):
             vn_h (torch.Tensor[..., M, Din]):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features
+                It is added to the result after the MLP, as a residual connection
 
             step_idx:
                 The current step idx in the forward loop
 
         Returns:
 
-            h (torch.Tensor[..., N, Dout]):
+            `h = torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
 
-            vn_h (torch.Tensor[..., M, Dout]):
+            `vn_h = torch.Tensor[..., M, Dout]`:
                 Graph feature tensor to be used at the next virtual node, or `None`
                 `M` is the number of graphs, `Dout` is the output features
 
         """
 
         if step_idx == 0:
-            vn_h = 0
+            vn_h = 0.0
         if step_idx < len(self.virtual_node_layers):
-            vn_h, h = self.virtual_node_layers[step_idx].forward(g, h, vn_h)
+            h, vn_h = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h)
 
         return h, vn_h
 
@@ -726,7 +727,7 @@ class FeedForwardDGL(FeedForwardNN):
 
         Returns:
 
-            `torch.Tensor[..., M, Din]` or `torch.Tensor[..., N, Din]`:
+            `torch.Tensor[..., M, Dout]` or `torch.Tensor[..., N, Dout]`:
                 Node or graph feature tensor, after the network.
                 `N` is the number of nodes, `M` is the number of graphs,
                 `Dout` is the output dimension ``self.out_dim``
@@ -770,32 +771,111 @@ class FeedForwardDGL(FeedForwardNN):
 class FullDGLNetwork(nn.Module):
     def __init__(
         self,
-        pre_nn_kwargs,
-        gnn_kwargs,
-        post_nn_kwargs,
-        name="DGL_GNN",
+        pre_nn_kwargs: Union[type(None), Dict[str, Any]],
+        gnn_kwargs: Dict[str, Any],
+        post_nn_kwargs: Union[type(None), Dict[str, Any]],
+        name: str = "DGL_GNN",
     ):
+        r"""
+        Class that allows to implement a full graph neural network architecture,
+        including the pre-processing MLP and the post processing MLP.
 
-        # Initialize the parent nn.Module
+        Parameters:
+            pre_nn_kwargs:
+                key-word arguments to use for the initialization of the pre-processing
+                MLP network of the node features before the GNN, using the class `FeedForwardNN`.
+                If `None`, there won't be a pre-processing MLP.
+
+            gnn_kwargs:
+                key-word arguments to use for the initialization of the pre-processing
+                GNN network using the class `FeedForwardDGL`.
+                It must respect the following criteria:
+
+                - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
+                - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
+
+            post_nn_kwargs:
+                key-word arguments to use for the initialization of the post-processing
+                MLP network after the GNN, using the class `FeedForwardNN`.
+                If `None`, there won't be a post-processing MLP.
+
+            name:
+                Name attributed to the current network, for display and printing
+                purposes.
+        """
+
         super().__init__()
         self.name = name
 
+        # Initialize the networks
         self.pre_nn, self.post_nn = None, None
         if pre_nn_kwargs is not None:
-            self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name="NN-pre-trans")
-        self.gnn = FeedForwardDGL(**gnn_kwargs, name="main-GNN")
+            name = pre_nn_kwargs.pop("name", "pre-trans-NN")
+            self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
+        name = gnn_kwargs.pop("name", "main-GNN")
+        self.gnn = FeedForwardDGL(**gnn_kwargs, name=name)
         if post_nn_kwargs is not None:
-            self.post_nn = FeedForwardNN(**post_nn_kwargs, name="NN-post-trans")
+            name = post_nn_kwargs.pop("name", "post-trans-NN")
+            self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
 
+        # Initialize the hyper-parameter variable to be accessible by Pytorch Lightning
         hparams_temp = {**self.pre_nn.hparams, **self.pre_nn.hparams, **self.pre_nn.hparams}
         self.hparams = {f"{self.name}.{key}": elem for key, elem in hparams_temp.items()}
 
-    def forward(self, graph):
+    def _check_bad_arguments(self):
+        r"""
+        Raise comprehensive errors if the arguments seem wrong
+        """
         if self.pre_nn is not None:
-            h = graph.ndata["h"]
+            if self.pre_nn["out_dim"] != self.gnn["in_dim"]:
+                raise ValueError(
+                    f"`self.pre_nn.out_dim` must be equal to `self.gnn.in_dim`."
+                    + 'Provided" {self.pre_nn.out_dim} and {self.gnn.in_dim}'
+                )
+
+        if self.post_nn is not None:
+            if self.gnn["out_dim"] != self.post_nn["in_dim"]:
+                raise ValueError(
+                    f"`self.gnn.out_dim` must be equal to `self.post_nn.in_dim`."
+                    + 'Provided" {self.gnn.out_dim} and {self.post_nn.in_dim}'
+                )
+
+    def forward(self, g: dgl.DGLGraph) -> torch.Tensor:
+        r"""
+        Apply the pre-processing neural network, the graph neural network,
+        and the post-processing neural network on the graph features.
+
+        Parameters:
+
+            g:
+                graph on which the convolution is done.
+                Must contain the following elements:
+
+                - `g.ndata["h"]`: `torch.Tensor[..., N, Din]`.
+                  Input node feature tensor, before the network.
+                  `N` is the number of nodes, `Din` is the input features dimension ``self.pre_nn.in_dim``
+
+                - `g.edata["e"]`: `torch.Tensor[..., N, Ein]` **Optional**.
+                  The edge features to use. It will be ignored if the
+                  model doesn't supporte edge features or if
+                  `self.in_dim_edges==0`.
+
+        Returns:
+
+            `torch.Tensor[..., M, Dout]` or `torch.Tensor[..., N, Dout]`:
+                Node or graph feature tensor, after the network.
+                `N` is the number of nodes, `M` is the number of graphs,
+                `Dout` is the output dimension ``self.post_nn.out_dim``
+                If the `self.gnn.pooling` is [`None`], then it returns node features and the output dimension is `N`,
+                otherwise it returns graph features and the output dimension is `M`
+
+        """
+
+        if self.pre_nn is not None:
+            h = g.ndata["h"]
             h = self.pre_nn.forward(h)
-            graph.ndata["h"] = h
-        h = self.gnn.forward(graph)
+            g.ndata["h"] = h
+        h = self.gnn.forward(g)
         if self.post_nn is not None:
             h = self.post_nn.forward(h)
         return h
