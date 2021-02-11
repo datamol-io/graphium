@@ -553,7 +553,7 @@ class FeedForwardDGL(FeedForwardNN):
             batch_norm=self.batch_norm,
         )
 
-    def _pool_layer_forward(self, graph, h):
+    def _pool_layer_forward(self, g, h):
         r"""
         Apply the graph pooling layer, followed by the linear output layer.
 
@@ -578,7 +578,7 @@ class FeedForwardDGL(FeedForwardNN):
         if len(self.global_pool_layer) > 0:
             pooled_h = []
             for this_pool in self.global_pool_layer:
-                pooled_h.append(this_pool(graph, h))
+                pooled_h.append(this_pool(g, h))
             pooled_h = torch.cat(pooled_h, dim=-1)
         else:
             pooled_h = h
