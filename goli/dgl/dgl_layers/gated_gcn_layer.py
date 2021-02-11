@@ -94,21 +94,20 @@ class GatedGCNLayer(BaseDGLLayer):
             g: dgl.DGLGraph
                 graph on which the convolution is done
 
-            h: torch.Tensor(..., N, Din)
+            h: `torch.Tensor[..., N, Din]`
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-            e: torch.Tensor(..., N, Din_edges)
+            e: `torch.Tensor[..., N, Din_edges]`
                 Edge feature tensor, before convolution.
                 N is the number of nodes, Din is the input edge dimension  ``self.in_dim_edges``
 
         Returns:
-
-            h: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution.
                 N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
-            e: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Edge feature tensor, after convolution.
                 N is the number of nodes, Dout_edges is the output edge dimension ``self.out_dim``
 

@@ -253,7 +253,23 @@ class FeedForwardNN(nn.Module):
             if ii < len(residual_out_dims):
                 this_in_dim = residual_out_dims[ii]
 
-    def forward(self, h):
+    def forward(self, h: torch.Tensor) -> torch.Tensor:
+        r"""
+        Apply the neural network on the input features.
+
+        Parameters:
+
+            h: `torch.Tensor[..., Din]`:
+                Input feature tensor, before the network.
+                `Din` is the number of input features
+
+        Returns:
+
+            `torch.Tensor[..., Dout]`:
+                Output feature tensor, after the network.
+                `Dout` is the number of output features
+
+        """
         h_prev = None
         for ii, layer in enumerate(self.layers):
             h = layer.forward(h)
@@ -457,23 +473,26 @@ class FeedForwardDGL(FeedForwardNN):
         self.layers = nn.ModuleList()
         self.virtual_node_layers = nn.ModuleList()
         this_in_dim = self.full_dims[0]
+        this_activation = self.activation
 
+        # Find the appropriate edge dimensions, depending if edges are used,
+        # And if the residual is required for the edges
         this_in_dim_edges, this_out_dim_edges = None, None
         if self.full_dims_edges is not None:
             this_in_dim_edges, this_out_dim_edges = self.full_dims_edges[0:2]
             residual_out_dims_edges = residual_layer_temp.get_true_out_dims(self.full_dims_edges[1:])
         elif self.in_dim_edges > 0:
             this_in_dim_edges = self.in_dim_edges
-
-        this_activation = self.activation
         layer_out_dims_edges = []
 
+        # Create all the layers in a loop
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
 
             if ii == self.depth - 1:
                 this_activation = self.last_activation
 
+            # Find the edge key-word arguments depending on the layer type and residual connection
             this_edge_kwargs = {}
             if self.layer_class.layer_supports_edges and self.in_dim_edges > 0:
                 this_edge_kwargs["in_dim_edges"] = this_in_dim_edges
@@ -494,8 +513,8 @@ class FeedForwardDGL(FeedForwardNN):
                 )
             )
 
+            # Create the Virtual Node layer, except at the last layer
             if ii < len(residual_out_dims):
-                # Create the Virtual Node layer
                 self.virtual_node_layers.append(
                     VirtualNode(
                         dim=this_out_dim,
@@ -549,7 +568,7 @@ class FeedForwardDGL(FeedForwardNN):
 
         Returns:
 
-            h (torch.Tensor[..., M, Din)] or (torch.Tensor[..., N, Din)]:
+            torch.Tensor[..., M, Din] or torch.Tensor[..., N, Din]:
                 Node feature tensor, after convolution.
                 `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
                 If the pooling is `None`, the dimension is `N`, otherwise it is `M`
@@ -686,22 +705,53 @@ class FeedForwardDGL(FeedForwardNN):
 
         return h, vn_h
 
-    def forward(self, graph):
+    def forward(self, g: dgl.DGLGraph) -> torch.Tensor:
+        r"""
+        Apply the full graph neural network on the input graph and node features.
+
+        Parameters:
+
+            g:
+                graph on which the convolution is done.
+                Must contain the following elements:
+
+                - `g.ndata["h"]`: `torch.Tensor[..., N, Din]`.
+                  Input node feature tensor, before the network.
+                  `N` is the number of nodes, `Din` is the input features
+
+                - `g.edata["e"]`: `torch.Tensor[..., N, Ein]` **Optional**.
+                  The edge features to use. It will be ignored if the
+                  model doesn't supporte edge features or if
+                  `self.in_dim_edges==0`.
+
+        Returns:
+
+            `torch.Tensor[..., M, Din]` or `torch.Tensor[..., N, Din]`:
+                Node or graph feature tensor, after the network.
+                `N` is the number of nodes, `M` is the number of graphs,
+                `Dout` is the output dimension ``self.out_dim``
+                If the `self.pooling` is [`None`], then it returns node features and the output dimension is `N`,
+                otherwise it returns graph features and the output dimension is `M`
+
+        """
 
         # Get node and edge features
-        h = graph.ndata["h"]
-        e = graph.edata["e"] if self.in_dim_edges > 0 else None
+        h = g.ndata["h"]
+        e = g.edata["e"] if (self.in_dim_edges > 0) else None
 
+        # Initialize values of the residuals and virtual node
         h_prev = None
         e_prev = None
         vn_h = 0
+
+        # Apply the forward loop of the layers, residuals and virtual nodes
         for ii, layer in enumerate(self.layers):
             h, e, h_prev, e_prev = self._dgl_layer_forward(
-                layer=layer, g=graph, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
+                layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
-            h, vn_h = self._virtual_node_forward(graph, h, vn_h, step_idx=ii)
+            h, vn_h = self._virtual_node_forward(g=g, h=h, vn_h=vn_h, step_idx=ii)
 
-        pooled_h = self._pool_layer_forward(graph, h)
+        pooled_h = self._pool_layer_forward(g=g, h=h)
 
         return pooled_h
 
