@@ -6,7 +6,7 @@ Concat and DenseNet
 import abc
 import torch
 import torch.nn as nn
-from typing import List
+from typing import List, Union, Callable
 
 from goli.dgl.base_layers import FCLayer
 from goli.commons.decorators import classproperty
@@ -241,7 +241,13 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
 class ResidualConnectionWeighted(ResidualConnectionBase):
     def __init__(
-        self, out_dims, skip_steps: int = 1, dropout=0.0, activation="none", batch_norm=False, bias=False
+        self,
+        out_dims,
+        skip_steps: int = 1,
+        dropout=0.0,
+        activation: Union[str, Callable] = "none",
+        batch_norm=False,
+        bias=False,
     ):
         r"""
         Class for the simple residual connections proposed by ResNet,

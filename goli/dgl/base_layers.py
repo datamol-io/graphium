@@ -3,13 +3,23 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from typing import Union, Callable
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 EPS = 1e-5
 
 
-def get_activation(activation):
-    r""" returns the activation function represented by the input string """
+def get_activation(activation: Union[type(None), str, Callable]) -> Union[type(None), Callable]:
+    r"""
+    returns the activation function represented by the input string
+
+    Parameters:
+        activation: Callable, `None`, or string with value:
+            "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"
+
+    Returns:
+        Callable or None: The activation function
+    """
     if activation and callable(activation):
         # activation is already a function
         return activation
@@ -30,11 +40,11 @@ class FCLayer(nn.Module):
         self,
         in_dim: int,
         out_dim: int,
-        activation="relu",
+        activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
         bias: bool = True,
-        init_fn=None,
+        init_fn: Union[type(None), Callable] = None,
     ):
 
         r"""
@@ -47,36 +57,36 @@ class FCLayer(nn.Module):
         - Batch Normalization (if applicable)
 
         Parameters:
-            in_dim: int
+            in_dim:
                 Input dimension of the layer (the torch.nn.Linear)
-            out_dim: int
+            out_dim:
                 Output dimension of the layer.
             dropout:
                 The ratio of units to dropout. No dropout by default.
-            activation: str or callable
+            activation:
                 Activation function to use.
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
-            bias: bool
+            bias:
                 Whether to enable bias in for the linear layer.
-            init_fn: callable
+            init_fn:
                 Initialization function to use for the weight of the layer. Default is
                 $$\mathcal{U}(-\sqrt{k}, \sqrt{k})$$ with $$k=\frac{1}{ \text{in_dim}}$$
 
         Attributes:
-            dropout: int
+            dropout (int):
                 The ratio of units to dropout.
-            batch_norm: int
+            batch_norm (int):
                 Whether to use batch normalization
-            linear: torch.nn.Linear
+            linear (torch.nn.Linear):
                 The linear layer
-            activation: the torch.nn.Module
+            activation (torch.nn.Module):
                 The activation layer
-            init_fn: function
+            init_fn (Callable):
                 Initialization function used for the weight of the layer
-            in_dim: int
+            in_dim (int):
                 Input dimension of the linear layer
-            out_dim: int
+            out_dim (int):
                 Output dimension of the linear layer
         """
 
@@ -107,8 +117,25 @@ class FCLayer(nn.Module):
         if self.bias:
             self.linear.bias.data.zero_()
 
-    def forward(self, x):
-        h = self.linear(x)
+    def forward(self, h: torch.Tensor) -> torch.Tensor:
+        r"""
+        Apply the FC layer on the input features.
+
+        Parameters:
+
+            h: `torch.Tensor[..., Din]`:
+                Input feature tensor, before the FC.
+                `Din` is the number of input features
+
+        Returns:
+
+            `torch.Tensor[..., Dout]`:
+                Output feature tensor, after the FC.
+                `Dout` is the number of output features
+
+        """
+
+        h = self.linear(h)
 
         if self.batch_norm is not None:
             if h.shape[1] != self.out_dim:
@@ -127,22 +154,46 @@ class FCLayer(nn.Module):
 
 
 class MLP(nn.Module):
-    r"""
-    Simple multi-layer perceptron, built of a series of FCLayers
-    """
-
     def __init__(
         self,
-        in_dim,
-        hidden_dim,
-        out_dim,
-        layers,
-        mid_activation="relu",
-        last_activation="none",
+        in_dim: int,
+        hidden_dim: int,
+        out_dim: int,
+        layers: int,
+        actibation: Union[str, Callable] = "relu",
+        last_activation: Union[str, Callable] = "none",
         dropout=0.0,
-        mid_batch_norm=False,
+        batch_norm=False,
         last_batch_norm=False,
     ):
+        r"""
+        Simple multi-layer perceptron, built of a series of FCLayers
+
+        Parameters:
+            in_dim:
+                Input dimension of the MLP
+            hidden_dim:
+                Hidden dimension of the MLP. All hidden dimensions will have
+                the same number of parameters
+            out_dim:
+                Output dimension of the MLP.
+            layers:
+                Number of hidden layers
+            activation:
+                Activation function to use in all the layers except the last.
+                if `layers==1`, this parameter is ignored
+            last_activation:
+                Activation function to use in the last layer.
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+            batch_norm:
+                Whether to use batch normalization in the hidden layers.
+                if `layers==1`, this parameter is ignored
+            last_batch_norm:
+                Whether to use batch normalization in the last layer
+
+        """
+
         super().__init__()
 
         self.in_dim = in_dim
@@ -165,8 +216,8 @@ class MLP(nn.Module):
                 FCLayer(
                     in_dim,
                     hidden_dim,
-                    activation=mid_activation,
-                    batch_norm=mid_batch_norm,
+                    activation=actibation,
+                    batch_norm=batch_norm,
                     dropout=dropout,
                 )
             )
@@ -175,8 +226,8 @@ class MLP(nn.Module):
                     FCLayer(
                         hidden_dim,
                         hidden_dim,
-                        activation=mid_activation,
-                        batch_norm=mid_batch_norm,
+                        activation=actibation,
+                        batch_norm=batch_norm,
                         dropout=dropout,
                     )
                 )
@@ -190,47 +241,72 @@ class MLP(nn.Module):
                 )
             )
 
-    def forward(self, x):
+    def forward(self, h: torch.Tensor) -> torch.Tensor:
+        r"""
+        Apply the MLP on the input features.
+
+        Parameters:
+
+            h: `torch.Tensor[..., Din]`:
+                Input feature tensor, before the MLP.
+                `Din` is the number of input features
+
+        Returns:
+
+            `torch.Tensor[..., Dout]`:
+                Output feature tensor, after the MLP.
+                `Dout` is the number of output features
+
+        """
         for fc in self.fully_connected:
-            x = fc(x)
-        return x
+            h = fc(h)
+        return h
 
     def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
         return self.__class__.__name__ + " (" + str(self.in_dim) + " -> " + str(self.out_dim) + ")"
 
 
 class GRU(nn.Module):
-    r"""
-    Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
-    """
+    def __init__(self, in_dim: int, hidden_dim: int):
+        r"""
+        Wrapper class for the GRU used by the GNN framework, nn.GRU is used for the Gated Recurrent Unit itself
 
-    def __init__(self, input_size, hidden_dim, device):
+        Parameters:
+            in_dim:
+                Input dimension of the GRU layer
+            hidden_dim:
+                Hidden dimension of the GRU layer.
+        """
+
         super().__init__()
-        self.input_size = input_size
+        self.in_dim = in_dim
         self.hidden_dim = hidden_dim
-        self.gru = nn.GRU(input_size=input_size, hidden_dim=hidden_dim).to(device)
+        self.gru = nn.GRU(in_dim=in_dim, hidden_dim=hidden_dim)
 
     def forward(self, x, y):
         r"""
         Parameters:
-            x (torch.Tensor[B, N, Din]):
-                where Din <= input_size (difference is padded)
-            y (torch.Tensor[B, N, Dh]):
+            x:  `torch.Tensor[B, N, Din]`
+                where Din <= in_dim (difference is padded)
+            y:  `torch.Tensor[B, N, Dh]`
                 where Dh <= hidden_dim (difference is padded)
 
         Returns:
-            new_x (torch.Tensor[B, N, Dh]):
+            torch.Tensor: `torch.Tensor[B, N, Dh]`
 
         """
-        assert x.shape[-1] <= self.input_size and y.shape[-1] <= self.hidden_dim
+        assert x.shape[-1] <= self.in_dim and y.shape[-1] <= self.hidden_dim
 
         (B, N, _) = x.shape
         x = x.reshape(1, B * N, -1).contiguous()
         y = y.reshape(1, B * N, -1).contiguous()
 
         # padding if necessary
-        if x.shape[-1] < self.input_size:
-            x = F.pad(input=x, pad=[0, self.input_size - x.shape[-1]], mode="constant", value=0)
+        if x.shape[-1] < self.in_dim:
+            x = F.pad(input=x, pad=[0, self.in_dim - x.shape[-1]], mode="constant", value=0)
         if y.shape[-1] < self.hidden_dim:
             y = F.pad(input=y, pad=[0, self.hidden_dim - y.shape[-1]], mode="constant", value=0)
 

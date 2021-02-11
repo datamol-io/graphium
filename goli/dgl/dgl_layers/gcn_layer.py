@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union, Callable
 
 import dgl.function as fn
 from dgl.nn.pytorch import GraphConv
@@ -19,7 +19,12 @@ from goli.commons.decorators import classproperty
 
 class GCNLayer(BaseDGLLayer):
     def __init__(
-        self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
+        self,
+        in_dim: int,
+        out_dim: int,
+        activation: Union[str, Callable] = "relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
     ):
         r"""
         Graph convolutional network (GCN) layer from
@@ -28,19 +33,19 @@ class GCNLayer(BaseDGLLayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
         """
 
@@ -69,7 +74,7 @@ class GCNLayer(BaseDGLLayer):
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -96,7 +101,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            supports_edges: bool
+            bool
                 Always ``False`` for the current class
         """
         return False
@@ -111,7 +116,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -126,7 +131,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -146,7 +151,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            dim_factor: int
+            int:
                 Always ``1`` for the current class
         """
         return 1

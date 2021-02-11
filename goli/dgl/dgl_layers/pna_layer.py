@@ -44,35 +44,35 @@ class BasePNALayer(BaseDGLLayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            aggregators: list(str)
+            aggregators:
                 Set of aggregation function identifiers,
                 e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
                 The results from all aggregators will be concatenated.
 
-            scalers: list(str)
+            scalers:
                 Set of scaling functions identifiers
                 e.g. "identidy", "amplification", "attenuation"
                 The results from all scalers will be concatenated
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
 
-            avg_d: float
+            avg_d:
                 Average degree of nodes in the training set, used by scalers to normalize
 
-            last_activation: str, Callable
+            last_activation:
                 activation function to use in the last layer of the internal MLP
 
         """
@@ -125,7 +125,7 @@ class BasePNALayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -145,7 +145,7 @@ class BasePNALayer(BaseDGLLayer):
 
         Returns:
 
-            dim_factor: int
+            int:
                 Always ``1`` for the current class
         """
         return 1
@@ -178,38 +178,38 @@ class PNAConvolutionalLayer(BasePNALayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            aggregators: list(str)
+            aggregators:
                 Set of aggregation function identifiers,
                 e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
                 The results from all aggregators will be concatenated.
 
-            scalers: list(str)
+            scalers:
                 Set of scaling functions identifiers
                 e.g. "identidy", "amplification", "attenuation"
                 The results from all scalers will be concatenated
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
 
-            avg_d: Dict(str, float)
+            avg_d:
                 Average degree of nodes in the training set, used by scalers to normalize
 
-            last_activation: str, Callable
+            last_activation:
                 activation function to use in the last layer of the internal MLP
 
-            posttrans_layers: int
+            posttrans_layers:
                 number of layers in the MLP transformation after the aggregation
 
         """
@@ -232,10 +232,10 @@ class PNAConvolutionalLayer(BasePNALayer):
             hidden_dim=self.out_dim,
             out_dim=self.out_dim,
             layers=posttrans_layers,
-            mid_activation=self.activation,
+            actibation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
-            mid_batch_norm=batch_norm,
+            batch_norm=batch_norm,
             last_batch_norm=batch_norm,
         )
 
@@ -251,7 +251,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -288,7 +288,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -300,7 +300,7 @@ class PNAConvolutionalLayer(BasePNALayer):
 
         Returns:
 
-            supports_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -335,44 +335,44 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            aggregators: list(str)
+            aggregators:
                 Set of aggregation function identifiers,
                 e.g. "mean", "max", "min", "std", "sum", "var", "moment3".
                 The results from all aggregators will be concatenated.
 
-            scalers: list(str)
+            scalers:
                 Set of scaling functions identifiers
                 e.g. "identidy", "amplification", "attenuation"
                 The results from all scalers will be concatenated
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
 
-            avg_d: Dict(str, float)
+            avg_d:
                 Average degree of nodes in the training set, used by scalers to normalize
 
-            last_activation: str, Callable
+            last_activation:
                 activation function to use in the last layer of the internal MLP
 
-            posttrans_layers: int
+            posttrans_layers:
                 number of layers in the MLP transformation after the aggregation
 
-            pretrans_layers: int
+            pretrans_layers:
                 number of layers in the transformation before the aggregation
 
-            in_dim_edges: int
+            in_dim_edges:
                 size of the edge features. If 0, edges are ignored
 
         """
@@ -398,10 +398,10 @@ class PNAMessagePassingLayer(BasePNALayer):
             hidden_dim=in_dim,
             out_dim=in_dim,
             layers=pretrans_layers,
-            mid_activation=self.activation,
+            actibation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
-            mid_batch_norm=batch_norm,
+            batch_norm=batch_norm,
             last_batch_norm=batch_norm,
         )
 
@@ -411,10 +411,10 @@ class PNAMessagePassingLayer(BasePNALayer):
             hidden_dim=out_dim,
             out_dim=out_dim,
             layers=posttrans_layers,
-            mid_activation=self.activation,
+            actibation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
-            mid_batch_norm=batch_norm,
+            batch_norm=batch_norm,
             last_batch_norm=batch_norm,
         )
 
@@ -435,7 +435,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -483,7 +483,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Returns ``self.edge_features``
         """
         return self.edge_features
@@ -495,7 +495,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         Returns:
 
-            supports_edges: bool
+            bool:
                 Always ``True`` for the current class
         """
         return True

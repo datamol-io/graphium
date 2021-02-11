@@ -359,11 +359,11 @@ class FeedForwardDGL(FeedForwardNN):
                 If `1`, all the layers are connected. If `2`, half of the
                 layers are connected.
 
-            in_dim_edges: int
+            in_dim_edges:
                 Input edge-feature dimensions of the network. Keep at 0 if not using
                 edge features, or if the layer doesn't support edges.
 
-            hidden_dim_edges:
+            hidden_dims_edges:
                 Hidden dimensions for the edges. Most models don't support it, so it
                 should only be used for those that do, i.e. `GatedGCNLayer`
 
