@@ -21,15 +21,7 @@ class GCNLayer(BaseDGLLayer):
     def __init__(
         self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
     ):
-
-        super().__init__(
-            in_dim=in_dim,
-            out_dim=out_dim,
-            activation=activation,
-            dropout=dropout,
-            batch_norm=batch_norm,
-        )
-        """
+        r"""
         Graph convolutional network (GCN) layer from
         Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
         http://arxiv.org/abs/1609.02907
@@ -51,6 +43,14 @@ class GCNLayer(BaseDGLLayer):
             batch_norm: bool
                 Whether to use batch normalization
         """
+
+        super().__init__(
+            in_dim=in_dim,
+            out_dim=out_dim,
+            activation=activation,
+            dropout=dropout,
+            batch_norm=batch_norm,
+        )
 
         self.conv = GraphConv(
             in_feats=in_dim,

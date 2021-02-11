@@ -12,6 +12,13 @@ from copy import deepcopy
 
 from goli.dgl.architectures import FeedForwardNN, FeedForwardDGL
 from goli.dgl.base_layers import FCLayer
+from goli.dgl.residual_connections import (
+    ResidualConnectionConcat,
+    ResidualConnectionDenseNet,
+    ResidualConnectionNone,
+    ResidualConnectionSimple,
+    ResidualConnectionWeighted,
+)
 
 
 class test_FeedForwardNN(ut.TestCase):
@@ -315,38 +322,232 @@ class test_FeedForwardDGL(ut.TestCase):
         "pna-msgpass#2": {**pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
-    def test_forward_no_residual(self):
-        out_dim = 16
+    def test_dgl_forward_no_residual(self):
 
-        for virtual_node in self.virtual_nodes:
-            for layer_name, this_kwargs in self.layers_kwargs.items():
-                err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}"
-                layer_type = layer_name.split("#")[0]
+        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+            for residual_skip_steps in [1, 2, 3]:
+                for virtual_node in self.virtual_nodes:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}"
+                        layer_type = layer_name.split("#")[0]
 
-                gnn = FeedForwardDGL(
-                    in_dim=self.in_dim,
-                    out_dim=self.out_dim,
-                    hidden_dims=self.hidden_dims,
-                    residual_type="none",
-                    residual_skip_steps=1,
-                    layer_type=layer_type,
-                    **this_kwargs,
-                    **self.kwargs,
-                )
-                gnn.to(torch.float32)
+                        gnn = FeedForwardDGL(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="none",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            pooling=pooling,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        gnn.to(torch.float32)
 
-                self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
-                self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
-                self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
-                self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
-                self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
-                self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
-                self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionNone)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
 
-                bg = deepcopy(self.bg)
-                h_out = gnn.forward(bg)
+                        f = gnn.layers[0].out_dim_factor
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+                        bg = deepcopy(self.bg)
+                        h_out = gnn.forward(bg)
+
+                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+
+    def test_dgl_forward_simple_residual(self):
+
+        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+            for residual_skip_steps in [1, 2, 3]:
+                for virtual_node in self.virtual_nodes:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}"
+                        layer_type = layer_name.split("#")[0]
+
+                        gnn = FeedForwardDGL(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="simple",
+                            residual_skip_steps=1,
+                            layer_type=layer_type,
+                            pooling=pooling,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        gnn.to(torch.float32)
+
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionSimple)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+
+                        f = gnn.layers[0].out_dim_factor
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+
+                        bg = deepcopy(self.bg)
+                        h_out = gnn.forward(bg)
+
+                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+
+    def test_dgl_forward_weighted_residual(self):
+
+        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+            for residual_skip_steps in [1, 2, 3]:
+                for virtual_node in self.virtual_nodes:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}"
+                        layer_type = layer_name.split("#")[0]
+
+                        gnn = FeedForwardDGL(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="weighted",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            pooling=pooling,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        gnn.to(torch.float32)
+
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionWeighted)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+
+                        f = gnn.layers[0].out_dim_factor
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+
+                        bg = deepcopy(self.bg)
+                        h_out = gnn.forward(bg)
+
+                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+
+    def test_dgl_forward_concat_residual(self):
+
+        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+            for residual_skip_steps in [1, 2, 3]:
+                for virtual_node in self.virtual_nodes:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}"
+                        layer_type = layer_name.split("#")[0]
+
+                        gnn = FeedForwardDGL(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="concat",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            pooling=pooling,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        gnn.to(torch.float32)
+
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionConcat)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+
+                        f = gnn.layers[0].out_dim_factor
+                        f2 = [2 * f if ((ii % residual_skip_steps) == 0 and ii > 0) else f for ii in range(6)]
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
+
+                        bg = deepcopy(self.bg)
+                        h_out = gnn.forward(bg)
+
+                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+
+    def test_dgl_forward_densenet_residual(self):
+
+        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+            for residual_skip_steps in [1, 2, 3]:
+                for virtual_node in self.virtual_nodes:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}"
+                        layer_type = layer_name.split("#")[0]
+
+                        gnn = FeedForwardDGL(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="densenet",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            pooling=pooling,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        gnn.to(torch.float32)
+
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionDenseNet)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+
+                        f = gnn.layers[0].out_dim_factor
+                        f2 = [
+                            ((ii // residual_skip_steps) + 1) * f
+                            if ((ii % residual_skip_steps) == 0 and ii > 0)
+                            else f
+                            for ii in range(6)
+                        ]
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
+
+                        bg = deepcopy(self.bg)
+                        h_out = gnn.forward(bg)
+
+                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
 
 
 if __name__ == "__main__":
