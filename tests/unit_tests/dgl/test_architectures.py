@@ -324,7 +324,7 @@ class test_FeedForwardDGL(ut.TestCase):
 
     def test_dgl_forward_no_residual(self):
 
-        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
                     for layer_name, this_kwargs in self.layers_kwargs.items():
@@ -364,11 +364,12 @@ class test_FeedForwardDGL(ut.TestCase):
                         bg = deepcopy(self.bg)
                         h_out = gnn.forward(bg)
 
-                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+                        dim_1 = bg.num_nodes() if pooling == ["none"] else 1
+                        self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_dgl_forward_simple_residual(self):
 
-        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
                     for layer_name, this_kwargs in self.layers_kwargs.items():
@@ -408,11 +409,12 @@ class test_FeedForwardDGL(ut.TestCase):
                         bg = deepcopy(self.bg)
                         h_out = gnn.forward(bg)
 
-                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+                        dim_1 = bg.num_nodes() if pooling == ["none"] else 1
+                        self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_dgl_forward_weighted_residual(self):
 
-        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
                     for layer_name, this_kwargs in self.layers_kwargs.items():
@@ -452,11 +454,12 @@ class test_FeedForwardDGL(ut.TestCase):
                         bg = deepcopy(self.bg)
                         h_out = gnn.forward(bg)
 
-                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+                        dim_1 = bg.num_nodes() if pooling == ["none"] else 1
+                        self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_dgl_forward_concat_residual(self):
 
-        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
                     for layer_name, this_kwargs in self.layers_kwargs.items():
@@ -497,11 +500,12 @@ class test_FeedForwardDGL(ut.TestCase):
                         bg = deepcopy(self.bg)
                         h_out = gnn.forward(bg)
 
-                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+                        dim_1 = bg.num_nodes() if pooling == ["none"] else 1
+                        self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_dgl_forward_densenet_residual(self):
 
-        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
                     for layer_name, this_kwargs in self.layers_kwargs.items():
@@ -547,7 +551,8 @@ class test_FeedForwardDGL(ut.TestCase):
                         bg = deepcopy(self.bg)
                         h_out = gnn.forward(bg)
 
-                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+                        dim_1 = bg.num_nodes() if pooling == ["none"] else 1
+                        self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
 
 class test_FullDGLNetwork(ut.TestCase):
@@ -596,7 +601,7 @@ class test_FullDGLNetwork(ut.TestCase):
 
         post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.out_dim, hidden_dims=[3, 3, 3, 3])
 
-        for pooling in [["sum"], ["mean", "s2s", "max"]]:
+        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
                     for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
@@ -621,7 +626,8 @@ class test_FullDGLNetwork(ut.TestCase):
                         bg = deepcopy(self.bg)
                         h_out = net.forward(bg)
 
-                        self.assertListEqual(list(h_out.shape), [1, self.out_dim], msg=err_msg)
+                        dim_1 = bg.num_nodes() if pooling == ["none"] else 1
+                        self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
 
 if __name__ == "__main__":
