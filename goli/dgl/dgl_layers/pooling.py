@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
-from typing import List
+from typing import List, Union, Callable, Tuple
 
+import dgl
 from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, GlobalAttentionPooling
 from dgl import mean_nodes, sum_nodes, max_nodes
 
@@ -9,12 +10,23 @@ from goli.dgl.base_layers import MLP, FCLayer
 from goli.commons.utils import ModuleListConcat
 
 
+EPS = 1e-6
+
+
 class S2SReadout(nn.Module):
     r"""
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
 
-    def __init__(self, in_dim, hidden_dim, out_dim, fc_layers=3, device="cpu", final_activation="relu"):
+    def __init__(
+        self,
+        in_dim,
+        hidden_dim,
+        out_dim,
+        fc_layers=3,
+        device="cpu",
+        final_activation: Union[str, Callable] = "relu",
+    ):
         super().__init__()
 
         # set2set aggregation
@@ -26,9 +38,9 @@ class S2SReadout(nn.Module):
             hidden_dim=hidden_dim,
             out_dim=out_dim,
             layers=fc_layers,
-            mid_activation="relu",
+            actibation="relu",
             last_activation=final_activation,
-            mid_batch_norm=True,
+            batch_norm=True,
             last_batch_norm=False,
             device=device,
         )
@@ -109,12 +121,12 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
         pooling: list(str)
             The list of pooling layers to use. The accepted strings are:
 
-            - "sum": SumPooling
-            - "mean": MeanPooling
-            - "max": MaxPooling
-            - "min": MinPooling
-            - "std": StdPooling
-            - "s2s": Set2Set
+            - "sum": `SumPooling`
+            - "mean": `MeanPooling`
+            - "max": `MaxPooling`
+            - "min": `MinPooling`
+            - "std": `StdPooling`
+            - "s2s": `Set2Set`
 
         n_iters: int
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
@@ -128,7 +140,6 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
     # TODO: Add configuration for the pooling layer kwargs
 
     # Create the pooling layer
-    pooling = pooling.lower()
     pool_layer = ModuleListConcat()
     out_pool_dim = 0
 
@@ -145,6 +156,7 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
             pool_layer.append(MinPooling())
         elif this_pool == "std":
             pool_layer.append(StdPooling())
+        elif this_pool == "s2s":
             pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers))
             out_pool_dim += in_dim
         elif (this_pool == "none") or (this_pool is None):
@@ -157,8 +169,42 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
 
 class VirtualNode(nn.Module):
     def __init__(
-        self, dim, dropout, batch_norm=False, bias=True, activation="relu", residual=True, vn_type="sum"
+        self,
+        dim: int,
+        vn_type: Union[type(None), str] = "sum",
+        activation: Union[str, Callable] = "relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
+        bias: bool = True,
+        residual: bool = True,
     ):
+        r"""
+        The VirtualNode is a layer that pool the features of the graph,
+        applies a neural network layer on the pooled features,
+        then add the result back to the node features of every node.
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the virtual node layer
+
+            activation:
+                activation function to use in the neural network layer.
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            batch_norm:
+                Whether to use batch normalization
+
+            bias:
+                Whether to add a bias to the neural network
+
+            residual:
+                Whether all virtual nodes should be connected together
+                via a residual connection
+
+        """
         super().__init__()
         if (vn_type is None) or (vn_type.lower() == "none"):
             self.vn_type = None
@@ -177,13 +223,43 @@ class VirtualNode(nn.Module):
             bias=bias,
         )
 
-    def forward(self, g, h, vn_h):
+    def forward(
+        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        r"""
+        Apply the virtual node layer.
+
+        Parameters:
+
+            g:
+                graph on which the convolution is done
+
+            h (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the input features
+
+            vn_h (torch.Tensor[..., M, Din]):
+                Graph feature of the previous virtual node, or `None`
+                `M` is the number of graphs, `Din` is the input features.
+                It is added to the result after the MLP, as a residual connection
+
+        Returns:
+
+            `h = torch.Tensor[..., N, Dout]`:
+                Node feature tensor, after convolution and residual.
+                `N` is the number of nodes, `Dout` is the output features of the layer and residual
+
+            `vn_h = torch.Tensor[..., M, Dout]`:
+                Graph feature tensor to be used at the next virtual node, or `None`
+                `M` is the number of graphs, `Dout` is the output features
+
+        """
 
         g.ndata["h"] = h
 
         # Pool the features
         if self.vn_type is None:
-            return vn_h, h
+            return h, vn_h
         elif self.vn_type == "mean":
             pool = mean_nodes(g, "h")
         elif self.vn_type == "max":
@@ -213,4 +289,4 @@ class VirtualNode(nn.Module):
         )
         h = h + temp_h
 
-        return vn_h, h
+        return h, vn_h

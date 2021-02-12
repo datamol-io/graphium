@@ -35,7 +35,7 @@ from sklearn.neighbors import KNeighborsRegressor
 
 
 class DimensionalityReduction:
-    """
+    r"""
     Dimensionality reduction helper. It wraps around a standart reduction like pca, tsne, umap and adds an inverse
     transform either by pre-implemented inverse transform or a knn based inverse transform.
 

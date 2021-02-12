@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import dgl.function as fn
 from dgl import DGLGraph
+from typing import Callable, Union
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.dgl.base_layers import MLP
@@ -20,11 +21,11 @@ class GINLayer(BaseDGLLayer):
         self,
         in_dim: int,
         out_dim: int,
-        activation="relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
-        init_eps=0.0,
-        learn_eps=True,
+        init_eps: float = 0.0,
+        learn_eps: bool = True,
     ):
         r"""
         GIN: Graph Isomorphism Networks
@@ -35,25 +36,25 @@ class GINLayer(BaseDGLLayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
 
-            init_eps : float
+            init_eps :
                 Initial :math:`\epsilon` value, default: ``0``.
 
-            learn_eps : bool
+            learn_eps :
                 If True, :math:`\epsilon` will be a learnable parameter.
 
         """
@@ -80,9 +81,9 @@ class GINLayer(BaseDGLLayer):
             hidden_dim=self.in_dim,
             out_dim=self.out_dim,
             layers=2,
-            mid_activation=self.activation_layer,
+            actibation=self.activation_layer,
             last_activation="none",
-            mid_batch_norm=self.batch_norm,
+            batch_norm=self.batch_norm,
             last_batch_norm=False,
         )
 
@@ -98,22 +99,22 @@ class GINLayer(BaseDGLLayer):
         return func
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        """
+        r"""
         Apply the GIN convolutional layer, with the specified activations,
         normalizations and dropout.
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
-            h: torch.Tensor(..., N, Din)
+            h: `torch.Tensor[..., N, Din]`
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         Returns:
 
-            h: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution.
                 N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
@@ -134,7 +135,7 @@ class GINLayer(BaseDGLLayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
@@ -146,7 +147,7 @@ class GINLayer(BaseDGLLayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -154,14 +155,14 @@ class GINLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
 
     @property
     def layer_outputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -169,14 +170,14 @@ class GINLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
 
     @property
     def out_dim_factor(self) -> int:
-        """
+        r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.
 
@@ -189,7 +190,7 @@ class GINLayer(BaseDGLLayer):
 
         Returns:
 
-            dim_factor: int
+            int:
                 Always ``1`` for the current class
         """
         return 1
