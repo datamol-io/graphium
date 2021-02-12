@@ -53,6 +53,8 @@ class GATLayer(BaseDGLLayer):
                 Whether to use batch normalization
         """
 
+        self.num_heads = num_heads
+
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
@@ -60,8 +62,6 @@ class GATLayer(BaseDGLLayer):
             dropout=dropout,
             batch_norm=batch_norm,
         )
-
-        self.num_heads = num_heads
 
         self.gatconv = GATConv(
             in_feats=self.in_dim,
