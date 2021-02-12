@@ -18,7 +18,7 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Union[type(N
     Returns:
         Callable or None: The activation function
     """
-    if activation and callable(activation):
+    if (activation is not None) and callable(activation):
         # activation is already a function
         return activation
 
