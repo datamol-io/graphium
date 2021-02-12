@@ -282,8 +282,8 @@ class FeedForwardNN(nn.Module):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})"
-        layer_str = f"[{self.layer_name}[{' -> '.join(map(str, self.full_dims))}]"
+        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
+        layer_str = f"[{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]"
         out_str = " -> Linear({self.out_dim})"
 
         return class_str + layer_str + out_str
@@ -760,8 +760,8 @@ class FeedForwardDGL(FeedForwardNN):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})"
-        layer_str = f"[{self.layer_class}[{' -> '.join(map(str, self.full_dims))}]"
+        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
+        layer_str = f"{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]\n    "
         pool_str = f"-> Pooling({self.pooling})"
         out_str = f" -> {self.out_linear}"
 
@@ -771,9 +771,9 @@ class FeedForwardDGL(FeedForwardNN):
 class FullDGLNetwork(nn.Module):
     def __init__(
         self,
-        pre_nn_kwargs: Union[type(None), Dict[str, Any]],
         gnn_kwargs: Dict[str, Any],
-        post_nn_kwargs: Union[type(None), Dict[str, Any]],
+        pre_nn_kwargs: Union[type(None), Dict[str, Any]] = None,
+        post_nn_kwargs: Union[type(None), Dict[str, Any]] = None,
         name: str = "DGL_GNN",
     ):
         r"""
@@ -781,10 +781,6 @@ class FullDGLNetwork(nn.Module):
         including the pre-processing MLP and the post processing MLP.
 
         Parameters:
-            pre_nn_kwargs:
-                key-word arguments to use for the initialization of the pre-processing
-                MLP network of the node features before the GNN, using the class `FeedForwardNN`.
-                If `None`, there won't be a pre-processing MLP.
 
             gnn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
@@ -793,6 +789,11 @@ class FullDGLNetwork(nn.Module):
 
                 - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
                 - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
+
+            pre_nn_kwargs:
+                key-word arguments to use for the initialization of the pre-processing
+                MLP network of the node features before the GNN, using the class `FeedForwardNN`.
+                If `None`, there won't be a pre-processing MLP.
 
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
@@ -879,6 +880,24 @@ class FullDGLNetwork(nn.Module):
         if self.post_nn is not None:
             h = self.post_nn.forward(h)
         return h
+
+    def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
+        pre_nn_str, post_nn_str = "", ""
+        if self.pre_nn is not None:
+            pre_nn_str = self.pre_nn.__repr__() + "\n\n"
+        gnn_str = self.gnn.__repr__() + "\n\n"
+        if self.post_nn is not None:
+            post_nn_str = self.post_nn.__repr__()
+
+        child_str = "    " + pre_nn_str + gnn_str + post_nn_str
+        child_str = "    ".join(child_str.splitlines(True))
+
+        full_str = self.name + "\n" + "-" * (len(self.name) + 2) + "\n" + child_str
+
+        return full_str
 
 
 class FullDGLSiameseNetwork(FullDGLNetwork):
