@@ -58,7 +58,7 @@ class BaseDGLLayer(nn.Module):
 
         self.batch_norm_layer = None
         if batch_norm:
-            self.batch_norm_layer = nn.BatchNorm1d(out_dim)
+            self.batch_norm_layer = nn.BatchNorm1d(out_dim * self.out_dim_factor)
 
     def apply_norm_activation_dropout(
         self, h: torch.Tensor, batch_norm: bool = True, activation: bool = True, dropout: bool = True
@@ -170,4 +170,6 @@ class BaseDGLLayer(nn.Module):
         r"""
         Controls how the class is printed
         """
-        return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}, activation={self.activation})"
+        f = self.out_dim_factor
+        out_dim_f_print = "" if f == 1 else f" * {f}"
+        return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}{out_dim_f_print}, activation={self.activation})"
