@@ -282,7 +282,7 @@ class FeedForwardNN(nn.Module):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n"
+        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
         layer_str = f"[{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]"
         out_str = " -> Linear({self.out_dim})"
 
@@ -760,8 +760,8 @@ class FeedForwardDGL(FeedForwardNN):
         r"""
         Controls how the class is printed
         """
-        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n"
-        layer_str = f"{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]\n"
+        class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
+        layer_str = f"{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]\n    "
         pool_str = f"-> Pooling({self.pooling})"
         out_str = f" -> {self.out_linear}"
 
