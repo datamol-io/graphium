@@ -8,13 +8,24 @@ from copy import deepcopy
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.dataset import Dataset
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.data.sampler import SubsetRandomSampler
 
-from typing import Dict, List, Any, Union, Any, Callable, Tuple
+from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.commons.utils import is_device_cuda
 from goli.trainer.reporting import ModelSummaryExtended
+
+
+LOSS_DICT = {
+    "mse": torch.nn.MSELoss(),
+    "bce": torch.nn.BCELoss(),
+    "l1": torch.nn.L1Loss(),
+    "mae": torch.nn.L1Loss(),
+    "cosine": torch.nn.CosineEmbeddingLoss(),
+}
 
 
 class EpochSummary:
@@ -40,12 +51,13 @@ class EpochSummary:
 class ModelWrapper(pl.LightningModule):
     def __init__(
         self,
-        model: torch.nn.Module,
+        model_class: type,
+        model_kwargs: Dict[str, Any],
         dataset: torch.utils.data.Dataset,
         loss_fun: Union[str, Callable],
         lr: float = 1e-4,
         batch_size: int = 4,
-        validation_split: float = 0.2,
+        val_split: float = 0.2,
         random_seed: int = 42,
         num_workers: int = 0,
         dtype: torch.dtype = torch.float32,
@@ -58,43 +70,42 @@ class ModelWrapper(pl.LightningModule):
         additional_hparams: Dict[str, Any] = None,
     ):
         r"""
-
         A class that allows to use regression or classification models easily
         with Pytorch-Lightning.
 
         Parameters:
-            model: torch.nn.Module
+            model:
                 Pytorch model trained on the classification/regression task
 
-            dataset: torch.utils.data.Dataset
+            dataset:
                 The dataset used for the training.
-                If ``validation_split`` is a ``float``, the dataset will be splitted into train/val sets.
-                If ``validation_split`` is a ``torch.utils.data.Dataset``, then ``dataset`` variable is the training set,
-                and ``validation_split`` is the validation set.
+                If `val_split` is a `float`, the dataset will be splitted into train/val sets.
+                If `val_split` is a `torch.utils.data.Dataset`, then `dataset` variable is the training set,
+                and `val_split` is the validation set.
 
-            loss_fun: str, Callable
+            loss_fun:
                 Loss function used during training.
                 Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
-                Otherwise, a callable object must be provided, with a method ``loss_fun._get_name()``.
+                Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
 
-            lr: float
+            lr:
                 The learning rate used during the training.
 
-            batch_size: int
+            batch_size:
                 The batch size used during the training.
 
-            validation_split: float, torch.utils.data.Dataset
-                If ``validation_split`` is a ``float``, the ``dataset`` will be splitted into train/val sets.
+            val_split:
+                If `val_split` is a `float`, the `dataset` will be splitted into train/val sets.
                 The float value must be greater than 0 and smaller than 1.
-                If ``validation_split`` is a ``torch.utils.data.Dataset``, then ``dataset`` variable is the training set,
-                and ``validation_split`` is the validation set.
+                If `val_split` is a `torch.utils.data.Dataset`, then `dataset` variable is the training set,
+                and `val_split` is the validation set.
 
-            random_seed: int
+            random_seed:
                 The random seed used by Pytorch to initialize random tensors.
 
-            num_workers: int
+            num_workers:
                 The number of workers used to load the data at each training step.
-                ``num_workers`` should be 1 on the GPU
+                `num_workers` should be 1 on the GPU
 
                 - 0 : Use all cores to load the data in parallel
 
@@ -102,38 +113,40 @@ class ModelWrapper(pl.LightningModule):
 
                 - int: Specify any value for the number of cores to use for data loading.Any
 
-            dtype: torch.dtype
+            dtype:
                 The desired floating point type of the floating point parameters and buffers in this module.
 
-            device: torch.device
+            device:
                 the desired device of the parameters and buffers in this module
 
-            weight_decay: float
+            weight_decay:
                 Weight decay used to regularize the optimizer
 
-            target_nan_mask: int, float, str, None
+            target_nan_mask:
+                TODO: It's not implemented for the metrics yet!!
 
                 - None: Do not change behaviour if there are nans
 
-                - int, float: Value used to replace nans. For example, if ``target_nan_mask==0``, then
+                - int, float: Value used to replace nans. For example, if `target_nan_mask==0`, then
                   all nans will be replaced by zeros
 
-                - 'ignore': Nans will be ignored when computing the loss. NOT YET IMPLEMENTED
+                - 'ignore': Nans will be ignored when computing the loss.
 
-            metrics: dict(str, Callable), None
+            metrics:
                 A dictionnary of metrics to compute on the prediction, other than the loss function.
                 These metrics will be logged into TensorBoard.
 
-            metrics_on_progress_bar: list(str)
-                The metrics names from ``metrics`` to display also on the progress bar of the training
+            metrics_on_progress_bar:
+                The metrics names from `metrics` to display also on the progress bar of the training
 
-            collate_fn: Callable
+            collate_fn:
                 Merges a list of samples to form a mini-batch of Tensor(s).
                 Used when using batched loading from a map-style dataset.
-                See ``torch.utils.data.DataLoader.__init__``
+                See `torch.utils.data.DataLoader.__init__`
 
-            additional_hparams: dict(str, Other)
-                additionnal hyper-parameters to log in the TensorBoard file.
+            additional_hparams:
+                Additionnal hyper-parameters to log in the TensorBoard file.
+                They won't be used by the class, only logged.
 
         """
 
@@ -143,12 +156,12 @@ class ModelWrapper(pl.LightningModule):
         super().__init__()
 
         # Basic attributes
-        self.model = model.to(dtype=dtype, device=device)
-        self.dataset = dataset  # .to(dtype=dtype, device=device)
-        self.loss_fun = self._parse_loss_fun(loss_fun)
+        self.model = model_class(**model_kwargs).to(dtype=dtype, device=device)
+        self.dataset = dataset
+        self.loss_fun = self.parse_loss_fun(loss_fun)
         self.lr = lr
         self.batch_size = batch_size
-        self.validation_split = validation_split
+        self.val_split = val_split
         self.random_seed = random_seed
         self.num_workers = num_workers
         self.weight_decay = weight_decay
@@ -161,10 +174,12 @@ class ModelWrapper(pl.LightningModule):
         self._dtype = dtype
         self._device = device
 
+        # Gather the hyper-parameters of the model
         self.hparams = deepcopy(self.model.hparams) if hasattr(self.model, "hparams") else {}
         if additional_hparams is not None:
             self.hparams.update(additional_hparams)
 
+        # Add other hyper-parameters to the list
         self.hparams.update(
             {
                 "lr": self.lr,
@@ -179,141 +194,215 @@ class ModelWrapper(pl.LightningModule):
         self.to(dtype=dtype, device=device)
 
     @staticmethod
-    def _parse_loss_fun(loss_fun: Union[str, Callable]):
+    def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
+        r"""
+        Parse the loss function from a string
 
-        # Parse the loss function
+        Parameters:
+            loss_fun:
+                A callable corresponding to the loss function or a string
+                specifying the loss function from `LOSS_DICT`. Accepted strings are:
+                "mse", "bce", "l1", "mae", "cosine".
+
+        Returns:
+            Callable:
+                Function or callable to compute the loss, takes `preds` and `targets` as inputs.
+        """
+        
         if isinstance(loss_fun, str):
-            loss_fun_name = loss_fun.lower()
-            if loss_fun_name == "mse":
-                loss_fun = torch.nn.MSELoss()
-            elif loss_fun_name == "bce":
-                loss_fun = torch.nn.BCELoss()
-            elif (loss_fun_name == "mae") or (loss_fun_name == "l1"):
-                loss_fun = torch.nn.L1Loss()
-            elif loss_fun_name == "cosine":
-                loss_fun = torch.nn.CosineEmbeddingLoss()
-            else:
-                raise ValueError(f"Unsupported `loss_fun_name`: {loss_fun_name}")
-        elif callable(loss_fun):
-            pass
-        else:
+            loss_fun = LOSS_DICT[loss_fun]
+        elif not callable(loss_fun):
             raise ValueError(f"`loss_fun` must be `str` or `callable`. Provided: {type(loss_fun)}")
 
         return loss_fun
 
     def forward(self, *inputs: List[torch.Tensor]):
-        r""""""
-
-        out = self.model(*inputs)
-        if out.ndim == 1:
-            out = out.unsqueeze(-1)
+        r"""
+        Returns the result of `self.model.forward(*inputs)` on the inputs.
+        """
+        out = self.model.forward(*inputs)
         return out
 
     def prepare_data(self):
+        r"""
+        Method that parses the training and validation datasets, and creates
+        the samplers. The following attributes are set by the current method.
+
+        Attributes:
+            dataset (Dataset): 
+                Either the full dataset, or the training dataset, depending on
+                if the validation is provided as a split percentage, or as
+                a stand-alone dataset.
+            val_dataset (Dataset):
+                Either a stand-alone dataset used for validation, or a pointer
+                copy of the `dataset`.
+            train_sampler (SubsetRandomSampler):
+                The sampler for the training set
+            val_sampler (SubsetRandomSampler):
+                The sampler for the validation set
+
+        """
 
         # Creating data indices for training and validation splits:
         dataset_size = len(self.dataset)
         indices = list(range(dataset_size))
 
-        if isinstance(self.validation_split, float):
-            split = int(np.floor(self.validation_split * dataset_size))
+        if isinstance(self.val_split, float):
+            split = int(np.floor(self.val_split * dataset_size))
             np.random.shuffle(indices)
             train_indices, val_indices = indices[split:], indices[:split]
             self.val_dataset = self.dataset
 
             # Creating data samplers and loaders:
-            self.train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_indices)
-            self.valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(val_indices)
+            self.train_sampler = SubsetRandomSampler(train_indices)
+            self.val_sampler = SubsetRandomSampler(val_indices)
 
-        elif isinstance(self.validation_split, Dataset):
+        elif isinstance(self.val_split, Dataset):
             train_indices = list(range(dataset_size))
-            val_indices = list(range(len(self.validation_split)))
-            self.train_sampler = torch.utils.data.sampler.SubsetRandomSampler(train_indices)
-            self.valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(val_indices)
-            self.val_dataset = self.validation_split
+            val_indices = list(range(len(self.val_split)))
+            self.train_sampler = SubsetRandomSampler(train_indices)
+            self.val_sampler = SubsetRandomSampler(val_indices)
+            self.val_dataset = self.val_split
 
         else:
             raise ValueError("Unsupported validation split")
 
-    def train_dataloader(self):
+    def _dataloader(self, dataset, sampler):
         num_workers = self.num_workers
-        dataset_cuda = is_device_cuda(self.dataset.device)
-        train_loader = torch.utils.data.DataLoader(
-            self.dataset,
+        dataset_cuda = is_device_cuda(dataset.device)
+        loader = torch.utils.data.DataLoader(
+            dataset=dataset,
             batch_size=self.batch_size,
             num_workers=num_workers,
-            sampler=self.train_sampler,
+            sampler=sampler,
             drop_last=True,
             collate_fn=self.collate_fn,
             pin_memory=dataset_cuda,
         )
-        print("\n---------------------\ntrain, dataset_cuda: ", dataset_cuda)
-        return train_loader
+        return loader
+
+    def train_dataloader(self):
+        return self._dataloader(dataset=self.dataset, sampler=self.train_sampler)
 
     def val_dataloader(self):
-        num_workers = self.num_workers
-        dataset_cuda = is_device_cuda(self.dataset.device)
-        valid_loader = torch.utils.data.DataLoader(
-            self.val_dataset,
-            batch_size=self.batch_size,
-            num_workers=num_workers,
-            sampler=self.valid_sampler,
-            drop_last=True,
-            collate_fn=self.collate_fn,
-            pin_memory=dataset_cuda,
-        )
-        print("\n---------------------\nval, dataset_cuda: ", dataset_cuda)
-        return valid_loader
+        return self._dataloader(dataset=self.val_dataset, sampler=self.val_sampler)
 
     def configure_optimizers(self):
         optimiser = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-        torch.optim.lr_scheduler.ExponentialLR(optimiser, gamma=0.5)
-        return optimiser
+        scheduler = {
+            "scheduler": ReduceLROnPlateau(
+                optimizer=optimiser, mode="min", factor=0.5, patience=7, verbose=True
+            ),
+            "monitor": "val_loss",
+            "interval": "epoch",
+            "frequency": 3,
+            "strict": True,
+        }
+        return [optimiser], [scheduler]
 
-    def _compute_loss(self, y_pred: torch.Tensor, y_true: torch.Tensor):
-        if self.target_nan_mask is None:
+    @staticmethod
+    def compute_loss(preds: torch.Tensor, targets: torch.Tensor, loss_fun: Callable, target_nan_mask: Union[Type, str]="ignore") -> torch.Tensor:
+        r"""
+        Compute the loss using the specified loss function, and dealing with
+        the nans in the `targets`.
+
+        Parameters:
+            preds:
+                Predicted values
+
+            targets:
+                Target values
+
+            target_nan_mask:
+
+                - None: Do not change behaviour if there are nans
+
+                - int, float: Value used to replace nans. For example, if `target_nan_mask==0`, then
+                  all nans will be replaced by zeros
+
+                - 'ignore': Nans will be ignored when computing the loss.
+
+            loss_fun:
+                Loss function to use
+
+        Returns:
+            torch.Tensor:
+                Resulting loss
+        """
+        if target_nan_mask is None:
             pass
-        elif isinstance(self.target_nan_mask, (int, float)):
-            y_true[torch.isnan(y_true)] = self.target_nan_mask
-        elif self.target_nan_mask == "ignore":
-            raise NotImplementedError("Option `ignore` not yet implemented")
+        elif isinstance(target_nan_mask, (int, float)):
+            targets[torch.isnan(targets)] = target_nan_mask
+        elif target_nan_mask == "ignore":
+            nans = torch.isnan(targets)
+            targets = targets[~nans]
+            preds = preds[~nans]
         else:
-            raise ValueError(f"Invalid option `{self.target_nan_mask}`")
+            raise ValueError(f"Invalid option `{target_nan_mask}`")
 
-        loss = self.loss_fun(y_pred, y_true)
+        loss = loss_fun(preds, targets, reduction='mean')
 
         return loss
 
-    def _get_loss_logs(
-        self, y_pred: torch.Tensor, y_true: torch.Tensor, step_name: str, loss_name: str
+    def get_metrics_logs(
+        self, preds: torch.Tensor, targets: torch.Tensor, step_name: str, loss_name: str
     ) -> Dict[str, Any]:
+        r"""
+        Get the logs for the loss and the different metrics, in a format compatible with
+        Pytorch-Lightning.
 
-        y_true = y_true.to(dtype=self._dtype, device=self._device)
-        loss = self._compute_loss(y_pred, y_true)
+        Parameters:
+            preds:
+                Predicted values
+
+            targets:
+                Target values
+
+            step_name:
+                A string to mention whether the metric is computed on the training,
+                validation or test set.
+
+                - "train": On the training set
+                - "val": On the validation set
+                - "test": On the test set
+
+            loss_name:
+                Name of the loss to display in tensorboard
+
+        Returns:
+            A dictionary with the keys value being:
+
+            - `loss_name`: The value of the loss
+            - `"log"`: A dictionary of type `Dict[str, torch.Tensor]`
+                containing the metrics to log on tensorboard.
+        """
+
+        targets = targets.to(dtype=self._dtype, device=self._device)
+        loss = self.compute_loss(preds=preds, targets=targets, 
+                        target_nan_mask=target_nan_mask, loss_fun=loss_fun)
 
         # Compute the metrics always used in regression tasks
         tensorboard_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
-        tensorboard_logs[f"mean_pred/{step_name}"] = torch.mean(y_pred)
-        tensorboard_logs[f"std_pred/{step_name}"] = torch.std(y_pred)
+        tensorboard_logs[f"mean_pred/{step_name}"] = torch.mean(preds)
+        tensorboard_logs[f"std_pred/{step_name}"] = torch.std(preds)
 
         # Compute the additional metrics
-        y_pred2 = y_pred.clone().cpu().detach()
-        y_true2 = y_true.clone().cpu().detach()
+        # TODO: Change this to use metrics on Torch, not numpy
+        # TODO: NaN mask `target_nan_mask` not implemented here
+        preds2 = preds.clone().cpu().detach()
+        targets2 = targets.clone().cpu().detach()
         for key, metric in self.metrics.items():
             metric_name = f"{key}/{step_name}"
             try:
-                tensorboard_logs[metric_name] = torch.from_numpy(np.asarray(metric(y_pred2, y_true2)))
+                tensorboard_logs[metric_name] = torch.from_numpy(np.asarray(metric(preds2, targets2)))
             except:
                 tensorboard_logs[metric_name] = torch.tensor(float("nan"))
         return {loss_name: loss, "log": tensorboard_logs}
 
-    def _get_val_logs(self, y_pred: torch.Tensor, y_true: torch.Tensor, step_name: str):
-        return self._get_loss_logs(y_pred=y_pred, y_true=y_true, step_name=step_name, loss_name="val_loss")
-
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         *x, y = batch
         preds = self.forward(*x)
-        return self._get_loss_logs(y_pred=preds, y_true=y, step_name="train", loss_name="loss")
+        return self.get_metrics_logs(preds=preds, targets=y, step_name="train", loss_name="loss")
 
     def validation_step(
         self, batch: Tuple[torch.Tensor], batch_idx: int
@@ -325,11 +414,11 @@ class ModelWrapper(pl.LightningModule):
     def validation_epoch_end(self, outputs: List):
 
         # Transform the list of dict of dict, into a dict of list of dict
-        y_pred, y_true = zip(*outputs)
-        y_pred = torch.cat(y_pred, dim=-1)
-        y_true = torch.cat(y_true, dim=-1)
+        preds, targets = zip(*outputs)
+        preds = torch.cat(preds, dim=-1)
+        targets = torch.cat(targets, dim=-1)
         loss_name = "val_loss"
-        loss_logs = self._get_loss_logs(y_pred=y_pred, y_true=y_true, step_name="val", loss_name=loss_name)
+        loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="val", loss_name=loss_name)
         metrics_names_to_display = [f"{metric_name}/val" for metric_name in self.metrics_on_progress_bar]
         metrics_to_display = {
             metric_name: loss_logs["log"][metric_name] for metric_name in metrics_names_to_display
@@ -337,8 +426,8 @@ class ModelWrapper(pl.LightningModule):
 
         self.epoch_summary.set_results(
             name="val",
-            predictions=y_pred,
-            targets=y_true,
+            predictions=preds,
+            targets=targets,
             loss=loss_logs[loss_name],
             metrics=metrics_to_display,
         )
@@ -351,6 +440,9 @@ class ModelWrapper(pl.LightningModule):
         return prog_dict
 
     def summarize(self, mode: str = ModelSummaryExtended.MODE_DEFAULT) -> ModelSummaryExtended:
+        r"""
+        Provide a summary of the class, usually to be printed
+        """
         model_summary = None
 
         if mode in ModelSummaryExtended.MODES:
@@ -362,3 +454,9 @@ class ModelWrapper(pl.LightningModule):
             )
 
         return model_summary
+
+    def __repr__(self) -> str:
+        r"""
+        Controls how the class is printed
+        """
+        return self.summarize().__repr__()
