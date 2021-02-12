@@ -108,10 +108,10 @@ class BasePNALayer(BaseDGLLayer):
         h = nodes.mailbox["e"]
         D = h.shape[-2]
         h_to_cat = [aggr(h=h, h_in=h_in) for aggr in self.aggregators]
-        h = torch.cat(h_to_cat, dim=1)
+        h = torch.cat(h_to_cat, dim=-1)
 
         if len(self.scalers) > 1:
-            h = torch.cat([scale(h, D=D, avg_d=self.avg_d) for scale in self.scalers], dim=1)
+            h = torch.cat([scale(h, D=D, avg_d=self.avg_d) for scale in self.scalers], dim=-1)
 
         return {"h": h}
 
@@ -424,9 +424,9 @@ class PNAMessagePassingLayer(BasePNALayer):
         the source node, the destination node, and the edge between them (if applicable).
         """
         if self.edge_features:
-            z2 = torch.cat([edges.src["h"], edges.dst["h"], edges.data["ef"]], dim=1)
+            z2 = torch.cat([edges.src["h"], edges.dst["h"], edges.data["ef"]], dim=-1)
         else:
-            z2 = torch.cat([edges.src["h"], edges.dst["h"]], dim=1)
+            z2 = torch.cat([edges.src["h"], edges.dst["h"]], dim=-1)
         return {"e": self.pretrans(z2)}
 
     def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None) -> torch.Tensor:
@@ -466,7 +466,7 @@ class PNAMessagePassingLayer(BasePNALayer):
 
         # aggregation
         g.update_all(self.message_func, self.reduce_func)
-        h = torch.cat([h, g.ndata["h"]], dim=1)
+        h = torch.cat([h, g.ndata["h"]], dim=-1)
 
         # post-transformation
         h = self.posttrans(h)
