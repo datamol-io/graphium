@@ -6,7 +6,7 @@ Concat and DenseNet
 import abc
 import torch
 import torch.nn as nn
-from typing import List
+from typing import List, Union, Callable
 
 from goli.dgl.base_layers import FCLayer
 from goli.commons.decorators import classproperty
@@ -28,6 +28,8 @@ class ResidualConnectionBase(nn.Module):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
 
         super().__init__()
@@ -77,7 +79,7 @@ class ResidualConnectionBase(nn.Module):
 
         true_out_dims = [out_dims[0]]
         out_dims_at_skip = [out_dims[0]]
-        for ii in range(1, len(out_dims)):
+        for ii in range(1, len(out_dims) - 1):
 
             # For the `None` type, don't change the output dims
             if self.h_dim_increase_type is None:
@@ -174,6 +176,8 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
         super().__init__(skip_steps=skip_steps)
 
@@ -237,7 +241,13 @@ class ResidualConnectionSimple(ResidualConnectionBase):
 
 class ResidualConnectionWeighted(ResidualConnectionBase):
     def __init__(
-        self, out_dims, skip_steps: int = 1, dropout=0.0, activation="none", batch_norm=False, bias=False
+        self,
+        out_dims,
+        skip_steps: int = 1,
+        dropout=0.0,
+        activation: Union[str, Callable] = "none",
+        batch_norm=False,
+        bias=False,
     ):
         r"""
         Class for the simple residual connections proposed by ResNet,
@@ -249,6 +259,8 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
 
             out_dims: list(int)
                 list of all output dimensions for the network
@@ -276,7 +288,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         self.skip_count = 0
         self.out_dims = out_dims
 
-        for ii in range(0, len(self.out_dims), self.skip_steps):
+        for ii in range(0, len(self.out_dims) - 1, self.skip_steps):
             this_dim = self.out_dims[ii]
             self.residual_list.append(
                 FCLayer(
@@ -359,6 +371,8 @@ class ResidualConnectionConcat(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
 
         super().__init__(skip_steps=skip_steps)
@@ -434,6 +448,8 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
             skip_steps: int
                 The number of steps to skip between the residual connections.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
         """
 
         super().__init__(skip_steps=skip_steps)

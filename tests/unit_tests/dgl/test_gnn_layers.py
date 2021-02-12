@@ -36,12 +36,17 @@ class test_DGL_Layers(ut.TestCase):
     bg = dgl.batch([g1, g2])
     bg = dgl.add_self_loop(bg)
 
+    kwargs = {
+        "activation": "relu",
+        "dropout": 0.1,
+        "batch_norm": True,
+    }
+
     def test_gcnlayer(self):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
-        layer = GCNLayer(in_dim=self.in_dim, out_dim=self.out_dim).to(float)
+        layer = GCNLayer(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
 
         # Check the re-implementation of abstract methods
         self.assertFalse(layer.layer_supports_edges)
@@ -58,8 +63,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
-        layer = GINLayer(in_dim=self.in_dim, out_dim=self.out_dim).to(float)
+        layer = GINLayer(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
 
         # Check the re-implementation of abstract methods
         self.assertFalse(layer.layer_supports_edges)
@@ -77,8 +81,9 @@ class test_DGL_Layers(ut.TestCase):
         num_heads = 3
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
-        layer = GATLayer(in_dim=self.in_dim, out_dim=self.out_dim, num_heads=num_heads).to(float)
+        layer = GATLayer(in_dim=self.in_dim, out_dim=self.out_dim, num_heads=num_heads, **self.kwargs).to(
+            float
+        )
 
         # Check the re-implementation of abstract methods
         self.assertFalse(layer.layer_supports_edges)
@@ -101,6 +106,7 @@ class test_DGL_Layers(ut.TestCase):
             out_dim=self.out_dim,
             in_dim_edges=self.in_dim_edges,
             out_dim_edges=self.out_dim_edges,
+            **self.kwargs,
         ).to(float)
 
         # Check the re-implementation of abstract methods
@@ -129,7 +135,7 @@ class test_DGL_Layers(ut.TestCase):
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = PNAConvolutionalLayer(
-            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers
+            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
         # Check the re-implementation of abstract methods
@@ -152,7 +158,7 @@ class test_DGL_Layers(ut.TestCase):
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = PNAMessagePassingLayer(
-            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers
+            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
         # Check the re-implementation of abstract methods
@@ -174,6 +180,7 @@ class test_DGL_Layers(ut.TestCase):
             aggregators=aggregators,
             scalers=scalers,
             in_dim_edges=self.in_dim_edges,
+            **self.kwargs,
         ).to(float)
 
         # Check the re-implementation of abstract methods

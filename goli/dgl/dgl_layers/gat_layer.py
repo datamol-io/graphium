@@ -53,6 +53,8 @@ class GATLayer(BaseDGLLayer):
                 Whether to use batch normalization
         """
 
+        self.num_heads = num_heads
+
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
@@ -60,8 +62,6 @@ class GATLayer(BaseDGLLayer):
             dropout=dropout,
             batch_norm=batch_norm,
         )
-
-        self.num_heads = num_heads
 
         self.gatconv = GATConv(
             in_feats=self.in_dim,
@@ -73,7 +73,7 @@ class GATLayer(BaseDGLLayer):
         )
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        """
+        r"""
         Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
 
@@ -82,13 +82,13 @@ class GATLayer(BaseDGLLayer):
             g: dgl.DGLGraph
                 graph on which the convolution is done
 
-            h: torch.Tensor(..., N, Din)
+            h: `torch.Tensor[..., N, Din]`
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         Returns:
 
-            h: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution.
                 N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
@@ -101,7 +101,7 @@ class GATLayer(BaseDGLLayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
@@ -113,7 +113,7 @@ class GATLayer(BaseDGLLayer):
 
     @property
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -128,7 +128,7 @@ class GATLayer(BaseDGLLayer):
 
     @property
     def layer_outputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -143,7 +143,7 @@ class GATLayer(BaseDGLLayer):
 
     @property
     def out_dim_factor(self) -> int:
-        """
+        r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.
 

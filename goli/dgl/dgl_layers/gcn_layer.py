@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Union, Callable
 
 import dgl.function as fn
 from dgl.nn.pytorch import GraphConv
@@ -19,8 +19,35 @@ from goli.commons.decorators import classproperty
 
 class GCNLayer(BaseDGLLayer):
     def __init__(
-        self, in_dim: int, out_dim: int, activation="relu", dropout: float = 0.0, batch_norm: bool = False
+        self,
+        in_dim: int,
+        out_dim: int,
+        activation: Union[str, Callable] = "relu",
+        dropout: float = 0.0,
+        batch_norm: bool = False,
     ):
+        r"""
+        Graph convolutional network (GCN) layer from
+        Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
+        http://arxiv.org/abs/1609.02907
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the layer
+
+            out_dim:
+                Output feature dimensions of the layer
+
+            activation:
+                activation function to use in the layer
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            batch_norm:
+                Whether to use batch normalization
+        """
 
         super().__init__(
             in_dim=in_dim,
@@ -29,28 +56,6 @@ class GCNLayer(BaseDGLLayer):
             dropout=dropout,
             batch_norm=batch_norm,
         )
-        """
-        Graph convolutional network (GCN) layer from
-        Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
-        http://arxiv.org/abs/1609.02907
-
-        Parameters:
-
-            in_dim: int
-                Input feature dimensions of the layer
-
-            out_dim: int
-                Output feature dimensions of the layer
-
-            activation: str, Callable
-                activation function to use in the layer
-
-            dropout: float
-                The ratio of units to dropout. Must be between 0 and 1
-
-            batch_norm: bool
-                Whether to use batch normalization
-        """
 
         self.conv = GraphConv(
             in_feats=in_dim,
@@ -63,22 +68,22 @@ class GCNLayer(BaseDGLLayer):
         )
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
-        """
+        r"""
         Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
-            h: torch.Tensor(..., N, Din)
+            h: `torch.Tensor[..., N, Din]`
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
         Returns:
 
-            h: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution.
                 N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
@@ -91,19 +96,19 @@ class GCNLayer(BaseDGLLayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
 
-            supports_edges: bool
+            bool
                 Always ``False`` for the current class
         """
         return False
 
     @property
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -111,14 +116,14 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
 
     @property
     def layer_outputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -126,14 +131,14 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
 
     @property
     def out_dim_factor(self) -> int:
-        """
+        r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.
 
@@ -146,7 +151,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            dim_factor: int
+            int:
                 Always ``1`` for the current class
         """
         return 1

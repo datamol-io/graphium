@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from copy import deepcopy
-from typing import Tuple
+from typing import Tuple, Union, Callable
 from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
@@ -22,7 +22,7 @@ class GatedGCNLayer(BaseDGLLayer):
         out_dim: int,
         in_dim_edges: int,
         out_dim_edges: int,
-        activation="relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         batch_norm: bool = False,
     ):
@@ -33,22 +33,22 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer, and for the edges
 
-            in_dim_edges: int
+            in_dim_edges:
                 Input edge-feature dimensions of the layer
 
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
+            batch_norm:
                 Whether to use batch normalization
 
         """
@@ -85,30 +85,29 @@ class GatedGCNLayer(BaseDGLLayer):
         return {"h": h}
 
     def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        """
+        r"""
         Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
-            h: torch.Tensor(..., N, Din)
+            h: `torch.Tensor[..., N, Din]`
                 Node feature tensor, before convolution.
                 N is the number of nodes, Din is the input dimension ``self.in_dim``
 
-            e: torch.Tensor(..., N, Din_edges)
+            e: `torch.Tensor[..., N, Din_edges]`
                 Edge feature tensor, before convolution.
                 N is the number of nodes, Din is the input edge dimension  ``self.in_dim_edges``
 
         Returns:
-
-            h: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution.
                 N is the number of nodes, Dout is the output dimension ``self.out_dim``
 
-            e: torch.Tensor(..., N, Dout)
+            `torch.Tensor[..., N, Dout]`:
                 Edge feature tensor, after convolution.
                 N is the number of nodes, Dout_edges is the output edge dimension ``self.out_dim``
 
@@ -132,19 +131,19 @@ class GatedGCNLayer(BaseDGLLayer):
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
 
-            supports_edges: bool
+            bool:
                 Always ``True`` for the current class
         """
         return True
 
     @property
     def layer_inputs_edges(self) -> bool:
-        """
+        r"""
         Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -152,14 +151,14 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``True`` for the current class
         """
         return True
 
     @property
     def layer_outputs_edges(self) -> bool:
-        """
+        r"""
         Abstract method. Return a boolean specifying if the layer type
         uses edges as input or not.
         It is different from ``layer_supports_edges`` since a layer that
@@ -167,14 +166,14 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``True`` for the current class
         """
         return True
 
     @property
     def out_dim_factor(self) -> int:
-        """
+        r"""
         Get the factor by which the output dimension is multiplied for
         the next layer.
 
@@ -187,7 +186,7 @@ class GatedGCNLayer(BaseDGLLayer):
 
         Returns:
 
-            dim_factor: int
+            int:
                 Always ``1`` for the current class
         """
         return 1

@@ -21,7 +21,7 @@ class test_ResidualConnectionNone(ut.TestCase):
         in_dims, out_dims = full_dims[:-1], full_dims[1:]
         rc = ResidualConnectionNone(skip_steps=1)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = out_dims
+        expected_out_dims = out_dims[:-1]
 
         self.assertListEqual(expected_out_dims, true_out_dims)
 
@@ -44,7 +44,7 @@ class test_ResidualConnectionSimple(ut.TestCase):
         in_dims, out_dims = full_dims[:-1], full_dims[1:]
         rc = ResidualConnectionSimple(skip_steps=1)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = out_dims
+        expected_out_dims = out_dims[:-1]
 
         self.assertListEqual(expected_out_dims, true_out_dims)
 
@@ -84,7 +84,7 @@ class test_ResidualConnectionWeighted(ut.TestCase):
         in_dims, out_dims = full_dims[:-1], full_dims[1:]
         rc = ResidualConnectionWeighted(skip_steps=1, out_dims=full_dims[1:])
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = out_dims
+        expected_out_dims = out_dims[:-1]
 
         self.assertListEqual(expected_out_dims, true_out_dims)
 
@@ -136,19 +136,19 @@ class test_ResidualConnectionConcat(ut.TestCase):
         # skip_steps=1
         rc = ResidualConnectionConcat(skip_steps=1)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = [6, 14, 18, 22, 26, 30, 34, 38]
+        expected_out_dims = [6, 14, 18, 22, 26, 30, 34]
         self.assertListEqual(expected_out_dims, true_out_dims)
 
         # skip_steps=2
         rc = ResidualConnectionConcat(skip_steps=2)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = [6, 8, 16, 12, 24, 16, 32, 20]
+        expected_out_dims = [6, 8, 16, 12, 24, 16, 32]
         self.assertListEqual(expected_out_dims, true_out_dims)
 
         # skip_steps=3
         rc = ResidualConnectionConcat(skip_steps=3)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = [6, 8, 10, 18, 14, 16, 30, 20]
+        expected_out_dims = [6, 8, 10, 18, 14, 16, 30]
         self.assertListEqual(expected_out_dims, true_out_dims)
 
     def test_forward_concat(self):
@@ -189,19 +189,19 @@ class test_ResidualConnectionDenseNet(ut.TestCase):
         # skip_steps=1
         rc = ResidualConnectionDenseNet(skip_steps=1)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = np.cumsum(out_dims).tolist()
+        expected_out_dims = np.cumsum(out_dims).tolist()[:-1]
         self.assertListEqual(expected_out_dims, true_out_dims)
 
         # skip_steps=2
         rc = ResidualConnectionDenseNet(skip_steps=2)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = [6, 8, 10 + 6, 12, 14 + 10 + 6, 16, 18 + 14 + 10 + 6, 20]
+        expected_out_dims = [6, 8, 10 + 6, 12, 14 + 10 + 6, 16, 18 + 14 + 10 + 6]
         self.assertListEqual(expected_out_dims, true_out_dims)
 
         # skip_steps=3
         rc = ResidualConnectionDenseNet(skip_steps=3)
         true_out_dims = rc.get_true_out_dims(out_dims)
-        expected_out_dims = [6, 8, 10, 12 + 6, 14, 16, 18 + 12 + 6, 20]
+        expected_out_dims = [6, 8, 10, 12 + 6, 14, 16, 18 + 12 + 6]
         self.assertListEqual(expected_out_dims, true_out_dims)
 
     def test_forward_densenet(self):
