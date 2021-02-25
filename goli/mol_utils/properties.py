@@ -1,18 +1,20 @@
+from typing import Union
+from typing import List
+
 import numpy as np
+import datamol as dm
 
-from rdkit import Chem  # install rdkit using a conda environment
+from rdkit import Chem
 from rdkit.Chem import AllChem
-from rdkit.Chem import rdMolDescriptors as rdMD
-from mordred import Calculator, descriptors  # in your conda environment, run `pip install mordred`
+from rdkit.Chem import rdMolDescriptors
 
-import goli.mol_utils.nmp as nmp
+from mordred import Calculator, descriptors
 
-calc = Calculator(descriptors, ignore_3D=True)
+from . import nmp
 
 
-def get_weight(mol):
-    mol = mol_from_smiles_or_mol(mol)
-    return Chem.rdMolDescriptors.CalcExactMolWt(mol)
+def get_weight(mol: Chem.rdBase.Mol):
+    return rdMolDescriptors.CalcExactMolWt(mol)
 
 
 def get_prop_or_none(prop, n, *args, **kwargs):
@@ -25,29 +27,14 @@ def get_prop_or_none(prop, n, *args, **kwargs):
         return [None] * n
 
 
-def mol_from_smiles_or_mol(smiles_or_mol):
-    r"""
-    Return an rdkit molecule based on the smiles or input molecule.
-    """
-    if isinstance(smiles_or_mol, str):
-        mol = Chem.MolFromSmiles(smiles)
-    elif isinstance(smiles_or_mol, Chem.Mol):
-        mol = smiles_or_mol
-    else:
-        raise TypeError("Wrong type for `smiles_or_mol`. Must be `str` or `Chem.Mol`")
-    return mol
-
-
-def get_props_from_mol(mol, properties="autocorr3d"):
+def get_props_from_mol(mol: Union[Chem.rdBase.Mol, str], properties: Union[List[str], str] = "autocorr3d"):
     r"""
     Function to get a given set of desired properties from a molecule,
     and output a property list.
 
     Parameters:
-        mol: rdkit Mol, str
-            The molecule from which to compute the properties, or the SMILES representation
-            of the molecule.
-        properties: str, list(str)
+        mol: The molecule from which to compute the properties.
+        properties:
             The list of properties to compute for each molecule. It can be the following:
             - 'descriptors'
             - 'autocorr3d'
@@ -72,9 +59,12 @@ def get_props_from_mol(mol, properties="autocorr3d"):
 
     """
 
-    mol = mol_from_smiles_or_mol(mol)
+    if isinstance(mol, str):
+        mol = dm.to_mol(mol)
+
     if isinstance(properties, str):
         properties = [properties]
+
     properties = [p.lower() for p in properties]
 
     # Initialize arrays
@@ -83,10 +73,7 @@ def get_props_from_mol(mol, properties="autocorr3d"):
     classes_names = []
 
     # Generate a 3D structure for the molecule
-    mol = Chem.AddHs(mol)
-    ps = AllChem.ETKDG()  # define the new code from RDKit Molecule 3D ETKDG.
-    ps.randomSeed = 111
-    AllChem.EmbedMolecule(mol, ps)
+    mol = Chem.AddHs(mol)  # type: ignore
 
     if ("descriptors" in properties) or ("all" in properties):
         # Calculate the descriptors of the molecule
@@ -124,34 +111,6 @@ def get_props_from_mol(mol, properties="autocorr3d"):
         props.extend(get_prop_or_none(rdMD.CalcWHIM, 114, mol))
 
     return np.array(props), classes_start_idx, classes_names
-
-
-def one_of_k_encoding(val, num_classes, dtype=int):
-    r"""Converts a single value to a one-hot vector.
-
-    Parameters:
-        val: int
-            class to be converted into a one hot vector
-            (integers from 0 to num_classes).
-        num_classes: iterator
-            a list or 1D array of allowed
-            choices for val to take
-        dtype: type
-            data type of the the return.
-            Possible types are int, float, bool, ...
-    Returns:
-        A numpy 1D array of length len(num_classes) + 1
-    """
-
-    encoding = np.zeros(len(num_classes) + 1, dtype=dtype)
-    # not using index of, in case, someone fuck up
-    # and there are duplicates in the allowed choices
-    for i, v in enumerate(num_classes):
-        if v == val:
-            encoding[i] = 1
-    if np.sum(encoding) == 0:  # aka not found
-        encoding[-1] = 1
-    return encoding
 
 
 def get_atom_features(atom, explicit_H=False, use_chirality=True):
@@ -284,27 +243,3 @@ def mol_to_graph(mol, explicit_H=False, use_chirality=False):
         atom_matrix[idx, :] = atom_array
 
     return (adj_matrix, atom_matrix)
-
-
-if __name__ == "__main__":
-    smiles = "CC(=O)NCCC1=CNc2c1cc(OC)cc2"
-    weight = get_weight(smiles)
-    print("________________________\nweight = {}\n____________________".format(weight))
-
-    # Example using 'autocorr3d' properties
-    properties = "autocorr3d"
-    props, classes_start_idx, classes_names = get_props_from_mol(smiles, properties=properties)
-    print("________________________\nproperties = {}\n____________________".format(properties))
-    print("props: \n{}".format(props))
-    print("classes_start_idx: \n{}".format(classes_start_idx))
-    print("classes_names: \n{}".format(classes_names))
-
-    # Example using 'all' properties
-    properties = "all"
-    props, classes_start_idx, classes_names = get_props_from_mol(smiles, properties=properties)
-    print("\n\n________________________\nproperties = {}\n____________________".format(properties))
-    print("props: \n{}".format(props))
-    print("classes_start_idx: \n{}".format(classes_start_idx))
-    print("classes_names: \n{}".format(classes_names))
-
-    print("done :)")
