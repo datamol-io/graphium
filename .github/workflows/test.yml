@@ -30,7 +30,7 @@ jobs:
       #     key: conda-${{ runner.os }}-${{ env.CACHE_NUMBER }}-${{ hashFiles('env.yml') }}
 
       - name: Setup conda
-        uses: conda-incubator/setup-miniconda@v2
+        uses: conda-incubator/setup-miniconda@77b16ed746da28724c61e1f1ad23395a4b695ef5  # pin when released
         with:
           miniforge-variant: Mambaforge
           use-mamba: true
