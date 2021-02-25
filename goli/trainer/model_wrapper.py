@@ -208,7 +208,7 @@ class ModelWrapper(pl.LightningModule):
             Callable:
                 Function or callable to compute the loss, takes `preds` and `targets` as inputs.
         """
-        
+
         if isinstance(loss_fun, str):
             loss_fun = LOSS_DICT[loss_fun]
         elif not callable(loss_fun):
@@ -229,7 +229,7 @@ class ModelWrapper(pl.LightningModule):
         the samplers. The following attributes are set by the current method.
 
         Attributes:
-            dataset (Dataset): 
+            dataset (Dataset):
                 Either the full dataset, or the training dataset, depending on
                 if the validation is provided as a split percentage, or as
                 a stand-alone dataset.
@@ -301,7 +301,12 @@ class ModelWrapper(pl.LightningModule):
         return [optimiser], [scheduler]
 
     @staticmethod
-    def compute_loss(preds: torch.Tensor, targets: torch.Tensor, loss_fun: Callable, target_nan_mask: Union[Type, str]="ignore") -> torch.Tensor:
+    def compute_loss(
+        preds: torch.Tensor,
+        targets: torch.Tensor,
+        loss_fun: Callable,
+        target_nan_mask: Union[Type, str] = "ignore",
+    ) -> torch.Tensor:
         r"""
         Compute the loss using the specified loss function, and dealing with
         the nans in the `targets`.
@@ -340,7 +345,7 @@ class ModelWrapper(pl.LightningModule):
         else:
             raise ValueError(f"Invalid option `{target_nan_mask}`")
 
-        loss = loss_fun(preds, targets, reduction='mean')
+        loss = loss_fun(preds, targets, reduction="mean")
 
         return loss
 
@@ -378,8 +383,9 @@ class ModelWrapper(pl.LightningModule):
         """
 
         targets = targets.to(dtype=self._dtype, device=self._device)
-        loss = self.compute_loss(preds=preds, targets=targets, 
-                        target_nan_mask=target_nan_mask, loss_fun=loss_fun)
+        loss = self.compute_loss(
+            preds=preds, targets=targets, target_nan_mask=target_nan_mask, loss_fun=loss_fun
+        )
 
         # Compute the metrics always used in regression tasks
         tensorboard_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
