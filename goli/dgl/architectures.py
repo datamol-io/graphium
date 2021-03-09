@@ -9,46 +9,9 @@ from typing import List, Dict, Tuple, Union, Callable, Any
 import inspect
 
 from goli.dgl.base_layers import FCLayer, get_activation
+from goli.dgl.dgl_layers import BaseDGLLayer
 from goli.dgl.dgl_layers.pooling import parse_pooling_layer, VirtualNode
-
-from goli.dgl.dgl_layers import (
-    BaseDGLLayer,
-    GATLayer,
-    GCNLayer,
-    GINLayer,
-    GatedGCNLayer,
-    PNAConvolutionalLayer,
-    PNAMessagePassingLayer,
-)
-
-from goli.dgl.residual_connections import (
-    ResidualConnectionBase,
-    ResidualConnectionConcat,
-    ResidualConnectionDenseNet,
-    ResidualConnectionNone,
-    ResidualConnectionSimple,
-    ResidualConnectionWeighted,
-)
-
-
-LAYERS_DICT = {
-    "fc": FCLayer,
-    "gcn": GCNLayer,
-    "gin": GINLayer,
-    "gat": GATLayer,
-    "gated-gcn": GatedGCNLayer,
-    "pna-conv": PNAConvolutionalLayer,
-    "pna-msgpass": PNAMessagePassingLayer,
-}
-
-
-RESIDUALS_DICT = {
-    "none": ResidualConnectionNone,
-    "simple": ResidualConnectionSimple,
-    "weighted": ResidualConnectionWeighted,
-    "concat": ResidualConnectionConcat,
-    "densenet": ResidualConnectionDenseNet,
-}
+from goli.commons.spaces import FC_LAYERS_DICT, DGL_LAYERS_DICT, LAYERS_DICT
 
 
 class FeedForwardNN(nn.Module):
