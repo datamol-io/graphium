@@ -1,6 +1,7 @@
 import torch
 import numpy as np
 import warnings
+import datamol as dm
 
 from sklearn.base import TransformerMixin
 
@@ -16,51 +17,6 @@ from goli.mol_utils.properties import get_atom_features, get_edge_features
 from rdkit import Chem
 from rdkit.Chem.rdmolops import RenumberAtoms
 
-
-def to_mol(mol, addHs=False, explicitOnly=True, ordered=True, kekulize=True, sanitize=True):
-    r"""
-    Convert an imput molecule (smiles representation) into a Chem.Mol
-    :raises ValueError: if the input is neither a CHem.Mol nor a string
-
-    Parameters:
-        mol: str or rdkit.Chem.Mol
-            SMILES of a molecule or a molecule
-        addHs: bool): Whether hydrogens should be added the molecule.
-
-        explicitOnly: bool
-            Whether to only add explicit hydrogen or both
-            (implicit and explicit) when addHs is set to True.
-
-        ordered: bool
-            Whether the atom should be ordered. This option is important if you want to ensure
-            that the features returned will always maintain a sinfle atom order for the same molecule,
-            regardless of its original smiles representation
-        kekulize: bool
-            Kekulize input molecule
-        sanitize: bool
-            Whether to apply rdkit sanitization when input is a smiles
-
-    Returns:
-        mol: rdkit.Chem.Molecule
-            the molecule if some conversion have been made.
-            If the conversion fails None is returned so make sure that you handle this case on your own.
-    """
-    if not isinstance(mol, (str, Chem.Mol)):
-        raise ValueError("Input should be a Chem.Mol or a valid SMILES string, received: ", type(mol))
-    if isinstance(mol, str):
-        mol = Chem.MolFromSmiles(mol, sanitize=sanitize)
-        if not sanitize and mol is not None:
-            mol.UpdatePropertyCache(False)
-    # make more sense to add hydrogen before ordering
-    if mol is not None and addHs:
-        mol = Chem.AddHs(mol, explicitOnly=explicitOnly)
-    if mol and mol.GetNumAtoms() > 0 and ordered:
-        new_order = Chem.rdmolfiles.CanonicalRankAtoms(mol, breakTies=True)
-        new_order = sorted([(y, x) for x, y in enumerate(new_order)])
-        mol = RenumberAtoms(mol, [y for (x, y) in new_order])
-    if kekulize and mol is not None:
-        Chem.Kekulize(mol, clearAromaticFlags=False)
-    return mol
 
 
 class MoleculeTransformer(TransformerMixin):
@@ -118,12 +74,12 @@ class MoleculeTransformer(TransformerMixin):
             feat = None
             if ignore_errors:
                 try:
-                    mol = to_mol(mol, **kwargs)
+                    mol = dm.to_mol(mol, **kwargs)
                     feat = self._transform(mol)
                 except:
                     pass
             else:
-                mol = to_mol(mol, **kwargs)
+                mol = dm.to_mol(mol, **kwargs)
                 feat = self._transform(mol)
             features.append(feat)
         return features
@@ -344,11 +300,11 @@ class AdjGraphTransformer(MoleculeTransformer):
             mol = None
             if ignore_errors:
                 try:
-                    mol = to_mol(ml, addHs=self.explicit_H, ordered=True)
+                    mol = dm.to_mol(ml, addHs=self.explicit_H, ordered=True)
                 except Exception as e:
                     pass
             else:
-                mol = to_mol(ml, addHs=self.explicit_H, ordered=True)
+                mol = dm.to_mol(ml, addHs=self.explicit_H, ordered=True)
 
             if mol:
                 num_atom = mol.GetNumAtoms()

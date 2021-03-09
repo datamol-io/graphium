@@ -9,13 +9,11 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.dataset import Dataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-from torch.utils.data.sampler import SubsetRandomSampler
 
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
-from goli.commons.utils import is_device_cuda
 from goli.trainer.reporting import ModelSummaryExtended
 
 
@@ -48,12 +46,12 @@ class EpochSummary:
         return self.summaries[name]
 
 
-class ModelWrapper(pl.LightningModule):
+class PredictorModule(pl.LightningModule):
     def __init__(
         self,
         model_class: type,
         model_kwargs: Dict[str, Any],
-        dataset: torch.utils.data.Dataset,
+        dataset: Dataset,
         loss_fun: Union[str, Callable],
         lr: float = 1e-4,
         batch_size: int = 4,
