@@ -8,7 +8,7 @@ from dgl import DGLGraph
 from loguru import logger
 from pytorch_lightning import LightningDataModule
 
-from invivoplatform.automation.spaces import SPACE_MAP
+from goli.commons.spaces import SPACE_MAP
 from invivoplatform.automation.utils.processing_utils import (
     _generate_train_test_split_idx,
 )
@@ -177,9 +177,8 @@ class DGLDataModule(BaseDataModule):
     def __init__(
         self,
         model,
-        smiles,
+        dgl_graphs,
         labels,
-        mdf,
         seed=0,
         n_splits=5,
         splits_method=None,
@@ -195,14 +194,11 @@ class DGLDataModule(BaseDataModule):
 
         Parameters
         ----------
-        smiles: numpy array
-            Inputs smiles
+
         labels: torch tensor
             Input target values
         cfg_train: dict
             Training config
-        mdf: MolecularDataFrame
-            Input data
         cfg_grid: dict
             CV grid dict. Used for data splitting strategy.
 
@@ -223,8 +219,7 @@ class DGLDataModule(BaseDataModule):
         if splitter_dict is None:
             splitter_dict = {}
         self.splitter_dict = splitter_dict
-        self.mdf = mdf
-        self.smiles = smiles
+        self.dgl_graphs = dgl_graphs
         self.labels = labels
 
     def setup(self, stage: Optional[str] = None):
@@ -258,8 +253,8 @@ class DGLDataModule(BaseDataModule):
 
         self.featurizer = self._get_featurization(model_type=self.model)
         self.collate_fn = self._get_collate(self.model)
-        self.dataset = SmilesDataset(
-            self.smiles, self.labels, smiles_transform=self.featurizer
+        self.dataset = DGLDataset(
+            self.dgl_graphs, self.labels
         )
         self.train_dt, self.val_dt, self.test_dt = (
             self.dataset[self.train_ix],
