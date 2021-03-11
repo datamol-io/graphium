@@ -52,7 +52,7 @@ RESIDUALS_DICT = {
 SEARCH_SPACE_DGL_BASE = {
     "atom_featurizer": CanonicalAtomFeaturizer(),
     "edge_featurizer": CanonicalBondFeaturizer(),
-    "hidden_dim_log2": tune.randint(6, 9),
+    "hidden_dim": tune.qloguniform(lower=64, upper=1024, q=1, base=2),
     "num_layers": tune.randint(3, 8),
     "dropout": tune.uniform(0, 0.4),
     "batch_norm": tune.choice([True, False]),

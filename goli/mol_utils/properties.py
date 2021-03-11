@@ -1,20 +1,23 @@
-from typing import Union
-from typing import List
+from typing import Union, List, Callable
 
+import os
 import numpy as np
+import pandas as pd
 import datamol as dm
 
 from rdkit import Chem
+from rdkit.Chem import rdMolDescriptors as rdMD
 from rdkit.Chem import AllChem
-from rdkit.Chem import rdMolDescriptors
 
 from mordred import Calculator, descriptors
 
-from . import nmp
 
+import goli
+from goli.mol_utils import nmp
+from goli.commons.utils import one_of_k_encoding
 
-def get_weight(mol: Chem.rdBase.Mol):
-    return rdMolDescriptors.CalcExactMolWt(mol)
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
+
 
 
 def get_prop_or_none(prop, n, *args, **kwargs):
@@ -113,7 +116,7 @@ def get_props_from_mol(mol: Union[Chem.rdBase.Mol, str], properties: Union[List[
     return np.array(props), classes_start_idx, classes_names
 
 
-def get_atom_features(atom, explicit_H=False, use_chirality=True):
+def get_atom_features_onehot(atom, explicit_H=False, use_chirality=True):
     r"""
     Get the following set of features for any given atom
 
@@ -124,7 +127,6 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
     * Whether the atom is aromatic
     * The atom's formal charge
     * The atom's number of radical electrons
-    * Whether the atom is in a ring
 
     Additionally, the following features can be set, depending on the value of input Parameters
 
@@ -155,8 +157,7 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
     feats.append(atom.GetFormalCharge())
     # add number of radical electrons
     feats.append(atom.GetNumRadicalElectrons())
-    # atom is in ring
-    feats.append(int(atom.IsInRing()))
+
 
     if not explicit_H:
         # number of hydrogene, is usually 0 after Chem.AddHs(mol) is called
@@ -171,6 +172,125 @@ def get_atom_features(atom, explicit_H=False, use_chirality=True):
             feats.extend([0, 0, int(atom.HasProp("_ChiralityPossible"))])
 
     return np.asarray(feats, dtype=np.float32)
+
+
+def get_mol_atomic_features_float(
+            mol: Mol, property_list: List[Union[str, Callable]], 
+            offset_carbon: bool=True) -> Dict[str, np.ndarray]:
+    """
+    Get a dictionary of floating-point arrays of atomic properties.
+    To ensure all properties are at a similar scale, some of the properties
+    are divided by a constant.
+
+    There is also the possibility of offseting by the carbon value using
+    the `offset_carbon` parameter.
+
+    Parameters:
+
+        mol:
+            molecule from which to extract the properties
+
+        property_list:
+            A list of atomic properties to get from the molecule, such as 'atomic-number',
+            'mass', 'valence', 'degree', 'electronegativity'.
+            Some elements are divided by a factor to avoid feature explosion.
+
+        offset_carbon:
+            Whether to subract the Carbon property from the desired atomic property.
+            For example, if we want the mass of the Lithium (6.941), the mass of the
+            Carbon (12.0107) will be subracted, resulting in a value of -5.0697
+
+    Returns:
+
+        prop_dict:
+            A dictionnary where the element of ``property_list`` are the keys
+            and the values are np.ndarray of shape (N,). N is the number of atoms
+            in ``mol``.
+
+    """
+
+    periodic_table = Chem.GetPeriodicTable()
+    csv_table = pd.read_csv(os.path.join(BASE_PATH, 'data/periodic_table.csv'))
+    csv_table = csv_table.set_index('AtomicNumber')
+    prop_dict = {}
+    C = Chem.Atom('C')
+    offC = bool(offset_carbon)
+
+    for prop in property_list:
+        property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float32)
+        for ii, atom in enumerate(mol.GetAtoms()):
+            if isinstance(prop, str):
+                prop = prop.lower()
+                prop_name = prop
+                if prop in ['atomic-number']:
+                    val = (atom.GetAtomicNum() - (offC * C.GetAtomicNum())) / 5
+                elif prop in ['mass', 'weight']:
+                    prop_name = 'mass'
+                    val = (atom.GetMass() - (offC * C.GetMass())) / 10
+                elif prop in ['valence', 'total-valence']:
+                    prop_name = 'valence'
+                    val = atom.GetTotalValence() - (offC * 4)
+                elif prop in ['implicit-valence']:
+                    val = atom.GetImplicitValence()
+                elif prop in ['hybridization']:
+                    val = atom.GetHybridization()
+                elif prop in ['chirality']:
+                    val = (atom.GetProp('_CIPCode') == "R") if atom.HasProp('_CIPCode') else 2
+                elif prop in ['aromatic']:
+                    val = atom.GetIsAromatic()
+                elif prop in ['ring', 'in-ring']:
+                    prop_name = 'in-ring'
+                    val = atom.IsInRing()
+                elif prop in ['degree']:
+                    val = atom.GetTotalDegree() - (offC * 2)
+                elif prop in ['radical-electron']:
+                    val = atom.GetNumRadicalElectrons()
+                elif prop in ['formal-charge']:
+                    val = atom.GetFormalCharge()
+                elif prop in ['vdw-radius']:
+                    val = (periodic_table.GetRvdw(atom.GetAtomicNum()) - offC*periodic_table.GetRvdw(C.GetAtomicNum()))
+                elif prop in ['covalent-radius']:
+                    val = (periodic_table.GetRCovalent(atom.GetAtomicNum()) - offC*periodic_table.GetRCovalent(C.GetAtomicNum()))
+                elif prop in ['electronegativity']:
+                    val = (csv_table['Electronegativity'][atom.GetAtomicNum()] - offC*csv_table['Electronegativity'][C.GetAtomicNum()])
+                elif prop in ['ionization', 'first-ionization']:
+                    prop_name = 'ionization'
+                    val = (csv_table['FirstIonization'][atom.GetAtomicNum()] - offC*csv_table['FirstIonization'][C.GetAtomicNum()]) / 5
+                elif prop in ['melting-point']:
+                    val = (csv_table['MeltingPoint'][atom.GetAtomicNum()] - offC*csv_table['MeltingPoint'][C.GetAtomicNum()]) / 200
+                elif prop in ['metal']:
+                    if csv_table['Metal'][atom.GetAtomicNum()] == 'yes':
+                        val = 2
+                    elif csv_table['Metalloid'][atom.GetAtomicNum()] == 'yes':
+                        val = 1
+                    else:
+                        val = 0
+                elif '-bond' in prop:
+                    bonds = [bond.GetBondTypeAsDouble() for bond in atom.GetBonds()]
+                    if prop in ['single-bond']:
+                        val = len([bond == 1 for bond in bonds])
+                    elif prop in ['aromatic-bond']:
+                        val = len([bond == 1.5 for bond in bonds])
+                    elif prop in ['double-bond']:
+                        val = len([bond == 2 for bond in bonds])
+                    elif prop in ['triple-bond']:
+                        val = len([bond == 3 for bond in bonds])
+                    val -= offC * 1
+                elif prop in ['is-carbon']:
+                    val = atom.GetAtomicNum() == 6
+                    val -= offC * 1
+
+            elif callable(prop):
+                prop_name = str(prop)
+                val = prop(atom)
+            else:
+                ValueError(f'Elements in `property_list` must be str or callable, provided `{type(prop)}`')
+
+            property_array[ii] = val
+
+        prop_dict[prop_name] = property_array
+
+    return prop_dict
 
 
 def get_edge_features(bond):
@@ -227,7 +347,7 @@ def mol_to_graph(mol, explicit_H=False, use_chirality=False):
     atom_arrays = []
     for a_idx in range(0, min(n_atoms, mol.GetNumAtoms())):
         atom = mol.GetAtomWithIdx(a_idx)
-        atom_arrays.append(get_atom_features(atom, explicit_H=explicit_H, use_chirality=use_chirality))
+        atom_arrays.append(get_atom_features_onehot(atom, explicit_H=explicit_H, use_chirality=use_chirality))
         # adj_matrix[a_idx, a_idx] = 1  # add self loop
         for n_pos, neighbor in enumerate(atom.GetNeighbors()):
             n_idx = neighbor.GetIdx()
