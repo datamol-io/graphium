@@ -2,22 +2,20 @@ from typing import Union, List, Callable
 
 import os
 import numpy as np
-import pandas as pd
+from scipy.sparse import csr_matrix
 import datamol as dm
+import dgl
+import torch
 
 from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors as rdMD
 from rdkit.Chem import AllChem
+from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 
 from mordred import Calculator, descriptors
 
-
-import goli
 from goli.mol_utils import nmp
 from goli.commons.utils import one_of_k_encoding
-
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
-
 
 
 def get_prop_or_none(prop, n, *args, **kwargs):
@@ -116,7 +114,8 @@ def get_props_from_mol(mol: Union[Chem.rdBase.Mol, str], properties: Union[List[
     return np.array(props), classes_start_idx, classes_names
 
 
-def get_atom_features_onehot(atom, explicit_H=False, use_chirality=True):
+def get_mol_atomic_features_onehot(
+        mol: Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
     r"""
     Get the following set of features for any given atom
 
@@ -133,45 +132,57 @@ def get_atom_features_onehot(atom, explicit_H=False, use_chirality=True):
     * One-hot representation of the number of hydrogen atom in the the current atom neighborhood if `explicit_H` is false
     * One-hot encoding of the atom chirality, and whether such configuration is even possible
 
-    Parameters:
-        mol: `rdkit.Chem.Molecule`
-            the molecule of interest
+    Parameters
+
+        mol:
+            molecule from which to extract the properties
+
+        property_list:
+            A list of integer atomic properties to get from the molecule, such as 'atomic-number',
+            'atomic-number', 'valence', 'degree', 'radical-electron'.
+            The integer values are converted to a one-hot vector.
+            Callables are not supported by this function.
 
     Returns:
-        features: `numpy.ndarray(float)`
-            a numpy array of the above-mentionned features
+        prop_dict:
+            A dictionnary where the element of ``property_list`` are the keys
+            and the values are np.ndarray of shape (N, OH). N is the number of atoms
+            in ``mol`` and OH the lenght of the one-hot encoding.
 
     """
-    feats = []
-    # Set type symbol
-    feats.extend(one_of_k_encoding(atom.GetSymbol(), nmp.ATOM_LIST))
-    # add the degree of the atom now
-    feats.extend(one_of_k_encoding(atom.GetDegree(), nmp.ATOM_DEGREE_LIST))
-    # mplicit valence
-    feats.extend(one_of_k_encoding(atom.GetImplicitValence(), nmp.IMPLICIT_VALENCE))
-    # add hybridization type of atom
-    feats.extend(one_of_k_encoding(atom.GetHybridization(), nmp.HYBRIDIZATION_LIST))
-    # whether the atom is aromatic or not
-    feats.append(int(atom.GetIsAromatic()))
-    # atom formal charge
-    feats.append(atom.GetFormalCharge())
-    # add number of radical electrons
-    feats.append(atom.GetNumRadicalElectrons())
 
+    prop_dict = {}
 
-    if not explicit_H:
-        # number of hydrogene, is usually 0 after Chem.AddHs(mol) is called
-        feats.extend(one_of_k_encoding(atom.GetTotalNumHs(), nmp.ATOM_NUM_H))
+    for prop in property_list:
+        property_array = []
+        for ii, atom in enumerate(mol.GetAtoms()):
 
-    if use_chirality:
-        try:
-            feats.extend(one_of_k_encoding(atom.GetProp("_CIPCode"), nmp.CHIRALITY_LIST))
-            feats.append(int(atom.HasProp("_ChiralityPossible")))
+            if prop in ['atomic-number']:
+                one_hot = one_of_k_encoding(atom.GetSymbol(), nmp.ATOM_LIST)
+            elif prop in ['degree']:
+                one_hot = one_of_k_encoding(atom.GetDegree(), nmp.ATOM_DEGREE_LIST)
+            elif prop in ['valence', 'total-valence']:
+                prop_name = 'valence'
+                one_hot = one_of_k_encoding(atom.GetTotalValence(), nmp.VALENCE)
+            elif prop in ['implicit-valence']:
+                one_hot = one_of_k_encoding(atom.GetImplicitValence(), nmp.VALENCE)
+            elif prop in ['hybridization']:
+                one_hot = one_of_k_encoding(atom.GetHybridization(), nmp.HYBRIDIZATION_LIST)
+            elif prop in ['chirality']:
+                try:
+                    one_hot = one_of_k_encoding(atom.GetProp("_CIPCode"), nmp.CHIRALITY_LIST)
+                    one_hot.append(int(atom.HasProp("_ChiralityPossible")))
+                except:
+                    one_hot = [0, 0, int(atom.HasProp("_ChiralityPossible"))]
+            else:
+                raise ValueError(f'Unsupported property `{prop}`')
 
-        except:
-            feats.extend([0, 0, int(atom.HasProp("_ChiralityPossible"))])
+            property_array.append(np.asarray(one_hot, dtype=np.float32))
 
-    return np.asarray(feats, dtype=np.float32)
+        prop_dict[prop_name] = np.stack(property_array, axis=0)
+
+    return prop_dict
+
 
 
 def get_mol_atomic_features_float(
@@ -210,8 +221,6 @@ def get_mol_atomic_features_float(
     """
 
     periodic_table = Chem.GetPeriodicTable()
-    csv_table = pd.read_csv(os.path.join(BASE_PATH, 'data/periodic_table.csv'))
-    csv_table = csv_table.set_index('AtomicNumber')
     prop_dict = {}
     C = Chem.Atom('C')
     offC = bool(offset_carbon)
@@ -236,6 +245,8 @@ def get_mol_atomic_features_float(
                     val = atom.GetHybridization()
                 elif prop in ['chirality']:
                     val = (atom.GetProp('_CIPCode') == "R") if atom.HasProp('_CIPCode') else 2
+                elif prop in ['hybridization']:
+                    val = atom.GetHybridization()
                 elif prop in ['aromatic']:
                     val = atom.GetIsAromatic()
                 elif prop in ['ring', 'in-ring']:
@@ -252,16 +263,16 @@ def get_mol_atomic_features_float(
                 elif prop in ['covalent-radius']:
                     val = (periodic_table.GetRCovalent(atom.GetAtomicNum()) - offC*periodic_table.GetRCovalent(C.GetAtomicNum()))
                 elif prop in ['electronegativity']:
-                    val = (csv_table['Electronegativity'][atom.GetAtomicNum()] - offC*csv_table['Electronegativity'][C.GetAtomicNum()])
+                    val = (nmp.PERIODIC_TABLE['Electronegativity'][atom.GetAtomicNum()] - offC*nmp.PERIODIC_TABLE['Electronegativity'][C.GetAtomicNum()])
                 elif prop in ['ionization', 'first-ionization']:
                     prop_name = 'ionization'
-                    val = (csv_table['FirstIonization'][atom.GetAtomicNum()] - offC*csv_table['FirstIonization'][C.GetAtomicNum()]) / 5
+                    val = (nmp.PERIODIC_TABLE['FirstIonization'][atom.GetAtomicNum()] - offC*nmp.PERIODIC_TABLE['FirstIonization'][C.GetAtomicNum()]) / 5
                 elif prop in ['melting-point']:
-                    val = (csv_table['MeltingPoint'][atom.GetAtomicNum()] - offC*csv_table['MeltingPoint'][C.GetAtomicNum()]) / 200
+                    val = (nmp.PERIODIC_TABLE['MeltingPoint'][atom.GetAtomicNum()] - offC*nmp.PERIODIC_TABLE['MeltingPoint'][C.GetAtomicNum()]) / 200
                 elif prop in ['metal']:
-                    if csv_table['Metal'][atom.GetAtomicNum()] == 'yes':
+                    if nmp.PERIODIC_TABLE['Metal'][atom.GetAtomicNum()] == 'yes':
                         val = 2
-                    elif csv_table['Metalloid'][atom.GetAtomicNum()] == 'yes':
+                    elif nmp.PERIODIC_TABLE['Metalloid'][atom.GetAtomicNum()] == 'yes':
                         val = 1
                     else:
                         val = 0
@@ -279,6 +290,8 @@ def get_mol_atomic_features_float(
                 elif prop in ['is-carbon']:
                     val = atom.GetAtomicNum() == 6
                     val -= offC * 1
+                else:
+                    raise ValueError(f'Unsupported property `{prop}`')
 
             elif callable(prop):
                 prop_name = str(prop)
@@ -293,7 +306,7 @@ def get_mol_atomic_features_float(
     return prop_dict
 
 
-def get_edge_features(bond):
+def get_mol_edge_features(mol, property_list: List[str]):
     r"""
     Get the following set of features for any given bond
     See `goli.mol_utils.nmp` for allowed values in one hot encoding
@@ -313,20 +326,44 @@ def get_edge_features(bond):
             list of the above-mentionned features
 
     """
-    # Initialise bond feature vector as an empty list
-    edge_features = []
-    # Encode bond type as a feature vector
-    bond_type = bond.GetBondType()
-    edge_features.extend(one_of_k_encoding(bond_type, nmp.BOND_TYPES))
-    edge_features.extend(one_of_k_encoding(int(bond.GetStereo()), nmp.BOND_STEREO))
-    # Encode whether the bond is conjugated or not
-    edge_features.append(int(bond.GetIsConjugated()))
-    # Encode whether the bond is in a ring or not
-    edge_features.append(int(bond.IsInRing()))
-    return np.array(edge_features, dtype=np.float32)
+
+    prop_dict = {}
+
+    # Compute features for each bond
+    num_bonds = mol.GetNumBonds()
+    for prop in property_list:
+        property_array = []
+        for ii in range(num_bonds):
+            bond = mol.GetBondWithIdx(ii)
+
+            if prop in ['bond-type-onehot']:
+                one_hot = one_of_k_encoding(bond.GetBondType(), nmp.BOND_TYPES)
+            if prop in ['bond-type-float']:
+                one_hot =  [bond.GetBondTypeAsDouble()]
+            elif prop in ['stereo']:
+                one_hot = one_of_k_encoding(bond.GetStereo(), nmp.BOND_STEREO)
+            elif prop in ['in-ring']:
+                one_hot = [bond.IsInRing()]
+            elif prop in ['conjugated']:
+                one_hot = [bond.GetIsConjugated()]
+            else:
+                raise ValueError(f'Unsupported property `{prop}`')
+
+            property_array.append(np.asarray(one_hot, dtype=np.float32))
+
+        prop_dict[prop_name] = np.stack(property_array, axis=0)
+
+    return prop_dict
 
 
-def mol_to_graph(mol, explicit_H=False, use_chirality=False):
+def mol_to_adj_and_features(mol, 
+        atom_property_list_onehot: List[str] = [],
+        atom_property_list_float: List[Union[str, Callable]] = [],
+        edge_property_list: List[str] = [],
+        add_self_loop: bool = False,
+        explicit_H = False,
+        use_bonds = False,
+        ):
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom (and bond) features.
@@ -336,30 +373,66 @@ def mol_to_graph(mol, explicit_H=False, use_chirality=False):
         mol (rdkit.Chem.Mol): The molecule to be converted
 
     Returns:
-        features: a tuple (A, X), where A is the adjacency matrix of size (N, N) for N atoms
-            and X the feature matrix of size (N,D) for D features
+        
     """
 
-    n_atoms = mol.GetNumAtoms()
-    # for each atom, we would have one neighbor at each of its valence state
+    if explicit_H:
+        mol = Chem.AddHs(mol)
+    else:
+        mol = Chem.RemoveHs
 
-    adj_matrix = np.zeros((n_atoms, n_atoms), dtype=np.int)
-    atom_arrays = []
-    for a_idx in range(0, min(n_atoms, mol.GetNumAtoms())):
-        atom = mol.GetAtomWithIdx(a_idx)
-        atom_arrays.append(get_atom_features_onehot(atom, explicit_H=explicit_H, use_chirality=use_chirality))
-        # adj_matrix[a_idx, a_idx] = 1  # add self loop
-        for n_pos, neighbor in enumerate(atom.GetNeighbors()):
-            n_idx = neighbor.GetIdx()
-            # do not exceed hard limit on the maximum number of atoms
-            # allowed
-            if n_idx < n_atoms:
-                adj_matrix[n_idx, a_idx] = 1
-                adj_matrix[a_idx, n_idx] = 1
+    adj = GetAdjacencyMatrix(mol, useBO=use_bonds, force=True)
+    if add_self_loop:
+        adj = adj + np.eye(adj.shape[0])
+    atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
+    atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float)
+    edge_features = get_mol_edge_features(mol, edge_property_list)
 
-    n_atom_shape = len(atom_arrays[0])
-    atom_matrix = np.zeros((n_atoms, n_atom_shape)).astype(np.int)
-    for idx, atom_array in enumerate(atom_arrays):
-        atom_matrix[idx, :] = atom_array
+    return (adj, atom_features_float, atom_features_onehot, edge_features)
 
-    return (adj_matrix, atom_matrix)
+
+
+def mol_to_dgl(mol,
+        mol_transformer: Callable = dgl.DGLGraph,
+        atom_property_list_onehot: List[str] = [],
+        atom_property_list_float: List[Union[str, Callable]] = [],
+        edge_property_list: List[str] = [],
+        add_self_loop: bool = False,
+        explicit_H = False,
+        use_bonds = False,
+        dtype = torch.float32,
+        ):
+    r"""
+    Transforms a molecule into an adjacency matrix representing the molecular graph
+    and a set of atom (and bond) features.
+    :raises ValueError: when input molecule is None
+
+    Parameters:
+        mol (rdkit.Chem.Mol): The molecule to be converted
+
+    Returns:
+        
+    """
+
+    adj, atom_features_float, atom_features_onehot, edge_features = \
+        mol_to_adj_and_features(
+            mol=mol,
+            atom_property_list_onehot=atom_property_list_onehot,
+            atom_property_list_float=atom_property_list_float,
+            edge_property_list=edge_property_list,
+            add_self_loop=add_self_loop,
+            explicit_H = explicit_H,
+            use_bonds = use_bonds,
+            )
+
+    ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
+    edata = list(edge_features.values())
+    
+    graph = dgl.from_scipy(csr_matrix(adj), idtype=dtype)
+    graph['ndata'] = torch.cat(ndata, dim=1)
+    graph['edata'] = torch.cat(edata, dim=1)
+
+    return graph
+
+
+
