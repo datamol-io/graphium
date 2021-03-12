@@ -13,7 +13,7 @@ KNOWN_TYPES = {
     "float": float,
     "complex": complex,
     "bool": bool,
-    "callable": collections.Callable,
+    "callable": callable,
 }
 
 

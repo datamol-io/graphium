@@ -10,6 +10,7 @@ import inspect
 
 from goli.dgl.base_layers import FCLayer, get_activation
 from goli.dgl.dgl_layers import BaseDGLLayer
+from goli.dgl.residual_connections import ResidualConnectionBase
 from goli.dgl.dgl_layers.pooling import parse_pooling_layer, VirtualNode
 from goli.commons.spaces import FC_LAYERS_DICT, DGL_LAYERS_DICT, LAYERS_DICT
 
