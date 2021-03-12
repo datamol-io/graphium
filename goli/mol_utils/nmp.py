@@ -5,9 +5,9 @@ from rdkit import Chem
 import goli
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
-PERIODIC_TABLE_PATH = os.path.join(BASE_PATH, 'data/periodic_table.csv')
+PERIODIC_TABLE_PATH = os.path.join(BASE_PATH, "data/periodic_table.csv")
 PERIODIC_TABLE = pd.read_csv(PERIODIC_TABLE_PATH)
-PERIODIC_TABLE = PERIODIC_TABLE.set_index('AtomicNumber')
+PERIODIC_TABLE = PERIODIC_TABLE.set_index("AtomicNumber")
 
 ATOM_LIST = [
     "C",
@@ -78,9 +78,11 @@ BOND_TYPES = [
     Chem.rdchem.BondType.AROMATIC,
 ]
 
-BOND_STEREO = [Chem.rdchem.BondStereo.STEREONONE,
-                Chem.rdchem.BondStereo.STEREOANY,
-                Chem.rdchem.BondStereo.STEREOZ,
-                Chem.rdchem.BondStereo.STEREOE,
-                Chem.rdchem.BondStereo.STEREOCIS,
-                Chem.rdchem.BondStereo.STEREOTRANS]
+BOND_STEREO = [
+    Chem.rdchem.BondStereo.STEREONONE,
+    Chem.rdchem.BondStereo.STEREOANY,
+    Chem.rdchem.BondStereo.STEREOZ,
+    Chem.rdchem.BondStereo.STEREOE,
+    Chem.rdchem.BondStereo.STEREOCIS,
+    Chem.rdchem.BondStereo.STEREOTRANS,
+]

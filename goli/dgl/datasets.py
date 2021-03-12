@@ -47,7 +47,6 @@ class CanonicalGraphTransformer:
             return self.graph_fn(smiles=smiles)
 
 
-
 class SmilesDataset(torch.utils.data.Dataset):
 
     """
@@ -86,13 +85,11 @@ class SmilesDataset(torch.utils.data.Dataset):
             return self.transform(self.smiles[idx]), self.labels[idx].float()
         else:
             raise IndexError(
-                "Only integers and long are valid "
-                "indices (got {}).".format(type(idx).__name__)
+                "Only integers and long are valid " "indices (got {}).".format(type(idx).__name__)
             )
 
     def __len__(self):
         return len(self.smiles)
-
 
 
 class DGLCollate:
@@ -103,7 +100,7 @@ class DGLCollate:
     def __call__(self, samples):
         # The input `samples` is a list of pairs
         #  (graph, label).
-        
+
         graphs, labels = map(list, zip(*samples))
         if isinstance(labels[0], torch.Tensor):
             labels = torch.stack(labels, dim=0)
@@ -253,9 +250,7 @@ class DGLDataModule(BaseDataModule):
 
         self.featurizer = self._get_featurization(model_type=self.model)
         self.collate_fn = self._get_collate(self.model)
-        self.dataset = DGLDataset(
-            self.dgl_graphs, self.labels
-        )
+        self.dataset = DGLDataset(self.dgl_graphs, self.labels)
         self.train_dt, self.val_dt, self.test_dt = (
             self.dataset[self.train_ix],
             self.dataset[self.val_ix],
@@ -287,4 +282,3 @@ class DGLDataModule(BaseDataModule):
     def _get_collate(model):
         collate_fn = DGLCollate(device=None, siamese=False)
         return collate_fn
-
