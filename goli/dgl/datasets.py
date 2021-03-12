@@ -298,16 +298,20 @@ class BaseDataModule(LightningDataModule):
         self.n_jobs = n_jobs if n_jobs >= 0 else CPUS
         self.dataset = None
 
-    def _dataloader(self, dataset, **kwargs):
+    def _dataloader(self, *args, **kwargs):
+        r"""
+        Regrouping the logic behind the number of workers and pin_memory
+        for all data loaders.
+        """
         data_cuda = is_device_cuda(self.data_device)
-        num_workers = self.n_jobs if (not data_cuda) else 1
+        num_workers = self.n_jobs if (not data_cuda) else 0
         pin_memory = (not data_cuda) and is_device_cuda(self.model_device)
 
         loader = torch.utils.data.DataLoader(
-            dataset=dataset,
             num_workers=n_jobs,
             collate_fn=self.collate_fn,
             pin_memory=pin_memory,
+            *args,
             **kwargs,
         )
         return loader
@@ -376,7 +380,7 @@ class DGLFromSmilesDataModule(BaseDataModule):
         smiles_transform: Callable = partial(mol_to_dglgraph, atom_property_list_onehot=["atomic-number"]),
     ):
         r"""
-        TODO
+        TODO: docs
         """
         super().__init__(
             labels=labels,
