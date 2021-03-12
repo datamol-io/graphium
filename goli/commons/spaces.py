@@ -65,17 +65,17 @@ SEARCH_SPACE_DGL_EDGE_BASE = deepcopy(SEARCH_SPACE_DGL_BASE)
 SEARCH_SPACE_DGL_EDGE_BASE.update({"tune.choice": tune.choice([0, 12])})
 
 
-SCALERS = [["identity"], ["identity", "amplification"], 
-            ["identity", "amplification", "attenuation"]]
+SCALERS = [["identity"], ["identity", "amplification"], ["identity", "amplification", "attenuation"]]
 
-AGGREGATORS = ["mean", 
-                "max", 
-                ["mean", "max"], 
-                ["sum", "max"],
-                ["mean", "sum", "max"],
-                ["mean", "min", "max"],
-                ["mean", "min", "max", "std"],
-                ]
+AGGREGATORS = [
+    "mean",
+    "max",
+    ["mean", "max"],
+    ["sum", "max"],
+    ["mean", "sum", "max"],
+    ["mean", "min", "max"],
+    ["mean", "min", "max", "std"],
+]
 
 
 SEARCH_SPACE_GRAPH_PNA_CONV = {

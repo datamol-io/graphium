@@ -1,4 +1,3 @@
-# %%
 # General imports
 import os
 from torch import nn

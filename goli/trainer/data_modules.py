@@ -11,17 +11,17 @@ from goli.commons.utils import is_device_cuda
 
 
 class DGLDataModule(pl.LightningDataModule):
-
-    def __init__(self, 
-            data_dir: str, 
-            train_split_or_subdir: Union[str, float],
-            val_split_or_subdir: Union[str, float],
-            test_split_or_subdir: Union[str, float],
-            num_workers: int = 0,
-            train_batch_size: int = 128,
-            test_batch_size: int = 128,
-            seed: int = 42,
-            ):
+    def __init__(
+        self,
+        data_dir: str,
+        train_split_or_subdir: Union[str, float],
+        val_split_or_subdir: Union[str, float],
+        test_split_or_subdir: Union[str, float],
+        num_workers: int = 0,
+        train_batch_size: int = 128,
+        test_batch_size: int = 128,
+        seed: int = 42,
+    ):
         super().__init__()
 
         self.data_dir = data_dir
@@ -33,7 +33,6 @@ class DGLDataModule(pl.LightningDataModule):
         self.test_split_or_subdir = test_split_or_subdir
         self.seed = seed
 
-
     def prepare_data(self):
         # download
         MNIST(self.data_dir, train=True, download=True)
@@ -42,7 +41,7 @@ class DGLDataModule(pl.LightningDataModule):
     def setup(self, stage=None):
 
         # Assign train/val datasets for use in dataloaders
-        if stage == 'fit' or stage is None:
+        if stage == "fit" or stage is None:
             mnist_full = MNIST(self.data_dir, train=True, transform=self.transform)
             self.mnist_train, self.mnist_val = random_split(mnist_full, [55000, 5000])
 
@@ -50,12 +49,11 @@ class DGLDataModule(pl.LightningDataModule):
             # self.dims = tuple(self.mnist_train[0][0].shape)
 
         # Assign test dataset for use in dataloader(s)
-        if stage == 'test' or stage is None:
+        if stage == "test" or stage is None:
             self.mnist_test = MNIST(self.data_dir, train=False, transform=self.transform)
 
             # Optionally...
             # self.dims = tuple(self.mnist_test[0][0].shape)
-
 
     def setup(self, stage=None):
         r"""
@@ -79,9 +77,9 @@ class DGLDataModule(pl.LightningDataModule):
 
         if stage is None:
             pass
-        if stage == 'fit':
+        if stage == "fit":
             pass
-        if stage == 'test':
+        if stage == "test":
             pass
 
         # Creating data indices for training and validation splits:
@@ -123,10 +121,16 @@ class DGLDataModule(pl.LightningDataModule):
         return loader
 
     def train_dataloader(self):
-        return self._dataloader(dataset=self.dataset, batch_size=self.train_batch_size, sampler=self.train_sampler)
+        return self._dataloader(
+            dataset=self.dataset, batch_size=self.train_batch_size, sampler=self.train_sampler
+        )
 
     def val_dataloader(self):
-        return self._dataloader(dataset=self.val_dataset, batch_size=self.train_batch_size, sampler=self.val_sampler)
+        return self._dataloader(
+            dataset=self.val_dataset, batch_size=self.train_batch_size, sampler=self.val_sampler
+        )
 
     def test_dataloader(self):
-        return self._dataloader(dataset=self.test_dataset, batch_size=self.test_batch_size, sampler=self.test_sampler)
+        return self._dataloader(
+            dataset=self.test_dataset, batch_size=self.test_batch_size, sampler=self.test_sampler
+        )

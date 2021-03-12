@@ -13,6 +13,3 @@ from goli.commons.utils import (
 
 from goli.mol_utils import nmp
 from goli.mol_utils.properties import get_atom_features, get_edge_features
-
-
-
