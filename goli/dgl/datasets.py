@@ -9,6 +9,8 @@ from loguru import logger
 from pytorch_lightning import LightningDataModule
 
 from goli.commons.spaces import SPACE_MAP
+from goli.commons.utils import is_device_cuda
+
 
 # from invivoplatform.automation.utils.processing_utils import (
 #     _generate_train_test_split_idx,
@@ -17,35 +19,6 @@ from goli.commons.spaces import SPACE_MAP
 
 
 CPUS = cpu_count()
-
-
-class CanonicalGraphTransformer:
-    """
-    Transformer wrapping DGL's canonical smiles to graph featurizations.
-
-    """
-
-    def __init__(self, node_featurizer=None, edge_featurizer=None, mol_transform=None):
-        if node_featurizer is None:
-            node_featurizer = CanonicalAtomFeaturizer(atom_data_field="feat")
-        if mol_transform is None:
-            mol_transform = smiles_to_bigraph
-        self.graph_fn = partial(
-            mol_transform,
-            node_featurizer=node_featurizer,
-            edge_featurizer=edge_featurizer,
-        )
-
-        self.length = node_featurizer.feat_size()
-
-    def __call__(self, smiles):
-        graph_batch = []
-        if isinstance(smiles, list):
-            for s in smiles:
-                graph_batch.append(self.graph_fn(smiles=s))
-            return dgl.batch(graph_batch)
-        else:
-            return self.graph_fn(smiles=smiles)
 
 
 class SmilesDataset(torch.utils.data.Dataset):
@@ -127,6 +100,7 @@ class BaseDataModule(LightningDataModule):
         collate_fn=None,
         train_sampler=None,
         eval_sampler=None,
+        training_device="cpu",
     ):
         super().__init__()
 
@@ -137,45 +111,53 @@ class BaseDataModule(LightningDataModule):
         self.eval_shuffle = eval_shuffle
         self.train_sampler = train_sampler
         self.eval_sampler = eval_sampler
+        self.training_device = training_device
         self.train_dt, self.val_dt, self.test_dt = None, None, None
 
-    def train_dataloader(self, *args, **kwargs) -> DataLoader:
-        return DataLoader(
-            self.train_dt,
-            batch_size=self.train_batch_size,
-            shuffle=self.train_shuffle,
+    def _dataloader(self, dataset, **kwargs):
+        data_cuda = dataset[0].is_cuda
+        num_workers = self.num_workers if (not data_cuda) else 1
+        pin_memory = (not data_cuda) and is_device_cuda(self.model_cuda)
+
+        loader = torch.utils.data.DataLoader(
+            dataset=dataset,
+            num_workers=num_workers,
             collate_fn=self.collate_fn,
-            num_workers=CPUS,
+            pin_memory=pin_memory,
+            **kwargs,
+        )
+        return loader
+
+    def train_dataloader(self, *args, **kwargs) -> DataLoader:
+        return self._dataloader(
+            dataset=self.train_dt,
             sampler=self.train_sampler,
+            batch_size=self.train_batch_size,
+            shuffle=self.eval_shuffle,
         )
 
     def val_dataloader(self, *args, **kwargs) -> Union[DataLoader, List[DataLoader]]:
-        return DataLoader(
-            self.val_dt,
+        return self._dataloader(
+            dataset=self.val_dt,
+            sampler=self.eval_sampler,
             batch_size=self.train_batch_size,
             shuffle=self.eval_shuffle,
-            collate_fn=self.collate_fn,
-            num_workers=CPUS,
-            sampler=self.eval_sampler,
         )
 
     def test_dataloader(self, *args, **kwargs) -> Union[DataLoader, List[DataLoader]]:
-        return DataLoader(
-            self.test_dt,
+
+        return self._dataloader(
+            dataset=self.test_dt,
+            sampler=self.eval_sampler,
             batch_size=self.test_batch_size,
             shuffle=self.eval_shuffle,
-            collate_fn=self.collate_fn,
-            num_workers=CPUS,
-            sampler=self.eval_sampler,
         )
 
 
-class DGLDataModule(BaseDataModule):
+class DGLFromSmilesDataModule(DGLDataModule):
     # Data Processing Code
     def __init__(
         self,
-        model,
-        dgl_graphs,
         labels,
         seed=0,
         n_splits=5,
@@ -210,7 +192,6 @@ class DGLDataModule(BaseDataModule):
             eval_sampler=eval_sampler,
         )
 
-        self.model = model
         self.seed = seed
         self.n_splits = n_splits
         self.splits_method = splits_method
@@ -222,8 +203,8 @@ class DGLDataModule(BaseDataModule):
 
     def setup(self, stage: Optional[str] = None):
         """
-        Function called by the Pytorch Lightning pipeline to generate train, validation, and test datasets.
-
+        Function called by the Pytorch Lightning pipeline to
+        generate train, validation, and test datasets.
 
         Returns
         -------
@@ -231,26 +212,7 @@ class DGLDataModule(BaseDataModule):
 
         """
 
-        _, _, train_ix, test_ix = extract_train_test_df(
-            mdf=self.mdf, mtlearning=True, target_col=None, train_test_split=True
-        )
-
-        train_ix, val_ix = _generate_train_test_split_idx(
-            data=(self.smiles[train_ix], self.labels[train_ix]),
-            splits_method=self.splits_method,
-            n_splits=self.n_splits,
-            splitter_kwargs=self.splitter_dict,
-            ori_index=train_ix,
-        )
-
-        self.train_ix, self.val_ix, self.test_ix = (
-            torch.tensor(train_ix, dtype=torch.long),
-            torch.tensor(val_ix, dtype=torch.long),
-            torch.tensor(test_ix, dtype=torch.long),
-        )
-
-        self.featurizer = self._get_featurization(model_type=self.model)
-        self.collate_fn = self._get_collate(self.model)
+        self.collate_fn = self._get_collate()
         self.dataset = DGLDataset(self.dgl_graphs, self.labels)
         self.train_dt, self.val_dt, self.test_dt = (
             self.dataset[self.train_ix],
@@ -266,20 +228,6 @@ class DGLDataModule(BaseDataModule):
         self._has_setup_fit, self._has_setup_test = True, True
 
     @staticmethod
-    def _get_featurization(model_type):
-
-        edge_featurizer = SPACE_MAP[model_type].get("edge_featurizer", None)
-        node_featurizer = SPACE_MAP[model_type].get("node_featurizer", None)
-        mol_transform = SPACE_MAP[model_type].get("mol_transform", None)
-        featurization = CanonicalGraphTransformer(
-            node_featurizer=node_featurizer,
-            edge_featurizer=edge_featurizer,
-            mol_transform=mol_transform,
-        )
-
-        return featurization
-
-    @staticmethod
-    def _get_collate(model):
+    def _get_collate():
         collate_fn = DGLCollate(device=None, siamese=False)
         return collate_fn
