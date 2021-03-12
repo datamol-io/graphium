@@ -1,6 +1,5 @@
 from copy import deepcopy
 from ray import tune
-from dgllife.utils.featurizers import CanonicalAtomFeaturizer, CanonicalBondFeaturizer
 
 from goli.dgl.base_layers import FCLayer
 
@@ -50,8 +49,6 @@ RESIDUALS_DICT = {
 
 
 SEARCH_SPACE_DGL_BASE = {
-    "atom_featurizer": CanonicalAtomFeaturizer(),
-    "edge_featurizer": CanonicalBondFeaturizer(),
     "hidden_dim": tune.qloguniform(lower=64, upper=1024, q=1, base=2),
     "num_layers": tune.randint(3, 8),
     "dropout": tune.uniform(0, 0.4),

@@ -1,4 +1,13 @@
+import os
+import pandas as pd
 from rdkit import Chem
+
+import goli
+
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
+PERIODIC_TABLE_PATH = os.path.join(BASE_PATH, 'data/periodic_table.csv')
+PERIODIC_TABLE = pd.read_csv(PERIODIC_TABLE_PATH)
+PERIODIC_TABLE = PERIODIC_TABLE.set_index('AtomicNumber')
 
 ATOM_LIST = [
     "C",
@@ -47,7 +56,7 @@ ATOM_LIST = [
 ]
 
 ATOM_NUM_H = [0, 1, 2, 3, 4]
-IMPLICIT_VALENCE = [0, 1, 2, 3, 4, 5, 6]
+VALENCE = [0, 1, 2, 3, 4, 5, 6]
 CHARGE_LIST = [-3, -2, -1, 0, 1, 2, 3]
 RADICAL_E_LIST = [0, 1, 2]
 ATOM_DEGREE_LIST = [0, 1, 2, 3, 4]
@@ -68,4 +77,10 @@ BOND_TYPES = [
     Chem.rdchem.BondType.TRIPLE,
     Chem.rdchem.BondType.AROMATIC,
 ]
-BOND_STEREO = [0, 1, 2, 3, 4, 5]
+
+BOND_STEREO = [Chem.rdchem.BondStereo.STEREONONE,
+                Chem.rdchem.BondStereo.STEREOANY,
+                Chem.rdchem.BondStereo.STEREOZ,
+                Chem.rdchem.BondStereo.STEREOE,
+                Chem.rdchem.BondStereo.STEREOCIS,
+                Chem.rdchem.BondStereo.STEREOTRANS]
