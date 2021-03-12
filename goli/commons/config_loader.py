@@ -17,12 +17,13 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 
 # Current project imports
-from goli.dgl.dgl_graph_transformer import DGLGraphTransformer
+# from goli.dgl.dgl_graph_transformer import DGLGraphTransformer
 from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
 from goli.dgl.architectures import FullDGLSiameseNetwork, FullDGLNetwork
-from goli.dgl.datasets import load_csv_to_dgl_dataset
+
+# from goli.dgl.datasets import load_csv_to_dgl_dataset
 from goli.dgl.utils import DGLCollate
-from goli.trainer.model_wrapper import ModelWrapper
+from goli.trainer.model_wrapper import PredictorModule
 from goli.trainer.logger import HyperparamsMetricsTensorBoardLogger
 from goli.trainer.reporting import BestEpochFromSummary
 import goli
@@ -115,27 +116,27 @@ def config_load_constants(cfg_const, main_dir):
     return device, dtype, exp_name, cfg_gnns
 
 
-def config_load_datasets(cfg_data, main_dir, device, train_val_test=["train", "val"]):
-    trans = DGLGraphTransformer()
+# def config_load_datasets(cfg_data, main_dir, device, train_val_test=["train", "val"]):
+#     trans = DGLGraphTransformer()
 
-    if isinstance(train_val_test, str):
-        train_val_test = [train_val_test]
+#     if isinstance(train_val_test, str):
+#         train_val_test = [train_val_test]
 
-    datasets = []
-    for dt_name in train_val_test:
-        dt_name = dt_name.lower()
-        this_dt = load_csv_to_dgl_dataset(
-            data_dir=os.path.join(main_dir, cfg_data[dt_name]["data_dir"]),
-            name=cfg_data[dt_name]["filename"],
-            smiles_cols=cfg_data["smiles_cols"],
-            y_col=cfg_data["y_col"],
-            max_mols=cfg_data[dt_name]["nrows"],
-            trans=trans,
-            device="cpu",
-        )
-        datasets.append(this_dt)
+#     datasets = []
+#     for dt_name in train_val_test:
+#         dt_name = dt_name.lower()
+#         this_dt = load_csv_to_dgl_dataset(
+#             data_dir=os.path.join(main_dir, cfg_data[dt_name]["data_dir"]),
+#             name=cfg_data[dt_name]["filename"],
+#             smiles_cols=cfg_data["smiles_cols"],
+#             y_col=cfg_data["y_col"],
+#             max_mols=cfg_data[dt_name]["nrows"],
+#             trans=trans,
+#             device="cpu",
+#         )
+#         datasets.append(this_dt)
 
-    return trans, datasets
+#     return trans, datasets
 
 
 def config_load_siamese_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype):
@@ -221,7 +222,7 @@ def config_load_model_wrapper(
 
     reg_kwargs = dict(deepcopy(cfg_reg))
     siamese = reg_kwargs.pop("siamese")
-    model_wrapper = ModelWrapper(
+    model_wrapper = PredictorModule(
         model=model,
         dataset=train_dt,
         validation_split=val_dt,

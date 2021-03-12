@@ -1,4 +1,4 @@
-from typing import Union, List, Callable
+from typing import Union, List, Callable, Dict, Tuple
 
 import os
 import numpy as np
@@ -30,7 +30,7 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
     * One-hot representation of the number of hydrogen atom in the the current atom neighborhood if `explicit_H` is false
     * One-hot encoding of the atom chirality, and whether such configuration is even possible
 
-    Parameters
+    Parameters:
 
         mol:
             molecule from which to extract the properties
@@ -216,7 +216,7 @@ def get_mol_atomic_features_float(
     return prop_dict
 
 
-def get_mol_edge_features(mol, property_list: List[str]):
+def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
     r"""
     Get the following set of features for any given bond
     See `goli.mol_utils.nmp` for allowed values in one hot encoding
@@ -274,8 +274,8 @@ def mol_to_adj_and_features(
     atom_property_list_float: List[Union[str, Callable]] = [],
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
-    explicit_H=False,
-    use_bonds=False,
+    explicit_H: bool = False,
+    use_bonds: bool = False,
 ) -> Tuple[csr_matrix, Union[np.ndarray, type(None)], Union[np.ndarray, type(None)]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -360,9 +360,9 @@ def mol_to_dgl(
     atom_property_list_float: List[Union[str, Callable]] = [],
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
-    explicit_H=False,
-    use_bonds=False,
-    dtype=torch.float32,
+    explicit_H: bool = False,
+    use_bonds: bool = False,
+    dtype: torch.dtype = torch.float32,
 ) -> dgl.DGLGraph:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
