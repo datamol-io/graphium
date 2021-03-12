@@ -1,4 +1,4 @@
-from typing import Union, List, Callable, Dict, Tuple
+from typing import Union, List, Callable, Dict, Tuple, Optional
 
 import os
 import numpy as np
@@ -354,7 +354,7 @@ def mol_to_adj_and_features(
     return adj, ndata, edata
 
 
-def mol_to_dgl(
+def mol_to_dglgraph(
     mol: Chem.rdchem.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
@@ -362,8 +362,9 @@ def mol_to_dgl(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds: bool = False,
+    return_adj: bool = False,
     dtype: torch.dtype = torch.float32,
-) -> dgl.DGLGraph:
+) -> Tuple[dgl.DGLGraph, Optional[csr_matrix]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
@@ -398,6 +399,9 @@ def mol_to_dgl(
             Whether to use the floating-point value of the bonds in the adjacency matrix,
             such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
 
+        return_adj:
+            Whether to return the adjacency matrix
+
         dtype:
             The torch data type used to build the graph
 
@@ -408,6 +412,8 @@ def mol_to_dgl(
             node data from `atom_property_list_onehot` and `atom_property_list_float`,
             `graph.edata['e']` corresponding to the concatenated edge data from `edge_property_list`
 
+        adj:
+            Sparse adjacency matrix of the molecule
     """
 
     # Get the adjacency, node features and edge features
@@ -423,7 +429,13 @@ def mol_to_dgl(
 
     # Transform the matrix and data into a DGLGraph object
     graph = dgl.from_scipy(adj, idtype=dtype)
-    graph.ndata["h"] = torch.from_numpy(ndata, dtype=dtype)
-    graph.edata["e"] = torch.from_numpy(edata, dtype=dtype)
+    if ndata is not None:
+        graph.ndata["h"] = torch.from_numpy(ndata, dtype=dtype)
+    if edata is not None:
+        graph.edata["e"] = torch.from_numpy(edata, dtype=dtype)
 
-    return graph
+    # return
+    if return_adj:
+        return graph, adj
+    else:
+        return graph
