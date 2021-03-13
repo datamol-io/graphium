@@ -54,7 +54,8 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
     for prop in property_list:
         property_array = []
         for ii, atom in enumerate(mol.GetAtoms()):
-
+            prop = prop.lower()
+            prop_name = prop
             if prop in ["atomic-number"]:
                 one_hot = one_of_k_encoding(atom.GetSymbol(), nmp.ATOM_LIST)
             elif prop in ["degree"]:
@@ -160,9 +161,9 @@ def get_mol_atomic_features_float(
                         C.GetAtomicNum()
                     )
                 elif prop in ["covalent-radius"]:
-                    val = periodic_table.GetRCovalent(
+                    val = periodic_table.GetRcovalent(
                         atom.GetAtomicNum()
-                    ) - offC * periodic_table.GetRCovalent(C.GetAtomicNum())
+                    ) - offC * periodic_table.GetRcovalent(C.GetAtomicNum())
                 elif prop in ["electronegativity"]:
                     val = (
                         nmp.PERIODIC_TABLE["Electronegativity"][atom.GetAtomicNum()]
@@ -246,15 +247,18 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
     for prop in property_list:
         property_array = []
         for ii in range(num_bonds):
+            prop = prop.lower()
+            prop_name = prop
             bond = mol.GetBondWithIdx(ii)
 
             if prop in ["bond-type-onehot"]:
                 one_hot = one_of_k_encoding(bond.GetBondType(), nmp.BOND_TYPES)
-            if prop in ["bond-type-float"]:
+            elif prop in ["bond-type-float"]:
                 one_hot = [bond.GetBondTypeAsDouble()]
             elif prop in ["stereo"]:
                 one_hot = one_of_k_encoding(bond.GetStereo(), nmp.BOND_STEREO)
-            elif prop in ["in-ring"]:
+            elif prop in ["ring", "in-ring"]:
+                prop_name = "in-ring"
                 one_hot = [bond.IsInRing()]
             elif prop in ["conjugated"]:
                 one_hot = [bond.GetIsConjugated()]
@@ -344,12 +348,14 @@ def mol_to_adj_and_features(
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
     atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
+    ndata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in ndata]
     ndata = np.concatenate(ndata, axis=1) if len(ndata) > 0 else None
 
     # Get the edge features
     edge_features = get_mol_edge_features(mol, edge_property_list)
     edata = list(edge_features.values())
-    ndata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
+    edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
+    edata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
 
     return adj, ndata, edata
 
