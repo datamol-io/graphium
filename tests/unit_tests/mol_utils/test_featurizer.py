@@ -168,7 +168,7 @@ class test_featurizer(ut.TestCase):
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
                         self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
 
-    def mol_to_dglgraph(self):
+    def test_mol_to_dglgraph(self):
 
         np.random.seed(42)
 
@@ -184,7 +184,7 @@ class test_featurizer(ut.TestCase):
                     num_props = int(round(ii))
                     err_msg2 = err_msg + f"\n\t\t\explicit_H: {explicit_H}\n\t\tii: {ii}"
 
-                    graph, adj = mol_to_adj_and_features(
+                    graph = mol_to_dglgraph(
                         mol=mol,
                         atom_property_list_onehot=np.random.choice(
                             self.atomic_onehot_props, size=num_props, replace=False
@@ -196,16 +196,15 @@ class test_featurizer(ut.TestCase):
                         add_self_loop=False,
                         explicit_H=explicit_H,
                         use_bonds=False,
-                        return_adj=True,
                     )
 
-                    ndata = graph.ndata["h"]
-                    edata = graph.edata["e"]
-
-                    self.assertEqual(adj.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
+                    self.assertEqual(graph.num_nodes(), this_mol.GetNumAtoms(), msg=err_msg2)
+                    self.assertEqual(graph.num_edges(), 2*this_mol.GetNumBonds(), msg=err_msg2)
                     if num_props > 0:
+                        ndata = graph.ndata["feat"]
+                        edata = graph.edata["feat"]
                         self.assertEqual(ndata.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
-                        self.assertEqual(edata.shape[0], this_mol.GetNumBonds(), msg=err_msg2)
+                        self.assertEqual(edata.shape[0], 2*this_mol.GetNumBonds(), msg=err_msg2)
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
                         self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
 

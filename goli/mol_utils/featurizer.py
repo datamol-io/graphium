@@ -368,9 +368,8 @@ def mol_to_dglgraph(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds: bool = False,
-    return_adj: bool = False,
     dtype: torch.dtype = torch.float32,
-) -> Tuple[dgl.DGLGraph, Optional[csr_matrix]]:
+) -> dgl.DGLGraph:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
@@ -405,9 +404,6 @@ def mol_to_dglgraph(
             Whether to use the floating-point value of the bonds in the adjacency matrix,
             such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
 
-        return_adj:
-            Whether to return the adjacency matrix
-
         dtype:
             The torch data type used to build the graph
 
@@ -418,8 +414,6 @@ def mol_to_dglgraph(
             node data from `atom_property_list_onehot` and `atom_property_list_float`,
             `graph.edata['e']` corresponding to the concatenated edge data from `edge_property_list`
 
-        adj:
-            Sparse adjacency matrix of the molecule
     """
 
     # Get the adjacency, node features and edge features
@@ -433,15 +427,31 @@ def mol_to_dglgraph(
         use_bonds=use_bonds,
     )
 
-    # Transform the matrix and data into a DGLGraph object
-    graph = dgl.from_scipy(adj, idtype=dtype)
-    if ndata is not None:
-        graph.ndata["h"] = torch.from_numpy(ndata, dtype=dtype)
-    if edata is not None:
-        graph.edata["e"] = torch.from_numpy(edata, dtype=dtype)
-
-    # return
-    if return_adj:
-        return graph, adj
+    if explicit_H:
+        mol = Chem.AddHs(mol)
     else:
-        return graph
+        mol = Chem.RemoveHs(mol)
+
+    # Transform the matrix and data into a DGLGraph object
+    graph = dgl.from_scipy(adj)
+
+    # Assign the node data
+    if ndata is not None:
+        graph.ndata["feat"] = torch.from_numpy(ndata).to(dtype=dtype)
+
+    # Assign the edge data. Due to DGL only supporting Hetero-graphs, we
+    # need to duplicate each edge information for its 2 entries
+    if edata is not None:
+        src_ids, dst_ids = graph.all_edges()
+        hetero_edata = np.zeros_like(edata, shape=(edata.shape[0]*2, edata.shape[1]))
+        for ii in range(mol.GetNumBonds()):
+            bond = mol.GetBondWithIdx(ii)
+            src, dst = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
+            id1 = np.where((src == graph.all_edges()[0]) & (dst == graph.all_edges()[1]))[0]
+            id2 = np.where((dst == graph.all_edges()[0]) & (src == graph.all_edges()[1]))[0]
+            hetero_edata[id1, :] = edata[ii, :]
+            hetero_edata[id2, :] = edata[ii, :]
+
+        graph.edata["feat"] = torch.from_numpy(hetero_edata).to(dtype=dtype)
+
+    return graph
