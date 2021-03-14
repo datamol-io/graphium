@@ -1,6 +1,7 @@
 import os
 import torch
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 from typing import List, Union
 
@@ -23,7 +24,7 @@ def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 60
 
 
 def to_tensor(
-    x: np.ndarray,
+    x: Union[np.ndarray, torch.Tensor, pd.DataFrame],
     device: Union[torch.device, type(None)] = None,
     dtype: Union[torch.dtype, type(None)] = None,
 ) -> torch.Tensor:
@@ -46,6 +47,8 @@ def to_tensor(
         pass
     elif isinstance(x, np.ndarray):
         x = torch.from_numpy(x)
+    elif isinstance(x, pd.DataFrame):
+        x = torch.from_numpy(x.values)
     elif isinstance(x, torch.Tensor):
         pass
     else:
