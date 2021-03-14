@@ -36,7 +36,8 @@ DGL_LAYERS_DICT = {
     "pna-msgpass": PNAMessagePassingLayer,
 }
 
-LAYERS_DICT = deepcopy(DGL_LAYERS_DICT).update(deepcopy(FC_LAYERS_DICT))
+LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
+LAYERS_DICT.update(deepcopy(FC_LAYERS_DICT))
 
 
 RESIDUALS_DICT = {
