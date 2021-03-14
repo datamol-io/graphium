@@ -11,7 +11,7 @@ from copy import deepcopy
 from functools import partial
 
 import goli
-from goli.dgl.datasets import SmilesDataset
+from goli.dgl.datasets import SmilesDataset, DGLFromSmilesDataModule
 from goli.mol_utils.featurizer import mol_to_dglgraph
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
@@ -59,7 +59,7 @@ class test_SmilesDataset(ut.TestCase):
                         self.assertEqual(len(w), size, msg=err_msg)
                     self.assertEqual(len(X), size, msg=err_msg)
                     self.assertListEqual(list(y.shape), [size, labels.shape[1]], msg=err_msg)
-                    
+
     def test_smilesdataset_to_mol(self):
         df = pd.read_csv(MICRO_ZINC_PATH)
         smiles = df[SMILES_COL]
@@ -100,6 +100,29 @@ class test_SmilesDataset(ut.TestCase):
                     self.assertEqual(len(X), size, msg=err_msg)
                     self.assertListEqual([len(y), len(y[0])], [size, labels.shape[1]], msg=err_msg)
                     
+
+    def test_DGLFromSmilesDataModule(self):
+        df = pd.read_csv(MICRO_ZINC_PATH)
+        smiles = df[SMILES_COL]
+        dtype = torch.float32
+        other_dtype = torch.float64
+        to_mol = partial(mol_to_dglgraph, atom_property_list_float=['weight', 'valence'])
+
+        for ii in range(len(LABELS_COLS)):
+            labels = df[LABELS_COLS[:ii]]
+            for jj, weights in enumerate([None, df[LABELS_COLS[1]]**2]):
+                for n_jobs in [0, 2, -1]:
+                    err_msg = f'Error for ii={ii}, jj={jj}, n_jobs={n_jobs}'
+
+                    dataset = DGLFromSmilesDataModule(
+                        smiles=smiles,
+                        labels=labels,
+                        weights=weights,
+                        n_jobs=n_jobs,
+                        dtype=dtype,
+                    )
+                    dataset.setup()
+
 
 if __name__ == "__main__":
     ut.main()

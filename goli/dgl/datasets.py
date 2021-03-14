@@ -289,7 +289,6 @@ class BaseDataModule(LightningDataModule):
         self.seed = seed
         self.test_batch_size = test_batch_size
         self.train_batch_size = train_batch_size
-        self.collate_fn = collate_fn
         self.train_shuffle = train_shuffle
         self.eval_shuffle = eval_shuffle
         self.train_sampler = train_sampler
