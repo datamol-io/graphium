@@ -335,7 +335,7 @@ def mol_to_adj_and_features(
 
     if isinstance(mol, str):
         mol = dm.to_mol(mol)
-    
+
     # Add or remove explicit hydrogens
     if explicit_H:
         mol = Chem.AddHs(mol)
