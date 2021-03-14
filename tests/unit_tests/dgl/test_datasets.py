@@ -29,9 +29,9 @@ class test_SmilesDataset(ut.TestCase):
 
         for ii in range(len(LABELS_COLS)):
             labels = df[LABELS_COLS[:ii]]
-            for jj, weights in enumerate([None, df[LABELS_COLS[1]]**2]):
+            for jj, weights in enumerate([None, df[LABELS_COLS[1]] ** 2]):
                 for n_jobs in [0, 2, -1]:
-                    err_msg = f'Error for ii={ii}, jj={jj}, n_jobs={n_jobs}'
+                    err_msg = f"Error for ii={ii}, jj={jj}, n_jobs={n_jobs}"
 
                     dataset = SmilesDataset(
                         smiles=smiles,
@@ -65,13 +65,13 @@ class test_SmilesDataset(ut.TestCase):
         smiles = df[SMILES_COL]
         dtype = torch.float32
         other_dtype = torch.float64
-        to_mol = partial(mol_to_dglgraph, atom_property_list_float=['weight', 'valence'])
+        to_mol = partial(mol_to_dglgraph, atom_property_list_float=["weight", "valence"])
 
         for ii in range(len(LABELS_COLS)):
             labels = df[LABELS_COLS[:ii]]
-            for jj, weights in enumerate([None, df[LABELS_COLS[1]]**2]):
+            for jj, weights in enumerate([None, df[LABELS_COLS[1]] ** 2]):
                 for n_jobs in [0, 2, -1]:
-                    err_msg = f'Error for ii={ii}, jj={jj}, n_jobs={n_jobs}'
+                    err_msg = f"Error for ii={ii}, jj={jj}, n_jobs={n_jobs}"
 
                     dataset = SmilesDataset(
                         smiles=smiles,
@@ -95,24 +95,27 @@ class test_SmilesDataset(ut.TestCase):
                     if weights is None:
                         X, y = [dataset[ii][0] for ii in choice], [dataset[ii][1] for ii in choice]
                     else:
-                        X, y, w = [dataset[ii][0] for ii in choice], [dataset[ii][1] for ii in choice], [dataset[ii][2] for ii in choice]
+                        X, y, w = (
+                            [dataset[ii][0] for ii in choice],
+                            [dataset[ii][1] for ii in choice],
+                            [dataset[ii][2] for ii in choice],
+                        )
                         self.assertEqual(len(w), size, msg=err_msg)
                     self.assertEqual(len(X), size, msg=err_msg)
                     self.assertListEqual([len(y), len(y[0])], [size, labels.shape[1]], msg=err_msg)
-                    
 
     def test_DGLFromSmilesDataModule(self):
         df = pd.read_csv(MICRO_ZINC_PATH)
         smiles = df[SMILES_COL]
         dtype = torch.float32
         other_dtype = torch.float64
-        to_mol = partial(mol_to_dglgraph, atom_property_list_float=['weight', 'valence'])
+        to_mol = partial(mol_to_dglgraph, atom_property_list_float=["weight", "valence"])
 
         for ii in range(len(LABELS_COLS)):
             labels = df[LABELS_COLS[:ii]]
-            for jj, weights in enumerate([None, df[LABELS_COLS[1]]**2]):
+            for jj, weights in enumerate([None, df[LABELS_COLS[1]] ** 2]):
                 for n_jobs in [0, 2, -1]:
-                    err_msg = f'Error for ii={ii}, jj={jj}, n_jobs={n_jobs}'
+                    err_msg = f"Error for ii={ii}, jj={jj}, n_jobs={n_jobs}"
 
                     dataset = DGLFromSmilesDataModule(
                         smiles=smiles,
