@@ -79,7 +79,7 @@ class BaseDataset(Dataset):
             )
 
         # Convert dataset elements to right device and dtype
-        self.to(device=self._device, dtype=self._dtype)
+        self.to(device=device, dtype=dtype)
 
     @property
     def has_weights(self) -> bool:
@@ -226,13 +226,15 @@ class SmilesDataset(BaseDataset):
         self.smiles_transform = smiles_transform
 
         runner = dm.JobRunner(n_jobs=n_jobs, progress=True, prefer="threads")
-        feats = list(callable_fn=self.smiles_transform, data=self.smiles)
+        if self.smiles_transform is None:
+            feats = self.smiles
+        else:
+            feats = runner(callable_fn=self.smiles_transform, data=self.smiles)
 
         super().__init__(
             feats=feats,
             labels=labels,
             weights=weights,
-            smiles_transform=smiles_transform,
             collate_fn=collate_fn,
             device=device,
             dtype=dtype,

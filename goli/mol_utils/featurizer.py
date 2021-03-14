@@ -8,6 +8,7 @@ import torch
 
 from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
+import datamol as dm
 
 from goli.mol_utils import nmp
 from goli.commons.utils import one_of_k_encoding
@@ -273,7 +274,7 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
 
 
 def mol_to_adj_and_features(
-    mol: Chem.rdchem.Mol,
+    mol: Union[str, Chem.rdchem.Mol],
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
     edge_property_list: List[str] = [],
@@ -332,6 +333,9 @@ def mol_to_adj_and_features(
 
     """
 
+    if isinstance(mol, str):
+        mol = dm.to_mol(mol)
+    
     # Add or remove explicit hydrogens
     if explicit_H:
         mol = Chem.AddHs(mol)
@@ -415,6 +419,12 @@ def mol_to_dglgraph(
             `graph.edata['e']` corresponding to the concatenated edge data from `edge_property_list`
 
     """
+    if isinstance(mol, str):
+        mol = dm.to_mol(mol)
+    if explicit_H:
+        mol = Chem.AddHs(mol)
+    else:
+        mol = Chem.RemoveHs(mol)
 
     # Get the adjacency, node features and edge features
     adj, ndata, edata = mol_to_adj_and_features(
@@ -427,11 +437,6 @@ def mol_to_dglgraph(
         use_bonds=use_bonds,
     )
 
-    if explicit_H:
-        mol = Chem.AddHs(mol)
-    else:
-        mol = Chem.RemoveHs(mol)
-
     # Transform the matrix and data into a DGLGraph object
     graph = dgl.from_scipy(adj)
 
@@ -443,7 +448,7 @@ def mol_to_dglgraph(
     # need to duplicate each edge information for its 2 entries
     if edata is not None:
         src_ids, dst_ids = graph.all_edges()
-        hetero_edata = np.zeros_like(edata, shape=(edata.shape[0]*2, edata.shape[1]))
+        hetero_edata = np.zeros_like(edata, shape=(edata.shape[0] * 2, edata.shape[1]))
         for ii in range(mol.GetNumBonds()):
             bond = mol.GetBondWithIdx(ii)
             src, dst = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()

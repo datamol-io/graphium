@@ -199,12 +199,12 @@ class test_featurizer(ut.TestCase):
                     )
 
                     self.assertEqual(graph.num_nodes(), this_mol.GetNumAtoms(), msg=err_msg2)
-                    self.assertEqual(graph.num_edges(), 2*this_mol.GetNumBonds(), msg=err_msg2)
+                    self.assertEqual(graph.num_edges(), 2 * this_mol.GetNumBonds(), msg=err_msg2)
                     if num_props > 0:
                         ndata = graph.ndata["feat"]
                         edata = graph.edata["feat"]
                         self.assertEqual(ndata.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
-                        self.assertEqual(edata.shape[0], 2*this_mol.GetNumBonds(), msg=err_msg2)
+                        self.assertEqual(edata.shape[0], 2 * this_mol.GetNumBonds(), msg=err_msg2)
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
                         self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
 
