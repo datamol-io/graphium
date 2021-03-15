@@ -23,6 +23,7 @@ from goli.dgl.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
 # from goli.dgl.datasets import load_csv_to_dgl_dataset
 from goli.dgl.utils import DGLCollate
+from goli.commons.utils import is_device_cuda
 from goli.trainer.model_wrapper import PredictorModule
 from goli.trainer.logger import HyperparamsMetricsTensorBoardLogger
 from goli.trainer.reporting import BestEpochFromSummary
@@ -32,6 +33,13 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from umap import UMAP
 from sklearn.neighbors import KNeighborsRegressor
+
+
+DTYPES = {
+    'float16': torch.float16,
+    'float32': torch.float32,
+    'float64': torch.float64,
+}
 
 
 class DimensionalityReduction:
@@ -93,27 +101,33 @@ def config_load_dimred(cfg_dimred):
     return dimred
 
 
-def config_load_constants(cfg_const, main_dir):
-    np.random.seed(cfg_const["seed"])
-    torch.manual_seed(cfg_const["seed"])
-    exp_name = cfg_const["exp_name"]
-
-    # Get the cpu or cuda device
-    dtype = torch.float32
-    if (not torch.cuda.is_available()) and (cfg_const["device"].lower() != "cpu"):
-        warn("GPU not available for device name `{}`, code will run on CPU".format(cfg_const["device"]))
-        device = torch.device("cpu")
-    elif cfg_const["device"].lower() == "cpu":
+def _get_device(device):
+    if device is None:
+        pass
+    elif (not torch.cuda.is_available()) and is_device_cuda(device):
+        warn(f"GPU not available for device `{device}`, code will run on CPU")
         device = torch.device("cpu")
     else:
-        device = torch.device(cfg_const["device"])
+        device = torch.device(device)
+    return device
 
-    # Read the gnns configurations
-    config_gnns_path = os.path.join(main_dir, cfg_const["config_gnns"])
-    with open(config_gnns_path) as cfg_file:
-        cfg_gnns = yaml.load(cfg_file, Loader=yaml.FullLoader)
 
-    return device, dtype, exp_name, cfg_gnns
+def config_load_constants(cfg_const, main_dir):
+    seed = cfg_const["seed"]
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    exp_name = cfg_const["exp_name"]
+
+    # Get the dtype
+    dtype = DTYPES[cfg_const['dtype']]
+
+    # Get the cpu or cuda device
+    data_device = _get_device(cfg_const['data_device'])
+    model_device = _get_device(cfg_const['model_device'])
+
+    raise_train_error = cfg_const['raise_train_error']
+
+    return data_device, model_device, dtype, exp_name, seed, raise_train_error
 
 
 # def config_load_datasets(cfg_data, main_dir, device, train_val_test=["train", "val"]):
@@ -237,17 +251,17 @@ def config_load_model_wrapper(
     return model_wrapper
 
 
-def config_load_training(cfg_train, model_wrapper):
-    early_stopping = EarlyStopping(**cfg_train["early_stopping"])
-    checkpoint_callback = ModelCheckpoint(**cfg_train["model_checkpoint"])
-    logger = HyperparamsMetricsTensorBoardLogger(save_dir="lightning_logs")
+def config_load_training(cfg_trainer, model_wrapper):
+    early_stopping = EarlyStopping(**cfg_trainer["early_stopping"])
+    checkpoint_callback = ModelCheckpoint(**cfg_trainer["model_checkpoint"])
+    logger = HyperparamsMetricsTensorBoardLogger(**cfg_trainer["tensorboard_logs"])
     training_results = BestEpochFromSummary(model_wrapper.metrics)
 
     trainer = Trainer(
         logger=logger,
         callbacks=[early_stopping, training_results, checkpoint_callback],
         terminate_on_nan=True,
-        **cfg_train["trainer"],
+        **cfg_trainer["trainer"],
     )
 
     return trainer

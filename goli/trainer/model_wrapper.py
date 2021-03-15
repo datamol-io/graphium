@@ -8,7 +8,6 @@ from copy import deepcopy
 
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data.dataset import Dataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from pytorch_lightning import _logger as log
@@ -51,17 +50,14 @@ class PredictorModule(pl.LightningModule):
         self,
         model_class: type,
         model_kwargs: Dict[str, Any],
-        dataset: Dataset,
         loss_fun: Union[str, Callable],
-        lr: float = 1e-4,
-        batch_size: int = 4,
-        val_split: float = 0.2,
         random_seed: int = 42,
-        num_workers: int = 0,
         dtype: torch.dtype = torch.float32,
         device: Union[str, torch.device] = "cpu",
         weight_decay: float = 0.0,
+        optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
+        scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Union[int, float, str, type(None)] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
@@ -76,12 +72,6 @@ class PredictorModule(pl.LightningModule):
             model:
                 Pytorch model trained on the classification/regression task
 
-            dataset:
-                The dataset used for the training.
-                If `val_split` is a `float`, the dataset will be splitted into train/val sets.
-                If `val_split` is a `torch.utils.data.Dataset`, then `dataset` variable is the training set,
-                and `val_split` is the validation set.
-
             loss_fun:
                 Loss function used during training.
                 Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
@@ -90,27 +80,8 @@ class PredictorModule(pl.LightningModule):
             lr:
                 The learning rate used during the training.
 
-            batch_size:
-                The batch size used during the training.
-
-            val_split:
-                If `val_split` is a `float`, the `dataset` will be splitted into train/val sets.
-                The float value must be greater than 0 and smaller than 1.
-                If `val_split` is a `torch.utils.data.Dataset`, then `dataset` variable is the training set,
-                and `val_split` is the validation set.
-
             random_seed:
                 The random seed used by Pytorch to initialize random tensors.
-
-            num_workers:
-                The number of workers used to load the data at each training step.
-                `num_workers` should be 1 on the GPU
-
-                - 0 : Use all cores to load the data in parallel
-
-                - 1: Use a single core to load the data. If using the GPU, this is the only option
-
-                - int: Specify any value for the number of cores to use for data loading.Any
 
             dtype:
                 The desired floating point type of the floating point parameters and buffers in this module.
@@ -156,23 +127,31 @@ class PredictorModule(pl.LightningModule):
 
         # Basic attributes
         self.model = model_class(**model_kwargs).to(dtype=dtype, device=device)
-        self.dataset = dataset
         self.loss_fun = self.parse_loss_fun(loss_fun)
-        self.lr = lr
-        self.batch_size = batch_size
-        self.val_split = val_split
         self.random_seed = random_seed
-        self.num_workers = num_workers
-        self.weight_decay = weight_decay
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
         self.collate_fn = collate_fn
-        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
         self.epoch_summary = EpochSummary()
         self._dtype = dtype
         self._device = device
+
+        # Set the default value for the optimizer
+        self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
+        self.optim_kwargs.set_default('lr', 1e-3)
+        self.optim_kwargs.set_default('weight_decay', 0)
+
+        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
+        self.lr_reduce_on_plateau_kwargs.set_default('factor', 0.5)
+        self.lr_reduce_on_plateau_kwargs.set_default('patience', 7)
+
+        self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
+        self.scheduler_kwargs.set_default('monitor', 'val_loss')
+        self.scheduler_kwargs.set_default('interval', 'epoch')
+        self.scheduler_kwargs.set_default('frequency', 1)
+        self.scheduler_kwargs.set_default('strict', True)
 
         # Gather the hyper-parameters of the model
         self.hparams = deepcopy(self.model.hparams) if hasattr(self.model, "hparams") else {}
@@ -182,15 +161,14 @@ class PredictorModule(pl.LightningModule):
         # Add other hyper-parameters to the list
         self.hparams.update(
             {
-                "lr": self.lr,
                 "loss_fun": self.loss_fun._get_name(),
                 "random_seed": self.random_seed,
-                "weight_decay": self.weight_decay,
-                "batch_size": self.batch_size,
                 "n_params": self.n_params,
             }
         )
-        self.hparams.update(self.lr_reduce_on_plateau_kwargs)
+
+        self.hparams.update({f'optim.{key}': val for key, val in self.optim_kwargs.items()})
+        self.hparams.update({f'lr_reduce.{key}': val for key, val in self.lr_reduce_on_plateau_kwargs.items()})
 
         self.to(dtype=dtype, device=device)
 
@@ -269,24 +247,13 @@ class PredictorModule(pl.LightningModule):
             raise ValueError("Unsupported validation split")
 
     def configure_optimizers(self):
-        optimiser = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
-
-        kwargs = deepcopy(self.lr_reduce_on_plateau_kwargs)
-        mode = kwargs.pop('mode', 'min')
-        factor = kwargs.pop('factor', 0.5)
-        patience = kwargs.pop('patience', 7)
-        verbose = kwargs.pop('verbose', True)
-        frequency = kwargs.pop('frequency', 3)
-
+        optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
 
         scheduler = {
             "scheduler": ReduceLROnPlateau(
-                optimizer=optimiser, mode=mode, factor=factor, patience=patience, verbose=verbose, **kwargs
+                optimizer=optimiser, **self.lr_reduce_on_plateau_kwargs
             ),
-            "monitor": "val_loss",
-            "interval": "epoch",
-            "frequency": frequency,
-            "strict": True,
+            **self.scheduler_kwargs,
         }
         return [optimiser], [scheduler]
 
