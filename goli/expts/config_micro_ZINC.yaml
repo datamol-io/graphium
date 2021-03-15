@@ -1,65 +1,83 @@
 constants:
-  device: 'cuda:0'
-  seed: 111
-  upload_to_aws: false
+  seed: 42
   exp_name: 'no-name'
-  ignore_train_error: false
-  config_gnns: 'goli/expts/config_gnns.yaml'
-
+  dtype: float32    # float16, float32 or float64
+  raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  data_device: cpu      # "cpu", "cuda:#" or null
+  model_device: cuda:0  # "cpu", "cuda:#" or null
 
 datasets:
-  y_col: ['score']
+  data_file: 'data/micro_ZINC/full.csv'
+  label_cols: ['score']
   smiles_cols: SMILES
-  train:
-    data_dir: &data_dir 'data/micro_ZINC/'
-    nrows: null
-    filename: train
-  val:
-    data_dir: *data_dir
-    nrows: null
-    filename: val
-  test:
-    data_dir: *data_dir
-    nrows: null
-    filename: test
+  subset_num_mols: null    # Maximum number of molecules to take as subset. Useful for debugging purposes
+  train_idxfile_or_split: 0.7   # Either the path to a file containing indexes, or the float specifying the split
+  val_idxfile_or_split: 0.15     # Either the path to a file containing indexes, or the float specifying the split
+  test_idxfile_or_split: 0.15    # Either the path to a file containing indexes, or the float specifying the split
 
-
-model:
-  layer_name: pna-e  # gcn, gin, pna-e, gat-4, mpnn-max, pna-conv3 ...
-  gnn_architecture: resnet  # skip-concat, resnet, resnet-residualweights
-  gnn_kwargs:
-    hidden_dim: 32
-    hidden_depth: 4
-    last_activation: relu
-    dropout: 0.25
-    batch_norm: True
-    pooling: sum
-    skip_steps: 2
-    intermittent_pooling: none # none, sum, mean, max, std, s2s, sum_max, sum_mean_max, ...
-  lnn_kwargs:
-    hidden_dim: 32
-    hidden_depth: 2
-    last_activation: sigmoid
-    dropout: 0.25
-    batch_norm: False
-
-
-model_wrapper:
-  loss_fun: mse
-  lr: 1.e-3
+dataloader:
+  n_jobs: 2
   batch_size: 64
-  siamese: False
-  num_workers: 0
+  
+
+architecture:
+  type: fulldglnetwork
+  pre_nn_kwargs:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 1
+    activation: &activation relu
+    last_activation: &last_activation none
+    dropout: &dropout 0.1
+    batch_norm: &batch_norm True
+    residual_type: none
+  
+  post_nn_kwargs:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 2
+    activation: *activation 
+    last_activation: *last_activation
+    dropout: *dropout 
+    batch_norm: *batch_norm 
+    residual_type: none
+
+  gnn_kwargs:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 4
+    activation: *activation
+    last_activation: *last_activation
+    dropout: *dropout
+    batch_norm: *batch_norm 
+    residual_type: simple
+    pooling: 'sum'
+    virtual_node: 'sum'
+    layer_type: 'pna-msgpass'
+
+
+
+predictor:
+  loss_fun: mse
+  optim_kwargs:
+    lr: 1.e-3
+    weight_decay: 1e-7
+  lr_reduce_on_plateau_kwargs:
+    factor: 0.5
+    patience: 7
+  scheduler_kwargs:
+    monitor: &monitor val_loss
+    frequency: 1
   target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
 
 
 metrics:
 
-  metrics_on_progress_bar: [mae] #, auroc-greater-0.5]
+  metrics_on_progress_bar: [mae]
 
   thresholds: &thresholds
     above_th: &above_th True
-    ths: &ths [0.5]
+    ths: &ths [5.]
     th_on_pred: &th_on_pred True
     th_on_target: &th_on_target True
 
@@ -81,9 +99,9 @@ metrics:
     #     th_on_target: *th_on_target
 
 
-training:
+trainer:
   early_stopping:
-    monitor: &monitor val_loss
+    monitor: *monitor
     min_delta: 0
     patience: 10
     mode: &mode min
@@ -96,4 +114,7 @@ training:
   trainer:
     max_epochs: 12
     min_epochs: 5
+  tensorboard_logs:
+    save_dir: logs
+
     

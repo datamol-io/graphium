@@ -5,7 +5,7 @@ import math
 from copy import deepcopy
 import dgl
 from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
-from typing import List, Dict, Tuple, Union, Callable, Any
+from typing import List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
 from goli.dgl.base_layers import FCLayer, get_activation
@@ -20,7 +20,8 @@ class FeedForwardNN(nn.Module):
         self,
         in_dim: int,
         out_dim: int,
-        hidden_dims: List[int],
+        hidden_dims: Union[List[int], int],
+        depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
@@ -45,9 +46,15 @@ class FeedForwardNN(nn.Module):
                 Output feature dimensions of the layer
 
             hidden_dims:
-                List of dimensions in the hidden layers.
+                Either an integer specifying all the hidden dimensions,
+                or a list of dimensions in the hidden layers.
                 Be careful, the "simple" residual type only supports
                 hidden dimensions of the same value.
+
+            depth:
+                If `hidden_dims` is an integer, `depth` is 1 + the number of
+                hidden layers to use. If `hidden_dims` is a `list`, `depth` must
+                be `None`.
 
             activation:
                 activation function to use in the hidden layers.
@@ -94,7 +101,11 @@ class FeedForwardNN(nn.Module):
         # Set the class attributes
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.hidden_dims = list(hidden_dims)
+        if isinstance(hidden_dims, int):
+            self.hidden_dims = [hidden_dims] * (depth - 1)
+        else:
+            self.hidden_dims = list(hidden_dims)
+            assert depth is None
         self.depth = len(hidden_dims) + 1
         self.activation = get_activation(activation)
         self.last_activation = get_activation(last_activation)
@@ -259,6 +270,7 @@ class FeedForwardDGL(FeedForwardNN):
         in_dim: int,
         out_dim: int,
         hidden_dims: List[int],
+        depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
@@ -293,6 +305,11 @@ class FeedForwardDGL(FeedForwardNN):
                 List of dimensions in the hidden layers.
                 Be careful, the "simple" residual type only supports
                 hidden dimensions of the same value.
+
+            depth:
+                If `hidden_dims` is an integer, `depth` is 1 + the number of
+                hidden layers to use. If `hidden_dims` is a `list`, `depth` must
+                be `None`.
 
             activation:
                 activation function to use in the hidden layers.
@@ -375,7 +392,11 @@ class FeedForwardDGL(FeedForwardNN):
 
         # Initialize the additional attributes
         self.in_dim_edges = in_dim_edges
-        self.hidden_dims_edges = hidden_dims_edges
+        if isinstance(hidden_dims_edges, int):
+            self.hidden_dims_edges = [hidden_dims_edges] * (depth - 1)
+        else:
+            self.hidden_dims_edges = list(hidden_dims_edges)
+            assert depth is None
         self.full_dims_edges = None
         if len(self.hidden_dims_edges) > 0:
             self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
@@ -388,6 +409,7 @@ class FeedForwardDGL(FeedForwardNN):
             in_dim=in_dim,
             out_dim=out_dim,
             hidden_dims=hidden_dims,
+            depth=depth,
             activation=activation,
             last_activation=last_activation,
             batch_norm=batch_norm,
@@ -736,8 +758,8 @@ class FullDGLNetwork(nn.Module):
     def __init__(
         self,
         gnn_kwargs: Dict[str, Any],
-        pre_nn_kwargs: Union[type(None), Dict[str, Any]] = None,
-        post_nn_kwargs: Union[type(None), Dict[str, Any]] = None,
+        pre_nn_kwargs: Optional[Dict[str, Any]] = None,
+        post_nn_kwargs: Optional[Dict[str, Any]] = None,
         name: str = "DGL_GNN",
     ):
         r"""
@@ -777,11 +799,17 @@ class FullDGLNetwork(nn.Module):
         if pre_nn_kwargs is not None:
             name = pre_nn_kwargs.pop("name", "pre-trans-NN")
             self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
+            next_in_dim = self.pre_nn.out_dim
+            assert next_in_dim == gnn_kwargs['in_dim']
+        
         name = gnn_kwargs.pop("name", "main-GNN")
         self.gnn = FeedForwardDGL(**gnn_kwargs, name=name)
+        next_in_dim = self.gnn.out_dim
+
         if post_nn_kwargs is not None:
             name = post_nn_kwargs.pop("name", "post-trans-NN")
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
+            assert next_in_dim == self.post_nn.in_dim
 
         # Initialize the hyper-parameter variable to be accessible by Pytorch Lightning
         hparams_temp = {**self.pre_nn.hparams, **self.pre_nn.hparams, **self.pre_nn.hparams}

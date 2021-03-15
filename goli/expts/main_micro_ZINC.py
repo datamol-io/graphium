@@ -28,18 +28,20 @@ def main(cfg_main: DictConfig) -> None:
     cfg = dict(deepcopy(cfg_main))
 
     # Get the general parameters and generate the train/val/test datasets
-    device, dtype, exp_name, cfg_gnns = config_load_constants(cfg["constants"], MAIN_DIR)
+    data_device, model_device, dtype, exp_name, seed, raise_train_error = \
+        config_load_constants(cfg["constants"], MAIN_DIR)
+    
     trans, (train_dt, val_dt) = config_load_datasets(
-        cfg["datasets"], main_dir=MAIN_DIR, train_val_test=["train", "val"], device=device
+        cfg["datasets"], main_dir=MAIN_DIR, train_val_test=["train", "val"], device=data_device
     )
 
-    # Initialize the network, the metrics, the model_wrapper and the trainer
+    # Initialize the network, the metrics, the predictor and the trainer
     in_dim = trans.atom_dim
     out_dim = train_dt[0][1].shape[0]
-    model, layer_name = config_load_gnn(cfg["model"], cfg_gnns, in_dim, out_dim, device, dtype)
+    model, layer_name = config_load_gnn(cfg["model"], cfg_gnns, in_dim, out_dim, model_device, dtype)
     metrics, metrics_on_progress_bar = config_load_metrics(cfg["metrics"])
-    model_wrapper = config_load_model_wrapper(
-        cfg["model_wrapper"],
+    predictor = config_load_model_wrapper(
+        cfg["predictor"],
         metrics,
         metrics_on_progress_bar,
         model,
@@ -49,14 +51,14 @@ def main(cfg_main: DictConfig) -> None:
         device,
         dtype,
     )
-    trainer = config_load_training(cfg["training"], model_wrapper)
+    trainer = config_load_training(cfg["training"], predictor)
 
     # Run the model training
     try:
-        trainer.fit(model_wrapper)
+        trainer.fit(predictor)
         print("\n------------ TRAINING COMPLETED ------------\n\n")
     except Exception as e:
-        if cfg["constants"]["ignore_train_error"]:
+        if not cfg["constants"]["raise_train_error"]:
             print("\n------------ TRAINING ERROR: ------------\n\n", e)
         else:
             raise
