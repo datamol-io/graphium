@@ -1,3 +1,4 @@
+from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import os, math
 import torch
 import dgl
@@ -10,7 +11,6 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data.dataset import Dataset
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
@@ -61,6 +61,7 @@ class PredictorModule(pl.LightningModule):
         dtype: torch.dtype = torch.float32,
         device: Union[str, torch.device] = "cpu",
         weight_decay: float = 0.0,
+        lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Union[int, float, str, type(None)] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
@@ -167,6 +168,7 @@ class PredictorModule(pl.LightningModule):
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
         self.collate_fn = collate_fn
+        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
         self.epoch_summary = EpochSummary()
         self._dtype = dtype
@@ -188,6 +190,7 @@ class PredictorModule(pl.LightningModule):
                 "n_params": self.n_params,
             }
         )
+        self.hparams.update(self.lr_reduce_on_plateau_kwargs)
 
         self.to(dtype=dtype, device=device)
 
@@ -265,35 +268,24 @@ class PredictorModule(pl.LightningModule):
         else:
             raise ValueError("Unsupported validation split")
 
-    def _dataloader(self, dataset, sampler):
-        num_workers = self.num_workers
-        dataset_cuda = is_device_cuda(dataset.device)
-        loader = torch.utils.data.DataLoader(
-            dataset=dataset,
-            batch_size=self.batch_size,
-            num_workers=num_workers,
-            sampler=sampler,
-            drop_last=True,
-            collate_fn=self.collate_fn,
-            pin_memory=dataset_cuda,
-        )
-        return loader
-
-    def train_dataloader(self):
-        return self._dataloader(dataset=self.dataset, sampler=self.train_sampler)
-
-    def val_dataloader(self):
-        return self._dataloader(dataset=self.val_dataset, sampler=self.val_sampler)
-
     def configure_optimizers(self):
         optimiser = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=self.weight_decay)
+
+        kwargs = deepcopy(self.lr_reduce_on_plateau_kwargs)
+        mode = kwargs.pop('mode', 'min')
+        factor = kwargs.pop('factor', 0.5)
+        patience = kwargs.pop('patience', 7)
+        verbose = kwargs.pop('verbose', True)
+        frequency = kwargs.pop('frequency', 3)
+
+
         scheduler = {
             "scheduler": ReduceLROnPlateau(
-                optimizer=optimiser, mode="min", factor=0.5, patience=7, verbose=True
+                optimizer=optimiser, mode=mode, factor=factor, patience=patience, verbose=verbose, **kwargs
             ),
             "monitor": "val_loss",
             "interval": "epoch",
-            "frequency": 3,
+            "frequency": frequency,
             "strict": True,
         }
         return [optimiser], [scheduler]
