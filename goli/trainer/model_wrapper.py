@@ -1,15 +1,16 @@
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import os, math
-import torch
 import dgl
 import numpy as np
-import pytorch_lightning as pl
 from copy import deepcopy
 
+import torch
 import torch.nn.functional as F
+from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
+import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
@@ -48,13 +49,12 @@ class EpochSummary:
 class PredictorModule(pl.LightningModule):
     def __init__(
         self,
-        model_class: type,
+        model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
         loss_fun: Union[str, Callable],
         random_seed: int = 42,
         dtype: torch.dtype = torch.float32,
         device: Union[str, torch.device] = "cpu",
-        weight_decay: float = 0.0,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
@@ -69,16 +69,16 @@ class PredictorModule(pl.LightningModule):
         with Pytorch-Lightning.
 
         Parameters:
-            model:
-                Pytorch model trained on the classification/regression task
+            model_class:
+                pytorch module used to create a model
+
+            model_kwargs:
+                Key-word arguments used to initialize the model from `model_class`.
 
             loss_fun:
                 Loss function used during training.
                 Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
                 Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
-
-            lr:
-                The learning rate used during the training.
 
             random_seed:
                 The random seed used by Pytorch to initialize random tensors.
@@ -89,8 +89,33 @@ class PredictorModule(pl.LightningModule):
             device:
                 the desired device of the parameters and buffers in this module
 
-            weight_decay:
-                Weight decay used to regularize the optimizer
+            optim_kwargs:
+                Dictionnary used to initialize the optimizer, with possible keys below.
+
+                - lr `float`: Learning rate (Default=`1e-3`)
+                - weight_decay `float`: Weight decay used to regularize the optimizer (Default=`0.`)
+                
+            lr_reduce_on_plateau_kwargs:
+                Dictionnary for the reduction of learning rate when reaching plateau, with possible keys below.
+
+                - factor `float`: Factor by which to reduce the learning rate (Default=`0.5`)
+                - patience `int`: Number of epochs without improvement to wait before reducing
+                  the learning rate (Default=`10`)
+                - mode `str`: One of min, max. In min mode, lr will be reduced when the quantity 
+                  monitored has stopped decreasing; in max mode it will be reduced when the quantity 
+                  monitored has stopped increasing. (Default=`"min"`).
+                - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate 
+                  of all param groups or each group respectively (Default=`1e-4`)
+                
+            scheduler_kwargs:
+                Dictionnary for the scheduling of the learning rate modification
+
+                - monitor `str`: metric to track (Default=`"val_loss"`)
+                - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
+                - strict `bool`: if set to True will enforce that value specified in monitor is available
+                  while trying to call scheduler.step(), and stop training if not found. If False will 
+                  only give a warning and continue training (without calling the scheduler). (Default=`True`)
+                - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
 
             target_nan_mask:
                 TODO: It's not implemented for the metrics yet!!
@@ -141,13 +166,14 @@ class PredictorModule(pl.LightningModule):
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
         self.optim_kwargs.set_default("lr", 1e-3)
-        self.optim_kwargs.set_default("weight_decay", 0)
+        self.optim_kwargs.set_default("weight_decay", 0.)
 
         self.lr_reduce_on_plateau_kwargs = (
             lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
         )
         self.lr_reduce_on_plateau_kwargs.set_default("factor", 0.5)
-        self.lr_reduce_on_plateau_kwargs.set_default("patience", 7)
+        self.lr_reduce_on_plateau_kwargs.set_default("patience", 10)
+        self.lr_reduce_on_plateau_kwargs.set_default("min_lr", 1e-4)
 
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
         self.scheduler_kwargs.set_default("monitor", "val_loss")
@@ -205,50 +231,6 @@ class PredictorModule(pl.LightningModule):
         """
         out = self.model.forward(*inputs)
         return out
-
-    def prepare_data(self):
-        r"""
-        Method that parses the training and validation datasets, and creates
-        the samplers. The following attributes are set by the current method.
-
-        Attributes:
-            dataset (Dataset):
-                Either the full dataset, or the training dataset, depending on
-                if the validation is provided as a split percentage, or as
-                a stand-alone dataset.
-            val_dataset (Dataset):
-                Either a stand-alone dataset used for validation, or a pointer
-                copy of the `dataset`.
-            train_sampler (SubsetRandomSampler):
-                The sampler for the training set
-            val_sampler (SubsetRandomSampler):
-                The sampler for the validation set
-
-        """
-
-        # Creating data indices for training and validation splits:
-        dataset_size = len(self.dataset)
-        indices = list(range(dataset_size))
-
-        if isinstance(self.val_split, float):
-            split = int(np.floor(self.val_split * dataset_size))
-            np.random.shuffle(indices)
-            train_indices, val_indices = indices[split:], indices[:split]
-            self.val_dataset = self.dataset
-
-            # Creating data samplers and loaders:
-            self.train_sampler = SubsetRandomSampler(train_indices)
-            self.val_sampler = SubsetRandomSampler(val_indices)
-
-        elif isinstance(self.val_split, Dataset):
-            train_indices = list(range(dataset_size))
-            val_indices = list(range(len(self.val_split)))
-            self.train_sampler = SubsetRandomSampler(train_indices)
-            self.val_sampler = SubsetRandomSampler(val_indices)
-            self.val_dataset = self.val_split
-
-        else:
-            raise ValueError("Unsupported validation split")
 
     def configure_optimizers(self):
         optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
