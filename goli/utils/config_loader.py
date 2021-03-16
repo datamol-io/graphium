@@ -23,13 +23,13 @@ from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
 from goli.dgl.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
 from goli.dgl.utils import DGLCollate
-from goli.commons.utils import is_device_cuda
+from goli.utils.utils import is_device_cuda
 from goli.trainer.model_wrapper import PredictorModule
 from goli.trainer.logger import HyperparamsMetricsTensorBoardLogger
 from goli.trainer.reporting import BestEpochFromSummary
-from goli.commons.read_file import read_file
+from goli.utils.read_file import read_file
 from goli.dgl.datasets import DGLFromSmilesDataModule
-from goli.mol_utils.featurizer import mol_to_dglgraph
+from goli.features.featurizer import mol_to_dglgraph
 import goli
 
 from sklearn.decomposition import PCA

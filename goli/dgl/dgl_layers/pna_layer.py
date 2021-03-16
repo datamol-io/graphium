@@ -10,10 +10,10 @@ from typing import Dict, List, Tuple, Union, Callable
 from goli.dgl.pna_operations import PNA_AGGREGATORS, PNA_SCALERS
 from goli.dgl.base_layers import MLP, FCLayer, get_activation
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
-from goli.commons.decorators import classproperty
+from goli.utils.decorators import classproperty
 
 """
-    PNA: Principal Neighbourhood Aggregation 
+    PNA: Principal Neighbourhood Aggregation
     Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
     https://arxiv.org/abs/2004.05718
 """

@@ -1,5 +1,5 @@
 from ._version import __version__
 
-from . import commons
-from . import mol_utils
+from . import utils
+from . import features
 from . import dgl

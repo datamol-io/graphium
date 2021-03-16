@@ -14,7 +14,7 @@ This folder contains the code necessary for compatibility with the Deep Graph Li
 It also contains major network architecture implemented for DGL (feed-forward, resnet, skip-connections, densenet), along with the DGL graph transformer for molecules.
 **_I was thinking of removing most models to avoid having too much maintenance to do, since they either don't perform well on molecular tasks (GAT, RingGNN) or they are generalized by DGN (GCN, GIN, MPNN, PNA, GraphSage)_**.
 
-### mol_utils
+### features
 
 Different utilities for molecules, such as Smiles to adjacency graph transformer, molecular property extraction, atomic properties, bond properties, ...
 

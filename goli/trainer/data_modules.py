@@ -9,7 +9,7 @@ from torch.utils.data import random_split, DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data.dataset import Dataset
 
-from goli.commons.utils import is_device_cuda
+from goli.utils.utils import is_device_cuda
 
 
 class DGLDataModule(pl.LightningDataModule):

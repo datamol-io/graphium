@@ -12,7 +12,7 @@ from loguru import logger
 from rdkit import Chem
 from rdkit.Chem.Descriptors import ExactMolWt
 
-from goli.commons.utils import parse_valid_args, arg_in_func
+from goli.utils.utils import parse_valid_args, arg_in_func
 
 
 def read_file(filepath, as_ext=None, **kwargs):
@@ -56,6 +56,7 @@ def read_file(filepath, as_ext=None, **kwargs):
             raise "`file_type` must be a `str`. Provided: {}".format(file_ext)
 
     open_mode = "r"
+
     # Read the file according to the right extension
     if file_ext in ["csv", "smile", "smiles", "smi", "tsv"]:
         file_reader = pd.read_csv
@@ -71,7 +72,9 @@ def read_file(filepath, as_ext=None, **kwargs):
         file_reader = pd.read_pickle
     else:
         raise 'File extension "{}" not supported'.format(file_ext)
+
     kwargs = parse_valid_args(fn=file_reader, param_dict=kwargs)
+
     if file_ext[0:3] not in ["sdf", "xls"]:
         with file_opener(filepath, open_mode) as file_in:
             data = file_reader(file_in, **kwargs)
@@ -125,7 +128,7 @@ def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True, skiprows=None):
             if as_cxsmiles:
                 smiles = Chem.rdmolfiles.MolToCXSmiles(mol, canonical=True)
             else:
-                smiles = Chem.rdmolfiles.MolToSmiles(mol, canonical=True)
+                smiles = dm.to_smiles(mol, canonical=True)
             data_list[-1]["SMILES"] = smiles
         else:
             count_none += 1

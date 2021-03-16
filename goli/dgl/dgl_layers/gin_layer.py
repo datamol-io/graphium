@@ -7,7 +7,7 @@ from typing import Callable, Union
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.dgl.base_layers import MLP
-from goli.commons.decorators import classproperty
+from goli.utils.decorators import classproperty
 
 """
     GIN: Graph Isomorphism Networks

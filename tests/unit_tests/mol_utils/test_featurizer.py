@@ -1,5 +1,5 @@
 """
-Unit tests for the different datasets of goli/mol_utils/featurizer.py
+Unit tests for the different datasets of goli/features/featurizer.py
 """
 
 import numpy as np
@@ -9,7 +9,7 @@ import dgl
 from copy import deepcopy
 from rdkit.Chem import MolFromSmiles, AddHs, RemoveHs
 
-from goli.mol_utils.featurizer import (
+from goli.features.featurizer import (
     get_mol_atomic_features_onehot,
     get_mol_atomic_features_float,
     get_mol_edge_features,

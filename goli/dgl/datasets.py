@@ -12,9 +12,9 @@ from functools import partial
 
 import datamol as dm
 
-from goli.commons.spaces import SPACE_MAP
-from goli.commons.utils import is_device_cuda, to_tensor
-from goli.mol_utils.featurizer import mol_to_dglgraph
+from goli.utils.spaces import SPACE_MAP
+from goli.utils.utils import is_device_cuda, to_tensor
+from goli.features.featurizer import mol_to_dglgraph
 
 
 # from invivoplatform.automation.utils.processing_utils import (

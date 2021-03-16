@@ -8,7 +8,7 @@ from omegaconf import DictConfig
 
 # Current project imports
 import goli
-from goli.commons.config_loader import (
+from goli.utils.config_loader import (
     config_load_constants,
     config_load_dataset,
     config_load_gnn,
