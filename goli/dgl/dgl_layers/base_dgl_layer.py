@@ -4,7 +4,7 @@ import abc
 from typing import List, Dict, Tuple, Union, Callable
 
 from goli.dgl.base_layers import get_activation
-from goli.commons.decorators import classproperty
+from goli.utils.decorators import classproperty
 
 
 class BaseDGLLayer(nn.Module):

@@ -7,7 +7,7 @@ from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, Glo
 from dgl import mean_nodes, sum_nodes, max_nodes
 
 from goli.dgl.base_layers import MLP, FCLayer
-from goli.commons.utils import ModuleListConcat
+from goli.utils.utils import ModuleListConcat
 
 
 EPS = 1e-6

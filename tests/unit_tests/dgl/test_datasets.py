@@ -12,7 +12,7 @@ from functools import partial
 
 import goli
 from goli.dgl.datasets import SmilesDataset, DGLFromSmilesDataModule
-from goli.mol_utils.featurizer import mol_to_dglgraph
+from goli.features.featurizer import mol_to_dglgraph
 
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
 MICRO_ZINC_PATH = os.path.join(BASE_PATH, "data/micro_ZINC/full.csv")

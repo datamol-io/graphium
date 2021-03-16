@@ -6,7 +6,7 @@ from dgl.nn.pytorch import GATConv
 from dgl import DGLGraph
 
 from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
-from goli.commons.decorators import classproperty
+from goli.utils.decorators import classproperty
 
 """
     GAT: Graph Attention Network

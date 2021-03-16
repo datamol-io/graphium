@@ -9,7 +9,7 @@ import torch.nn as nn
 from typing import List, Union, Callable
 
 from goli.dgl.base_layers import FCLayer
-from goli.commons.decorators import classproperty
+from goli.utils.decorators import classproperty
 
 
 class ResidualConnectionBase(nn.Module):
