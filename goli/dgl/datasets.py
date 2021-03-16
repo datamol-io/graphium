@@ -273,10 +273,8 @@ class BaseDataModule(LightningDataModule):
         seed: int = 42,
         train_batch_size: int = 128,
         test_batch_size: int = 256,
-        train_shuffle: bool = True,
-        eval_shuffle: bool = False,
         train_sampler: Optional[Callable] = None,
-        eval_sampler: Optional[Callable] = None,
+        val_sampler: Optional[Callable] = None,
         model_device: Union[str, torch.device] = "cpu",
         data_device: Union[str, torch.device] = "cpu",
         dtype: torch.dtype = torch.float32,
@@ -289,10 +287,9 @@ class BaseDataModule(LightningDataModule):
         self.seed = seed
         self.test_batch_size = test_batch_size
         self.train_batch_size = train_batch_size
-        self.train_shuffle = train_shuffle
-        self.eval_shuffle = eval_shuffle
         self.train_sampler = train_sampler
-        self.eval_sampler = eval_sampler
+        self.val_sampler = val_sampler
+        self.test_sampler = test_sampler
         self.model_device = torch.device(model_device)
         self.data_device = torch.device(data_device)
         self.dtype = dtype
@@ -322,24 +319,21 @@ class BaseDataModule(LightningDataModule):
             dataset=self.dataset,
             sampler=self.train_sampler,
             batch_size=self.train_batch_size,
-            shuffle=self.train_shuffle,
         )
 
     def val_dataloader(self, *args, **kwargs) -> Union[DataLoader, List[DataLoader]]:
         return self._dataloader(
             dataset=self.dataset,
-            sampler=self.eval_sampler,
+            sampler=self.val_sampler,
             batch_size=self.train_batch_size,
-            shuffle=self.eval_shuffle,
         )
 
     def test_dataloader(self, *args, **kwargs) -> Union[DataLoader, List[DataLoader]]:
 
         return self._dataloader(
-            dataset=self.test_dt,
-            sampler=self.eval_sampler,
+            dataset=self.dataset,
+            sampler=self.test_sampler,
             batch_size=self.test_batch_size,
-            shuffle=self.eval_shuffle,
         )
 
     @property
@@ -370,10 +364,9 @@ class DGLFromSmilesDataModule(BaseDataModule):
         seed: int = 42,
         train_batch_size: int = 128,
         test_batch_size: int = 256,
-        train_shuffle: bool = True,
-        eval_shuffle: bool = False,
         train_sampler: Optional[Callable] = None,
-        eval_sampler: Optional[Callable] = None,
+        val_sampler: Optional[Callable] = None,
+        test_sampler: Optional[Callable] = None,
         model_device: Union[str, torch.device] = "cpu",
         data_device: Union[str, torch.device] = "cpu",
         dtype: torch.dtype = torch.float32,
@@ -389,10 +382,9 @@ class DGLFromSmilesDataModule(BaseDataModule):
             seed=seed,
             train_batch_size=train_batch_size,
             test_batch_size=test_batch_size,
-            train_shuffle=train_shuffle,
-            eval_shuffle=eval_shuffle,
             train_sampler=train_sampler,
-            eval_sampler=eval_sampler,
+            val_sampler=val_sampler,
+            test_sampler=test_sampler,
             model_device=model_device,
             data_device=data_device,
             dtype=dtype,

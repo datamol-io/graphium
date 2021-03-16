@@ -7,18 +7,36 @@ constants:
   model_device: cuda:0  # "cpu", "cuda:#" or null
 
 datasets:
-  data_file: 'data/micro_ZINC/full.csv'
-  label_cols: ['score']
-  smiles_cols: SMILES
-  subset_num_mols: null    # Maximum number of molecules to take as subset. Useful for debugging purposes
-  train_idxfile_or_split: 0.7   # Either the path to a file containing indexes, or the float specifying the split
-  val_idxfile_or_split: 0.15     # Either the path to a file containing indexes, or the float specifying the split
-  test_idxfile_or_split: 0.15    # Either the path to a file containing indexes, or the float specifying the split
+  label_keys: ['score']
+  smiles_key: SMILES
+  subset_max_size: null    # Maximum number of molecules to take as subset. Useful for debugging purposes
+  pickle_path: null   # TODO: NOT IMPLEMENTED Path where the pre-processed data is saved
+  n_jobs: -1
+  smiles_transform_kwargs:
+    atom_property_list_onehot: [atomic-number, valence]
+    atom_property_list_float: [mass, electronegativity, in-ring]
+    edge_property_list: [bond-type-onehot, stereo, in-ring]
+    add_self_loop: False
+    explicit_H: False
+    use_bonds: False
+  train:
+    batch_size: 128
+    path: data/micro_ZINC/full.csv
+    kwargs:
+      sep: ','
+    idxfile_or_split: 0.7     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
+  val:
+    path: data/micro_ZINC/full.csv
+    kwargs:
+      sep: ','
+    idxfile_or_split: 0.15     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
+  test:
+    batch_size: 256
+    path: data/micro_ZINC/full.csv
+    kwargs:
+      sep: ','
+    idxfile_or_split: 0.15     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
 
-dataloader:
-  n_jobs: 2
-  batch_size: 64
-  
 
 architecture:
   type: fulldglnetwork

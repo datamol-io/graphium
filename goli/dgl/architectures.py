@@ -800,8 +800,8 @@ class FullDGLNetwork(nn.Module):
             name = pre_nn_kwargs.pop("name", "pre-trans-NN")
             self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
             next_in_dim = self.pre_nn.out_dim
-            assert next_in_dim == gnn_kwargs['in_dim']
-        
+            assert next_in_dim == gnn_kwargs["in_dim"]
+
         name = gnn_kwargs.pop("name", "main-GNN")
         self.gnn = FeedForwardDGL(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim

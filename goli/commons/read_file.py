@@ -1,37 +1,47 @@
 """ Utiles for data parsing"""
 import os
 import warnings
-
+import numpy as np
 import pandas as pd
+import datamol as dm
+from functools import partial
+from copy import copy
+import fsspec
 
+from loguru import logger
 from rdkit import Chem
 from rdkit.Chem.Descriptors import ExactMolWt
+
+from goli.commons.utils import parse_valid_args, arg_in_func
 
 
 def read_file(filepath, as_ext=None, **kwargs):
     r"""
     Allow to read different file format and parse them into a MolecularDataFrame.
     Supported formats are:
-    * csv (.csv, .smile, .smiles)
+    * csv (.csv, .smile, .smiles, .tsv)
     * txt (.txt)
     * xls (.xls, .xlsx, .xlsm, .xls*)
     * sdf (.sdf)
     * pkl (.pkl)
 
-    Parameters:
+    Arguments
+    -----------
 
         filepath: str
             The full path and name of the file to read.
             It also supports the s3 url path.
-        as_ext: str
+        as_ext: str, Optional
             The file extension used to read the file. If None, the extension is deduced
             from the extension of the file. Otherwise, no matter the file extension,
             the file will be read according to the specified ``as_ext``.
+            (Default=None)
         **kwargs: All the optional parameters required for the desired file reader.
 
     TODO: unit test to make sure it works well with all extensions
 
-    Returns:
+    Returns
+    ---------
         df: pandas.DataFrame
             The ``pandas.DataFrame`` containing the parsed data
 
@@ -45,52 +55,70 @@ def read_file(filepath, as_ext=None, **kwargs):
         if not isinstance(file_ext, str):
             raise "`file_type` must be a `str`. Provided: {}".format(file_ext)
 
+    open_mode = "r"
     # Read the file according to the right extension
-    if file_ext in ["csv", "smile", "smiles", "smi"]:
-        data = pd.read_csv(filepath, **kwargs)
+    if file_ext in ["csv", "smile", "smiles", "smi", "tsv"]:
+        file_reader = pd.read_csv
     elif file_ext == "txt":
-        data = pd.read_table(filepath, **kwargs)
+        file_reader = pd.read_table
     elif file_ext[0:3] == "xls":
-        data = pd.read_excel(filepath, **kwargs)
+        open_mode = "rb"
+        file_reader = partial(pd.read_excel, engine="openpyxl")
     elif file_ext == "sdf":
-        data = parse_sdf_to_dataframe(filepath, **kwargs)
+        file_reader = parse_sdf_to_dataframe
     elif file_ext == "pkl":
-        data = pd.read_pickle(filepath, **kwargs)
+        open_mode = "rb"
+        file_reader = pd.read_pickle
     else:
         raise 'File extension "{}" not supported'.format(file_ext)
-
+    kwargs = parse_valid_args(fn=file_reader, param_dict=kwargs)
+    if file_ext[0:3] not in ["sdf", "xls"]:
+        with file_opener(filepath, open_mode) as file_in:
+            data = file_reader(file_in, **kwargs)
+    else:
+        data = file_reader(filepath, **kwargs)
     return data
 
 
-def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
+def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True, skiprows=None):
     r"""
     Allows to read an SDF file containing molecular informations, convert
     it to a pandas DataFrame and convert the molecules to SMILES. It also
     lists a warning of all the molecules that couldn't be read.
 
-    Parameters:
+    Arguments
+    -----------
 
         sdf_path: str
             The full path and name of the sdf file to read
-        as_cxsmiles: bool
+        as_cxsmiles: bool, optional
             Whether to use the CXSMILES notation, which preserves atomic coordinates,
             stereocenters, and much more.
             See `https://dl.chemaxon.com/marvin-archive/latest/help/formats/cxsmiles-doc.html`
-
-    TODO: Use pandas tools?
-    TODO: Parallelize the loop to make it faster
+            (Default = True)
+        skiprows: int, list
+            The rows to skip from dataset. The enumerate index starts from 1 insted of 0.
+            (Default = None)
 
     """
 
     # read the SDF file
     # locally or from s3
-    data = load_sdf(sdf_path)
+    data = dm.read_sdf(sdf_path)
 
     # For each molecule in the SDF file, read all the properties and add it to a list of dict.
     # Also count the number of molecules that cannot be read.
     data_list = []
     count_none = 0
+    if skiprows is not None:
+        if isinstance(skiprows, int):
+            skiprows = range(0, skiprows - 1)
+        skiprows = np.array(skiprows) - 1
+
     for idx, mol in enumerate(data):
+        if (skiprows is not None) and (idx in skiprows):
+            continue
+
         if (mol is not None) and (ExactMolWt(mol) > 0):
             mol_dict = mol.GetPropsAsDict()
             data_list.append(mol_dict)
@@ -101,11 +129,11 @@ def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
             data_list[-1]["SMILES"] = smiles
         else:
             count_none += 1
-            print("Could not read molecule # {}".format(idx))
+            logger.info(f"Could not read molecule # {idx}")
 
     # Display a message or warning after the SDF is done parsing
     if count_none == 0:
-        print("Successfully read the SDF file without error: {}".format(sdf_path))
+        logger.info("Successfully read the SDF file without error: {}".format(sdf_path))
     else:
         warnings.warn(
             (
@@ -116,13 +144,13 @@ def parse_sdf_to_dataframe(sdf_path, as_cxsmiles=True):
     return pd.DataFrame(data_list)
 
 
-def load_sdf(sdf_path):
-    r""" Load sdf file from local or s3 path. """
-
-    if "s3://" not in sdf_path:
-        data = Chem.SDMolSupplier(sdf_path)
+def file_opener(filename, mode="r"):
+    """File reader stream"""
+    filename = str(filename)
+    if "w" in mode:
+        filename = "simplecache::" + filename
+    if filename.endswith(".gz"):
+        instream = fsspec.open(filename, mode=mode, compression="gzip")
     else:
-        sdf_path_temp = download_from_s3(url=sdf_path)
-        data = Chem.SDMolSupplier(sdf_path_temp)
-
-    return data
+        instream = fsspec.open(filename, mode=mode)
+    return instream

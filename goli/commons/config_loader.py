@@ -3,6 +3,7 @@ import os
 from torch import nn
 import torch.nn.functional as F
 import torch
+from torch.utils.data import SequentialSampler, SubsetRandomSampler
 import numpy as np
 import pandas as pd
 import operator as op
@@ -21,12 +22,14 @@ from pytorch_lightning import Trainer
 from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
 from goli.dgl.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
-# from goli.dgl.datasets import load_csv_to_dgl_dataset
 from goli.dgl.utils import DGLCollate
 from goli.commons.utils import is_device_cuda
 from goli.trainer.model_wrapper import PredictorModule
 from goli.trainer.logger import HyperparamsMetricsTensorBoardLogger
 from goli.trainer.reporting import BestEpochFromSummary
+from goli.commons.read_file import read_file
+from goli.dgl.datasets import DGLFromSmilesDataModule
+from goli.mol_utils.featurizer import mol_to_dglgraph
 import goli
 
 from sklearn.decomposition import PCA
@@ -36,9 +39,9 @@ from sklearn.neighbors import KNeighborsRegressor
 
 
 DTYPES = {
-    'float16': torch.float16,
-    'float32': torch.float32,
-    'float64': torch.float64,
+    "float16": torch.float16,
+    "float32": torch.float32,
+    "float64": torch.float64,
 }
 
 
@@ -119,38 +122,108 @@ def config_load_constants(cfg_const, main_dir):
     exp_name = cfg_const["exp_name"]
 
     # Get the dtype
-    dtype = DTYPES[cfg_const['dtype']]
+    dtype = DTYPES[cfg_const["dtype"]]
 
     # Get the cpu or cuda device
-    data_device = _get_device(cfg_const['data_device'])
-    model_device = _get_device(cfg_const['model_device'])
+    data_device = _get_device(cfg_const["data_device"])
+    model_device = _get_device(cfg_const["model_device"])
 
-    raise_train_error = cfg_const['raise_train_error']
+    raise_train_error = cfg_const["raise_train_error"]
 
     return data_device, model_device, dtype, exp_name, seed, raise_train_error
 
 
-# def config_load_datasets(cfg_data, main_dir, device, train_val_test=["train", "val"]):
-#     trans = DGLGraphTransformer()
+def config_load_dataset(
+    main_dir,
+    train,
+    val,
+    test,
+    label_keys,
+    smiles_transform_kwargs,
+    smiles_key="SMILES",
+    subset_max_size=None,
+    data_device="cpu",
+    model_device="cpu",
+    dtype=torch.float32,
+    n_jobs=-1,
+    seed=42,
+):
 
-#     if isinstance(train_val_test, str):
-#         train_val_test = [train_val_test]
+    np.random.seed(seed)
 
-#     datasets = []
-#     for dt_name in train_val_test:
-#         dt_name = dt_name.lower()
-#         this_dt = load_csv_to_dgl_dataset(
-#             data_dir=os.path.join(main_dir, cfg_data[dt_name]["data_dir"]),
-#             name=cfg_data[dt_name]["filename"],
-#             smiles_cols=cfg_data["smiles_cols"],
-#             y_col=cfg_data["y_col"],
-#             max_mols=cfg_data[dt_name]["nrows"],
-#             trans=trans,
-#             device="cpu",
-#         )
-#         datasets.append(this_dt)
+    # Load the training set from file
+    df_train = read_file(os.path.join(main_dir, train["path"]), **train["kwargs"])
+    df_full = df_train
 
-#     return trans, datasets
+    if val["path"] != train["path"]:
+        # Load the validation set from file
+        df_val = read_file(os.path.join(main_dir, val["path"]), **val["kwargs"])
+        train_idx = np.arange(df_train.shape[0])
+        df_full = df_full.append(df_val)
+        val_idx = np.arange(df_train.shape[0], df_full.shape[0])
+
+        # Load the test set from file
+        if test["path"] != train["path"]:
+            df_test = read_file(os.path.join(main_dir, test["path"]), **test["kwargs"])
+            test_idx = np.arange(df_full.shape[0], df_full.shape[0] + df_test.shape[0])
+            df_full = df_full.append(df_test)
+
+        else:
+            raise ValueError(
+                "Cannot create a test set from the training set if a different validation set is provided"
+            )
+
+    else:
+        if test["path"] != train["path"]:
+
+            if (train["idxfile_or_split"] + val["idxfile_or_split"]) != 1:
+                raise ValueError(
+                    "When a different test path is provided, the train split and test split must sum to 1"
+                )
+
+            # Generate train/val datasets from random splits
+            shuffle_idx = np.random.choice(df_full.shape[0], df_full.shape[0], replace=False)
+            max_train_idx = int(np.floor(train["idxfile_or_split"] * df_full.shape[0]))
+            train_idx = shuffle_idx[:max_train_idx]
+            val_idx = shuffle_idx[max_train_idx:]
+
+            # Load the test set from file
+            df_test = read_file(os.path.join(main_dir, test["path"]), **test["kwargs"])
+            test_idx = np.arange(df_full.shape[0], df_full.shape[0] + df_test.shape[0])
+            df_full = df_full.append(df_test)
+
+        else:
+            if (train["idxfile_or_split"] + val["idxfile_or_split"] + test["idxfile_or_split"]) != 1:
+                raise ValueError("All splits must sum to 1")
+
+            # Generate train/val/test datasets from random splits
+            shuffle_idx = np.random.choice(df_full.shape[0], df_full.shape[0], replace=False)
+            max_train_idx = int(np.floor(train["idxfile_or_split"] * df_full.shape[0]))
+            max_val_idx = max_train_idx + int(np.floor(train["idxfile_or_split"] * df_full.shape[0]))
+            train_idx = shuffle_idx[:max_train_idx]
+            val_idx = shuffle_idx[max_train_idx:max_val_idx]
+            test_idx = shuffle_idx[max_val_idx:]
+
+    smiles_transform = partial(mol_to_dglgraph, **smiles_transform_kwargs)
+
+    datamodule = DGLFromSmilesDataModule(
+        smiles=df_full[smiles_key],
+        labels=df_full[label_keys],
+        weights=None,
+        seed=seed,
+        train_batch_size=train["batch_size"],
+        test_batch_size=test["batch_size"],
+        train_sampler=SubsetRandomSampler(train_idx),
+        val_sampler=SubsetRandomSampler(val_idx),
+        test_sampler=SubsetRandomSampler(test_idx),
+        model_device=model_device,
+        data_device=data_device,
+        dtype=dtype,
+        n_jobs=n_jobs,
+        smiles_transform=smiles_transform,
+    )
+
+    return datamodule
 
 
 def config_load_siamese_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype):
