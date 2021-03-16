@@ -1,21 +1,8 @@
-"""
-Unit tests for the different datasets of goli/data/
-"""
-import numpy as np
-import pandas as pd
-import functools
-
-import unittest
-
-import dgl
-
 import goli
-from goli.data import SmilesDataset
-from goli.data import DGLFromSmilesDataModule
-from goli.features.featurizer import mol_to_dglgraph
 
 
 def test_dglfromsmiles_dm():
+
     df = goli.data.load_tiny_zinc()
     # Setup the featurization
     featurization_args = {}
@@ -48,9 +35,9 @@ def test_dglfromsmiles_dm():
     dm.prepare_data()
     dm.setup()
 
-    assert len(dm.train_ds) == 60
-    assert len(dm.val_ds) == 20
-    assert len(dm.test_ds) == 20
+    assert len(dm.train_ds) == 60  # type: ignore
+    assert len(dm.val_ds) == 20  # type: ignore
+    assert len(dm.test_ds) == 20  # type: ignore
 
     for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
         it = iter(dl)
