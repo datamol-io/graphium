@@ -106,7 +106,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         self.df = df
         self.df_path = df_path
 
-        self.cache_data_path = str(cache_data_path)
+        self.cache_data_path = str(cache_data_path) if cache_data_path is not None else cache_data_path
         self.featurization = featurization
 
         self.smiles_col = smiles_col
@@ -228,7 +228,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
 
     def val_dataloader(self, **kwargs):
         return self._dataloader(
-            dataset=self.train_val,  # type: ignore
+            dataset=self.val_ds,  # type: ignore
             batch_size=self.train_val_batch_size,
             shuffle=False,
         )
@@ -236,7 +236,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
     def test_dataloader(self, **kwargs):
 
         return self._dataloader(
-            dataset=self.train_ds,  # type: ignore
+            dataset=self.test_ds,  # type: ignore
             batch_size=self.test_batch_size,
             shuffle=False,
         )
