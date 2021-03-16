@@ -3,11 +3,10 @@ Unit tests for the different datasets of goli/features/featurizer.py
 """
 
 import numpy as np
-import torch
 import unittest as ut
-import dgl
 from copy import deepcopy
-from rdkit.Chem import MolFromSmiles, AddHs, RemoveHs
+from rdkit import Chem
+import datamol as dm
 
 from goli.features.featurizer import (
     get_mol_atomic_features_onehot,
@@ -75,7 +74,7 @@ class test_featurizer(ut.TestCase):
 
         for s in self.smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = MolFromSmiles(s)
+            mol = dm.to_mol(s)
 
             for ii in range(len(props)):
                 this_props = props[:ii]
@@ -98,7 +97,7 @@ class test_featurizer(ut.TestCase):
 
         for s in self.smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = MolFromSmiles(s)
+            mol = dm.to_mol(s)
 
             for ii in range(len(props)):
                 this_props = props[:ii]
@@ -118,7 +117,7 @@ class test_featurizer(ut.TestCase):
 
         for s in self.smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = MolFromSmiles(s)
+            mol = dm.to_mol(s)
             for ii in range(len(props)):
                 this_props = props[:ii]
                 err_msg2 = err_msg + f"\n\t\tprops: {this_props}"
@@ -137,15 +136,15 @@ class test_featurizer(ut.TestCase):
 
         for s in self.smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = MolFromSmiles(s)
-            mol_Hs = AddHs(mol)
-            mol_No_Hs = RemoveHs(mol)
+            mol = dm.to_mol(s)
+            mol_Hs = Chem.AddHs(mol)  # type: ignore
+            mol_No_Hs = Chem.RemoveHs(mol)  # type: ignore
 
             for explicit_H in [True, False]:
                 this_mol = mol_Hs if explicit_H else mol_No_Hs
                 for ii in np.arange(0, 5, 0.2):
                     num_props = int(round(ii))
-                    err_msg2 = err_msg + f"\n\t\t\explicit_H: {explicit_H}\n\t\tii: {ii}"
+                    err_msg2 = err_msg + f"\n\t\texplicit_H: {explicit_H}\n\t\tii: {ii}"
 
                     adj, ndata, edata = mol_to_adj_and_features(
                         mol=mol,
@@ -158,7 +157,7 @@ class test_featurizer(ut.TestCase):
                         edge_property_list=np.random.choice(self.edge_props, size=num_props, replace=False),
                         add_self_loop=False,
                         explicit_H=explicit_H,
-                        use_bonds=False,
+                        use_bonds_weights=False,
                     )
 
                     self.assertEqual(adj.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
@@ -174,15 +173,15 @@ class test_featurizer(ut.TestCase):
 
         for s in self.smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
-            mol = MolFromSmiles(s)
-            mol_Hs = AddHs(mol)
-            mol_No_Hs = RemoveHs(mol)
+            mol = dm.to_mol(s)
+            mol_Hs = Chem.AddHs(mol)  # type: ignore
+            mol_No_Hs = Chem.RemoveHs(mol)  # type: ignore
 
             for explicit_H in [True, False]:
                 this_mol = mol_Hs if explicit_H else mol_No_Hs
                 for ii in np.arange(0, 5, 0.2):
                     num_props = int(round(ii))
-                    err_msg2 = err_msg + f"\n\t\t\explicit_H: {explicit_H}\n\t\tii: {ii}"
+                    err_msg2 = err_msg + f"\n\t\texplicit_H: {explicit_H}\n\t\tii: {ii}"
 
                     graph = mol_to_dglgraph(
                         mol=mol,
@@ -195,7 +194,7 @@ class test_featurizer(ut.TestCase):
                         edge_property_list=np.random.choice(self.edge_props, size=num_props, replace=False),
                         add_self_loop=False,
                         explicit_H=explicit_H,
-                        use_bonds=False,
+                        use_bonds_weights=False,
                     )
 
                     self.assertEqual(graph.num_nodes(), this_mol.GetNumAtoms(), msg=err_msg2)

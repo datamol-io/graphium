@@ -4,7 +4,6 @@ Unit tests for the different layers of goli/dgl/dgl_layers/...
 The layers are not thoroughly tested due to the difficulty of testing them
 """
 
-import numpy as np
 import torch
 import unittest as ut
 import dgl

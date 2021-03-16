@@ -24,42 +24,6 @@ def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 60
         plt.savefig(f"{full_name}.{this_ext}", dpi=dpi, bbox_inches="tight", pad_inches=0)
 
 
-def to_tensor(
-    x: Union[np.ndarray, torch.Tensor, pd.DataFrame],
-    device: Union[torch.device, type(None)] = None,
-    dtype: Union[torch.dtype, type(None)] = None,
-) -> torch.Tensor:
-    r"""
-    Convert a numpy array to tensor. The tensor type will be
-    the same as the original array, unless specify otherwise
-
-    Parameters:
-        x: numpy.ndarray
-            Numpy array to convert to tensor type
-        device: torch.device
-        dtype: torch.dtype
-            Enforces new data type for the output
-
-    Returns:
-        New torch.Tensor
-
-    """
-    if isinstance(x, torch.Tensor):
-        pass
-    elif isinstance(x, np.ndarray):
-        x = torch.from_numpy(x)
-    elif isinstance(x, pd.DataFrame):
-        x = torch.from_numpy(x.values)
-    elif isinstance(x, torch.Tensor):
-        pass
-    else:
-        x = torch.tensor(x)
-
-    x = x.to(dtype=dtype, device=device)
-
-    return x
-
-
 def is_dtype_torch_tensor(dtype: Union[np.dtype, torch.dtype]) -> bool:
     r"""
     Verify if the dtype is a torch dtype

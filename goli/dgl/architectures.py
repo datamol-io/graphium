@@ -279,7 +279,7 @@ class FeedForwardDGL(FeedForwardNN):
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
         hidden_dims_edges: List[int] = [],
-        pooling: List[Union[str, Callable]] = ["sum"],
+        pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "GNN",
         layer_type: Union[str, nn.Module] = "gcn",
         virtual_node: str = "none",

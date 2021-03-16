@@ -10,7 +10,7 @@ from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 import datamol as dm
 
-from goli.mol_utils import nmp
+from goli.features import nmp
 from goli.utils.utils import one_of_k_encoding
 
 
@@ -85,7 +85,9 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
 
 
 def get_mol_atomic_features_float(
-    mol: Chem.rdchem.Mol, property_list: List[Union[str, Callable]], offset_carbon: bool = True
+    mol: Chem.rdchem.Mol,
+    property_list: Union[List[str], List[Callable]],
+    offset_carbon: bool = True,
 ) -> Dict[str, np.ndarray]:
     """
     Get a dictionary of floating-point arrays of atomic properties.
@@ -221,7 +223,7 @@ def get_mol_atomic_features_float(
 def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
     r"""
     Get the following set of features for any given bond
-    See `goli.mol_utils.nmp` for allowed values in one hot encoding
+    See `goli.features.nmp` for allowed values in one hot encoding
 
     * One-hot representation of the bond type. Note that you should not kekulize your
         molecules, if you expect this to take aromatic bond into account.
@@ -281,7 +283,7 @@ def mol_to_adj_and_features(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
-) -> Tuple[csr_matrix, Union[np.ndarray, type(None)], Union[np.ndarray, type(None)]]:
+) -> Tuple[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.

@@ -1,6 +1,7 @@
 include README.md
 include *.py
 graft goli/*.yaml
+graft goli/*.csv
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * .ipynb_checkpoints/*

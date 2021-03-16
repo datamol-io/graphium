@@ -16,12 +16,12 @@ nav:
       - Implementing GNN layers: examples/basics/implementing_gnn_layers.ipynb
       - Making GNN networks: examples/basics/making_gnn_networks.ipynb
   - API:
-    # - goli.cli: api/goli.cli.md
-    - goli.utils: api/goli.utils.md
-    # - goli.data_parser: api/goli.data_parser.md
     - goli.dgl: api/goli.dgl.md
     - goli.features: api/goli.features.md
     - goli.trainer: api/goli.trainer.md
+    # - goli.cli: api/goli.cli.md
+    - goli.utils: api/goli.utils.md
+    # - goli.data_parser: api/goli.data_parser.md
 
 theme:
   name: material
