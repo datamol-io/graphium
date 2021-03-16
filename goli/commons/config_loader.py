@@ -238,27 +238,6 @@ def config_load_dataset(
     return datamodule, feat_dim, feat_dim_edges
 
 
-def config_load_siamese_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype):
-    layer_name = cfg_model["layer_name"]
-    gnn_layer_kwargs = cfg_gnns[layer_name]
-
-    gnn_kwargs = dict(
-        in_dim=in_dim, out_dim=cfg_model["dist_vector_size"], **cfg_model["gnn_kwargs"], **gnn_layer_kwargs
-    )
-    hidden_dim = gnn_kwargs.pop("hidden_dim")
-    hidden_depth = gnn_kwargs.pop("hidden_depth")
-    gnn_kwargs["hidden_dims"] = [hidden_dim] * hidden_depth
-
-    gnn = FullDGLSiameseNetwork(
-        gnn_kwargs=gnn_kwargs,
-        gnn_architecture=cfg_model["gnn_architecture"],
-        dist_method=cfg_model["dist_method"],
-    )
-    gnn = gnn.to(device=device, dtype=dtype)
-
-    return gnn, layer_name
-
-
 def config_load_architecture(
     model_type,
     pre_nn_kwargs,
