@@ -1,12 +1,11 @@
-import os
+import importlib.resources
+
 import pandas as pd
 from rdkit import Chem
 
-import goli
-
-BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
-PERIODIC_TABLE_PATH = os.path.join(BASE_PATH, "data/periodic_table.csv")
-PERIODIC_TABLE = pd.read_csv(PERIODIC_TABLE_PATH)
+# NOTE(hadim): usually it's best to embed this in a function.
+with importlib.resources.open_text("goli.features", "periodic_table.csv") as f:
+    PERIODIC_TABLE = pd.read_csv(f)
 PERIODIC_TABLE = PERIODIC_TABLE.set_index("AtomicNumber")
 
 ATOM_LIST = [
