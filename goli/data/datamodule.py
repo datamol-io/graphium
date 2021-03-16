@@ -1,193 +1,302 @@
-from typing import Union, List, Optional, Any, Iterable, Callable
+from typing import List
+from typing import Dict
+from typing import Union
+from typing import Any
+from typing import Callable
 
-from functools import partial
+import os
+import functools
+import collections
 
+from loguru import logger
+import fsspec
+
+import pandas as pd
+import numpy as np
+
+from sklearn.model_selection import train_test_split
+
+import torch.utils.data
 import dgl
-import torch
-from torch.utils.data import DataLoader
-from pytorch_lightning import LightningDataModule
+import pytorch_lightning as pl
 
-from goli.utils.utils import is_device_cuda
-from goli.features.featurizer import mol_to_dglgraph
+import datamol as dm
 
-from .dataset import SmilesDataset
+from goli.utils import fs
+from goli.features import mol_to_dglgraph
 
-
-class DGLCollate:
-    def __init__(self, device, siamese=False):
-        self.device = device
-        self.siamese = siamese
-
-    def __call__(self, samples):
-        # The input `samples` is a list of pairs
-        #  (graph, label).
-
-        graphs, labels = map(list, zip(*samples))
-        if isinstance(labels[0], torch.Tensor):
-            labels = torch.stack(labels, dim=0)
-
-        if (isinstance(graphs[0], (tuple, list))) and (len(graphs[0]) == 1):
-            graphs = [g[0] for g in graphs]
-
-        if self.siamese:
-            graphs1, graphs2 = zip(*graphs)
-            batched_graph = (dgl.batch(graphs1).to(self.device), dgl.batch(graphs2).to(self.device))
-        else:
-            batched_graph = dgl.batch(graphs).to(self.device)
-        return batched_graph, labels
+from .collate import goli_collate_fn
 
 
-class BaseDataModule(LightningDataModule):
-    def __init__(
-        self,
-        labels: Iterable[Union[float, int]],
-        weights: Optional[Iterable[float]] = None,
-        seed: int = 42,
-        train_batch_size: int = 128,
-        test_batch_size: int = 256,
-        train_sampler: Optional[Callable] = None,
-        val_sampler: Optional[Callable] = None,
-        model_device: Union[str, torch.device] = "cpu",
-        data_device: Union[str, torch.device] = "cpu",
-        dtype: torch.dtype = torch.float32,
-        n_jobs: int = -1,
-    ):
-        super().__init__()
-
+class DGLFromSmilesDataset(torch.utils.data.Dataset):
+    def __init__(self, smiles: List[str], features: List[dgl.DGLGraph], labels: np.ndarray):
+        self.smiles = smiles
+        self.features = features
         self.labels = labels
-        self.weights = weights
-        self.seed = seed
-        self.test_batch_size = test_batch_size
-        self.train_batch_size = train_batch_size
-        self.train_sampler = train_sampler
-        self.val_sampler = val_sampler
-        self.test_sampler = test_sampler
-        self.model_device = torch.device(model_device)
-        self.data_device = torch.device(data_device)
-        self.dtype = dtype
-        self.n_jobs = n_jobs if n_jobs >= 0 else CPUS
-        self.dataset = None
 
-    def _dataloader(self, *args, **kwargs):
-        r"""
-        Regrouping the logic behind the number of workers and pin_memory
-        for all data loaders.
-        """
-        data_cuda = is_device_cuda(self.data_device)
-        num_workers = self.n_jobs if (not data_cuda) else 0
-        pin_memory = (not data_cuda) and is_device_cuda(self.model_device)
+    def __len__(self):
+        return len(self.smiles)
 
-        loader = torch.utils.data.DataLoader(
-            num_workers=n_jobs,
-            collate_fn=self.collate_fn,
-            pin_memory=pin_memory,
-            *args,
-            **kwargs,
-        )
-        return loader
-
-    def train_dataloader(self, *args, **kwargs) -> DataLoader:
-        return self._dataloader(
-            dataset=self.dataset,
-            sampler=self.train_sampler,
-            batch_size=self.train_batch_size,
-        )
-
-    def val_dataloader(self, *args, **kwargs) -> Union[DataLoader, List[DataLoader]]:
-        return self._dataloader(
-            dataset=self.dataset,
-            sampler=self.val_sampler,
-            batch_size=self.train_batch_size,
-        )
-
-    def test_dataloader(self, *args, **kwargs) -> Union[DataLoader, List[DataLoader]]:
-
-        return self._dataloader(
-            dataset=self.dataset,
-            sampler=self.test_sampler,
-            batch_size=self.test_batch_size,
-        )
-
-    @property
-    def collate_fn(self):
-        r"""
-        Returns the collate function of the current Dataset
-        """
-        return self.dataset.collate_fn
-
-    @property
-    def has_weights(self) -> bool:
-        r"""
-        Returns whether the Dataset has weights in `self.weights`
-        """
-        return self.dataset.has_weights
+    def __getitem__(self, idx):
+        datum = {}
+        datum["smiles"] = self.smiles[idx]
+        datum["features"] = self.features[idx]
+        datum["labels"] = self.labels[idx]
+        return datum
 
 
-class DGLFromSmilesDataModule(BaseDataModule):
-    r"""
-    DataModule for DGL graphs created from a dataste of SMILES
+class DGLFromSmilesDataModule(pl.LightningDataModule):
+    """
+    NOTE(hadim): let's make only one class for the moment and refactor with a parent class
+    once we have more concrete datamodules to implement. The class should be general enough
+    to be easily refactored.
+
+    NOTE(hadim): splitting is not very full-featured yet; only random splitting on-the-fly
+    is allowed using a seed. Next is to add the availability to provide split indices data as input.
+
+    NOTE(hadim): implement using weights. It should probably be a column in the dataframe.
     """
 
     def __init__(
         self,
-        smiles: Iterable[str],
-        labels: Iterable[Union[float, int]],
-        weights: Optional[Iterable[float]] = None,
-        seed: int = 42,
-        train_batch_size: int = 128,
-        test_batch_size: int = 256,
-        train_sampler: Optional[Callable] = None,
-        val_sampler: Optional[Callable] = None,
-        test_sampler: Optional[Callable] = None,
-        model_device: Union[str, torch.device] = "cpu",
-        data_device: Union[str, torch.device] = "cpu",
-        dtype: torch.dtype = torch.float32,
-        n_jobs: int = -1,
-        smiles_transform: Callable = partial(mol_to_dglgraph, atom_property_list_onehot=["atomic-number"]),
+        df: pd.DataFrame = None,
+        df_path: Union[str, os.PathLike] = None,
+        cache_data_path: Union[str, os.PathLike] = None,
+        featurization: Dict[str, Any] = None,
+        smiles_col: str = None,
+        label_cols: List[str] = None,
+        split_val: float = 0.2,
+        split_test: float = 0.2,
+        split_seed: int = None,
+        train_val_batch_size: int = 16,
+        test_batch_size: int = 16,
+        num_workers: int = 0,
+        pin_memory: bool = True,
+        featurization_n_jobs: int = -1,
+        featurization_progress: bool = False,
+        collate_fn: Callable = None
     ):
-        r"""
-        TODO: docs
-        """
-        super().__init__(
-            labels=labels,
-            weights=weights,
-            seed=seed,
-            train_batch_size=train_batch_size,
-            test_batch_size=test_batch_size,
-            train_sampler=train_sampler,
-            val_sampler=val_sampler,
-            test_sampler=test_sampler,
-            model_device=model_device,
-            data_device=data_device,
-            dtype=dtype,
-            n_jobs=n_jobs,
-        )
-
-        self.smiles = smiles
-        self.smiles_transform = smiles_transform
-        self.dataset = None
-
-    def setup(self, stage: Optional[str] = None):
-        r"""
-        Function called by the Pytorch Lightning pipeline to
-        generate train, validation, and test datasets.
         """
 
-        self.dataset = SmilesDataset(
-            smiles=self.smiles,
-            labels=self.labels,
-            weights=self.weights,
-            smiles_transform=self.smiles_transform,
-            collate_fn=DGLCollate(device=None, siamese=False),
-            device=self.data_device,
-            dtype=self.dtype,
-            n_jobs=self.n_jobs,
+        Args:
+            df: a dataframe.
+            df_path: a path to a dataframe to load (CSV file). `df` takes precedence over
+                `df_path`.
+            cache_data_path: path where to save or reload the cached data. The path can be
+                remote (S3, GS, etc).
+            featurization: args to apply to the SMILES to DGL featurizer.
+            smiles_col: Name of the SMILES column. If set to None the first column
+                is used.
+            label_cols: Name of the columns to use as labels. If set to None, all the
+                columns are used except the SMILES one.
+            split_val: Ratio for the validation split.
+            split_test: Ratio for the test split.
+            split_seed: Seed to use for the random split. More complex splitting strategy
+                should be implemented.
+            train_val_batch_size: batch size for training and val dataset.
+            test_batch_size: batch size for test dataset.
+            num_workers: Number of workers for the dataloader.
+            pin_memory: Whether to pin on paginated CPU memory for the dataloader.
+            featurization_n_jobs: Number of cores to use for the featurization.
+            featurization_progress: whether to show a progress bar during featurization.
+            collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+        """
+        super().__init__()
+
+        self.df = df
+        self.df_path = df_path
+
+        self.cache_data_path = str(cache_data_path)
+        self.featurization = featurization
+
+        self.smiles_col = smiles_col
+        self.label_cols = label_cols
+        self.split_val = split_val
+        self.split_test = split_test
+        self.split_seed = split_seed
+
+        self.train_val_batch_size = train_val_batch_size
+        self.test_batch_size = test_batch_size
+
+        self.num_workers = num_workers
+        self.pin_memory = pin_memory
+
+        self.featurization_n_jobs = featurization_n_jobs
+        self.featurization_progress = featurization_progress
+
+        if collate_fn is None:
+            self.collate_fn = goli_collate_fn
+        else:
+            self.collate_fn = collate_fn
+
+        self.ds = ...
+        self.train_ds = ...
+        self.val_ds = ...
+        self.ds_ds = ...
+
+    def prepare_data(self):
+        """Called only from a single process in distributed settings. Steps:
+
+        - If cache is set and exists, reload from cache.
+        - Load the dataframe if its a path.
+        - Extract smiles and labels from the dataframe.
+        - Compute the features.
+        - Compute or set split indices.
+        - Make the list of dict dataset.
+        """
+
+        # Reload from cache if it exists and is valid
+        if self.cache_data_path is not None and fs.exists(self.cache_data_path):
+            logger.info(f"Reload data from {self.cache_data_path}.")
+
+            with fsspec.open(self.cache_data_path, "rb") as f:
+                cache = torch.load(f)  # type: ignore
+
+            if set(cache.keys()) == {"dataset", "test_indices", "train_indices", "val_indices"}:
+                self.dataset = cache["dataset"]
+                self.train_indices = cache["train_indices"]
+                self.val_indices = cache["val_indices"]
+                self.test_indices = cache["test_indices"]
+                return
+            else:
+                logger.info(f"Cache looks invalid with keys: {cache.keys()}")
+                logger.info("Fallback to regular data preparation steps.")
+
+        # Load the dataframe
+        if self.df is None:
+            df = pd.read_csv(self.df_path)
+        else:
+            df = self.df
+
+        logger.info(f"Prepare dataset with {len(df)} data points.")
+
+        # Extract smiles and labels
+        smiles, labels = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+
+        # Precompute the features
+        # NOTE(hadim): in case of very large dataset we could:
+        # - or cache the data and read from it during `next(iter(dataloader))`
+        # - or compute the features on-the-fly during `next(iter(dataloader))`
+        # For now we compute in advance and hold everything in memory.
+        featurization_args = self.featurization or {}
+        transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
+        features = dm.utils.parallelized(
+            transform_smiles,
+            smiles,
+            progress=self.featurization_progress,
+            n_jobs=self.featurization_n_jobs,
         )
 
-        # Forcing these values to True, else some strange bugs arise. PL fails to set this to true when called manually, and
-        # when datamodule is imported from a separate module, but succeeds in setting it when datamodule is defined in same module as
-        # train_dl. TODO: Investigate further/raise bug in PL. See PL.trainer.trainer.call_setup_hook.
-        self.set_setup_flags()
+        # Get splits indices
+        self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
+            len(df),
+            split_val=self.split_val,
+            split_test=self.split_test,
+            split_seed=self.split_seed,
+        )
 
-    def set_setup_flags(self):
-        self._has_setup_fit, self._has_setup_test = True, True
+        # Make the torch datasets (mostly a wrapper there is no memory overhead here)
+        self.dataset = DGLFromSmilesDataset(smiles=smiles, features=features, labels=labels)
+
+        # Cache on disk
+        if self.cache_data_path is not None:
+            logger.info(f"Write prepared data to {self.cache_data_path}")
+            cache = {}
+            cache["dataset"] = self.dataset
+            cache["train_indices"] = self.train_indices
+            cache["val_indices"] = self.val_indices
+            cache["test_indices"] = self.test_indices
+            with fsspec.open(self.cache_data_path, "wb") as f:
+                torch.save(cache, f)  # type: ignore
+
+    def setup(self, stage: str = None):
+        """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
+
+        if stage == "fit" or stage is None:
+            self.train_ds = torch.utils.data.Subset(self.dataset, self.train_indices)
+            self.val_ds = torch.utils.data.Subset(self.dataset, self.val_indices)
+
+        if stage == "test" or stage is None:
+            self.test_ds = torch.utils.data.Subset(self.dataset, self.test_indices)
+
+    def train_dataloader(self, **kwargs):
+        return self._dataloader(
+            dataset=self.train_ds,  # type: ignore
+            batch_size=self.train_val_batch_size,
+            shuffle=True,
+        )
+
+    def val_dataloader(self, **kwargs):
+        return self._dataloader(
+            dataset=self.train_val,  # type: ignore
+            batch_size=self.train_val_batch_size,
+            shuffle=False,
+        )
+
+    def test_dataloader(self, **kwargs):
+
+        return self._dataloader(
+            dataset=self.train_ds,  # type: ignore
+            batch_size=self.test_batch_size,
+            shuffle=False,
+        )
+
+    # Private methods
+
+    def _dataloader(self, dataset: torch.utils.data.Dataset, batch_size: int, shuffle: bool):
+        """Get a dataloader for a given dataset"""
+
+        loader = torch.utils.data.DataLoader(
+            dataset=dataset,
+            num_workers=self.num_workers,
+            collate_fn=self.collate_fn,
+            pin_memory=self.pin_memory,
+            batch_size=batch_size,
+            shuffle=shuffle,
+        )
+        return loader
+
+    def _extract_smiles_labels(self, df: pd.DataFrame, smiles_col: str = None, label_cols: List[str] = None):
+        """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
+        of string while labels are returned as a 2D numpy array.
+        """
+
+        if smiles_col is None:
+            smiles_col = df.columns[0]
+
+        if label_cols is None:
+            label_cols = self.df.columns.drop(smiles_col)
+
+        smiles = self.df[smiles_col].to_list()
+        labels = self.df[label_cols].values
+
+        return smiles, labels
+
+    def _get_split_indices(
+        self,
+        dataset_size: int,
+        split_val: float,
+        split_test: float,
+        split_seed: int = None,
+    ):
+        """Compute indices of random splits."""
+
+        indices = np.arange(dataset_size)
+        train_indices, val_test_indices = train_test_split(
+            indices,
+            test_size=split_val + split_test,
+            random_state=split_seed,
+        )
+
+        sub_split_test = split_test / (split_test + split_val)
+        val_indices, test_indices = train_test_split(
+            val_test_indices,
+            test_size=sub_split_test,
+            random_state=split_seed,
+        )
+
+        train_indices = list(train_indices)
+        val_indices = list(val_indices)
+        test_indices = list(test_indices)
+
+        return train_indices, val_indices, test_indices
