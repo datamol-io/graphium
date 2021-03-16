@@ -18,11 +18,11 @@ BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(goli.__file__)))
 MICRO_ZINC_PATH = os.path.join(BASE_PATH, "data/micro_ZINC/full.csv")
 SMILES_COL = "SMILES"
 LABELS_COLS = ["SA", "logp", "score"]
-
+NUM_ROWS_TEST = 300
 
 class test_SmilesDataset(ut.TestCase):
     def test_smilesdataset_basics(self):
-        df = pd.read_csv(MICRO_ZINC_PATH)
+        df = pd.read_csv(MICRO_ZINC_PATH, nrows=NUM_ROWS_TEST)
         smiles = df[SMILES_COL]
         dtype = torch.float32
         other_dtype = torch.float64
@@ -61,7 +61,7 @@ class test_SmilesDataset(ut.TestCase):
                     self.assertListEqual(list(y.shape), [size, labels.shape[1]], msg=err_msg)
 
     def test_smilesdataset_to_mol(self):
-        df = pd.read_csv(MICRO_ZINC_PATH)
+        df = pd.read_csv(MICRO_ZINC_PATH, nrows=NUM_ROWS_TEST)
         smiles = df[SMILES_COL]
         dtype = torch.float32
         other_dtype = torch.float64
@@ -105,7 +105,7 @@ class test_SmilesDataset(ut.TestCase):
                     self.assertListEqual([len(y), len(y[0])], [size, labels.shape[1]], msg=err_msg)
 
     def test_DGLFromSmilesDataModule(self):
-        df = pd.read_csv(MICRO_ZINC_PATH)
+        df = pd.read_csv(MICRO_ZINC_PATH, nrows=NUM_ROWS_TEST)
         smiles = df[SMILES_COL]
         dtype = torch.float32
         other_dtype = torch.float64
