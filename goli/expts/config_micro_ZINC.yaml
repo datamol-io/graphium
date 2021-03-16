@@ -4,7 +4,7 @@ constants:
   dtype: float32    # float16, float32 or float64
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   data_device: cpu      # "cpu", "cuda:#" or null
-  model_device: cuda:0  # "cpu", "cuda:#" or null
+  model_device: cpu  # "cpu", "cuda:#" or null
 
 datasets:
   label_keys: ['score']
@@ -18,7 +18,7 @@ datasets:
     edge_property_list: [bond-type-onehot, stereo, in-ring]
     add_self_loop: False
     explicit_H: False
-    use_bonds: False
+    use_bonds_weights: False
   train:
     batch_size: 128
     path: data/micro_ZINC/full.csv
@@ -39,7 +39,7 @@ datasets:
 
 
 architecture:
-  type: fulldglnetwork
+  model_type: fulldglnetwork
   pre_nn_kwargs:
     out_dim: 32
     hidden_dims: 32
@@ -72,6 +72,8 @@ architecture:
     pooling: 'sum'
     virtual_node: 'sum'
     layer_type: 'pna-msgpass'
+    aggregators: [mean, max, min, std]
+    scalers: [identity, amplification, attenuation]
 
 
 
