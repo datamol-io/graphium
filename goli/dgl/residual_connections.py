@@ -127,6 +127,12 @@ class ResidualConnectionNone(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
         super().__init__(skip_steps=skip_steps)
 
+    def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
+        return f"{self.__class__.__name__}"
+
     @classproperty
     def h_dim_increase_type(cls):
         r"""

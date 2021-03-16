@@ -106,7 +106,7 @@ class FeedForwardNN(nn.Module):
         else:
             self.hidden_dims = list(hidden_dims)
             assert depth is None
-        self.depth = len(hidden_dims) + 1
+        self.depth = len(self.hidden_dims) + 1
         self.activation = get_activation(activation)
         self.last_activation = get_activation(last_activation)
         self.dropout = dropout
@@ -259,7 +259,7 @@ class FeedForwardNN(nn.Module):
         """
         class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
         layer_str = f"[{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]"
-        out_str = " -> Linear({self.out_dim})"
+        out_str = f" -> Linear({self.out_dim})"
 
         return class_str + layer_str + out_str
 
@@ -394,6 +394,8 @@ class FeedForwardDGL(FeedForwardNN):
         self.in_dim_edges = in_dim_edges
         if isinstance(hidden_dims_edges, int):
             self.hidden_dims_edges = [hidden_dims_edges] * (depth - 1)
+        elif len(hidden_dims_edges) == 0:
+            self.hidden_dims_edges = []
         else:
             self.hidden_dims_edges = list(hidden_dims_edges)
             assert depth is None
@@ -800,6 +802,7 @@ class FullDGLNetwork(nn.Module):
             name = pre_nn_kwargs.pop("name", "pre-trans-NN")
             self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
             next_in_dim = self.pre_nn.out_dim
+            gnn_kwargs.setdefault("in_dim", next_in_dim)
             assert next_in_dim == gnn_kwargs["in_dim"]
 
         name = gnn_kwargs.pop("name", "main-GNN")
@@ -808,6 +811,7 @@ class FullDGLNetwork(nn.Module):
 
         if post_nn_kwargs is not None:
             name = post_nn_kwargs.pop("name", "post-trans-NN")
+            post_nn_kwargs.setdefault("in_dim", next_in_dim)
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim
 

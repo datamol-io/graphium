@@ -150,7 +150,8 @@ def config_load_dataset(
     label_keys,
     smiles_transform_kwargs,
     smiles_key="SMILES",
-    subset_max_size=None,
+    pickle_path=None,  # IGNORED FOR NOW
+    subset_max_size=None,  # IGNORED FOR NOW
     data_device="cpu",
     model_device="cpu",
     dtype=torch.float32,
@@ -232,10 +233,10 @@ def config_load_dataset(
         smiles_transform=smiles_transform,
     )
 
-    feat_dim = datamodule.dataset[0][0].ndata["feat"]
-    feat_dim_edges = datamodule.dataset[0][0].edata["feat"]
+    num_node_feats = datamodule.num_node_feats
+    num_edge_feats = datamodule.num_edge_feats
 
-    return datamodule, feat_dim, feat_dim_edges
+    return datamodule, num_node_feats, num_edge_feats
 
 
 def config_load_architecture(
@@ -243,8 +244,8 @@ def config_load_architecture(
     pre_nn_kwargs,
     post_nn_kwargs,
     gnn_kwargs,
-    feat_dim,
-    feat_dim_edges=0,
+    in_dim_nodes,
+    in_dim_edges=0,
     model_device="cpu",
     dtype=torch.float32,
     **kwargs,
@@ -258,13 +259,16 @@ def config_load_architecture(
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
+    gnn_kwargs = dict(gnn_kwargs)
+    post_nn_kwargs = dict(post_nn_kwargs) if post_nn_kwargs is not None else None
     # Define the input dimension
     if pre_nn_kwargs is not None:
-        pre_nn_kwargs.set_default("in_dim", feat_dim)
-        pre_nn_kwargs.set_default("in_dim_edges", feat_dim_edges)
+        pre_nn_kwargs = dict(pre_nn_kwargs)
+        pre_nn_kwargs.setdefault("in_dim", in_dim_nodes)
     else:
-        gnn_kwargs.set_default("in_dim", feat_dim)
-        gnn_kwargs.set_default("in_dim_edges", feat_dim_edges)
+        gnn_kwargs.setdefault("in_dim", in_dim_nodes)
+
+    gnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
 
     # Build the graph network
     model = model_class(
@@ -276,8 +280,8 @@ def config_load_architecture(
     model = model.to(device=model_device, dtype=dtype)
 
     # Make sure the input dimensions are consistent
-    assert model.in_dim == feat_dim
-    assert model.in_dim_edges == feat_dim_edges
+    assert model.in_dim == in_dim_nodes
+    assert model.in_dim_edges == in_dim_edges
 
     return model
 
