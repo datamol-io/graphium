@@ -280,7 +280,7 @@ def mol_to_adj_and_features(
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
-    use_bonds: bool = False,
+    use_bonds_weights: bool = False,
 ) -> Tuple[csr_matrix, Union[np.ndarray, type(None)], Union[np.ndarray, type(None)]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -312,7 +312,7 @@ def mol_to_adj_and_features(
             Whether to consider the Hydrogens explicitely. If `False`, the hydrogens
             are implicit.
 
-        use_bonds:
+        use_bonds_weights:
             Whether to use the floating-point value of the bonds in the adjacency matrix,
             such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
 
@@ -343,7 +343,7 @@ def mol_to_adj_and_features(
         mol = Chem.RemoveHs(mol)
 
     # Get the adjacency matrix
-    adj = GetAdjacencyMatrix(mol, useBO=use_bonds, force=True)
+    adj = GetAdjacencyMatrix(mol, useBO=use_bonds_weights, force=True)
     if add_self_loop:
         adj = adj + np.eye(adj.shape[0])
     adj = csr_matrix(adj)
@@ -371,7 +371,7 @@ def mol_to_dglgraph(
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
-    use_bonds: bool = False,
+    use_bonds_weights: bool = False,
     dtype: torch.dtype = torch.float32,
 ) -> dgl.DGLGraph:
     r"""
@@ -404,7 +404,7 @@ def mol_to_dglgraph(
             Whether to consider the Hydrogens explicitely. If `False`, the hydrogens
             are implicit.
 
-        use_bonds:
+        use_bonds_weights:
             Whether to use the floating-point value of the bonds in the adjacency matrix,
             such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
 
@@ -434,7 +434,7 @@ def mol_to_dglgraph(
         edge_property_list=edge_property_list,
         add_self_loop=add_self_loop,
         explicit_H=explicit_H,
-        use_bonds=use_bonds,
+        use_bonds_weights=use_bonds_weights,
     )
 
     # Transform the matrix and data into a DGLGraph object

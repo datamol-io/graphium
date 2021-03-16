@@ -140,18 +140,20 @@ class PredictorModule(pl.LightningModule):
 
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.optim_kwargs.set_default('lr', 1e-3)
-        self.optim_kwargs.set_default('weight_decay', 0)
+        self.optim_kwargs.set_default("lr", 1e-3)
+        self.optim_kwargs.set_default("weight_decay", 0)
 
-        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
-        self.lr_reduce_on_plateau_kwargs.set_default('factor', 0.5)
-        self.lr_reduce_on_plateau_kwargs.set_default('patience', 7)
+        self.lr_reduce_on_plateau_kwargs = (
+            lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
+        )
+        self.lr_reduce_on_plateau_kwargs.set_default("factor", 0.5)
+        self.lr_reduce_on_plateau_kwargs.set_default("patience", 7)
 
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.scheduler_kwargs.set_default('monitor', 'val_loss')
-        self.scheduler_kwargs.set_default('interval', 'epoch')
-        self.scheduler_kwargs.set_default('frequency', 1)
-        self.scheduler_kwargs.set_default('strict', True)
+        self.scheduler_kwargs.set_default("monitor", "val_loss")
+        self.scheduler_kwargs.set_default("interval", "epoch")
+        self.scheduler_kwargs.set_default("frequency", 1)
+        self.scheduler_kwargs.set_default("strict", True)
 
         # Gather the hyper-parameters of the model
         self.hparams = deepcopy(self.model.hparams) if hasattr(self.model, "hparams") else {}
@@ -167,8 +169,10 @@ class PredictorModule(pl.LightningModule):
             }
         )
 
-        self.hparams.update({f'optim.{key}': val for key, val in self.optim_kwargs.items()})
-        self.hparams.update({f'lr_reduce.{key}': val for key, val in self.lr_reduce_on_plateau_kwargs.items()})
+        self.hparams.update({f"optim.{key}": val for key, val in self.optim_kwargs.items()})
+        self.hparams.update(
+            {f"lr_reduce.{key}": val for key, val in self.lr_reduce_on_plateau_kwargs.items()}
+        )
 
         self.to(dtype=dtype, device=device)
 
@@ -250,9 +254,7 @@ class PredictorModule(pl.LightningModule):
         optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
 
         scheduler = {
-            "scheduler": ReduceLROnPlateau(
-                optimizer=optimiser, **self.lr_reduce_on_plateau_kwargs
-            ),
+            "scheduler": ReduceLROnPlateau(optimizer=optimiser, **self.lr_reduce_on_plateau_kwargs),
             **self.scheduler_kwargs,
         }
         return [optimiser], [scheduler]

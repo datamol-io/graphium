@@ -10,7 +10,7 @@ from omegaconf import DictConfig
 import goli
 from goli.commons.config_loader import (
     config_load_constants,
-    config_load_datasets,
+    config_load_dataset,
     config_load_gnn,
     config_load_metrics,
     config_load_model_wrapper,
@@ -28,11 +28,12 @@ def main(cfg_main: DictConfig) -> None:
     cfg = dict(deepcopy(cfg_main))
 
     # Get the general parameters and generate the train/val/test datasets
-    data_device, model_device, dtype, exp_name, seed, raise_train_error = \
-        config_load_constants(cfg["constants"], MAIN_DIR)
-    
-    trans, (train_dt, val_dt) = config_load_datasets(
-        cfg["datasets"], main_dir=MAIN_DIR, train_val_test=["train", "val"], device=data_device
+    data_device, model_device, dtype, exp_name, seed, raise_train_error = config_load_constants(
+        cfg["constants"], MAIN_DIR
+    )
+
+    datamodule = config_load_datasets(
+        cfg["datasets"], main_dir=MAIN_DIR, data_device=data_device, model_device=model_device
     )
 
     # Initialize the network, the metrics, the predictor and the trainer

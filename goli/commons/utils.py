@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 from typing import List, Union
+from inspect import getfullargspec
 
 from rdkit.Chem import AllChem
 
@@ -157,3 +158,50 @@ class ModuleListConcat(torch.nn.ModuleList):
             h.append(module.forward(*args, **kwargs))
 
         return torch.cat(h, dim=self.dim)
+
+
+def parse_valid_args(param_dict, fn):
+    r"""
+    Check if a function takes the given argument.
+
+    Parameters
+    ----------
+    fn: func
+        The function to check the argument.
+    param_dict: dict
+        Dictionary of the argument.
+
+    Returns
+    -------
+        param_dict: dict
+            Valid paramter dictionary for the given fucntions.
+    """
+    param_dict_cp = copy(param_dict)
+    for key, param in param_dict.items():
+        if not arg_in_func(fn=fn, arg=key):
+            logger.warning(
+                f"{key} is not an available argument for {fn.__name__}, and is ignored by default."
+            )
+            param_dict_cp.pop(key)
+
+    return param_dict_cp
+
+
+def arg_in_func(fn, arg):
+    r"""
+    Check if a function takes the given argument.
+
+    Parameters
+    ----------
+    fn: func
+        The function to check the argument.
+    arg: str
+        The name of the argument.
+
+    Returns
+    -------
+        res: bool
+            True if the function contains the argument, otherwise False.
+    """
+    fn_args = getfullargspec(fn)
+    return (fn_args.varkw is not None) or (arg in fn_args[0])
