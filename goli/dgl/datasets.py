@@ -199,6 +199,7 @@ class SmilesDataset(BaseDataset):
         device: torch.device = "cpu",
         dtype: torch.dtype = torch.float32,
         n_jobs: int = -1,
+        progress: bool = True,
     ):
         """
         Parameters:
@@ -219,13 +220,19 @@ class SmilesDataset(BaseDataset):
                 The torch dtype for the data
             n_jobs:
                 The number of jobs to use for the smiles transform
+
+                - `0`: A single cpu
+                - `-1`: All available cpu
+                - `int`: The number of cpus
+            progress:
+                Whether to display the progress bar
         """
 
         self.n_jobs = n_jobs
         self.smiles = smiles
         self.smiles_transform = smiles_transform
 
-        runner = dm.JobRunner(n_jobs=n_jobs, progress=True, prefer="threads")
+        runner = dm.JobRunner(n_jobs=n_jobs, progress=progress, prefer="threads")
         if self.smiles_transform is None:
             feats = self.smiles
         else:
@@ -263,6 +270,13 @@ class DGLCollate:
         else:
             batched_graph = dgl.batch(graphs).to(self.device)
         return batched_graph, labels
+
+    def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
+
+        return self.__class__.__name__ + f"(device={self.device}, siamese={self.siamese})"
 
 
 class BaseDataModule(LightningDataModule):
@@ -344,6 +358,30 @@ class BaseDataModule(LightningDataModule):
         """
         return self.dataset.collate_fn
 
+    def __len__(self) -> int:
+        r"""
+        Returns the number of elements of the current DataModule
+        """
+        return len(self.labels)
+
+    def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
+        name = self.__class__.__name__
+        class_str = f"{name}\n" + "-" * (len(name) + 2)
+        param_str = (
+            f"\n\tlen={len(self)}"
+            + f"\n\ttrain_batch_size={self.train_batch_size}"
+            + f"\n\ttest_batch_size={self.test_batch_size}"
+            + f"\n\tdata_device={self.data_device}"
+            + f"\n\tdtype={self.dtype}"
+        )
+
+        full_str = class_str + param_str
+
+        return full_str
+
 
 class DGLFromSmilesDataModule(BaseDataModule):
     r"""
@@ -388,6 +426,17 @@ class DGLFromSmilesDataModule(BaseDataModule):
         self.smiles = smiles
         self.smiles_transform = smiles_transform
         self.dataset = None
+        self.micro_dataset = SmilesDataset(
+            smiles=self.smiles[:1],
+            labels=self.labels[:1],
+            weights=self.weights[:1] if self.weights is not None else self.weights,
+            smiles_transform=self.smiles_transform,
+            collate_fn=DGLCollate(device=None, siamese=False),
+            device=self.data_device,
+            dtype=self.dtype,
+            n_jobs=0,
+            progress=False,
+        )
 
     def setup(self, stage: Optional[str] = None):
         r"""
@@ -404,6 +453,7 @@ class DGLFromSmilesDataModule(BaseDataModule):
             device=self.data_device,
             dtype=self.dtype,
             n_jobs=self.n_jobs,
+            progress=True,
         )
 
         # Forcing these values to True, else some strange bugs arise. PL fails to set this to true when called manually, and
@@ -413,3 +463,38 @@ class DGLFromSmilesDataModule(BaseDataModule):
 
     def set_setup_flags(self):
         self._has_setup_fit, self._has_setup_test = True, True
+
+    @property
+    def num_node_feats(self):
+        r"""
+        Return the number of node features in the first graph
+        """
+        g = self.micro_dataset[0][0]
+        if "feat" in g.ndata.keys():
+            return g.ndata["feat"].shape[1]
+        else:
+            return 0
+
+    @property
+    def num_edge_feats(self):
+        r"""
+        Return the number of edge features in the first graph
+        """
+        g = self.micro_dataset[0][0]
+        if "feat" in g.ndata.keys():
+            return g.edata["feat"].shape[1]
+        else:
+            return 0
+
+    def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
+        full_str = (
+            super().__repr__()
+            + f"\n\ttrain_batch_size={self.num_node_feats}"
+            + f"\n\ttest_batch_size={self.num_edge_feats}"
+            + f"\n\tcollate_fn={self.micro_dataset.collate_fn}"
+        )
+
+        return full_str

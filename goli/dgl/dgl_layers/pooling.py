@@ -108,17 +108,17 @@ class MinPooling(MaxPooling):
         return -super().forward(graph, -feat)
 
 
-def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_layers: int = 2):
+def parse_pooling_layer(in_dim: int, pooling: Union[str, List[str]], n_iters: int = 2, n_layers: int = 2):
     r"""
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
 
     Parameters:
 
-        in_dim: int
+        in_dim:
             The dimension at the input layer of the pooling
 
-        pooling: list(str)
+        pooling:
             The list of pooling layers to use. The accepted strings are:
 
             - "sum": `SumPooling`
@@ -128,11 +128,11 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
             - "std": `StdPooling`
             - "s2s": `Set2Set`
 
-        n_iters: int
+        n_iters:
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
             The number of iterations.
 
-        n_layers : int
+        n_layers:
             IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
             The number of recurrent layers.
     """
@@ -142,6 +142,8 @@ def parse_pooling_layer(in_dim: int, pooling: List[str], n_iters: int = 2, n_lay
     # Create the pooling layer
     pool_layer = ModuleListConcat()
     out_pool_dim = 0
+    if isinstance(pooling, str):
+        pooling = [pooling]
 
     for this_pool in pooling:
         this_pool = None if this_pool is None else this_pool.lower()
@@ -215,11 +217,11 @@ class VirtualNode(nn.Module):
         self.vn_type = vn_type.lower()
         self.residual = residual
         self.fc_layer = FCLayer(
-            in_size=dim,
-            out_size=dim,
+            in_dim=dim,
+            out_dim=dim,
             activation=activation,
             dropout=dropout,
-            b_norm=batch_norm,
+            batch_norm=batch_norm,
             bias=bias,
         )
 

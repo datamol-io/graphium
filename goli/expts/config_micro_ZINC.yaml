@@ -18,7 +18,7 @@ datasets:
     edge_property_list: [bond-type-onehot, stereo, in-ring]
     add_self_loop: False
     explicit_H: False
-    use_bonds: False
+    use_bonds_weights: False
   train:
     batch_size: 128
     path: data/micro_ZINC/full.csv
@@ -72,6 +72,8 @@ architecture:
     pooling: 'sum'
     virtual_node: 'sum'
     layer_type: 'pna-msgpass'
+    aggregators: [mean, max, min, std]
+    scalers: [identity, amplification, attenuation]
 
 
 
