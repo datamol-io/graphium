@@ -94,26 +94,26 @@ class PredictorModule(pl.LightningModule):
 
                 - lr `float`: Learning rate (Default=`1e-3`)
                 - weight_decay `float`: Weight decay used to regularize the optimizer (Default=`0.`)
-                
+
             lr_reduce_on_plateau_kwargs:
                 Dictionnary for the reduction of learning rate when reaching plateau, with possible keys below.
 
                 - factor `float`: Factor by which to reduce the learning rate (Default=`0.5`)
                 - patience `int`: Number of epochs without improvement to wait before reducing
                   the learning rate (Default=`10`)
-                - mode `str`: One of min, max. In min mode, lr will be reduced when the quantity 
-                  monitored has stopped decreasing; in max mode it will be reduced when the quantity 
+                - mode `str`: One of min, max. In min mode, lr will be reduced when the quantity
+                  monitored has stopped decreasing; in max mode it will be reduced when the quantity
                   monitored has stopped increasing. (Default=`"min"`).
-                - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate 
+                - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate
                   of all param groups or each group respectively (Default=`1e-4`)
-                
+
             scheduler_kwargs:
                 Dictionnary for the scheduling of the learning rate modification
 
                 - monitor `str`: metric to track (Default=`"val_loss"`)
                 - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
                 - strict `bool`: if set to True will enforce that value specified in monitor is available
-                  while trying to call scheduler.step(), and stop training if not found. If False will 
+                  while trying to call scheduler.step(), and stop training if not found. If False will
                   only give a warning and continue training (without calling the scheduler). (Default=`True`)
                 - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
 
@@ -166,7 +166,7 @@ class PredictorModule(pl.LightningModule):
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
         self.optim_kwargs.set_default("lr", 1e-3)
-        self.optim_kwargs.set_default("weight_decay", 0.)
+        self.optim_kwargs.set_default("weight_decay", 0.0)
 
         self.lr_reduce_on_plateau_kwargs = (
             lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
