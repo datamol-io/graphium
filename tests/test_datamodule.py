@@ -3,6 +3,9 @@ import goli
 
 def test_dglfromsmiles_dm():
 
+    # NOTE(hadim): we could parametrized the test in order to test
+    # different scenario.
+
     df = goli.data.load_tiny_zinc()
     # Setup the featurization
     featurization_args = {}
