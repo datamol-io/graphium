@@ -495,6 +495,7 @@ class DGLFromSmilesDataModule(BaseDataModule):
             + f"\n\ttrain_batch_size={self.num_node_feats}"
             + f"\n\ttest_batch_size={self.num_edge_feats}"
             + f"\n\tcollate_fn={self.micro_dataset.collate_fn}"
+            + f"\n\tsmiles_transform={self.smiles_transform}"
         )
 
         return full_str
