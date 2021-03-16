@@ -158,7 +158,7 @@ class test_featurizer(ut.TestCase):
                         edge_property_list=np.random.choice(self.edge_props, size=num_props, replace=False),
                         add_self_loop=False,
                         explicit_H=explicit_H,
-                        use_bonds=False,
+                        use_bonds_weights=False,
                     )
 
                     self.assertEqual(adj.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
@@ -195,7 +195,7 @@ class test_featurizer(ut.TestCase):
                         edge_property_list=np.random.choice(self.edge_props, size=num_props, replace=False),
                         add_self_loop=False,
                         explicit_H=explicit_H,
-                        use_bonds=False,
+                        use_bonds_weights=False,
                     )
 
                     self.assertEqual(graph.num_nodes(), this_mol.GetNumAtoms(), msg=err_msg2)

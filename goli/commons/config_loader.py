@@ -12,6 +12,7 @@ from copy import deepcopy
 import hydra
 from omegaconf import DictConfig
 from warnings import warn
+from functools import partial
 
 # Pytorch lightning
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
@@ -115,20 +116,28 @@ def _get_device(device):
     return device
 
 
-def config_load_constants(cfg_const, main_dir):
-    seed = cfg_const["seed"]
+def config_load_constants(
+    main_dir,
+    exp_name,
+    seed=42,
+    data_device="cpu",
+    model_device="cpu",
+    dtype=torch.float32,
+    raise_train_error=True,
+):
+    seed = seed
     np.random.seed(seed)
     torch.manual_seed(seed)
-    exp_name = cfg_const["exp_name"]
+    exp_name = exp_name
 
     # Get the dtype
-    dtype = DTYPES[cfg_const["dtype"]]
+    dtype = DTYPES[dtype]
 
     # Get the cpu or cuda device
-    data_device = _get_device(cfg_const["data_device"])
-    model_device = _get_device(cfg_const["model_device"])
+    data_device = _get_device(data_device)
+    model_device = _get_device(model_device)
 
-    raise_train_error = cfg_const["raise_train_error"]
+    raise_train_error = raise_train_error
 
     return data_device, model_device, dtype, exp_name, seed, raise_train_error
 
@@ -223,7 +232,10 @@ def config_load_dataset(
         smiles_transform=smiles_transform,
     )
 
-    return datamodule
+    feat_dim = datamodule.dataset[0][0].ndata["feat"]
+    feat_dim_edges = datamodule.dataset[0][0].edata["feat"]
+
+    return datamodule, feat_dim, feat_dim_edges
 
 
 def config_load_siamese_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype):
@@ -247,30 +259,48 @@ def config_load_siamese_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype)
     return gnn, layer_name
 
 
-def config_load_gnn(cfg_model, cfg_gnns, in_dim, out_dim, device, dtype):
-    layer_name = cfg_model["layer_name"]
-    gnn_layer_kwargs = cfg_gnns[layer_name]
+def config_load_architecture(
+    model_type,
+    pre_nn_kwargs,
+    post_nn_kwargs,
+    gnn_kwargs,
+    feat_dim,
+    feat_dim_edges=0,
+    model_device="cpu",
+    dtype=torch.float32,
+    **kwargs,
+):
 
-    # Parse the GNN Parameters
-    gnn_kwargs = dict(in_dim=in_dim, **cfg_model["gnn_kwargs"], **gnn_layer_kwargs)
-    gnn_hidden_dim = gnn_kwargs.pop("hidden_dim")
-    gnn_hidden_depth = gnn_kwargs.pop("hidden_depth")
-    gnn_kwargs["hidden_dims"] = [gnn_hidden_dim] * gnn_hidden_depth
-    gnn_kwargs["out_dim"] = gnn_hidden_dim
+    # Select the right architecture
+    if model_type.lower() == "fulldglnetwork":
+        model_class = FullDGLNetwork
+    elif model_type.lower() == "fulldglsiamesenetwork":
+        model_class = FullDGLSiameseNetwork
+    else:
+        raise ValueError(f"Unsupported model_type=`{model_type}`")
 
-    # Parse the LNN Parameters
-    lnn_kwargs = dict(in_dim=gnn_kwargs["out_dim"], out_dim=out_dim, **cfg_model["lnn_kwargs"])
-    lnn_hidden_dim = lnn_kwargs.pop("hidden_dim")
-    lnn_hidden_depth = lnn_kwargs.pop("hidden_depth")
-    lnn_kwargs["hidden_dims"] = [lnn_hidden_dim] * lnn_hidden_depth
+    # Define the input dimension
+    if pre_nn_kwargs is not None:
+        pre_nn_kwargs.set_default("in_dim", feat_dim)
+        pre_nn_kwargs.set_default("in_dim_edges", feat_dim_edges)
+    else:
+        gnn_kwargs.set_default("in_dim", feat_dim)
+        gnn_kwargs.set_default("in_dim_edges", feat_dim_edges)
 
     # Build the graph network
-    gnn = FullDGLNetwork(
-        gnn_kwargs=gnn_kwargs, lnn_kwargs=lnn_kwargs, gnn_architecture=cfg_model["gnn_architecture"]
+    model = model_class(
+        gnn_kwargs=gnn_kwargs,
+        pre_nn_kwargs=pre_nn_kwargs,
+        post_nn_kwargs=post_nn_kwargs,
+        **kwargs,
     )
-    gnn = gnn.to(device=device, dtype=dtype)
+    model = model.to(device=model_device, dtype=dtype)
 
-    return gnn, layer_name
+    # Make sure the input dimensions are consistent
+    assert model.in_dim == feat_dim
+    assert model.in_dim_edges == feat_dim_edges
+
+    return model
 
 
 def config_load_metrics(cfg_metrics):
@@ -302,7 +332,7 @@ def config_load_metrics(cfg_metrics):
     return metrics, metrics_on_progress_bar
 
 
-def config_load_model_wrapper(
+def config_load_predictor(
     cfg_reg, metrics, metrics_on_progress_bar, model, layer_name, train_dt, val_dt, device, dtype
 ):
     # Defining the model_wrapper

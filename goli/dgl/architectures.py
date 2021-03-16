@@ -891,6 +891,33 @@ class FullDGLNetwork(nn.Module):
 
         return full_str
 
+    @property
+    def in_dim(self):
+        r"""
+        Returns the input dimension of the network
+        """
+        if self.pre_nn is not None:
+            return self.pre_nn.in_dim
+        else:
+            return self.gnn.in_dim
+
+    @property
+    def out_dim(self):
+        r"""
+        Returns the output dimension of the network
+        """
+        if self.pre_nn is not None:
+            return self.post_nn.out_dim
+        else:
+            return self.gnn.out_dim
+
+    @property
+    def in_dim_edges(self):
+        r"""
+        Returns the input edge dimension of the network
+        """
+        return self.gnn.in_dim_edges
+
 
 class FullDGLSiameseNetwork(FullDGLNetwork):
     def __init__(self, pre_nn_kwargs, gnn_kwargs, post_nn_kwargs, dist_method, name="Siamese_DGL_GNN"):
