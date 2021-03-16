@@ -10,6 +10,7 @@ def load_micro_zinc() -> pd.DataFrame:
 
     return df
 
+
 def load_tiny_zinc() -> pd.DataFrame:
     """Return a dataframe of tiny ZINC (100 data points)."""
 

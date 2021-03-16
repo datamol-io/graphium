@@ -74,7 +74,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         pin_memory: bool = True,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        collate_fn: Callable = None
+        collate_fn: Callable = None,
     ):
         """
 
