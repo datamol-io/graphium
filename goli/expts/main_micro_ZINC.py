@@ -11,9 +11,9 @@ import goli
 from goli.commons.config_loader import (
     config_load_constants,
     config_load_dataset,
-    config_load_gnn,
+    config_load_architecture,
     config_load_metrics,
-    config_load_model_wrapper,
+    config_load_predictor,
     config_load_training,
 )
 
@@ -24,24 +24,36 @@ os.chdir(MAIN_DIR)
 
 
 @hydra.main(config_name="config_micro_ZINC.yaml")
-def main(cfg_main: DictConfig) -> None:
-    cfg = dict(deepcopy(cfg_main))
+def main(cfg: DictConfig) -> None:
+    cfg = dict(deepcopy(cfg))
 
     # Get the general parameters and generate the train/val/test datasets
     data_device, model_device, dtype, exp_name, seed, raise_train_error = config_load_constants(
-        cfg["constants"], MAIN_DIR
+        **cfg["constants"], main_dir=MAIN_DIR
     )
 
-    datamodule = config_load_datasets(
-        cfg["datasets"], main_dir=MAIN_DIR, data_device=data_device, model_device=model_device
+    # Load and initialize the dataset
+    datamodule, feat_dim, feat_dim_edges = config_load_dataset(
+        **cfg["datasets"],
+        main_dir=MAIN_DIR,
+        data_device=data_device,
+        model_device=model_device,
+        seed=seed,
+        dtype=dtype,
     )
 
-    # Initialize the network, the metrics, the predictor and the trainer
-    in_dim = trans.atom_dim
-    out_dim = train_dt[0][1].shape[0]
-    model, layer_name = config_load_gnn(cfg["model"], cfg_gnns, in_dim, out_dim, model_device, dtype)
+    # Initialize the network
+    model, layer_name = config_load_architecture(
+        **cfg["architecture"],
+        feat_dim=feat_dim,
+        feat_dim_edges=feat_dim_edges,
+        model_device=model_device,
+        dtype=dtype,
+    )
+
+    
     metrics, metrics_on_progress_bar = config_load_metrics(cfg["metrics"])
-    predictor = config_load_model_wrapper(
+    predictor = config_load_predictor(
         cfg["predictor"],
         metrics,
         metrics_on_progress_bar,

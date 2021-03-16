@@ -275,6 +275,7 @@ class BaseDataModule(LightningDataModule):
         test_batch_size: int = 256,
         train_sampler: Optional[Callable] = None,
         val_sampler: Optional[Callable] = None,
+        test_sampler: Optional[Callable] = None,
         model_device: Union[str, torch.device] = "cpu",
         data_device: Union[str, torch.device] = "cpu",
         dtype: torch.dtype = torch.float32,
@@ -342,13 +343,6 @@ class BaseDataModule(LightningDataModule):
         Returns the collate function of the current Dataset
         """
         return self.dataset.collate_fn
-
-    @property
-    def has_weights(self) -> bool:
-        r"""
-        Returns whether the Dataset has weights in `self.weights`
-        """
-        return self.dataset.has_weights
 
 
 class DGLFromSmilesDataModule(BaseDataModule):
