@@ -35,12 +35,17 @@ def test_dglfromsmiles_dm():
 
     dm = goli.data.DGLFromSmilesDataModule(**dm_args)
 
+    assert dm.num_node_feats == 50
+    assert dm.num_edge_feats == 6
+
     dm.prepare_data()
     dm.setup()
 
     assert len(dm.train_ds) == 60  # type: ignore
     assert len(dm.val_ds) == 20  # type: ignore
     assert len(dm.test_ds) == 20  # type: ignore
+    assert dm.num_node_feats == 50
+    assert dm.num_edge_feats == 6
 
     for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
         it = iter(dl)

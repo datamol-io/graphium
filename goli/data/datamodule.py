@@ -129,10 +129,10 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         else:
             self.collate_fn = collate_fn
 
-        self.ds = ...
-        self.train_ds = ...
-        self.val_ds = ...
-        self.ds_ds = ...
+        self.ds = None
+        self.train_ds = None
+        self.val_ds = None
+        self.ds_ds = None
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -240,6 +240,52 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
             batch_size=self.test_batch_size,
             shuffle=False,
         )
+
+    @property
+    def is_prepared(self):
+        if not hasattr(self, "dataset"):
+            return False
+        return getattr(self, "dataset") is not None
+
+    @property
+    def is_setup(self):
+        if not hasattr(self, "train_ds"):
+            return False
+        return getattr(self, "train_ds") is not None
+
+    @property
+    def num_node_feats(self):
+        """Return the number of node features in the first graph"""
+
+        graph = self.get_first_graph()
+        if "feat" in graph.ndata.keys():
+            return graph.ndata["feat"].shape[1]  # type: ignore
+        else:
+            return 0
+
+    @property
+    def num_edge_feats(self):
+        """Return the number of edge features in the first graph"""
+
+        graph = self.get_first_graph()
+        if "feat" in graph.edata.keys():
+            return graph.edata["feat"].shape[1]  # type: ignore
+        else:
+            return 0
+
+    def get_first_graph(self):
+        """Low memory footprint method to get the first datapoint DGL graph."""
+        if self.df is None:
+            df = pd.read_csv(self.df_path, nrows=1)
+        else:
+            df = self.df
+
+        smiles, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+
+        featurization_args = self.featurization or {}
+        transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
+        graph = transform_smiles(smiles[0])
+        return graph
 
     # Private methods
 
