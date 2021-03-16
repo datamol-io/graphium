@@ -9,7 +9,12 @@ minversion = "6.0"
 # addopts = "--verbose --cov --cov-report xml --cov-report term"
 addopts = "--verbose"
 testpaths = ["tests", "notebooks"]
-filterwarnings = ["ignore::DeprecationWarning:tensorboard.*:", "ignore::DeprecationWarning:ray.*:"]
+filterwarnings = [
+    "ignore::DeprecationWarning:tensorboard.*:",
+    "ignore::DeprecationWarning:ray.*:",
+    "ignore::DeprecationWarning:numba.*:",
+    "ignore::UserWarning:umap.*:",
+]
 
 [tool.coverage.run]
 omit = ["setup.py", "tests/*"]
