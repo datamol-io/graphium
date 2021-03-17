@@ -11,6 +11,7 @@ import yaml
 
 from loguru import logger
 import fsspec
+import omegaconf
 
 import pandas as pd
 import numpy as np
@@ -63,7 +64,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         df: pd.DataFrame = None,
         df_path: Union[str, os.PathLike] = None,
         cache_data_path: Union[str, os.PathLike] = None,
-        featurization: Dict[str, Any] = None,
+        featurization: Union[Dict[str, Any], omegaconf.DictConfig] = None,
         smiles_col: str = None,
         label_cols: List[str] = None,
         split_val: float = 0.2,
@@ -108,7 +109,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         self.df = df
         self.df_path = df_path
 
-        self.cache_data_path = str(cache_data_path) if cache_data_path is not None else cache_data_path
+        self.cache_data_path = str(cache_data_path) if cache_data_path is not None else None
         self.featurization = featurization
 
         self.smiles_col = smiles_col
@@ -296,6 +297,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
 
         if self.num_workers == -1:
             num_workers = os.cpu_count()
+            num_workers = num_workers if num_workers is not None else 0
         else:
             num_workers = self.num_workers
 
@@ -366,9 +368,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         return len(df)
 
     def __repr__(self):
-        r"""
-        Controls how the class is printed
-        """
+        """Controls how the class is printed"""
         obj_repr = {}
         obj_repr["name"] = self.__class__.__name__
         obj_repr["len"] = len(self)
@@ -377,7 +377,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         obj_repr["num_node_feats"] = self.num_node_feats
         obj_repr["num_edge_feats"] = self.num_edge_feats
         obj_repr["collate_fn"] = self.collate_fn.__name__
-        obj_repr["featurization"] = copy.deepcopy(self.featurization)
+        obj_repr["featurization"] = self.featurization
 
-        obj_str = yaml.dump(obj_repr, indent=2, sort_keys=False)
+        obj_str = omegaconf.OmegaConf.to_yaml(obj_repr)
         return obj_str
