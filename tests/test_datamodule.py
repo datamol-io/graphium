@@ -56,6 +56,35 @@ class Test_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features", "smiles"}
             assert batch["labels"].shape == (16, 1)
 
+    def test_dglfromsmiles_from_config(self):
+
+        config = goli.load_config(name="micro_zinc_default")
+        df = goli.data.load_tiny_zinc()
+
+        dm_args = dict(config.data.args)
+        dm_args["df"] = df
+
+        dm = goli.data.DGLFromSmilesDataModule(**dm_args)
+
+        assert dm.num_node_feats == 50
+        assert dm.num_edge_feats == 6
+
+        dm.prepare_data()
+        dm.setup()
+
+        assert len(dm.train_ds) == 60  # type: ignore
+        assert len(dm.val_ds) == 20  # type: ignore
+        assert len(dm.test_ds) == 20  # type: ignore
+        assert dm.num_node_feats == 50
+        assert dm.num_edge_feats == 6
+
+        for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
+            it = iter(dl)
+            batch = next(it)
+
+            assert set(batch.keys()) == {"labels", "features", "smiles"}
+            assert batch["labels"].shape == (16, 1)
+
 
 if __name__ == "__main__":
     ut.main()
