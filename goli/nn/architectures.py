@@ -8,10 +8,10 @@ from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
 from typing import List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
-from goli.dgl.base_layers import FCLayer, get_activation
-from goli.dgl.dgl_layers import BaseDGLLayer
-from goli.dgl.residual_connections import ResidualConnectionBase
-from goli.dgl.dgl_layers.pooling import parse_pooling_layer, VirtualNode
+from goli.nn.base_layers import FCLayer, get_activation
+from goli.nn.dgl_layers import BaseDGLLayer
+from goli.nn.residual_connections import ResidualConnectionBase
+from goli.nn.dgl_layers.pooling import parse_pooling_layer, VirtualNode
 from goli.utils.spaces import FC_LAYERS_DICT, DGL_LAYERS_DICT, LAYERS_DICT, RESIDUALS_DICT
 
 
@@ -291,7 +291,7 @@ class FeedForwardDGL(FeedForwardNN):
         connections.
 
         This class is meant to work with different DGL-based graph neural networks
-        layers. Any layer must inherit from `goli.dgl.dgl_layers.BaseDGLLayer`.
+        layers. Any layer must inherit from `goli.nn.dgl_layers.BaseDGLLayer`.
 
         Parameters:
 
@@ -352,7 +352,7 @@ class FeedForwardDGL(FeedForwardNN):
                 The pooling types to use. Multiple pooling can be used, and their
                 results will be concatenated.
                 For node feature predictions, use `["none"]`.
-                For graph feature predictions see `goli.dgl.dgl_layers.pooling.parse_pooling_layer`.
+                For graph feature predictions see `goli.nn.dgl_layers.pooling.parse_pooling_layer`.
                 The list must either contain Callables, or the string below
 
                 - "none": No pooling is applied
@@ -369,7 +369,7 @@ class FeedForwardDGL(FeedForwardNN):
 
             layer_type:
                 The type of layers to use in the network.
-                Either a class that inherits from `goli.dgl.dgl_layers.BaseDGLLayer`,
+                Either a class that inherits from `goli.nn.dgl_layers.BaseDGLLayer`,
                 or one of the following strings
 
                 - "gcn": `GCNLayer`
@@ -382,7 +382,7 @@ class FeedForwardDGL(FeedForwardNN):
             virtual_node:
                 A string associated to the type of virtual node to use,
                 either `None`, "none", "mean", "sum", "max", "logsum".
-                See `goli.dgl.dgl_layers.VirtualNode`.
+                See `goli.nn.dgl_layers.VirtualNode`.
 
                 The virtual node will not use any residual connection if `residual_type`
                 is "none". Otherwise, it will use a simple ResNet like residual

@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from typing import List, Union, Callable
 
-from goli.dgl.base_layers import FCLayer
+from goli.nn.base_layers import FCLayer
 from goli.utils.decorators import classproperty
 
 

@@ -5,7 +5,7 @@ from copy import deepcopy
 from typing import Tuple, Union, Callable
 from dgl import DGLGraph
 
-from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.utils.decorators import classproperty
 
 """
