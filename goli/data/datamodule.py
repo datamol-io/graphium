@@ -96,7 +96,8 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
                 should be implemented.
             train_val_batch_size: batch size for training and val dataset.
             test_batch_size: batch size for test dataset.
-            num_workers: Number of workers for the dataloader.
+            num_workers: Number of workers for the dataloader. Use -1 to use all available
+                cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
@@ -293,9 +294,14 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
     def _dataloader(self, dataset: torch.utils.data.Dataset, batch_size: int, shuffle: bool):
         """Get a dataloader for a given dataset"""
 
+        if self.num_workers == -1:
+            num_workers = os.cpu_count()
+        else:
+            num_workers = self.num_workers
+
         loader = torch.utils.data.DataLoader(
             dataset=dataset,
-            num_workers=self.num_workers,
+            num_workers=num_workers,
             collate_fn=self.collate_fn,
             pin_memory=self.pin_memory,
             batch_size=batch_size,
