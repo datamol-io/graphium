@@ -20,7 +20,7 @@ from pytorch_lightning import Trainer
 
 # Current project imports
 # from goli.nn.dgl_graph_transformer import DGLGraphTransformer
-from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
+from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_CLASSIFICATION, METRICS_REGRESSION
 from goli.nn.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
 from goli.utils.tensor import is_device_cuda
@@ -287,33 +287,33 @@ def config_load_architecture(
     return model
 
 
-def config_load_metrics(cfg_metrics):
-    # Define the metrics to use
-    selected_metrics = dict(deepcopy(cfg_metrics["metrics_dict"]))
-    metrics = {}
-    for metric_name, metric_kwargs in selected_metrics.items():
-        metric_kwargs = dict(metric_kwargs) if metric_kwargs is not None else {}
-        threshold = metric_kwargs.pop("threshold", None)
-        metric_object = METRICS_DICT[metric_name](**metric_kwargs)
+# def config_load_metrics(cfg_metrics):
+#     # Define the metrics to use
+#     selected_metrics = dict(deepcopy(cfg_metrics["metrics_dict"]))
+#     metrics = {}
+#     for metric_name, metric_kwargs in selected_metrics.items():
+#         metric_kwargs = dict(metric_kwargs) if metric_kwargs is not None else {}
+#         threshold = metric_kwargs.pop("threshold", None)
+#         metric_object = METRICS_DICT[metric_name](**metric_kwargs)
 
-        if threshold is None:
-            metrics[metric_name] = metric_object
-        else:
-            operator = "greater" if threshold["above_th"] else "lower"
-            th_on_pred = threshold["th_on_pred"]
-            th_on_target = threshold["th_on_target"]
-            ths = threshold["ths"]
+#         if threshold is None:
+#             metrics[metric_name] = metric_object
+#         else:
+#             operator = "greater" if threshold["above_th"] else "lower"
+#             th_on_preds = threshold["th_on_preds"]
+#             th_on_target = threshold["th_on_target"]
+#             ths = threshold["ths"]
 
-            for th in ths:
-                metric_th_name = f"{metric_name}-{operator}-{th}"
-                thresholder = Thresholder(
-                    threshold=th, operator=operator, th_on_pred=th_on_pred, th_on_target=th_on_target
-                )
-                metrics[metric_th_name] = MetricWithThreshold(metric_object, thresholder)
+#             for th in ths:
+#                 metric_th_name = f"{metric_name}-{operator}-{th}"
+#                 thresholder = Thresholder(
+#                     threshold=th, operator=operator, th_on_preds=th_on_preds, th_on_target=th_on_target
+#                 )
+#                 metrics[metric_th_name] = MetricWithThreshold(metric_object, thresholder)
 
-    metrics_on_progress_bar = cfg_metrics["metrics_on_progress_bar"]
+#     metrics_on_progress_bar = cfg_metrics["metrics_on_progress_bar"]
 
-    return metrics, metrics_on_progress_bar
+#     return metrics, metrics_on_progress_bar
 
 
 def config_load_predictor(

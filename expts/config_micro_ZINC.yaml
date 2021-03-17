@@ -99,7 +99,7 @@ metrics:
   thresholds: &thresholds
     above_th: &above_th True
     ths: &ths [5.]
-    th_on_pred: &th_on_pred True
+    th_on_preds: &th_on_preds True
     th_on_target: &th_on_target True
 
   metrics_dict:
@@ -116,7 +116,7 @@ metrics:
     #   threshold:
     #     above_th: *above_th
     #     ths: *ths
-    #     th_on_pred: False
+    #     th_on_preds: False
     #     th_on_target: *th_on_target
 
 

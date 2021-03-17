@@ -1,3 +1,5 @@
+from typing import Union, Callable
+
 import torch
 from torch.nn import functional as F
 import torch.nn as nn
@@ -5,32 +7,37 @@ import operator as op
 
 from pytorch_lightning.metrics.utils import reduce
 from pytorch_lightning.metrics.functional import auroc
-from pytorch_lightning.metrics import (
-    Metric,
-    Accuracy,
-    AveragePrecision,
-    ConfusionMatrix,
-    F1,
-    FBeta,
-    PrecisionRecallCurve,
-    Precision,
-    Recall,
-    ROC,
-    MeanAbsoluteError,
-    MeanSquaredError,
+from pytorch_lightning.metrics.functional import (
+    accuracy,
+    average_precision,
+    confusion_matrix,
+    f1,
+    fbeta,
+    precision_recall_curve,
+    precision,
+    recall,
+    auroc,
+    multiclass_auroc,
+    mean_absolute_error,
+    mean_squared_error,
 )
 
 EPS = 1e-5
 
 
-class Thresholder(nn.Module):
-    def __init__(self, threshold, operator="greater", th_on_pred=True, th_on_target=False):
-        super().__init__()
+class Thresholder:
+    def __init__(
+        self,
+        threshold: float,
+        operator: str = "greater",
+        th_on_preds: bool = True,
+        th_on_target: bool = False,
+    ):
 
         # Basic params
         self.threshold = threshold
         self.th_on_target = th_on_target
-        self.th_on_pred = th_on_pred
+        self.th_on_preds = th_on_preds
 
         # Operator can either be a string, or a callable
         if isinstance(operator, str):
@@ -48,9 +55,9 @@ class Thresholder(nn.Module):
 
         self.operator = operator
 
-    def forward(self, preds, target):
+    def forward(self, preds: torch.Tensor, target: torch.Tensor):
         # Apply the threshold on the predictions
-        if self.th_on_pred:
+        if self.th_on_preds:
             preds = self.operator(preds, self.threshold)
 
         # Apply the threshold on the targets
@@ -59,34 +66,23 @@ class Thresholder(nn.Module):
 
         return preds, target
 
+    def __call__(self, preds: torch.Tensor, target: torch.Tensor):
+        return self.forward(preds, target)
 
-class MetricWithThreshold(nn.Module):
+
+class MetricWithThreshold:
     def __init__(self, metric, thresholder):
-        super().__init__()
         self.metric = metric
         self.thresholder = thresholder
 
-    def forward(self, preds, target):
-        preds, target = self.thresholder.forward(preds, target)
-        metric_val = self.metric.forward(preds, target)
+    def forward(self, preds: torch.Tensor, target: torch.Tensor):
+        preds, target = self.thresholder(preds, target)
+        metric_val = self.metric(preds, target)
 
         return metric_val
 
-
-class MetricFunctionToClass(nn.Module):
-    def __init__(self, function, name=None, **kwargs):
-        super().__init__()
-        self.name = name if name is not None else function.__name__
-        self.function = function
-        self.kwargs = kwargs
-
-    def forward(
-        self,
-        preds: torch.Tensor,
-        target: torch.Tensor,
-    ):
-
-        return self.function(preds=preds, target=target, **self.kwargs)
+    def __call__(self, preds: torch.Tensor, target: torch.Tensor):
+        return self.forward(preds, target)
 
 
 def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
@@ -97,6 +93,7 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
         preds: estimated labels
         target: ground truth labels
         reduction: a method to reduce metric score over labels.
+
             - ``'elementwise_mean'``: takes the mean (default)
             - ``'sum'``: takes the sum
             - ``'none'``: no reduction will be applied
@@ -113,6 +110,8 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
         ```
     """
 
+    preds, target = preds.to(torch.float32), target.to(torch.float32)
+
     shifted_x = preds - torch.mean(preds, dim=0)
     shifted_y = target - torch.mean(target, dim=0)
     sigma_x = torch.sqrt(torch.sum(shifted_x ** 2, dim=0))
@@ -122,6 +121,23 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
     pearson = torch.clamp(pearson, min=-1, max=1)
     pearson = reduce(pearson, reduction=reduction)
     return pearson
+
+
+def _get_rank(values):
+
+    arange = torch.arange(values.shape[0], dtype=values.dtype, device=values.device)
+
+    val_sorter = torch.argsort(values, dim=0)
+    val_rank = torch.empty_like(values)
+    if values.ndim == 1:
+        val_rank[val_sorter] = arange
+    elif values.ndim == 2:
+        for ii in range(val_rank.shape[1]):
+            val_rank[val_sorter[:, ii], ii] = arange
+    else:
+        raise ValueError(f"Only supports tensors of dimensions 1 and 2, provided dim=`{preds.ndim}`")
+
+    return val_rank
 
 
 def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
@@ -146,25 +162,26 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
         tensor(0.8)
     """
 
-    pred_rank = torch.argsort(preds, dim=0).float()
-    target_rank = torch.argsort(target, dim=0).float()
-    spearman = pearsonr(pred_rank, target_rank, reduction=reduction)
+    spearman = pearsonr(_get_rank(preds), _get_rank(target), reduction=reduction)
     return spearman
 
 
-METRICS_DICT = {
-    "accuracy": Accuracy,
-    "averageprecision": AveragePrecision,
+METRICS_CLASSIFICATION = {
+    "accuracy": accuracy,
+    "averageprecision": average_precision,
     "auroc": auroc,
-    "confusionmatrix": ConfusionMatrix,
-    "f1": F1,
-    "fbeta": FBeta,
-    "precisionrecallcurve": PrecisionRecallCurve,
-    "precision": Precision,
-    "recall": Recall,
-    "roc": ROC,
-    "mae": MeanAbsoluteError,
-    "mse": MeanSquaredError,
+    "confusionmatrix": confusion_matrix,
+    "f1": f1,
+    "fbeta": fbeta,
+    "precisionrecallcurve": precision_recall_curve,
+    "precision": precision,
+    "recall": recall,
+    "multiclass_auroc": multiclass_auroc,
+}
+
+METRICS_REGRESSION = {
+    "mae": mean_absolute_error,
+    "mse": mean_squared_error,
     "pearsonr": pearsonr,
     "spearmanr": spearmanr,
 }
@@ -174,6 +191,3 @@ if __name__ == "__main__":
     preds = torch.tensor([0.0, 1, 2, 3])
     target = torch.tensor([0.0, 1, 2, 1.5])
     print(spearmanr(preds, target))
-
-    sp = MetricFunctionToClass(spearmanr)
-    print(sp(preds, target))
