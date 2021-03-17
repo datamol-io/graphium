@@ -59,7 +59,7 @@ class Test_DataModule(ut.TestCase):
 
     def test_dglfromsmiles_from_config(self):
 
-        config = goli.load_config(name="micro_zinc_default")
+        config = goli.load_config(name="zinc_default_fulldgl")
         df = goli.data.load_tiny_zinc()
 
         dm_args = dict(config.data.args)

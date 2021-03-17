@@ -70,6 +70,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         split_val: float = 0.2,
         split_test: float = 0.2,
         split_seed: int = None,
+        splits_path: Union[str, os.PathLike] = None,
         train_val_batch_size: int = 16,
         test_batch_size: int = 16,
         num_workers: int = 0,
@@ -95,6 +96,8 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
             split_test: Ratio for the test split.
             split_seed: Seed to use for the random split. More complex splitting strategy
                 should be implemented.
+            splits_path: A path a CSV file containing indices for the splits. The file must contains
+                3 columns "train", "val" and "test". It takes precedence over `split_val` and `split_test`.
             train_val_batch_size: batch size for training and val dataset.
             test_batch_size: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
@@ -117,6 +120,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         self.split_val = split_val
         self.split_test = split_test
         self.split_seed = split_seed
+        self.splits_path = splits_path
 
         self.train_val_batch_size = train_val_batch_size
         self.test_batch_size = test_batch_size
@@ -196,6 +200,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
             split_val=self.split_val,
             split_test=self.split_test,
             split_seed=self.split_seed,
+            splits_path=self.splits_path,
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
@@ -333,26 +338,38 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         split_val: float,
         split_test: float,
         split_seed: int = None,
+        splits_path: Union[str, os.PathLike] = None,
     ):
         """Compute indices of random splits."""
 
-        indices = np.arange(dataset_size)
-        train_indices, val_test_indices = train_test_split(
-            indices,
-            test_size=split_val + split_test,
-            random_state=split_seed,
-        )
+        if splits_path is None:
+            # Random splitting
+            indices = np.arange(dataset_size)
+            train_indices, val_test_indices = train_test_split(
+                indices,
+                test_size=split_val + split_test,
+                random_state=split_seed,
+            )
 
-        sub_split_test = split_test / (split_test + split_val)
-        val_indices, test_indices = train_test_split(
-            val_test_indices,
-            test_size=sub_split_test,
-            random_state=split_seed,
-        )
+            sub_split_test = split_test / (split_test + split_val)
+            val_indices, test_indices = train_test_split(
+                val_test_indices,
+                test_size=sub_split_test,
+                random_state=split_seed,
+            )
 
-        train_indices = list(train_indices)
-        val_indices = list(val_indices)
-        test_indices = list(test_indices)
+            train_indices = list(train_indices)
+            val_indices = list(val_indices)
+            test_indices = list(test_indices)
+
+        else:
+            # Split from an indices file
+            with fsspec.open(str(splits_path)) as f:
+                splits = pd.read_csv(splits_path)
+
+            train_indices = splits["train"].dropna().astype("int").tolist()
+            val_indices = splits["val"].dropna().astype("int").tolist()
+            test_indices = splits["test"].dropna().astype("int").tolist()
 
         return train_indices, val_indices, test_indices
 
