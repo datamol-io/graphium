@@ -346,3 +346,31 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         test_indices = list(test_indices)
 
         return train_indices, val_indices, test_indices
+
+    def __len__(self) -> int:
+        r"""
+        Returns the number of elements of the current DataModule
+        """
+        return len(self.df)
+
+    def __repr__(self):
+        r"""
+        Controls how the class is printed
+        """
+        name = self.__class__.__name__
+        class_str = f"{name}\n" + "-" * (len(name) + 2)
+        param_str = (
+            f"\n\tlen={len(self)}"
+            + f"\n\ttrain_val_batch_size={self.train_val_batch_size}"
+            + f"\n\ttest_batch_size={self.test_batch_size}"
+            + f"\n\ttrain_batch_size={self.num_node_feats}"
+            + f"\n\ttest_batch_size={self.num_edge_feats}"
+            + f"\n\tcollate_fn={self.collate_fn.__name__}"
+        )
+
+        featurization_str = f"\n\tfeaturization:\n\t\t" + "\n\t\t".join(
+            [f"{key}: {value}" for key, value in self.featurization.items()]
+        )
+
+        full_str = class_str + param_str + featurization_str
+        return full_str

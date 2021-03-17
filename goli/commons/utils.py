@@ -64,7 +64,7 @@ def to_tensor(
 
         elem = elem.to(dtype=dtype, device=device)
         out.append(elem)
-        
+
     if len(out) == 1:
         return out[0]
     else:
