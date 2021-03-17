@@ -20,7 +20,7 @@ from goli.utils.config_loader import (
 
 
 # Set up the working directory
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+MAIN_DIR = dirname(abspath(goli.__file__))
 os.chdir(MAIN_DIR)
 
 
@@ -82,6 +82,6 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    with open(os.path.join(MAIN_DIR, "goli/expts/config_micro_ZINC.yaml"), "r") as f:
+    with open(os.path.join(MAIN_DIR, "expts/config_micro_ZINC.yaml"), "r") as f:
         cfg = yaml.safe_load(f)
     main(cfg)
