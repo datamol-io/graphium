@@ -12,7 +12,7 @@ from copy import deepcopy
 import inspect
 
 from goli.trainer.metrics import (
-    MetricWithThreshold,
+    MetricWrapper,
     Thresholder,
     pearsonr,
     spearmanr,

@@ -81,21 +81,6 @@ class Thresholder:
         return f"{self.op_str}{self.threshold}"
 
 
-class MetricWithThreshold:
-    def __init__(self, metric, thresholder):
-        self.metric = metric
-        self.thresholder = thresholder
-
-    def compute(self, preds: torch.Tensor, target: torch.Tensor):
-        preds, target = self.thresholder(preds, target)
-        metric_val = self.metric(preds, target)
-
-        return metric_val
-
-    def __call__(self, preds: torch.Tensor, target: torch.Tensor):
-        return self.compute(preds, target)
-
-
 def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
     r"""
     Computes the pearsonr correlation.
@@ -217,7 +202,8 @@ class MetricWrapper:
 
             threshold_kwargs:
                 If `None`, no threshold is applied.
-                Otherwise, the metric is wrapped into the class `MetricWithThreshold`
+                Otherwise, we use the class `Thresholder` is initialized with the
+                provided argument, and called before the `compute`
 
             kwargs:
                 Other arguments to call with the metric
@@ -228,15 +214,17 @@ class MetricWrapper:
         self.thresholder = None
         if threshold_kwargs is not None:
             self.thresholder = Thresholder(**threshold_kwargs)
-            self.metric = MetricWithThreshold(self.metric, self.thresholder)
 
         self.kwargs = kwargs
 
     def compute(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         r"""
-        Compute the metric
+        Compute the metric, and apply the thresholder if provided
         """
-        return self.metric(preds, target, **kwargs)
+        if self.thresholder is not None:
+            preds, target = self.thresholder(preds, target)
+        metric_val = self.metric(preds, target, **self.kwargs)
+        return metric_val
 
     def __call__(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         r"""
@@ -248,10 +236,8 @@ class MetricWrapper:
         r"""
         Control how the class is printed
         """
-
-        if self.thresholder is None:
-            full_str = f"{self.metric.__name__}"
-        else:
-            full_str = f"{self.metric.metric.__name__}({self.thresholder})"
+        full_str = f"{self.metric.__name__}"
+        if self.thresholder is not None:
+            full_str += f"({self.thresholder})"
 
         return full_str
