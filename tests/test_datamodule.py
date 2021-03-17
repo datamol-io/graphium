@@ -43,6 +43,7 @@ class Test_DataModule(ut.TestCase):
         dm.prepare_data()
         dm.setup()
 
+        assert len(dm) == 100
         assert len(dm.train_ds) == 60  # type: ignore
         assert len(dm.val_ds) == 20  # type: ignore
         assert len(dm.test_ds) == 20  # type: ignore
