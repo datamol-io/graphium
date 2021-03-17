@@ -20,7 +20,7 @@ from pytorch_lightning import Trainer
 
 # Current project imports
 # from goli.nn.dgl_graph_transformer import DGLGraphTransformer
-from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT, MetricWrapper
+from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
 from goli.utils.tensor import is_device_cuda
