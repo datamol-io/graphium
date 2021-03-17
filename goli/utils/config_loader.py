@@ -288,12 +288,12 @@ def config_load_architecture(
 
 
 def config_load_metrics(cfg_metrics):
-    
+
     metrics = {}
     cfg_metrics = deepcopy(cfg_metrics)
 
     for this_metric in cfg_metrics:
-        name = this_metric.pop('name')
+        name = this_metric.pop("name")
         metrics[name] = MetricWrapper(**this_metric)
 
     return metrics

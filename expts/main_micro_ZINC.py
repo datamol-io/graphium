@@ -58,7 +58,7 @@ def main(cfg: DictConfig) -> None:
 
     metrics = config_load_metrics(cfg["metrics"])
     print(metrics)
-    print('done')
+    print("done")
 
     # predictor = config_load_predictor(
     #     cfg["predictor"],
