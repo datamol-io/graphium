@@ -81,7 +81,6 @@ class Thresholder:
         return f"{self.op_str}{self.threshold}"
 
 
-
 class MetricWithThreshold:
     def __init__(self, metric, thresholder):
         self.metric = metric
@@ -253,8 +252,6 @@ class MetricWrapper:
         if self.thresholder is None:
             full_str = f"{self.metric.__name__}"
         else:
-            full_str =  f"{self.metric.metric.__name__}({self.thresholder})"
+            full_str = f"{self.metric.metric.__name__}({self.thresholder})"
 
         return full_str
-
-
