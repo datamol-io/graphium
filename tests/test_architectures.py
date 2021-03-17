@@ -9,9 +9,9 @@ import unittest as ut
 import dgl
 from copy import deepcopy
 
-from goli.dgl.architectures import FeedForwardNN, FeedForwardDGL, FullDGLNetwork, FullDGLSiameseNetwork
-from goli.dgl.base_layers import FCLayer
-from goli.dgl.residual_connections import (
+from goli.nn.architectures import FeedForwardNN, FeedForwardDGL, FullDGLNetwork, FullDGLSiameseNetwork
+from goli.nn.base_layers import FCLayer
+from goli.nn.residual_connections import (
     ResidualConnectionConcat,
     ResidualConnectionDenseNet,
     ResidualConnectionNone,

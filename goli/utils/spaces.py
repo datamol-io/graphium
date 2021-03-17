@@ -1,9 +1,9 @@
 from copy import deepcopy
 from ray import tune
 
-from goli.dgl.base_layers import FCLayer
+from goli.nn.base_layers import FCLayer
 
-from goli.dgl.dgl_layers import (
+from goli.nn.dgl_layers import (
     BaseDGLLayer,
     GATLayer,
     GCNLayer,
@@ -13,7 +13,7 @@ from goli.dgl.dgl_layers import (
     PNAMessagePassingLayer,
 )
 
-from goli.dgl.residual_connections import (
+from goli.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionConcat,
     ResidualConnectionDenseNet,

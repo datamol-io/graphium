@@ -3,7 +3,7 @@ import torch.nn as nn
 import abc
 from typing import List, Dict, Tuple, Union, Callable
 
-from goli.dgl.base_layers import get_activation
+from goli.nn.base_layers import get_activation
 from goli.utils.decorators import classproperty
 
 

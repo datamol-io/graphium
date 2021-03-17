@@ -10,7 +10,7 @@ import unittest as ut
 import dgl
 from copy import deepcopy
 
-from goli.dgl.dgl_layers import (
+from goli.nn.dgl_layers import (
     GATLayer,
     GCNLayer,
     GINLayer,

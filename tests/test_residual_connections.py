@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import unittest as ut
 
-from goli.dgl.residual_connections import (
+from goli.nn.residual_connections import (
     ResidualConnectionConcat,
     ResidualConnectionDenseNet,
     ResidualConnectionNone,

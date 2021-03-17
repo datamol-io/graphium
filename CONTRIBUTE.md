@@ -36,13 +36,13 @@ Plot visualization tools
 
 ### Adding a new GNN layer
 
-Any new GNN layer must inherit from the class `goli.dgl.dgl_layers.base_dgl_layer.BaseDGLLayer` and be implemented in the folder `goli/dgl/dgl_layers`, imported in the file `goli/dgl/architectures.py`, and in the same file, added to the function `FeedForwardDGL._parse_gnn_layer`.
+Any new GNN layer must inherit from the class `goli.nn.dgl_layers.base_dgl_layer.BaseDGLLayer` and be implemented in the folder `goli/dgl/dgl_layers`, imported in the file `goli/dgl/architectures.py`, and in the same file, added to the function `FeedForwardDGL._parse_gnn_layer`.
 
 To be used in the configuration file as a `goli.model.layer_name`, it must also be implemented with some variable parameters in the file `expts/config_gnns.yaml`.
 
 ### Adding a new NN architecture
 
-All NN and GNN architectures compatible with the `DGL` library are provided in the file `goli/dgl/architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `goli.dgl.architectures.FeedForwardNN` for regular neural networks, from `goli.dgl.architectures.FeedForwardDGL` for DGL neural network, or from any of their sub-classes.
+All NN and GNN architectures compatible with the `DGL` library are provided in the file `goli/dgl/architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `goli.nn.architectures.FeedForwardNN` for regular neural networks, from `goli.nn.architectures.FeedForwardDGL` for DGL neural network, or from any of their sub-classes.
 
 When adding any new parameter, it is always a good idea to register the parameters in the dictionary `self.hparams`. This dictionary is used by Pytorch-Lightning to track the hyper-parameters in Tensorboard.
 

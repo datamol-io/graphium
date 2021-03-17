@@ -19,9 +19,9 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 
 # Current project imports
-# from goli.dgl.dgl_graph_transformer import DGLGraphTransformer
+# from goli.nn.dgl_graph_transformer import DGLGraphTransformer
 from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
-from goli.dgl.architectures import FullDGLSiameseNetwork, FullDGLNetwork
+from goli.nn.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
 from goli.utils.tensor import is_device_cuda
 from goli.trainer.model_wrapper import PredictorModule

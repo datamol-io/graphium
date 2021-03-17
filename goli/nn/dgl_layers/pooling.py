@@ -6,7 +6,7 @@ import dgl
 from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, GlobalAttentionPooling
 from dgl import mean_nodes, sum_nodes, max_nodes
 
-from goli.dgl.base_layers import MLP, FCLayer
+from goli.nn.base_layers import MLP, FCLayer
 from goli.utils.tensor import ModuleListConcat
 
 

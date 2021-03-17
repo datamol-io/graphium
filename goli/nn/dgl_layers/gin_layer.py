@@ -5,8 +5,8 @@ import dgl.function as fn
 from dgl import DGLGraph
 from typing import Callable, Union
 
-from goli.dgl.dgl_layers.base_dgl_layer import BaseDGLLayer
-from goli.dgl.base_layers import MLP
+from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
 """
