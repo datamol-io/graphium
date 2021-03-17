@@ -361,7 +361,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         Returns the number of elements of the current DataModule
         """
         if self.df is None:
-            df = pd.read_csv(self.df_path, nrows=1)
+            df = pd.read_csv(self.df_path)
         else:
             df = self.df
 
