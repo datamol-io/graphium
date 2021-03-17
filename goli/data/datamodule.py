@@ -6,7 +6,8 @@ from typing import Callable
 
 import os
 import functools
-import collections
+import copy
+import yaml
 
 from loguru import logger
 import fsspec
@@ -351,26 +352,26 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         r"""
         Returns the number of elements of the current DataModule
         """
-        return len(self.df)
+        if self.df is None:
+            df = pd.read_csv(self.df_path, nrows=1)
+        else:
+            df = self.df
+
+        return len(df)
 
     def __repr__(self):
         r"""
         Controls how the class is printed
         """
-        name = self.__class__.__name__
-        class_str = f"{name}\n" + "-" * (len(name) + 2)
-        param_str = (
-            f"\n\tlen={len(self)}"
-            + f"\n\ttrain_val_batch_size={self.train_val_batch_size}"
-            + f"\n\ttest_batch_size={self.test_batch_size}"
-            + f"\n\ttrain_batch_size={self.num_node_feats}"
-            + f"\n\ttest_batch_size={self.num_edge_feats}"
-            + f"\n\tcollate_fn={self.collate_fn.__name__}"
-        )
+        obj_repr = {}
+        obj_repr["name"] = self.__class__.__name__
+        obj_repr["len"] = len(self)
+        obj_repr["train_val_batch_size"] = self.train_val_batch_size
+        obj_repr["test_batch_size"] = self.test_batch_size
+        obj_repr["num_node_feats"] = self.num_node_feats
+        obj_repr["num_edge_feats"] = self.num_edge_feats
+        obj_repr["collate_fn"] = self.collate_fn.__name__
+        obj_repr["featurization"] = copy.deepcopy(self.featurization)
 
-        featurization_str = f"\n\tfeaturization:\n\t\t" + "\n\t\t".join(
-            [f"{key}: {value}" for key, value in self.featurization.items()]
-        )
-
-        full_str = class_str + param_str + featurization_str
-        return full_str
+        obj_str = yaml.dump(obj_repr, indent=2, sort_keys=False)
+        return obj_str
