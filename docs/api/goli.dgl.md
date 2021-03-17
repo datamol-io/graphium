@@ -1,1 +1,1 @@
-::: goli.dgl
+::: goli.nn
