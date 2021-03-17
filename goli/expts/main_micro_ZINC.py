@@ -34,7 +34,7 @@ def main(cfg: DictConfig) -> None:
     )
 
     # Load and initialize the dataset
-    datamodule, num_node_feats, num_edge_feats = config_load_dataset(
+    datamodule = config_load_dataset(
         **cfg["datasets"],
         main_dir=MAIN_DIR,
         data_device=data_device,
@@ -47,8 +47,8 @@ def main(cfg: DictConfig) -> None:
     # Initialize the network
     model = config_load_architecture(
         **cfg["architecture"],
-        in_dim_nodes=num_node_feats,
-        in_dim_edges=num_edge_feats,
+        in_dim_nodes=datamodule.num_node_feats,
+        in_dim_edges=datamodule.num_edge_feats,
         model_device=model_device,
         dtype=dtype,
     )

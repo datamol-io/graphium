@@ -146,15 +146,16 @@ def config_load_dataset(
     train,
     val,
     test,
-    label_keys,
-    smiles_transform_kwargs,
-    smiles_key="SMILES",
-    pickle_path=None,  # IGNORED FOR NOW
+    label_cols,
+    featurization,
+    smiles_col="SMILES",
+    cache_data_path=None,
     subset_max_size=None,  # IGNORED FOR NOW
     data_device="cpu",
     model_device="cpu",
     dtype=torch.float32,
-    n_jobs=-1,
+    num_workers=-1,
+    featurization_n_jobs=-1,
     seed=42,
 ):
 
@@ -213,29 +214,26 @@ def config_load_dataset(
             val_idx = shuffle_idx[max_train_idx:max_val_idx]
             test_idx = shuffle_idx[max_val_idx:]
 
-    smiles_transform = partial(mol_to_dglgraph, **smiles_transform_kwargs)
-
     datamodule = DGLFromSmilesDataModule(
-        smiles=df_full[smiles_key],
-        labels=df_full[label_keys],
-        weights=None,
-        seed=seed,
-        train_batch_size=train["batch_size"],
+        df=df_full,
+        cache_data_path=cache_data_path,
+        featurization=featurization,
+        smiles_col=smiles_col,
+        label_cols=label_cols,
+        train_val_batch_size=train["batch_size"],
         test_batch_size=test["batch_size"],
-        train_sampler=SubsetRandomSampler(train_idx),
-        val_sampler=SubsetRandomSampler(val_idx),
-        test_sampler=SubsetRandomSampler(test_idx),
-        model_device=model_device,
-        data_device=data_device,
-        dtype=dtype,
-        n_jobs=n_jobs,
-        smiles_transform=smiles_transform,
+        # train_sampler=SubsetRandomSampler(train_idx),
+        # val_sampler=SubsetRandomSampler(val_idx),
+        # test_sampler=SubsetRandomSampler(test_idx),
+        split_val=0.2,  # TODO: Change this hard-coded behaviour
+        split_test=0.2,  # TODO: Change this hard-coded behaviour
+        split_seed=seed,
+        num_workers=num_workers,
+        featurization_n_jobs=featurization_n_jobs,
+        featurization_progress=True,
     )
 
-    num_node_feats = datamodule.num_node_feats
-    num_edge_feats = datamodule.num_edge_feats
-
-    return datamodule, num_node_feats, num_edge_feats
+    return datamodule
 
 
 def config_load_architecture(

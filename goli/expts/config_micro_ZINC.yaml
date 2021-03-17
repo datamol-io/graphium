@@ -7,12 +7,13 @@ constants:
   model_device: cpu  # "cpu", "cuda:#" or null
 
 datasets:
-  label_keys: ['score']
-  smiles_key: SMILES
+  label_cols: ['score']
+  smiles_col: SMILES
   subset_max_size: null    # Maximum number of molecules to take as subset. Useful for debugging purposes
-  pickle_path: null   # TODO: NOT IMPLEMENTED Path where the pre-processed data is saved
-  n_jobs: -1
-  smiles_transform_kwargs:
+  cache_data_path: null   # TODO: NOT IMPLEMENTED Path where the pre-processed data is saved
+  num_workers: -1
+  featurization_n_jobs: -1
+  featurization:
     atom_property_list_onehot: [atomic-number, valence]
     atom_property_list_float: [mass, electronegativity, in-ring]
     edge_property_list: [bond-type-onehot, stereo, in-ring]

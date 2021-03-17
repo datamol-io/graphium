@@ -1,8 +1,8 @@
 import goli
 import unittest as ut
 
-class Test_DataModule(ut.TestCase):
 
+class Test_DataModule(ut.TestCase):
     def test_dglfromsmiles_dm(self):
 
         # NOTE(hadim): we could parametrized the test in order to test
@@ -55,6 +55,7 @@ class Test_DataModule(ut.TestCase):
 
             assert set(batch.keys()) == {"labels", "features", "smiles"}
             assert batch["labels"].shape == (16, 1)
+
 
 if __name__ == "__main__":
     ut.main()
