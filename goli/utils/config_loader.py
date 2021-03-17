@@ -69,6 +69,7 @@ class DimensionalityReduction:
             self._reduction = TSNE(dim)
         if self._type == "umap":
             from umap import UMAP
+
             self._reduction = UMAP(n_components=dim)
 
         # initialize knn regressor if needed
