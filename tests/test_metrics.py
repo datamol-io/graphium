@@ -12,8 +12,6 @@ from copy import deepcopy
 import inspect
 
 from goli.trainer.metrics import (
-    METRICS_REGRESSION,
-    METRICS_CLASSIFICATION,
     MetricWithThreshold,
     Thresholder,
     pearsonr,

@@ -1,5 +1,6 @@
-from typing import Union, Callable
+from typing import Union, Callable, Optional, Dict, Any
 
+from copy import deepcopy
 import torch
 from torch.nn import functional as F
 import torch.nn as nn
@@ -43,19 +44,22 @@ class Thresholder:
         if isinstance(operator, str):
             op_name = operator.lower()
             if op_name in ["greater", "gt"]:
+                op_str = ">"
                 operator = op.gt
             elif op_name in ["lower", "lt"]:
+                op_str = "<"
                 operator = op.lt
             else:
                 raise ValueError(f"operator `{op_name}` not supported")
         elif callable(operator):
-            pass
+            op_str = operator.__name__
         else:
             raise TypeError(f"operator must be either `str` or `callable`, provided: `{type(operator)}`")
 
         self.operator = operator
+        self.op_str = op_str
 
-    def forward(self, preds: torch.Tensor, target: torch.Tensor):
+    def compute(self, preds: torch.Tensor, target: torch.Tensor):
         # Apply the threshold on the predictions
         if self.th_on_preds:
             preds = self.operator(preds, self.threshold)
@@ -67,7 +71,15 @@ class Thresholder:
         return preds, target
 
     def __call__(self, preds: torch.Tensor, target: torch.Tensor):
-        return self.forward(preds, target)
+        return self.compute(preds, target)
+
+    def __repr__(self):
+        r"""
+        Control how the class is printed
+        """
+
+        return f"{self.op_str}{self.threshold}"
+
 
 
 class MetricWithThreshold:
@@ -75,14 +87,14 @@ class MetricWithThreshold:
         self.metric = metric
         self.thresholder = thresholder
 
-    def forward(self, preds: torch.Tensor, target: torch.Tensor):
+    def compute(self, preds: torch.Tensor, target: torch.Tensor):
         preds, target = self.thresholder(preds, target)
         metric_val = self.metric(preds, target)
 
         return metric_val
 
     def __call__(self, preds: torch.Tensor, target: torch.Tensor):
-        return self.forward(preds, target)
+        return self.compute(preds, target)
 
 
 def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
@@ -186,8 +198,63 @@ METRICS_REGRESSION = {
     "spearmanr": spearmanr,
 }
 
+METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)
+METRICS_DICT.update(METRICS_REGRESSION)
 
-if __name__ == "__main__":
-    preds = torch.tensor([0.0, 1, 2, 3])
-    target = torch.tensor([0.0, 1, 2, 1.5])
-    print(spearmanr(preds, target))
+
+class MetricWrapper:
+    r"""
+    Allows to initialize a metric from a name or Callable, and initialize the
+    `Thresholder` in case the metric requires a threshold.
+    """
+
+    def __init__(
+        self, metric: Union[str, Callable], threshold_kwargs: Optional[Dict[str, Any]] = None, **kwargs
+    ):
+        r"""
+        Parameters
+            metric:
+                The metric to use. See `METRICS_DICT`
+
+            threshold_kwargs:
+                If `None`, no threshold is applied.
+                Otherwise, the metric is wrapped into the class `MetricWithThreshold`
+
+            kwargs:
+                Other arguments to call with the metric
+        """
+
+        self.metric = METRICS_DICT[metric] if isinstance(metric, str) else metric
+
+        self.thresholder = None
+        if threshold_kwargs is not None:
+            self.thresholder = Thresholder(**threshold_kwargs)
+            self.metric = MetricWithThreshold(self.metric, self.thresholder)
+
+        self.kwargs = kwargs
+
+    def compute(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        r"""
+        Compute the metric
+        """
+        return self.metric(preds, target, **kwargs)
+
+    def __call__(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        r"""
+        Compute the metric with the method `self.compute`
+        """
+        return self.compute(preds, target)
+
+    def __repr__(self):
+        r"""
+        Control how the class is printed
+        """
+
+        if self.thresholder is None:
+            full_str = f"{self.metric.__name__}"
+        else:
+            full_str =  f"{self.metric.metric.__name__}({self.thresholder})"
+
+        return full_str
+
+
