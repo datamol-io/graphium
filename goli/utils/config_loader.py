@@ -24,7 +24,7 @@ from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
 from goli.nn.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
 from goli.utils.tensor import is_device_cuda
-from goli.trainer.model_wrapper import PredictorModule
+from goli.trainer.predictor import PredictorModule
 from goli.trainer.logger import HyperparamsMetricsTensorBoardLogger
 from goli.trainer.reporting import BestEpochFromSummary
 from goli.utils.read_file import read_file
@@ -160,6 +160,8 @@ def config_load_dataset(
     seed=42,
 ):
 
+    # TO DELETE: directly use `goli.data.DGLFromSmilesDataModule` for now
+
     np.random.seed(seed)
 
     # Load the training set from file
@@ -248,6 +250,7 @@ def config_load_architecture(
     dtype=torch.float32,
     **kwargs,
 ):
+    # TO DELETE: function moved to `goli.config._loader`
 
     # Select the right architecture
     if model_type.lower() == "fulldglnetwork":
@@ -316,11 +319,11 @@ def config_load_metrics(cfg_metrics):
 def config_load_predictor(
     cfg_reg, metrics, metrics_on_progress_bar, model, layer_name, train_dt, val_dt, device, dtype
 ):
-    # Defining the model_wrapper
+    # Defining the predictor
 
     reg_kwargs = dict(deepcopy(cfg_reg))
     siamese = reg_kwargs.pop("siamese")
-    model_wrapper = PredictorModule(
+    predictor = PredictorModule(
         model=model,
         dataset=train_dt,
         validation_split=val_dt,
@@ -330,16 +333,16 @@ def config_load_predictor(
         additional_hparams={"layer_fullname": layer_name},
         **reg_kwargs,
     )
-    model_wrapper = model_wrapper.to(device=device, dtype=dtype)
+    predictor = predictor.to(device=device, dtype=dtype)
 
-    return model_wrapper
+    return predictor
 
 
-def config_load_training(cfg_trainer, model_wrapper):
+def config_load_training(cfg_trainer, predictor):
     early_stopping = EarlyStopping(**cfg_trainer["early_stopping"])
     checkpoint_callback = ModelCheckpoint(**cfg_trainer["model_checkpoint"])
     logger = HyperparamsMetricsTensorBoardLogger(**cfg_trainer["tensorboard_logs"])
-    training_results = BestEpochFromSummary(model_wrapper.metrics)
+    training_results = BestEpochFromSummary(predictor.metrics)
 
     trainer = Trainer(
         logger=logger,

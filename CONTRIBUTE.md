@@ -50,7 +50,7 @@ When adding any new parameter, it is always a good idea to register the paramete
 
 The `ModelWrapper` is a general pytorch-lightning module that should work with any kind of `pytorch.nn.Module` or `pl.LightningModule`. The class defines a structure of including models, loss functions, batch sizes, collate functions, metrics...
 
-Some loss functions are already implemented in the ModelWrapper, including `mse, bce, mae, cosine`, but some tasks will require more complex loss functions. One can add any new function in `goli.trainer.model_wrapper.ModelWrapper._parse_loss_fun`.
+Some loss functions are already implemented in the ModelWrapper, including `mse, bce, mae, cosine`, but some tasks will require more complex loss functions. One can add any new function in `goli.trainer.predictor.ModelWrapper._parse_loss_fun`.
 
 ### Changing the metrics used
 
@@ -71,7 +71,7 @@ Below is an example of running a set of 3\*2\*2\*2=24 experiments, 3 variations 
     constants.exp_name="testing_hydra" \
     constants.device="cuda:0" \
     constants.ignore_train_error=true \
-    model_wrapper.lr=1e-4,1e-3 \
+    predictor.lr=1e-4,1e-3 \
     model.gnn_kwargs.hidden_dim=32,64 \
     model.gnn_kwargs.hidden_depth=4,8
 

@@ -1,0 +1,72 @@
+data:
+  module_type: "DGLFromSmilesDataModule"
+  args:
+    # df_path: null
+    # cache_data_path: null
+
+    smiles_col: "SMILES"
+    label_cols: ["SA"]
+    split_val: 0.2
+    split_test: 0.2
+    split_seed: 19
+
+    train_val_batch_size: 16
+    test_batch_size: 16
+
+    featurization:
+      atom_property_list_float: []
+      atom_property_list_onehot: ["atomic-number", "degree"]
+      edge_property_list: ["ring", "bond-type-onehot"]
+      add_self_loop: false
+      use_bonds_weights: false
+      explicit_H: false
+
+architecture:
+  model_type: fulldglnetwork
+  pre_nn_kwargs:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 1
+    activation: &activation relu
+    last_activation: &last_activation none
+    dropout: &dropout 0.1
+    batch_norm: &batch_norm True
+    residual_type: none
+
+  post_nn_kwargs:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 2
+    activation: *activation
+    last_activation: *last_activation
+    dropout: *dropout
+    batch_norm: *batch_norm
+    residual_type: none
+
+  gnn_kwargs:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 4
+    activation: *activation
+    last_activation: *last_activation
+    dropout: *dropout
+    batch_norm: *batch_norm
+    residual_type: simple
+    pooling: "sum"
+    virtual_node: "sum"
+    layer_type: "pna-msgpass"
+    aggregators: [mean, max, min, std]
+    scalers: [identity, amplification, attenuation]
+
+predictor:
+  loss_fun: mse
+  optim_kwargs:
+    lr: 1.e-3
+    weight_decay: 1e-7
+  lr_reduce_on_plateau_kwargs:
+    factor: 0.5
+    patience: 7
+  scheduler_kwargs:
+    monitor: &monitor val_loss
+    frequency: 1
+  target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
