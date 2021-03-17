@@ -21,18 +21,18 @@ datasets:
     use_bonds_weights: False
   train:
     batch_size: 128
-    path: data/micro_ZINC/full.csv
+    path: data/micro_ZINC.csv
     kwargs:
       sep: ','
     idxfile_or_split: 0.7     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
   val:
-    path: data/micro_ZINC/full.csv
+    path: data/micro_ZINC.csv
     kwargs:
       sep: ','
     idxfile_or_split: 0.15     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
   test:
     batch_size: 256
-    path: data/micro_ZINC/full.csv
+    path: data/micro_ZINC.csv
     kwargs:
       sep: ','
     idxfile_or_split: 0.15     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split

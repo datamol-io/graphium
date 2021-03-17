@@ -29,6 +29,7 @@ from goli.trainer.logger import HyperparamsMetricsTensorBoardLogger
 from goli.trainer.reporting import BestEpochFromSummary
 from goli.utils.read_file import read_file
 from goli.features.featurizer import mol_to_dglgraph
+from goli.data.datamodule import DGLFromSmilesDataModule
 import goli
 
 from sklearn.decomposition import PCA
