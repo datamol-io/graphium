@@ -23,7 +23,7 @@ from pytorch_lightning import Trainer
 from goli.trainer.metrics import MetricWithThreshold, Thresholder, METRICS_DICT
 from goli.dgl.architectures import FullDGLSiameseNetwork, FullDGLNetwork
 
-from goli.utils.utils import is_device_cuda
+from goli.utils.tensor import is_device_cuda
 from goli.trainer.model_wrapper import PredictorModule
 from goli.trainer.logger import HyperparamsMetricsTensorBoardLogger
 from goli.trainer.reporting import BestEpochFromSummary
