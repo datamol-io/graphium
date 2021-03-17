@@ -34,7 +34,6 @@ import goli
 
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
-from umap import UMAP
 from sklearn.neighbors import KNeighborsRegressor
 
 
@@ -69,6 +68,7 @@ class DimensionalityReduction:
         if self._type == "tsne":
             self._reduction = TSNE(dim)
         if self._type == "umap":
+            from umap import UMAP
             self._reduction = UMAP(n_components=dim)
 
         # initialize knn regressor if needed
