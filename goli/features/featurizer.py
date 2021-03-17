@@ -11,7 +11,7 @@ from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 import datamol as dm
 
 from goli.features import nmp
-from goli.utils.utils import one_of_k_encoding
+from goli.utils.tensor import one_of_k_encoding
 
 
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:

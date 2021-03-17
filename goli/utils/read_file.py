@@ -12,7 +12,7 @@ from loguru import logger
 from rdkit import Chem
 from rdkit.Chem.Descriptors import ExactMolWt
 
-from goli.utils.utils import parse_valid_args, arg_in_func
+from goli.utils.tensor import parse_valid_args, arg_in_func
 
 
 def read_file(filepath, as_ext=None, **kwargs):
