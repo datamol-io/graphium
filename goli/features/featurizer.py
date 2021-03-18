@@ -40,7 +40,7 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
             A list of integer atomic properties to get from the molecule.
             The integer values are converted to a one-hot vector.
             Callables are not supported by this function.
-            
+
             Accepted properties are:
 
             - "atomic-number"
