@@ -27,7 +27,7 @@ import datamol as dm
 from goli.utils import fs
 from goli.features import mol_to_dglgraph
 
-from .collate import goli_collate_fn
+from goli.data.collate import goli_collate_fn
 
 
 class DGLFromSmilesDataset(torch.utils.data.Dataset):
