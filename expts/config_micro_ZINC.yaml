@@ -22,18 +22,18 @@ datasets:
     use_bonds_weights: False
   train:
     batch_size: 128
-    path: data/micro_ZINC.csv
+    path: goli/data/micro_ZINC.csv
     kwargs:
       sep: ','
     idxfile_or_split: 0.7     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
   val:
-    path: data/micro_ZINC.csv
+    path: goli/data/micro_ZINC.csv
     kwargs:
       sep: ','
     idxfile_or_split: 0.15     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
   test:
     batch_size: 256
-    path: data/micro_ZINC.csv
+    path: goli/data/micro_ZINC.csv
     kwargs:
       sep: ','
     idxfile_or_split: 0.15     # Ignored if a different path is provided. Either the path to a file containing indexes, or the float specifying the split
@@ -79,6 +79,7 @@ architecture:
 
 
 predictor:
+  metrics_on_progress_bar: ["mae", "pearsonr", "f1 > 5"]
   loss_fun: mse
   optim_kwargs:
     lr: 1.e-3
@@ -93,31 +94,36 @@ predictor:
 
 
 metrics:
+  - name: mae
+    metric: mae
+    threshold_kwargs: null
 
-  metrics_on_progress_bar: [mae]
+  - name: pearsonr
+    metric: pearsonr
+    threshold_kwargs: null
 
-  thresholds: &thresholds
-    above_th: &above_th True
-    ths: &ths [5.]
-    th_on_pred: &th_on_pred True
-    th_on_target: &th_on_target True
+  - name: f1 > 5
+    metric: f1
+    class_reduction: micro
+    threshold_kwargs: &threshold_5
+      operator: greater
+      threshold: 5
+      th_on_preds: True
+      th_on_target: True
 
-  metrics_dict:
-    mae:
-      threshold: null
-    f1:
-      # class_reduction: micro
-      threshold: *thresholds
-    precision:
-      # class_reduction: micro
-      threshold: *thresholds
-    # auroc:
-    #   pos_label: 1
-    #   threshold:
-    #     above_th: *above_th
-    #     ths: *ths
-    #     th_on_pred: False
-    #     th_on_target: *th_on_target
+  - name: precision > 5
+    metric: precision
+    class_reduction: micro
+    threshold_kwargs: *threshold_5
+
+  - name: auroc > 5
+    metric: auroc
+    pos_label: 1
+    threshold_kwargs:
+      operator: greater
+      threshold: 5
+      th_on_preds: False
+      th_on_target: True
 
 
 trainer:

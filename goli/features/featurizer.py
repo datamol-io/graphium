@@ -37,10 +37,18 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
             molecule from which to extract the properties
 
         property_list:
-            A list of integer atomic properties to get from the molecule, such as 'atomic-number',
-            'atomic-number', 'valence', 'degree', 'radical-electron'.
+            A list of integer atomic properties to get from the molecule.
             The integer values are converted to a one-hot vector.
             Callables are not supported by this function.
+
+            Accepted properties are:
+
+            - "atomic-number"
+            - "degree"
+            - "valence", "total-valence"
+            - "implicit-valence"
+            - "hybridization"
+            - "chirality"
 
     Returns:
         prop_dict:
@@ -106,6 +114,32 @@ def get_mol_atomic_features_float(
             A list of atomic properties to get from the molecule, such as 'atomic-number',
             'mass', 'valence', 'degree', 'electronegativity'.
             Some elements are divided by a factor to avoid feature explosion.
+
+            Accepted properties are:
+
+            - "atomic-number"
+            - "mass", "weight"
+            - "valence", "total-valence"
+            - "implicit-valence"
+            - "hybridization"
+            - "chirality"
+            - "hybridization"
+            - "aromatic"
+            - "ring", "in-ring"
+            - "degree"
+            - "radical-electron"
+            - "formal-charge"
+            - "vdw-radius"
+            - "covalent-radius"
+            - "electronegativity"
+            - "ionization", "first-ionization"
+            - "melting-point"
+            - "metal"
+            - "single-bond"
+            - "aromatic-bond"
+            - "double-bond"
+            - "triple-bond"
+            - "is-carbon"
 
         offset_carbon:
             Whether to subract the Carbon property from the desired atomic property.
@@ -234,6 +268,16 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
     Parameters:
         mol: rdkit.Chem.Molecule
             the molecule of interest
+
+        property_list:
+            A list of edge properties to return for the given molecule.
+            Accepted properties are:
+
+            - "bond-type-onehot"
+            - "bond-type-float"
+            - "stereo"
+            - "ring", "in-ring"
+            - "conjugated"
 
     Returns:
         prop_dict:
