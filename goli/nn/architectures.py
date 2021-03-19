@@ -151,8 +151,11 @@ class FeedForwardNN(nn.Module):
             f"{self.name}.dropout": self.dropout,
             f"{self.name}.residual_name": self.residual_name,
             f"{self.name}.residual_skip_steps": self.residual_skip_steps,
-            f"{self.name}.layer_kwargs": str(self.layer_kwargs),
         }
+
+        self.hparams.update(
+            {f"{self.name}.layer_kwargs.{key}": val for key, val in self.layer_kwargs.items()}
+        )
 
     def _parse_class_from_dict(
         self, name_or_class: Union[type, str], class_dict: Dict[str, type]
@@ -867,6 +870,9 @@ class FullDGLNetwork(nn.Module):
                 otherwise it returns graph features and the output dimension is `M`
 
         """
+        g.ndata["h"] = g.ndata["feat"]
+        if "feat" in g.edata.keys():
+            g.edata["e"] = g.edata["feat"]
 
         if self.pre_nn is not None:
             h = g.ndata["h"]

@@ -7,12 +7,12 @@ from copy import deepcopy
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
+from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 from goli.trainer.reporting import ModelSummaryExtended
 
@@ -53,15 +53,15 @@ class PredictorModule(pl.LightningModule):
         model_kwargs: Dict[str, Any],
         loss_fun: Union[str, Callable],
         random_seed: int = 42,
-        dtype: torch.dtype = torch.float32,
-        device: Union[str, torch.device] = "cpu",
+        dtype: Optional[torch.dtype] = None,
+        device: Optional[Union[str, torch.device]] = None,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Union[int, float, str, type(None)] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
-        collate_fn: Union[type(None), Callable] = None,
+        tensorboard_logger = None,
         additional_hparams: Dict[str, Any] = None,
     ):
         r"""
@@ -134,11 +134,6 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar:
                 The metrics names from `metrics` to display also on the progress bar of the training
 
-            collate_fn:
-                Merges a list of samples to form a mini-batch of Tensor(s).
-                Used when using batched loading from a map-style dataset.
-                See `torch.utils.data.DataLoader.__init__`
-
             additional_hparams:
                 Additionnal hyper-parameters to log in the TensorBoard file.
                 They won't be used by the class, only logged.
@@ -157,29 +152,42 @@ class PredictorModule(pl.LightningModule):
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
-        self.collate_fn = collate_fn
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
         self.epoch_summary = EpochSummary()
         self._dtype = dtype
         self._device = device
+        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
+        self.optim_kwargs = optim_kwargs
+        self.scheduler_kwargs = scheduler_kwargs
 
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.optim_kwargs.set_default("lr", 1e-3)
-        self.optim_kwargs.set_default("weight_decay", 0.0)
+        self.optim_kwargs.setdefault("lr", 1e-3)
+        self.optim_kwargs.setdefault("weight_decay", 0.0)
 
         self.lr_reduce_on_plateau_kwargs = (
             lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
         )
-        self.lr_reduce_on_plateau_kwargs.set_default("factor", 0.5)
-        self.lr_reduce_on_plateau_kwargs.set_default("patience", 10)
-        self.lr_reduce_on_plateau_kwargs.set_default("min_lr", 1e-4)
+        self.lr_reduce_on_plateau_kwargs.setdefault("factor", 0.5)
+        self.lr_reduce_on_plateau_kwargs.setdefault("patience", 10)
+        self.lr_reduce_on_plateau_kwargs.setdefault("min_lr", 1e-4)
 
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.scheduler_kwargs.set_default("monitor", "val_loss")
-        self.scheduler_kwargs.set_default("interval", "epoch")
-        self.scheduler_kwargs.set_default("frequency", 1)
-        self.scheduler_kwargs.set_default("strict", True)
+        self.scheduler_kwargs.setdefault("monitor", "val_loss")
+        self.scheduler_kwargs.setdefault("interval", "epoch")
+        self.scheduler_kwargs.setdefault("frequency", 1)
+        self.scheduler_kwargs.setdefault("strict", True)
+
+        self._register_hparams(additional_hparams)
+
+        self.tb_logger = TensorBoardLogger(save_dir="logs")
+
+        self.to(dtype=dtype, device=device)
+
+    def _register_hparams(self, additional_hparams):
+        r"""
+        Register the hyperparameters for tracking by Pytorch-lightning
+        """
 
         # Gather the hyper-parameters of the model
         self.hparams = deepcopy(self.model.hparams) if hasattr(self.model, "hparams") else {}
@@ -199,8 +207,6 @@ class PredictorModule(pl.LightningModule):
         self.hparams.update(
             {f"lr_reduce.{key}": val for key, val in self.lr_reduce_on_plateau_kwargs.items()}
         )
-
-        self.to(dtype=dtype, device=device)
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
@@ -225,11 +231,11 @@ class PredictorModule(pl.LightningModule):
 
         return loss_fun
 
-    def forward(self, *inputs: List[torch.Tensor]):
+    def forward(self, inputs: Dict):
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         """
-        out = self.model.forward(*inputs)
+        out = self.model.forward(inputs["features"])
         return out
 
     def configure_optimizers(self):
@@ -286,7 +292,7 @@ class PredictorModule(pl.LightningModule):
         else:
             raise ValueError(f"Invalid option `{target_nan_mask}`")
 
-        loss = loss_fun(preds, targets, reduction="mean")
+        loss = loss_fun(preds, targets)
 
         return loss
 
@@ -323,9 +329,9 @@ class PredictorModule(pl.LightningModule):
                 containing the metrics to log on tensorboard.
         """
 
-        targets = targets.to(dtype=self._dtype, device=self._device)
+        targets = targets.to(dtype=preds.dtype, device=preds.device)
         loss = self.compute_loss(
-            preds=preds, targets=targets, target_nan_mask=target_nan_mask, loss_fun=loss_fun
+            preds=preds, targets=targets, target_nan_mask=self.target_nan_mask, loss_fun=self.loss_fun
         )
 
         # Compute the metrics always used in regression tasks
@@ -334,36 +340,36 @@ class PredictorModule(pl.LightningModule):
         tensorboard_logs[f"std_pred/{step_name}"] = torch.std(preds)
 
         # Compute the additional metrics
-        # TODO: Change this to use metrics on Torch, not numpy
         # TODO: NaN mask `target_nan_mask` not implemented here
-        preds2 = preds.clone().cpu().detach()
-        targets2 = targets.clone().cpu().detach()
         for key, metric in self.metrics.items():
             metric_name = f"{key}/{step_name}"
             try:
-                tensorboard_logs[metric_name] = torch.from_numpy(np.asarray(metric(preds2, targets2)))
+                tensorboard_logs[metric_name] = metric(preds, targets)
             except:
                 tensorboard_logs[metric_name] = torch.tensor(float("nan"))
+
+        self.tb_logger.log_metrics(tensorboard_logs, step=self.current_epoch)
+
         return {loss_name: loss, "log": tensorboard_logs}
 
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
-        *x, y = batch
-        preds = self.forward(*x)
+        y = batch.pop('labels')
+        preds = self.forward(batch)
         return self.get_metrics_logs(preds=preds, targets=y, step_name="train", loss_name="loss")
 
     def validation_step(
         self, batch: Tuple[torch.Tensor], batch_idx: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        *x, y = batch
-        preds = self.forward(*x)
+        y = batch.pop('labels')
+        preds = self.forward(batch)
         return preds, y
 
     def validation_epoch_end(self, outputs: List):
 
         # Transform the list of dict of dict, into a dict of list of dict
         preds, targets = zip(*outputs)
-        preds = torch.cat(preds, dim=-1)
-        targets = torch.cat(targets, dim=-1)
+        preds = torch.cat(preds, dim=0)
+        targets = torch.cat(targets, dim=0)
         loss_name = "val_loss"
         loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="val", loss_name=loss_name)
         metrics_names_to_display = [f"{metric_name}/val" for metric_name in self.metrics_on_progress_bar]
@@ -386,15 +392,19 @@ class PredictorModule(pl.LightningModule):
         prog_dict.update(self.epoch_summary.get_results("val").metrics)
         return prog_dict
 
-    def summarize(self, mode: str = ModelSummaryExtended.MODE_DEFAULT) -> ModelSummaryExtended:
+    def summarize(self, mode: str = ModelSummaryExtended.MODE_DEFAULT, to_print=True) -> ModelSummaryExtended:
         r"""
         Provide a summary of the class, usually to be printed
         """
         model_summary = None
 
+        if isinstance(mode, int):
+            mode = ModelSummaryExtended.MODES[mode - 1]
+
         if mode in ModelSummaryExtended.MODES:
             model_summary = ModelSummaryExtended(self, mode=mode)
-            log.info("\n" + str(model_summary))
+            if to_print:
+                log.info("\n" + str(model_summary))
         elif mode is not None:
             raise MisconfigurationException(
                 f"`mode` can be None, {', '.join(ModelSummaryExtended.MODES)}, got {mode}"
@@ -406,4 +416,7 @@ class PredictorModule(pl.LightningModule):
         r"""
         Controls how the class is printed
         """
-        return self.summarize().__repr__()
+        model_str = self.model.__repr__()
+        summary_str = self.summarize(to_print=False).__repr__()
+
+        return model_str + "\n\n" + summary_str

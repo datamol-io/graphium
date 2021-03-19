@@ -1,8 +1,4 @@
-from typing import List
-from typing import Dict
-from typing import Union
-from typing import Any
-from typing import Callable
+from typing import List, Dict, Union, Any, Callable, Optional
 
 import os
 import functools
@@ -26,12 +22,11 @@ import datamol as dm
 
 from goli.utils import fs
 from goli.features import mol_to_dglgraph
-
 from goli.data.collate import goli_collate_fn
 
 
 class DGLFromSmilesDataset(torch.utils.data.Dataset):
-    def __init__(self, smiles: List[str], features: List[dgl.DGLGraph], labels: np.ndarray):
+    def __init__(self, smiles: List[str], features: List[dgl.DGLGraph], labels: torch.Tensor):
         self.smiles = smiles
         self.features = features
         self.labels = labels
@@ -62,26 +57,26 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
     def __init__(
         self,
         df: pd.DataFrame = None,
-        df_path: Union[str, os.PathLike] = None,
-        cache_data_path: Union[str, os.PathLike] = None,
-        featurization: Union[Dict[str, Any], omegaconf.DictConfig] = None,
+        df_path: Optional[Union[str, os.PathLike]] = None,
+        cache_data_path: Optional[Union[str, os.PathLike]] = None,
+        featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         smiles_col: str = None,
         label_cols: List[str] = None,
         split_val: float = 0.2,
         split_test: float = 0.2,
         split_seed: int = None,
-        splits_path: Union[str, os.PathLike] = None,
-        train_val_batch_size: int = 16,
-        test_batch_size: int = 16,
+        splits_path: Optional[Union[str, os.PathLike]] = None,
+        batch_size_train_val: int = 16,
+        batch_size_test: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        collate_fn: Callable = None,
+        collate_fn: Optional[Callable] = None,
     ):
         """
 
-        Args:
+        Parameters:
             df: a dataframe.
             df_path: a path to a dataframe to load (CSV file). `df` takes precedence over
                 `df_path`.
@@ -98,8 +93,8 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
                 should be implemented.
             splits_path: A path a CSV file containing indices for the splits. The file must contains
                 3 columns "train", "val" and "test". It takes precedence over `split_val` and `split_test`.
-            train_val_batch_size: batch size for training and val dataset.
-            test_batch_size: batch size for test dataset.
+            batch_size_train_val: batch size for training and val dataset.
+            batch_size_test: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
@@ -122,8 +117,8 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         self.split_seed = split_seed
         self.splits_path = splits_path
 
-        self.train_val_batch_size = train_val_batch_size
-        self.test_batch_size = test_batch_size
+        self.batch_size_train_val = batch_size_train_val
+        self.batch_size_test = batch_size_test
 
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -230,14 +225,14 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
     def train_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.train_ds,  # type: ignore
-            batch_size=self.train_val_batch_size,
+            batch_size=self.batch_size_train_val,
             shuffle=True,
         )
 
     def val_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.val_ds,  # type: ignore
-            batch_size=self.train_val_batch_size,
+            batch_size=self.batch_size_train_val,
             shuffle=False,
         )
 
@@ -245,7 +240,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
 
         return self._dataloader(
             dataset=self.test_ds,  # type: ignore
-            batch_size=self.test_batch_size,
+            batch_size=self.batch_size_test,
             shuffle=False,
         )
 
@@ -286,7 +281,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         if self.df is None:
             df = pd.read_csv(self.df_path, nrows=1)
         else:
-            df = self.df
+            df = self.df.iloc[0, :]
 
         smiles, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
@@ -325,10 +320,10 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
             smiles_col = df.columns[0]
 
         if label_cols is None:
-            label_cols = self.df.columns.drop(smiles_col)
+            label_cols = df.columns.drop(smiles_col)
 
-        smiles = self.df[smiles_col].to_list()
-        labels = self.df[label_cols].values
+        smiles = df[smiles_col].to_list()
+        labels = torch.as_tensor(df[label_cols].values)
 
         return smiles, labels
 
@@ -389,8 +384,8 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         obj_repr = {}
         obj_repr["name"] = self.__class__.__name__
         obj_repr["len"] = len(self)
-        obj_repr["train_val_batch_size"] = self.train_val_batch_size
-        obj_repr["test_batch_size"] = self.test_batch_size
+        obj_repr["batch_size_train_val"] = self.batch_size_train_val
+        obj_repr["batch_size_test"] = self.batch_size_test
         obj_repr["num_node_feats"] = self.num_node_feats
         obj_repr["num_edge_feats"] = self.num_edge_feats
         obj_repr["collate_fn"] = self.collate_fn.__name__

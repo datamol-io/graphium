@@ -105,7 +105,6 @@ class ModelSummaryExtended(ModelSummary):
     MODE_FULL = "full"
     MODE_DEFAULT = MODE_TOP2
     MODES = [
-        MODE_FULL,
         MODE_TOP,
         MODE_TOP2,
         MODE_TOP3,
@@ -117,6 +116,7 @@ class ModelSummaryExtended(ModelSummary):
         MODE_TOP9,
         MODE_TOP10,
         MODE_TOP11,
+        MODE_FULL,
     ]
 
     @property
