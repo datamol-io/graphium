@@ -9,14 +9,7 @@ from omegaconf import DictConfig
 
 # Current project imports
 import goli
-from goli.utils.config_loader import (
-    config_load_constants,
-    config_load_dataset,
-    config_load_architecture,
-    config_load_metrics,
-    config_load_predictor,
-    config_load_training,
-)
+from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
 
 
 # Set up the working directory
@@ -28,60 +21,36 @@ os.chdir(MAIN_DIR)
 def main(cfg: DictConfig) -> None:
     cfg = dict(deepcopy(cfg))
 
-    # Get the general parameters and generate the train/val/test datasets
-    data_device, model_device, dtype, exp_name, seed, raise_train_error = config_load_constants(
-        **cfg["constants"], main_dir=MAIN_DIR
-    )
-
     # Load and initialize the dataset
-    datamodule = config_load_dataset(
-        **cfg["datasets"],
-        main_dir=MAIN_DIR,
-        data_device=data_device,
-        model_device=model_device,
-        seed=seed,
-        dtype=dtype,
-    )
+    datamodule = load_datamodule(cfg)
     print("\ndatamodule:\n", datamodule, "\n")
 
     # Initialize the network
-    model = config_load_architecture(
-        **cfg["architecture"],
+    model_class, model_kwargs = load_architecture(
+        cfg,
         in_dim_nodes=datamodule.num_node_feats,
         in_dim_edges=datamodule.num_edge_feats,
-        model_device=model_device,
-        dtype=dtype,
     )
 
-    print("\nmodel:\n", model, "\n")
-    pass
-
-    metrics = config_load_metrics(cfg["metrics"])
+    metrics = load_metrics(cfg)
     print(metrics)
-    print("done")
 
-    # predictor = config_load_predictor(
-    #     cfg["predictor"],
-    #     metrics,
-    #     metrics_on_progress_bar,
-    #     model,
-    #     layer_name,
-    #     train_dt,
-    #     val_dt,
-    #     device,
-    #     dtype,
-    # )
-    # trainer = config_load_training(cfg["training"], predictor)
+    predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
 
-    # # Run the model training
-    # try:
-    #     trainer.fit(predictor)
-    #     print("\n------------ TRAINING COMPLETED ------------\n\n")
-    # except Exception as e:
-    #     if not cfg["constants"]["raise_train_error"]:
-    #         print("\n------------ TRAINING ERROR: ------------\n\n", e)
-    #     else:
-    #         raise
+    print(predictor.model)
+    print(predictor.summarize(mode=4, to_print=False))
+
+    trainer = load_trainer(cfg, metrics)
+
+    # Run the model training
+    try:
+        trainer.fit(model=predictor, datamodule=datamodule)
+        print("\n------------ TRAINING COMPLETED ------------\n\n")
+    except Exception as e:
+        if not cfg["constants"]["raise_train_error"]:
+            print("\n------------ TRAINING ERROR: ------------\n\n", e)
+        else:
+            raise
 
 
 if __name__ == "__main__":

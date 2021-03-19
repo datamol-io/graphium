@@ -28,8 +28,8 @@ class Test_DataModule(ut.TestCase):
         dm_args["split_val"] = 0.2
         dm_args["split_test"] = 0.2
         dm_args["split_seed"] = 19
-        dm_args["train_val_batch_size"] = 16
-        dm_args["test_batch_size"] = 16
+        dm_args["batch_size_train_val"] = 16
+        dm_args["batch_size_test"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
         dm_args["featurization_n_jobs"] = 16
