@@ -81,7 +81,7 @@ predictor:
     factor: 0.5
     patience: 7
   scheduler_kwargs:
-    monitor: &monitor val_loss
+    monitor: &monitor loss/val
     frequency: 1
   target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
 
