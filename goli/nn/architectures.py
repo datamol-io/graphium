@@ -802,24 +802,24 @@ class FullDGLNetwork(nn.Module):
         # Initialize the networks
         self.pre_nn, self.post_nn = None, None
         if pre_nn_kwargs is not None:
-            name = pre_nn_kwargs.pop("name", "pre-trans-NN")
+            name = pre_nn_kwargs.pop("name", "pre-NN")
             self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
             next_in_dim = self.pre_nn.out_dim
             gnn_kwargs.setdefault("in_dim", next_in_dim)
             assert next_in_dim == gnn_kwargs["in_dim"]
 
-        name = gnn_kwargs.pop("name", "main-GNN")
+        name = gnn_kwargs.pop("name", "GNN")
         self.gnn = FeedForwardDGL(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
 
         if post_nn_kwargs is not None:
-            name = post_nn_kwargs.pop("name", "post-trans-NN")
+            name = post_nn_kwargs.pop("name", "post-NN")
             post_nn_kwargs.setdefault("in_dim", next_in_dim)
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim
 
         # Initialize the hyper-parameter variable to be accessible by Pytorch Lightning
-        hparams_temp = {**self.pre_nn.hparams, **self.pre_nn.hparams, **self.pre_nn.hparams}
+        hparams_temp = {**self.pre_nn.hparams, **self.gnn.hparams, **self.post_nn.hparams}
         self.hparams = {f"{self.name}.{key}": elem for key, elem in hparams_temp.items()}
 
     def _check_bad_arguments(self):

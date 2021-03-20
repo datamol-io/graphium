@@ -14,7 +14,7 @@ from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
-from goli.trainer.reporting import ModelSummaryExtended
+from goli.trainer.model_summary import ModelSummaryExtended
 
 
 LOSS_DICT = {
@@ -28,23 +28,48 @@ LOSS_DICT = {
 
 class EpochSummary:
     r"""Container for collecting epoch-wise results"""
+    def __init__(self, monitor="loss", monitor_greater: bool = False, metrics_on_progress_bar=[]):
+        self.monitor = monitor
+        self.monitor_greater = monitor_greater
+        self.metrics_on_progress_bar = metrics_on_progress_bar
+        self.summaries = {}
+        self.best_summaries = {}
 
     class Results:
-        def __init__(self, targets: torch.Tensor, predictions: torch.Tensor, loss: float, metrics: dict):
+        def __init__(self, targets: torch.Tensor, predictions: torch.Tensor, loss: float, metrics: dict, monitored_metric: str):
             self.targets = targets
             self.predictions = predictions
             self.loss = loss
+            self.monitored_metric = monitored_metric
+            self.monitored = metrics[monitored_metric]
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
 
-    def __init__(self):
-        self.summaries = {}
-
     def set_results(self, name, targets, predictions, loss, metrics) -> float:
-        self.summaries[name] = EpochSummary.Results(targets, predictions, loss, metrics)
+        metrics[f"loss/{name}"] = loss
+        self.summaries[name] = EpochSummary.Results(targets, predictions, loss, metrics, f"{self.monitor}/{name}")
+        if self.is_best_epoch(name, loss, metrics):
+            self.best_summaries[name] = self.summaries[name]
+        
+    def is_best_epoch(self, name, loss, metrics):
+        if not (name in self.best_summaries.keys()):
+            return True
+
+        metrics[f"loss/{name}"] = loss
+        monitor_name = f"{self.monitor}/{name}"
+        return (self.monitor_greater and (metrics[monitor_name] > self.best_summaries[name].monitored)) or \
+            ((not self.monitor_greater) and (metrics[monitor_name] < self.best_summaries[name].monitored))
 
     def get_results(self, name):
         return self.summaries[name]
 
+    def get_best_results(self, name):
+        return self.best_summaries[name]
+    
+    def get_results_on_progress_bar(self, name):
+        results = self.summaries[name]
+        results_prog = {f"{kk}/{name}": results.metrics[f"{kk}/{name}"] for kk in self.metrics_on_progress_bar}
+        return results_prog
+        
 
 class PredictorModule(pl.LightningModule):
     def __init__(
@@ -61,7 +86,6 @@ class PredictorModule(pl.LightningModule):
         target_nan_mask: Union[int, float, str, type(None)] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
-        tensorboard_logger = None,
         additional_hparams: Dict[str, Any] = None,
     ):
         r"""
@@ -110,7 +134,7 @@ class PredictorModule(pl.LightningModule):
             scheduler_kwargs:
                 Dictionnary for the scheduling of the learning rate modification
 
-                - monitor `str`: metric to track (Default=`"val_loss"`)
+                - monitor `str`: metric to track (Default=`"loss/val"`)
                 - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
                 - strict `bool`: if set to True will enforce that value specified in monitor is available
                   while trying to call scheduler.step(), and stop training if not found. If False will
@@ -153,7 +177,6 @@ class PredictorModule(pl.LightningModule):
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        self.epoch_summary = EpochSummary()
         self._dtype = dtype
         self._device = device
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
@@ -173,10 +196,13 @@ class PredictorModule(pl.LightningModule):
         self.lr_reduce_on_plateau_kwargs.setdefault("min_lr", 1e-4)
 
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.scheduler_kwargs.setdefault("monitor", "val_loss")
+        self.scheduler_kwargs.setdefault("monitor", "loss/val")
         self.scheduler_kwargs.setdefault("interval", "epoch")
         self.scheduler_kwargs.setdefault("frequency", 1)
         self.scheduler_kwargs.setdefault("strict", True)
+
+        monitor = scheduler_kwargs["monitor"].split("/")[0]
+        self.epoch_summary = EpochSummary(monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar)
 
         self._register_hparams(additional_hparams)
 
@@ -348,48 +374,75 @@ class PredictorModule(pl.LightningModule):
             except:
                 tensorboard_logs[metric_name] = torch.tensor(float("nan"))
 
-        self.tb_logger.log_metrics(tensorboard_logs, step=self.current_epoch)
+        self.tb_logger.log_metrics(tensorboard_logs, step=self.global_step)
 
         return {loss_name: loss, "log": tensorboard_logs}
 
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         y = batch.pop('labels')
         preds = self.forward(batch)
-        return self.get_metrics_logs(preds=preds, targets=y, step_name="train", loss_name="loss")
+        self.tb_logger.log_metrics({"epoch": self.current_epoch}, step=self.global_step)
+
+        step_dict = self.get_metrics_logs(preds=preds, targets=y, step_name="train", loss_name="loss")
+        step_dict["preds"] = preds
+        step_dict["targets"] = y
+        return step_dict
 
     def validation_step(
         self, batch: Tuple[torch.Tensor], batch_idx: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         y = batch.pop('labels')
         preds = self.forward(batch)
-        return preds, y
+        step_dict = {"preds": preds, "targets": y}
+        return step_dict
+
+    def training_epoch_end(self, outputs: Dict):
+
+        # Transform the list of dict of dict, into a dict of list of dict
+        preds = torch.cat([out["preds"] for out in outputs], dim=0)
+        targets = torch.cat([out["targets"] for out in outputs], dim=0)
+        loss_name = "loss/train"
+        loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="train", loss_name=loss_name)
+
+        self.epoch_summary.set_results(
+            name="train",
+            predictions=preds,
+            targets=targets,
+            loss=loss_logs[loss_name],
+            metrics=loss_logs["log"],
+        )
+        
 
     def validation_epoch_end(self, outputs: List):
 
         # Transform the list of dict of dict, into a dict of list of dict
-        preds, targets = zip(*outputs)
-        preds = torch.cat(preds, dim=0)
-        targets = torch.cat(targets, dim=0)
-        loss_name = "val_loss"
+        preds = torch.cat([out["preds"] for out in outputs], dim=0)
+        targets = torch.cat([out["targets"] for out in outputs], dim=0)
+        loss_name = "loss/val"
         loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="val", loss_name=loss_name)
-        metrics_names_to_display = [f"{metric_name}/val" for metric_name in self.metrics_on_progress_bar]
-        metrics_to_display = {
-            metric_name: loss_logs["log"][metric_name] for metric_name in metrics_names_to_display
-        }
+
+        is_best_epoch = self.epoch_summary.is_best_epoch(name="val", loss=loss_logs["loss/val"], metrics=loss_logs["log"])
+        if is_best_epoch and (self.global_step > 0):
+            self.epoch_summary.summaries["train-at-best-val"] = self.epoch_summary.summaries["train"]
 
         self.epoch_summary.set_results(
             name="val",
             predictions=preds,
             targets=targets,
             loss=loss_logs[loss_name],
-            metrics=metrics_to_display,
+            metrics=loss_logs["log"],
         )
+        
         return loss_logs
+
+    def on_train_start(self):
+        self.tb_logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
-        prog_dict["val_loss"] = self.epoch_summary.get_results("val").loss.tolist()
-        prog_dict.update(self.epoch_summary.get_results("val").metrics)
+        results_on_progress_bar = self.epoch_summary.get_results_on_progress_bar("val")
+        prog_dict["loss/val"] = self.epoch_summary.summaries["val"].loss.tolist()
+        prog_dict.update(results_on_progress_bar)
         return prog_dict
 
     def summarize(self, mode: str = ModelSummaryExtended.MODE_DEFAULT, to_print=True) -> ModelSummaryExtended:
