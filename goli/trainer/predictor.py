@@ -2,7 +2,10 @@ from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import os, math
 import dgl
 import numpy as np
+import pandas as pd
 from copy import deepcopy
+import yaml
+from omegaconf import DictConfig, ListConfig
 
 import torch
 import torch.nn.functional as F
@@ -69,6 +72,20 @@ class EpochSummary:
         results = self.summaries[name]
         results_prog = {f"{kk}/{name}": results.metrics[f"{kk}/{name}"] for kk in self.metrics_on_progress_bar}
         return results_prog
+
+    def get_dict_summary(self):
+        full_dict = {}
+        # Get metric summaries
+        full_dict["metric_summaries"] = {}
+        for key, val in self.summaries.items():
+            full_dict["metric_summaries"][key] = {k: v for k, v in val.metrics.items()}
+
+        # Get metric summaries at best epoch
+        full_dict["best_epoch_metric_summaries"] = {}
+        for key, val in self.best_summaries.items():
+            full_dict["best_epoch_metric_summaries"][key] = val.metrics
+
+        return full_dict
         
 
 class PredictorModule(pl.LightningModule):
@@ -87,6 +104,7 @@ class PredictorModule(pl.LightningModule):
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
         additional_hparams: Dict[str, Any] = None,
+        tensorboard_save_dir: str = "logs"
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -162,6 +180,9 @@ class PredictorModule(pl.LightningModule):
                 Additionnal hyper-parameters to log in the TensorBoard file.
                 They won't be used by the class, only logged.
 
+            tensorboard_save_dir:
+                Directory where to save the tensorboard output files.
+
         """
 
         torch.random.manual_seed(random_seed)
@@ -182,6 +203,7 @@ class PredictorModule(pl.LightningModule):
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs
         self.scheduler_kwargs = scheduler_kwargs
+        self.tensorboard_save_dir = tensorboard_save_dir
 
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
@@ -206,7 +228,7 @@ class PredictorModule(pl.LightningModule):
 
         self._register_hparams(additional_hparams)
 
-        self.tb_logger = TensorBoardLogger(save_dir="logs")
+        self.tb_logger = TensorBoardLogger(save_dir=self.tensorboard_save_dir)
 
         self.to(dtype=dtype, device=device)
 
@@ -233,6 +255,14 @@ class PredictorModule(pl.LightningModule):
         self.hparams.update(
             {f"lr_reduce.{key}": val for key, val in self.lr_reduce_on_plateau_kwargs.items()}
         )
+
+        # Convert DictConfig and ListConfig to dict and list
+        for key, val in self.hparams.items():
+            if isinstance(val, DictConfig):
+                val = dict(val)
+            elif isinstance(val, ListConfig):
+                val = list(val)
+            self.hparams[key] = val
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
@@ -437,6 +467,22 @@ class PredictorModule(pl.LightningModule):
 
     def on_train_start(self):
         self.tb_logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
+        
+        # Save hparams to YAML file
+        tb_path = self.tb_logger.log_dir
+        with open(f'{tb_path}/hparams.yaml', 'w') as file:
+            yaml.dump(self.hparams, file)
+
+    def on_fit_end(self):
+        
+        full_dict = {"n_epochs": self.current_epoch}
+        full_dict.update(self.epoch_summary.get_dict_summary())
+
+        # Save yaml file with the summaries
+        tb_path = self.tb_logger.log_dir
+        with open(f'{tb_path}/metrics.yaml', 'w') as file:
+            yaml.dump(full_dict, file)
+        
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
