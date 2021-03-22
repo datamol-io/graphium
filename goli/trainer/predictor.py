@@ -31,6 +31,7 @@ LOSS_DICT = {
 
 class EpochSummary:
     r"""Container for collecting epoch-wise results"""
+
     def __init__(self, monitor="loss", monitor_greater: bool = False, metrics_on_progress_bar=[]):
         self.monitor = monitor
         self.monitor_greater = monitor_greater
@@ -39,7 +40,15 @@ class EpochSummary:
         self.best_summaries = {}
 
     class Results:
-        def __init__(self, targets: torch.Tensor, predictions: torch.Tensor, loss: float, metrics: dict, monitored_metric: str, n_epochs: int):
+        def __init__(
+            self,
+            targets: torch.Tensor,
+            predictions: torch.Tensor,
+            loss: float,
+            metrics: dict,
+            monitored_metric: str,
+            n_epochs: int,
+        ):
             self.targets = targets
             self.predictions = predictions
             self.loss = loss
@@ -50,28 +59,38 @@ class EpochSummary:
 
     def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
         metrics[f"loss/{name}"] = loss
-        self.summaries[name] = EpochSummary.Results(targets=targets, predictions=predictions, loss=loss, metrics=metrics, monitored_metric=f"{self.monitor}/{name}", n_epochs=n_epochs)
+        self.summaries[name] = EpochSummary.Results(
+            targets=targets,
+            predictions=predictions,
+            loss=loss,
+            metrics=metrics,
+            monitored_metric=f"{self.monitor}/{name}",
+            n_epochs=n_epochs,
+        )
         if self.is_best_epoch(name, loss, metrics):
             self.best_summaries[name] = self.summaries[name]
-        
+
     def is_best_epoch(self, name, loss, metrics):
         if not (name in self.best_summaries.keys()):
             return True
 
         metrics[f"loss/{name}"] = loss
         monitor_name = f"{self.monitor}/{name}"
-        return (self.monitor_greater and (metrics[monitor_name] > self.best_summaries[name].monitored)) or \
-            ((not self.monitor_greater) and (metrics[monitor_name] < self.best_summaries[name].monitored))
+        return (self.monitor_greater and (metrics[monitor_name] > self.best_summaries[name].monitored)) or (
+            (not self.monitor_greater) and (metrics[monitor_name] < self.best_summaries[name].monitored)
+        )
 
     def get_results(self, name):
         return self.summaries[name]
 
     def get_best_results(self, name):
         return self.best_summaries[name]
-    
+
     def get_results_on_progress_bar(self, name):
         results = self.summaries[name]
-        results_prog = {f"{kk}/{name}": results.metrics[f"{kk}/{name}"] for kk in self.metrics_on_progress_bar}
+        results_prog = {
+            f"{kk}/{name}": results.metrics[f"{kk}/{name}"] for kk in self.metrics_on_progress_bar
+        }
         return results_prog
 
     def get_dict_summary(self):
@@ -89,7 +108,7 @@ class EpochSummary:
             full_dict["best_epoch_metric_summaries"][key]["n_epochs"] = val.n_epochs
 
         return full_dict
-        
+
 
 class PredictorModule(pl.LightningModule):
     def __init__(
@@ -107,7 +126,7 @@ class PredictorModule(pl.LightningModule):
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
         additional_hparams: Dict[str, Any] = None,
-        tensorboard_save_dir: str = "logs"
+        tensorboard_save_dir: str = "logs",
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -227,7 +246,9 @@ class PredictorModule(pl.LightningModule):
         self.scheduler_kwargs.setdefault("strict", True)
 
         monitor = scheduler_kwargs["monitor"].split("/")[0]
-        self.epoch_summary = EpochSummary(monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar)
+        self.epoch_summary = EpochSummary(
+            monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
+        )
 
         self._register_hparams(additional_hparams)
 
@@ -412,7 +433,7 @@ class PredictorModule(pl.LightningModule):
         return {loss_name: loss, "log": tensorboard_logs}
 
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
-        y = batch.pop('labels')
+        y = batch.pop("labels")
         preds = self.forward(batch)
         self.tb_logger.log_metrics({"epoch": self.current_epoch}, step=self.global_step)
 
@@ -424,7 +445,7 @@ class PredictorModule(pl.LightningModule):
     def validation_step(
         self, batch: Tuple[torch.Tensor], batch_idx: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        y = batch.pop('labels')
+        y = batch.pop("labels")
         preds = self.forward(batch)
         step_dict = {"preds": preds, "targets": y}
         return step_dict
@@ -435,7 +456,9 @@ class PredictorModule(pl.LightningModule):
         preds = torch.cat([out["preds"] for out in outputs], dim=0)
         targets = torch.cat([out["targets"] for out in outputs], dim=0)
         loss_name = "loss/train"
-        loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="train", loss_name=loss_name)
+        loss_logs = self.get_metrics_logs(
+            preds=preds, targets=targets, step_name="train", loss_name=loss_name
+        )
 
         self.epoch_summary.set_results(
             name="train",
@@ -445,7 +468,6 @@ class PredictorModule(pl.LightningModule):
             metrics=loss_logs["log"],
             n_epochs=self.current_epoch,
         )
-        
 
     def validation_epoch_end(self, outputs: List):
 
@@ -455,7 +477,9 @@ class PredictorModule(pl.LightningModule):
         loss_name = "loss/val"
         loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="val", loss_name=loss_name)
 
-        is_best_epoch = self.epoch_summary.is_best_epoch(name="val", loss=loss_logs["loss/val"], metrics=loss_logs["log"])
+        is_best_epoch = self.epoch_summary.is_best_epoch(
+            name="val", loss=loss_logs["loss/val"], metrics=loss_logs["log"]
+        )
         if is_best_epoch and (self.global_step > 0):
             self.epoch_summary.best_summaries["train-at-best-val"] = self.epoch_summary.summaries["train"]
 
@@ -467,27 +491,26 @@ class PredictorModule(pl.LightningModule):
             metrics=loss_logs["log"],
             n_epochs=self.current_epoch,
         )
-        
+
         return loss_logs
 
     def on_train_start(self):
         self.tb_logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
-        
+
         # Save hparams to YAML file
         tb_path = self.tb_logger.log_dir
-        with open(f'{tb_path}/hparams.yaml', 'w') as file:
+        with open(f"{tb_path}/hparams.yaml", "w") as file:
             yaml.dump(self.hparams, file)
 
     def on_fit_end(self):
-        
+
         full_dict = {}
         full_dict.update(self.epoch_summary.get_dict_summary())
 
         # Save yaml file with the summaries
         tb_path = self.tb_logger.log_dir
-        with open(f'{tb_path}/metrics.yaml', 'w') as file:
+        with open(f"{tb_path}/metrics.yaml", "w") as file:
             yaml.dump(full_dict, file)
-        
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
