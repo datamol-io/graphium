@@ -39,17 +39,18 @@ class EpochSummary:
         self.best_summaries = {}
 
     class Results:
-        def __init__(self, targets: torch.Tensor, predictions: torch.Tensor, loss: float, metrics: dict, monitored_metric: str):
+        def __init__(self, targets: torch.Tensor, predictions: torch.Tensor, loss: float, metrics: dict, monitored_metric: str, n_epochs: int):
             self.targets = targets
             self.predictions = predictions
             self.loss = loss
             self.monitored_metric = monitored_metric
             self.monitored = metrics[monitored_metric]
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
+            self.n_epochs = n_epochs
 
-    def set_results(self, name, targets, predictions, loss, metrics) -> float:
+    def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
         metrics[f"loss/{name}"] = loss
-        self.summaries[name] = EpochSummary.Results(targets, predictions, loss, metrics, f"{self.monitor}/{name}")
+        self.summaries[name] = EpochSummary.Results(targets=targets, predictions=predictions, loss=loss, metrics=metrics, monitored_metric=f"{self.monitor}/{name}", n_epochs=n_epochs)
         if self.is_best_epoch(name, loss, metrics):
             self.best_summaries[name] = self.summaries[name]
         
@@ -79,11 +80,13 @@ class EpochSummary:
         full_dict["metric_summaries"] = {}
         for key, val in self.summaries.items():
             full_dict["metric_summaries"][key] = {k: v for k, v in val.metrics.items()}
+            full_dict["metric_summaries"][key]["n_epochs"] = val.n_epochs
 
         # Get metric summaries at best epoch
         full_dict["best_epoch_metric_summaries"] = {}
         for key, val in self.best_summaries.items():
             full_dict["best_epoch_metric_summaries"][key] = val.metrics
+            full_dict["best_epoch_metric_summaries"][key]["n_epochs"] = val.n_epochs
 
         return full_dict
         
@@ -440,6 +443,7 @@ class PredictorModule(pl.LightningModule):
             targets=targets,
             loss=loss_logs[loss_name],
             metrics=loss_logs["log"],
+            n_epochs=self.current_epoch,
         )
         
 
@@ -453,7 +457,7 @@ class PredictorModule(pl.LightningModule):
 
         is_best_epoch = self.epoch_summary.is_best_epoch(name="val", loss=loss_logs["loss/val"], metrics=loss_logs["log"])
         if is_best_epoch and (self.global_step > 0):
-            self.epoch_summary.summaries["train-at-best-val"] = self.epoch_summary.summaries["train"]
+            self.epoch_summary.best_summaries["train-at-best-val"] = self.epoch_summary.summaries["train"]
 
         self.epoch_summary.set_results(
             name="val",
@@ -461,6 +465,7 @@ class PredictorModule(pl.LightningModule):
             targets=targets,
             loss=loss_logs[loss_name],
             metrics=loss_logs["log"],
+            n_epochs=self.current_epoch,
         )
         
         return loss_logs
@@ -475,7 +480,7 @@ class PredictorModule(pl.LightningModule):
 
     def on_fit_end(self):
         
-        full_dict = {"n_epochs": self.current_epoch}
+        full_dict = {}
         full_dict.update(self.epoch_summary.get_dict_summary())
 
         # Save yaml file with the summaries
