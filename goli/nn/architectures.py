@@ -440,10 +440,12 @@ class FeedForwardDGL(FeedForwardNN):
         r"""
         Register the hyperparameters for tracking by Pytorch-lightning
         """
-        return super()._register_hparams()
-        self.hparams["hidden_edge_dim"] = self.hidden_edge_dim
+        super()._register_hparams()
+        self.hparams["in_dim_edges"] = self.in_dim_edges
+        self.hparams["hidden_dims_edges"] = self.hidden_dims_edges
         self.hparams["pooling"] = self.pooling
-        self.hparams["intermittent_pooling"] = self.intermittent_pooling
+        self.hparams["virtual_node"] = self.virtual_node
+
 
     def _create_layers(self):
         r"""

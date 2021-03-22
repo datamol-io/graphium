@@ -14,7 +14,7 @@ datamodule:
   featurization:
     atom_property_list_onehot: [atomic-number, valence]
     atom_property_list_float: [mass, electronegativity, in-ring]
-    edge_property_list: [bond-type-onehot, stereo, in-ring]
+    edge_property_list: [] # [bond-type-onehot, stereo, in-ring]
     add_self_loop: False
     explicit_H: False
     use_bonds_weights: False
