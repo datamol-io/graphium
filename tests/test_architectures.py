@@ -314,11 +314,11 @@ class test_FeedForwardDGL(ut.TestCase):
     layers_kwargs = {
         "gcn": {},
         "gin": {},
-        "gat": {"num_heads": 3},
+        "gat": {"layer_kwargs": {"num_heads": 3}},
         "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "pna-conv": {**pna_kwargs},
-        "pna-msgpass#1": {**pna_kwargs, "in_dim_edges": 0},
-        "pna-msgpass#2": {**pna_kwargs, "in_dim_edges": in_dim_edges},
+        "pna-conv": {"layer_kwargs": pna_kwargs},
+        "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
     def test_dgl_forward_no_residual(self):
@@ -571,10 +571,10 @@ class test_FullDGLNetwork(ut.TestCase):
 
     g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
     g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
-    g1.ndata["h"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    g1.edata["e"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    g2.ndata["h"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    g2.edata["e"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
+    g1.edata["feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
+    g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
+    g2.edata["feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
     bg = dgl.batch([g1, g2])
     bg = dgl.add_self_loop(bg)
 
@@ -584,11 +584,11 @@ class test_FullDGLNetwork(ut.TestCase):
     gnn_layers_kwargs = {
         "gcn": {},
         "gin": {},
-        "gat": {"num_heads": 3},
+        "gat": {"layer_kwargs": {"num_heads": 3}},
         "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "pna-conv": {**pna_kwargs},
-        "pna-msgpass#1": {**pna_kwargs, "in_dim_edges": 0},
-        "pna-msgpass#2": {**pna_kwargs, "in_dim_edges": in_dim_edges},
+        "pna-conv": {"layer_kwargs": pna_kwargs},
+        "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
     def test_full_network_densenet(self):

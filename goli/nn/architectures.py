@@ -30,7 +30,7 @@ class FeedForwardNN(nn.Module):
         residual_skip_steps: int = 1,
         name: str = "LNN",
         layer_type: Union[str, nn.Module] = "fc",
-        **layer_kwargs,
+        layer_kwargs: Optional[Dict] = None,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -94,6 +94,9 @@ class FeedForwardNN(nn.Module):
                 Either "fc" as the `FCLayer`, or a class representing the `nn.Module`
                 to use.
 
+            layer_kwargs:
+                The arguments to be used in the initialization of the layer provided by `layer_type`
+
         """
 
         super().__init__()
@@ -113,7 +116,7 @@ class FeedForwardNN(nn.Module):
         self.batch_norm = batch_norm
         self.residual_type = None if residual_type is None else residual_type.lower()
         self.residual_skip_steps = residual_skip_steps
-        self.layer_kwargs = layer_kwargs
+        self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
 
         # Parse the layer and residuals
@@ -285,8 +288,8 @@ class FeedForwardDGL(FeedForwardNN):
         pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "GNN",
         layer_type: Union[str, nn.Module] = "gcn",
+        layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
-        **layer_kwargs,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -382,6 +385,9 @@ class FeedForwardDGL(FeedForwardNN):
                 - "pna-conv": `PNAConvolutionalLayer`
                 - "pna-msgpass": `PNAMessagePassingLayer`
 
+            layer_kwargs:
+                The arguments to be used in the initialization of the layer provided by `layer_type`
+
             virtual_node:
                 A string associated to the type of virtual node to use,
                 either `None`, "none", "mean", "sum", "max", "logsum".
@@ -406,7 +412,7 @@ class FeedForwardDGL(FeedForwardNN):
         if len(self.hidden_dims_edges) > 0:
             self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
 
-        self.virtual_node = virtual_node.lower()
+        self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
         self.pooling = pooling
 
         # Initialize the parent `FeedForwardNN`
@@ -423,7 +429,7 @@ class FeedForwardDGL(FeedForwardNN):
             name=name,
             layer_type=layer_type,
             dropout=dropout,
-            **layer_kwargs,
+            layer_kwargs=layer_kwargs,
         )
 
     def _check_bad_arguments(self):
@@ -510,7 +516,7 @@ class FeedForwardDGL(FeedForwardNN):
             if ii < len(residual_out_dims):
                 self.virtual_node_layers.append(
                     VirtualNode(
-                        dim=this_out_dim,
+                        dim=this_out_dim * self.layers[-1].out_dim_factor,
                         activation=this_activation,
                         dropout=self.dropout,
                         batch_norm=self.batch_norm,
