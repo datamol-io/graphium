@@ -56,8 +56,10 @@ architecture:
     pooling: 'sum'
     virtual_node: 'sum'
     layer_type: 'pna-msgpass'
-    aggregators: [mean, max, min, std]
-    scalers: [identity, amplification, attenuation]
+    layer_kwargs:
+      # num_heads: 3
+      aggregators: [mean, max, min, std]
+      scalers: [identity, amplification, attenuation]
   
   post_nn:
     out_dim: 1
