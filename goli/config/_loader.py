@@ -10,6 +10,7 @@ from goli.trainer.metrics import MetricWrapper
 from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork
 from goli.data.datamodule import DGLFromSmilesDataModule
 from goli.trainer.predictor import PredictorModule
+
 # from goli.trainer.model_summary import BestEpochFromSummary
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
@@ -99,8 +100,9 @@ def load_trainer(config, metrics):
     early_stopping = EarlyStopping(**cfg_trainer["early_stopping"])
     checkpoint_callback = ModelCheckpoint(**cfg_trainer["model_checkpoint"])
 
-    tb_logger = TensorBoardLogger(save_dir="logs", )
-
+    tb_logger = TensorBoardLogger(
+        save_dir="logs",
+    )
 
     trainer = Trainer(
         # logger=tb_logger,

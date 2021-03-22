@@ -452,7 +452,6 @@ class FeedForwardDGL(FeedForwardNN):
         self.hparams["pooling"] = self.pooling
         self.hparams["virtual_node"] = self.virtual_node
 
-
     def _create_layers(self):
         r"""
         Create all the necessary layers for the network.
