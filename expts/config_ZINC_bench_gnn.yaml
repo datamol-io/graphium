@@ -42,6 +42,7 @@ architecture:
     last_activation: none
     dropout: &dropout 0.1
     batch_norm: &batch_norm True
+    last_batch_norm: *batch_norm
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
@@ -52,6 +53,7 @@ architecture:
     last_activation: none
     dropout: *dropout
     batch_norm: *batch_norm 
+    last_batch_norm: *batch_norm
     residual_type: simple
     pooling: 'sum'
     virtual_node: none
@@ -66,9 +68,10 @@ architecture:
     hidden_dims: *middle_dim
     depth: 0
     activation: relu
-    last_activation: relu
+    last_activation: none
     dropout: *dropout
     batch_norm: *batch_norm
+    last_batch_norm: False
     residual_type: none
 
 
@@ -137,8 +140,8 @@ trainer:
     save_top_k: 1
     period: 1
   trainer:
-    max_epochs: 25
-    min_epochs: 5
+    max_epochs: 1000
+    min_epochs: 100
   tensorboard_logs:
     save_dir: logs/ZINC_bench_gnn
 
