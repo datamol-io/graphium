@@ -476,9 +476,10 @@ class PredictorModule(pl.LightningModule):
         targets = torch.cat([out["targets"] for out in outputs], dim=0)
         loss_name = "loss/val"
         loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="val", loss_name=loss_name)
+        metrics_log = loss_logs.pop("log")
 
         is_best_epoch = self.epoch_summary.is_best_epoch(
-            name="val", loss=loss_logs["loss/val"], metrics=loss_logs["log"]
+            name="val", loss=loss_logs["loss/val"], metrics=metrics_log
         )
         if is_best_epoch and (self.global_step > 0):
             self.epoch_summary.best_summaries["train-at-best-val"] = self.epoch_summary.summaries["train"]
@@ -488,7 +489,7 @@ class PredictorModule(pl.LightningModule):
             predictions=preds,
             targets=targets,
             loss=loss_logs[loss_name],
-            metrics=loss_logs["log"],
+            metrics=metrics_log,
             n_epochs=self.current_epoch,
         )
 
