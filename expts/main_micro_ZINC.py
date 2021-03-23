@@ -3,7 +3,6 @@ import os
 from os.path import dirname, abspath
 import yaml
 from copy import deepcopy
-import hydra
 from omegaconf import DictConfig
 
 
@@ -17,7 +16,6 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
 
-# @hydra.main(config_name="config_micro_ZINC.yaml")
 def main(cfg: DictConfig) -> None:
     cfg = dict(deepcopy(cfg))
 

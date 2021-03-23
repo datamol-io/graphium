@@ -4,7 +4,7 @@ constants:
 
 datamodule:
   df_path: goli/data/micro_ZINC.csv
-  cache_data_path: goli/data/cache
+  cache_data_path: goli/data/cache/micro_ZINC/full.cache
   label_cols: ['score']
   smiles_col: SMILES
 
@@ -130,7 +130,7 @@ trainer:
     patience: 10
     mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/micro-zinc/
+    dirpath: models_checkpoints/micro_ZINC/
     filename: "bob"
     monitor: *monitor
     mode: *mode
@@ -140,6 +140,6 @@ trainer:
     max_epochs: 25
     min_epochs: 5
   tensorboard_logs:
-    save_dir: logs
+    save_dir: logs/micro_ZINC
 
     

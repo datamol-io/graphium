@@ -317,7 +317,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         """
 
         if smiles_col is None:
-            smiles_col = df.columns[0]
+            smiles_col = [col for col in df.columns if "smile" in str(col).lower()][0]
 
         if label_cols is None:
             label_cols = df.columns.drop(smiles_col)
