@@ -495,7 +495,7 @@ class PredictorModule(pl.LightningModule):
 
         lr = self.optimizers().param_groups[0]["lr"]
         self.tb_logger.log_metrics({"lr": lr}, step=self.global_step)
-        
+
         return loss_logs
 
     def on_train_start(self):
