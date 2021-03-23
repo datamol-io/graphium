@@ -84,12 +84,12 @@ predictor:
     weight_decay: 1.e-7
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
-    patience: 7
+    patience: 15
   scheduler_kwargs:
     monitor: &monitor loss/val
     frequency: 1
   target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
-  tensorboard_save_dir: logs
+  tensorboard_save_dir: logs/ZINC_bench_gnn
 
 
 metrics:
@@ -142,7 +142,5 @@ trainer:
   trainer:
     max_epochs: 1000
     min_epochs: 100
-  tensorboard_logs:
-    save_dir: logs/ZINC_bench_gnn
 
     
