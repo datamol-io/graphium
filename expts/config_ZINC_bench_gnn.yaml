@@ -14,7 +14,7 @@ datamodule:
   featurization:
     atom_property_list_onehot: [atomic-number, valence]
     atom_property_list_float: [mass, electronegativity, in-ring]
-    edge_property_list: [] # [bond-type-onehot, stereo, in-ring]
+    edge_property_list: [bond-type-onehot, stereo, in-ring]
     add_self_loop: False
     explicit_H: False
     use_bonds_weights: False
@@ -57,7 +57,7 @@ architecture:
     residual_type: simple
     pooling: 'sum'
     virtual_node: none
-    layer_type: 'pna-conv'
+    layer_type: 'pna-msgpass'
     layer_kwargs:
       # num_heads: 3
       aggregators: [mean, max]
@@ -85,6 +85,7 @@ predictor:
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
     patience: 15
+    min_lr: 1.e-5
   scheduler_kwargs:
     monitor: &monitor loss/val
     frequency: 1
