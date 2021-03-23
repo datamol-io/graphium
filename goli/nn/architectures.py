@@ -26,6 +26,7 @@ class FeedForwardNN(nn.Module):
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
         batch_norm: bool = False,
+        last_batch_norm: bool = False,
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         name: str = "LNN",
@@ -67,6 +68,9 @@ class FeedForwardNN(nn.Module):
 
             batch_norm:
                 Whether to use batch normalization
+
+            last_batch_norm:
+                Whether to use batch normalization in the last layer
 
             residual_type:
                 - "none": No residual connection
@@ -114,6 +118,7 @@ class FeedForwardNN(nn.Module):
         self.last_activation = get_activation(last_activation)
         self.dropout = dropout
         self.batch_norm = batch_norm
+        self.last_batch_norm = last_batch_norm
         self.residual_type = None if residual_type is None else residual_type.lower()
         self.residual_skip_steps = residual_skip_steps
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
@@ -213,11 +218,13 @@ class FeedForwardNN(nn.Module):
         self.layers = nn.ModuleList()
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
+        this_batch_norm = self.batch_norm
 
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
             if ii == self.depth - 1:
                 this_activation = self.last_activation
+                this_batch_norm = self.last_batch_norm
 
             # Create the layer
             self.layers.append(
@@ -226,7 +233,7 @@ class FeedForwardNN(nn.Module):
                     out_dim=this_out_dim,
                     activation=this_activation,
                     dropout=self.dropout,
-                    batch_norm=self.batch_norm,
+                    batch_norm=this_batch_norm,
                     **self.layer_kwargs,
                 )
             )
@@ -281,6 +288,7 @@ class FeedForwardDGL(FeedForwardNN):
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
         batch_norm: bool = False,
+        last_batch_norm: bool = False,
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
@@ -328,6 +336,9 @@ class FeedForwardDGL(FeedForwardNN):
 
             batch_norm:
                 Whether to use batch normalization
+
+            last_batch_norm:
+                Whether to use batch normalization in the last layer
 
             residual_type:
                 - "none": No residual connection
@@ -424,6 +435,7 @@ class FeedForwardDGL(FeedForwardNN):
             activation=activation,
             last_activation=last_activation,
             batch_norm=batch_norm,
+            last_batch_norm=last_batch_norm,
             residual_type=residual_type,
             residual_skip_steps=residual_skip_steps,
             name=name,
