@@ -60,7 +60,7 @@ Our current code is compatible with the metrics defined by _pytorch-lightning_, 
 
 To use the metric, you can easily add it's name from `METRICS_DICT` in the yaml configuration file, at the address `metrics.metrics_dict`. Each metric has an underlying dictionnary with a mandatory `threshold` key containing information on how to threshold the prediction/target before computing the metric. Any `kwargs` arguments of the metric must also be added.
 
-## Running a hyper-parameter search
+## (OLD) Running a hyper-parameter search
 
 In the current repository, we use `hydra-core` to launch multiple experiments in a grid-search manner. It works by specifying the parameters that we want to change from a given YAML file.
 
