@@ -74,7 +74,6 @@ architecture:
     last_batch_norm: False
     residual_type: none
 
-
 predictor:
   metrics_on_progress_bar: ["mae", "pearsonr", "f1 > 3", "precision > 3"]
   loss_fun: mse
