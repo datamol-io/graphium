@@ -141,5 +141,6 @@ trainer:
   trainer:
     max_epochs: 25
     min_epochs: 5
+    gpus: 1
 
     

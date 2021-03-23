@@ -272,9 +272,8 @@ class FeedForwardNN(nn.Module):
         """
         class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
         layer_str = f"[{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]"
-        out_str = f" -> Linear({self.out_dim})"
 
-        return class_str + layer_str + out_str
+        return class_str + layer_str
 
 
 class FeedForwardDGL(FeedForwardNN):
