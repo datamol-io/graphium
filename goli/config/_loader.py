@@ -2,6 +2,8 @@ from typing import List, Dict, Union, Any
 
 import omegaconf
 from copy import deepcopy
+import torch
+from loguru import logger
 
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
@@ -96,7 +98,22 @@ def load_predictor(config, model_class, model_kwargs, metrics):
 
 
 def load_trainer(config, metrics):
-    cfg_trainer = config["trainer"]
+    cfg_trainer = deepcopy(config["trainer"])
+
+    # Set the number of gpus to 0 if no GPU is available
+    gpus = cfg_trainer["trainer"].pop("gpus", 0)
+    num_gpus = 0
+    if isinstance(gpus, int):
+        num_gpus = gpus
+    elif isinstance(gpus, (list, tuple)):
+        num_gpus = len(gpus)
+    if (num_gpus > 0) and (not torch.cuda.is_available()):
+        logger.warning(
+            f"Number of GPUs selected is `{num_gpus}`, but will be ignored since no GPU are available on this device"
+        )
+        gpus = 0
+
+    
     early_stopping = EarlyStopping(**cfg_trainer["early_stopping"])
     checkpoint_callback = ModelCheckpoint(**cfg_trainer["model_checkpoint"])
 
@@ -109,6 +126,7 @@ def load_trainer(config, metrics):
         callbacks=[early_stopping, checkpoint_callback],
         terminate_on_nan=True,
         **cfg_trainer["trainer"],
+        gpus=gpus,
     )
 
     return trainer

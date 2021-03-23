@@ -133,7 +133,7 @@ trainer:
     patience: 10
     mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/micro-zinc/
+    dirpath: models_checkpoints/micro_ZINC/
     filename: "bob"
     monitor: *monitor
     mode: *mode
@@ -142,5 +142,6 @@ trainer:
   trainer:
     max_epochs: 1000
     min_epochs: 100
+    gpus: 1
 
     
