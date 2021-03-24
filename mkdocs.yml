@@ -15,10 +15,12 @@ nav:
       - Using GNN layers: examples/basics/using_gnn_layers.ipynb
       - Implementing GNN layers: examples/basics/implementing_gnn_layers.ipynb
       - Making GNN networks: examples/basics/making_gnn_networks.ipynb
+      - Simple Molecular Model: examples/model_training/simple-molecular-model.ipynb
   - API:
     - goli.nn: api/goli.nn.md
     - goli.features: api/goli.features.md
     - goli.trainer: api/goli.trainer.md
+    - goli.data: api/goli.data.md
     # - goli.cli: api/goli.cli.md
     - goli.utils: api/goli.utils.md
     # - goli.data_parser: api/goli.data_parser.md
