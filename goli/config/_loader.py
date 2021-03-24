@@ -122,7 +122,6 @@ def load_trainer(config, metrics):
     )
 
     trainer = Trainer(
-        # logger=tb_logger,
         callbacks=[checkpoint_callback, early_stopping],
         terminate_on_nan=True,
         **cfg_trainer["trainer"],
