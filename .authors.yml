@@ -1,14 +1,26 @@
 - name: Dom
   email: dominique@invivoai.com
-  num_commits: 1
+  num_commits: 103
   first_commit: 2021-01-20 01:31:50
+  github: invivoai
 - name: DomInvivo
   email: 47570400+DomInvivo@users.noreply.github.com
   num_commits: 2
   first_commit: 2021-01-19 15:30:48
+  github: invivoai
 - name: Hadrien Mary
   email: hadrien.mary@gmail.com
   alternate_emails:
-    - hadim@users.noreply.github.com
-  num_commits: 5
+  - hadim@users.noreply.github.com
+  num_commits: 46
   first_commit: 2021-01-20 10:31:10
+  github: invivoai
+- name: Ubuntu
+  email: ubuntu@ip-172-31-19-91.us-east-2.compute.internal
+  num_commits: 8
+  first_commit: 2021-03-23 12:26:32
+- name: Therence1
+  email: 38595485+Therence1@users.noreply.github.com
+  num_commits: 1
+  first_commit: 2021-03-21 11:41:43
+  github: Therence1

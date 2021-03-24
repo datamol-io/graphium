@@ -4,3 +4,5 @@ Authors are sorted alphabetically.
 * Dom
 * DomInvivo
 * Hadrien Mary
+* Therence1
+* Ubuntu
