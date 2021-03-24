@@ -13,8 +13,8 @@ datamodule:
   featurization_progress: True
   featurization:
     atom_property_list_onehot: [atomic-number, valence]
-    atom_property_list_float: [mass, electronegativity, in-ring]
-    edge_property_list: [bond-type-onehot, stereo, in-ring]
+    atom_property_list_float: [mass, electronegativity]
+    edge_property_list: [bond-type-onehot, stereo]
     add_self_loop: False
     explicit_H: False
     use_bonds_weights: False
@@ -35,12 +35,12 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &middle_dim 64
+    out_dim: &middle_dim 90
     hidden_dims: *middle_dim
     depth: 0
     activation: relu
     last_activation: none
-    dropout: &dropout 0.1
+    dropout: &dropout 0.
     batch_norm: &batch_norm True
     last_batch_norm: *batch_norm
     residual_type: none
@@ -60,7 +60,7 @@ architecture:
     layer_type: 'pna-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max]
+      aggregators: [mean, max, min, std]
       scalers: [identity, amplification, attenuation]
   
   post_nn:
@@ -81,10 +81,10 @@ predictor:
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-3
-    weight_decay: 1.e-7
+    weight_decay: 3.e-6
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
-    patience: 15
+    patience: 50
     min_lr: 1.e-5
   scheduler_kwargs:
     monitor: &monitor loss/val
@@ -131,7 +131,7 @@ trainer:
   early_stopping:
     monitor: *monitor
     min_delta: 0
-    patience: 10
+    patience: 200
     mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/micro_ZINC/
@@ -141,7 +141,7 @@ trainer:
     save_top_k: 1
     period: 1
   trainer:
-    max_epochs: 1000
+    max_epochs: 2000
     min_epochs: 100
     gpus: 1
 
