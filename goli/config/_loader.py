@@ -113,7 +113,6 @@ def load_trainer(config, metrics):
         )
         gpus = 0
 
-    
     early_stopping = EarlyStopping(**cfg_trainer["early_stopping"])
     checkpoint_callback = ModelCheckpoint(**cfg_trainer["model_checkpoint"])
 
