@@ -26,11 +26,12 @@ class FeedForwardNN(nn.Module):
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
         batch_norm: bool = False,
+        last_batch_norm: bool = False,
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         name: str = "LNN",
         layer_type: Union[str, nn.Module] = "fc",
-        **layer_kwargs,
+        layer_kwargs: Optional[Dict] = None,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -68,6 +69,9 @@ class FeedForwardNN(nn.Module):
             batch_norm:
                 Whether to use batch normalization
 
+            last_batch_norm:
+                Whether to use batch normalization in the last layer
+
             residual_type:
                 - "none": No residual connection
                 - "simple": Residual connection similar to the ResNet architecture.
@@ -94,6 +98,9 @@ class FeedForwardNN(nn.Module):
                 Either "fc" as the `FCLayer`, or a class representing the `nn.Module`
                 to use.
 
+            layer_kwargs:
+                The arguments to be used in the initialization of the layer provided by `layer_type`
+
         """
 
         super().__init__()
@@ -111,16 +118,15 @@ class FeedForwardNN(nn.Module):
         self.last_activation = get_activation(last_activation)
         self.dropout = dropout
         self.batch_norm = batch_norm
+        self.last_batch_norm = last_batch_norm
         self.residual_type = None if residual_type is None else residual_type.lower()
         self.residual_skip_steps = residual_skip_steps
-        self.layer_kwargs = layer_kwargs
+        self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
 
         # Parse the layer and residuals
         self.layer_class, self.layer_name = self._parse_class_from_dict(layer_type, LAYERS_DICT)
         self.residual_class, self.residual_name = self._parse_class_from_dict(residual_type, RESIDUALS_DICT)
-
-        self._register_hparams()
 
         self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
         self._create_layers()
@@ -135,24 +141,6 @@ class FeedForwardNN(nn.Module):
                 f"When using the residual_type={self.residual_type}"
                 + f", all elements in the hidden_dims must be equal. Provided:{self.hidden_dims}"
             )
-
-    def _register_hparams(self):
-        r"""
-        Register the hyperparameters for tracking by Pytorch-lightning
-        """
-        self.hparams = {
-            f"{self.name}.out_dim": self.out_dim,
-            f"{self.name}.hidden_dims": self.hidden_dims,
-            f"{self.name}.activation": str(self.activation),
-            f"{self.name}.batch_norm": str(self.batch_norm),
-            f"{self.name}.last_activation": str(self.last_activation),
-            f"{self.name}.layer_name": str(self.layer_name),
-            f"{self.name}.depth": self.depth,
-            f"{self.name}.dropout": self.dropout,
-            f"{self.name}.residual_name": self.residual_name,
-            f"{self.name}.residual_skip_steps": self.residual_skip_steps,
-            f"{self.name}.layer_kwargs": str(self.layer_kwargs),
-        }
 
     def _parse_class_from_dict(
         self, name_or_class: Union[type, str], class_dict: Dict[str, type]
@@ -207,11 +195,13 @@ class FeedForwardNN(nn.Module):
         self.layers = nn.ModuleList()
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
+        this_batch_norm = self.batch_norm
 
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
             if ii == self.depth - 1:
                 this_activation = self.last_activation
+                this_batch_norm = self.last_batch_norm
 
             # Create the layer
             self.layers.append(
@@ -220,7 +210,7 @@ class FeedForwardNN(nn.Module):
                     out_dim=this_out_dim,
                     activation=this_activation,
                     dropout=self.dropout,
-                    batch_norm=self.batch_norm,
+                    batch_norm=this_batch_norm,
                     **self.layer_kwargs,
                 )
             )
@@ -259,9 +249,8 @@ class FeedForwardNN(nn.Module):
         """
         class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
         layer_str = f"[{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]"
-        out_str = f" -> Linear({self.out_dim})"
 
-        return class_str + layer_str + out_str
+        return class_str + layer_str
 
 
 class FeedForwardDGL(FeedForwardNN):
@@ -275,6 +264,7 @@ class FeedForwardDGL(FeedForwardNN):
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
         batch_norm: bool = False,
+        last_batch_norm: bool = False,
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
@@ -282,8 +272,8 @@ class FeedForwardDGL(FeedForwardNN):
         pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "GNN",
         layer_type: Union[str, nn.Module] = "gcn",
+        layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
-        **layer_kwargs,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -322,6 +312,9 @@ class FeedForwardDGL(FeedForwardNN):
 
             batch_norm:
                 Whether to use batch normalization
+
+            last_batch_norm:
+                Whether to use batch normalization in the last layer
 
             residual_type:
                 - "none": No residual connection
@@ -379,6 +372,9 @@ class FeedForwardDGL(FeedForwardNN):
                 - "pna-conv": `PNAConvolutionalLayer`
                 - "pna-msgpass": `PNAMessagePassingLayer`
 
+            layer_kwargs:
+                The arguments to be used in the initialization of the layer provided by `layer_type`
+
             virtual_node:
                 A string associated to the type of virtual node to use,
                 either `None`, "none", "mean", "sum", "max", "logsum".
@@ -403,7 +399,7 @@ class FeedForwardDGL(FeedForwardNN):
         if len(self.hidden_dims_edges) > 0:
             self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
 
-        self.virtual_node = virtual_node.lower()
+        self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
         self.pooling = pooling
 
         # Initialize the parent `FeedForwardNN`
@@ -415,12 +411,13 @@ class FeedForwardDGL(FeedForwardNN):
             activation=activation,
             last_activation=last_activation,
             batch_norm=batch_norm,
+            last_batch_norm=last_batch_norm,
             residual_type=residual_type,
             residual_skip_steps=residual_skip_steps,
             name=name,
             layer_type=layer_type,
             dropout=dropout,
-            **layer_kwargs,
+            layer_kwargs=layer_kwargs,
         )
 
     def _check_bad_arguments(self):
@@ -432,15 +429,6 @@ class FeedForwardDGL(FeedForwardNN):
             (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
         ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
-
-    def _register_hparams(self):
-        r"""
-        Register the hyperparameters for tracking by Pytorch-lightning
-        """
-        return super()._register_hparams()
-        self.hparams["hidden_edge_dim"] = self.hidden_edge_dim
-        self.hparams["pooling"] = self.pooling
-        self.hparams["intermittent_pooling"] = self.intermittent_pooling
 
     def _create_layers(self):
         r"""
@@ -505,7 +493,7 @@ class FeedForwardDGL(FeedForwardNN):
             if ii < len(residual_out_dims):
                 self.virtual_node_layers.append(
                     VirtualNode(
-                        dim=this_out_dim,
+                        dim=this_out_dim * self.layers[-1].out_dim_factor,
                         activation=this_activation,
                         dropout=self.dropout,
                         batch_norm=self.batch_norm,
@@ -799,25 +787,21 @@ class FullDGLNetwork(nn.Module):
         # Initialize the networks
         self.pre_nn, self.post_nn = None, None
         if pre_nn_kwargs is not None:
-            name = pre_nn_kwargs.pop("name", "pre-trans-NN")
+            name = pre_nn_kwargs.pop("name", "pre-NN")
             self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
             next_in_dim = self.pre_nn.out_dim
             gnn_kwargs.setdefault("in_dim", next_in_dim)
             assert next_in_dim == gnn_kwargs["in_dim"]
 
-        name = gnn_kwargs.pop("name", "main-GNN")
+        name = gnn_kwargs.pop("name", "GNN")
         self.gnn = FeedForwardDGL(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
 
         if post_nn_kwargs is not None:
-            name = post_nn_kwargs.pop("name", "post-trans-NN")
+            name = post_nn_kwargs.pop("name", "post-NN")
             post_nn_kwargs.setdefault("in_dim", next_in_dim)
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim
-
-        # Initialize the hyper-parameter variable to be accessible by Pytorch Lightning
-        hparams_temp = {**self.pre_nn.hparams, **self.pre_nn.hparams, **self.pre_nn.hparams}
-        self.hparams = {f"{self.name}.{key}": elem for key, elem in hparams_temp.items()}
 
     def _check_bad_arguments(self):
         r"""
@@ -867,6 +851,9 @@ class FullDGLNetwork(nn.Module):
                 otherwise it returns graph features and the output dimension is `M`
 
         """
+        g.ndata["h"] = g.ndata["feat"]
+        if "feat" in g.edata.keys():
+            g.edata["e"] = g.edata["feat"]
 
         if self.pre_nn is not None:
             h = g.ndata["h"]
@@ -935,7 +922,6 @@ class FullDGLSiameseNetwork(FullDGLNetwork):
         )
 
         self.dist_method = dist_method.lower()
-        self.hparams[f"{self.name}.dist_method"] = self.dist_method
 
     def forward(self, graphs):
         graph_1, graph_2 = graphs

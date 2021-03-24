@@ -254,6 +254,27 @@ def get_mol_atomic_features_float(
     return prop_dict
 
 
+def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Chem.rdchem.Conformer:
+    r"""
+    If the molecule has a conformer, then it will return the conformer at idx `0`.
+    Otherwise, it generates a simple molecule conformer using `rdkit.Chem.rdDistGeom.EmbedMolecule`
+    and returns it. This is meant to be used in simple functions like `GetBondLength`,
+    not in functions requiring complex 3D structure.
+
+    Parameters:
+
+        mol: Rdkit Molecule
+
+    Returns:
+        conf: A conformer of the molecule
+    """
+    if mol.GetNumConformers() == 0:
+        Chem.rdDistGeom.EmbedMolecule(mol)
+
+    conf = mol.GetConformer(0)
+    return conf
+
+
 def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
     r"""
     Get the following set of features for any given bond
@@ -278,6 +299,7 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
             - "stereo"
             - "ring", "in-ring"
             - "conjugated"
+            - "bond-length"
 
     Returns:
         prop_dict:
@@ -309,6 +331,11 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
                 one_hot = [bond.IsInRing()]
             elif prop in ["conjugated"]:
                 one_hot = [bond.GetIsConjugated()]
+            elif prop in ["bond-length"]:
+                conf = get_simple_mol_conformer(mol)
+                idx1 = bond.GetBeginAtomIdx()
+                idx2 = bond.GetEndAtomIdx()
+                one_hot = [Chem.rdMolTransforms.GetBondLength(conf, idx1, idx2)]
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 

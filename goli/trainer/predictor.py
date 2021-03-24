@@ -2,19 +2,21 @@ from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import os, math
 import dgl
 import numpy as np
+import pandas as pd
 from copy import deepcopy
+import yaml
+from omegaconf import DictConfig, ListConfig
 
 import torch
 import torch.nn.functional as F
 from torch import nn
-from torch.utils.tensorboard import SummaryWriter
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
-from goli.trainer.reporting import ModelSummaryExtended
+from goli.trainer.model_summary import ModelSummaryExtended
 
 
 LOSS_DICT = {
@@ -29,21 +31,82 @@ LOSS_DICT = {
 class EpochSummary:
     r"""Container for collecting epoch-wise results"""
 
+    def __init__(self, monitor="loss", monitor_greater: bool = False, metrics_on_progress_bar=[]):
+        self.monitor = monitor
+        self.monitor_greater = monitor_greater
+        self.metrics_on_progress_bar = metrics_on_progress_bar
+        self.summaries = {}
+        self.best_summaries = {}
+
     class Results:
-        def __init__(self, targets: torch.Tensor, predictions: torch.Tensor, loss: float, metrics: dict):
+        def __init__(
+            self,
+            targets: torch.Tensor,
+            predictions: torch.Tensor,
+            loss: float,
+            metrics: dict,
+            monitored_metric: str,
+            n_epochs: int,
+        ):
             self.targets = targets
             self.predictions = predictions
             self.loss = loss
+            self.monitored_metric = monitored_metric
+            self.monitored = metrics[monitored_metric]
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
+            self.n_epochs = n_epochs
 
-    def __init__(self):
-        self.summaries = {}
+    def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
+        metrics[f"loss/{name}"] = loss
+        self.summaries[name] = EpochSummary.Results(
+            targets=targets,
+            predictions=predictions,
+            loss=loss,
+            metrics=metrics,
+            monitored_metric=f"{self.monitor}/{name}",
+            n_epochs=n_epochs,
+        )
+        if self.is_best_epoch(name, loss, metrics):
+            self.best_summaries[name] = self.summaries[name]
 
-    def set_results(self, name, targets, predictions, loss, metrics) -> float:
-        self.summaries[name] = EpochSummary.Results(targets, predictions, loss, metrics)
+    def is_best_epoch(self, name, loss, metrics):
+        if not (name in self.best_summaries.keys()):
+            return True
+
+        metrics[f"loss/{name}"] = loss
+        monitor_name = f"{self.monitor}/{name}"
+        return (self.monitor_greater and (metrics[monitor_name] > self.best_summaries[name].monitored)) or (
+            (not self.monitor_greater) and (metrics[monitor_name] < self.best_summaries[name].monitored)
+        )
 
     def get_results(self, name):
         return self.summaries[name]
+
+    def get_best_results(self, name):
+        return self.best_summaries[name]
+
+    def get_results_on_progress_bar(self, name):
+        results = self.summaries[name]
+        results_prog = {
+            f"{kk}/{name}": results.metrics[f"{kk}/{name}"] for kk in self.metrics_on_progress_bar
+        }
+        return results_prog
+
+    def get_dict_summary(self):
+        full_dict = {}
+        # Get metric summaries
+        full_dict["metric_summaries"] = {}
+        for key, val in self.summaries.items():
+            full_dict["metric_summaries"][key] = {k: v for k, v in val.metrics.items()}
+            full_dict["metric_summaries"][key]["n_epochs"] = val.n_epochs
+
+        # Get metric summaries at best epoch
+        full_dict["best_epoch_metric_summaries"] = {}
+        for key, val in self.best_summaries.items():
+            full_dict["best_epoch_metric_summaries"][key] = val.metrics
+            full_dict["best_epoch_metric_summaries"][key]["n_epochs"] = val.n_epochs
+
+        return full_dict
 
 
 class PredictorModule(pl.LightningModule):
@@ -53,16 +116,13 @@ class PredictorModule(pl.LightningModule):
         model_kwargs: Dict[str, Any],
         loss_fun: Union[str, Callable],
         random_seed: int = 42,
-        dtype: torch.dtype = torch.float32,
-        device: Union[str, torch.device] = "cpu",
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Union[int, float, str, type(None)] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
-        collate_fn: Union[type(None), Callable] = None,
-        additional_hparams: Dict[str, Any] = None,
+        tensorboard_save_dir: str = "logs",
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -82,12 +142,6 @@ class PredictorModule(pl.LightningModule):
 
             random_seed:
                 The random seed used by Pytorch to initialize random tensors.
-
-            dtype:
-                The desired floating point type of the floating point parameters and buffers in this module.
-
-            device:
-                the desired device of the parameters and buffers in this module
 
             optim_kwargs:
                 Dictionnary used to initialize the optimizer, with possible keys below.
@@ -110,7 +164,7 @@ class PredictorModule(pl.LightningModule):
             scheduler_kwargs:
                 Dictionnary for the scheduling of the learning rate modification
 
-                - monitor `str`: metric to track (Default=`"val_loss"`)
+                - monitor `str`: metric to track (Default=`"loss/val"`)
                 - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
                 - strict `bool`: if set to True will enforce that value specified in monitor is available
                   while trying to call scheduler.step(), and stop training if not found. If False will
@@ -134,73 +188,53 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar:
                 The metrics names from `metrics` to display also on the progress bar of the training
 
-            collate_fn:
-                Merges a list of samples to form a mini-batch of Tensor(s).
-                Used when using batched loading from a map-style dataset.
-                See `torch.utils.data.DataLoader.__init__`
-
-            additional_hparams:
-                Additionnal hyper-parameters to log in the TensorBoard file.
-                They won't be used by the class, only logged.
+            tensorboard_save_dir:
+                Directory where to save the tensorboard output files.
 
         """
+
+        self.save_hyperparameters()
 
         torch.random.manual_seed(random_seed)
         np.random.seed(random_seed)
 
         super().__init__()
+        self.model = model_class(**model_kwargs)
 
         # Basic attributes
-        self.model = model_class(**model_kwargs).to(dtype=dtype, device=device)
         self.loss_fun = self.parse_loss_fun(loss_fun)
         self.random_seed = random_seed
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
-        self.collate_fn = collate_fn
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        self.epoch_summary = EpochSummary()
-        self._dtype = dtype
-        self._device = device
+        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
+        self.optim_kwargs = optim_kwargs
+        self.scheduler_kwargs = scheduler_kwargs
+        self.tensorboard_save_dir = tensorboard_save_dir
 
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.optim_kwargs.set_default("lr", 1e-3)
-        self.optim_kwargs.set_default("weight_decay", 0.0)
+        self.optim_kwargs.setdefault("lr", 1e-3)
+        self.optim_kwargs.setdefault("weight_decay", 0.0)
 
         self.lr_reduce_on_plateau_kwargs = (
             lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
         )
-        self.lr_reduce_on_plateau_kwargs.set_default("factor", 0.5)
-        self.lr_reduce_on_plateau_kwargs.set_default("patience", 10)
-        self.lr_reduce_on_plateau_kwargs.set_default("min_lr", 1e-4)
+        self.lr_reduce_on_plateau_kwargs.setdefault("factor", 0.5)
+        self.lr_reduce_on_plateau_kwargs.setdefault("patience", 10)
+        self.lr_reduce_on_plateau_kwargs.setdefault("min_lr", 1e-4)
 
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.scheduler_kwargs.set_default("monitor", "val_loss")
-        self.scheduler_kwargs.set_default("interval", "epoch")
-        self.scheduler_kwargs.set_default("frequency", 1)
-        self.scheduler_kwargs.set_default("strict", True)
+        self.scheduler_kwargs.setdefault("monitor", "loss/val")
+        self.scheduler_kwargs.setdefault("interval", "epoch")
+        self.scheduler_kwargs.setdefault("frequency", 1)
+        self.scheduler_kwargs.setdefault("strict", True)
 
-        # Gather the hyper-parameters of the model
-        self.hparams = deepcopy(self.model.hparams) if hasattr(self.model, "hparams") else {}
-        if additional_hparams is not None:
-            self.hparams.update(additional_hparams)
-
-        # Add other hyper-parameters to the list
-        self.hparams.update(
-            {
-                "loss_fun": self.loss_fun._get_name(),
-                "random_seed": self.random_seed,
-                "n_params": self.n_params,
-            }
+        monitor = scheduler_kwargs["monitor"].split("/")[0]
+        self.epoch_summary = EpochSummary(
+            monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
-
-        self.hparams.update({f"optim.{key}": val for key, val in self.optim_kwargs.items()})
-        self.hparams.update(
-            {f"lr_reduce.{key}": val for key, val in self.lr_reduce_on_plateau_kwargs.items()}
-        )
-
-        self.to(dtype=dtype, device=device)
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
@@ -225,11 +259,11 @@ class PredictorModule(pl.LightningModule):
 
         return loss_fun
 
-    def forward(self, *inputs: List[torch.Tensor]):
+    def forward(self, inputs: Dict):
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         """
-        out = self.model.forward(*inputs)
+        out = self.model.forward(inputs["features"])
         return out
 
     def configure_optimizers(self):
@@ -286,7 +320,7 @@ class PredictorModule(pl.LightningModule):
         else:
             raise ValueError(f"Invalid option `{target_nan_mask}`")
 
-        loss = loss_fun(preds, targets, reduction="mean")
+        loss = loss_fun(preds, targets)
 
         return loss
 
@@ -323,78 +357,129 @@ class PredictorModule(pl.LightningModule):
                 containing the metrics to log on tensorboard.
         """
 
-        targets = targets.to(dtype=self._dtype, device=self._device)
+        targets = targets.to(dtype=preds.dtype, device=preds.device)
         loss = self.compute_loss(
-            preds=preds, targets=targets, target_nan_mask=target_nan_mask, loss_fun=loss_fun
+            preds=preds, targets=targets, target_nan_mask=self.target_nan_mask, loss_fun=self.loss_fun
         )
 
         # Compute the metrics always used in regression tasks
-        tensorboard_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
-        tensorboard_logs[f"mean_pred/{step_name}"] = torch.mean(preds)
-        tensorboard_logs[f"std_pred/{step_name}"] = torch.std(preds)
+        metric_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
+        metric_logs[f"mean_pred/{step_name}"] = torch.mean(preds)
+        metric_logs[f"std_pred/{step_name}"] = torch.std(preds)
 
         # Compute the additional metrics
-        # TODO: Change this to use metrics on Torch, not numpy
         # TODO: NaN mask `target_nan_mask` not implemented here
-        preds2 = preds.clone().cpu().detach()
-        targets2 = targets.clone().cpu().detach()
         for key, metric in self.metrics.items():
             metric_name = f"{key}/{step_name}"
             try:
-                tensorboard_logs[metric_name] = torch.from_numpy(np.asarray(metric(preds2, targets2)))
+                metric_logs[metric_name] = metric(preds, targets)
             except:
-                tensorboard_logs[metric_name] = torch.tensor(float("nan"))
-        return {loss_name: loss, "log": tensorboard_logs}
+                metric_logs[metric_name] = torch.tensor(float("nan"))
+
+        return loss, metric_logs
+
+    def _general_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        r"""Common code for training_step, validation_step and testing_step"""
+        y = batch.pop("labels")
+        preds = self.forward(batch)
+        step_dict = {"preds": preds, "targets": y}
+        return step_dict
 
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
-        *x, y = batch
-        preds = self.forward(*x)
-        return self.get_metrics_logs(preds=preds, targets=y, step_name="train", loss_name="loss")
+        step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
+        loss, metric_logs = self.get_metrics_logs(
+            preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
+        )
 
-    def validation_step(
-        self, batch: Tuple[torch.Tensor], batch_idx: int
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        *x, y = batch
-        preds = self.forward(*x)
-        return preds, y
+        step_dict.update(metric_logs)
+        step_dict["loss"] = loss
+
+        return step_dict
+
+    def validation_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        return self._general_step(batch=batch, batch_idx=batch_idx)
+
+    def testing_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        return self._general_step(batch=batch, batch_idx=batch_idx)
+
+    def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
+        r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
+
+        # Transform the list of dict of dict, into a dict of list of dict
+        preds = torch.cat([out["preds"] for out in outputs], dim=0)
+        targets = torch.cat([out["targets"] for out in outputs], dim=0)
+        loss_name = f"loss/{step_name}"
+        loss, metrics_logs = self.get_metrics_logs(
+            preds=preds, targets=targets, step_name=step_name, loss_name=loss_name
+        )
+
+        self.epoch_summary.set_results(
+            name=step_name,
+            predictions=preds,
+            targets=targets,
+            loss=loss,
+            metrics=metrics_logs,
+            n_epochs=self.current_epoch,
+        )
+
+        return metrics_logs
+
+    def training_epoch_end(self, outputs: Dict):
+
+        self._general_epoch_end(outputs=outputs, step_name="train")
 
     def validation_epoch_end(self, outputs: List):
 
-        # Transform the list of dict of dict, into a dict of list of dict
-        preds, targets = zip(*outputs)
-        preds = torch.cat(preds, dim=-1)
-        targets = torch.cat(targets, dim=-1)
-        loss_name = "val_loss"
-        loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="val", loss_name=loss_name)
-        metrics_names_to_display = [f"{metric_name}/val" for metric_name in self.metrics_on_progress_bar]
-        metrics_to_display = {
-            metric_name: loss_logs["log"][metric_name] for metric_name in metrics_names_to_display
-        }
+        metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
 
-        self.epoch_summary.set_results(
-            name="val",
-            predictions=preds,
-            targets=targets,
-            loss=loss_logs[loss_name],
-            metrics=metrics_to_display,
-        )
-        return loss_logs
+        lr = self.optimizers().param_groups[0]["lr"]
+        metrics_logs["lr"] = lr
+        metrics_logs["n_epochs"] = self.current_epoch
+        self.logger.log_metrics(metrics_logs, step=self.global_step)
+
+        # Save yaml file with the metrics summaries
+        full_dict = {}
+        full_dict.update(self.epoch_summary.get_dict_summary())
+        tb_path = self.logger.log_dir
+        with open(f"{tb_path}/metrics.yaml", "w") as file:
+            yaml.dump(full_dict, file)
+
+        return metrics_logs
+
+    def testing_epoch_end(self, outputs: List):
+
+        metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
+
+        # Save yaml file with the metrics summaries
+        full_dict = {}
+        full_dict.update(self.epoch_summary.get_dict_summary())
+        tb_path = self.logger.log_dir
+        with open(f"{tb_path}/metrics.yaml", "w") as file:
+            yaml.dump(full_dict, file)
+
+    def on_train_start(self):
+        self.logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
-        prog_dict["val_loss"] = self.epoch_summary.get_results("val").loss.tolist()
-        prog_dict.update(self.epoch_summary.get_results("val").metrics)
+        results_on_progress_bar = self.epoch_summary.get_results_on_progress_bar("val")
+        prog_dict["loss/val"] = self.epoch_summary.summaries["val"].loss.tolist()
+        prog_dict.update(results_on_progress_bar)
         return prog_dict
 
-    def summarize(self, mode: str = ModelSummaryExtended.MODE_DEFAULT) -> ModelSummaryExtended:
+    def summarize(self, mode: str = ModelSummaryExtended.MODE_DEFAULT, to_print=True) -> ModelSummaryExtended:
         r"""
         Provide a summary of the class, usually to be printed
         """
         model_summary = None
 
+        if isinstance(mode, int):
+            mode = ModelSummaryExtended.MODES[mode - 1]
+
         if mode in ModelSummaryExtended.MODES:
             model_summary = ModelSummaryExtended(self, mode=mode)
-            log.info("\n" + str(model_summary))
+            if to_print:
+                log.info("\n" + str(model_summary))
         elif mode is not None:
             raise MisconfigurationException(
                 f"`mode` can be None, {', '.join(ModelSummaryExtended.MODES)}, got {mode}"
@@ -406,4 +491,7 @@ class PredictorModule(pl.LightningModule):
         r"""
         Controls how the class is printed
         """
-        return self.summarize().__repr__()
+        model_str = self.model.__repr__()
+        summary_str = self.summarize(to_print=False).__repr__()
+
+        return model_str + "\n\n" + summary_str
