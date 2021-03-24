@@ -56,7 +56,7 @@ python expts/main_micro_zinc.py
 
 ## Documentation
 
-Find the documentation at [https://invivoai--goli.github.privpage.net/](https://invivoai--goli.github.privpage.net/).
+Find the documentation at [https://valence-discovery--goli.github.privpage.net/](https://valence-discovery--goli.github.privpage.net/).
 
 ## Maintainers
 
