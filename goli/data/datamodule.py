@@ -318,7 +318,13 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         """
 
         if smiles_col is None:
-            smiles_col = [col for col in df.columns if "smile" in str(col).lower()][0]
+            smiles_col_all = [col for col in df.columns if "smile" in str(col).lower()]
+            if len(smiles_col_all) == 0:
+                raise ValueError(f"No SMILES column found in dataframe. Columns are {df.columns}")
+            elif len(smiles_col_all) > 1:
+                raise ValueError(f"Multiple SMILES column found in dataframe. SMILES Columns are {smiles_col_all}")
+                
+            smiles_col = smiles_col_all[0]
 
         if label_cols is None:
             label_cols = df.columns.drop(smiles_col)

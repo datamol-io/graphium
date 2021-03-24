@@ -116,11 +116,10 @@ def load_trainer(config, metrics):
     early_stopping = EarlyStopping(**cfg_trainer["early_stopping"])
     checkpoint_callback = ModelCheckpoint(**cfg_trainer["model_checkpoint"])
 
-    tb_logger = TensorBoardLogger(
-        save_dir="logs",
-    )
+    tb_logger = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
 
     trainer = Trainer(
+        logger=tb_logger,
         callbacks=[checkpoint_callback, early_stopping],
         terminate_on_nan=True,
         **cfg_trainer["trainer"],

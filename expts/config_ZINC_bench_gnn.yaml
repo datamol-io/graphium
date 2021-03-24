@@ -90,7 +90,6 @@ predictor:
     monitor: &monitor loss/val
     frequency: 1
   target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
-  tensorboard_save_dir: logs/ZINC_bench_gnn
 
 
 metrics:
@@ -128,6 +127,8 @@ metrics:
     threshold_kwargs: *threshold_0
 
 trainer:
+  logger: 
+    save_dir: logs/ZINC_bench_gnn
   early_stopping:
     monitor: *monitor
     min_delta: 0
