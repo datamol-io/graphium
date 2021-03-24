@@ -476,13 +476,15 @@ class PredictorModule(pl.LightningModule):
             n_epochs=self.current_epoch,
         )
 
+        return loss_logs
+
     def training_epoch_end(self, outputs: Dict):
 
         self._general_epoch_end(outputs=outputs, step_name="train")
 
     def validation_epoch_end(self, outputs: List):
 
-        self._general_epoch_end(outputs=outputs, step_name="val")
+        loss_logs = self._general_epoch_end(outputs=outputs, step_name="val")
 
         lr = self.optimizers().param_groups[0]["lr"]
         self.tb_logger.log_metrics({"lr": lr}, step=self.global_step)
@@ -498,7 +500,7 @@ class PredictorModule(pl.LightningModule):
 
     def testing_epoch_end(self, outputs: List):
 
-        self._general_epoch_end(outputs=outputs, step_name="test")
+        loss_logs = self._general_epoch_end(outputs=outputs, step_name="test")
 
         # Save yaml file with the metrics summaries
         full_dict = {}
