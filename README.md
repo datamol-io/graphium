@@ -23,7 +23,7 @@ Clone this repository and setup your working environment:
 
 ```bash
 # Clone repo
-git clone git@github.com:invivoai/goli.git
+git clone git@github.com:valence-discovery/goli.git
 cd goli/
 
 # Create conda env
@@ -56,12 +56,12 @@ python expts/main_micro_zinc.py
 
 ## Documentation
 
-Find the documentation at [https://invivoai--goli.github.privpage.net/](https://invivoai--goli.github.privpage.net/).
+Find the documentation at [https://valence-discovery--goli.github.privpage.net/](https://valence-discovery--goli.github.privpage.net/).
 
 ## Maintainers
 
-- Dominique Beaini (dominique@invivoai.com)
-- Hadrien Mary (hadrien@invivoai.com)
+- Dominique Beaini (dominique@valencediscovery.com)
+- Hadrien Mary (hadrien@valencediscovery.com)
 
 ## Development Lifecycle
 
