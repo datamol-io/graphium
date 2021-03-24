@@ -281,7 +281,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         if self.df is None:
             df = pd.read_csv(self.df_path, nrows=1)
         else:
-            df = self.df.iloc[0, :]
+            df = self.df.iloc[0:1, :]
 
         smiles, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
