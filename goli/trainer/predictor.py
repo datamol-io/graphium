@@ -122,7 +122,6 @@ class PredictorModule(pl.LightningModule):
         target_nan_mask: Union[int, float, str, type(None)] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
-        additional_hparams: Dict[str, Any] = None,
         tensorboard_save_dir: str = "logs",
     ):
         r"""
@@ -189,21 +188,18 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar:
                 The metrics names from `metrics` to display also on the progress bar of the training
 
-            additional_hparams:
-                Additionnal hyper-parameters to log in the TensorBoard file.
-                They won't be used by the class, only logged.
-
             tensorboard_save_dir:
                 Directory where to save the tensorboard output files.
 
         """
+
+        self.save_hyperparameters()
 
         torch.random.manual_seed(random_seed)
         np.random.seed(random_seed)
 
         super().__init__()
         self.model = model_class(**model_kwargs)
-        self.save_hyperparameters()
 
         # Basic attributes
         self.loss_fun = self.parse_loss_fun(loss_fun)
@@ -240,41 +236,6 @@ class PredictorModule(pl.LightningModule):
             monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
 
-        self._register_hparams(additional_hparams)
-
-
-    def _register_hparams(self, additional_hparams):
-        r"""
-        Register the hyperparameters for tracking by Pytorch-lightning
-        NOTE: TO DISCONTINUE!!
-        """
-
-        # Gather the hyper-parameters of the model
-        self.hparams = deepcopy(self.model.hparams) if hasattr(self.model, "hparams") else {}
-        if additional_hparams is not None:
-            self.hparams.update(additional_hparams)
-
-        # Add other hyper-parameters to the list
-        self.hparams.update(
-            {
-                "loss_fun": self.loss_fun._get_name(),
-                "random_seed": self.random_seed,
-                "n_params": self.n_params,
-            }
-        )
-
-        self.hparams.update({f"optim.{key}": val for key, val in self.optim_kwargs.items()})
-        self.hparams.update(
-            {f"lr_reduce.{key}": val for key, val in self.lr_reduce_on_plateau_kwargs.items()}
-        )
-
-        # Convert DictConfig and ListConfig to dict and list
-        for key, val in self.hparams.items():
-            if isinstance(val, DictConfig):
-                val = dict(val)
-            elif isinstance(val, ListConfig):
-                val = list(val)
-            self.hparams[key] = val
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
@@ -474,6 +435,7 @@ class PredictorModule(pl.LightningModule):
 
         lr = self.optimizers().param_groups[0]["lr"]
         metrics_logs["lr"] = lr
+        metrics_logs["n_epochs"] = self.current_epoch
         self.logger.log_metrics(metrics_logs, step=self.global_step)
 
         # Save yaml file with the metrics summaries

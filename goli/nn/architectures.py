@@ -128,8 +128,6 @@ class FeedForwardNN(nn.Module):
         self.layer_class, self.layer_name = self._parse_class_from_dict(layer_type, LAYERS_DICT)
         self.residual_class, self.residual_name = self._parse_class_from_dict(residual_type, RESIDUALS_DICT)
 
-        self._register_hparams()
-
         self.full_dims = [self.in_dim] + self.hidden_dims + [self.out_dim]
         self._create_layers()
         self._check_bad_arguments()
@@ -143,27 +141,6 @@ class FeedForwardNN(nn.Module):
                 f"When using the residual_type={self.residual_type}"
                 + f", all elements in the hidden_dims must be equal. Provided:{self.hidden_dims}"
             )
-
-    def _register_hparams(self):
-        r"""
-        Register the hyperparameters for tracking by Pytorch-lightning
-        """
-        self.hparams = {
-            f"{self.name}.out_dim": self.out_dim,
-            f"{self.name}.hidden_dims": self.hidden_dims,
-            f"{self.name}.activation": str(self.activation),
-            f"{self.name}.batch_norm": str(self.batch_norm),
-            f"{self.name}.last_activation": str(self.last_activation),
-            f"{self.name}.layer_name": str(self.layer_name),
-            f"{self.name}.depth": self.depth,
-            f"{self.name}.dropout": self.dropout,
-            f"{self.name}.residual_name": self.residual_name,
-            f"{self.name}.residual_skip_steps": self.residual_skip_steps,
-        }
-
-        self.hparams.update(
-            {f"{self.name}.layer_kwargs.{key}": val for key, val in self.layer_kwargs.items()}
-        )
 
     def _parse_class_from_dict(
         self, name_or_class: Union[type, str], class_dict: Dict[str, type]
@@ -452,16 +429,6 @@ class FeedForwardDGL(FeedForwardNN):
             (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
         ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
-
-    def _register_hparams(self):
-        r"""
-        Register the hyperparameters for tracking by Pytorch-lightning
-        """
-        super()._register_hparams()
-        self.hparams["in_dim_edges"] = self.in_dim_edges
-        self.hparams["hidden_dims_edges"] = self.hidden_dims_edges
-        self.hparams["pooling"] = self.pooling
-        self.hparams["virtual_node"] = self.virtual_node
 
     def _create_layers(self):
         r"""
@@ -836,10 +803,6 @@ class FullDGLNetwork(nn.Module):
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim
 
-        # Initialize the hyper-parameter variable to be accessible by Pytorch Lightning
-        hparams_temp = {**self.pre_nn.hparams, **self.gnn.hparams, **self.post_nn.hparams}
-        self.hparams = {f"{self.name}.{key}": elem for key, elem in hparams_temp.items()}
-
     def _check_bad_arguments(self):
         r"""
         Raise comprehensive errors if the arguments seem wrong
@@ -959,7 +922,6 @@ class FullDGLSiameseNetwork(FullDGLNetwork):
         )
 
         self.dist_method = dist_method.lower()
-        self.hparams[f"{self.name}.dist_method"] = self.dist_method
 
     def forward(self, graphs):
         graph_1, graph_2 = graphs
