@@ -8,5 +8,7 @@
   first_commit: 2021-01-19 15:30:48
 - name: Hadrien Mary
   email: hadrien.mary@gmail.com
+  alternate_emails:
+    - hadim@users.noreply.github.com
   num_commits: 5
   first_commit: 2021-01-20 10:31:10
