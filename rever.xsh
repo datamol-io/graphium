@@ -1,8 +1,8 @@
 # Configuration
 
 $PROJECT = $GITHUB_REPO  = 'goli'
-$GITHUB_ORG = 'invivoai'
-$PUSH_TAG_REMOTE = 'git@github.com:invivoai/goli.git'
+$GITHUB_ORG = 'valence-discovery'
+$PUSH_TAG_REMOTE = 'git@github.com:valence-discovery/goli.git'
 
 # Logic
 
@@ -15,7 +15,7 @@ $CHANGELOG_FILENAME = 'CHANGELOG.rst'
 $CHANGELOG_TEMPLATE = 'TEMPLATE.rst'
 $CHANGELOG_NEWS = 'news'
 
-$FORGE_FEEDSTOCK_ORG = 'invivoai-forge'
+$FORGE_FEEDSTOCK_ORG = 'valence-forge'
 $FORGE_RERENDER = True
 $FORGE_USE_GIT_URL = True
 $FORGE_FORK = False
