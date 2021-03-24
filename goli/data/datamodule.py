@@ -83,8 +83,9 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
             featurization: args to apply to the SMILES to DGL featurizer.
-            smiles_col: Name of the SMILES column. If set to None the first column
-                is used.
+            smiles_col: Name of the SMILES column. If set to `None`, it will look for 
+                a column with the word "smile" (case insensitive) in it. 
+                If no such column is found, an error will be raised.
             label_cols: Name of the columns to use as labels. If set to None, all the
                 columns are used except the SMILES one.
             split_val: Ratio for the validation split.
@@ -323,7 +324,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
             label_cols = df.columns.drop(smiles_col)
 
         smiles = df[smiles_col].to_list()
-        labels = torch.as_tensor(df[label_cols].values)
+        labels = df[label_cols].values
 
         return smiles, labels
 
