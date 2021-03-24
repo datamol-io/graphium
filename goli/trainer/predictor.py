@@ -432,36 +432,43 @@ class PredictorModule(pl.LightningModule):
 
         return {loss_name: loss, "log": tensorboard_logs}
 
-    def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
-        y = batch.pop("labels")
-        preds = self.forward(batch)
-        self.tb_logger.log_metrics({"epoch": self.current_epoch}, step=self.global_step)
-
-        step_dict = self.get_metrics_logs(preds=preds, targets=y, step_name="train", loss_name="loss")
-        step_dict["preds"] = preds
-        step_dict["targets"] = y
-        return step_dict
-
-    def validation_step(
-        self, batch: Tuple[torch.Tensor], batch_idx: int
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _general_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        r"""Common code for training_step, validation_step and testing_step"""
         y = batch.pop("labels")
         preds = self.forward(batch)
         step_dict = {"preds": preds, "targets": y}
         return step_dict
 
-    def training_epoch_end(self, outputs: Dict):
+    def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
+        step_dict.update(
+            self.get_metrics_logs(
+                preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
+            )
+        )
+        self.tb_logger.log_metrics({"epoch": self.current_epoch}, step=self.global_step)
+
+        return step_dict
+
+    def validation_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        return self._general_step(batch=batch, batch_idx=batch_idx)
+
+    def testing_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+        return self._general_step(batch=batch, batch_idx=batch_idx)
+
+    def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
+        r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
 
         # Transform the list of dict of dict, into a dict of list of dict
         preds = torch.cat([out["preds"] for out in outputs], dim=0)
         targets = torch.cat([out["targets"] for out in outputs], dim=0)
-        loss_name = "loss/train"
+        loss_name = f"loss/{step_name}"
         loss_logs = self.get_metrics_logs(
-            preds=preds, targets=targets, step_name="train", loss_name=loss_name
+            preds=preds, targets=targets, step_name=step_name, loss_name=loss_name
         )
 
         self.epoch_summary.set_results(
-            name="train",
+            name=step_name,
             predictions=preds,
             targets=targets,
             loss=loss_logs[loss_name],
@@ -469,32 +476,36 @@ class PredictorModule(pl.LightningModule):
             n_epochs=self.current_epoch,
         )
 
+    def training_epoch_end(self, outputs: Dict):
+
+        self._general_epoch_end(outputs=outputs, step_name="train")
+
     def validation_epoch_end(self, outputs: List):
 
-        # Transform the list of dict of dict, into a dict of list of dict
-        preds = torch.cat([out["preds"] for out in outputs], dim=0)
-        targets = torch.cat([out["targets"] for out in outputs], dim=0)
-        loss_name = "loss/val"
-        loss_logs = self.get_metrics_logs(preds=preds, targets=targets, step_name="val", loss_name=loss_name)
-        metrics_log = loss_logs.pop("log")
-
-        is_best_epoch = self.epoch_summary.is_best_epoch(
-            name="val", loss=loss_logs["loss/val"], metrics=metrics_log
-        )
-        if is_best_epoch and (self.global_step > 0):
-            self.epoch_summary.best_summaries["train-at-best-val"] = self.epoch_summary.summaries["train"]
-
-        self.epoch_summary.set_results(
-            name="val",
-            predictions=preds,
-            targets=targets,
-            loss=loss_logs[loss_name],
-            metrics=metrics_log,
-            n_epochs=self.current_epoch,
-        )
+        self._general_epoch_end(outputs=outputs, step_name="val")
 
         lr = self.optimizers().param_groups[0]["lr"]
         self.tb_logger.log_metrics({"lr": lr}, step=self.global_step)
+
+        # Save yaml file with the metrics summaries
+        full_dict = {}
+        full_dict.update(self.epoch_summary.get_dict_summary())
+        tb_path = self.tb_logger.log_dir
+        with open(f"{tb_path}/metrics.yaml", "w") as file:
+            yaml.dump(full_dict, file)
+
+        return loss_logs
+
+    def testing_epoch_end(self, outputs: List):
+
+        self._general_epoch_end(outputs=outputs, step_name="test")
+
+        # Save yaml file with the metrics summaries
+        full_dict = {}
+        full_dict.update(self.epoch_summary.get_dict_summary())
+        tb_path = self.tb_logger.log_dir
+        with open(f"{tb_path}/metrics.yaml", "w") as file:
+            yaml.dump(full_dict, file)
 
         return loss_logs
 
@@ -505,16 +516,6 @@ class PredictorModule(pl.LightningModule):
         tb_path = self.tb_logger.log_dir
         with open(f"{tb_path}/hparams.yaml", "w") as file:
             yaml.dump(self.hparams, file)
-
-    def on_fit_end(self):
-
-        full_dict = {}
-        full_dict.update(self.epoch_summary.get_dict_summary())
-
-        # Save yaml file with the summaries
-        tb_path = self.tb_logger.log_dir
-        with open(f"{tb_path}/metrics.yaml", "w") as file:
-            yaml.dump(full_dict, file)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
