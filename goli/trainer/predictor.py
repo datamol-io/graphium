@@ -15,7 +15,6 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
-from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 from goli.trainer.model_summary import ModelSummaryExtended
 
@@ -117,8 +116,6 @@ class PredictorModule(pl.LightningModule):
         model_kwargs: Dict[str, Any],
         loss_fun: Union[str, Callable],
         random_seed: int = 42,
-        dtype: Optional[torch.dtype] = None,
-        device: Optional[Union[str, torch.device]] = None,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
@@ -146,12 +143,6 @@ class PredictorModule(pl.LightningModule):
 
             random_seed:
                 The random seed used by Pytorch to initialize random tensors.
-
-            dtype:
-                The desired floating point type of the floating point parameters and buffers in this module.
-
-            device:
-                the desired device of the parameters and buffers in this module
 
             optim_kwargs:
                 Dictionnary used to initialize the optimizer, with possible keys below.
@@ -211,17 +202,16 @@ class PredictorModule(pl.LightningModule):
         np.random.seed(random_seed)
 
         super().__init__()
+        self.model = model_class(**model_kwargs)
+        self.save_hyperparameters()
 
         # Basic attributes
-        self.model = model_class(**model_kwargs).to(dtype=dtype, device=device)
         self.loss_fun = self.parse_loss_fun(loss_fun)
         self.random_seed = random_seed
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        self._dtype = dtype
-        self._device = device
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs
         self.scheduler_kwargs = scheduler_kwargs
@@ -252,13 +242,11 @@ class PredictorModule(pl.LightningModule):
 
         self._register_hparams(additional_hparams)
 
-        self.tb_logger = TensorBoardLogger(save_dir=self.tensorboard_save_dir)
-
-        self.to(dtype=dtype, device=device)
 
     def _register_hparams(self, additional_hparams):
         r"""
         Register the hyperparameters for tracking by Pytorch-lightning
+        NOTE: TO DISCONTINUE!!
         """
 
         # Gather the hyper-parameters of the model
@@ -415,22 +403,20 @@ class PredictorModule(pl.LightningModule):
         )
 
         # Compute the metrics always used in regression tasks
-        tensorboard_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
-        tensorboard_logs[f"mean_pred/{step_name}"] = torch.mean(preds)
-        tensorboard_logs[f"std_pred/{step_name}"] = torch.std(preds)
+        metric_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
+        metric_logs[f"mean_pred/{step_name}"] = torch.mean(preds)
+        metric_logs[f"std_pred/{step_name}"] = torch.std(preds)
 
         # Compute the additional metrics
         # TODO: NaN mask `target_nan_mask` not implemented here
         for key, metric in self.metrics.items():
             metric_name = f"{key}/{step_name}"
             try:
-                tensorboard_logs[metric_name] = metric(preds, targets)
+                metric_logs[metric_name] = metric(preds, targets)
             except:
-                tensorboard_logs[metric_name] = torch.tensor(float("nan"))
+                metric_logs[metric_name] = torch.tensor(float("nan"))
 
-        self.tb_logger.log_metrics(tensorboard_logs, step=self.global_step)
-
-        return {loss_name: loss, "log": tensorboard_logs}
+        return loss, metric_logs
 
     def _general_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
@@ -441,12 +427,12 @@ class PredictorModule(pl.LightningModule):
 
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
-        step_dict.update(
-            self.get_metrics_logs(
+        loss, metric_logs = self.get_metrics_logs(
                 preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
             )
-        )
-        self.tb_logger.log_metrics({"epoch": self.current_epoch}, step=self.global_step)
+        
+        step_dict.update(metric_logs)
+        step_dict["loss"] = loss
 
         return step_dict
 
@@ -463,7 +449,7 @@ class PredictorModule(pl.LightningModule):
         preds = torch.cat([out["preds"] for out in outputs], dim=0)
         targets = torch.cat([out["targets"] for out in outputs], dim=0)
         loss_name = f"loss/{step_name}"
-        loss_logs = self.get_metrics_logs(
+        loss, metrics_logs = self.get_metrics_logs(
             preds=preds, targets=targets, step_name=step_name, loss_name=loss_name
         )
 
@@ -471,12 +457,12 @@ class PredictorModule(pl.LightningModule):
             name=step_name,
             predictions=preds,
             targets=targets,
-            loss=loss_logs[loss_name],
-            metrics=loss_logs["log"],
+            loss=loss,
+            metrics=metrics_logs,
             n_epochs=self.current_epoch,
         )
 
-        return loss_logs
+        return metrics_logs
 
     def training_epoch_end(self, outputs: Dict):
 
@@ -484,40 +470,37 @@ class PredictorModule(pl.LightningModule):
 
     def validation_epoch_end(self, outputs: List):
 
-        loss_logs = self._general_epoch_end(outputs=outputs, step_name="val")
+        metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
 
         lr = self.optimizers().param_groups[0]["lr"]
-        self.tb_logger.log_metrics({"lr": lr}, step=self.global_step)
+        metrics_logs["lr"] = lr
+        self.logger.log_metrics(metrics_logs, step=self.global_step)
 
         # Save yaml file with the metrics summaries
         full_dict = {}
         full_dict.update(self.epoch_summary.get_dict_summary())
-        tb_path = self.tb_logger.log_dir
+        tb_path = self.logger.log_dir
         with open(f"{tb_path}/metrics.yaml", "w") as file:
             yaml.dump(full_dict, file)
 
-        return loss_logs
+        return metrics_logs
+
 
     def testing_epoch_end(self, outputs: List):
 
-        loss_logs = self._general_epoch_end(outputs=outputs, step_name="test")
+        metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
 
         # Save yaml file with the metrics summaries
         full_dict = {}
         full_dict.update(self.epoch_summary.get_dict_summary())
-        tb_path = self.tb_logger.log_dir
+        tb_path = self.logger.log_dir
         with open(f"{tb_path}/metrics.yaml", "w") as file:
             yaml.dump(full_dict, file)
 
-        return loss_logs
 
     def on_train_start(self):
-        self.tb_logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
+        self.logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
 
-        # Save hparams to YAML file
-        tb_path = self.tb_logger.log_dir
-        with open(f"{tb_path}/hparams.yaml", "w") as file:
-            yaml.dump(self.hparams, file)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
