@@ -387,12 +387,14 @@ class PredictorModule(pl.LightningModule):
 
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
-        loss, metric_logs = self.get_metrics_logs(
+        loss, metrics_logs = self.get_metrics_logs(
             preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
         )
 
-        step_dict.update(metric_logs)
+        step_dict.update(metrics_logs)
         step_dict["loss"] = loss
+
+        self.logger.log_metrics(metrics_logs, step=self.global_step)
 
         return step_dict
 
