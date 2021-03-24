@@ -3,7 +3,7 @@ from setuptools import find_packages
 
 setup(
     name="goli",
-    version="0.0.1",
+    version="0.1.0",
     author="InVivo AI",
     author_email="dominique@invivoai.com",
     url="https://github.com/invivoai/goli",
