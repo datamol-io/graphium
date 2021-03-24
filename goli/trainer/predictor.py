@@ -236,7 +236,6 @@ class PredictorModule(pl.LightningModule):
             monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
 
-
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
         r"""
@@ -388,12 +387,14 @@ class PredictorModule(pl.LightningModule):
 
     def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
-        loss, metric_logs = self.get_metrics_logs(
-                preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
-            )
-        
-        step_dict.update(metric_logs)
+        loss, metrics_logs = self.get_metrics_logs(
+            preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
+        )
+
+        step_dict.update(metrics_logs)
         step_dict["loss"] = loss
+
+        self.logger.log_metrics(metrics_logs, step=self.global_step)
 
         return step_dict
 
@@ -447,7 +448,6 @@ class PredictorModule(pl.LightningModule):
 
         return metrics_logs
 
-
     def testing_epoch_end(self, outputs: List):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
@@ -459,10 +459,8 @@ class PredictorModule(pl.LightningModule):
         with open(f"{tb_path}/metrics.yaml", "w") as file:
             yaml.dump(full_dict, file)
 
-
     def on_train_start(self):
         self.logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
-
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()

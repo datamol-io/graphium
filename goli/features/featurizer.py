@@ -262,15 +262,15 @@ def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Chem.rdchem.Conformer:
     not in functions requiring complex 3D structure.
 
     Parameters:
-        
+
         mol: Rdkit Molecule
-    
+
     Returns:
         conf: A conformer of the molecule
     """
     if mol.GetNumConformers() == 0:
         Chem.rdDistGeom.EmbedMolecule(mol)
-    
+
     conf = mol.GetConformer(0)
     return conf
 
