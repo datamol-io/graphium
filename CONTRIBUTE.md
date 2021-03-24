@@ -44,8 +44,6 @@ To be used in the configuration file as a `goli.model.layer_name`, it must also 
 
 All NN and GNN architectures compatible with the `DGL` library are provided in the file `goli/dgl/architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `goli.nn.architectures.FeedForwardNN` for regular neural networks, from `goli.nn.architectures.FeedForwardDGL` for DGL neural network, or from any of their sub-classes.
 
-When adding any new parameter, it is always a good idea to register the parameters in the dictionary `self.hparams`. This dictionary is used by Pytorch-Lightning to track the hyper-parameters in Tensorboard.
-
 ### Changing the ModelWrapper and loss function
 
 The `ModelWrapper` is a general pytorch-lightning module that should work with any kind of `pytorch.nn.Module` or `pl.LightningModule`. The class defines a structure of including models, loss functions, batch sizes, collate functions, metrics...
