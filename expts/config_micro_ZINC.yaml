@@ -3,7 +3,7 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  df_path: goli/data/micro_ZINC.csv
+  df_path: goli/data/micro_ZINC/micro_ZINC.csv
   cache_data_path: goli/data/cache/micro_ZINC/full.cache
   label_cols: ['score']
   smiles_col: SMILES
@@ -88,7 +88,6 @@ predictor:
     monitor: &monitor loss/val
     frequency: 1
   target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
-  tensorboard_save_dir: logs/micro_ZINC
 
 
 metrics:
@@ -126,6 +125,8 @@ metrics:
     threshold_kwargs: *threshold_3
 
 trainer:
+  logger:
+    save_dir: logs/micro_ZINC
   early_stopping:
     monitor: *monitor
     min_delta: 0
