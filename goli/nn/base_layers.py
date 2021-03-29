@@ -158,7 +158,7 @@ class MLP(nn.Module):
         hidden_dim: int,
         out_dim: int,
         layers: int,
-        actibation: Union[str, Callable] = "relu",
+        activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout=0.0,
         batch_norm=False,
@@ -214,7 +214,7 @@ class MLP(nn.Module):
                 FCLayer(
                     in_dim,
                     hidden_dim,
-                    activation=actibation,
+                    activation=activation,
                     batch_norm=batch_norm,
                     dropout=dropout,
                 )
@@ -224,7 +224,7 @@ class MLP(nn.Module):
                     FCLayer(
                         hidden_dim,
                         hidden_dim,
-                        activation=actibation,
+                        activation=activation,
                         batch_norm=batch_norm,
                         dropout=dropout,
                     )

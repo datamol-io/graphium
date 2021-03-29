@@ -38,7 +38,7 @@ class S2SReadout(nn.Module):
             hidden_dim=hidden_dim,
             out_dim=out_dim,
             layers=fc_layers,
-            actibation="relu",
+            activation="relu",
             last_activation=final_activation,
             batch_norm=True,
             last_batch_norm=False,

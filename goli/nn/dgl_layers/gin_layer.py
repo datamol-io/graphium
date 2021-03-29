@@ -81,7 +81,7 @@ class GINLayer(BaseDGLLayer):
             hidden_dim=self.in_dim,
             out_dim=self.out_dim,
             layers=2,
-            actibation=self.activation_layer,
+            activation=self.activation_layer,
             last_activation="none",
             batch_norm=self.batch_norm,
             last_batch_norm=False,
