@@ -323,10 +323,14 @@ class PNAMessagePassingLayer(BasePNALayer):
         in_dim_edges: int = 0,
     ):
         r"""
-        Implementation of the message passing architecture of the PNA layer,
-        previously known as `PNALayer`. This layer applies an MLP as 
-        pretransformation to the edge to generate the messages,
-        aggregates neighbouring messages using multiple aggregators and scalers,
+        Implementation of the message passing architecture of the PNA message passing layer,
+        previously known as `PNALayerComplex`. This layer applies an MLP as
+        pretransformation to the concatenation of $[h_u, h_v, e_{uv}]$ to generate
+        the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
+        and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
+
+        After the pre-transformation, it aggregates the messages
+        multiple aggregators and scalers,
         concatenates their results, then applies an MLP on the concatenated
         features.
 
