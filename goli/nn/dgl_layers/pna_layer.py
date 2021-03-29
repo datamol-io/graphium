@@ -323,9 +323,10 @@ class PNAMessagePassingLayer(BasePNALayer):
         in_dim_edges: int = 0,
     ):
         r"""
-        Implementation of the convolutional architecture of the PNA layer,
-        previously known as `PNASimpleLayer`. This layer aggregates the
-        neighbouring messages using multiple aggregators and scalers,
+        Implementation of the message passing architecture of the PNA layer,
+        previously known as `PNALayer`. This layer applies an MLP as 
+        pretransformation to the edge to generate the messages,
+        aggregates neighbouring messages using multiple aggregators and scalers,
         concatenates their results, then applies an MLP on the concatenated
         features.
 
