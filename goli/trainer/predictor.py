@@ -444,7 +444,6 @@ class PredictorModule(pl.LightningModule):
             with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
                 yaml.dump(full_dict, file)
 
-
     def testing_epoch_end(self, outputs: List):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
