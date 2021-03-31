@@ -297,7 +297,7 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
             - "bond-type-onehot"
             - "bond-type-float"
             - "stereo"
-            - "ring", "in-ring"
+            - "in-ring"
             - "conjugated"
             - "bond-length"
 
@@ -317,7 +317,6 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
         property_array = []
         for ii in range(num_bonds):
             prop = prop.lower()
-            prop_name = prop
             bond = mol.GetBondWithIdx(ii)
 
             if prop in ["bond-type-onehot"]:
@@ -326,8 +325,7 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
                 one_hot = [bond.GetBondTypeAsDouble()]
             elif prop in ["stereo"]:
                 one_hot = one_of_k_encoding(bond.GetStereo(), nmp.BOND_STEREO)
-            elif prop in ["ring", "in-ring"]:
-                prop_name = "in-ring"
+            elif prop in ["in-ring"]:
                 one_hot = [bond.IsInRing()]
             elif prop in ["conjugated"]:
                 one_hot = [bond.GetIsConjugated()]
@@ -341,7 +339,10 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
 
             property_array.append(np.asarray(one_hot, dtype=np.float32))
 
-        prop_dict[prop_name] = np.stack(property_array, axis=0)
+        if num_bonds > 0:
+            prop_dict[prop] = np.stack(property_array, axis=0)
+        else:
+            prop_dict[prop] = np.array([])
 
     return prop_dict
 

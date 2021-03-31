@@ -20,6 +20,7 @@ from goli.features.featurizer import (
 class test_featurizer(ut.TestCase):
 
     smiles = [
+        "C",
         "CC",
         "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
         "OCCc1c(C)[n+](cs1)Cc2cnc(C)nc2N",
@@ -128,8 +129,9 @@ class test_featurizer(ut.TestCase):
                     err_msg3 = err_msg2 + f"\n\t\tkey: {key}"
                     self.assertEqual(val.shape[0], mol.GetNumBonds(), msg=err_msg3)
 
-            with self.assertRaises(ValueError, msg=err_msg):
-                get_mol_edge_features(mol, property_list=bad_props)
+            if mol.GetNumBonds() > 0:
+                with self.assertRaises(ValueError, msg=err_msg):
+                    get_mol_edge_features(mol, property_list=bad_props)
 
     def test_mol_to_adj_and_features(self):
 
@@ -164,9 +166,10 @@ class test_featurizer(ut.TestCase):
                     self.assertEqual(adj.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
                     if num_props > 0:
                         self.assertEqual(ndata.shape[0], this_mol.GetNumAtoms(), msg=err_msg2)
-                        self.assertEqual(edata.shape[0], this_mol.GetNumBonds(), msg=err_msg2)
+                        if this_mol.GetNumBonds() > 0:
+                            self.assertEqual(edata.shape[0], this_mol.GetNumBonds(), msg=err_msg2)
+                            self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
-                        self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
 
     def test_mol_to_dglgraph(self):
 

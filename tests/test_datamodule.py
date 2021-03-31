@@ -13,7 +13,7 @@ class Test_DataModule(ut.TestCase):
         featurization_args = {}
         featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
         featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
-        featurization_args["edge_property_list"] = ["ring", "bond-type-onehot"]
+        featurization_args["edge_property_list"] = ["in-ring", "bond-type-onehot"]
         featurization_args["add_self_loop"] = False
         featurization_args["use_bonds_weights"] = False
         featurization_args["explicit_H"] = False

@@ -28,8 +28,9 @@ datamodule:
   batch_size_test: 256
 
   # Data loading
-  num_workers: -1
+  num_workers: 0
   pin_memory: False
+  persistent_workers: True  # Keep True on Windows if running multiple workers
 
 
 architecture:
