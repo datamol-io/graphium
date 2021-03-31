@@ -14,7 +14,6 @@ import numpy as np
 
 from sklearn.model_selection import train_test_split
 
-import torch.utils.data
 import dgl
 import pytorch_lightning as pl
 
@@ -25,7 +24,12 @@ from goli.features import mol_to_dglgraph
 from goli.data.collate import goli_collate_fn
 
 
-class DGLFromSmilesDataset(torch.utils.data.Dataset):
+import torch
+from torch.utils.data.dataloader import DataLoader, Dataset
+from torch.utils.data import Subset
+
+
+class DGLFromSmilesDataset(Dataset):
     def __init__(self, smiles: List[str], features: List[dgl.DGLGraph], labels: torch.Tensor):
         self.smiles = smiles
         self.features = features
@@ -70,6 +74,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         batch_size_test: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
+        persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         collate_fn: Optional[Callable] = None,
@@ -123,6 +128,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
 
         self.num_workers = num_workers
         self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
 
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
@@ -217,11 +223,11 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
 
         if stage == "fit" or stage is None:
-            self.train_ds = torch.utils.data.Subset(self.dataset, self.train_indices)
-            self.val_ds = torch.utils.data.Subset(self.dataset, self.val_indices)
+            self.train_ds = Subset(self.dataset, self.train_indices)
+            self.val_ds = Subset(self.dataset, self.val_indices)
 
         if stage == "test" or stage is None:
-            self.test_ds = torch.utils.data.Subset(self.dataset, self.test_indices)
+            self.test_ds = Subset(self.dataset, self.test_indices)
 
     def train_dataloader(self, **kwargs):
         return self._dataloader(
@@ -293,7 +299,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
 
     # Private methods
 
-    def _dataloader(self, dataset: torch.utils.data.Dataset, batch_size: int, shuffle: bool):
+    def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool):
         """Get a dataloader for a given dataset"""
 
         if self.num_workers == -1:
@@ -302,13 +308,14 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         else:
             num_workers = self.num_workers
 
-        loader = torch.utils.data.DataLoader(
+        loader = DataLoader(
             dataset=dataset,
             num_workers=num_workers,
             collate_fn=self.collate_fn,
             pin_memory=self.pin_memory,
             batch_size=batch_size,
             shuffle=shuffle,
+            persistent_workers=self.persistent_workers,
         )
         return loader
 
