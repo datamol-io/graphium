@@ -28,7 +28,7 @@ datamodule:
   batch_size_test: 256
 
   # Data loading
-  num_workers: -1
+  num_workers: 0   # There seem to be problems on windows if num_workers !=0. On linux it works well
   pin_memory: False
 
 
