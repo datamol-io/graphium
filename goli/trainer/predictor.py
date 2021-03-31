@@ -122,7 +122,6 @@ class PredictorModule(pl.LightningModule):
         target_nan_mask: Union[int, float, str, type(None)] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
-        tensorboard_save_dir: str = "logs",
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -188,9 +187,6 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar:
                 The metrics names from `metrics` to display also on the progress bar of the training
 
-            tensorboard_save_dir:
-                Directory where to save the tensorboard output files.
-
         """
 
         self.save_hyperparameters()
@@ -211,7 +207,6 @@ class PredictorModule(pl.LightningModule):
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs
         self.scheduler_kwargs = scheduler_kwargs
-        self.tensorboard_save_dir = tensorboard_save_dir
 
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
@@ -437,16 +432,18 @@ class PredictorModule(pl.LightningModule):
         lr = self.optimizers().param_groups[0]["lr"]
         metrics_logs["lr"] = lr
         metrics_logs["n_epochs"] = self.current_epoch
-        self.logger.log_metrics(metrics_logs, step=self.global_step)
+        self.log_dict(metrics_logs)
 
         # Save yaml file with the metrics summaries
         full_dict = {}
         full_dict.update(self.epoch_summary.get_dict_summary())
         tb_path = self.logger.log_dir
-        with open(f"{tb_path}/metrics.yaml", "w") as file:
-            yaml.dump(full_dict, file)
 
-        return metrics_logs
+        # Write the YAML file with the metrics
+        if self.current_epoch >= 1:
+            with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
+                yaml.dump(full_dict, file)
+
 
     def testing_epoch_end(self, outputs: List):
 
