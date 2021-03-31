@@ -16,7 +16,7 @@ data:
     featurization:
       atom_property_list_float: []
       atom_property_list_onehot: ["atomic-number", "degree"]
-      edge_property_list: ["ring", "bond-type-onehot"]
+      edge_property_list: ["in-ring", "bond-type-onehot"]
       add_self_loop: false
       use_bonds_weights: false
       explicit_H: false
