@@ -1,5 +1,3 @@
-import re
-import threading
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -90,8 +88,20 @@ class BasePNALayer(BaseDGLLayer):
         self.last_activation = get_activation(last_activation)
 
         # Initializing aggregators and scalers
-        self.aggregators = [PNA_AGGREGATORS[aggr] for aggr in aggregators]
-        self.scalers = [PNA_SCALERS[scale] for scale in scalers]
+        self.aggregators = self._parse_aggregators(aggregators)
+        self.scalers = self._parse_scalers(scalers)
+
+    def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
+        r"""
+        Parse the aggregators from a list of strings into a list of callables
+        """
+        return [PNA_AGGREGATORS[aggr] for aggr in aggregators]
+
+    def _parse_scalers(self, scalers: List[str]) -> List[Callable]:
+        r"""
+        Parse the scalers from a list of strings into a list of callables
+        """
+        return [PNA_SCALERS[scale] for scale in scalers]
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
         r"""
