@@ -1,4 +1,4 @@
-from typing import Union, List, Callable, Dict, Tuple, Optional
+from typing import Union, List, Callable, Dict, Tuple, Optional, Any
 
 import os
 import numpy as np
@@ -12,6 +12,7 @@ import datamol as dm
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
+from goli.features.positional_encoding import graph_positional_encoder
 
 
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
@@ -355,6 +356,8 @@ def mol_to_adj_and_features(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
+    pos_encoding_as_features: Dict[str, Any] = None,
+    pos_encoding_as_directions: Dict[str, Any] = None,
 ) -> Tuple[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -393,7 +396,7 @@ def mol_to_adj_and_features(
     Returns:
 
         adj:
-            Sparse adjacency matrix of the molecule
+            Scipy sparse adjacency matrix of the molecule
 
         ndata:
             Concatenated node data of the atoms, based on the properties from
@@ -435,7 +438,22 @@ def mol_to_adj_and_features(
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
     edata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
 
-    return adj, ndata, edata
+    pos_enc_feats, pos_enc_dir = None, None
+    pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
+    pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
+
+    # Get the positional encoding for the features
+    if len(pos_encoding_as_features) > 0:
+        pos_enc_feats = graph_positional_encoder(**pos_encoding_as_features)
+
+    # Get the positional encoding for the directions
+    if len(pos_encoding_as_directions) > 0:
+        if pos_encoding_as_directions == pos_encoding_as_features:
+            pos_enc_dir = pos_enc_feats
+        else:
+            pos_enc_dir = graph_positional_encoder(**pos_encoding_as_directions)
+
+    return adj, ndata, edata, pos_enc_feats, pos_enc_dir
 
 
 def mol_to_dglgraph(
@@ -446,6 +464,8 @@ def mol_to_dglgraph(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
+    pos_encoding_as_features: Dict[str, Any] = None,
+    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: torch.dtype = torch.float32,
 ) -> dgl.DGLGraph:
     r"""
@@ -501,7 +521,7 @@ def mol_to_dglgraph(
         mol = Chem.RemoveHs(mol)
 
     # Get the adjacency, node features and edge features
-    adj, ndata, edata = mol_to_adj_and_features(
+    adj, ndata, edata, pos_enc_feats, pos_enc_dir = mol_to_adj_and_features(
         mol=mol,
         atom_property_list_onehot=atom_property_list_onehot,
         atom_property_list_float=atom_property_list_float,
@@ -509,6 +529,8 @@ def mol_to_dglgraph(
         add_self_loop=add_self_loop,
         explicit_H=explicit_H,
         use_bonds_weights=use_bonds_weights,
+        pos_encoding_as_features=pos_encoding_as_features,
+        pos_encoding_as_directions=pos_encoding_as_directions,
     )
 
     # Transform the matrix and data into a DGLGraph object
@@ -532,5 +554,11 @@ def mol_to_dglgraph(
             hetero_edata[id2, :] = edata[ii, :]
 
         graph.edata["feat"] = torch.from_numpy(hetero_edata).to(dtype=dtype)
+
+    if pos_enc_feats is not None:
+        graph.ndata["pos_feats"] = pos_enc_feats
+
+    if pos_enc_dir is not None:
+        graph.ndata["pos_dir"] = pos_enc_dir
 
     return graph
