@@ -1,34 +1,65 @@
 from typing import Optional, Tuple
 
+import scipy as sp
 from scipy.sparse.linalg import eigsh, eigs
 from scipy.linalg import eigh, eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix
 import numpy as np
 import torch
+import networkx as nx
 
 from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
-def compute_laplacian_eigenfunctions(adj, num_pos: int, disconnect: bool = True, normalization: str = "none"):
-    
-    # TODO: IMPLEMENT THE DISCONNECT
-    
+def compute_laplacian_positional_eigvecs(adj, num_pos: int, disconnect: bool = True, normalization: str = "none"):
+
+    # Sparsify the adjacency patrix    
     if issparse(adj):
         adj = adj.astype(np.float64)
     else:
         adj = csr_matrix(adj, dtype=np.float64)
 
+    # Compute tha Laplacian, and normalize it
     D = np.array(np.sum(adj, axis=1)).flatten()
     D_mat = diags(D)
     L = -adj + D_mat
-    
     L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
 
-    # TODO: FIX THE PROBLEM WITH THE WHICH FUNCTION
-    eigvals, eigvecs = compute_eigenfunctions(matrix=L_norm, degree_vector=D, normalization=normalization, k=num_pos)
+    if disconnect:
+        # Get the list of connected components
+        components = list(nx.connected_components(nx.from_scipy_sparse_matrix(adj)))
+        eigvecs = torch.zeros((L_norm.shape[0], num_pos), dtype=torch.float32)
 
+        # Compute the eigenvectors for each connected component, and stack them together
+        for component in components:
+            comp = list(component)
+            this_L = L_norm[comp][:, comp]
+            _, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
+            eigvecs[comp, :] = this_eigvecs
+    else:
+        _, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
+        
+    return eigvecs
+
+
+def _get_positional_eigvecs(matrix, num_pos: int):
+    if num_pos < len(matrix) - 1:  # Compute the k-lowest eigenvectors
+        eigvals, eigvecs = eigsh(matrix, k=num_pos, which='SR', tol=1e-5)
+
+    else:  # Compute all eigenvectors
+        eigvals, eigvecs = eigh(matrix)
+        if num_pos > len(matrix):  # Pad with non-sense eigenvectors
+            temp_EigVal = np.ones(num_pos - len(matrix), dtype=np.float32) + float('inf')
+            temp_EigVec = np.zeros((len(matrix), num_pos - len(matrix)), dtype=np.float32)
+            eigvals = np.concatenate([eigvals, temp_EigVal], axis=0)
+            eigvecs = np.concatenate([eigvecs, temp_EigVec], axis=1)
+
+    # Sort, and keep only the first `num_pos` elements
+    eigvecs = eigvecs[:, eigvals.argsort()]
+    eigvecs = eigvecs[:, :num_pos]
+    eigvals = eigvals[:, :num_pos]
+    
     return eigvals, eigvecs
-
 
 
 def compute_eigenfunctions(
@@ -194,8 +225,7 @@ def sort_eigen(eigvals, *eig_arrays, descending: bool = False) -> Tuple[np.ndarr
     return (eigvals, *arr_list)
 
 
-def normalize_matrix(
-            matrix, degree_vector=None, normalization:str=None):
+def normalize_matrix(matrix, degree_vector=None, normalization:str=None):
     r"""
     Normalize a given matrix using its degree vector
 
