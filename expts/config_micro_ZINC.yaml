@@ -22,6 +22,7 @@ datamodule:
       pos_type: laplacian_eigvec
       num_pos: 2
       norm: "none"
+      disconnected_comp: True
     pos_encoding_as_directions: *pos_enc
 
   # Train, val, test parameters
