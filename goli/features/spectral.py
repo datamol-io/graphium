@@ -11,7 +11,8 @@ import networkx as nx
 from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
-def compute_laplacian_positional_eigvecs(adj, num_pos: int, disconnect: bool = True, normalization: str = "none"):
+def compute_laplacian_positional_eigvecs(adj, num_pos: int, disconnected_comp: bool = True, normalization: str = "none") -> Tuple[np.ndarray, np.ndarray]:
+
 
     # Sparsify the adjacency patrix    
     if issparse(adj):
@@ -25,10 +26,11 @@ def compute_laplacian_positional_eigvecs(adj, num_pos: int, disconnect: bool = T
     L = -adj + D_mat
     L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
 
-    if disconnect:
+    if disconnected_comp:
         # Get the list of connected components
         components = list(nx.connected_components(nx.from_scipy_sparse_matrix(adj)))
-        eigvecs = torch.zeros((L_norm.shape[0], num_pos), dtype=torch.float32)
+        eigvals_tile = np.zeros((L_norm.shape[0], num_pos), dtype=np.float64)
+        eigvecs = np.zeros_like(eigvals_tile)
 
         # Compute the eigenvectors for each connected component, and stack them together
         for component in components:
@@ -37,20 +39,21 @@ def compute_laplacian_positional_eigvecs(adj, num_pos: int, disconnect: bool = T
             _, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
             eigvecs[comp, :] = this_eigvecs
     else:
-        _, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
+        eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
+        eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
         
-    return eigvecs
+    return eigvals_tile, eigvecs
 
 
 def _get_positional_eigvecs(matrix, num_pos: int):
     if num_pos < len(matrix) - 1:  # Compute the k-lowest eigenvectors
-        eigvals, eigvecs = eigsh(matrix, k=num_pos, which='SR', tol=1e-5)
+        eigvals, eigvecs = eigsh(matrix, k=num_pos, which='SR', tol=0)
 
     else:  # Compute all eigenvectors
         eigvals, eigvecs = eigh(matrix)
         if num_pos > len(matrix):  # Pad with non-sense eigenvectors
-            temp_EigVal = np.ones(num_pos - len(matrix), dtype=np.float32) + float('inf')
-            temp_EigVec = np.zeros((len(matrix), num_pos - len(matrix)), dtype=np.float32)
+            temp_EigVal = np.ones(num_pos - len(matrix), dtype=np.float64) + float('inf')
+            temp_EigVec = np.zeros((len(matrix), num_pos - len(matrix)), dtype=np.float64)
             eigvals = np.concatenate([eigvals, temp_EigVal], axis=0)
             eigvecs = np.concatenate([eigvecs, temp_EigVec], axis=1)
 

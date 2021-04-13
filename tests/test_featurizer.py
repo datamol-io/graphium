@@ -149,7 +149,7 @@ class test_featurizer(ut.TestCase):
                     num_props = int(round(ii))
                     err_msg2 = err_msg + f"\n\t\texplicit_H: {explicit_H}\n\t\tii: {ii}"
 
-                    adj, ndata, edata, pos_enc_dir = mol_to_adj_and_features(
+                    adj, ndata, edata, pos_enc_feats, pos_enc_dir = mol_to_adj_and_features(
                         mol=mol,
                         atom_property_list_onehot=np.random.choice(
                             self.atomic_onehot_props, size=num_props, replace=False
