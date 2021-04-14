@@ -12,7 +12,7 @@ import datamol as dm
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
-from goli.features.positional_encoding import graph_positional_encoder
+from goli.features.positional_encoding import get_all_positional_encoding
 
 
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
@@ -438,20 +438,9 @@ def mol_to_adj_and_features(
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
     edata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
 
-    pos_enc_feats, pos_enc_dir = None, None
-    pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
-    pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
-
-    # Get the positional encoding for the features
-    if len(pos_encoding_as_features) > 0:
-        pos_enc_feats = graph_positional_encoder(**pos_encoding_as_features)
-
-    # Get the positional encoding for the directions
-    if len(pos_encoding_as_directions) > 0:
-        if pos_encoding_as_directions == pos_encoding_as_features:
-            pos_enc_dir = pos_enc_feats
-        else:
-            pos_enc_dir = graph_positional_encoder(**pos_encoding_as_directions)
+    pos_enc_feats, pos_enc_dir = get_all_positional_encoding(
+        adj, pos_encoding_as_features, pos_encoding_as_directions
+    )
 
     return adj, ndata, edata, pos_enc_feats, pos_enc_dir
 
@@ -548,8 +537,8 @@ def mol_to_dglgraph(
         for ii in range(mol.GetNumBonds()):
             bond = mol.GetBondWithIdx(ii)
             src, dst = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-            id1 = np.where((src == graph.all_edges()[0]) & (dst == graph.all_edges()[1]))[0]
-            id2 = np.where((dst == graph.all_edges()[0]) & (src == graph.all_edges()[1]))[0]
+            id1 = np.where((src == src_ids) & (dst == dst_ids))[0]
+            id2 = np.where((dst == src_ids) & (src == dst_ids))[0]
             hetero_edata[id1, :] = edata[ii, :]
             hetero_edata[id2, :] = edata[ii, :]
 
