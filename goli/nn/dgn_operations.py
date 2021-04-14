@@ -1,4 +1,3 @@
-from typing import List
 import torch
 from torch import Tensor
 
@@ -6,7 +5,9 @@ from torch import Tensor
 EPS = 1e-8
 
 
-def aggregate_dir_smooth(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs):
+def aggregate_dir_smooth(
+    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs
+) -> Tensor:
     r"""
     The aggregation is the following:
 
@@ -32,13 +33,17 @@ def aggregate_dir_smooth(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: 
     return torch.sum(h_mod, dim=1)
 
 
-def aggregate_dir_softmax(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, alpha: float, **kwargs):
+def aggregate_dir_softmax(
+    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, alpha: float, **kwargs
+) -> Tensor:
     grad = source_pos[:, :, dir_idx] - dest_pos[:, :, dir_idx]
     h_mod = h * torch.nn.Softmax(1)(alpha * (grad.abs()).unsqueeze(-1))
     return torch.sum(h_mod, dim=1)
 
 
-def aggregate_dir_dx_abs(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs):
+def aggregate_dir_dx_abs(
+    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs
+) -> Tensor:
     r"""
     The aggregation is the following:
 
@@ -64,7 +69,9 @@ def aggregate_dir_dx_abs(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: 
     return torch.abs(aggregate_dir_dx_no_abs(h, source_pos, dest_pos, h_in, dir_idx, **kwargs))
 
 
-def aggregate_dir_dx_no_abs(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs):
+def aggregate_dir_dx_no_abs(
+    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs
+) -> Tensor:
     r"""
     The aggregation is the following:
 
@@ -93,7 +100,9 @@ def aggregate_dir_dx_no_abs(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_i
     return torch.sum(h_mod, dim=1) - torch.sum(dir_weight, dim=1) * h_in
 
 
-def aggregate_dir_dx_abs_balanced(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs):
+def aggregate_dir_dx_abs_balanced(
+    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs
+) -> Tensor:
     grad = source_pos[:, :, dir_idx] - dest_pos[:, :, dir_idx]
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
     eig_back = torch.relu(-grad) / (torch.sum(torch.relu(-grad), keepdim=True, dim=1) + EPS)
@@ -103,7 +112,9 @@ def aggregate_dir_dx_abs_balanced(h: Tensor, source_pos: Tensor, dest_pos: Tenso
     return torch.abs(torch.sum(h_mod, dim=1) - torch.sum(dir_weight, dim=1) * h_in)
 
 
-def aggregate_dir_forward(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs):
+def aggregate_dir_forward(
+    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs
+) -> Tensor:
     r"""
     The aggregation is the following:
 
@@ -128,7 +139,9 @@ def aggregate_dir_forward(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in:
     return h * eig_front.unsqueeze(-1)
 
 
-def aggregate_dir_backward(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs):
+def aggregate_dir_backward(
+    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, **kwargs
+) -> Tensor:
     r"""
     The aggregation is the following:
 
@@ -149,4 +162,3 @@ def aggregate_dir_backward(h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in
         h_mod: The aggregated features $y^{(l)}$
     """
     return aggregate_dir_forward(h, -source_pos, -dest_pos, h_in, dir_idx, **kwargs)
-

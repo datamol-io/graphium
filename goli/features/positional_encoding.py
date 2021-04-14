@@ -11,9 +11,7 @@ def get_all_positional_encoding(
     pos_encoding_as_features: Optional[Dict] = None,
     pos_encoding_as_directions: Optional[Dict] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    r"""
-    
-    """
+    r""""""
 
     pos_enc_feats, pos_enc_dir = None, None
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
@@ -44,7 +42,7 @@ def graph_positional_encoder(
         adj: Adjacency matrix of the graph
 
         pos_type: The type of positional encoding to use. Supported types are:
-            
+
             - laplacian_eigvec: the
             - laplacian_eigvec_eigval
 

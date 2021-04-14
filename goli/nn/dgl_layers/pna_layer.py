@@ -1,12 +1,9 @@
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import dgl.function as fn
 from dgl import DGLGraph
 from typing import Dict, List, Tuple, Union, Callable
 
 from goli.nn.pna_operations import PNA_AGGREGATORS, PNA_SCALERS
-from goli.nn.base_layers import MLP, FCLayer, get_activation
+from goli.nn.base_layers import MLP, get_activation
 from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.utils.decorators import classproperty
 
@@ -321,22 +318,22 @@ class PNAConvolutionalLayer(BasePNALayer):
 
 class PNAMessagePassingLayer(BasePNALayer):
     r"""
-        Implementation of the message passing architecture of the PNA message passing layer,
-        previously known as `PNALayerComplex`. This layer applies an MLP as
-        pretransformation to the concatenation of $[h_u, h_v, e_{uv}]$ to generate
-        the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
-        and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
+    Implementation of the message passing architecture of the PNA message passing layer,
+    previously known as `PNALayerComplex`. This layer applies an MLP as
+    pretransformation to the concatenation of $[h_u, h_v, e_{uv}]$ to generate
+    the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
+    and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
 
-        After the pre-transformation, it aggregates the messages
-        multiple aggregators and scalers,
-        concatenates their results, then applies an MLP on the concatenated
-        features.
+    After the pre-transformation, it aggregates the messages
+    multiple aggregators and scalers,
+    concatenates their results, then applies an MLP on the concatenated
+    features.
 
-        PNA: Principal Neighbourhood Aggregation
-        Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
-        https://arxiv.org/abs/2004.05718
+    PNA: Principal Neighbourhood Aggregation
+    Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
+    https://arxiv.org/abs/2004.05718
     """
-    
+
     def __init__(
         self,
         in_dim: int,

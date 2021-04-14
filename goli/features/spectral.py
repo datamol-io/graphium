@@ -11,7 +11,10 @@ from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
 def compute_laplacian_positional_eigvecs(
-    adj: Tuple[np.ndarray, spmatrix], num_pos: int, disconnected_comp: bool = True, normalization: str = "none"
+    adj: Tuple[np.ndarray, spmatrix],
+    num_pos: int,
+    disconnected_comp: bool = True,
+    normalization: str = "none",
 ) -> Tuple[np.ndarray, np.ndarray]:
 
     # Sparsify the adjacency patrix
@@ -71,7 +74,7 @@ def _get_positional_eigvecs(matrix, num_pos: int):
     eigvals = eigvals[:, :num_pos]
 
     # Normalize the eigvecs
-    eigvecs = eigvecs / (np.sqrt(np.sum(eigvecs**2, axis=0, keepdims=True)) + 1e-8)
+    eigvecs = eigvecs / (np.sqrt(np.sum(eigvecs ** 2, axis=0, keepdims=True)) + 1e-8)
 
     return eigvals, eigvecs
 

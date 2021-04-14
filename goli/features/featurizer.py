@@ -1,6 +1,5 @@
 from typing import Union, List, Callable, Dict, Tuple, Optional, Any
 
-import os
 import numpy as np
 from scipy.sparse import csr_matrix
 import dgl
