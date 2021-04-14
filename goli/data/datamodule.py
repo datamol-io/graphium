@@ -2,8 +2,6 @@ from typing import List, Dict, Union, Any, Callable, Optional
 
 import os
 import functools
-import copy
-import yaml
 
 from loguru import logger
 import fsspec
@@ -29,24 +27,129 @@ from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
 
-class DGLFromSmilesDataset(Dataset):
-    def __init__(self, smiles: List[str], features: List[dgl.DGLGraph], labels: torch.Tensor):
+class DGLDataset(Dataset):
+    def __init__(
+        self,
+        features: List[dgl.DGLGraph],
+        labels: Union[torch.Tensor, np.ndarray],
+        smiles: List[str] = None,
+    ):
         self.smiles = smiles
         self.features = features
         self.labels = labels
 
     def __len__(self):
-        return len(self.smiles)
+        return len(self.features)
 
     def __getitem__(self, idx):
         datum = {}
-        datum["smiles"] = self.smiles[idx]
+        if self.smiles is not None:
+            datum["smiles"] = self.smiles[idx]
         datum["features"] = self.features[idx]
         datum["labels"] = self.labels[idx]
         return datum
 
 
-class DGLFromSmilesDataModule(pl.LightningDataModule):
+class DGLBaseDataModule(pl.LightningDataModule):
+    def __init__(
+        self,
+        batch_size_train_val: int = 16,
+        batch_size_test: int = 16,
+        num_workers: int = 0,
+        pin_memory: bool = True,
+        persistent_workers: bool = False,
+        collate_fn: Optional[Callable] = None,
+    ):
+        super().__init__()
+
+        self.batch_size_train_val = batch_size_train_val
+        self.batch_size_test = batch_size_test
+
+        self.num_workers = num_workers
+        self.pin_memory = pin_memory
+        self.persistent_workers = persistent_workers
+
+        if collate_fn is None:
+            self.collate_fn = goli_collate_fn
+        else:
+            self.collate_fn = collate_fn
+
+        self.dataset = None
+        self.train_ds = None
+        self.val_ds = None
+        self.test_ds = None
+
+    def prepare_data(self):
+        raise NotImplementedError()
+
+    def setup(self):
+        raise NotImplementedError()
+
+    def train_dataloader(self, **kwargs):
+        return self._dataloader(
+            dataset=self.train_ds,  # type: ignore
+            batch_size=self.batch_size_train_val,
+            shuffle=True,
+        )
+
+    def val_dataloader(self, **kwargs):
+        return self._dataloader(
+            dataset=self.val_ds,  # type: ignore
+            batch_size=self.batch_size_train_val,
+            shuffle=False,
+        )
+
+    def test_dataloader(self, **kwargs):
+
+        return self._dataloader(
+            dataset=self.test_ds,  # type: ignore
+            batch_size=self.batch_size_test,
+            shuffle=False,
+        )
+
+    @property
+    def is_prepared(self):
+        raise NotImplementedError()
+
+    @property
+    def is_setup(self):
+        raise NotImplementedError()
+
+    @property
+    def num_node_feats(self):
+        raise NotImplementedError()
+
+    @property
+    def num_edge_feats(self):
+        raise NotImplementedError()
+
+    def get_first_graph(self):
+        raise NotImplementedError()
+
+    # Private methods
+
+    def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool):
+        """Get a dataloader for a given dataset"""
+
+        if self.num_workers == -1:
+            num_workers = os.cpu_count()
+            num_workers = num_workers if num_workers is not None else 0
+        else:
+            num_workers = self.num_workers
+
+        loader = DataLoader(
+            dataset=dataset,
+            num_workers=num_workers,
+            collate_fn=self.collate_fn,
+            pin_memory=self.pin_memory,
+            batch_size=batch_size,
+            shuffle=shuffle,
+            persistent_workers=self.persistent_workers,
+        )
+        return loader
+
+
+class DGLFromSmilesDataModule(DGLBaseDataModule):
     """
     NOTE(hadim): let's make only one class for the moment and refactor with a parent class
     once we have more concrete datamodules to implement. The class should be general enough
@@ -108,7 +211,14 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
             featurization_progress: whether to show a progress bar during featurization.
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
         """
-        super().__init__()
+        super().__init__(
+            batch_size_train_val=batch_size_train_val,
+            batch_size_test=batch_size_test,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            collate_fn=collate_fn,
+        )
 
         self.df = df
         self.df_path = df_path
@@ -123,25 +233,13 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         self.split_seed = split_seed
         self.splits_path = splits_path
 
-        self.batch_size_train_val = batch_size_train_val
-        self.batch_size_test = batch_size_test
-
-        self.num_workers = num_workers
-        self.pin_memory = pin_memory
-        self.persistent_workers = persistent_workers
-
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
 
-        if collate_fn is None:
-            self.collate_fn = goli_collate_fn
-        else:
-            self.collate_fn = collate_fn
-
-        self.ds = None
+        self.dataset = None
         self.train_ds = None
         self.val_ds = None
-        self.ds_ds = None
+        self.test_ds = None
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -206,7 +304,7 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
-        self.dataset = DGLFromSmilesDataset(smiles=smiles, features=features, labels=labels)
+        self.dataset = DGLDataset(smiles=smiles, features=features, labels=labels)
 
         # Cache on disk
         if self.cache_data_path is not None:
@@ -223,33 +321,11 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
 
         if stage == "fit" or stage is None:
-            self.train_ds = Subset(self.dataset, self.train_indices)
-            self.val_ds = Subset(self.dataset, self.val_indices)
+            self.train_ds = Subset(self.dataset, self.train_indices)  # type: ignore
+            self.val_ds = Subset(self.dataset, self.val_indices)  # type: ignore
 
         if stage == "test" or stage is None:
-            self.test_ds = Subset(self.dataset, self.test_indices)
-
-    def train_dataloader(self, **kwargs):
-        return self._dataloader(
-            dataset=self.train_ds,  # type: ignore
-            batch_size=self.batch_size_train_val,
-            shuffle=True,
-        )
-
-    def val_dataloader(self, **kwargs):
-        return self._dataloader(
-            dataset=self.val_ds,  # type: ignore
-            batch_size=self.batch_size_train_val,
-            shuffle=False,
-        )
-
-    def test_dataloader(self, **kwargs):
-
-        return self._dataloader(
-            dataset=self.test_ds,  # type: ignore
-            batch_size=self.batch_size_test,
-            shuffle=False,
-        )
+            self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
 
     @property
     def is_prepared(self):
@@ -298,26 +374,6 @@ class DGLFromSmilesDataModule(pl.LightningDataModule):
         return graph
 
     # Private methods
-
-    def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool):
-        """Get a dataloader for a given dataset"""
-
-        if self.num_workers == -1:
-            num_workers = os.cpu_count()
-            num_workers = num_workers if num_workers is not None else 0
-        else:
-            num_workers = self.num_workers
-
-        loader = DataLoader(
-            dataset=dataset,
-            num_workers=num_workers,
-            collate_fn=self.collate_fn,
-            pin_memory=self.pin_memory,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            persistent_workers=self.persistent_workers,
-        )
-        return loader
 
     def _extract_smiles_labels(self, df: pd.DataFrame, smiles_col: str = None, label_cols: List[str] = None):
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
