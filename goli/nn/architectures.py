@@ -371,6 +371,8 @@ class FeedForwardDGL(FeedForwardNN):
                 - "gated-gcn": `GatedGCNLayer`
                 - "pna-conv": `PNAConvolutionalLayer`
                 - "pna-msgpass": `PNAMessagePassingLayer`
+                - "dgn-conv": `DGNConvolutionalLayer`
+                - "dgn-msgpass": `DGNMessagePassingLayer`
 
             layer_kwargs:
                 The arguments to be used in the initialization of the layer provided by `layer_type`

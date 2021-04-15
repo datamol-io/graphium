@@ -73,6 +73,6 @@ def graph_positional_encoder(
     else:
         raise ValueError(f"Unknown `pos_type`: {pos_type}")
 
-    pos_enc = torch.as_tensor(pos_enc)
+    pos_enc = torch.as_tensor(np.real(pos_enc)).to(torch.float32)
 
     return pos_enc
