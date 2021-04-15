@@ -11,7 +11,16 @@ def get_all_positional_encoding(
     pos_encoding_as_features: Optional[Dict] = None,
     pos_encoding_as_directions: Optional[Dict] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    r""""""
+    r"""
+    Get features positional encoding and direction positional encoding.
+
+    Parameters:
+        adj: Adjacency matrix of the graph
+        pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for node features.
+        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for directional features.
+    """
 
     pos_enc_feats, pos_enc_dir = None, None
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
@@ -32,7 +41,7 @@ def get_all_positional_encoding(
 
 
 def graph_positional_encoder(
-    adj: Tuple[np.ndarray, spmatrix], pos_type: str, num_pos: int, disconnect: bool = True, **kwargs
+    adj: Tuple[np.ndarray, spmatrix], pos_type: str, num_pos: int, disconnected_comp: bool = True, **kwargs
 ) -> np.ndarray:
     r"""
     Get a positional encoding that depends on the parameters.
@@ -52,13 +61,13 @@ def graph_positional_encoder(
 
     if pos_type == "laplacian_eigvec":
         _, eigvecs = compute_laplacian_positional_eigvecs(
-            adj=adj, num_pos=num_pos, disconnect=disconnect, **kwargs
+            adj=adj, num_pos=num_pos, disconnected_comp=disconnected_comp, **kwargs
         )
         pos_enc = eigvecs
 
     elif pos_type == "laplacian_eigvec_eigval":
         eigvals_tile, eigvecs = compute_laplacian_positional_eigvecs(
-            adj=adj, num_pos=num_pos, disconnect=disconnect, **kwargs
+            adj=adj, num_pos=num_pos, disconnected_comp=disconnected_comp, **kwargs
         )
         pos_enc = np.concatenate((eigvecs, eigvals_tile), axis=1)
     else:
