@@ -6,7 +6,7 @@ from torch import Tensor
 EPS = 1e-8
 
 
-def get_grad(source_pos: Tensor, dest_pos: Tensor, dir_idx: int, temperature: Optional[float]=None) -> Tensor:
+def get_grad_of_pos(source_pos: Tensor, dest_pos: Tensor, dir_idx: int, temperature: Optional[float]=None) -> Tensor:
     r"""
     Get the vector field associated to the gradient of the positional
     encoding.
@@ -22,11 +22,12 @@ def get_grad(source_pos: Tensor, dest_pos: Tensor, dir_idx: int, temperature: Op
 
     Parameters:
 
-        h: The features to aggregate $h^{(l)}$
         source_pos: The positional encoding at the source node, used to compute the directional field
         dest_pos: The positional encoding at the destination node, used to compute the directional field
         h_in: The input features of the layer, before any operation.
         dir_idx: The index of the positional encoding ($k$ in the equation above)
+        temperature: The temperature to use in the softmax of the directional field.
+            If `None`, then the softmax is not applied on the field
 
     """
 
@@ -58,12 +59,14 @@ def aggregate_dir_smooth(
         dest_pos: The positional encoding at the destination node, used to compute the directional field
         h_in: The input features of the layer, before any operation.
         dir_idx: The index of the positional encoding ($k$ in the equation above)
+        temperature: The temperature to use in the softmax of the directional field.
+            If `None`, then the softmax is not applied on the field
 
     Returns:
         h_mod: The aggregated features $y^{(l)}$
 
     """
-    grad = get_grad(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     h_mod = h * (grad.abs() / (torch.sum(grad.abs(), keepdim=True, dim=1) + EPS)).unsqueeze(-1)
     return torch.sum(h_mod, dim=1)
 
@@ -89,6 +92,8 @@ def aggregate_dir_dx_abs(
         dest_pos: The positional encoding at the destination node, used to compute the directional field
         h_in: The input features of the layer, before any operation.
         dir_idx: The index of the positional encoding ($k$ in the equation above)
+        temperature: The temperature to use in the softmax of the directional field.
+            If `None`, then the softmax is not applied on the field
 
     Returns:
         h_mod: The aggregated features $y^{(l)}$
@@ -118,12 +123,14 @@ def aggregate_dir_dx_no_abs(
         dest_pos: The positional encoding at the destination node, used to compute the directional field
         h_in: The input features of the layer, before any operation.
         dir_idx: The index of the positional encoding ($k$ in the equation above)
+        temperature: The temperature to use in the softmax of the directional field.
+            If `None`, then the softmax is not applied on the field
 
     Returns:
         h_mod: The aggregated features $y^{(l)}$
 
     """
-    grad = get_grad(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     dir_weight = (grad / (torch.sum(grad.abs(), keepdim=True, dim=1) + EPS)).unsqueeze(-1)
     h_mod = h * dir_weight
     return torch.sum(h_mod, dim=1) - torch.sum(dir_weight, dim=1) * h_in
@@ -132,7 +139,26 @@ def aggregate_dir_dx_no_abs(
 def aggregate_dir_dx_abs_balanced(
     h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, temperature: Optional[float]=None, **kwargs
 ) -> Tensor:
-    grad = get_grad(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
+    r"""
+    The aggregation is the same as `aggregate_dir_dx_no_abs`, but the positive and
+    negative parts of the field are normalized separately.
+
+    
+    Parameters:
+
+        h: The features to aggregate $h^{(l)}$
+        source_pos: The positional encoding at the source node, used to compute the directional field
+        dest_pos: The positional encoding at the destination node, used to compute the directional field
+        h_in: The input features of the layer, before any operation.
+        dir_idx: The index of the positional encoding ($k$ in the equation above)
+        temperature: The temperature to use in the softmax of the directional field.
+            If `None`, then the softmax is not applied on the field
+
+    Returns:
+        h_mod: The aggregated features $y^{(l)}$
+
+    """
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
     eig_back = torch.relu(-grad) / (torch.sum(torch.relu(-grad), keepdim=True, dim=1) + EPS)
 
@@ -160,11 +186,13 @@ def aggregate_dir_forward(
         dest_pos: The positional encoding at the destination node, used to compute the directional field
         h_in: The input features of the layer, before any operation.
         dir_idx: The index of the positional encoding ($k$ in the equation above)
+        temperature: The temperature to use in the softmax of the directional field.
+            If `None`, then the softmax is not applied on the field
 
     Returns:
         h_mod: The aggregated features $y^{(l)}$
     """
-    grad = get_grad(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
     return h * eig_front.unsqueeze(-1)
 
@@ -188,6 +216,8 @@ def aggregate_dir_backward(
         dest_pos: The positional encoding at the destination node, used to compute the directional field
         h_in: The input features of the layer, before any operation.
         dir_idx: The index of the positional encoding ($k$ in the equation above)
+        temperature: The temperature to use in the softmax of the directional field.
+            If `None`, then the softmax is not applied on the field
 
     Returns:
         h_mod: The aggregated features $y^{(l)}$
