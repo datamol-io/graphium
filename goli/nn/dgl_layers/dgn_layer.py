@@ -4,7 +4,9 @@ from functools import partial
 
 from goli.nn.dgl_layers.pna_layer import PNAConvolutionalLayer, PNAMessagePassingLayer
 from goli.nn.pna_operations import PNA_AGGREGATORS
-import goli.nn.dgn_operations as dgn_ops
+from goli.nn.dgn_operations import DGN_AGGREGATORS
+
+
 
 
 class BaseDGNLayer:
@@ -46,26 +48,13 @@ class BaseDGNLayer:
 
             # If the directional, get the right aggregator
             elif "dir" == agg_name[:3]:
-                agg_split = agg_name.split("/", maxsplit=1)[0]
+                agg_split = agg_name.split("/")
                 agg_dir, agg_fn_name = agg_split[0], agg_split[1]
                 dir_idx = int(agg_dir[3:])
-
-                # Initialize the functions
-                if agg_fn_name == "smooth":
-                    this_agg = partial(dgn_ops.aggregate_dir_smooth, dir_idx=dir_idx)
-                elif agg_fn_name == "softmax":
-                    alpha = float(agg_split[2])
-                    this_agg = partial(dgn_ops.aggregate_dir_softmax, dir_idx=dir_idx, alpha=alpha)
-                elif agg_fn_name == "dx_abs":
-                    this_agg = partial(dgn_ops.aggregate_dir_dx_abs, dir_idx=dir_idx)
-                elif agg_fn_name == "dx_no_abs":
-                    this_agg = partial(dgn_ops.aggregate_dir_dx_no_abs, dir_idx=dir_idx)
-                elif agg_fn_name == "dx_abs_balanced":
-                    this_agg = partial(dgn_ops.aggregate_dir_dx_abs_balanced, dir_idx=dir_idx)
-                elif agg_fn_name == "forward":
-                    this_agg = partial(dgn_ops.aggregate_dir_forward, dir_idx=dir_idx)
-                elif agg_fn_name == "backward":
-                    this_agg = partial(dgn_ops.aggregate_dir_backward, dir_idx=dir_idx)
+                temperature = None
+                if len(agg_split) > 2:
+                    temperature = float(agg_split[2])
+                this_agg = partial(DGN_AGGREGATORS[agg_fn_name], dir_idx=dir_idx, temperature=temperature)
 
             if this_agg is None:
                 raise ValueError(f"aggregator `{agg_name}` not a valid choice.")
@@ -120,13 +109,13 @@ class DGNConvolutionalLayer(BaseDGNLayer, PNAConvolutionalLayer):
     """
 
     def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
-        return super(BaseDGNLayer, self).parse_aggregators(aggregators)
+        return BaseDGNLayer.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        return super(BaseDGNLayer, self).message_func(edges)
+        return BaseDGNLayer.message_func(self, edges)
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        return super(BaseDGNLayer, self).reduce_func(nodes)
+        return BaseDGNLayer.reduce_func(self, nodes)
 
     def pretrans_edges(self, edges):
         return {"e": edges.src["h"], "source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]}
@@ -151,15 +140,15 @@ class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
     """
 
     def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
-        return super(BaseDGNLayer, self).parse_aggregators(aggregators)
+        return BaseDGNLayer.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        return super(BaseDGNLayer, self).message_func(edges)
+        return BaseDGNLayer.message_func(self, edges)
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        return super(BaseDGNLayer, self).reduce_func(nodes)
+        return BaseDGNLayer.reduce_func(self, nodes)
 
     def pretrans_edges(self, edges):
-        pretrans = super().pretrans_edges(edges)
+        pretrans = PNAMessagePassingLayer.pretrans_edges(self, edges)
         pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
         return pretrans

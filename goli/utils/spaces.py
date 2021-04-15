@@ -4,17 +4,17 @@ from ray import tune
 from goli.nn.base_layers import FCLayer
 
 from goli.nn.dgl_layers import (
-    BaseDGLLayer,
     GATLayer,
     GCNLayer,
     GINLayer,
     GatedGCNLayer,
     PNAConvolutionalLayer,
     PNAMessagePassingLayer,
+    DGNConvolutionalLayer,
+    DGNMessagePassingLayer,
 )
 
 from goli.nn.residual_connections import (
-    ResidualConnectionBase,
     ResidualConnectionConcat,
     ResidualConnectionDenseNet,
     ResidualConnectionNone,
@@ -34,6 +34,8 @@ DGL_LAYERS_DICT = {
     "gated-gcn": GatedGCNLayer,
     "pna-conv": PNAConvolutionalLayer,
     "pna-msgpass": PNAMessagePassingLayer,
+    "dgn-conv": DGNConvolutionalLayer,
+    "dgn-msgpass": DGNMessagePassingLayer,
 }
 
 LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
