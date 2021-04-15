@@ -546,7 +546,10 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dm_args["pin_memory"] = pin_memory
         dm_args["featurization_n_jobs"] = featurization_n_jobs
         dm_args["featurization_progress"] = featurization_progress
+        dm_args["persistent_workers"] = persistent_workers
+        dm_args["collate_fn"] = collate_fn
 
+        # Init DGLFromSmilesDataModule
         super().__init__(**dm_args)
 
     def to_dict(self):
