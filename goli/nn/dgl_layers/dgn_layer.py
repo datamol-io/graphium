@@ -21,13 +21,19 @@ class BaseDGNLayer:
         - `"min"`
         - `"max"`
         - `"std"`
-        - `"dir{dir_idx:int}/smooth"`
-        - `"dir{dir_idx:int}/softmax/{alpha:float}"`
-        - `"dir{dir_idx:int}/dx_abs"`
-        - `"dir{dir_idx:int}/dx_no_abs"`
-        - `"dir{dir_idx:int}/dx_abs_balanced"`
-        - `"dir{dir_idx:int}/forward"`
-        - `"dir{dir_idx:int}/backward"`
+        - `"dir{dir_idx:int}/smooth/{Optional[alpha:float]}"`
+        - `"dir{dir_idx:int}/dx_abs/{Optional[alpha:float]}"`
+        - `"dir{dir_idx:int}/dx_no_abs/{Optional[alpha:float]}"`
+        - `"dir{dir_idx:int}/dx_abs_balanced/{Optional[alpha:float]}"`
+        - `"dir{dir_idx:int}/forward/{Optional[alpha:float]}"`
+        - `"dir{dir_idx:int}/backward/{Optional[alpha:float]}"`
+
+        Example:
+            ```
+            In:     self.parse_aggregators(["dir1/dx_abs", "dir2/smooth/0.2"])
+            Out:    [partial(aggregate_dir_dx_abs, dir_idx=1, temperature=None),
+                     partial(aggregate_dir_smooth, dir_idx=2, temperature=0.2)]
+            ```
 
         Parameters:
             aggregators_name: The list of all aggregators names to use, selected
@@ -35,6 +41,7 @@ class BaseDGNLayer:
 
         Returns:
             aggregators: The list of all callable aggregators.
+
         """
         aggregators = []
 
