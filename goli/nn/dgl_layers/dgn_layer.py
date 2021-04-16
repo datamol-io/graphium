@@ -19,12 +19,20 @@ class BaseDGNLayer:
         - `"min"`
         - `"max"`
         - `"std"`
-        - `"dir{dir_idx:int}/smooth/{Optional[alpha:float]}"`
-        - `"dir{dir_idx:int}/dx_abs/{Optional[alpha:float]}"`
-        - `"dir{dir_idx:int}/dx_no_abs/{Optional[alpha:float]}"`
-        - `"dir{dir_idx:int}/dx_abs_balanced/{Optional[alpha:float]}"`
-        - `"dir{dir_idx:int}/forward/{Optional[alpha:float]}"`
-        - `"dir{dir_idx:int}/backward/{Optional[alpha:float]}"`
+        - `"dir{dir_idx:int}/smooth/{Optional[temperature:float]}"`
+        - `"dir{dir_idx:int}/dx_abs/{Optional[temperature:float]}"`
+        - `"dir{dir_idx:int}/dx_no_abs/{Optional[temperature:float]}"`
+        - `"dir{dir_idx:int}/dx_abs_balanced/{Optional[temperature:float]}"`
+        - `"dir{dir_idx:int}/forward/{Optional[temperature:float]}"`
+        - `"dir{dir_idx:int}/backward/{Optional[temperature:float]}"`
+
+        `dir_idx` is an integer specifying the index of the positional encoding
+        to use for direction. In the case of eigenvector-based directions, `dir_idx=1`
+        is chosen for the first non-trivial eigenvector and `dir_idx=2` for the second.
+
+        `temperature` is used to harden the direction using a softmax on the directional
+        matrices. If it is not provided, then no softmax is applied. The larger the temperature,
+        the more weight is attributed to the dominant direction.
 
         Example:
             ```
