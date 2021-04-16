@@ -853,7 +853,21 @@ class FullDGLNetwork(nn.Module):
                 otherwise it returns graph features and the output dimension is `M`
 
         """
-        g.ndata["h"] = g.ndata["feat"]
+
+        # Get the node features and positional embedding
+        h = g.ndata["feat"]
+        if "pos_enc_feats_sign_flip" in g.ndata.keys():
+            pos_enc = g.ndata["pos_enc_feats_sign_flip"]
+            rand_sign_shape = ([1] * (pos_enc.ndim - 1)) + [pos_enc.shape[-1]]
+            rand_sign = torch.sign(torch.randn(rand_sign_shape, dtype=h.dtype, device=h.device))
+            h = torch.cat((h, pos_enc * rand_sign), dim=-1)
+        if "pos_enc_feats_no_flip" in g.ndata.keys():
+            pos_enc = g.ndata["pos_enc_feats_no_flip"]
+            h = torch.cat((h, pos_enc), dim=-1)
+        
+        g.ndata["h"] = h
+
+
         if "feat" in g.edata.keys():
             g.edata["e"] = g.edata["feat"]
 
