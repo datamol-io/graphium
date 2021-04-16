@@ -437,11 +437,11 @@ def mol_to_adj_and_features(
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
     edata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
 
-    pos_enc_feats, pos_enc_dir = get_all_positional_encoding(
+    pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = get_all_positional_encoding(
         adj, pos_encoding_as_features, pos_encoding_as_directions
     )
 
-    return adj, ndata, edata, pos_enc_feats, pos_enc_dir
+    return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 
 
 def mol_to_dglgraph(
@@ -509,7 +509,7 @@ def mol_to_dglgraph(
         mol = Chem.RemoveHs(mol)
 
     # Get the adjacency, node features and edge features
-    adj, ndata, edata, pos_enc_feats, pos_enc_dir = mol_to_adj_and_features(
+    adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = mol_to_adj_and_features(
         mol=mol,
         atom_property_list_onehot=atom_property_list_onehot,
         atom_property_list_float=atom_property_list_float,
@@ -543,9 +543,15 @@ def mol_to_dglgraph(
 
         graph.edata["feat"] = torch.from_numpy(hetero_edata).to(dtype=dtype)
 
-    if pos_enc_feats is not None:
-        graph.ndata["pos_feats"] = pos_enc_feats
+    # Add sign-flip positional encoding
+    if pos_enc_feats_sign_flip is not None:
+        graph.ndata["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip
+    
+    # Add non-sign-flip positional encoding
+    if pos_enc_feats_no_flip is not None:
+        graph.ndata["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip
 
+    # Add positional encoding for directional use
     if pos_enc_dir is not None:
         graph.ndata["pos_dir"] = pos_enc_dir
 
