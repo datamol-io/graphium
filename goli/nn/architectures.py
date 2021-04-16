@@ -864,9 +864,8 @@ class FullDGLNetwork(nn.Module):
         if "pos_enc_feats_no_flip" in g.ndata.keys():
             pos_enc = g.ndata["pos_enc_feats_no_flip"]
             h = torch.cat((h, pos_enc), dim=-1)
-        
-        g.ndata["h"] = h
 
+        g.ndata["h"] = h
 
         if "feat" in g.edata.keys():
             g.edata["e"] = g.edata["feat"]
