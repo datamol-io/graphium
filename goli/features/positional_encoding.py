@@ -28,7 +28,9 @@ def get_all_positional_encoding(
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
-        pos_enc_feats_sign_flip, pos_enc_feats_no_flip = graph_positional_encoder(adj, **pos_encoding_as_features)
+        pos_enc_feats_sign_flip, pos_enc_feats_no_flip = graph_positional_encoder(
+            adj, **pos_encoding_as_features
+        )
 
     # Get the positional encoding for the directions
     if len(pos_encoding_as_directions) > 0:
@@ -41,7 +43,7 @@ def get_all_positional_encoding(
                 pos_enc_dir = pos_enc_feats_sign_flip
             else:
                 pos_enc_dir = np.concatenate((pos_enc_feats_sign_flip, pos_enc_feats_no_flip), axis=1)
-        
+
         else:
             pos_enc_dir1, pos_enc_dir2 = graph_positional_encoder(adj, **pos_encoding_as_directions)
             # Concatenate both positional encodings

@@ -6,7 +6,9 @@ from torch import Tensor
 EPS = 1e-8
 
 
-def get_grad_of_pos(source_pos: Tensor, dest_pos: Tensor, dir_idx: int, temperature: Optional[float]=None) -> Tensor:
+def get_grad_of_pos(
+    source_pos: Tensor, dest_pos: Tensor, dir_idx: int, temperature: Optional[float] = None
+) -> Tensor:
     r"""
     Get the vector field associated to the gradient of the positional
     encoding.
@@ -41,7 +43,13 @@ def get_grad_of_pos(source_pos: Tensor, dest_pos: Tensor, dir_idx: int, temperat
 
 
 def aggregate_dir_smooth(
-    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, temperature: Optional[float]=None, **kwargs
+    h: Tensor,
+    source_pos: Tensor,
+    dest_pos: Tensor,
+    h_in: Tensor,
+    dir_idx: int,
+    temperature: Optional[float] = None,
+    **kwargs,
 ) -> Tensor:
     r"""
     The aggregation is the following:
@@ -72,7 +80,13 @@ def aggregate_dir_smooth(
 
 
 def aggregate_dir_dx_abs(
-    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, temperature: Optional[float]=None, **kwargs
+    h: Tensor,
+    source_pos: Tensor,
+    dest_pos: Tensor,
+    h_in: Tensor,
+    dir_idx: int,
+    temperature: Optional[float] = None,
+    **kwargs,
 ) -> Tensor:
     r"""
     The aggregation is the following:
@@ -103,7 +117,13 @@ def aggregate_dir_dx_abs(
 
 
 def aggregate_dir_dx_no_abs(
-    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, temperature: Optional[float]=None, **kwargs
+    h: Tensor,
+    source_pos: Tensor,
+    dest_pos: Tensor,
+    h_in: Tensor,
+    dir_idx: int,
+    temperature: Optional[float] = None,
+    **kwargs,
 ) -> Tensor:
     r"""
     The aggregation is the following:
@@ -137,13 +157,19 @@ def aggregate_dir_dx_no_abs(
 
 
 def aggregate_dir_dx_abs_balanced(
-    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, temperature: Optional[float]=None, **kwargs
+    h: Tensor,
+    source_pos: Tensor,
+    dest_pos: Tensor,
+    h_in: Tensor,
+    dir_idx: int,
+    temperature: Optional[float] = None,
+    **kwargs,
 ) -> Tensor:
     r"""
     The aggregation is the same as `aggregate_dir_dx_no_abs`, but the positive and
     negative parts of the field are normalized separately.
 
-    
+
     Parameters:
 
         h: The features to aggregate $h^{(l)}$
@@ -168,7 +194,13 @@ def aggregate_dir_dx_abs_balanced(
 
 
 def aggregate_dir_forward(
-    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, temperature: Optional[float]=None, **kwargs
+    h: Tensor,
+    source_pos: Tensor,
+    dest_pos: Tensor,
+    h_in: Tensor,
+    dir_idx: int,
+    temperature: Optional[float] = None,
+    **kwargs,
 ) -> Tensor:
     r"""
     The aggregation is the following:
@@ -198,7 +230,13 @@ def aggregate_dir_forward(
 
 
 def aggregate_dir_backward(
-    h: Tensor, source_pos: Tensor, dest_pos: Tensor, h_in: Tensor, dir_idx: int, temperature: Optional[float]=None, **kwargs
+    h: Tensor,
+    source_pos: Tensor,
+    dest_pos: Tensor,
+    h_in: Tensor,
+    dir_idx: int,
+    temperature: Optional[float] = None,
+    **kwargs,
 ) -> Tensor:
     r"""
     The aggregation is the following:
@@ -223,6 +261,7 @@ def aggregate_dir_backward(
         h_mod: The aggregated features $y^{(l)}$
     """
     return aggregate_dir_forward(h, -source_pos, -dest_pos, h_in, dir_idx, temperature, **kwargs)
+
 
 DGN_AGGREGATORS = {
     "smooth": aggregate_dir_smooth,

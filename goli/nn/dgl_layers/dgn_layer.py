@@ -7,8 +7,6 @@ from goli.nn.pna_operations import PNA_AGGREGATORS
 from goli.nn.dgn_operations import DGN_AGGREGATORS
 
 
-
-
 class BaseDGNLayer:
     def parse_aggregators(self, aggregators_name: List[str]) -> List[Callable]:
         r"""

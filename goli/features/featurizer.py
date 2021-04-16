@@ -546,7 +546,7 @@ def mol_to_dglgraph(
     # Add sign-flip positional encoding
     if pos_enc_feats_sign_flip is not None:
         graph.ndata["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip
-    
+
     # Add non-sign-flip positional encoding
     if pos_enc_feats_no_flip is not None:
         graph.ndata["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip
