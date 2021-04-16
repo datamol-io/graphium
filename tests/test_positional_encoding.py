@@ -34,10 +34,11 @@ class test_positional_encoder(ut.TestCase):
             for num_pos in [1, 2, 4]: # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
-                    pos_enc = graph_positional_encoder(
+                    pos_enc_sign_flip, pos_enc_no_flip = graph_positional_encoder(
                         adj, pos_type="laplacian_eigvec", num_pos=num_pos, disconnected_comp=disconnected_comp
                     )
-                    self.assertEqual(list(pos_enc.shape), [adj.shape[0], num_pos], msg=err_msg)
+                    self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
+                    self.assertIsNone(pos_enc_no_flip)
 
                     # Compute eigvals and eigvecs
                     lap = np.diag(np.sum(adj, axis=1)) - adj
@@ -49,13 +50,13 @@ class test_positional_encoder(ut.TestCase):
                     true_num_pos = min(num_pos, len(eigvals))
                     eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
                     eigvecs = np.sign(eigvecs[0:1, :]) * eigvecs
-                    pos_enc = (np.sign(pos_enc[0:1, :]) * pos_enc).numpy()
+                    pos_enc_sign_flip = (np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip).numpy()
 
                     # Compare the positional encoding
                     if disconnected_comp and ("." in self.smiles[ii]):
-                        self.assertGreater(np.max(np.abs(eigvecs - pos_enc)), 1e-3)
+                        self.assertGreater(np.max(np.abs(eigvecs - pos_enc_sign_flip)), 1e-3)
                     elif not ("." in self.smiles[ii]):
-                        np.testing.assert_array_almost_equal(eigvecs, pos_enc[:, :true_num_pos], decimal=6, err_msg=err_msg)
+                        np.testing.assert_array_almost_equal(eigvecs, pos_enc_sign_flip[:, :true_num_pos], decimal=6, err_msg=err_msg)
                         
 
     def test_laplacian_eigvec_eigval(self):
@@ -64,10 +65,11 @@ class test_positional_encoder(ut.TestCase):
             for num_pos in [1, 2, 4]: # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
-                    pos_enc = graph_positional_encoder(
+                    pos_enc_sign_flip, pos_enc_no_flip = graph_positional_encoder(
                         adj, pos_type="laplacian_eigvec_eigval", num_pos=num_pos, disconnected_comp=disconnected_comp
                     )
-                    self.assertEqual(list(pos_enc.shape), [adj.shape[0], 2*num_pos], msg=err_msg)
+                    self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
+                    self.assertEqual(list(pos_enc_no_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
 
                     # Compute eigvals and eigvecs
                     lap = np.diag(np.sum(adj, axis=1)) - adj
@@ -79,11 +81,11 @@ class test_positional_encoder(ut.TestCase):
                     true_num_pos = min(num_pos, len(eigvals))
                     eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
                     eigvecs = np.sign(eigvecs[0:1, :]) * eigvecs
-                    pos_enc = (np.sign(pos_enc[0:1, :]) * pos_enc).numpy()
+                    pos_enc_sign_flip = (np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip).numpy()
 
                     if not ("." in self.smiles[ii]):
-                        np.testing.assert_array_almost_equal(eigvecs, pos_enc[:, :true_num_pos], decimal=6, err_msg=err_msg)
-                        np.testing.assert_array_almost_equal(eigvals, pos_enc[0, num_pos:num_pos+true_num_pos], decimal=6, err_msg=err_msg)
+                        np.testing.assert_array_almost_equal(eigvecs, pos_enc_sign_flip[:, :true_num_pos], decimal=6, err_msg=err_msg)
+                        np.testing.assert_array_almost_equal(eigvals, pos_enc_no_flip[0, :true_num_pos], decimal=6, err_msg=err_msg)
                         
 
 

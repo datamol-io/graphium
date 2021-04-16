@@ -142,7 +142,7 @@ trainer:
     patience: 200
     mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/micro_ZINC/
+    dirpath: models_checkpoints/ZINC_bench_gnn/
     filename: "bob"
     monitor: *monitor
     mode: *mode
