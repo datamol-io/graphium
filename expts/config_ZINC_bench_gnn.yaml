@@ -4,7 +4,6 @@ constants:
 
 datamodule:
   module_type: "DGLFromSmilesDataModule"
-  args:
     df_path: goli/data/ZINC_bench_gnn/smiles_score.csv
     cache_data_path: goli/data/cache/ZINC_bench_gnn/smiles_score.cache
     label_cols: ['score']
@@ -20,6 +19,12 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
+      pos_encoding_as_features: &pos_enc
+        pos_type: laplacian_eigvec
+        num_pos: 3
+        normalization: "none"
+        disconnected_comp: True
+      pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
     split_val: null
@@ -32,7 +37,7 @@ datamodule:
     # Data loading
     num_workers: 0
     pin_memory: False
-    persistent_workers: True  # Keep True on Windows if running multiple workers
+    persistent_workers: False  # Keep True on Windows if running multiple workers, false for single worker
 
 
 architecture:
@@ -60,10 +65,10 @@ architecture:
     residual_type: simple
     pooling: 'sum'
     virtual_node: none
-    layer_type: 'pna-msgpass'
+    layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, min, std]
+      aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
       scalers: [identity, amplification, attenuation]
   
   post_nn:
@@ -140,7 +145,7 @@ trainer:
     patience: 200
     mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/micro_ZINC/
+    dirpath: models_checkpoints/ZINC_bench_gnn/
     filename: "bob"
     monitor: *monitor
     mode: *mode

@@ -20,6 +20,12 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
+      pos_encoding_as_features: &pos_enc
+        pos_type: laplacian_eigvec
+        num_pos: 3
+        normalization: "none"
+        disconnected_comp: True
+      pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
     split_val: 0.2
@@ -60,10 +66,10 @@ architecture:
     residual_type: simple
     pooling: 'sum'
     virtual_node: 'sum'
-    layer_type: 'pna-msgpass'
+    layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, min, std]
+      aggregators: [mean, max, dir1/dx_abs, dir1/smooth, dir2/dx_abs, dir1/dx_abs/.2]
       scalers: [identity, amplification, attenuation]
   
   post_nn:

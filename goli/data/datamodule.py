@@ -359,10 +359,25 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of node features in the first graph"""
 
         graph = self.get_first_graph()
+        num_feats = 0
         if "feat" in graph.ndata.keys():
-            return graph.ndata["feat"].shape[1]  # type: ignore
-        else:
-            return 0
+            num_feats += graph.ndata["feat"].shape[1]
+        return num_feats
+
+    @property
+    def num_node_feats_with_positional_encoding(self):
+        """Return the number of node features in the first graph
+        including positional encoding features."""
+
+        graph = self.get_first_graph()
+        num_feats = 0
+        if "feat" in graph.ndata.keys():
+            num_feats += graph.ndata["feat"].shape[1]
+        if "pos_enc_feats_sign_flip" in graph.ndata.keys():
+            num_feats += graph.ndata["pos_enc_feats_sign_flip"].shape[1]
+        if "pos_enc_feats_no_flip" in graph.ndata.keys():
+            num_feats += graph.ndata["pos_enc_feats_no_flip"].shape[1]
+        return num_feats
 
     @property
     def num_edge_feats(self):
@@ -479,6 +494,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         obj_repr["batch_size_train_val"] = self.batch_size_train_val
         obj_repr["batch_size_test"] = self.batch_size_test
         obj_repr["num_node_feats"] = self.num_node_feats
+        obj_repr["num_node_feats_with_positional_encoding"] = self.num_node_feats_with_positional_encoding
         obj_repr["num_edge_feats"] = self.num_edge_feats
         obj_repr["num_labels"] = len(self.label_cols)
         obj_repr["collate_fn"] = self.collate_fn.__name__

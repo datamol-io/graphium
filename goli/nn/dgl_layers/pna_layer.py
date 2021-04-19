@@ -1,14 +1,9 @@
-import re
-import threading
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import dgl.function as fn
 from dgl import DGLGraph
 from typing import Dict, List, Tuple, Union, Callable
 
 from goli.nn.pna_operations import PNA_AGGREGATORS, PNA_SCALERS
-from goli.nn.base_layers import MLP, FCLayer, get_activation
+from goli.nn.base_layers import MLP, get_activation
 from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
 from goli.utils.decorators import classproperty
 
@@ -90,8 +85,20 @@ class BasePNALayer(BaseDGLLayer):
         self.last_activation = get_activation(last_activation)
 
         # Initializing aggregators and scalers
-        self.aggregators = [PNA_AGGREGATORS[aggr] for aggr in aggregators]
-        self.scalers = [PNA_SCALERS[scale] for scale in scalers]
+        self.aggregators = self.parse_aggregators(aggregators)
+        self.scalers = self._parse_scalers(scalers)
+
+    def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
+        r"""
+        Parse the aggregators from a list of strings into a list of callables
+        """
+        return [PNA_AGGREGATORS[aggr] for aggr in aggregators]
+
+    def _parse_scalers(self, scalers: List[str]) -> List[Callable]:
+        r"""
+        Parse the scalers from a list of strings into a list of callables
+        """
+        return [PNA_SCALERS[scale] for scale in scalers]
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
         r"""
@@ -152,6 +159,18 @@ class BasePNALayer(BaseDGLLayer):
 
 
 class PNAConvolutionalLayer(BasePNALayer):
+    r"""
+    Implementation of the convolutional architecture of the PNA layer,
+    previously known as `PNASimpleLayer`. This layer aggregates the
+    neighbouring messages using multiple aggregators and scalers,
+    concatenates their results, then applies an MLP on the concatenated
+    features.
+
+    PNA: Principal Neighbourhood Aggregation
+    Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
+    https://arxiv.org/abs/2004.05718
+    """
+
     def __init__(
         self,
         in_dim: int,
@@ -166,15 +185,6 @@ class PNAConvolutionalLayer(BasePNALayer):
         posttrans_layers: int = 1,
     ):
         r"""
-        Implementation of the convolutional architecture of the PNA layer,
-        previously known as `PNASimpleLayer`. This layer aggregates the
-        neighbouring messages using multiple aggregators and scalers,
-        concatenates their results, then applies an MLP on the concatenated
-        features.
-
-        PNA: Principal Neighbourhood Aggregation
-        Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
-        https://arxiv.org/abs/2004.05718
 
         Parameters:
 
@@ -307,6 +317,23 @@ class PNAConvolutionalLayer(BasePNALayer):
 
 
 class PNAMessagePassingLayer(BasePNALayer):
+    r"""
+    Implementation of the message passing architecture of the PNA message passing layer,
+    previously known as `PNALayerComplex`. This layer applies an MLP as
+    pretransformation to the concatenation of $[h_u, h_v, e_{uv}]$ to generate
+    the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
+    and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
+
+    After the pre-transformation, it aggregates the messages
+    multiple aggregators and scalers,
+    concatenates their results, then applies an MLP on the concatenated
+    features.
+
+    PNA: Principal Neighbourhood Aggregation
+    Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
+    https://arxiv.org/abs/2004.05718
+    """
+
     def __init__(
         self,
         in_dim: int,
@@ -323,20 +350,6 @@ class PNAMessagePassingLayer(BasePNALayer):
         in_dim_edges: int = 0,
     ):
         r"""
-        Implementation of the message passing architecture of the PNA message passing layer,
-        previously known as `PNALayerComplex`. This layer applies an MLP as
-        pretransformation to the concatenation of $[h_u, h_v, e_{uv}]$ to generate
-        the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
-        and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
-
-        After the pre-transformation, it aggregates the messages
-        multiple aggregators and scalers,
-        concatenates their results, then applies an MLP on the concatenated
-        features.
-
-        PNA: Principal Neighbourhood Aggregation
-        Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
-        https://arxiv.org/abs/2004.05718
 
         Parameters:
 
