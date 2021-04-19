@@ -480,6 +480,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         obj_repr["batch_size_test"] = self.batch_size_test
         obj_repr["num_node_feats"] = self.num_node_feats
         obj_repr["num_edge_feats"] = self.num_edge_feats
+        obj_repr["num_labels"] = len(self.label_cols)
         obj_repr["collate_fn"] = self.collate_fn.__name__
         obj_repr["featurization"] = self.featurization
         return obj_repr
@@ -509,7 +510,8 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         """
 
         Parameters:
-            dataset_name: Name of the OGB dataset to load.
+            dataset_name: Name of the OGB dataset to load. Examples of possible datasets are
+                "ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv".
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
             featurization: args to apply to the SMILES to DGL featurizer.
