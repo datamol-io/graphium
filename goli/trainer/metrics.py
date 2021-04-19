@@ -168,6 +168,7 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
     spearman = pearsonr(_get_rank(preds), _get_rank(target), reduction=reduction)
     return spearman
 
+
 METRICS_CLASSIFICATION = {
     "accuracy": accuracy,
     "averageprecision": average_precision,
