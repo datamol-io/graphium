@@ -361,6 +361,8 @@ class PredictorModule(pl.LightningModule):
         metric_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
         metric_logs[f"mean_pred/{step_name}"] = torch.mean(preds)
         metric_logs[f"std_pred/{step_name}"] = torch.std(preds)
+        metric_logs[f"mean_target/{step_name}"] = torch.mean(targets)
+        metric_logs[f"std_target/{step_name}"] = torch.std(targets)
 
         # Compute the additional metrics
         # TODO: NaN mask `target_nan_mask` not implemented here
