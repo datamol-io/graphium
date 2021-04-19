@@ -13,6 +13,9 @@ from goli.config._loader import load_datamodule, load_metrics, load_architecture
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+CONFIG_FILE = "expts/config_molHIV.yaml"
+# CONFIG_FILE = "expts/config_micro_ZINC.yaml"
+# CONFIG_FILE = "expts/config_ZINC_bench_gnn.yaml"
 os.chdir(MAIN_DIR)
 
 
@@ -52,6 +55,6 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    with open(os.path.join(MAIN_DIR, "expts/config_ZINC_bench_gnn.yaml"), "r") as f:
+    with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
     main(cfg)
