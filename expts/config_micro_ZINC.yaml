@@ -111,6 +111,7 @@ metrics:
       threshold: 3
       th_on_preds: True
       th_on_target: True
+      target_to_int: True
 
   - name: f1 > 5
     metric: f1
@@ -121,6 +122,7 @@ metrics:
       threshold: 5
       th_on_preds: True
       th_on_target: True
+      target_to_int: True
 
   - name: precision > 3
     metric: precision

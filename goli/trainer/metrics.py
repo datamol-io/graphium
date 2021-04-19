@@ -33,12 +33,14 @@ class Thresholder:
         operator: str = "greater",
         th_on_preds: bool = True,
         th_on_target: bool = False,
+        target_to_int: bool = False,
     ):
 
         # Basic params
         self.threshold = threshold
         self.th_on_target = th_on_target
         self.th_on_preds = th_on_preds
+        self.target_to_int = target_to_int
 
         # Operator can either be a string, or a callable
         if isinstance(operator, str):
@@ -53,6 +55,8 @@ class Thresholder:
                 raise ValueError(f"operator `{op_name}` not supported")
         elif callable(operator):
             op_str = operator.__name__
+        elif operator is None:
+            pass
         else:
             raise TypeError(f"operator must be either `str` or `callable`, provided: `{type(operator)}`")
 
@@ -67,6 +71,9 @@ class Thresholder:
         # Apply the threshold on the targets
         if self.th_on_target:
             target = self.operator(target, self.threshold)
+
+        if self.target_to_int:
+            target = target.to(int)
 
         return preds, target
 
@@ -160,7 +167,6 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
 
     spearman = pearsonr(_get_rank(preds), _get_rank(target), reduction=reduction)
     return spearman
-
 
 METRICS_CLASSIFICATION = {
     "accuracy": accuracy,
