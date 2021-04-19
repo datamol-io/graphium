@@ -3,40 +3,42 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  df_path: goli/data/micro_ZINC/micro_ZINC.csv
-  cache_data_path: goli/data/cache/micro_ZINC/full.cache
-  label_cols: ['score']
-  smiles_col: SMILES
+  module_type: "DGLFromSmilesDataModule"
+  args:
+    df_path: goli/data/micro_ZINC/micro_ZINC.csv
+    cache_data_path: goli/data/cache/micro_ZINC/full.cache
+    label_cols: ['score']
+    smiles_col: SMILES
 
-  # Featurization
-  featurization_n_jobs: -1
-  featurization_progress: True
-  featurization:
-    atom_property_list_onehot: [atomic-number, valence]
-    atom_property_list_float: [mass, electronegativity, in-ring]
-    edge_property_list: [] # [bond-type-onehot, stereo, in-ring]
-    add_self_loop: False
-    explicit_H: False
-    use_bonds_weights: False
-    pos_encoding_as_features: &pos_enc
-      pos_type: laplacian_eigvec
-      num_pos: 3
-      normalization: "none"
-      disconnected_comp: True
-    pos_encoding_as_directions: *pos_enc
+    # Featurization
+    featurization_n_jobs: -1
+    featurization_progress: True
+    featurization:
+      atom_property_list_onehot: [atomic-number, valence]
+      atom_property_list_float: [mass, electronegativity, in-ring]
+      edge_property_list: [] # [bond-type-onehot, stereo, in-ring]
+      add_self_loop: False
+      explicit_H: False
+      use_bonds_weights: False
+      pos_encoding_as_features: &pos_enc
+        pos_type: laplacian_eigvec
+        num_pos: 3
+        normalization: "none"
+        disconnected_comp: True
+      pos_encoding_as_directions: *pos_enc
 
-  # Train, val, test parameters
-  split_val: 0.2
-  split_test: 0.2
-  split_seed: *seed
-  splits_path: null
-  batch_size_train_val: 128
-  batch_size_test: 256
+    # Train, val, test parameters
+    split_val: 0.2
+    split_test: 0.2
+    split_seed: *seed
+    splits_path: null
+    batch_size_train_val: 128
+    batch_size_test: 256
 
-  # Data loading
-  num_workers: 2
-  pin_memory: False
-  persistent_workers: True  # Keep True on Windows if running multiple workers
+    # Data loading
+    num_workers: 2
+    pin_memory: False
+    persistent_workers: True  # Keep True on Windows if running multiple workers
 
 
 architecture:
@@ -115,6 +117,7 @@ metrics:
       threshold: 3
       th_on_preds: True
       th_on_target: True
+      target_to_int: True
 
   - name: f1 > 5
     metric: f1
@@ -125,6 +128,7 @@ metrics:
       threshold: 5
       th_on_preds: True
       th_on_target: True
+      target_to_int: True
 
   - name: precision > 3
     metric: precision
