@@ -90,6 +90,7 @@ predictor:
     patience: 20
   scheduler_kwargs:
     monitor: &monitor auroc/val
+    mode: &mode max
     frequency: 1
   target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
 
@@ -144,7 +145,7 @@ trainer:
     monitor: *monitor
     min_delta: 0
     patience: 50
-    mode: &mode min
+    mode: *mode
   model_checkpoint:
     dirpath: models_checkpoints/ogb-molhiv/
     filename: "bob"
