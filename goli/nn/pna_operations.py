@@ -21,6 +21,10 @@ def aggregate_std(h, **kwargs):
     return torch.sqrt(aggregate_var(h) + EPS)
 
 
+def aggregate_mean_laplacian(h, h_in, **kwargs):
+    return h_in - torch.mean(h, dim=-2)
+
+
 def aggregate_var(h, **kwargs):
     h_mean_squares = torch.mean(h * h, dim=-2)
     h_mean = torch.mean(h, dim=-2)
@@ -66,6 +70,7 @@ PNA_AGGREGATORS = {
     "min": aggregate_min,
     "std": aggregate_std,
     "var": aggregate_var,
+    "lap": aggregate_mean_laplacian,
     "moment3": partial(aggregate_moment, n=3),
     "moment4": partial(aggregate_moment, n=4),
     "moment5": partial(aggregate_moment, n=5),

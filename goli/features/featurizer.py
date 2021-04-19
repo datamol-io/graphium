@@ -1,6 +1,5 @@
-from typing import Union, List, Callable, Dict, Tuple, Optional
+from typing import Union, List, Callable, Dict, Tuple, Optional, Any
 
-import os
 import numpy as np
 from scipy.sparse import csr_matrix
 import dgl
@@ -12,6 +11,7 @@ import datamol as dm
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
+from goli.features.positional_encoding import get_all_positional_encoding
 
 
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
@@ -355,6 +355,8 @@ def mol_to_adj_and_features(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
+    pos_encoding_as_features: Dict[str, Any] = None,
+    pos_encoding_as_directions: Dict[str, Any] = None,
 ) -> Tuple[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -393,7 +395,7 @@ def mol_to_adj_and_features(
     Returns:
 
         adj:
-            Sparse adjacency matrix of the molecule
+            Scipy sparse adjacency matrix of the molecule
 
         ndata:
             Concatenated node data of the atoms, based on the properties from
@@ -435,7 +437,11 @@ def mol_to_adj_and_features(
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
     edata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
 
-    return adj, ndata, edata
+    pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = get_all_positional_encoding(
+        adj, pos_encoding_as_features, pos_encoding_as_directions
+    )
+
+    return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 
 
 def mol_to_dglgraph(
@@ -446,6 +452,8 @@ def mol_to_dglgraph(
     add_self_loop: bool = False,
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
+    pos_encoding_as_features: Dict[str, Any] = None,
+    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: torch.dtype = torch.float32,
 ) -> dgl.DGLGraph:
     r"""
@@ -501,7 +509,7 @@ def mol_to_dglgraph(
         mol = Chem.RemoveHs(mol)
 
     # Get the adjacency, node features and edge features
-    adj, ndata, edata = mol_to_adj_and_features(
+    adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = mol_to_adj_and_features(
         mol=mol,
         atom_property_list_onehot=atom_property_list_onehot,
         atom_property_list_float=atom_property_list_float,
@@ -509,6 +517,8 @@ def mol_to_dglgraph(
         add_self_loop=add_self_loop,
         explicit_H=explicit_H,
         use_bonds_weights=use_bonds_weights,
+        pos_encoding_as_features=pos_encoding_as_features,
+        pos_encoding_as_directions=pos_encoding_as_directions,
     )
 
     # Transform the matrix and data into a DGLGraph object
@@ -526,11 +536,23 @@ def mol_to_dglgraph(
         for ii in range(mol.GetNumBonds()):
             bond = mol.GetBondWithIdx(ii)
             src, dst = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
-            id1 = np.where((src == graph.all_edges()[0]) & (dst == graph.all_edges()[1]))[0]
-            id2 = np.where((dst == graph.all_edges()[0]) & (src == graph.all_edges()[1]))[0]
+            id1 = np.where((src == src_ids) & (dst == dst_ids))[0]
+            id2 = np.where((dst == src_ids) & (src == dst_ids))[0]
             hetero_edata[id1, :] = edata[ii, :]
             hetero_edata[id2, :] = edata[ii, :]
 
         graph.edata["feat"] = torch.from_numpy(hetero_edata).to(dtype=dtype)
+
+    # Add sign-flip positional encoding
+    if pos_enc_feats_sign_flip is not None:
+        graph.ndata["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip
+
+    # Add non-sign-flip positional encoding
+    if pos_enc_feats_no_flip is not None:
+        graph.ndata["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip
+
+    # Add positional encoding for directional use
+    if pos_enc_dir is not None:
+        graph.ndata["pos_dir"] = pos_enc_dir
 
     return graph

@@ -131,7 +131,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        aggregators = ["mean", "max", "min", "std", "moment3", "moment4", "sum"]
+        aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = PNAConvolutionalLayer(
@@ -154,7 +154,7 @@ class test_DGL_Layers(ut.TestCase):
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["e"]
-        aggregators = ["mean", "max", "min", "std", "moment3", "moment4", "sum"]
+        aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = PNAMessagePassingLayer(
