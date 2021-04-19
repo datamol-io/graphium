@@ -19,13 +19,19 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
+      pos_encoding_as_features: &pos_enc
+        pos_type: laplacian_eigvec
+        num_pos: 3
+        normalization: "none"
+        disconnected_comp: True
+      pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
     batch_size_train_val: 256
     batch_size_test: 256
 
   # Data loading
-  num_workers: 2
+  num_workers: 4
   pin_memory: False
   persistent_workers: True  # Keep True on Windows if running multiple workers
 
@@ -55,10 +61,10 @@ architecture:
     residual_type: simple
     pooling: 'sum'
     virtual_node: 'sum'
-    layer_type: 'pna-msgpass'
+    layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, min, std]
+      aggregators: [mean, max, dir1/dx_abs, dir1/smooth, dir2/dx_abs, dir1/dx_abs/.2]
       scalers: [identity, amplification, attenuation]
   
   post_nn:
@@ -112,25 +118,23 @@ metrics:
       th_on_target: False
       target_to_int: True
 
-  - name: f1 > 0.8
+  - name: f1 > 0.25
     metric: f1
     num_classes: 2
     average: micro
     threshold_kwargs: &threshold_2
       operator: greater
-      threshold: 0.8
+      threshold: 0.25
       th_on_preds: True
       th_on_target: False
       target_to_int: True
 
-  - name: precision > 0.5
-    metric: precision
-    class_reduction: micro
+  - name: recall > 0.5
+    metric: recall
     threshold_kwargs: *threshold_1
 
-  - name: precision > 0.8
-    metric: precision
-    class_reduction: micro
+  - name: recall > 0.25
+    metric: recall
     threshold_kwargs: *threshold_2
 
 trainer:
