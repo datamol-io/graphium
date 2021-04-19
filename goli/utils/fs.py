@@ -15,7 +15,7 @@ def get_cache_dir(suffix: str = None, create: bool = True) -> pathlib.Path:
     the folder if it doesn't exist.
     """
 
-    cache_dir = pathlib.Path(appdirs.user_cache_dir(appname="berth"))
+    cache_dir = pathlib.Path(appdirs.user_cache_dir(appname="goli"))
 
     if suffix is not None:
         cache_dir /= suffix

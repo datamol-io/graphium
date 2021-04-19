@@ -3,4 +3,6 @@ from .utils import load_tiny_zinc
 
 from .collate import goli_collate_fn
 
+from .datamodule import DGLOGBDataModule
 from .datamodule import DGLFromSmilesDataModule
+from .datamodule import DGLOGBDataModule
