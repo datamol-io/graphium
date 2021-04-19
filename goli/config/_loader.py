@@ -10,17 +10,24 @@ from pytorch_lightning import Trainer
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork
-from goli.data.datamodule import DGLFromSmilesDataModule
+from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
 from goli.trainer.predictor import PredictorModule
 
 # from goli.trainer.model_summary import BestEpochFromSummary
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 
+DATAMODULE_DICT = {
+    "DGLFromSmilesDataModule": DGLFromSmilesDataModule,
+    "DGLOGBDataModule": DGLOGBDataModule,
+}
+
+
 def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
 ):
-    datamodule = DGLFromSmilesDataModule(**config["datamodule"])
+    module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
+    datamodule = module_class(**config["datamodule"]["args"])
 
     return datamodule
 
