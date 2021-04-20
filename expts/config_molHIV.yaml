@@ -39,38 +39,38 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 32
-    hidden_dims: 32
+    out_dim: 80
+    hidden_dims: 80
     depth: 1
     activation: relu
     last_activation: none
-    dropout: &dropout 0.1
+    dropout: &dropout 0.4
     batch_norm: &batch_norm True
     last_batch_norm: *batch_norm
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 32
-    hidden_dims: 32
+    out_dim: 80
+    hidden_dims: 80
     depth: 4
-    activation: relu
+    activation: none
     last_activation: none
     dropout: *dropout
     batch_norm: *batch_norm 
     last_batch_norm: *batch_norm
     residual_type: simple
     pooling: 'sum'
-    virtual_node: 'sum'
+    virtual_node: 'none'
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, dir1/dx_abs, dir1/smooth, dir2/dx_abs, dir1/dx_abs/.2]
-      scalers: [identity, amplification, attenuation]
+      aggregators: [mean, max, sum, dir1/dx_abs, dir1/smooth]
+      scalers: [identity]
   
   post_nn:
     out_dim: 1
-    hidden_dims: 32
-    depth: 2
+    hidden_dims: 80
+    depth: 1
     activation: relu
     last_activation: sigmoid
     dropout: *dropout
@@ -83,11 +83,11 @@ predictor:
   loss_fun: bce
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-2
-    weight_decay: 1.e-7
+    lr: 5.e-3
+    weight_decay: 0
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
-    patience: 20
+    patience: 40
   scheduler_kwargs:
     monitor: &monitor auroc/val
     mode: &mode max
@@ -144,7 +144,7 @@ trainer:
   early_stopping:
     monitor: *monitor
     min_delta: 0
-    patience: 50
+    patience: 80
     mode: *mode
   model_checkpoint:
     dirpath: models_checkpoints/ogb-molhiv/
@@ -155,7 +155,7 @@ trainer:
     period: 1
   trainer:
     max_epochs: 1000
-    min_epochs: 20
+    min_epochs: 100
     gpus: 1
 
     
