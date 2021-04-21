@@ -375,14 +375,14 @@ class PredictorModule(pl.LightningModule):
 
         return loss, metric_logs
 
-    def _general_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         y = batch.pop("labels")
         preds = self.forward(batch)
         step_dict = {"preds": preds, "targets": y}
         return step_dict
 
-    def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Dict[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
         loss, metrics_logs = self.get_metrics_logs(
             preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
@@ -395,10 +395,10 @@ class PredictorModule(pl.LightningModule):
 
         return step_dict
 
-    def validation_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def validation_step(self, batch: Dict[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
-    def testing_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def testing_step(self, batch: Dict[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
