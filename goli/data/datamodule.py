@@ -34,13 +34,15 @@ class DGLDataset(Dataset):
         self,
         features: List[dgl.DGLGraph],
         labels: Union[torch.Tensor, np.ndarray],
-        smiles: List[str] = None,
-        indices: List[str] = None,
+        smiles: Optional[List[str]] = None,
+        indices: Optional[List[str]] = None,
+        weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
     ):
         self.smiles = smiles
         self.features = features
         self.labels = labels
         self.indices = indices
+        self.weights = weights
 
     def __len__(self):
         return len(self.features)
@@ -53,6 +55,9 @@ class DGLDataset(Dataset):
 
         if self.indices is not None:
             datum["indices"] = self.indices[idx]
+
+        if self.weights is not None:
+            datum["weights"] = self.weights[idx]
 
         datum["features"] = self.features[idx]
         datum["labels"] = self.labels[idx]
@@ -178,6 +183,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         smiles_col: str = None,
         label_cols: List[str] = None,
+        weights_col: str = None,
+        weights_type: str = None,
         idx_col: str = None,
         split_val: float = 0.2,
         split_test: float = 0.2,
@@ -206,6 +213,20 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 If no such column is found, an error will be raised.
             label_cols: Name of the columns to use as labels. If set to None, all the
                 columns are used except the SMILES one.
+            weights_col: Name of the column to use as sample weights. If `None`, no
+                weights are used. This parameter cannot be used together with `weights_type`.
+            weights_type: The type of weights to use. This parameter cannot be used together with `weights_col`.
+                **It only supports multi-label binary classification.**
+                
+                Supported types:
+                
+                - `None`: No weights are used.
+                - `"sample_balanced"`: A weight is assigned to each sample inversely
+                    proportional to the number of positive labels in a sample compared
+                    to the average number of positive labels in the dataset.
+                - `"label_balanced"`: A weight is assigned to each label inversely
+                    proportional to the number of positive values in the given label.
+
             idx_col: Name of the columns to use as indices. Unused if set to None.
             split_val: Ratio for the validation split.
             split_test: Ratio for the test split.
@@ -240,6 +261,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.smiles_col = smiles_col
         self.label_cols = label_cols
         self.idx_col = idx_col
+
+        self.weights_col = weights_col
+        self.weights_type = weights_type
+        if self.weights_col is not None:
+            asswert self.weights_type is None
 
         self.split_val = split_val
         self.split_test = split_test
@@ -406,7 +432,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
     # Private methods
 
     def _extract_smiles_labels(
-        self, df: pd.DataFrame, smiles_col: str = None, label_cols: List[str] = None, idx_col: str = None
+        self, df: pd.DataFrame, 
+        smiles_col: str = None, 
+        label_cols: List[str] = None, 
+        idx_col: str = None,
+        weights_col: str = None,
+        weights_type: str = None,
     ):
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
@@ -433,7 +464,16 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if idx_col is not None:
             indices = df[idx_col].to_list()
 
-        return smiles, labels, indices
+        # Extract the weights
+        if weights_col is not None:
+            weights = df[weights_col].values
+        elif weight_type == "sample_balanced":
+            raise NotImplementedError
+        elif weight_type == "label_balanced":
+            raise NotImplementedError
+                
+
+        return smiles, labels, indices, weights
 
     def _get_split_indices(
         self,
