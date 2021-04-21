@@ -15,8 +15,6 @@ jobs:
     defaults:
       run:
         shell: bash -l {0}
-    env:
-      ANACONDA_USER_TOKEN: ${{ secrets.INVIVOAI_ANACONDA_USER_BOT_TOKEN }}
     steps:
       - name: Checkout the code
         uses: actions/checkout@v2

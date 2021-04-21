@@ -1,9 +1,9 @@
 site_name: "goli"
 site_description: "A deep learning library focused on graph representation learning for real-world chemical tasks."
-site_url: "https://github.com/invivoai/goli"
-repo_url: "https://github.com/invivoai/goli"
-repo_name: "invivoai/goli"
-copyright: Copyright 2020 - 2021 InvivoAI
+site_url: "https://github.com/valence-discovery/goli"
+repo_url: "https://github.com/valence-discovery/goli"
+repo_name: "valence-discovery/goli"
+copyright: Copyright 2020 - 2021 Valence Discovery
 
 remote_branch: "privpage"
 use_directory_urls: false
