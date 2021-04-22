@@ -1,4 +1,3 @@
-from _typeshed import NoneType
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import os
 import numpy as np
@@ -116,7 +115,7 @@ class PredictorModule(pl.LightningModule):
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
-        target_nan_mask: Union[int, float, str, NoneType] = None,
+        target_nan_mask: Optional[Union[int, float, str]] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
     ):
@@ -271,7 +270,7 @@ class PredictorModule(pl.LightningModule):
     def compute_loss(
         preds: Tensor,
         targets: Tensor,
-        weights: Union[NoneType, Tensor],
+        weights: Optional[Tensor],
         loss_fun: Callable,
         target_nan_mask: Union[Type, str] = "ignore",
     ) -> Tensor:
@@ -321,7 +320,7 @@ class PredictorModule(pl.LightningModule):
         return loss
 
     def get_metrics_logs(
-        self, preds: Tensor, targets: Tensor, weights: Union[NoneType, Tensor], step_name: str, loss_name: str
+        self, preds: Tensor, targets: Tensor, weights: Optional[Tensor], step_name: str, loss_name: str
     ) -> Dict[str, Any]:
         r"""
         Get the logs for the loss and the different metrics, in a format compatible with
@@ -376,11 +375,11 @@ class PredictorModule(pl.LightningModule):
             try:
                 metric_logs[metric_name] = metric(preds, targets)
             except:
-                metric_logs[metric_name] = Tensor(float("nan"))
+                metric_logs[metric_name] = torch.as_tensor(float("nan"))
 
         return loss, metric_logs
 
-    def _general_step(self, batch: Dict[Tensor], batch_idx: int) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         y = batch.pop("labels")
         weights = batch.pop("weights", None)
@@ -388,7 +387,7 @@ class PredictorModule(pl.LightningModule):
         step_dict = {"preds": preds, "targets": y, "weights": weights}
         return step_dict
 
-    def training_step(self, batch: Dict[Tensor], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
         loss, metrics_logs = self.get_metrics_logs(
             preds=step_dict["preds"],
@@ -405,10 +404,10 @@ class PredictorModule(pl.LightningModule):
 
         return step_dict
 
-    def validation_step(self, batch: Dict[Tensor], batch_idx: int) -> Dict[str, Any]:
+    def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
-    def testing_step(self, batch: Dict[Tensor], batch_idx: int) -> Dict[str, Any]:
+    def testing_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
@@ -417,7 +416,7 @@ class PredictorModule(pl.LightningModule):
         # Transform the list of dict of dict, into a dict of list of dict
         preds = torch.cat([out["preds"] for out in outputs], dim=0)
         targets = torch.cat([out["targets"] for out in outputs], dim=0)
-        if outputs["weights"][0] is not None:
+        if outputs[0]["weights"] is not None:
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None

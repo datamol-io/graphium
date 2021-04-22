@@ -140,10 +140,10 @@ class FCLayer(nn.Module):
                 h = self.batch_norm(h.transpose(1, 2)).transpose(1, 2)
             else:
                 h = self.batch_norm(h)
-        if self.activation is not None:
-            h = self.activation(h)
         if self.dropout is not None:
             h = self.dropout(h)
+        if self.activation is not None:
+            h = self.activation(h)
 
         return h
 
