@@ -91,11 +91,11 @@ class BaseDGLLayer(nn.Module):
         if batch_norm and (self.batch_norm_layer is not None):
             h = self.batch_norm_layer(h)
 
-        if activation and (self.activation_layer is not None):
-            h = self.activation_layer(h)
-
         if dropout and (self.dropout_layer is not None):
             h = self.dropout_layer(h)
+
+        if activation and (self.activation_layer is not None):
+            h = self.activation_layer(h)
 
         return h
 

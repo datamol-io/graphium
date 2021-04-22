@@ -469,6 +469,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             indices = df[idx_col].to_list()
 
         # Extract the weights
+        weights = None
         if weights_col is not None:
             weights = df[weights_col].values
         elif weights_type is not None:
