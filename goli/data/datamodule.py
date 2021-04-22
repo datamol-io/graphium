@@ -217,15 +217,16 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 weights are used. This parameter cannot be used together with `weights_type`.
             weights_type: The type of weights to use. This parameter cannot be used together with `weights_col`.
                 **It only supports multi-label binary classification.**
-                
+
                 Supported types:
-                
+
                 - `None`: No weights are used.
                 - `"sample_balanced"`: A weight is assigned to each sample inversely
-                    proportional to the number of positive labels in a sample compared
-                    to the average number of positive labels in the dataset.
-                - `"label_balanced"`: A weight is assigned to each label inversely
-                    proportional to the number of positive values in the given label.
+                    proportional to the number of positive value. If there are multiple
+                    labels, the product of the weights is used.
+                - `"sample_label_balanced"`: Similar to the `"sample_balanced"` weights,
+                    but the weights are applied to each element individually, without
+                    computing the product of the weights for a given sample.
 
             idx_col: Name of the columns to use as indices. Unused if set to None.
             split_val: Ratio for the validation split.
@@ -265,7 +266,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.weights_col = weights_col
         self.weights_type = weights_type
         if self.weights_col is not None:
-            asswert self.weights_type is None
+            assert self.weights_type is None
 
         self.split_val = split_val
         self.split_test = split_test
@@ -317,7 +318,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         logger.info(f"Prepare dataset with {len(df)} data points.")
 
         # Extract smiles and labels
-        smiles, labels, indices = self._extract_smiles_labels(
+        smiles, labels, indices, weights = self._extract_smiles_labels(
             df, self.smiles_col, self.label_cols, self.idx_col
         )
 
@@ -345,7 +346,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
-        self.dataset = DGLDataset(smiles=smiles, features=features, labels=labels, indices=indices)
+        self.dataset = DGLDataset(
+            smiles=smiles, features=features, labels=labels, indices=indices, weights=weights
+        )
 
         # Cache on disk
         if self.cache_data_path is not None:
@@ -422,7 +425,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             df = self.df.iloc[0:1, :]
 
-        smiles, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+        smiles, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         featurization_args = self.featurization or {}
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
@@ -432,9 +435,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
     # Private methods
 
     def _extract_smiles_labels(
-        self, df: pd.DataFrame, 
-        smiles_col: str = None, 
-        label_cols: List[str] = None, 
+        self,
+        df: pd.DataFrame,
+        smiles_col: str = None,
+        label_cols: List[str] = None,
         idx_col: str = None,
         weights_col: str = None,
         weights_type: str = None,
@@ -467,11 +471,27 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # Extract the weights
         if weights_col is not None:
             weights = df[weights_col].values
-        elif weight_type == "sample_balanced":
-            raise NotImplementedError
-        elif weight_type == "label_balanced":
-            raise NotImplementedError
-                
+        elif weights_type is not None:
+            if not np.all((labels == 0) | (labels == 1)):
+                raise ValueError("Labels must be binary for `weights_type`")
+
+            if weights_type == "sample_label_balanced":
+                ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
+                weights = np.zeros(labels.shape)
+                weights[labels == 0] = ratio_pos_neg
+                weights[labels == 1] = ratio_pos_neg ** -1
+
+            elif weights_type == "sample_balanced":
+                ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
+                weights = np.zeros(labels.shape)
+                weights[labels == 0] = ratio_pos_neg
+                weights[labels == 1] = ratio_pos_neg ** -1
+                weights = np.prod(weights, axis=1)
+
+            else:
+                raise ValueError(f"Undefined `weights_type` {weights_type}")
+
+            weights /= np.max(weights)  # Put the max weight to 1
 
         return smiles, labels, indices, weights
 
