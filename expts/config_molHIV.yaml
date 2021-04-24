@@ -9,12 +9,15 @@ datamodule:
     dataset_name: "ogbg-molhiv"
     cache_data_path: goli/data/cache/ogb-molhiv/full.cache
 
+    # Weights
+    weights_type: sample_balanced
+
     # Featurization
     featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
-      atom_property_list_float: [mass, electronegativity, in-ring]
+      atom_property_list_float: [mass, electronegativity, in-ring] #, hybridization, chirality, aromatic, degree, formal-charge, single-bond]
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
       explicit_H: False
@@ -39,19 +42,19 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 80
-    hidden_dims: 80
+    out_dim: &hidden_dim 32
+    hidden_dims: *hidden_dim
     depth: 1
     activation: relu
     last_activation: none
-    dropout: &dropout 0.4
+    dropout: &dropout 0.1
     batch_norm: &batch_norm True
     last_batch_norm: *batch_norm
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 80
-    hidden_dims: 80
+    out_dim: *hidden_dim
+    hidden_dims: *hidden_dim
     depth: 4
     activation: none
     last_activation: none
@@ -59,17 +62,17 @@ architecture:
     batch_norm: *batch_norm 
     last_batch_norm: *batch_norm
     residual_type: simple
-    pooling: 'sum'
+    pooling: sum
     virtual_node: 'none'
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, sum, dir1/dx_abs, dir1/smooth]
+      aggregators: [mean, max, min, dir1/dx_abs, dir1/smooth]
       scalers: [identity]
   
   post_nn:
     out_dim: 1
-    hidden_dims: 80
+    hidden_dims: *hidden_dim
     depth: 1
     activation: relu
     last_activation: sigmoid
@@ -83,11 +86,12 @@ predictor:
   loss_fun: bce
   random_seed: *seed
   optim_kwargs:
-    lr: 5.e-3
+    lr: 1.e-4
     weight_decay: 0
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
-    patience: 40
+    patience: 10
+    min_lr: 1.e-5
   scheduler_kwargs:
     monitor: &monitor auroc/val
     mode: &mode max

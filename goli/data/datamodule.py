@@ -575,6 +575,8 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dataset_name: str,
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
+        weights_col: str = None,
+        weights_type: str = None,
         batch_size_train_val: int = 16,
         batch_size_test: int = 16,
         num_workers: int = 0,
@@ -627,6 +629,8 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dm_args["featurization_progress"] = featurization_progress
         dm_args["persistent_workers"] = persistent_workers
         dm_args["collate_fn"] = collate_fn
+        dm_args["weights_col"] = weights_col
+        dm_args["weights_type"] = weights_type
 
         # Init DGLFromSmilesDataModule
         super().__init__(**dm_args)
