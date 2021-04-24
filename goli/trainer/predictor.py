@@ -219,6 +219,7 @@ class PredictorModule(pl.LightningModule):
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
         self.scheduler_kwargs.setdefault("monitor", "loss/val")
         self.scheduler_kwargs.setdefault("interval", "epoch")
+        self.scheduler_kwargs.setdefault("mode", "min")
         self.scheduler_kwargs.setdefault("frequency", 1)
         self.scheduler_kwargs.setdefault("strict", True)
 
@@ -261,7 +262,7 @@ class PredictorModule(pl.LightningModule):
         optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
 
         scheduler = {
-            "scheduler": ReduceLROnPlateau(optimizer=optimiser, **self.lr_reduce_on_plateau_kwargs),
+            "scheduler": ReduceLROnPlateau(optimizer=optimiser, mode=self.scheduler_kwargs["mode"], **self.lr_reduce_on_plateau_kwargs),
             **self.scheduler_kwargs,
         }
         return [optimiser], [scheduler]
