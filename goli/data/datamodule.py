@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Any, Callable, Optional
+from typing import List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
 import functools
@@ -186,6 +186,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         weights_col: str = None,
         weights_type: str = None,
         idx_col: str = None,
+        sample_size: Tuple[int, float, type(None)] = None,
         split_val: float = 0.2,
         split_test: float = 0.2,
         split_seed: int = None,
@@ -243,6 +244,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+            sample_size: 
+
+                - `int`: The maximum number of elements to take from the dataset.
+                - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
+                - `None`: all elements are considered.
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -262,6 +268,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.smiles_col = smiles_col
         self.label_cols = label_cols
         self.idx_col = idx_col
+        self.sample_size = sample_size
 
         self.weights_col = weights_col
         self.weights_type = weights_type
@@ -314,11 +321,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             df = pd.read_csv(self.df_path)
         else:
             df = self.df
+        df = self._sub_sample_df(df)
 
         logger.info(f"Prepare dataset with {len(df)} data points.")
 
         # Extract smiles and labels
-        smiles, labels, indices, weights = self._extract_smiles_labels(
+        smiles, labels, indices, weights, sample_idx = self._extract_smiles_labels(
             df, self.smiles_col, self.label_cols, self.idx_col
         )
 
@@ -343,6 +351,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             split_test=self.split_test,
             split_seed=self.split_seed,
             splits_path=self.splits_path,
+            sample_idx = sample_idx,
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
@@ -425,7 +434,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             df = self.df.iloc[0:1, :]
 
-        smiles, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+        smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         featurization_args = self.featurization or {}
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
@@ -468,6 +477,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if idx_col is not None:
             indices = df[idx_col].to_list()
 
+        sample_idx = df.index
+
         # Extract the weights
         weights = None
         if weights_col is not None:
@@ -494,23 +505,26 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
             weights /= np.max(weights)  # Put the max weight to 1
 
-        return smiles, labels, indices, weights
+        return smiles, labels, indices, weights, sample_idx
 
     def _get_split_indices(
         self,
         dataset_size: int,
         split_val: float,
         split_test: float,
+        sample_idx: Optional[Iterable[int]] = None,
         split_seed: int = None,
         splits_path: Union[str, os.PathLike] = None,
     ):
         """Compute indices of random splits."""
 
+        if sample_idx is None:
+            sample_idx = np.arange(dataset_size)
+
         if splits_path is None:
             # Random splitting
-            indices = np.arange(dataset_size)
             train_indices, val_test_indices = train_test_split(
-                indices,
+                sample_idx,
                 test_size=split_val + split_test,
                 random_state=split_seed,
             )
@@ -522,10 +536,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 random_state=split_seed,
             )
 
-            train_indices = list(train_indices)
-            val_indices = list(val_indices)
-            test_indices = list(test_indices)
-
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
@@ -535,7 +545,28 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             val_indices = splits["val"].dropna().astype("int").tolist()
             test_indices = splits["test"].dropna().astype("int").tolist()
 
+        # Filter train, val and test indices
+        train_indices = [ii for ii, idx in enumerate(sample_idx) if idx in train_indices]
+        val_indices = [ii for ii, idx in enumerate(sample_idx) if idx in val_indices]
+        test_indices = [ii for ii, idx in enumerate(sample_idx) if idx in test_indices]
+
+
         return train_indices, val_indices, test_indices
+
+    def _sub_sample_df(self, df):
+        # Sub-sample the dataframe
+        if isinstance(self.sample_size, int):
+            n = min(self.sample_size, df.shape[0])
+            df = df.sample(n=n)
+        elif isinstance(self.sample_size, float):
+            df = df.sample(f=self.sample_size)
+        elif self.sample_size is None:
+            pass
+        else:
+            raise ValueError(f"Wrong value for `self.sample_size`: {self.sample_size}")
+
+        return df
+
 
     def __len__(self) -> int:
         r"""
@@ -577,6 +608,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         weights_col: str = None,
         weights_type: str = None,
+        sample_size: Tuple[int, float, type(None)] = None,
         batch_size_train_val: int = 16,
         batch_size_test: int = 16,
         num_workers: int = 0,
@@ -602,6 +634,11 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+            sample_size: 
+
+                - `int`: The maximum number of elements to take from the dataset.
+                - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
+                - `None`: all elements are considered.
         """
 
         self.dataset_name = dataset_name
@@ -631,6 +668,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dm_args["collate_fn"] = collate_fn
         dm_args["weights_col"] = weights_col
         dm_args["weights_type"] = weights_type
+        dm_args["sample_size"] = sample_size
 
         # Init DGLFromSmilesDataModule
         super().__init__(**dm_args)
