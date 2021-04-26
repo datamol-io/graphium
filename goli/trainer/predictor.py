@@ -375,7 +375,7 @@ class PredictorModule(pl.LightningModule):
             metric_name = f"{key}/{step_name}"
             try:
                 metric_logs[metric_name] = metric(preds, targets)
-            except:
+            except Exception as e:
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
 
         return loss, metric_logs
