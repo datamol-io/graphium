@@ -165,7 +165,6 @@ class BasePNALayer(BaseDGLLayer):
         """
         return 1
 
-
     @classproperty
     def layer_supports_edges(cls) -> bool:
         r"""
@@ -177,7 +176,6 @@ class BasePNALayer(BaseDGLLayer):
                 Always ``True`` for the current class
         """
         return True
-
 
     @property
     def layer_inputs_edges(self) -> bool:

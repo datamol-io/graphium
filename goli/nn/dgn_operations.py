@@ -155,11 +155,11 @@ def aggregate_dir_dx_no_abs(
     h_mod = h * dir_weight
 
     h_dx = torch.sum(h_mod, dim=1)
-    h_self = - torch.sum(dir_weight, dim=1) * h_in
+    h_self = -torch.sum(dir_weight, dim=1) * h_in
 
     # In case h_in has more parameters than h (for example when concatenating edges),
     # the derivative is only computed for the features contained in h_in.
-    h_dx[..., :h_in.shape[-1]] = h_dx[..., :h_in.shape[-1]] + h_self
+    h_dx[..., : h_in.shape[-1]] = h_dx[..., : h_in.shape[-1]] + h_self
     return h_dx
 
 
@@ -199,11 +199,11 @@ def aggregate_dir_dx_abs_balanced(
     h_mod = h * dir_weight
 
     h_dx = torch.sum(h_mod, dim=1)
-    h_self = - torch.sum(dir_weight, dim=1) * h_in
+    h_self = -torch.sum(dir_weight, dim=1) * h_in
 
     # In case h_in has more parameters than h (for example when concatenating edges),
     # the derivative is only computed for the features contained in h_in.
-    h_dx[..., :h_in.shape[-1]] = h_dx[..., :h_in.shape[-1]] + h_self
+    h_dx[..., : h_in.shape[-1]] = h_dx[..., : h_in.shape[-1]] + h_self
     return torch.abs(h_dx)
 
 
