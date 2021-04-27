@@ -262,7 +262,9 @@ class PredictorModule(pl.LightningModule):
         optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
 
         scheduler = {
-            "scheduler": ReduceLROnPlateau(optimizer=optimiser, mode=self.scheduler_kwargs["mode"], **self.lr_reduce_on_plateau_kwargs),
+            "scheduler": ReduceLROnPlateau(
+                optimizer=optimiser, mode=self.scheduler_kwargs["mode"], **self.lr_reduce_on_plateau_kwargs
+            ),
             **self.scheduler_kwargs,
         }
         return [optimiser], [scheduler]

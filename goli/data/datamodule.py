@@ -244,7 +244,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
-            sample_size: 
+            sample_size:
 
                 - `int`: The maximum number of elements to take from the dataset.
                 - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
@@ -351,7 +351,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             split_test=self.split_test,
             split_seed=self.split_seed,
             splits_path=self.splits_path,
-            sample_idx = sample_idx,
+            sample_idx=sample_idx,
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
@@ -550,7 +550,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         val_indices = [ii for ii, idx in enumerate(sample_idx) if idx in val_indices]
         test_indices = [ii for ii, idx in enumerate(sample_idx) if idx in test_indices]
 
-
         return train_indices, val_indices, test_indices
 
     def _sub_sample_df(self, df):
@@ -566,7 +565,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             raise ValueError(f"Wrong value for `self.sample_size`: {self.sample_size}")
 
         return df
-
 
     def __len__(self) -> int:
         r"""
@@ -634,7 +632,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
-            sample_size: 
+            sample_size:
 
                 - `int`: The maximum number of elements to take from the dataset.
                 - `float`: Value between 0 and 1 representing the fraction of the dataset to consider

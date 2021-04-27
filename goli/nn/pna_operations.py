@@ -25,7 +25,7 @@ def aggregate_mean_laplacian(h, h_in, **kwargs):
     # In case h_in has more parameters than h (for example when concatenating edges),
     # the laplacian is only computed for the features contained in h_in.
     lap = -aggregate_mean(h, **kwargs)
-    lap[..., :h_in.shape[-1]] = h_in + lap[..., :h_in.shape[-1]]
+    lap[..., : h_in.shape[-1]] = h_in + lap[..., : h_in.shape[-1]]
     return lap
 
 

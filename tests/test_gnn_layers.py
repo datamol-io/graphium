@@ -179,7 +179,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[0], h_in.shape[0])
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
-
     def test_pnamessagepassinglayer(self):
 
         bg = deepcopy(self.bg)
@@ -230,15 +229,28 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[0], h_in.shape[0])
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
-
     def test_dgnconvolutionallayer(self):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["e"]
-        aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum", 
-                        "dir0/dx_abs", "dir1/dx_abs", "dir2/dx_no_abs", "dir1/smooth", "dir1/forward",
-                        "dir1/backward/0.5", "dir4/dx_abs/5"]
+        aggregators = [
+            "mean",
+            "max",
+            "min",
+            "lap",
+            "std",
+            "moment3",
+            "moment4",
+            "sum",
+            "dir0/dx_abs",
+            "dir1/dx_abs",
+            "dir2/dx_no_abs",
+            "dir1/smooth",
+            "dir1/forward",
+            "dir1/backward/0.5",
+            "dir4/dx_abs/5",
+        ]
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = DGNConvolutionalLayer(
@@ -281,16 +293,29 @@ class test_DGL_Layers(ut.TestCase):
         h = layer.forward(g=bg, h=h_in, e=e_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
-
 
     def test_dgnmessagepassinglayer(self):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["e"]
-        aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum", 
-                        "dir0/dx_abs", "dir1/dx_abs", "dir2/dx_no_abs", "dir1/smooth", "dir1/forward",
-                        "dir1/backward/0.5", "dir4/dx_abs/5"]
+        aggregators = [
+            "mean",
+            "max",
+            "min",
+            "lap",
+            "std",
+            "moment3",
+            "moment4",
+            "sum",
+            "dir0/dx_abs",
+            "dir1/dx_abs",
+            "dir2/dx_no_abs",
+            "dir1/smooth",
+            "dir1/forward",
+            "dir1/backward/0.5",
+            "dir4/dx_abs/5",
+        ]
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = DGNMessagePassingLayer(
@@ -334,7 +359,6 @@ class test_DGL_Layers(ut.TestCase):
         h = layer.forward(g=bg, h=h_in, e=e_in)
         self.assertEqual(h.shape[0], h_in.shape[0])
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
-
 
 
 if __name__ == "__main__":
