@@ -10,8 +10,8 @@ datamodule:
     cache_data_path: goli/data/cache/ogb-molpcba/full.cache
 
     # Weights
-    weights_type: sample_balanced
-    sample_size: 40000
+    weights_type: null
+    sample_size: null
 
     # Featurization
     featurization_n_jobs: -1
@@ -35,7 +35,7 @@ datamodule:
     batch_size_test: 2048
 
   # Data loading
-  num_workers: 4
+  num_workers: 8
   pin_memory: False
   persistent_workers: True  # Keep True on Windows if running multiple workers
 
@@ -43,7 +43,7 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 32
+    out_dim: &hidden_dim 360
     hidden_dims: *hidden_dim
     depth: 1
     activation: relu
@@ -68,7 +68,7 @@ architecture:
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, min, dir1/dx_abs, dir1/smooth]
+      aggregators: [mean, max, sum, min, dir1/dx_abs, dir1/smooth]
       scalers: [identity]
   
   post_nn:
@@ -87,12 +87,12 @@ predictor:
   loss_fun: bce
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-4
+    lr: 5.e-3
     weight_decay: 0
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
-    patience: 10
-    min_lr: 1.e-5
+    patience: 20
+    min_lr: 1.e-4
   scheduler_kwargs:
     monitor: &monitor averageprecision/val
     mode: &mode max
@@ -107,6 +107,14 @@ metrics:
 
   - name: averageprecision
     metric: averageprecision
+    threshold_kwargs:
+      threshold: null
+      th_on_preds: False
+      th_on_target: False
+      target_to_int: True
+
+  - name: auroc
+    metric: auroc
     threshold_kwargs:
       threshold: null
       th_on_preds: False
