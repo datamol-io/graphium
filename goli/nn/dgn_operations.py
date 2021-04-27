@@ -153,7 +153,14 @@ def aggregate_dir_dx_no_abs(
     grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     dir_weight = (grad / (torch.sum(grad.abs(), keepdim=True, dim=1) + EPS)).unsqueeze(-1)
     h_mod = h * dir_weight
-    return torch.sum(h_mod, dim=1) - torch.sum(dir_weight, dim=1) * h_in
+
+    h_dx = torch.sum(h_mod, dim=1)
+    h_self = - torch.sum(dir_weight, dim=1) * h_in
+
+    # In case h_in has more parameters than h (for example when concatenating edges),
+    # the derivative is only computed for the features contained in h_in.
+    h_dx[..., :h_in.shape[-1]] = h_dx[..., :h_in.shape[-1]] + h_self
+    return h_dx
 
 
 def aggregate_dir_dx_abs_balanced(
@@ -190,7 +197,14 @@ def aggregate_dir_dx_abs_balanced(
 
     dir_weight = (eig_front.unsqueeze(-1) + eig_back.unsqueeze(-1)) / 2
     h_mod = h * dir_weight
-    return torch.abs(torch.sum(h_mod, dim=1) - torch.sum(dir_weight, dim=1) * h_in)
+
+    h_dx = torch.sum(h_mod, dim=1)
+    h_self = - torch.sum(dir_weight, dim=1) * h_in
+
+    # In case h_in has more parameters than h (for example when concatenating edges),
+    # the derivative is only computed for the features contained in h_in.
+    h_dx[..., :h_in.shape[-1]] = h_dx[..., :h_in.shape[-1]] + h_self
+    return torch.abs(h_dx)
 
 
 def aggregate_dir_forward(
@@ -226,7 +240,8 @@ def aggregate_dir_forward(
     """
     grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
-    return h * eig_front.unsqueeze(-1)
+    h_mod = h * eig_front.unsqueeze(-1)
+    return torch.sum(h_mod, dim=1)
 
 
 def aggregate_dir_backward(

@@ -131,7 +131,9 @@ class DGNConvolutionalLayer(BaseDGNLayer, PNAConvolutionalLayer):
         return BaseDGNLayer.reduce_func(self, nodes)
 
     def pretrans_edges(self, edges):
-        return {"e": edges.src["h"], "source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]}
+        pretrans = PNAConvolutionalLayer.pretrans_edges(self, edges)
+        pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
+        return pretrans
 
 
 class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
