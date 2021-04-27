@@ -24,7 +24,7 @@ from goli.nn.dgl_layers import (
 
 class test_DGL_Layers(ut.TestCase):
 
-    in_dim = 7
+    in_dim = 21
     out_dim = 11
     in_dim_edges = 13
     out_dim_edges = 17

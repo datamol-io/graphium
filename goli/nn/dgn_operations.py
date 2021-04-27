@@ -35,9 +35,18 @@ def get_grad_of_pos(
 
     grad = source_pos[:, :, dir_idx] - dest_pos[:, :, dir_idx]
     if temperature is not None:
-        grad_plus = torch.nn.Softmax(1)(temperature * torch.relu(grad))
-        grad_minus = -torch.nn.Softmax(1)(temperature * torch.relu(-grad))
-        grad = grad_plus + grad_minus
+        grad_pos, grad_neg = grad >= 0, grad <= 0
+        grad_plus, grad_minus = grad, -grad
+
+        # Compute softmax, considering one sign at a time.
+        grad_plus[grad_neg] = -float("inf")
+        grad_minus[grad_pos] = -float("inf")
+        grad_plus = torch.nn.Softmax(1)(temperature * grad_plus)
+        grad_minus = torch.nn.Softmax(1)(temperature * grad_minus)
+        grad_plus[grad_neg] = 0
+        grad_minus[grad_pos] = 0
+
+        grad = grad_plus - grad_minus
 
     return grad
 
