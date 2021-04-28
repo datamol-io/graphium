@@ -4,8 +4,10 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import dgl
 import torch
+import warnings
 
 from rdkit import Chem
+from rdkit.Chem.AllChem import MolToSmiles
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 import datamol as dm
 
@@ -254,7 +256,7 @@ def get_mol_atomic_features_float(
     return prop_dict
 
 
-def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Chem.rdchem.Conformer:
+def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Union[Chem.rdchem.Conformer, None]:
     r"""
     If the molecule has a conformer, then it will return the conformer at idx `0`.
     Otherwise, it generates a simple molecule conformer using `rdkit.Chem.rdDistGeom.EmbedMolecule`
@@ -266,12 +268,21 @@ def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Chem.rdchem.Conformer:
         mol: Rdkit Molecule
 
     Returns:
-        conf: A conformer of the molecule
+        conf: A conformer of the molecule, or `None` if it fails
     """
-    if mol.GetNumConformers() == 0:
-        Chem.rdDistGeom.EmbedMolecule(mol)
 
-    conf = mol.GetConformer(0)
+    val = 0
+    if mol.GetNumConformers() == 0:
+        val = Chem.rdDistGeom.EmbedMolecule(mol)
+    if val == -1:
+        val = Chem.rdDistGeom.EmbedMolecule(mol, enforceChirality=False, ignoreSmoothingFailures=True, useBasicKnowledge=True, useExpTorsionAnglePrefs=True, forceTol=0.1)
+    
+    if val == -1:
+        conf = None
+        warnings.warn("Couldn't compute conformer for molecule `{}`".format(Chem.MolToSmiles(mol)))
+    else:
+        conf = mol.GetConformer(0)
+    
     return conf
 
 
@@ -331,9 +342,12 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
                 one_hot = [bond.GetIsConjugated()]
             elif prop in ["bond-length"]:
                 conf = get_simple_mol_conformer(mol)
-                idx1 = bond.GetBeginAtomIdx()
-                idx2 = bond.GetEndAtomIdx()
-                one_hot = [Chem.rdMolTransforms.GetBondLength(conf, idx1, idx2)]
+                if conf is not None:
+                    idx1 = bond.GetBeginAtomIdx()
+                    idx2 = bond.GetEndAtomIdx()
+                    one_hot = [Chem.rdMolTransforms.GetBondLength(conf, idx1, idx2)]
+                else:
+                    one_hot = [0]
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
