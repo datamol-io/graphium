@@ -275,14 +275,21 @@ def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Union[Chem.rdchem.Conforme
     if mol.GetNumConformers() == 0:
         val = Chem.rdDistGeom.EmbedMolecule(mol)
     if val == -1:
-        val = Chem.rdDistGeom.EmbedMolecule(mol, enforceChirality=False, ignoreSmoothingFailures=True, useBasicKnowledge=True, useExpTorsionAnglePrefs=True, forceTol=0.1)
-    
+        val = Chem.rdDistGeom.EmbedMolecule(
+            mol,
+            enforceChirality=False,
+            ignoreSmoothingFailures=True,
+            useBasicKnowledge=True,
+            useExpTorsionAnglePrefs=True,
+            forceTol=0.1,
+        )
+
     if val == -1:
         conf = None
         warnings.warn("Couldn't compute conformer for molecule `{}`".format(Chem.MolToSmiles(mol)))
     else:
         conf = mol.GetConformer(0)
-    
+
     return conf
 
 
@@ -306,9 +313,9 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
         try:
             val = float(string)
         except:
-            val = float('nan')
+            val = float("nan")
         return val
-    
+
     # Get the atoms connected by the bond
     idx1 = bond.GetBeginAtomIdx()
     idx2 = bond.GetEndAtomIdx()
@@ -330,10 +337,8 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
         rad2 = [nmp.PERIODIC_TABLE["TripleBondRadius"][atom2]]
     # Get average of single bond and double bond atomic radius
     elif bond_type == Chem.rdchem.BondType.AROMATIC:
-        rad1 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom1], 
-                nmp.PERIODIC_TABLE["DoubleBondRadius"][atom1]]
-        rad2 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom2],
-                nmp.PERIODIC_TABLE["DoubleBondRadius"][atom2]]
+        rad1 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom1], nmp.PERIODIC_TABLE["DoubleBondRadius"][atom1]]
+        rad2 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom2], nmp.PERIODIC_TABLE["DoubleBondRadius"][atom2]]
 
     # Average the bond lengths, while ignoring nans in case some missing value
     rad1_float = np.nanmean(np.array([float_or_nan(elem) for elem in rad1]))
@@ -348,7 +353,6 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
     bond_length = rad1_float + rad2_float
 
     return bond_length
-
 
 
 def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
