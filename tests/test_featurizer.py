@@ -67,7 +67,8 @@ class test_featurizer(ut.TestCase):
         "stereo",
         "in-ring",
         "conjugated",
-        "bond-length",
+        "estimated-bond-length",
+        "conformer-bond-length",
     ]
 
     def test_get_mol_atomic_features_onehot(self):
