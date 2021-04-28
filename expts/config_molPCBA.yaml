@@ -19,7 +19,7 @@ datamodule:
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
       atom_property_list_float: [mass, electronegativity, in-ring, hybridization, chirality, aromatic, degree, formal-charge, single-bond, double-bond, radical-electron, vdw-radius, covalent-radius, metal]
-      edge_property_list: [bond-type-onehot, bond-type-float, stereo, in-ring, conjugated, bond-length]
+      edge_property_list: [bond-type-onehot, bond-type-float, stereo, in-ring, conjugated]
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
@@ -43,9 +43,9 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 360
+    out_dim: &hidden_dim 350
     hidden_dims: *hidden_dim
-    depth: 1
+    depth: 2
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
@@ -56,7 +56,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: *hidden_dim
     hidden_dims: *hidden_dim
-    depth: 4
+    depth: 5
     activation: none
     last_activation: none
     dropout: *dropout
@@ -68,13 +68,13 @@ architecture:
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, sum, min, dir1/dx_abs, dir1/smooth]
+      aggregators: [mean, max, sum, dir1/dx_abs, dir1/smooth]
       scalers: [identity]
   
   post_nn:
     out_dim: 128
     hidden_dims: *hidden_dim
-    depth: 1
+    depth: 2
     activation: relu
     last_activation: sigmoid
     dropout: *dropout
