@@ -21,7 +21,7 @@ os.chdir(MAIN_DIR)
 
 
 def main(cfg: DictConfig) -> None:
-    cfg = dict(deepcopy(cfg))
+    cfg = deepcopy(cfg)
 
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)
