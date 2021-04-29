@@ -379,7 +379,7 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
             - "stereo"
             - "in-ring"
             - "conjugated"
-            - "conformer-bond-length"
+            - "conformer-bond-length" (might cause problems with complex molecules)
             - "estimated-bond-length"
 
     Returns:
