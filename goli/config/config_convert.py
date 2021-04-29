@@ -1,5 +1,6 @@
 import omegaconf
 
+
 def recursive_config_reformating(configs):
     r"""
     For a given configuration file, convert all `DictConfig` to `dict`,
@@ -25,5 +26,5 @@ def recursive_config_reformating(configs):
                 configs[k] = str(v)
             else:
                 configs[k] = recursive_config_reformating(v)
-    
+
     return configs
