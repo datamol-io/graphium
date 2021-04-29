@@ -887,7 +887,7 @@ class FullDGLNetwork(nn.Module):
             h = g.ndata["h"]
             h = self.pre_nn.forward(h)
             g.ndata["h"] = h
-        
+
         if self.pre_nn_edges is not None:
             e = g.edata["e"]
             e = self.pre_nn_edges.forward(e)
