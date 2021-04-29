@@ -54,6 +54,17 @@ architecture:
     last_batch_norm: *batch_norm
     residual_type: none
 
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 16
+    hidden_dims: 16
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    batch_norm: *batch_norm
+    last_batch_norm: *batch_norm
+    residual_type: none
+
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
     hidden_dims: 32

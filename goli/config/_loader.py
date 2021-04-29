@@ -68,6 +68,7 @@ def load_architecture(
 
     # Prepare the various kwargs
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
+    pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
     post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
 
@@ -78,12 +79,17 @@ def load_architecture(
     else:
         gnn_kwargs.setdefault("in_dim", in_dim_nodes)
 
-    gnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
-
+    if pre_nn_edges_kwargs is not None:
+        pre_nn_edges_kwargs = dict(pre_nn_edges_kwargs)
+        pre_nn_edges_kwargs.setdefault("in_dim", in_dim_edges)
+    else:
+        gnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
+    
     # Set the parameters for the full network
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
         pre_nn_kwargs=pre_nn_kwargs,
+        pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         post_nn_kwargs=post_nn_kwargs,
     )
 
