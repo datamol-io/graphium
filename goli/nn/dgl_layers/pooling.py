@@ -112,7 +112,7 @@ class DirPooling(nn.Module):
     r"""
     Apply pooling over the nodes in the graph using a directional potential
     with an inner product.
-    
+
     In most cases, this is a pooling using the Fiedler vector.
     This is basically equivalent to computing a Fourier transform for the
     Fiedler vector. Then, we use the absolute value due to the sign ambiguity
