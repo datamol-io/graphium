@@ -64,7 +64,7 @@ architecture:
     batch_norm: *batch_norm 
     last_batch_norm: *batch_norm
     residual_type: simple
-    pooling: [sum, max]
+    pooling: [sum, max, dir1]
     virtual_node: 'sum'
     layer_type: 'dgn-msgpass'
     layer_kwargs:
