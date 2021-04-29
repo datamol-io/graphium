@@ -84,7 +84,7 @@ def load_architecture(
         pre_nn_edges_kwargs.setdefault("in_dim", in_dim_edges)
     else:
         gnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
-    
+
     # Set the parameters for the full network
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
