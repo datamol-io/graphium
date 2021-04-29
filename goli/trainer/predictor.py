@@ -13,7 +13,7 @@ from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.trainer.model_summary import ModelSummaryExtended
-
+from goli.config.config_convert import recursive_config_reformating
 
 LOSS_DICT = {
     "mse": torch.nn.MSELoss(),
@@ -227,6 +227,10 @@ class PredictorModule(pl.LightningModule):
         self.epoch_summary = EpochSummary(
             monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
+
+        # This helps avoid a bug when saving hparams to yaml with different
+        # dict or str formats
+        self.hparams = recursive_config_reformating(self.hparams)
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
