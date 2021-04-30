@@ -430,7 +430,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         # Cache on disk
         if self.cache_data_path is not None:
-            logger.info(f"Write prepared data to {self.cache_data_path}")
+            logger.info(f"Write prepared datamodule to {self.cache_data_path}")
             cache = {}
             cache["dataset"] = self.dataset
             cache["train_indices"] = self.train_indices
@@ -482,24 +482,22 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         cache_signature = mol_to_dglgraph_signature(cache["featurization_args"])
 
         if current_signature != cache_signature:
-            logger.info(
-                f"Cache featurizer arguments ({cache_signature}) are different than the provided ones ({current_signature})."
-            )
+            logger.info(f"Cache featurizer arguments are different than the provided ones.")
+            logger.info(f"Cache featurizer arguments: {cache_signature}")
+            logger.info(f"Provided featurizer arguments: {current_signature}.")
             logger.info("Fallback to regular data preparation steps.")
             return False
 
-        #     self.dataset = cache["dataset"]
-        #     self.train_indices = cache["train_indices"]
-        #     self.val_indices = cache["val_indices"]
-        #     self.test_indices = cache["test_indices"]
+        # At this point the cache can be loaded
 
-        #     logger.info(f"Datamodule correctly reloaded.")
-        #     return True
-        # else:
-        #     logger.info(f"Cache looks invalid with keys: {cache.keys()}")
-        #     logger.info("Fallback to regular data preparation steps.")
+        self.dataset = cache["dataset"]
+        self.train_indices = cache["train_indices"]
+        self.val_indices = cache["val_indices"]
+        self.test_indices = cache["test_indices"]
 
-        return False
+        logger.info(f"Datamodule correctly reloaded from cache.")
+
+        return True
 
     def _extract_smiles_labels(
         self,
