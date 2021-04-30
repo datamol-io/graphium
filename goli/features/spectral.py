@@ -120,8 +120,10 @@ def normalize_matrix(matrix, degree_vector=None, normalization: str = None):
     else:
         if is_dtype_numpy_array(matrix.dtype):
             degree_inv = np.expand_dims(degree_vector ** -0.5, axis=1)
+            degree_inv[np.isinf(degree_inv)] = 0
         elif is_dtype_torch_tensor(matrix.dtype):
             degree_inv = torch.unsqueeze(degree_vector ** -0.5, dim=1)
+            degree_inv[torch.isinf(degree_inv)] = 0
 
     # Compute the normalized matrix
     if (normalization is None) or (normalization.lower() == "none"):
