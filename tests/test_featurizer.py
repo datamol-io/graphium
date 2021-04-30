@@ -67,7 +67,8 @@ class test_featurizer(ut.TestCase):
         "stereo",
         "in-ring",
         "conjugated",
-        "bond-length",
+        "estimated-bond-length",
+        "conformer-bond-length",
     ]
 
     def test_get_mol_atomic_features_onehot(self):
@@ -121,7 +122,7 @@ class test_featurizer(ut.TestCase):
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
             mol = dm.to_mol(s)
             for ii in range(len(props)):
-                this_props = props[:ii]
+                this_props = props[: ii + 1]
                 err_msg2 = err_msg + f"\n\t\tprops: {this_props}"
                 prop_dict = get_mol_edge_features(mol, property_list=this_props)
                 self.assertListEqual(list(prop_dict.keys()), this_props, msg=err_msg)

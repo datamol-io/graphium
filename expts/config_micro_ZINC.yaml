@@ -16,7 +16,7 @@ datamodule:
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
       atom_property_list_float: [mass, electronegativity, in-ring]
-      edge_property_list: [] # [bond-type-onehot, stereo, in-ring]
+      edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
@@ -36,9 +36,9 @@ datamodule:
     batch_size_test: 256
 
     # Data loading
-    num_workers: 2
+    num_workers: 0
     pin_memory: False
-    persistent_workers: True  # Keep True on Windows if running multiple workers
+    persistent_workers: False  # Keep True on Windows if running multiple workers
 
 
 architecture:
@@ -54,6 +54,17 @@ architecture:
     last_batch_norm: *batch_norm
     residual_type: none
 
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 16
+    hidden_dims: 16
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    batch_norm: *batch_norm
+    last_batch_norm: *batch_norm
+    residual_type: none
+
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
     hidden_dims: 32
@@ -64,7 +75,7 @@ architecture:
     batch_norm: *batch_norm 
     last_batch_norm: *batch_norm
     residual_type: simple
-    pooling: 'sum'
+    pooling: [sum, max, dir1]
     virtual_node: 'sum'
     layer_type: 'dgn-msgpass'
     layer_kwargs:

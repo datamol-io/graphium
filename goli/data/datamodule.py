@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Any, Callable, Optional
+from typing import List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
 import functools
@@ -34,13 +34,15 @@ class DGLDataset(Dataset):
         self,
         features: List[dgl.DGLGraph],
         labels: Union[torch.Tensor, np.ndarray],
-        smiles: List[str] = None,
-        indices: List[str] = None,
+        smiles: Optional[List[str]] = None,
+        indices: Optional[List[str]] = None,
+        weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
     ):
         self.smiles = smiles
         self.features = features
         self.labels = labels
         self.indices = indices
+        self.weights = weights
 
     def __len__(self):
         return len(self.features)
@@ -53,6 +55,9 @@ class DGLDataset(Dataset):
 
         if self.indices is not None:
             datum["indices"] = self.indices[idx]
+
+        if self.weights is not None:
+            datum["weights"] = self.weights[idx]
 
         datum["features"] = self.features[idx]
         datum["labels"] = self.labels[idx]
@@ -178,7 +183,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         smiles_col: str = None,
         label_cols: List[str] = None,
+        weights_col: str = None,
+        weights_type: str = None,
         idx_col: str = None,
+        sample_size: Union[int, float, type(None)] = None,
         split_val: float = 0.2,
         split_test: float = 0.2,
         split_seed: int = None,
@@ -206,6 +214,21 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 If no such column is found, an error will be raised.
             label_cols: Name of the columns to use as labels. If set to None, all the
                 columns are used except the SMILES one.
+            weights_col: Name of the column to use as sample weights. If `None`, no
+                weights are used. This parameter cannot be used together with `weights_type`.
+            weights_type: The type of weights to use. This parameter cannot be used together with `weights_col`.
+                **It only supports multi-label binary classification.**
+
+                Supported types:
+
+                - `None`: No weights are used.
+                - `"sample_balanced"`: A weight is assigned to each sample inversely
+                    proportional to the number of positive value. If there are multiple
+                    labels, the product of the weights is used.
+                - `"sample_label_balanced"`: Similar to the `"sample_balanced"` weights,
+                    but the weights are applied to each element individually, without
+                    computing the product of the weights for a given sample.
+
             idx_col: Name of the columns to use as indices. Unused if set to None.
             split_val: Ratio for the validation split.
             split_test: Ratio for the test split.
@@ -221,6 +244,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+            sample_size:
+
+                - `int`: The maximum number of elements to take from the dataset.
+                - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
+                - `None`: all elements are considered.
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -240,6 +268,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.smiles_col = smiles_col
         self.label_cols = label_cols
         self.idx_col = idx_col
+        self.sample_size = sample_size
+
+        self.weights_col = weights_col
+        self.weights_type = weights_type
+        if self.weights_col is not None:
+            assert self.weights_type is None
 
         self.split_val = split_val
         self.split_test = split_test
@@ -287,11 +321,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             df = pd.read_csv(self.df_path)
         else:
             df = self.df
+        df = self._sub_sample_df(df)
 
         logger.info(f"Prepare dataset with {len(df)} data points.")
 
         # Extract smiles and labels
-        smiles, labels, indices = self._extract_smiles_labels(
+        smiles, labels, indices, weights, sample_idx = self._extract_smiles_labels(
             df, self.smiles_col, self.label_cols, self.idx_col
         )
 
@@ -316,10 +351,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             split_test=self.split_test,
             split_seed=self.split_seed,
             splits_path=self.splits_path,
+            sample_idx=sample_idx,
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
-        self.dataset = DGLDataset(smiles=smiles, features=features, labels=labels, indices=indices)
+        self.dataset = DGLDataset(
+            smiles=smiles, features=features, labels=labels, indices=indices, weights=weights
+        )
 
         # Cache on disk
         if self.cache_data_path is not None:
@@ -396,7 +434,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             df = self.df.iloc[0:1, :]
 
-        smiles, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+        smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         featurization_args = self.featurization or {}
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
@@ -406,7 +444,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
     # Private methods
 
     def _extract_smiles_labels(
-        self, df: pd.DataFrame, smiles_col: str = None, label_cols: List[str] = None, idx_col: str = None
+        self,
+        df: pd.DataFrame,
+        smiles_col: str = None,
+        label_cols: List[str] = None,
+        idx_col: str = None,
+        weights_col: str = None,
+        weights_type: str = None,
     ):
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
@@ -433,23 +477,54 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if idx_col is not None:
             indices = df[idx_col].to_list()
 
-        return smiles, labels, indices
+        sample_idx = df.index
+
+        # Extract the weights
+        weights = None
+        if weights_col is not None:
+            weights = df[weights_col].values
+        elif weights_type is not None:
+            if not np.all((labels == 0) | (labels == 1)):
+                raise ValueError("Labels must be binary for `weights_type`")
+
+            if weights_type == "sample_label_balanced":
+                ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
+                weights = np.zeros(labels.shape)
+                weights[labels == 0] = ratio_pos_neg
+                weights[labels == 1] = ratio_pos_neg ** -1
+
+            elif weights_type == "sample_balanced":
+                ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
+                weights = np.zeros(labels.shape)
+                weights[labels == 0] = ratio_pos_neg
+                weights[labels == 1] = ratio_pos_neg ** -1
+                weights = np.prod(weights, axis=1)
+
+            else:
+                raise ValueError(f"Undefined `weights_type` {weights_type}")
+
+            weights /= np.max(weights)  # Put the max weight to 1
+
+        return smiles, labels, indices, weights, sample_idx
 
     def _get_split_indices(
         self,
         dataset_size: int,
         split_val: float,
         split_test: float,
+        sample_idx: Optional[Iterable[int]] = None,
         split_seed: int = None,
         splits_path: Union[str, os.PathLike] = None,
     ):
         """Compute indices of random splits."""
 
+        if sample_idx is None:
+            sample_idx = np.arange(dataset_size)
+
         if splits_path is None:
             # Random splitting
-            indices = np.arange(dataset_size)
             train_indices, val_test_indices = train_test_split(
-                indices,
+                sample_idx,
                 test_size=split_val + split_test,
                 random_state=split_seed,
             )
@@ -461,10 +536,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 random_state=split_seed,
             )
 
-            train_indices = list(train_indices)
-            val_indices = list(val_indices)
-            test_indices = list(test_indices)
-
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
@@ -474,7 +545,26 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             val_indices = splits["val"].dropna().astype("int").tolist()
             test_indices = splits["test"].dropna().astype("int").tolist()
 
+        # Filter train, val and test indices
+        train_indices = [ii for ii, idx in enumerate(sample_idx) if idx in train_indices]
+        val_indices = [ii for ii, idx in enumerate(sample_idx) if idx in val_indices]
+        test_indices = [ii for ii, idx in enumerate(sample_idx) if idx in test_indices]
+
         return train_indices, val_indices, test_indices
+
+    def _sub_sample_df(self, df):
+        # Sub-sample the dataframe
+        if isinstance(self.sample_size, int):
+            n = min(self.sample_size, df.shape[0])
+            df = df.sample(n=n)
+        elif isinstance(self.sample_size, float):
+            df = df.sample(f=self.sample_size)
+        elif self.sample_size is None:
+            pass
+        else:
+            raise ValueError(f"Wrong value for `self.sample_size`: {self.sample_size}")
+
+        return df
 
     def __len__(self) -> int:
         r"""
@@ -514,6 +604,9 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dataset_name: str,
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
+        weights_col: str = None,
+        weights_type: str = None,
+        sample_size: Union[int, float, type(None)] = None,
         batch_size_train_val: int = 16,
         batch_size_test: int = 16,
         num_workers: int = 0,
@@ -539,6 +632,11 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+            sample_size:
+
+                - `int`: The maximum number of elements to take from the dataset.
+                - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
+                - `None`: all elements are considered.
         """
 
         self.dataset_name = dataset_name
@@ -566,6 +664,9 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dm_args["featurization_progress"] = featurization_progress
         dm_args["persistent_workers"] = persistent_workers
         dm_args["collate_fn"] = collate_fn
+        dm_args["weights_col"] = weights_col
+        dm_args["weights_type"] = weights_type
+        dm_args["sample_size"] = sample_size
 
         # Init DGLFromSmilesDataModule
         super().__init__(**dm_args)

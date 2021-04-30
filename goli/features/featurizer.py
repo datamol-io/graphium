@@ -4,8 +4,10 @@ import numpy as np
 from scipy.sparse import csr_matrix
 import dgl
 import torch
+import warnings
 
 from rdkit import Chem
+from rdkit.Chem.AllChem import MolToSmiles
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 import datamol as dm
 
@@ -254,7 +256,7 @@ def get_mol_atomic_features_float(
     return prop_dict
 
 
-def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Chem.rdchem.Conformer:
+def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Union[Chem.rdchem.Conformer, None]:
     r"""
     If the molecule has a conformer, then it will return the conformer at idx `0`.
     Otherwise, it generates a simple molecule conformer using `rdkit.Chem.rdDistGeom.EmbedMolecule`
@@ -266,13 +268,97 @@ def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Chem.rdchem.Conformer:
         mol: Rdkit Molecule
 
     Returns:
-        conf: A conformer of the molecule
+        conf: A conformer of the molecule, or `None` if it fails
     """
-    if mol.GetNumConformers() == 0:
-        Chem.rdDistGeom.EmbedMolecule(mol)
 
-    conf = mol.GetConformer(0)
+    val = 0
+    if mol.GetNumConformers() == 0:
+        val = Chem.rdDistGeom.EmbedMolecule(mol)
+    if val == -1:
+        val = Chem.rdDistGeom.EmbedMolecule(
+            mol,
+            enforceChirality=False,
+            ignoreSmoothingFailures=True,
+            useBasicKnowledge=True,
+            useExpTorsionAnglePrefs=True,
+            forceTol=0.1,
+        )
+
+    if val == -1:
+        conf = None
+        warnings.warn("Couldn't compute conformer for molecule `{}`".format(Chem.MolToSmiles(mol)))
+    else:
+        conf = mol.GetConformer(0)
+
     return conf
+
+
+def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> float:
+    r"""
+    Estimate the bond length between atoms by looking at the estimated atomic radius
+    that depends both on the atom type and the bond type. The resulting bond-length is
+    then the sum of the radius.
+
+    Keep in mind that this function only provides an estimate of the bond length and not
+    the true one based on a conformer. The vast majority od estimated bond lengths will
+    have an error below 5% while some bonds can have an error up to 20%. This function
+    is mostly useful when conformer generation fails for some molecules, or for
+    increased computation speed.
+
+    Parameters:
+        bond: The bond to measure its lenght
+        mol: The molecule containing the bond (used to get neighbouring atoms)
+
+    Returns:
+        bond_length: The bond length in Angstrom, typically a value around 1-2.
+
+    """
+
+    # Small function to convert strings to floats
+    def float_or_nan(string):
+        try:
+            val = float(string)
+        except:
+            val = float("nan")
+        return val
+
+    # Get the atoms connected by the bond
+    idx1 = bond.GetBeginAtomIdx()
+    idx2 = bond.GetEndAtomIdx()
+    atom1 = mol.GetAtomWithIdx(idx1).GetAtomicNum()
+    atom2 = mol.GetAtomWithIdx(idx2).GetAtomicNum()
+    bond_type = bond.GetBondType()
+
+    # Get single bond atomic radius
+    if bond_type == Chem.rdchem.BondType.SINGLE:
+        rad1 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom1]]
+        rad2 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom2]]
+    # Get double bond atomic radius
+    elif bond_type == Chem.rdchem.BondType.DOUBLE:
+        rad1 = [nmp.PERIODIC_TABLE["DoubleBondRadius"][atom1]]
+        rad2 = [nmp.PERIODIC_TABLE["DoubleBondRadius"][atom2]]
+    # Get triple bond atomic radius
+    elif bond_type == Chem.rdchem.BondType.TRIPLE:
+        rad1 = [nmp.PERIODIC_TABLE["TripleBondRadius"][atom1]]
+        rad2 = [nmp.PERIODIC_TABLE["TripleBondRadius"][atom2]]
+    # Get average of single bond and double bond atomic radius
+    elif bond_type == Chem.rdchem.BondType.AROMATIC:
+        rad1 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom1], nmp.PERIODIC_TABLE["DoubleBondRadius"][atom1]]
+        rad2 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom2], nmp.PERIODIC_TABLE["DoubleBondRadius"][atom2]]
+
+    # Average the bond lengths, while ignoring nans in case some missing value
+    rad1_float = np.nanmean(np.array([float_or_nan(elem) for elem in rad1]))
+    rad2_float = np.nanmean(np.array([float_or_nan(elem) for elem in rad2]))
+
+    # If the bond radius is still nan (this shouldn't happen), take the single bond radius
+    if np.isnan(rad1_float):
+        rad1_float = float_or_nan(nmp.PERIODIC_TABLE["SingleBondRadius"][atom1])
+    if np.isnan(rad2_float):
+        rad2_float = float_or_nan(nmp.PERIODIC_TABLE["SingleBondRadius"][atom2])
+
+    bond_length = rad1_float + rad2_float
+
+    return bond_length
 
 
 def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
@@ -299,7 +385,8 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
             - "stereo"
             - "in-ring"
             - "conjugated"
-            - "bond-length"
+            - "conformer-bond-length" (might cause problems with complex molecules)
+            - "estimated-bond-length"
 
     Returns:
         prop_dict:
@@ -320,24 +407,30 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
             bond = mol.GetBondWithIdx(ii)
 
             if prop in ["bond-type-onehot"]:
-                one_hot = one_of_k_encoding(bond.GetBondType(), nmp.BOND_TYPES)
+                encoding = one_of_k_encoding(bond.GetBondType(), nmp.BOND_TYPES)
             elif prop in ["bond-type-float"]:
-                one_hot = [bond.GetBondTypeAsDouble()]
+                encoding = [bond.GetBondTypeAsDouble()]
             elif prop in ["stereo"]:
-                one_hot = one_of_k_encoding(bond.GetStereo(), nmp.BOND_STEREO)
+                encoding = one_of_k_encoding(bond.GetStereo(), nmp.BOND_STEREO)
             elif prop in ["in-ring"]:
-                one_hot = [bond.IsInRing()]
+                encoding = [bond.IsInRing()]
             elif prop in ["conjugated"]:
-                one_hot = [bond.GetIsConjugated()]
-            elif prop in ["bond-length"]:
+                encoding = [bond.GetIsConjugated()]
+            elif prop in ["conformer-bond-length"]:
                 conf = get_simple_mol_conformer(mol)
-                idx1 = bond.GetBeginAtomIdx()
-                idx2 = bond.GetEndAtomIdx()
-                one_hot = [Chem.rdMolTransforms.GetBondLength(conf, idx1, idx2)]
+                if conf is not None:
+                    idx1 = bond.GetBeginAtomIdx()
+                    idx2 = bond.GetEndAtomIdx()
+                    encoding = [Chem.rdMolTransforms.GetBondLength(conf, idx1, idx2)]
+                else:
+                    encoding = [0]
+            elif prop in ["estimated-bond-length"]:
+                encoding = [get_estimated_bond_length(bond, mol)]
+
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
-            property_array.append(np.asarray(one_hot, dtype=np.float32))
+            property_array.append(np.asarray(encoding, dtype=np.float32))
 
         if num_bonds > 0:
             prop_dict[prop] = np.stack(property_array, axis=0)

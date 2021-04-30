@@ -1,15 +1,11 @@
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
-import os, math
-import dgl
+import os
 import numpy as np
-import pandas as pd
 from copy import deepcopy
 import yaml
-from omegaconf import DictConfig, ListConfig
 
 import torch
-import torch.nn.functional as F
-from torch import nn
+from torch import nn, Tensor
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import pytorch_lightning as pl
@@ -17,7 +13,7 @@ from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.trainer.model_summary import ModelSummaryExtended
-
+from goli.config.config_convert import recursive_config_reformating
 
 LOSS_DICT = {
     "mse": torch.nn.MSELoss(),
@@ -41,8 +37,8 @@ class EpochSummary:
     class Results:
         def __init__(
             self,
-            targets: torch.Tensor,
-            predictions: torch.Tensor,
+            targets: Tensor,
+            predictions: Tensor,
             loss: float,
             metrics: dict,
             monitored_metric: str,
@@ -119,7 +115,7 @@ class PredictorModule(pl.LightningModule):
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
-        target_nan_mask: Union[int, float, str, type(None)] = None,
+        target_nan_mask: Optional[Union[int, float, str]] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
     ):
@@ -223,6 +219,7 @@ class PredictorModule(pl.LightningModule):
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
         self.scheduler_kwargs.setdefault("monitor", "loss/val")
         self.scheduler_kwargs.setdefault("interval", "epoch")
+        self.scheduler_kwargs.setdefault("mode", "min")
         self.scheduler_kwargs.setdefault("frequency", 1)
         self.scheduler_kwargs.setdefault("strict", True)
 
@@ -230,6 +227,10 @@ class PredictorModule(pl.LightningModule):
         self.epoch_summary = EpochSummary(
             monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
+
+        # This helps avoid a bug when saving hparams to yaml with different
+        # dict or str formats
+        self.hparams = recursive_config_reformating(self.hparams)
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
@@ -265,18 +266,21 @@ class PredictorModule(pl.LightningModule):
         optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
 
         scheduler = {
-            "scheduler": ReduceLROnPlateau(optimizer=optimiser, **self.lr_reduce_on_plateau_kwargs),
+            "scheduler": ReduceLROnPlateau(
+                optimizer=optimiser, mode=self.scheduler_kwargs["mode"], **self.lr_reduce_on_plateau_kwargs
+            ),
             **self.scheduler_kwargs,
         }
         return [optimiser], [scheduler]
 
     @staticmethod
     def compute_loss(
-        preds: torch.Tensor,
-        targets: torch.Tensor,
+        preds: Tensor,
+        targets: Tensor,
+        weights: Optional[Tensor],
         loss_fun: Callable,
         target_nan_mask: Union[Type, str] = "ignore",
-    ) -> torch.Tensor:
+    ) -> Tensor:
         r"""
         Compute the loss using the specified loss function, and dealing with
         the nans in the `targets`.
@@ -301,7 +305,7 @@ class PredictorModule(pl.LightningModule):
                 Loss function to use
 
         Returns:
-            torch.Tensor:
+            Tensor:
                 Resulting loss
         """
         if target_nan_mask is None:
@@ -315,12 +319,15 @@ class PredictorModule(pl.LightningModule):
         else:
             raise ValueError(f"Invalid option `{target_nan_mask}`")
 
-        loss = loss_fun(preds, targets)
+        if weights is None:
+            loss = loss_fun(preds, targets)
+        else:
+            loss = loss_fun(preds, targets, weights=weights)
 
         return loss
 
     def get_metrics_logs(
-        self, preds: torch.Tensor, targets: torch.Tensor, step_name: str, loss_name: str
+        self, preds: Tensor, targets: Tensor, weights: Optional[Tensor], step_name: str, loss_name: str
     ) -> Dict[str, Any]:
         r"""
         Get the logs for the loss and the different metrics, in a format compatible with
@@ -348,13 +355,17 @@ class PredictorModule(pl.LightningModule):
             A dictionary with the keys value being:
 
             - `loss_name`: The value of the loss
-            - `"log"`: A dictionary of type `Dict[str, torch.Tensor]`
+            - `"log"`: A dictionary of type `Dict[str, Tensor]`
                 containing the metrics to log on tensorboard.
         """
 
         targets = targets.to(dtype=preds.dtype, device=preds.device)
         loss = self.compute_loss(
-            preds=preds, targets=targets, target_nan_mask=self.target_nan_mask, loss_fun=self.loss_fun
+            preds=preds,
+            targets=targets,
+            weights=weights,
+            target_nan_mask=self.target_nan_mask,
+            loss_fun=self.loss_fun,
         )
 
         # Compute the metrics always used in regression tasks
@@ -370,22 +381,27 @@ class PredictorModule(pl.LightningModule):
             metric_name = f"{key}/{step_name}"
             try:
                 metric_logs[metric_name] = metric(preds, targets)
-            except:
-                metric_logs[metric_name] = torch.tensor(float("nan"))
+            except Exception as e:
+                metric_logs[metric_name] = torch.as_tensor(float("nan"))
 
         return loss, metric_logs
 
-    def _general_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         y = batch.pop("labels")
+        weights = batch.pop("weights", None)
         preds = self.forward(batch)
-        step_dict = {"preds": preds, "targets": y}
+        step_dict = {"preds": preds, "targets": y, "weights": weights}
         return step_dict
 
-    def training_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
         loss, metrics_logs = self.get_metrics_logs(
-            preds=step_dict["preds"], targets=step_dict["targets"], step_name="train", loss_name="loss"
+            preds=step_dict["preds"],
+            targets=step_dict["targets"],
+            weights=step_dict["weights"],
+            step_name="train",
+            loss_name="loss",
         )
 
         step_dict.update(metrics_logs)
@@ -395,10 +411,10 @@ class PredictorModule(pl.LightningModule):
 
         return step_dict
 
-    def validation_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
-    def testing_step(self, batch: Tuple[torch.Tensor], batch_idx: int) -> Dict[str, Any]:
+    def testing_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
@@ -407,9 +423,13 @@ class PredictorModule(pl.LightningModule):
         # Transform the list of dict of dict, into a dict of list of dict
         preds = torch.cat([out["preds"] for out in outputs], dim=0)
         targets = torch.cat([out["targets"] for out in outputs], dim=0)
+        if outputs[0]["weights"] is not None:
+            weights = torch.cat([out["weights"] for out in outputs], dim=0)
+        else:
+            weights = None
         loss_name = f"loss/{step_name}"
         loss, metrics_logs = self.get_metrics_logs(
-            preds=preds, targets=targets, step_name=step_name, loss_name=loss_name
+            preds=preds, targets=targets, weights=weights, step_name=step_name, loss_name=loss_name
         )
 
         self.epoch_summary.set_results(

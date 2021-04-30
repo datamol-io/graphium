@@ -751,6 +751,7 @@ class FullDGLNetwork(nn.Module):
         self,
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
+        pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         name: str = "DGL_GNN",
     ):
@@ -773,6 +774,11 @@ class FullDGLNetwork(nn.Module):
                 MLP network of the node features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
 
+            pre_nn_kwargs:
+                key-word arguments to use for the initialization of the pre-processing
+                MLP network of the edge features before the GNN, using the class `FeedForwardNN`.
+                If `None`, there won't be a pre-processing MLP.
+
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
@@ -787,13 +793,20 @@ class FullDGLNetwork(nn.Module):
         self.name = name
 
         # Initialize the networks
-        self.pre_nn, self.post_nn = None, None
+        self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
         if pre_nn_kwargs is not None:
             name = pre_nn_kwargs.pop("name", "pre-NN")
             self.pre_nn = FeedForwardNN(**pre_nn_kwargs, name=name)
             next_in_dim = self.pre_nn.out_dim
             gnn_kwargs.setdefault("in_dim", next_in_dim)
             assert next_in_dim == gnn_kwargs["in_dim"]
+
+        if pre_nn_edges_kwargs is not None:
+            name = pre_nn_edges_kwargs.pop("name", "pre-NN-edges")
+            self.pre_nn_edges = FeedForwardNN(**pre_nn_edges_kwargs, name=name)
+            next_in_dim = self.pre_nn_edges.out_dim
+            gnn_kwargs.setdefault("in_dim_edges", next_in_dim)
+            assert next_in_dim == gnn_kwargs["in_dim_edges"]
 
         name = gnn_kwargs.pop("name", "GNN")
         self.gnn = FeedForwardDGL(**gnn_kwargs, name=name)
@@ -874,6 +887,12 @@ class FullDGLNetwork(nn.Module):
             h = g.ndata["h"]
             h = self.pre_nn.forward(h)
             g.ndata["h"] = h
+
+        if self.pre_nn_edges is not None:
+            e = g.edata["e"]
+            e = self.pre_nn_edges.forward(e)
+            g.edata["e"] = e
+
         h = self.gnn.forward(g)
         if self.post_nn is not None:
             h = self.post_nn.forward(h)
@@ -883,14 +902,16 @@ class FullDGLNetwork(nn.Module):
         r"""
         Controls how the class is printed
         """
-        pre_nn_str, post_nn_str = "", ""
+        pre_nn_str, post_nn_str, pre_nn_edges_str = "", "", ""
         if self.pre_nn is not None:
             pre_nn_str = self.pre_nn.__repr__() + "\n\n"
+        if self.pre_nn_edges is not None:
+            pre_nn_edges_str = self.pre_nn_edges.__repr__() + "\n\n"
         gnn_str = self.gnn.__repr__() + "\n\n"
         if self.post_nn is not None:
             post_nn_str = self.post_nn.__repr__()
 
-        child_str = "    " + pre_nn_str + gnn_str + post_nn_str
+        child_str = "    " + pre_nn_str + pre_nn_edges_str + gnn_str + post_nn_str
         child_str = "    ".join(child_str.splitlines(True))
 
         full_str = self.name + "\n" + "-" * (len(self.name) + 2) + "\n" + child_str
