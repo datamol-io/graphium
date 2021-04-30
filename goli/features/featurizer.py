@@ -298,10 +298,10 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
     Estimate the bond length between atoms by looking at the estimated atomic radius
     that depends both on the atom type and the bond type. The resulting bond-length is
     then the sum of the radius.
-    
+
     Keep in mind that this function only provides an estimate of the bond length and not
     the true one based on a conformer. The vast majority od estimated bond lengths will
-    have an error below 5% while some bonds can have an error up to 20%. This function 
+    have an error below 5% while some bonds can have an error up to 20%. This function
     is mostly useful when conformer generation fails for some molecules.
 
     Parameters:
