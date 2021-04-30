@@ -21,6 +21,7 @@ import datamol as dm
 
 from goli.utils import fs
 from goli.features import mol_to_dglgraph
+from goli.features import mol_to_dglgraph_signature
 from goli.data.collate import goli_collate_fn
 
 
@@ -299,22 +300,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         - Make the list of dict dataset.
         """
 
-        # Reload from cache if it exists and is valid
-        if self.cache_data_path is not None and fs.exists(self.cache_data_path):
-            logger.info(f"Reload data from {self.cache_data_path}.")
-
-            with fsspec.open(self.cache_data_path, "rb") as f:
-                cache = torch.load(f)  # type: ignore
-
-            if set(cache.keys()) == {"dataset", "test_indices", "train_indices", "val_indices"}:
-                self.dataset = cache["dataset"]
-                self.train_indices = cache["train_indices"]
-                self.val_indices = cache["val_indices"]
-                self.test_indices = cache["test_indices"]
-                return
-            else:
-                logger.info(f"Cache looks invalid with keys: {cache.keys()}")
-                logger.info("Fallback to regular data preparation steps.")
+        if self._load_from_cache():
+            return True
 
         # Load the dataframe
         if self.df is None:
@@ -356,19 +343,14 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
         self.dataset = DGLDataset(
-            smiles=smiles, features=features, labels=labels, indices=indices, weights=weights
+            smiles=smiles,
+            features=features,
+            labels=labels,
+            indices=indices,
+            weights=weights,
         )
 
-        # Cache on disk
-        if self.cache_data_path is not None:
-            logger.info(f"Write prepared data to {self.cache_data_path}")
-            cache = {}
-            cache["dataset"] = self.dataset
-            cache["train_indices"] = self.train_indices
-            cache["val_indices"] = self.val_indices
-            cache["test_indices"] = self.test_indices
-            with fsspec.open(self.cache_data_path, "wb") as f:
-                torch.save(cache, f)  # type: ignore
+        self._save_to_cache()
 
     def setup(self, stage: str = None):
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
@@ -442,6 +424,82 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         return graph
 
     # Private methods
+
+    def _save_to_cache(self):
+        """Save the built dataset, indices and featurization arguments into a cache file."""
+
+        # Cache on disk
+        if self.cache_data_path is not None:
+            logger.info(f"Write prepared data to {self.cache_data_path}")
+            cache = {}
+            cache["dataset"] = self.dataset
+            cache["train_indices"] = self.train_indices
+            cache["val_indices"] = self.val_indices
+            cache["test_indices"] = self.test_indices
+
+            # Save featurization args used
+            cache["featurization_args"] = mol_to_dglgraph_signature(dict(self.featurization or {}))
+
+            with fsspec.open(self.cache_data_path, "wb") as f:
+                torch.save(cache, f)
+
+    def _load_from_cache(self):
+        """Attempt to reload the data from cache. Return True if data has been
+        reloaded from the cache.
+        """
+
+        if self.cache_data_path is None:
+            # Cache path is not provided.
+            return False
+
+        if not fs.exists(self.cache_data_path):
+            # Cache patch does not exist.
+            return False
+
+        # Reload from cache if it exists and is valid
+        logger.info(f"Try reloading the data module from {self.cache_data_path}.")
+
+        # Load cache
+        with fsspec.open(self.cache_data_path, "rb") as f:
+            cache = torch.load(f)
+
+        # Are the required keys present?
+        excepted_cache_keys = {
+            "dataset",
+            "test_indices",
+            "train_indices",
+            "val_indices",
+        }
+        if not set(cache.keys()) != excepted_cache_keys:
+            logger.info(
+                f"Cache looks invalid with keys: {cache.keys()}. Excepted keys are {excepted_cache_keys}"
+            )
+            logger.info("Fallback to regular data preparation steps.")
+            return False
+
+        # Is the featurization signature the same?
+        current_signature = mol_to_dglgraph_signature(dict(self.featurization or {}))
+        cache_signature = mol_to_dglgraph_signature(cache["featurization_args"])
+
+        if current_signature != cache_signature:
+            logger.info(
+                f"Cache featurizer arguments ({cache_signature}) are different than the provided ones ({current_signature})."
+            )
+            logger.info("Fallback to regular data preparation steps.")
+            return False
+
+        #     self.dataset = cache["dataset"]
+        #     self.train_indices = cache["train_indices"]
+        #     self.val_indices = cache["val_indices"]
+        #     self.test_indices = cache["test_indices"]
+
+        #     logger.info(f"Datamodule correctly reloaded.")
+        #     return True
+        # else:
+        #     logger.info(f"Cache looks invalid with keys: {cache.keys()}")
+        #     logger.info("Fallback to regular data preparation steps.")
+
+        return False
 
     def _extract_smiles_labels(
         self,
