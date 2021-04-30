@@ -302,7 +302,8 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
     Keep in mind that this function only provides an estimate of the bond length and not
     the true one based on a conformer. The vast majority od estimated bond lengths will
     have an error below 5% while some bonds can have an error up to 20%. This function
-    is mostly useful when conformer generation fails for some molecules.
+    is mostly useful when conformer generation fails for some molecules, or for
+    increased computation speed.
 
     Parameters:
         bond: The bond to measure its lenght
