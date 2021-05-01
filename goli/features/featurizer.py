@@ -450,7 +450,7 @@ def mol_to_adj_and_features(
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
-) -> Tuple[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
+) -> Union[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.

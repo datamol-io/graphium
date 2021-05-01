@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, Union
 import numpy as np
 from scipy.sparse import spmatrix
 import torch
@@ -7,7 +7,7 @@ from goli.features.spectral import compute_laplacian_positional_eigvecs
 
 
 def get_all_positional_encoding(
-    adj: Tuple[np.ndarray, spmatrix],
+    adj: Union[np.ndarray, spmatrix],
     pos_encoding_as_features: Optional[Dict] = None,
     pos_encoding_as_directions: Optional[Dict] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
@@ -58,7 +58,7 @@ def get_all_positional_encoding(
 
 
 def graph_positional_encoder(
-    adj: Tuple[np.ndarray, spmatrix], pos_type: str, num_pos: int, disconnected_comp: bool = True, **kwargs
+    adj: Union[np.ndarray, spmatrix], pos_type: str, num_pos: int, disconnected_comp: bool = True, **kwargs
 ) -> np.ndarray:
     r"""
     Get a positional encoding that depends on the parameters.

@@ -1,6 +1,5 @@
-from typing import Optional, Tuple
+from typing import Tuple, Union
 
-import scipy as sp
 from scipy.sparse.linalg import eigs
 from scipy.linalg import eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix
@@ -12,7 +11,7 @@ from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
 def compute_laplacian_positional_eigvecs(
-    adj: Tuple[np.ndarray, spmatrix],
+    adj: Union[np.ndarray, spmatrix],
     num_pos: int,
     disconnected_comp: bool = True,
     normalization: str = "none",
