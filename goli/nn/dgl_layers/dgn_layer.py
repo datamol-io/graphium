@@ -144,7 +144,7 @@ class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
     the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
     and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
 
-    After the pre-transformation, it aggregates the messages
+    After the pre-transformation, it aggregates the messages using
     multiple aggregators and scalers,
     concatenates their results, then applies an MLP on the concatenated
     features.
