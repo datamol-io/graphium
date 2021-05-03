@@ -74,7 +74,7 @@ class EpochSummary:
         if self.mode == "max":
             return metrics[monitor_name] > self.best_summaries[name].monitored
         elif self.mode == "min":
-            return (metrics[monitor_name] < self.best_summaries[name].monitored)
+            return metrics[monitor_name] < self.best_summaries[name].monitored
         else:
             return ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
 

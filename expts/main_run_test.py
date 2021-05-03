@@ -20,12 +20,12 @@ from goli.trainer.predictor import PredictorModule
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
-MODEL_FILE = "models_checkpoints/micro_ZINC/bob-v57.ckpt"
+MODEL_FILE = "models_checkpoints/ogb-molpcba/bob-v24.ckpt"
 
-CONFIG_FILE = "expts/config_micro_ZINC.yaml"
+CONFIG_FILE = "expts/config_molPCBA.yaml"
+
 
 def main(cfg: DictConfig) -> None:
-
 
     cfg = deepcopy(cfg)
 
@@ -35,7 +35,7 @@ def main(cfg: DictConfig) -> None:
 
     metrics = load_metrics(cfg)
     print(metrics)
-    
+
     predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
 
     print(predictor.model)
