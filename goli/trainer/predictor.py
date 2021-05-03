@@ -27,9 +27,9 @@ LOSS_DICT = {
 class EpochSummary:
     r"""Container for collecting epoch-wise results"""
 
-    def __init__(self, monitor="loss", monitor_greater: bool = False, metrics_on_progress_bar=[]):
+    def __init__(self, monitor="loss", mode: str = "min", metrics_on_progress_bar=[]):
         self.monitor = monitor
-        self.monitor_greater = monitor_greater
+        self.mode = mode
         self.metrics_on_progress_bar = metrics_on_progress_bar
         self.summaries = {}
         self.best_summaries = {}
@@ -71,9 +71,12 @@ class EpochSummary:
 
         metrics[f"loss/{name}"] = loss
         monitor_name = f"{self.monitor}/{name}"
-        return (self.monitor_greater and (metrics[monitor_name] > self.best_summaries[name].monitored)) or (
-            (not self.monitor_greater) and (metrics[monitor_name] < self.best_summaries[name].monitored)
-        )
+        if self.mode == "max":
+            return metrics[monitor_name] > self.best_summaries[name].monitored
+        elif self.mode == "min":
+            return (metrics[monitor_name] < self.best_summaries[name].monitored)
+        else:
+            return ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
 
     def get_results(self, name):
         return self.summaries[name]
@@ -224,8 +227,9 @@ class PredictorModule(pl.LightningModule):
         self.scheduler_kwargs.setdefault("strict", True)
 
         monitor = scheduler_kwargs["monitor"].split("/")[0]
+        mode = scheduler_kwargs["mode"]
         self.epoch_summary = EpochSummary(
-            monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
+            monitor, mode=mode, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
 
         # This helps avoid a bug when saving hparams to yaml with different
