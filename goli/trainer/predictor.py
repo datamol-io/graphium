@@ -418,7 +418,7 @@ class PredictorModule(pl.LightningModule):
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
-    def testing_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
+    def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
@@ -470,14 +470,16 @@ class PredictorModule(pl.LightningModule):
             with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
                 yaml.dump(full_dict, file)
 
-    def testing_epoch_end(self, outputs: List):
+    def test_epoch_end(self, outputs: List):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
+        self.log_dict(metrics_logs)
 
         # Save yaml file with the metrics summaries
         full_dict = {}
         full_dict.update(self.epoch_summary.get_dict_summary())
         tb_path = self.logger.log_dir
+        os.makedirs(tb_path, exist_ok=True)
         with open(f"{tb_path}/metrics.yaml", "w") as file:
             yaml.dump(full_dict, file)
 
