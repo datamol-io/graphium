@@ -31,8 +31,8 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
-    batch_size_train_val: 2048
-    batch_size_test: 2048
+    batch_size_train_val: 1800
+    batch_size_test: 1800
 
   # Data loading
   num_workers: 8
@@ -43,7 +43,7 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 365
+    out_dim: &hidden_dim 385
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
