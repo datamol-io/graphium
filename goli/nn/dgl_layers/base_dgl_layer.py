@@ -96,7 +96,7 @@ class BaseDGLLayer(nn.Module):
 
         if dropout and (self.dropout_layer is not None):
             h = self.dropout_layer(h)
-            
+
         return h
 
     @classproperty
