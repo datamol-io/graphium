@@ -288,6 +288,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
+        self.train_indices = None
+        self.val_indices = None
+        self.test_indices = None
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -637,6 +640,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         obj_repr = {}
         obj_repr["name"] = self.__class__.__name__
         obj_repr["len"] = len(self)
+        obj_repr["train_size"] = len(self.train_indices) if self.train_indices is not None else None
+        obj_repr["val_size"] = len(self.val_indices) if self.val_indices is not None else None
+        obj_repr["test_size"] = len(self.test_indices) if self.test_indices is not None else None
         obj_repr["batch_size_train_val"] = self.batch_size_train_val
         obj_repr["batch_size_test"] = self.batch_size_test
         obj_repr["num_node_feats"] = self.num_node_feats

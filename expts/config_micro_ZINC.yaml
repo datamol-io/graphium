@@ -33,7 +33,7 @@ datamodule:
     split_seed: *seed
     splits_path: null
     batch_size_train_val: 128
-    batch_size_test: 256
+    batch_size_test: 128
 
     # Data loading
     num_workers: 0
@@ -156,7 +156,7 @@ trainer:
     mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/micro_ZINC/
-    filename: "bob"
+    filename: "model"
     monitor: *monitor
     mode: *mode
     save_top_k: 1

@@ -176,7 +176,7 @@ trainer:
     mode: *mode
   model_checkpoint:
     dirpath: models_checkpoints/ogb-molpcba/
-    filename: "bob"
+    filename: "model"
     monitor: *monitor
     mode: *mode
     save_top_k: 1
