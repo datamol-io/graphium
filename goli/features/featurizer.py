@@ -168,12 +168,18 @@ def get_mol_atomic_features_float(
 
     for prop in property_list:
 
-        prop = prop.lower()
-        prop_name = prop
+        prop_name = None
 
         property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float32)
         for ii, atom in enumerate(mol.GetAtoms()):
+
+            val = None
+
             if isinstance(prop, str):
+
+                prop = prop.lower()
+                prop_name = prop
+
                 if prop in ["atomic-number"]:
                     val = (atom.GetAtomicNum() - (offC * C.GetAtomicNum())) / 5
                 elif prop in ["mass", "weight"]:
@@ -242,6 +248,8 @@ def get_mol_atomic_features_float(
                         val = len([bond == 2 for bond in bonds])
                     elif prop in ["triple-bond"]:
                         val = len([bond == 3 for bond in bonds])
+                    else:
+                        raise ValueError(f"{prop} is not a correct bond.")
                     val -= offC * 1
                 elif prop in ["is-carbon"]:
                     val = atom.GetAtomicNum() == 6
@@ -255,7 +263,13 @@ def get_mol_atomic_features_float(
             else:
                 ValueError(f"Elements in `property_list` must be str or callable, provided `{type(prop)}`")
 
+            if val is None:
+                raise ValueError("val is undefined.")
+
             property_array[ii] = val
+
+        if prop_name is None:
+            raise ValueError("prop_name is undefined.")
 
         prop_dict[prop_name] = property_array
 
