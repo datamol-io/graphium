@@ -1,12 +1,13 @@
-import goli
+import pathlib
+import tempfile
+
 import unittest as ut
+
+import goli
 
 
 class Test_DataModule(ut.TestCase):
     def test_dglfromsmiles_dm(self):
-
-        # NOTE(hadim): we could parametrized the test in order to test
-        # different scenario.
 
         df = goli.data.load_tiny_zinc()
         # Setup the featurization
@@ -151,6 +152,57 @@ class Test_DataModule(ut.TestCase):
         assert len(batch["smiles"]) == 16
         assert len(batch["labels"]) == 16
         assert len(batch["indices"]) == 16
+
+    def test_datamodule_cache_invalidation(self):
+
+        df = goli.data.load_tiny_zinc()
+
+        cache_data_path = pathlib.Path(tempfile.mkdtemp()) / "cache.pkl"
+
+        # 1. Build a module with specific feature arguments
+
+        featurization_args = {}
+        featurization_args["atom_property_list_float"] = ["mass", "electronegativity", "in-ring"]
+        featurization_args["edge_property_list"] = ["bond-type-onehot", "stereo", "in-ring"]
+
+        dm_args = {}
+        dm_args["df"] = df
+        dm_args["cache_data_path"] = cache_data_path
+        dm_args["featurization"] = featurization_args
+        datam = goli.data.DGLFromSmilesDataModule(**dm_args)
+        datam.prepare_data()
+        datam.setup()
+
+        assert datam.num_node_feats == 3
+        assert datam.num_edge_feats == 13
+
+        # 2. Reload with the same arguments should not trigger a new preparation and give
+        # the same feature's dimensions.
+
+        datam = goli.data.DGLFromSmilesDataModule(**dm_args)
+        datam.prepare_data()
+        datam.setup()
+
+        assert datam.num_node_feats == 3
+        assert datam.num_edge_feats == 13
+
+        # 3. Reloading from the same cache file should trigger a new data preparation and
+        # so different feature's dimensions.
+
+        featurization_args = {}
+        featurization_args["edge_property_list"] = ["stereo", "in-ring"]
+        featurization_args["atom_property_list_float"] = ["mass", "electronegativity"]
+
+        dm_args = {}
+        dm_args["df"] = df
+        dm_args["cache_data_path"] = cache_data_path
+        dm_args["featurization"] = featurization_args
+        datam = goli.data.DGLFromSmilesDataModule(**dm_args)
+        datam.prepare_data()
+        datam.setup()
+
+        assert datam.num_node_feats == 2
+        assert datam.num_edge_feats == 8
 
 
 if __name__ == "__main__":
