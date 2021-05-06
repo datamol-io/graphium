@@ -1,13 +1,14 @@
-from typing import Union, List, Callable, Dict, Tuple, Optional, Any
+from typing import Union, List, Callable, Dict, Tuple, Any
+
+import inspect
+import warnings
 
 import numpy as np
 from scipy.sparse import csr_matrix
 import dgl
 import torch
-import warnings
 
 from rdkit import Chem
-from rdkit.Chem.AllChem import MolToSmiles
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
 import datamol as dm
 
@@ -63,10 +64,13 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
     prop_dict = {}
 
     for prop in property_list:
+
+        prop = prop.lower()
+        prop_name = prop
+
         property_array = []
         for ii, atom in enumerate(mol.GetAtoms()):
-            prop = prop.lower()
-            prop_name = prop
+
             if prop in ["atomic-number"]:
                 one_hot = one_of_k_encoding(atom.GetSymbol(), nmp.ATOM_LIST)
             elif prop in ["degree"]:
@@ -163,11 +167,19 @@ def get_mol_atomic_features_float(
     offC = bool(offset_carbon)
 
     for prop in property_list:
+
+        prop_name = None
+
         property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float32)
         for ii, atom in enumerate(mol.GetAtoms()):
+
+            val = None
+
             if isinstance(prop, str):
+
                 prop = prop.lower()
                 prop_name = prop
+
                 if prop in ["atomic-number"]:
                     val = (atom.GetAtomicNum() - (offC * C.GetAtomicNum())) / 5
                 elif prop in ["mass", "weight"]:
@@ -236,6 +248,8 @@ def get_mol_atomic_features_float(
                         val = len([bond == 2 for bond in bonds])
                     elif prop in ["triple-bond"]:
                         val = len([bond == 3 for bond in bonds])
+                    else:
+                        raise ValueError(f"{prop} is not a correct bond.")
                     val -= offC * 1
                 elif prop in ["is-carbon"]:
                     val = atom.GetAtomicNum() == 6
@@ -249,7 +263,13 @@ def get_mol_atomic_features_float(
             else:
                 ValueError(f"Elements in `property_list` must be str or callable, provided `{type(prop)}`")
 
+            if val is None:
+                raise ValueError("val is undefined.")
+
             property_array[ii] = val
+
+        if prop_name is None:
+            raise ValueError("prop_name is undefined.")
 
         prop_dict[prop_name] = property_array
 
@@ -649,3 +669,25 @@ def mol_to_dglgraph(
         graph.ndata["pos_dir"] = pos_enc_dir
 
     return graph
+
+
+def mol_to_dglgraph_signature(featurizer_args: Dict[str, Any] = None):
+    """Get the default arguments of `mol_to_dglgraph` and update it
+    with a provided dict of arguments in order to get a fulle signature
+    of the featurizer args actually used for the features computation.
+    """
+
+    # Get the signature of `mol_to_dglgraph`
+    signature = inspect.signature(mol_to_dglgraph)
+
+    # Filter out empty arguments (without default value)
+    parameters = list(filter(lambda param: param.default is not param.empty, signature.parameters.values()))
+
+    # Convert to dict
+    parameters = {param.name: param.default for param in parameters}
+
+    # Update the parameters with the supplied ones
+    if featurizer_args is not None:
+        parameters.update(featurizer_args)
+
+    return parameters
