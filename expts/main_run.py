@@ -50,16 +50,23 @@ def main(cfg: DictConfig) -> None:
         trainer.fit(model=predictor, datamodule=datamodule)
         print("\n------------ TRAINING COMPLETED ------------\n\n")
 
-        print("\n------------ TESTING STARTED ------------")
+    except Exception as e:
+        if not cfg["constants"]["raise_train_error"]:
+            print("\n------------ TRAINING ERROR: ------------\n\n", e)
+        else:
+            raise e
+
+    print("\n------------ TESTING STARTED ------------")
+    try:
         ckpt_path = trainer.checkpoint_callbacks[0].best_model_path
         trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)
         print("\n------------ TESTING COMPLETED ------------\n\n")
 
     except Exception as e:
         if not cfg["constants"]["raise_train_error"]:
-            print("\n------------ TRAINING ERROR: ------------\n\n", e)
+            print("\n------------ TESTING ERROR: ------------\n\n", e)
         else:
-            raise
+            raise e
 
 
 if __name__ == "__main__":

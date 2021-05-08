@@ -20,7 +20,7 @@ from goli.trainer.predictor import PredictorModule
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
-MODEL_FILE = "models_checkpoints/ogb-molpcba/bob-v24.ckpt"
+MODEL_FILE = "models_checkpoints/ogb-molpcba/model.ckpt"
 
 CONFIG_FILE = "expts/config_molPCBA.yaml"
 

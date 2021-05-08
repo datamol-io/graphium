@@ -1,6 +1,6 @@
 constants:
   seed: &seed 42
-  raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  raise_train_error: false   # Whether the code should raise an error if it crashes during training
 
 datamodule:
   module_type: "DGLOGBDataModule"
@@ -31,13 +31,13 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
-    batch_size_train_val: 1800
-    batch_size_test: 1800
+    batch_size_train_val: 2000
+    batch_size_test: 2000
 
   # Data loading
   num_workers: 8
   pin_memory: False
-  persistent_workers: True  # Keep True on Windows if running multiple workers
+  persistent_workers: False  # Keep True on Windows if running multiple workers
 
 
 architecture:
@@ -69,7 +69,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: *hidden_dim
     hidden_dims: *hidden_dim
-    depth: 4
+    depth: 5
     activation: none
     last_activation: none
     dropout: &dropout_gnn 0.2
@@ -107,7 +107,7 @@ predictor:
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
     patience: 20
-    min_lr: 1.e-4
+    min_lr: 2.e-4
   scheduler_kwargs:
     monitor: &monitor averageprecision/val
     mode: &mode max
@@ -185,5 +185,6 @@ trainer:
     max_epochs: 1000
     min_epochs: 100
     gpus: 1
+    accumulate_grad_batches: 1
 
     
