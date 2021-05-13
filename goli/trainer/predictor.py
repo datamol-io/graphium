@@ -234,7 +234,7 @@ class PredictorModule(pl.LightningModule):
 
         # This helps avoid a bug when saving hparams to yaml with different
         # dict or str formats
-        self.hparams = recursive_config_reformating(self.hparams)
+        self._set_hparams(recursive_config_reformating(self.hparams))
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
