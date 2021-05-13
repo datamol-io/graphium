@@ -99,10 +99,10 @@ class FCLayer(nn.Module):
         self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         self.dropout = None
         self.batch_norm = None
-        if dropout:
-            self.dropout = nn.Dropout(p=dropout)
         if batch_norm:
             self.batch_norm = nn.BatchNorm1d(out_dim)
+        if dropout:
+            self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
         self.init_fn = nn.init.xavier_uniform_
 
