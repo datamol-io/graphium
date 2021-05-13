@@ -146,7 +146,7 @@ trainer:
     mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/ZINC_bench_gnn/
-    filename: "bob"
+    filename: "model"
     monitor: *monitor
     mode: *mode
     save_top_k: 1

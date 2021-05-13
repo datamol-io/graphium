@@ -25,6 +25,7 @@ class FeedForwardNN(nn.Module):
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
+        last_dropout: float = 0.0,
         batch_norm: bool = False,
         last_batch_norm: bool = False,
         residual_type: str = "none",
@@ -65,6 +66,9 @@ class FeedForwardNN(nn.Module):
 
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
+
+            last_dropout:
+                The ratio of units to dropout for the last_layer. Must be between 0 and 1
 
             batch_norm:
                 Whether to use batch normalization
@@ -117,6 +121,7 @@ class FeedForwardNN(nn.Module):
         self.activation = get_activation(activation)
         self.last_activation = get_activation(last_activation)
         self.dropout = dropout
+        self.last_dropout = last_dropout
         self.batch_norm = batch_norm
         self.last_batch_norm = last_batch_norm
         self.residual_type = None if residual_type is None else residual_type.lower()
@@ -196,12 +201,14 @@ class FeedForwardNN(nn.Module):
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
         this_batch_norm = self.batch_norm
+        this_dropout = self.dropout
 
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
             if ii == self.depth - 1:
                 this_activation = self.last_activation
                 this_batch_norm = self.last_batch_norm
+                this_dropout = self.last_dropout
 
             # Create the layer
             self.layers.append(
@@ -209,7 +216,7 @@ class FeedForwardNN(nn.Module):
                     in_dim=this_in_dim,
                     out_dim=this_out_dim,
                     activation=this_activation,
-                    dropout=self.dropout,
+                    dropout=this_dropout,
                     batch_norm=this_batch_norm,
                     **self.layer_kwargs,
                 )
@@ -263,6 +270,7 @@ class FeedForwardDGL(FeedForwardNN):
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
+        last_dropout: float = 0.0,
         batch_norm: bool = False,
         last_batch_norm: bool = False,
         residual_type: str = "none",
@@ -309,6 +317,9 @@ class FeedForwardDGL(FeedForwardNN):
 
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
+
+            last_dropout:
+                The ratio of units to dropout for the last layer. Must be between 0 and 1
 
             batch_norm:
                 Whether to use batch normalization
@@ -419,6 +430,7 @@ class FeedForwardDGL(FeedForwardNN):
             name=name,
             layer_type=layer_type,
             dropout=dropout,
+            last_dropout=last_dropout,
             layer_kwargs=layer_kwargs,
         )
 
@@ -452,6 +464,8 @@ class FeedForwardDGL(FeedForwardNN):
         self.virtual_node_layers = nn.ModuleList()
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
+        this_batch_norm = self.batch_norm
+        this_dropout = self.dropout
 
         # Find the appropriate edge dimensions, depending if edges are used,
         # And if the residual is required for the edges
@@ -484,8 +498,8 @@ class FeedForwardDGL(FeedForwardNN):
                     in_dim=this_in_dim,
                     out_dim=this_out_dim,
                     activation=this_activation,
-                    dropout=self.dropout,
-                    batch_norm=self.batch_norm,
+                    dropout=this_dropout,
+                    batch_norm=this_batch_norm,
                     **self.layer_kwargs,
                     **this_edge_kwargs,
                 )
@@ -497,8 +511,8 @@ class FeedForwardDGL(FeedForwardNN):
                     VirtualNode(
                         dim=this_out_dim * self.layers[-1].out_dim_factor,
                         activation=this_activation,
-                        dropout=self.dropout,
-                        batch_norm=self.batch_norm,
+                        dropout=this_dropout,
+                        batch_norm=this_batch_norm,
                         bias=True,
                         vn_type=self.virtual_node,
                         residual=self.residual_type is not None,

@@ -27,9 +27,9 @@ LOSS_DICT = {
 class EpochSummary:
     r"""Container for collecting epoch-wise results"""
 
-    def __init__(self, monitor="loss", monitor_greater: bool = False, metrics_on_progress_bar=[]):
+    def __init__(self, monitor="loss", mode: str = "min", metrics_on_progress_bar=[]):
         self.monitor = monitor
-        self.monitor_greater = monitor_greater
+        self.mode = mode
         self.metrics_on_progress_bar = metrics_on_progress_bar
         self.summaries = {}
         self.best_summaries = {}
@@ -71,9 +71,12 @@ class EpochSummary:
 
         metrics[f"loss/{name}"] = loss
         monitor_name = f"{self.monitor}/{name}"
-        return (self.monitor_greater and (metrics[monitor_name] > self.best_summaries[name].monitored)) or (
-            (not self.monitor_greater) and (metrics[monitor_name] < self.best_summaries[name].monitored)
-        )
+        if self.mode == "max":
+            return metrics[monitor_name] > self.best_summaries[name].monitored
+        elif self.mode == "min":
+            return metrics[monitor_name] < self.best_summaries[name].monitored
+        else:
+            return ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
 
     def get_results(self, name):
         return self.summaries[name]
@@ -224,13 +227,14 @@ class PredictorModule(pl.LightningModule):
         self.scheduler_kwargs.setdefault("strict", True)
 
         monitor = scheduler_kwargs["monitor"].split("/")[0]
+        mode = scheduler_kwargs["mode"]
         self.epoch_summary = EpochSummary(
-            monitor, monitor_greater=False, metrics_on_progress_bar=self.metrics_on_progress_bar
+            monitor, mode=mode, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
 
         # This helps avoid a bug when saving hparams to yaml with different
         # dict or str formats
-        self.hparams = recursive_config_reformating(self.hparams)
+        self._set_hparams(recursive_config_reformating(self.hparams))
 
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
@@ -414,7 +418,7 @@ class PredictorModule(pl.LightningModule):
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
-    def testing_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
+    def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx)
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
@@ -466,14 +470,16 @@ class PredictorModule(pl.LightningModule):
             with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
                 yaml.dump(full_dict, file)
 
-    def testing_epoch_end(self, outputs: List):
+    def test_epoch_end(self, outputs: List):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
+        self.log_dict(metrics_logs)
 
         # Save yaml file with the metrics summaries
         full_dict = {}
         full_dict.update(self.epoch_summary.get_dict_summary())
         tb_path = self.logger.log_dir
+        os.makedirs(tb_path, exist_ok=True)
         with open(f"{tb_path}/metrics.yaml", "w") as file:
             yaml.dump(full_dict, file)
 
