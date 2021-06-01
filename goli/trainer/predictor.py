@@ -315,6 +315,7 @@ class PredictorModule(pl.LightningModule):
         if target_nan_mask is None:
             pass
         elif isinstance(target_nan_mask, (int, float)):
+            targets = targets.clone()
             targets[torch.isnan(targets)] = target_nan_mask
         elif target_nan_mask == "ignore":
             nans = torch.isnan(targets)
