@@ -277,13 +277,12 @@ class MetricWrapper:
             metric_val = []
             for ii in range(len(target)):
                 try:
-                    this_metric = self.metric(preds[ii], target[ii], **self.kwargs)
+                    metric_val.append(self.metric(preds[ii], target[ii], **self.kwargs))
                 except:
-                    this_metric = float("nan") + torch.zeros_like(preds[ii])[..., 0]
-                metric_val.append(this_metric)
-            metric_val = torch.stack(metric_val, dim=-1)
+                    pass
 
             # Average the metric
+            metric_val = torch.stack(metric_val, dim=-1)
             metric_val = torch.nansum(torch.as_tensor(metric_val)) / torch.sum(~torch.isnan(metric_val))
         else:
             metric_val = self.metric(preds, target, **self.kwargs)
