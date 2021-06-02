@@ -1,15 +1,9 @@
 """
-Unit tests for the different layers of goli/dgl/dgl_layers/...
-
-The layers are not thoroughly tested due to the difficulty of testing them
+Unit tests for the metrics and wrappers of goli/trainer/metrics/...
 """
 
-import numpy as np
 import torch
 import unittest as ut
-import dgl
-from copy import deepcopy
-import inspect
 
 from goli.trainer.metrics import (
     MetricWrapper,
@@ -92,7 +86,7 @@ class test_MetricWrapper(ut.TestCase):
 
         for sz in [(100, ), (100, 1), (100, 10)]:
 
-            err_msg = f"sz = {sz}"
+            err_msg = f"Error for `sz = {sz}`"
         
             # Generate prediction and target matrices
             target = torch.rand(sz, dtype=torch.float32)
