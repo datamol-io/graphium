@@ -272,8 +272,8 @@ class MetricWrapper:
             target = target[~target_nans]
             preds = preds[~target_nans]
         elif self.target_nan_mask == "ignore-mean-label":
-            target_list = [target[:, ii][~target_nans[:, ii]] for ii in range(target.shape[-1])]
-            preds_list = [preds[:, ii][~target_nans[:, ii]] for ii in range(preds.shape[-1])]
+            target_list = [target[..., ii][~target_nans[..., ii]] for ii in range(target.shape[-1])]
+            preds_list = [preds[..., ii][~target_nans[..., ii]] for ii in range(preds.shape[-1])]
             target = target_list
             preds = preds_list
         else:
