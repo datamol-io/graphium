@@ -12,12 +12,22 @@ class test_nan_statistics(ut.TestCase):
 
     torch.manual_seed(42)
 
-    dims = [None, (0), (1), (2), (-1), (-2), (-3), (0, 1), (0, 2), ]
+    dims = [
+        None,
+        (0),
+        (1),
+        (2),
+        (-1),
+        (-2),
+        (-3),
+        (0, 1),
+        (0, 2),
+    ]
     # Create tensor
     sz = (10, 6, 7)
-    tensor = torch.randn(sz, dtype=torch.float32)**2 + 3
+    tensor = torch.randn(sz, dtype=torch.float32) ** 2 + 3
     is_nan = torch.rand(sz) > 0.4
-    tensor[is_nan] = float('nan')
+    tensor[is_nan] = float("nan")
 
     def test_nan_mean(self):
 
@@ -40,9 +50,8 @@ class test_nan_statistics(ut.TestCase):
                 numpy_mean = np.nanmean(tensor.numpy(), **numpy_kwargs)
                 np.testing.assert_almost_equal(torch_mean.numpy(), numpy_mean, decimal=6, err_msg=err_msg)
 
-
     def test_nan_std_var(self):
-        
+
         for unbiased in [True, False]:
             for keepdim in [False, True]:
                 for dim in self.dims:
@@ -67,8 +76,6 @@ class test_nan_statistics(ut.TestCase):
                     torch_var = nan_var(tensor, **torch_kwargs)
                     numpy_var = np.nanvar(tensor.numpy(), **numpy_kwargs)
                     np.testing.assert_almost_equal(torch_var.numpy(), numpy_var, decimal=6, err_msg=err_msg)
-
-
 
 
 if __name__ == "__main__":

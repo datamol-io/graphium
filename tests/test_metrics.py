@@ -78,23 +78,20 @@ class test_Metrics(ut.TestCase):
 
 
 class test_MetricWrapper(ut.TestCase):
-    
-
     def test_target_nan_mask(self):
 
         torch.random.manual_seed(42)
 
-        for sz in [(100, ), (100, 1), (100, 10)]:
+        for sz in [(100,), (100, 1), (100, 10)]:
 
             err_msg = f"Error for `sz = {sz}`"
-        
+
             # Generate prediction and target matrices
             target = torch.rand(sz, dtype=torch.float32)
             preds = (0.5 * target) + (0.5 * torch.rand(sz, dtype=torch.float32))
             is_nan = torch.rand(sz) > 0.3
             target = (target > 0.5).to(torch.float32)
-            target[is_nan] = float('nan')
-            
+            target[is_nan] = float("nan")
 
             # Compute score with different ways of ignoring NaNs
             metric = MetricWrapper(metric="mse", target_nan_mask=None)
@@ -104,7 +101,7 @@ class test_MetricWrapper(ut.TestCase):
             # Replace NaNs by 0
             metric = MetricWrapper(metric="mse", target_nan_mask=0)
             score2 = metric(preds, target)
-            
+
             this_target = target.clone()
             this_target[is_nan] = 0
             this_preds = preds.clone()
@@ -113,7 +110,7 @@ class test_MetricWrapper(ut.TestCase):
             # Replace NaNs by 1.5
             metric = MetricWrapper(metric="mse", target_nan_mask=1.5)
             score3 = metric(preds, target)
-            
+
             this_target = target.clone()
             this_target[is_nan] = 1.5
             this_preds = preds.clone()
@@ -122,7 +119,7 @@ class test_MetricWrapper(ut.TestCase):
             # Flatten matrix and ignore NaNs
             metric = MetricWrapper(metric="mse", target_nan_mask="ignore-flatten")
             score4 = metric(preds, target)
-            
+
             this_target = target.clone()[~is_nan]
             this_preds = preds.clone()[~is_nan]
             self.assertAlmostEqual(score4, mean_squared_error(this_preds, this_target), msg=err_msg)
@@ -130,7 +127,7 @@ class test_MetricWrapper(ut.TestCase):
             # Ignore NaNs in each column and average the score
             metric = MetricWrapper(metric="mse", target_nan_mask="ignore-mean-label")
             score5 = metric(preds, target)
-            
+
             this_target = target.clone()
             this_preds = preds.clone()
             this_is_nan = is_nan.clone()
@@ -138,7 +135,7 @@ class test_MetricWrapper(ut.TestCase):
                 this_target = target.unsqueeze(-1)
                 this_preds = preds.unsqueeze(-1)
                 this_is_nan = is_nan.unsqueeze(-1)
-            
+
             this_target = [this_target[:, ii][~this_is_nan[:, ii]] for ii in range(this_target.shape[1])]
             this_preds = [this_preds[:, ii][~this_is_nan[:, ii]] for ii in range(this_preds.shape[1])]
             mse = []

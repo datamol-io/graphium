@@ -257,7 +257,7 @@ class MetricWrapper:
             target = target.unsqueeze(-1)
 
         target_nans = torch.isnan(target)
-        
+
         # Threshold the prediction
         if self.thresholder is not None:
             preds, target = self.thresholder(preds, target)
