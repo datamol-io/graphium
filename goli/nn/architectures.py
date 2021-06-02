@@ -271,6 +271,12 @@ class FeedForwardNN(nn.Module):
         """
 
         h_prev = None
+
+        if skip_output_layers > len(self.layers):
+            raise ValueError(
+                f"The number of layers to skip `skip_output_layers={skip_output_layers}` exceeds the number of layers"
+            )
+
         for ii, layer in enumerate(self.layers):
             if ii < len(self.layers) - skip_output_layers:
                 h = layer.forward(h)

@@ -145,3 +145,5 @@ rever/
 goli/data/ZINC_bench_gnn/
 
 goli/data/cache/
+
+predictions/

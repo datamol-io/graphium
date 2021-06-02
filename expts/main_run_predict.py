@@ -10,7 +10,7 @@ import pandas as pd
 # Current project imports
 import goli
 from goli.config._loader import load_datamodule, load_trainer
-
+from goli.utils.fs import mkdir
 from goli.trainer.predictor import PredictorModule
 
 
@@ -20,6 +20,10 @@ os.chdir(MAIN_DIR)
 
 MODEL_FILE = "models_checkpoints/micro_ZINC/model.ckpt"
 CONFIG_FILE = "expts/config_micro_ZINC.yaml"
+
+
+SKIP_OUTPUT_LAYERS = 1
+EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-skip-output-{SKIP_OUTPUT_LAYERS}.csv"
 
 
 def main(cfg: DictConfig) -> None:
@@ -32,6 +36,7 @@ def main(cfg: DictConfig) -> None:
 
     predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
     predictor.metrics = {}
+    predictor.skip_output_layers = SKIP_OUTPUT_LAYERS
 
     print(predictor.model)
     print(predictor.summarize(mode=4, to_print=False))
@@ -52,8 +57,10 @@ def main(cfg: DictConfig) -> None:
     for ii in range(preds.shape[1]):
         df[f"Predictions-{ii}"] = preds[:, ii]
     df = pd.DataFrame(df)
-
+    mkdir("predictions")
+    df.to_csv(EXPORT_DATAFRAME_PATH)
     print(df)
+
 
 if __name__ == "__main__":
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
