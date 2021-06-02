@@ -5,14 +5,11 @@ import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
 import numpy as np
-
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
-
+import pandas as pd
 
 # Current project imports
 import goli
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
+from goli.config._loader import load_datamodule, load_trainer
 
 from goli.trainer.predictor import PredictorModule
 
@@ -41,14 +38,22 @@ def main(cfg: DictConfig) -> None:
 
     trainer = load_trainer(cfg)
 
-    # Run the model testing
-    # trainer.test(model=predictor, datamodule=datamodule, ckpt_path=MODEL_FILE)
-    
-    predictions = trainer.predict(model=predictor, datamodule=datamodule)
-    predictions = np.concatenate(predictions, axis=0)
+    # Run the model prediction
+    preds = trainer.predict(model=predictor, datamodule=datamodule)
+    preds = np.concatenate(preds, axis=0)
 
-    print(predictions)
+    # Generate output dataframe
+    df = {"SMILES": datamodule.dataset.smiles}
 
+    target = datamodule.dataset.labels
+    for ii in range(target.shape[1]):
+        df[f"target-{ii}"] = target[:, ii]
+
+    for ii in range(preds.shape[1]):
+        df[f"Predictions-{ii}"] = preds[:, ii]
+    df = pd.DataFrame(df)
+
+    print(df)
 
 if __name__ == "__main__":
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
