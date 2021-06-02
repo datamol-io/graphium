@@ -9,6 +9,7 @@ from copy import copy
 from loguru import logger
 
 from rdkit.Chem import AllChem
+from torch.tensor import Tensor
 
 
 def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 600) -> None:
@@ -26,48 +27,6 @@ def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 60
         plt.savefig(f"{full_name}.{this_ext}", dpi=dpi, bbox_inches="tight", pad_inches=0)
 
 
-def to_tensor(
-    *x: Union[np.ndarray, torch.Tensor, pd.DataFrame],
-    device: Union[torch.device, type(None)] = None,
-    dtype: Union[torch.dtype, type(None)] = None,
-) -> torch.Tensor:
-    r"""
-    Convert a numpy array to tensor. The tensor type will be
-    the same as the original array, unless specify otherwise
-    Parameters:
-        x: numpy.ndarray
-            Numpy array to convert to tensor type
-        device: torch.device
-        dtype: torch.dtype
-            Enforces new data type for the output
-    Returns:
-        New torch.Tensor
-    """
-
-    out = []
-    for elem in x:
-        if isinstance(elem, torch.Tensor):
-            pass
-        elif isinstance(elem, np.ndarray):
-            elem = torch.from_numpy(x)
-        elif isinstance(elem, pd.DataFrame):
-            elem = torch.from_numpy(elem.values)
-        elif isinstance(elem, sparse.spmatrix):
-            elem = torch.from_numpy(elem.todense())
-        elif isinstance(elem, torch.Tensor):
-            pass
-        else:
-            elem = torch.tensor(elem)
-
-        elem = elem.to(dtype=dtype, device=device)
-        out.append(elem)
-
-    if len(out) == 1:
-        return out[0]
-    else:
-        return tuple(out)
-
-
 def is_dtype_torch_tensor(dtype: Union[np.dtype, torch.dtype]) -> bool:
     r"""
     Verify if the dtype is a torch dtype
@@ -79,7 +38,7 @@ def is_dtype_torch_tensor(dtype: Union[np.dtype, torch.dtype]) -> bool:
     Returns:
         A boolean saying if the dtype is a torch dtype
     """
-    return isinstance(dtype, torch.dtype) or (dtype == torch.Tensor)
+    return isinstance(dtype, torch.dtype) or (dtype == Tensor)
 
 
 def is_dtype_numpy_array(dtype: Union[np.dtype, torch.dtype]) -> bool:
@@ -155,12 +114,105 @@ def is_device_cuda(device: torch.device, ignore_errors: bool = False) -> bool:
     return is_cuda
 
 
+def nan_mean(input: Tensor, *args, **kwargs) -> Tensor:
+    r"""
+    Return the mean of all elements, while ignoring the NaNs.
+
+    Parameters:
+        
+        input: The input tensor.
+
+        dim (int or tuple(int)): The dimension or dimensions to reduce.
+
+        keepdim (bool): whether the output tensor has dim retained or not.
+
+        dtype (torch.dtype, optional): 
+            The desired data type of returned tensor. 
+            If specified, the input tensor is casted to dtype before the operation is performed. 
+            This is useful for preventing data type overflows. Default: None.
+
+    Returns:
+        output: The resulting mean of the tensor
+    """
+
+    sum = torch.nansum(input, *args, **kwargs)
+    num = torch.sum(~torch.isnan(input), *args, **kwargs)
+    mean = sum / num
+    return mean
+
+
+def nan_var(input: Tensor, unbiased: bool=True, *args, **kwargs) -> Tensor:
+    r"""
+    Return the variace of all elements, while ignoring the NaNs.
+    If unbiased is True, Bessel’s correction will be used. 
+    Otherwise, the sample deviation is calculated, without any correction.
+
+    Parameters:
+        
+        input: The input tensor.
+
+        unbiased: whether to use Bessel’s correction (δN=1\delta N = 1δN=1).
+
+        dim (int or tuple(int)): The dimension or dimensions to reduce.
+
+        keepdim (bool): whether the output tensor has dim retained or not.
+
+        dtype (torch.dtype, optional): 
+            The desired data type of returned tensor. 
+            If specified, the input tensor is casted to dtype before the operation is performed. 
+            This is useful for preventing data type overflows. Default: None.
+
+    Returns:
+        output: The resulting variance of the tensor
+    """
+
+    mean_kwargs = kwargs
+    mean_kwargs.pop("keepdim")
+    mean = nan_mean(input, keepdim=True, *args, **mean_kwargs)
+    dist = (input - mean).abs() ** 2
+    var = nan_mean(dist, *args, **kwargs)
+
+    if unbiased:
+        num = torch.sum(~torch.isnan(input), *args, **kwargs)
+        var = var * num / (num - 1)
+
+    return var
+
+
+def nan_std(input: Tensor, unbiased: bool=True, *args, **kwargs) -> Tensor:
+    r"""
+    Return the standard deviation of all elements, while ignoring the NaNs.
+    If unbiased is True, Bessel’s correction will be used. 
+    Otherwise, the sample deviation is calculated, without any correction.
+
+    Parameters:
+        
+        input: The input tensor.
+
+        unbiased: whether to use Bessel’s correction (δN=1\delta N = 1δN=1).
+
+        dim (int or tuple(int)): The dimension or dimensions to reduce.
+
+        keepdim (bool): whether the output tensor has dim retained or not.
+
+        dtype (torch.dtype, optional): 
+            The desired data type of returned tensor. 
+            If specified, the input tensor is casted to dtype before the operation is performed. 
+            This is useful for preventing data type overflows. Default: None.
+
+    Returns:
+        output: The resulting standard deviation of the tensor
+    """
+
+    return torch.sqrt(nan_var(input=input, unbiased=unbiased, *args, **kwargs))
+
+
 class ModuleListConcat(torch.nn.ModuleList):
     def __init__(self, dim: int = -1):
         super().__init__()
         self.dim = dim
 
-    def forward(self, *args, **kwargs) -> torch.Tensor:
+    def forward(self, *args, **kwargs) -> Tensor:
         h = []
         for module in self:
             h.append(module.forward(*args, **kwargs))
