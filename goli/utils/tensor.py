@@ -119,16 +119,16 @@ def nan_mean(input: Tensor, **kwargs) -> Tensor:
     Return the mean of all elements, while ignoring the NaNs.
 
     Parameters:
-        
+
         input: The input tensor.
 
         dim (int or tuple(int)): The dimension or dimensions to reduce.
 
         keepdim (bool): whether the output tensor has dim retained or not.
 
-        dtype (torch.dtype, optional): 
-            The desired data type of returned tensor. 
-            If specified, the input tensor is casted to dtype before the operation is performed. 
+        dtype (torch.dtype, optional):
+            The desired data type of returned tensor.
+            If specified, the input tensor is casted to dtype before the operation is performed.
             This is useful for preventing data type overflows. Default: None.
 
     Returns:
@@ -141,14 +141,14 @@ def nan_mean(input: Tensor, **kwargs) -> Tensor:
     return mean
 
 
-def nan_var(input: Tensor, unbiased: bool=True, **kwargs) -> Tensor:
+def nan_var(input: Tensor, unbiased: bool = True, **kwargs) -> Tensor:
     r"""
     Return the variace of all elements, while ignoring the NaNs.
-    If unbiased is True, Bessel’s correction will be used. 
+    If unbiased is True, Bessel’s correction will be used.
     Otherwise, the sample deviation is calculated, without any correction.
 
     Parameters:
-        
+
         input: The input tensor.
 
         unbiased: whether to use Bessel’s correction (δN=1\delta N = 1δN=1).
@@ -157,9 +157,9 @@ def nan_var(input: Tensor, unbiased: bool=True, **kwargs) -> Tensor:
 
         keepdim (bool): whether the output tensor has dim retained or not.
 
-        dtype (torch.dtype, optional): 
-            The desired data type of returned tensor. 
-            If specified, the input tensor is casted to dtype before the operation is performed. 
+        dtype (torch.dtype, optional):
+            The desired data type of returned tensor.
+            If specified, the input tensor is casted to dtype before the operation is performed.
             This is useful for preventing data type overflows. Default: None.
 
     Returns:
@@ -180,14 +180,14 @@ def nan_var(input: Tensor, unbiased: bool=True, **kwargs) -> Tensor:
     return var
 
 
-def nan_std(input: Tensor, unbiased: bool=True, **kwargs) -> Tensor:
+def nan_std(input: Tensor, unbiased: bool = True, **kwargs) -> Tensor:
     r"""
     Return the standard deviation of all elements, while ignoring the NaNs.
-    If unbiased is True, Bessel’s correction will be used. 
+    If unbiased is True, Bessel’s correction will be used.
     Otherwise, the sample deviation is calculated, without any correction.
 
     Parameters:
-        
+
         input: The input tensor.
 
         unbiased: whether to use Bessel’s correction (δN=1\delta N = 1δN=1).
@@ -196,9 +196,9 @@ def nan_std(input: Tensor, unbiased: bool=True, **kwargs) -> Tensor:
 
         keepdim (bool): whether the output tensor has dim retained or not.
 
-        dtype (torch.dtype, optional): 
-            The desired data type of returned tensor. 
-            If specified, the input tensor is casted to dtype before the operation is performed. 
+        dtype (torch.dtype, optional):
+            The desired data type of returned tensor.
+            If specified, the input tensor is casted to dtype before the operation is performed.
             This is useful for preventing data type overflows. Default: None.
 
     Returns:
