@@ -23,6 +23,8 @@ from pytorch_lightning.metrics.functional import (
     mean_squared_error,
 )
 
+from goli.utils.tensor import nan_mean
+
 EPS = 1e-5
 
 
@@ -248,8 +250,14 @@ class MetricWrapper:
         Compute the metric, apply the thresholder if provided, and manage the NaNs
         """
 
-        target_nans = torch.isnan(target)
+        if preds.ndim == 1:
+            preds = preds.unsqueeze(-1)
 
+        if target.ndim == 1:
+            target = target.unsqueeze(-1)
+
+        target_nans = torch.isnan(target)
+        
         # Threshold the prediction
         if self.thresholder is not None:
             preds, target = self.thresholder(preds, target)
@@ -282,8 +290,8 @@ class MetricWrapper:
                     pass
 
             # Average the metric
-            metric_val = torch.stack(metric_val, dim=-1)
-            metric_val = torch.nansum(torch.as_tensor(metric_val)) / torch.sum(~torch.isnan(metric_val))
+            metric_val = nan_mean(torch.stack(metric_val))
+
         else:
             metric_val = self.metric(preds, target, **self.kwargs)
         return metric_val
