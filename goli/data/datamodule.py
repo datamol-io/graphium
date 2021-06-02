@@ -319,6 +319,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             df = pd.read_csv(self.df_path)
         else:
             df = self.df
+
         df = self._sub_sample_df(df)
 
         logger.info(f"Prepare dataset with {len(df)} data points.")
