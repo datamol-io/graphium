@@ -122,6 +122,14 @@ class DGLBaseDataModule(pl.LightningDataModule):
             shuffle=False,
         )
 
+    def predict_dataloader(self, **kwargs):
+
+        return self._dataloader(
+            dataset=self.dataset,  # type: ignore
+            batch_size=self.batch_size_test,
+            shuffle=False,
+        )
+
     @property
     def is_prepared(self):
         raise NotImplementedError()

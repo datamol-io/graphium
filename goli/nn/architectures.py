@@ -242,11 +242,40 @@ class FeedForwardNN(nn.Module):
                 `Dout` is the number of output features
 
         """
+
+        return self.forward_skip_output(h=h, skip_output_layers=0)
+
+    def forward_skip_output(self, h: torch.Tensor, skip_output_layers: int) -> torch.Tensor:
+        r"""
+        Apply the neural network on the input features, but skip a given number of
+        output layers.
+
+        Parameters:
+
+            h: `torch.Tensor[..., Din]`:
+                Input feature tensor, before the network.
+                `Din` is the number of input features
+
+            skip_output_layers:
+                Number of layers to skip at the output to generate
+                an intermediate representation, useful when using
+                pretrained models or doing transfer learning.
+                If `0`, then the full forward loop is applied.
+
+        Returns:
+
+            `torch.Tensor[..., Dout]`:
+                Output feature tensor, after the network.
+                `Dout` is the number of output features
+
+        """
+
         h_prev = None
         for ii, layer in enumerate(self.layers):
-            h = layer.forward(h)
-            if ii < len(self.layers) - 1:
-                h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=ii)
+            if ii < len(self.layers) - skip_output_layers:
+                h = layer.forward(h)
+                if ii < len(self.layers) - 1:
+                    h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=ii)
 
         return h
 
@@ -881,6 +910,46 @@ class FullDGLNetwork(nn.Module):
 
         """
 
+        return self.forward_skip_output(g=g, skip_output_layers=0)
+
+    def forward_skip_output(self, g: dgl.DGLGraph, skip_output_layers: int) -> torch.Tensor:
+        r"""
+        Apply the pre-processing neural network, the graph neural network,
+        and the post-processing neural network on the graph features.
+        But some layers of the post-processing will be skipped.
+
+        Parameters:
+
+            g:
+                graph on which the convolution is done.
+                Must contain the following elements:
+
+                - `g.ndata["h"]`: `torch.Tensor[..., N, Din]`.
+                  Input node feature tensor, before the network.
+                  `N` is the number of nodes, `Din` is the input features dimension ``self.pre_nn.in_dim``
+
+                - `g.edata["e"]`: `torch.Tensor[..., N, Ein]` **Optional**.
+                  The edge features to use. It will be ignored if the
+                  model doesn't supporte edge features or if
+                  `self.in_dim_edges==0`.
+
+            skip_output_layers:
+                Number of layers to skip in `self.post_nn` network to generate
+                an intermediate representation, useful when using
+                pretrained models or doing transfer learning.
+                If `0`, then the full forward loop is applied.
+
+        Returns:
+
+            `torch.Tensor[..., M, Dout]` or `torch.Tensor[..., N, Dout]`:
+                Node or graph feature tensor, after the network.
+                `N` is the number of nodes, `M` is the number of graphs,
+                `Dout` is the output dimension ``self.post_nn.out_dim``
+                If the `self.gnn.pooling` is [`None`], then it returns node features and the output dimension is `N`,
+                otherwise it returns graph features and the output dimension is `M`
+
+        """
+
         # Get the node features and positional embedding
         h = g.ndata["feat"]
         if "pos_enc_feats_sign_flip" in g.ndata.keys():
@@ -897,19 +966,25 @@ class FullDGLNetwork(nn.Module):
         if "feat" in g.edata.keys():
             g.edata["e"] = g.edata["feat"]
 
+        # Run the pre-processing network on node features
         if self.pre_nn is not None:
             h = g.ndata["h"]
             h = self.pre_nn.forward(h)
             g.ndata["h"] = h
 
+        # Run the pre-processing network on edge features
         if self.pre_nn_edges is not None:
             e = g.edata["e"]
             e = self.pre_nn_edges.forward(e)
             g.edata["e"] = e
 
+        # Run the graph neural network
         h = self.gnn.forward(g)
+
+        # Run the output network
         if self.post_nn is not None:
-            h = self.post_nn.forward(h)
+            h = self.post_nn.forward_skip_output(h, skip_output_layers=skip_output_layers)
+
         return h
 
     def __repr__(self):
