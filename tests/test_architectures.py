@@ -1,5 +1,5 @@
 """
-Unit tests for the different layers of goli/dgl/dgl_layers/...
+Unit tests for the different architectures of goli/nn/architectures...
 
 The layers are not thoroughly tested due to the difficulty of testing them
 """

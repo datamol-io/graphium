@@ -5,7 +5,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 from typing import List, Union
 from inspect import getfullargspec
-from copy import copy
+from copy import copy, deepcopy
 from loguru import logger
 
 from rdkit.Chem import AllChem
@@ -114,7 +114,7 @@ def is_device_cuda(device: torch.device, ignore_errors: bool = False) -> bool:
     return is_cuda
 
 
-def nan_mean(input: Tensor, *args, **kwargs) -> Tensor:
+def nan_mean(input: Tensor, **kwargs) -> Tensor:
     r"""
     Return the mean of all elements, while ignoring the NaNs.
 
@@ -135,13 +135,13 @@ def nan_mean(input: Tensor, *args, **kwargs) -> Tensor:
         output: The resulting mean of the tensor
     """
 
-    sum = torch.nansum(input, *args, **kwargs)
-    num = torch.sum(~torch.isnan(input), *args, **kwargs)
+    sum = torch.nansum(input, **kwargs)
+    num = torch.sum(~torch.isnan(input), **kwargs)
     mean = sum / num
     return mean
 
 
-def nan_var(input: Tensor, unbiased: bool=True, *args, **kwargs) -> Tensor:
+def nan_var(input: Tensor, unbiased: bool=True, **kwargs) -> Tensor:
     r"""
     Return the variace of all elements, while ignoring the NaNs.
     If unbiased is True, Bessel’s correction will be used. 
@@ -166,20 +166,21 @@ def nan_var(input: Tensor, unbiased: bool=True, *args, **kwargs) -> Tensor:
         output: The resulting variance of the tensor
     """
 
-    mean_kwargs = kwargs
-    mean_kwargs.pop("keepdim")
-    mean = nan_mean(input, keepdim=True, *args, **mean_kwargs)
+    mean_kwargs = deepcopy(kwargs)
+    mean_kwargs.pop("keepdim", None)
+    dim = mean_kwargs.pop("dim", [ii for ii in range(input.ndim)])
+    mean = nan_mean(input, dim=dim, keepdim=True, **mean_kwargs)
     dist = (input - mean).abs() ** 2
-    var = nan_mean(dist, *args, **kwargs)
+    var = nan_mean(dist, **kwargs)
 
     if unbiased:
-        num = torch.sum(~torch.isnan(input), *args, **kwargs)
+        num = torch.sum(~torch.isnan(input), **kwargs)
         var = var * num / (num - 1)
 
     return var
 
 
-def nan_std(input: Tensor, unbiased: bool=True, *args, **kwargs) -> Tensor:
+def nan_std(input: Tensor, unbiased: bool=True, **kwargs) -> Tensor:
     r"""
     Return the standard deviation of all elements, while ignoring the NaNs.
     If unbiased is True, Bessel’s correction will be used. 
@@ -204,7 +205,7 @@ def nan_std(input: Tensor, unbiased: bool=True, *args, **kwargs) -> Tensor:
         output: The resulting standard deviation of the tensor
     """
 
-    return torch.sqrt(nan_var(input=input, unbiased=unbiased, *args, **kwargs))
+    return torch.sqrt(nan_var(input=input, unbiased=unbiased, **kwargs))
 
 
 class ModuleListConcat(torch.nn.ModuleList):
