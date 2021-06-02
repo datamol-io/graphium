@@ -80,7 +80,7 @@ architecture:
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, dir1/dx_abs, dir1/smooth, dir2/dx_abs, dir1/dx_abs/.2]
+      aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
       scalers: [identity, amplification, attenuation]
   
   post_nn:
