@@ -122,7 +122,6 @@ class PredictorModule(pl.LightningModule):
         target_nan_mask: Optional[Union[int, float, str]] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
-        skip_output_layers: int = 0,
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -188,12 +187,6 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar:
                 The metrics names from `metrics` to display also on the progress bar of the training
 
-            skip_output_layers:
-                Number of layers to skip at the output to generate
-                an intermediate representation, useful when using
-                pretrained models or doing transfer learning.
-                If `0`, then the full forward loop is applied.
-
         """
 
         self.save_hyperparameters()
@@ -214,7 +207,6 @@ class PredictorModule(pl.LightningModule):
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs
         self.scheduler_kwargs = scheduler_kwargs
-        self.skip_output_layers = skip_output_layers
 
         # Set the default value for the optimizer
         self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
@@ -272,11 +264,7 @@ class PredictorModule(pl.LightningModule):
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         """
-
-        if self.skip_output_layers > 0:
-            out = self.model.forward_skip_output(inputs["features"], skip_output_layers=self.skip_output_layers)
-        else:
-            out = self.model.forward(inputs["features"])
+        out = self.model.forward(inputs["features"])
         return out
 
     def configure_optimizers(self):

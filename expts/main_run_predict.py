@@ -22,8 +22,8 @@ MODEL_FILE = "models_checkpoints/micro_ZINC/model.ckpt"
 CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-SKIP_OUTPUT_LAYERS = 1
-EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-skip-output-{SKIP_OUTPUT_LAYERS}.csv"
+NUM_LAYERS_TO_DROP = 1
+EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-drop-output-{NUM_LAYERS_TO_DROP}.csv"
 
 
 def main(cfg: DictConfig) -> None:
@@ -35,8 +35,7 @@ def main(cfg: DictConfig) -> None:
     print("\ndatamodule:\n", datamodule, "\n")
 
     predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
-    predictor.metrics = {}
-    predictor.skip_output_layers = SKIP_OUTPUT_LAYERS
+    predictor.model.drop_post_nn_layers(num_layers_to_drop=NUM_LAYERS_TO_DROP)
 
     print(predictor.model)
     print(predictor.summarize(mode=4, to_print=False))

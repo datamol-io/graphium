@@ -365,6 +365,8 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
         return h, h_prev
 
+    def _bool_apply_skip_step(self, step_idx: int):
+        return super()._bool_apply_skip_step(step_idx) and step_idx < len(self.residual_list)
 
 class ResidualConnectionConcat(ResidualConnectionBase):
     def __init__(self, skip_steps: int = 1):
