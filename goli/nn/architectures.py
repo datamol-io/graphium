@@ -1,10 +1,6 @@
 from torch import nn
-import torch.nn.functional as F
 import torch
-import math
-from copy import deepcopy
 import dgl
-from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
 from typing import List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
@@ -12,7 +8,7 @@ from goli.nn.base_layers import FCLayer, get_activation
 from goli.nn.dgl_layers import BaseDGLLayer
 from goli.nn.residual_connections import ResidualConnectionBase
 from goli.nn.dgl_layers.pooling import parse_pooling_layer, VirtualNode
-from goli.utils.spaces import FC_LAYERS_DICT, DGL_LAYERS_DICT, LAYERS_DICT, RESIDUALS_DICT
+from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
 
 
 class FeedForwardNN(nn.Module):
@@ -242,46 +238,11 @@ class FeedForwardNN(nn.Module):
                 `Dout` is the number of output features
 
         """
-
-        return self.forward_skip_output(h=h, skip_output_layers=0)
-
-    def forward_skip_output(self, h: torch.Tensor, skip_output_layers: int) -> torch.Tensor:
-        r"""
-        Apply the neural network on the input features, but skip a given number of
-        output layers.
-
-        Parameters:
-
-            h: `torch.Tensor[..., Din]`:
-                Input feature tensor, before the network.
-                `Din` is the number of input features
-
-            skip_output_layers:
-                Number of layers to skip at the output to generate
-                an intermediate representation, useful when using
-                pretrained models or doing transfer learning.
-                If `0`, then the full forward loop is applied.
-
-        Returns:
-
-            `torch.Tensor[..., Dout]`:
-                Output feature tensor, after the network.
-                `Dout` is the number of output features
-
-        """
-
         h_prev = None
-
-        if skip_output_layers > len(self.layers):
-            raise ValueError(
-                f"The number of layers to skip `skip_output_layers={skip_output_layers}` exceeds the number of layers"
-            )
-
         for ii, layer in enumerate(self.layers):
-            if ii < len(self.layers) - skip_output_layers:
-                h = layer.forward(h)
-                if ii < len(self.layers) - 1:
-                    h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=ii)
+            h = layer.forward(h)
+            if ii < len(self.layers) - 1:
+                h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=ii)
 
         return h
 
@@ -885,6 +846,36 @@ class FullDGLNetwork(nn.Module):
                     + 'Provided" {self.gnn.out_dim} and {self.post_nn.in_dim}'
                 )
 
+    def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
+        r"""
+        Remove the last layers of the model. Useful for Transfer Learning.
+
+        Parameters:
+            num_layers_to_drop: The number of layers to drop from the `self.post_nn` network.
+
+        """
+
+        assert num_layers_to_drop >= 0
+        assert num_layers_to_drop <= len(self.post_nn.layers)
+
+        if num_layers_to_drop > 0:
+            self.post_nn.layers = self.post_nn.layers[:-num_layers_to_drop]
+
+    def extend_post_nn_layers(self, layers: nn.ModuleList):
+        r"""
+        Add layers at the end of the model. Useful for Transfer Learning.
+
+        Parameters:
+            layers: A ModuleList of all the layers to extend
+
+        """
+
+        assert isinstance(layers, nn.ModuleList)
+        if len(self.post_nn.layers) > 0:
+            assert layers[0].in_dim == self.post_nn.layers.out_dim[-1]
+
+        self.post_nn.extend(layers)
+
     def forward(self, g: dgl.DGLGraph) -> torch.Tensor:
         r"""
         Apply the pre-processing neural network, the graph neural network,
@@ -904,46 +895,6 @@ class FullDGLNetwork(nn.Module):
                   The edge features to use. It will be ignored if the
                   model doesn't supporte edge features or if
                   `self.in_dim_edges==0`.
-
-        Returns:
-
-            `torch.Tensor[..., M, Dout]` or `torch.Tensor[..., N, Dout]`:
-                Node or graph feature tensor, after the network.
-                `N` is the number of nodes, `M` is the number of graphs,
-                `Dout` is the output dimension ``self.post_nn.out_dim``
-                If the `self.gnn.pooling` is [`None`], then it returns node features and the output dimension is `N`,
-                otherwise it returns graph features and the output dimension is `M`
-
-        """
-
-        return self.forward_skip_output(g=g, skip_output_layers=0)
-
-    def forward_skip_output(self, g: dgl.DGLGraph, skip_output_layers: int) -> torch.Tensor:
-        r"""
-        Apply the pre-processing neural network, the graph neural network,
-        and the post-processing neural network on the graph features.
-        But some layers of the post-processing will be skipped.
-
-        Parameters:
-
-            g:
-                graph on which the convolution is done.
-                Must contain the following elements:
-
-                - `g.ndata["h"]`: `torch.Tensor[..., N, Din]`.
-                  Input node feature tensor, before the network.
-                  `N` is the number of nodes, `Din` is the input features dimension ``self.pre_nn.in_dim``
-
-                - `g.edata["e"]`: `torch.Tensor[..., N, Ein]` **Optional**.
-                  The edge features to use. It will be ignored if the
-                  model doesn't supporte edge features or if
-                  `self.in_dim_edges==0`.
-
-            skip_output_layers:
-                Number of layers to skip in `self.post_nn` network to generate
-                an intermediate representation, useful when using
-                pretrained models or doing transfer learning.
-                If `0`, then the full forward loop is applied.
 
         Returns:
 
@@ -989,7 +940,7 @@ class FullDGLNetwork(nn.Module):
 
         # Run the output network
         if self.post_nn is not None:
-            h = self.post_nn.forward_skip_output(h, skip_output_layers=skip_output_layers)
+            h = self.post_nn.forward(h)
 
         return h
 
