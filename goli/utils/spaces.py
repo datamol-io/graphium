@@ -48,4 +48,3 @@ RESIDUALS_DICT = {
     "concat": ResidualConnectionConcat,
     "densenet": ResidualConnectionDenseNet,
 }
-
