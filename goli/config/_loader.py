@@ -110,7 +110,7 @@ def load_predictor(config, model_class, model_kwargs, metrics):
     return predictor
 
 
-def load_trainer(config, metrics):
+def load_trainer(config):
     cfg_trainer = deepcopy(config["trainer"])
 
     # Set the number of gpus to 0 if no GPU is available

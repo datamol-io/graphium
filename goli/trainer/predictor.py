@@ -14,6 +14,7 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.trainer.model_summary import ModelSummaryExtended
 from goli.config.config_convert import recursive_config_reformating
+from goli.utils.tensor import nan_mean, nan_std
 
 LOSS_DICT = {
     "mse": torch.nn.MSELoss(),
@@ -315,6 +316,7 @@ class PredictorModule(pl.LightningModule):
         if target_nan_mask is None:
             pass
         elif isinstance(target_nan_mask, (int, float)):
+            targets = targets.clone()
             targets[torch.isnan(targets)] = target_nan_mask
         elif target_nan_mask == "ignore":
             nans = torch.isnan(targets)
@@ -374,10 +376,10 @@ class PredictorModule(pl.LightningModule):
 
         # Compute the metrics always used in regression tasks
         metric_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
-        metric_logs[f"mean_pred/{step_name}"] = torch.mean(preds)
-        metric_logs[f"std_pred/{step_name}"] = torch.std(preds)
-        metric_logs[f"mean_target/{step_name}"] = torch.mean(targets)
-        metric_logs[f"std_target/{step_name}"] = torch.std(targets)
+        metric_logs[f"mean_pred/{step_name}"] = nan_mean(preds)
+        metric_logs[f"std_pred/{step_name}"] = nan_std(preds)
+        metric_logs[f"mean_target/{step_name}"] = nan_mean(targets)
+        metric_logs[f"std_target/{step_name}"] = nan_std(targets)
 
         # Compute the additional metrics
         # TODO: NaN mask `target_nan_mask` not implemented here
