@@ -9,7 +9,7 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 
 from goli.trainer.metrics import MetricWrapper
-from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork
+from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FeedForwardNN
 from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
 from goli.trainer.predictor import PredictorModule
 
@@ -126,16 +126,23 @@ def load_trainer(config):
         )
         gpus = 0
 
-    early_stopping = EarlyStopping(**cfg_trainer["early_stopping"])
-    checkpoint_callback = ModelCheckpoint(**cfg_trainer["model_checkpoint"])
+    trainer_kwargs = {}
+    callbacks = []
+    if "early_stopping" in cfg_trainer.keys():
+        callbacks.append(EarlyStopping(**cfg_trainer["early_stopping"]))
+    
+    if "model_checkpoint" in cfg_trainer.keys():
+        callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
-    tb_logger = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
+    if "logger" in cfg_trainer.keys():
+        trainer_kwargs["logger"] = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
+    
+    trainer_kwargs["callbacks"] = callbacks
 
     trainer = Trainer(
-        logger=tb_logger,
-        callbacks=[checkpoint_callback, early_stopping],
         terminate_on_nan=True,
         **cfg_trainer["trainer"],
+        **trainer_kwargs,
         gpus=gpus,
     )
 
