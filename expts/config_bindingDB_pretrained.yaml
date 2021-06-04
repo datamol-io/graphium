@@ -1,0 +1,57 @@
+constants:
+  seed: &seed 42
+  raise_train_error: true   # Whether the code should raise an error if it crashes during training
+
+datamodule:
+  module_type: "DGLFromSmilesDataModule"
+  args:
+    df_path: goli/data/BindingDB/BindingDB_All.tsv
+    cache_data_path: goli/data/cache/BindingDB/full.cache
+    label_cols: ['IC50 (nM)']
+    smiles_col: Ligand SMILES
+
+    # Weights
+    weights_type: null
+
+    # Featurization
+    featurization_n_jobs: 0
+    featurization_progress: True
+    featurization:
+      atom_property_list_onehot: [atomic-number, valence]
+      atom_property_list_float: [mass, electronegativity, in-ring, hybridization, chirality, aromatic, degree, formal-charge, single-bond, double-bond, radical-electron, vdw-radius, covalent-radius, metal]
+      edge_property_list: [bond-type-onehot, bond-type-float, stereo, in-ring, conjugated, estimated-bond-length]
+      add_self_loop: False
+      explicit_H: False
+      use_bonds_weights: False
+      pos_encoding_as_features: &pos_enc
+        pos_type: laplacian_eigvec
+        num_pos: 3
+        normalization: "none"
+        disconnected_comp: True
+      pos_encoding_as_directions: *pos_enc
+
+    # Train, val, test parameters
+    split_val: 0.2
+    split_test: 0.2
+    split_seed: *seed
+    splits_path: null
+    batch_size_train_val: 1024
+    batch_size_test: 1024
+
+    # Data loading
+    num_workers: 6
+    pin_memory: False
+    persistent_workers: False  # Keep True on Windows if running multiple workers
+
+
+  # Data loading
+  num_workers: 6
+  pin_memory: False
+  persistent_workers: True  # Keep True on Windows if running multiple workers
+
+
+trainer:
+  trainer:
+    gpus: 1
+
+    
