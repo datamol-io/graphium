@@ -137,3 +137,133 @@ def normalize_matrix(matrix, degree_vector=None, normalization: str = None):
         )
 
     return matrix
+
+def compute_centroid_effective_resistances(
+    adj: Union[np.ndarray, spmatrix],
+    num_pos: int,
+    disconnected_comp: bool = True,
+    normalization: str = "none",
+) -> Tuple[np.ndarray, np.ndarray]:
+
+    # Sparsify the adjacency patrix
+    if issparse(adj):
+        adj = adj.astype(np.float64)
+    else:
+        adj = csr_matrix(adj, dtype=np.float64)
+
+    matrix_inv = get_graph_props(adj, shift_to_zero_diag=True)
+
+    if disconnected_comp:
+        # Get the list of connected components
+        components = list(nx.connected_components(nx.from_scipy_sparse_matrix(adj)))
+        electric_poetntial_tile = np.zeros((matrix_inv.shape[0], num_pos), dtype=np.float64)
+        # eigvecs = np.zeros_like(eigvals_tile)
+
+        # Compute the eigenvectors for each connected component, and stack them together
+        for component in components:
+            comp = list(component)
+            this_L = matrix_inv[comp][:, comp]
+            centroid_idx = np.argmax(np.sum(this_L, axis=1))
+            electric_potential = this_L[centroid_idx, :]
+            electric_potential = np.transpose(np.asarray(electric_potential.todense()))
+            # eigvecs[comp, :] = this_eigvecs
+            electric_poetntial_tile[comp, :] = electric_potential
+    else:
+        centroid_idx = np.argmax(np.sum(matrix_inv, axis=1))
+        electric_poetntial_tile = matrix_inv[centroid_idx, :]
+
+
+    return centroid_idx, electric_poetntial_tile
+
+
+def compute_centroid_effective_resistancesv1(
+    adj: Union[np.ndarray, spmatrix],
+    num_pos: int,
+    disconnected_comp: bool = True,
+    normalization: str = "none",
+) -> Tuple[np.ndarray, np.ndarray]:
+
+    # Sparsify the adjacency patrix
+    if issparse(adj):
+        adj = adj.astype(np.float64)
+    else:
+        adj = csr_matrix(adj, dtype=np.float64)
+
+    matrix_inv = get_graph_props(adj,normalize_L=None,shift_to_zero_diag=False)
+
+    if disconnected_comp:
+        # Get the list of connected components
+        components = list(nx.connected_components(nx.from_scipy_sparse_matrix(adj)))
+        electric_poetntial_tile = np.zeros((matrix_inv.shape[0], num_pos), dtype=np.float64)
+        # eigvecs = np.zeros_like(eigvals_tile)
+
+        # Compute the eigenvectors for each connected component, and stack them together
+        for component in components:
+            comp = list(component)
+            this_L = matrix_inv[comp][:, comp]
+            eigval, eigvec = np.linalg.eig(this_L.todense())
+            D_L_inv = np.diag(eigval)
+            D_L_inv_sqrt = np.sqrt(abs(D_L_inv))
+            Y = np.matmul(np.matmul(eigvec, D_L_inv_sqrt), eigvec.T)
+            y_norm = list(np.linalg.norm(Y, ord=2, axis=1))
+            min_val = np.min(y_norm)
+            centroid_idx = [i for i, x in enumerate(y_norm) if x == min_val]
+            effective_resistance = []
+            for i in range(0, Y.shape[0]):
+                eff = np.linalg.norm(Y[i, :] - Y[centroid_idx, :])
+                effective_resistance.append(eff)
+            # electric_potential = this_L[centroid_idx, :]
+            # electric_potential = np.transpose(np.asarray(electric_potential.todense()))
+            # eigvecs[comp, :] = this_eigvecs
+            electric_poetntial_tile[comp, :] = np.asarray(effective_resistance)[:,np.newaxis]
+    else:
+        centroid_idx = np.argmax(np.sum(matrix_inv, axis=1))
+        electric_poetntial_tile = matrix_inv[centroid_idx, :]
+
+
+    return centroid_idx, electric_poetntial_tile
+
+
+
+
+def get_graph_props(A, normalize_L=None, shift_to_zero_diag=False):
+
+
+    D = np.array(np.sum(A, axis=1)).flatten()
+    D_mat = diags(D)
+    L = -A + D_mat
+    L = np.asarray(L.todense())
+
+    # ran = range(A.shape[0])
+    # D = np.zeros_like(A)
+    # D[ran, ran] = np.abs(np.sum(A, axis=1) - A[ran, ran])
+    # L = D - A
+
+    if (normalize_L is None) or (normalize_L=='none') or (normalize_L == False):
+        pass
+    elif (normalize_L == 'inv'):
+        Dinv = np.linalg.inv(D)
+        L = np.matmul(Dinv, L)  # Normalized laplacian
+    elif (normalize_L == 'sym'):
+        Dinv = np.sqrt(np.linalg.inv(D))
+        L = np.matmul(np.matmul(Dinv, L), Dinv)
+    elif (normalize_L == 'abs'):
+        L = np.abs(L)
+    else:
+        raise ValueError('unsupported normalization option')
+
+    eigval, eigvec = np.linalg.eig(L)
+    eigval = np.real(eigval)
+    eigidx = np.argsort(eigval)[::-1]
+    eigval = eigval[eigidx]
+    eigvec = eigvec[:, eigidx]
+
+
+    L_inv = np.linalg.pinv(L)
+
+    if shift_to_zero_diag:
+        L_inv_diag = L_inv[np.eye(L.shape[0])>0]
+        L_inv = (L_inv - L_inv_diag[:, np.newaxis])
+
+#     return D, L, L_inv, eigval, eigvec
+    return csr_matrix(L_inv, dtype=np.float64)

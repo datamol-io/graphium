@@ -4,6 +4,8 @@ from os.path import dirname, abspath
 import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
+# from ogb.lsc import PCQM4MDataset
+
 
 
 # Current project imports
@@ -13,8 +15,9 @@ from goli.config._loader import load_datamodule, load_metrics, load_architecture
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
-CONFIG_FILE = "expts/config_molPCBA.yaml"
+# CONFIG_FILE = "expts/config_molPCBA.yaml"
 # CONFIG_FILE = "expts/config_molHIV.yaml"
+CONFIG_FILE = "expts/config_molPCQM4M.yaml"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 # CONFIG_FILE = "expts/config_ZINC_bench_gnn.yaml"
 os.chdir(MAIN_DIR)
@@ -22,6 +25,7 @@ os.chdir(MAIN_DIR)
 
 def main(cfg: DictConfig) -> None:
     cfg = deepcopy(cfg)
+    # dataset = PCQM4MDataset(root=ROOT, only_smiles=True)
 
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)

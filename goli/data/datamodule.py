@@ -5,6 +5,9 @@ import functools
 import importlib.resources
 import zipfile
 
+import pathlib
+from pathlib import Path
+
 from loguru import logger
 import fsspec
 import omegaconf
@@ -745,7 +748,10 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         """Download, extract and load an OGB dataset."""
 
         base_dir = fs.get_cache_dir("ogb")
-        dataset_dir = base_dir / metadata["download_name"]
+        if metadata['download_name'] == "pcqm4m":
+            dataset_dir = base_dir / (metadata["download_name"]+"_kddcup2021")
+        else:
+            dataset_dir = base_dir / metadata["download_name"]
 
         if not dataset_dir.exists():
 
@@ -762,28 +768,53 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             zf.extractall(base_dir)
 
         # Load CSV file
-        df_path = dataset_dir / "mapping" / "mol.csv.gz"
+        if metadata['download_name']== "pcqm4m":
+            df_path = dataset_dir / "raw" / "data.csv.gz"
+        else:
+            df_path = dataset_dir / "mapping" / "mol.csv.gz"
         logger.info(f"Loading {df_path} in memory.")
         df = pd.read_csv(df_path)
 
         # Load split from the OGB dataset and save them in a single CSV file
-        split_name = metadata["split"]
-        train_split = pd.read_csv(dataset_dir / "split" / split_name / "train.csv.gz", header=None)  # type: ignore
-        val_split = pd.read_csv(dataset_dir / "split" / split_name / "valid.csv.gz", header=None)  # type: ignore
-        test_split = pd.read_csv(dataset_dir / "split" / split_name / "test.csv.gz", header=None)  # type: ignore
+        if metadata['download_name'] == "pcqm4m":
+            split_name = metadata["split"]
+            split_dict = torch.load(dataset_dir / "split_dict.pt")
+            train_split = pd.DataFrame(split_dict['train'])
+            val_split = pd.DataFrame(split_dict['valid'])
+            test_split = pd.DataFrame(split_dict['test'])
+            splits = pd.concat([train_split, val_split, test_split], axis=1)  # type: ignore
+            splits.columns = ["train", "val", "test"]
 
-        splits = pd.concat([train_split, val_split, test_split], axis=1)  # type: ignore
-        splits.columns = ["train", "val", "test"]
+            splits_path = dataset_dir / "split"
+            if not splits_path.exists():
+                os.makedirs(splits_path)
+                splits_path = dataset_dir / f"{split_name}.csv.gz"
+            else:
+                splits_path = splits_path / f"{split_name}.csv.gz"
+            logger.info(f"Saving splits to {splits_path}")
+            splits.to_csv(splits_path, index=None)
+        else:
+            split_name = metadata["split"]
+            train_split = pd.read_csv(dataset_dir / "split" / split_name / "train.csv.gz", header=None)  # type: ignore
+            val_split = pd.read_csv(dataset_dir / "split" / split_name / "valid.csv.gz", header=None)  # type: ignore
+            test_split = pd.read_csv(dataset_dir / "split" / split_name / "test.csv.gz", header=None)  # type: ignore
 
-        splits_path = dataset_dir / "split" / f"{split_name}.csv.gz"
-        logger.info(f"Saving splits to {splits_path}")
-        splits.to_csv(splits_path, index=None)
+            splits = pd.concat([train_split, val_split, test_split], axis=1)  # type: ignore
+            splits.columns = ["train", "val", "test"]
+
+            splits_path = dataset_dir / "split" / f"{split_name}.csv.gz"
+            logger.info(f"Saving splits to {splits_path}")
+            splits.to_csv(splits_path, index=None)
 
         # Get column names: OGB columns are predictable
-        idx_col = df.columns[-1]
-        smiles_col = df.columns[-2]
-        label_cols = df.columns[:-2].to_list()
-
+        if metadata['download_name'] == "pcqm4m":
+            idx_col = df.columns[0]
+            smiles_col = df.columns[-2]
+            label_cols = df.columns[-1]
+        else:
+            idx_col = df.columns[-1]
+            smiles_col = df.columns[-2]
+            label_cols = df.columns[:-2].to_list()
         return df, idx_col, smiles_col, label_cols, splits_path
 
     def _get_dataset_metadata(self, dataset_name: str):
