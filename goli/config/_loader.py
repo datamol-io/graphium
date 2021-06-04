@@ -130,13 +130,13 @@ def load_trainer(config):
     callbacks = []
     if "early_stopping" in cfg_trainer.keys():
         callbacks.append(EarlyStopping(**cfg_trainer["early_stopping"]))
-    
+
     if "model_checkpoint" in cfg_trainer.keys():
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     if "logger" in cfg_trainer.keys():
         trainer_kwargs["logger"] = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
-    
+
     trainer_kwargs["callbacks"] = callbacks
 
     trainer = Trainer(

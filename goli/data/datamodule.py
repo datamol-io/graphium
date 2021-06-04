@@ -23,6 +23,7 @@ from goli.utils import fs
 from goli.features import mol_to_dglgraph
 from goli.features import mol_to_dglgraph_signature
 from goli.data.collate import goli_collate_fn
+from goli.utils.arg_checker import check_arg_iterator
 
 
 import torch
@@ -150,6 +151,18 @@ class DGLBaseDataModule(pl.LightningDataModule):
         raise NotImplementedError()
 
     # Private methods
+
+    @staticmethod
+    def _read_csv(path, **kwargs):
+        if str(path).endswith(".csv"):
+            sep = ","
+        elif str(path).endswith(".tsv"):
+            sep = "\t"
+        else:
+            raise ValueError(f"unsupported file `{path}`")
+        kwargs.setdefault("sep", sep)
+        df = pd.read_csv(path, **kwargs)
+        return df
 
     def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool):
         """Get a dataloader for a given dataset"""
@@ -314,9 +327,18 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if self._load_from_cache():
             return True
 
+        # Only load the useful columns, as some dataset can be very large
+        # when loading all columns
+        usecols = (
+            check_arg_iterator(self.smiles_col, enforce_type=list)
+            + check_arg_iterator(self.label_cols, enforce_type=list)
+            + check_arg_iterator(self.idx_col, enforce_type=list)
+            + check_arg_iterator(self.weights_col, enforce_type=list)
+        )
+
         # Load the dataframe
         if self.df is None:
-            df = pd.read_csv(self.df_path)
+            df = self._read_csv(self.df_path, usecols=usecols)
         else:
             df = self.df
 
@@ -326,7 +348,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         # Extract smiles and labels
         smiles, labels, indices, weights, sample_idx = self._extract_smiles_labels(
-            df, self.smiles_col, self.label_cols, self.idx_col
+            df,
+            smiles_col=self.smiles_col,
+            label_cols=self.label_cols,
+            idx_col=self.idx_col,
+            weights_col=self.weights_col,
+            weights_type=self.weights_type,
         )
 
         # Precompute the features
@@ -424,7 +451,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
     def get_first_graph(self):
         """Low memory footprint method to get the first datapoint DGL graph."""
         if self.df is None:
-            df = pd.read_csv(self.df_path, nrows=1)
+            df = self._read_csv(self.df_path, nrows=1)
         else:
             df = self.df.iloc[0:1, :]
 
@@ -607,7 +634,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = pd.read_csv(splits_path)
+                splits = self._read_csv(splits_path)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -639,7 +666,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         Returns the number of elements of the current DataModule
         """
         if self.df is None:
-            df = pd.read_csv(self.df_path)
+            df = self._read_csv(self.df_path, usecols=[self.smiles_col])
         else:
             df = self.df
 

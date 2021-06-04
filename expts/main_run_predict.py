@@ -20,14 +20,14 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
 MODEL_FILE = "models_checkpoints/ogb-molpcba/model-v2.ckpt"
-CONFIG_FILE = "expts/config_moltox21_pretrained.yaml"
+CONFIG_FILE = "expts/config_bindingDB_pretrained.yaml"
 
 # MODEL_FILE = "models_checkpoints/micro_ZINC/model.ckpt"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-NUM_LAYERS_TO_DROP = 2
-EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-drop-output-moltox21-{NUM_LAYERS_TO_DROP}.csv"
+NUM_LAYERS_TO_DROP = 3
+EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-drop-output-bindingDB-{NUM_LAYERS_TO_DROP}.csv"
 
 
 def main(cfg: DictConfig) -> None:
