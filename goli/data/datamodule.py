@@ -362,6 +362,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # - or compute the features on-the-fly during `next(iter(dataloader))`
         # For now we compute in advance and hold everything in memory.
         featurization_args = self.featurization or {}
+        featurization_args.setdefault("on_error", "ignore")
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
         features = dm.utils.parallelized(
             transform_smiles,
@@ -369,6 +370,27 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             progress=self.featurization_progress,
             n_jobs=self.featurization_n_jobs,
         )
+
+        # Warn about None molecules
+        is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
+        if len(is_none) > 0:
+            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in is_none]
+            msg = "\n".join(mols_to_msg)
+            logger.warning(
+                (f"{len(is_none)} molecules will be removed since they failed featurization:\n" + msg)
+            )
+
+        # Remove None molecules
+        df.drop(df.index[is_none], axis=0)
+        features = [feat for idx, feat in enumerate(features) if not (idx in is_none)]
+        sample_idx = np.delete(sample_idx, is_none, axis=0)
+        smiles = np.delete(smiles, is_none, axis=0)
+        if labels is not None:
+            labels = np.delete(labels, is_none, axis=0)
+        if weights is not None:
+            weights = np.delete(weights, is_none, axis=0)
+        if indices is not None:
+            indices = np.delete(indices, is_none, axis=0)
 
         # Get splits indices
         self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
@@ -546,7 +568,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         idx_col: str = None,
         weights_col: str = None,
         weights_type: str = None,
-    ):
+    ) -> Tuple[
+        np.ndarray, 
+        np.ndarray, 
+        Union[type(None), np.ndarray], 
+        Union[type(None), np.ndarray], 
+        np.ndarray
+        ]:
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
         """
@@ -565,14 +593,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if label_cols is None:
             label_cols = df.columns.drop(smiles_col)
 
-        smiles = df[smiles_col].to_list()
-        labels = df[label_cols].values
+        smiles = df[smiles_col].values
+        labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
+        labels = np.stack(labels, axis=1)
 
         indices = None
         if idx_col is not None:
-            indices = df[idx_col].to_list()
+            indices = df[idx_col].values
 
-        sample_idx = df.index
+        sample_idx = df.index.values
 
         # Extract the weights
         weights = None

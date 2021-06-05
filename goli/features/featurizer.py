@@ -2,6 +2,7 @@ from typing import Union, List, Callable, Dict, Tuple, Any
 
 import inspect
 import warnings
+from loguru import logger
 
 import numpy as np
 from scipy.sparse import csr_matrix
@@ -306,7 +307,7 @@ def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Union[Chem.rdchem.Conforme
 
     if val == -1:
         conf = None
-        warnings.warn("Couldn't compute conformer for molecule `{}`".format(Chem.MolToSmiles(mol)))
+        logger.warn("Couldn't compute conformer for molecule `{}`".format(Chem.MolToSmiles(mol)))
     else:
         conf = mol.GetConformer(0)
 
@@ -568,6 +569,7 @@ def mol_to_dglgraph(
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: torch.dtype = torch.float32,
+    on_error: str = "warn",
 ) -> dgl.DGLGraph:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -606,6 +608,13 @@ def mol_to_dglgraph(
         dtype:
             The torch data type used to build the graph
 
+        on_error:
+            What to do when the featurization fails.
+
+            - "raise": Raise an error
+            - "warn": Raise a warning and return None
+            - "ignore": Ignore the error and return None
+
     Returns:
 
         graph:
@@ -614,25 +623,50 @@ def mol_to_dglgraph(
             `graph.edata['e']` corresponding to the concatenated edge data from `edge_property_list`
 
     """
-    if isinstance(mol, str):
-        mol = dm.to_mol(mol)
-    if explicit_H:
-        mol = Chem.AddHs(mol)
-    else:
-        mol = Chem.RemoveHs(mol)
 
-    # Get the adjacency, node features and edge features
-    adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = mol_to_adj_and_features(
-        mol=mol,
-        atom_property_list_onehot=atom_property_list_onehot,
-        atom_property_list_float=atom_property_list_float,
-        edge_property_list=edge_property_list,
-        add_self_loop=add_self_loop,
-        explicit_H=explicit_H,
-        use_bonds_weights=use_bonds_weights,
-        pos_encoding_as_features=pos_encoding_as_features,
-        pos_encoding_as_directions=pos_encoding_as_directions,
-    )
+    input_mol = mol
+
+    try:
+
+        if isinstance(mol, str):
+            mol = dm.to_mol(mol)
+        if explicit_H:
+            mol = Chem.AddHs(mol)
+        else:
+            mol = Chem.RemoveHs(mol)
+
+        # Get the adjacency, node features and edge features
+        (
+            adj,
+            ndata,
+            edata,
+            pos_enc_feats_sign_flip,
+            pos_enc_feats_no_flip,
+            pos_enc_dir,
+        ) = mol_to_adj_and_features(
+            mol=mol,
+            atom_property_list_onehot=atom_property_list_onehot,
+            atom_property_list_float=atom_property_list_float,
+            edge_property_list=edge_property_list,
+            add_self_loop=add_self_loop,
+            explicit_H=explicit_H,
+            use_bonds_weights=use_bonds_weights,
+            pos_encoding_as_features=pos_encoding_as_features,
+            pos_encoding_as_directions=pos_encoding_as_directions,
+        )
+    except Exception as e:
+        if on_error.lower() == "raise":
+            raise e
+        elif on_error.lower() == "warn":
+            smiles = input_mol
+            if isinstance(smiles, Chem.rdchem.Mol):
+                smiles = Chem.MolToSmiles(input_mol)
+
+            msg = str(e) + "\nIgnoring following molecule:" + smiles
+            logger.warning(msg)
+            return None
+        elif on_error.lower() == "ignore":
+            return None
 
     # Transform the matrix and data into a DGLGraph object
     graph = dgl.from_scipy(adj)
