@@ -381,16 +381,17 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             )
 
         # Remove None molecules
-        df.drop(df.index[is_none], axis=0)
-        features = [feat for feat in features if not (feat is None)]
-        sample_idx = np.delete(sample_idx, is_none, axis=0)
-        smiles = np.delete(smiles, is_none, axis=0)
-        if labels is not None:
-            labels = np.delete(labels, is_none, axis=0)
-        if weights is not None:
-            weights = np.delete(weights, is_none, axis=0)
-        if indices is not None:
-            indices = np.delete(indices, is_none, axis=0)
+        if len(is_none) > 0:
+            df.drop(df.index[is_none], axis=0)
+            features = [feat for feat in features if not (feat is None)]
+            sample_idx = np.delete(sample_idx, is_none, axis=0)
+            smiles = np.delete(smiles, is_none, axis=0)
+            if labels is not None:
+                labels = np.delete(labels, is_none, axis=0)
+            if weights is not None:
+                weights = np.delete(weights, is_none, axis=0)
+            if indices is not None:
+                indices = np.delete(indices, is_none, axis=0)
 
         # Get splits indices
         self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
