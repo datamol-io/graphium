@@ -132,8 +132,26 @@ class BasePNALayer(BaseDGLLayer):
 
         return {"h": h}
 
-    def add_virtual_graph_if_no_edges(self, g):
+    def add_virtual_graph_if_no_edges(self, g: DGLGraph) -> Tuple[DGLGraph, bool]:
+        r"""
+        When all elements of a given batch don't have any edges
+        (e.g. molecule with a single atom), the message function will
+        be skipped, and the number of features will be inconsistent due
+        to the variable number of aggregators.
 
+        To fix this issue, this method creates a new graph with self-loop
+        and appends it to the batch, only if all the elements of the batch
+        have degree 0.
+
+        Parameters:
+            g: The batched graphs
+
+        Returns:
+            g: The batched graphs, with a possible new graph appended at the end
+            no_edges:
+                Whether a graph was appended to the end of the batch
+                if all the elements of the batch had no edges.
+        """
         no_edges = torch.all(g.in_degree(range(g.num_nodes())) == 0)
         if no_edges:
             new_g = deepcopy(dgl.unbatch(g)[0])
@@ -142,8 +160,20 @@ class BasePNALayer(BaseDGLLayer):
 
         return g, no_edges
 
-    def remove_virtual_graph_if_no_edges(self, g, no_edges: bool):
+    def remove_virtual_graph_if_no_edges(self, g: DGLGraph, no_edges: bool) -> DGLGraph:
+        r"""
+        This removes the added graph from the method
+        `add_virtual_graph_if_no_edges`.
 
+        Parameters:
+            g: The batched graphs
+            no_edges:
+                Whether to remove the last graph of the batch
+                if all the elements of the batch had no edges.
+
+        Returns:
+            g: The batched graphs, with a possible new graph appended at the end
+        """
         if no_edges:
             g = dgl.batch(dgl.unbatch(g)[:-1])
 
