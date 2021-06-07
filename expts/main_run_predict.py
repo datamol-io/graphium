@@ -19,7 +19,7 @@ from goli.trainer.predictor import PredictorModule
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
-DATA_NAME = "single_atom_dataset"
+DATA_NAME = "bindingDB"
 MODEL_FILE = "models_checkpoints/ogb-molpcba/model-v2.ckpt"
 CONFIG_FILE = f"expts/config_{DATA_NAME}_pretrained.yaml"
 
@@ -27,7 +27,7 @@ CONFIG_FILE = f"expts/config_{DATA_NAME}_pretrained.yaml"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-# NUM_LAYERS_TO_DROP = 3
+NUM_LAYERS_TO_DROP = range(4)
 
 
 def main(cfg: DictConfig) -> None:
@@ -37,13 +37,13 @@ def main(cfg: DictConfig) -> None:
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)
     print("\ndatamodule:\n", datamodule, "\n")
-    
-    for NUM_LAYERS_TO_DROP in range(4):
 
-        EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-drop-output-{DATA_NAME}-{NUM_LAYERS_TO_DROP}.csv"
+    for num_layers_to_drop in NUM_LAYERS_TO_DROP:
+
+        export_df_path = f"predictions/fingerprint-drop-output-{DATA_NAME}-{num_layers_to_drop}.csv"
 
         predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
-        predictor.model.drop_post_nn_layers(num_layers_to_drop=NUM_LAYERS_TO_DROP)
+        predictor.model.drop_post_nn_layers(num_layers_to_drop=num_layers_to_drop)
 
         print(predictor.model)
         print(predictor.summarize(mode=4, to_print=False))
@@ -67,9 +67,9 @@ def main(cfg: DictConfig) -> None:
             df[f"Preds-{ii}"] = preds[:, ii]
         df = pd.DataFrame(df)
         mkdir("predictions")
-        df.to_csv(EXPORT_DATAFRAME_PATH)
+        df.to_csv(export_df_path)
         print(df)
-        print(f"file saved to:`{EXPORT_DATAFRAME_PATH}`")
+        print(f"file saved to:`{export_df_path}`")
 
 
 if __name__ == "__main__":

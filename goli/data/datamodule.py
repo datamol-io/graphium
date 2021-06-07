@@ -578,12 +578,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         weights_col: str = None,
         weights_type: str = None,
     ) -> Tuple[
-        np.ndarray, 
-        np.ndarray, 
-        Union[type(None), np.ndarray], 
-        Union[type(None), np.ndarray], 
-        np.ndarray
-        ]:
+        np.ndarray, np.ndarray, Union[type(None), np.ndarray], Union[type(None), np.ndarray], np.ndarray
+    ]:
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
         """

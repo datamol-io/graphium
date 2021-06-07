@@ -149,7 +149,6 @@ class BasePNALayer(BaseDGLLayer):
 
         return g
 
-
     @property
     def layer_outputs_edges(self) -> bool:
         r"""

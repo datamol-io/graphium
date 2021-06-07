@@ -934,7 +934,9 @@ class FullDGLNetwork(nn.Module):
         if self.pre_nn_edges is not None:
             e = g.edata["e"]
             if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
-                e = torch.zeros(list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype)
+                e = torch.zeros(
+                    list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype
+                )
             else:
                 e = self.pre_nn_edges.forward(e)
             g.edata["e"] = e
