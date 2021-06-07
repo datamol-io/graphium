@@ -19,15 +19,15 @@ from goli.trainer.predictor import PredictorModule
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
+DATA_NAME = "single_atom_dataset"
 MODEL_FILE = "models_checkpoints/ogb-molpcba/model-v2.ckpt"
-CONFIG_FILE = "expts/config_bindingDB_pretrained.yaml"
+CONFIG_FILE = f"expts/config_{DATA_NAME}_pretrained.yaml"
 
 # MODEL_FILE = "models_checkpoints/micro_ZINC/model.ckpt"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-NUM_LAYERS_TO_DROP = 3
-EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-drop-output-bindingDB-{NUM_LAYERS_TO_DROP}.csv"
+# NUM_LAYERS_TO_DROP = 3
 
 
 def main(cfg: DictConfig) -> None:
@@ -37,34 +37,39 @@ def main(cfg: DictConfig) -> None:
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)
     print("\ndatamodule:\n", datamodule, "\n")
+    
+    for NUM_LAYERS_TO_DROP in range(4):
 
-    predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
-    predictor.model.drop_post_nn_layers(num_layers_to_drop=NUM_LAYERS_TO_DROP)
+        EXPORT_DATAFRAME_PATH = f"predictions/fingerprint-drop-output-{DATA_NAME}-{NUM_LAYERS_TO_DROP}.csv"
 
-    print(predictor.model)
-    print(predictor.summarize(mode=4, to_print=False))
+        predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
+        predictor.model.drop_post_nn_layers(num_layers_to_drop=NUM_LAYERS_TO_DROP)
 
-    trainer = load_trainer(cfg)
+        print(predictor.model)
+        print(predictor.summarize(mode=4, to_print=False))
 
-    # Run the model prediction
-    preds = trainer.predict(model=predictor, datamodule=datamodule)
-    if isinstance(preds[0], torch.Tensor):
-        preds = [p.detach().cpu().numpy() for p in preds]
-    preds = np.concatenate(preds, axis=0)
+        trainer = load_trainer(cfg)
 
-    # Generate output dataframe
-    df = {"SMILES": datamodule.dataset.smiles}
+        # Run the model prediction
+        preds = trainer.predict(model=predictor, datamodule=datamodule)
+        if isinstance(preds[0], torch.Tensor):
+            preds = [p.detach().cpu().numpy() for p in preds]
+        preds = np.concatenate(preds, axis=0)
 
-    target = datamodule.dataset.labels
-    for ii in range(target.shape[1]):
-        df[f"Target-{ii}"] = target[:, ii]
+        # Generate output dataframe
+        df = {"SMILES": datamodule.dataset.smiles}
 
-    for ii in range(preds.shape[1]):
-        df[f"Preds-{ii}"] = preds[:, ii]
-    df = pd.DataFrame(df)
-    mkdir("predictions")
-    df.to_csv(EXPORT_DATAFRAME_PATH)
-    print(df)
+        target = datamodule.dataset.labels
+        for ii in range(target.shape[1]):
+            df[f"Target-{ii}"] = target[:, ii]
+
+        for ii in range(preds.shape[1]):
+            df[f"Preds-{ii}"] = preds[:, ii]
+        df = pd.DataFrame(df)
+        mkdir("predictions")
+        df.to_csv(EXPORT_DATAFRAME_PATH)
+        print(df)
+        print(f"file saved to:`{EXPORT_DATAFRAME_PATH}`")
 
 
 if __name__ == "__main__":

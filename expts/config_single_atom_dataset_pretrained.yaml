@@ -5,17 +5,17 @@ constants:
 datamodule:
   module_type: "DGLFromSmilesDataModule"
   args:
-    df_path: goli/data/BindingDB/BindingDB_All.tsv
+    df_path: goli/data/single_atom_dataset/single_atom_dataset.csv
     cache_data_path: null # goli/data/cache/BindingDB/full.cache
-    label_cols: ['IC50 (nM)']
-    smiles_col: Ligand SMILES
+    label_cols: ['score']
+    smiles_col: SMILES
     sample_size: null
 
     # Weights
     weights_type: null
 
     # Featurization
-    featurization_n_jobs: 4
+    featurization_n_jobs: 0
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -36,8 +36,8 @@ datamodule:
     split_test: 0.2
     split_seed: *seed
     splits_path: null
-    batch_size_train_val: 10
-    batch_size_test: 10
+    batch_size_train_val: 2
+    batch_size_test: 2
 
     # Data loading
     num_workers: 0

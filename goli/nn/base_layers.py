@@ -133,6 +133,10 @@ class FCLayer(nn.Module):
 
         """
 
+        if torch.prod(torch.as_tensor(h.shape[:-1])) == 0:
+            h = torch.zeros(list(h.shape[:-1]) + [self.linear.out_features], device=h.device, dtype=h.dtype)
+            return h
+
         h = self.linear(h)
 
         if self.batch_norm is not None:

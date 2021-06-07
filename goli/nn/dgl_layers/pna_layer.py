@@ -1,6 +1,8 @@
 import torch
+import dgl
 from dgl import DGLGraph
 from typing import Dict, List, Tuple, Union, Callable
+from copy import deepcopy
 
 from goli.nn.pna_operations import PNA_AGGREGATORS, PNA_SCALERS
 from goli.nn.base_layers import MLP, get_activation
@@ -129,6 +131,24 @@ class BasePNALayer(BaseDGLLayer):
             h = torch.cat([scale(h, D=D, avg_d=self.avg_d) for scale in self.scalers], dim=-1)
 
         return {"h": h}
+
+    def add_virtual_graph_if_no_edges(self, g):
+
+        no_edges = torch.all(g.in_degree(range(g.num_nodes())) == 0)
+        if no_edges:
+            new_g = deepcopy(dgl.unbatch(g)[0])
+            new_g.add_edges(0, 0)
+            g = dgl.batch([g, new_g])
+
+        return g, no_edges
+
+    def remove_virtual_graph_if_no_edges(self, g, no_edges: bool):
+
+        if no_edges:
+            g = dgl.batch(dgl.unbatch(g)[:-1])
+
+        return g
+
 
     @property
     def layer_outputs_edges(self) -> bool:
@@ -332,10 +352,13 @@ class PNAConvolutionalLayer(BasePNALayer):
         if self.edge_features:  # add the edges information only if edge_features = True
             g.edata["ef"] = e
 
+        g, no_edges = self.add_virtual_graph_if_no_edges(g)
+
         g.apply_edges(self.pretrans_edges)
 
         # aggregation
         g.update_all(self.message_func, self.reduce_func)
+        g = self.remove_virtual_graph_if_no_edges(g, no_edges=no_edges)
         h = g.ndata["h"]
 
         # post-transformation
@@ -504,12 +527,14 @@ class PNAMessagePassingLayer(BasePNALayer):
         g.ndata["h"] = h
         if self.edge_features:  # add the edges information only if edge_features = True
             g.edata["ef"] = e
+        g, no_edges = self.add_virtual_graph_if_no_edges(g)
 
         # pretransformation
         g.apply_edges(self.pretrans_edges)
 
         # aggregation
         g.update_all(self.message_func, self.reduce_func)
+        g = self.remove_virtual_graph_if_no_edges(g, no_edges=no_edges)
         h = torch.cat([h, g.ndata["h"]], dim=-1)
 
         # post-transformation
