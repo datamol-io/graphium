@@ -1,10 +1,6 @@
 from torch import nn
-import torch.nn.functional as F
 import torch
-import math
-from copy import deepcopy
 import dgl
-from dgl.nn.pytorch.glob import mean_nodes, sum_nodes
 from typing import List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
@@ -12,7 +8,7 @@ from goli.nn.base_layers import FCLayer, get_activation
 from goli.nn.dgl_layers import BaseDGLLayer
 from goli.nn.residual_connections import ResidualConnectionBase
 from goli.nn.dgl_layers.pooling import parse_pooling_layer, VirtualNode
-from goli.utils.spaces import FC_LAYERS_DICT, DGL_LAYERS_DICT, LAYERS_DICT, RESIDUALS_DICT
+from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
 
 
 class FeedForwardNN(nn.Module):
@@ -850,6 +846,36 @@ class FullDGLNetwork(nn.Module):
                     + 'Provided" {self.gnn.out_dim} and {self.post_nn.in_dim}'
                 )
 
+    def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
+        r"""
+        Remove the last layers of the model. Useful for Transfer Learning.
+
+        Parameters:
+            num_layers_to_drop: The number of layers to drop from the `self.post_nn` network.
+
+        """
+
+        assert num_layers_to_drop >= 0
+        assert num_layers_to_drop <= len(self.post_nn.layers)
+
+        if num_layers_to_drop > 0:
+            self.post_nn.layers = self.post_nn.layers[:-num_layers_to_drop]
+
+    def extend_post_nn_layers(self, layers: nn.ModuleList):
+        r"""
+        Add layers at the end of the model. Useful for Transfer Learning.
+
+        Parameters:
+            layers: A ModuleList of all the layers to extend
+
+        """
+
+        assert isinstance(layers, nn.ModuleList)
+        if len(self.post_nn.layers) > 0:
+            assert layers[0].in_dim == self.post_nn.layers.out_dim[-1]
+
+        self.post_nn.extend(layers)
+
     def forward(self, g: dgl.DGLGraph) -> torch.Tensor:
         r"""
         Apply the pre-processing neural network, the graph neural network,
@@ -897,19 +923,31 @@ class FullDGLNetwork(nn.Module):
         if "feat" in g.edata.keys():
             g.edata["e"] = g.edata["feat"]
 
+        # Run the pre-processing network on node features
         if self.pre_nn is not None:
             h = g.ndata["h"]
             h = self.pre_nn.forward(h)
             g.ndata["h"] = h
 
+        # Run the pre-processing network on edge features
+        # If there are no edges, skip the forward and change the dimension of e
         if self.pre_nn_edges is not None:
             e = g.edata["e"]
-            e = self.pre_nn_edges.forward(e)
+            if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
+                e = torch.zeros(
+                    list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype
+                )
+            else:
+                e = self.pre_nn_edges.forward(e)
             g.edata["e"] = e
 
+        # Run the graph neural network
         h = self.gnn.forward(g)
+
+        # Run the output network
         if self.post_nn is not None:
             h = self.post_nn.forward(h)
+
         return h
 
     def __repr__(self):
