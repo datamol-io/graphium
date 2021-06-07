@@ -382,7 +382,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         # Remove None molecules
         df.drop(df.index[is_none], axis=0)
-        features = [feat for idx, feat in enumerate(features) if not (idx in is_none)]
+        features = [feat for feat in features if not (feat is None)]
         sample_idx = np.delete(sample_idx, is_none, axis=0)
         smiles = np.delete(smiles, is_none, axis=0)
         if labels is not None:
@@ -471,17 +471,26 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             return 0
 
     def get_first_graph(self):
-        """Low memory footprint method to get the first datapoint DGL graph."""
+        """
+        Low memory footprint method to get the first datapoint DGL graph.
+        The first 10 rows of the data are read in case the first one has a featurization
+        error. If all 10 first element, then `None` is returned, otherwise the first
+        graph to not fail is returned.
+        """
         if self.df is None:
-            df = self._read_csv(self.df_path, nrows=1)
+            df = self._read_csv(self.df_path, nrows=10)
         else:
-            df = self.df.iloc[0:1, :]
+            df = self.df.iloc[0:10, :]
 
         smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         featurization_args = self.featurization or {}
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
-        graph = transform_smiles(smiles[0])
+        graph = None
+        for s in smiles:
+            graph = transform_smiles(s)
+            if graph is not None:
+                break
         return graph
 
     # Private methods
