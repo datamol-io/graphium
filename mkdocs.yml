@@ -21,9 +21,9 @@ nav:
     - goli.features: api/goli.features.md
     - goli.trainer: api/goli.trainer.md
     - goli.data: api/goli.data.md
-    # - goli.cli: api/goli.cli.md
+    - goli.cli: api/goli.cli.md
     - goli.utils: api/goli.utils.md
-    # - goli.data_parser: api/goli.data_parser.md
+  - CLI: cli-references.md
 
 theme:
   name: material
@@ -51,6 +51,7 @@ markdown_extensions:
   - pymdownx.tabbed
   - pymdownx.tasklist
   - pymdownx.details
+  - mkdocs-click
   - pymdownx.arithmatex:
       generic: true
   - toc:

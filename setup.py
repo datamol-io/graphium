@@ -12,6 +12,6 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     entry_points={
-        "console_scripts": ["goli=goli.cli:main"],
+        "console_scripts": ["goli=goli.cli:main_cli"],
     },
 )
