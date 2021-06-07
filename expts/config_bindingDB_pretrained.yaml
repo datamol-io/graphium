@@ -15,7 +15,7 @@ datamodule:
     weights_type: null
 
     # Featurization
-    featurization_n_jobs: 4
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -36,8 +36,8 @@ datamodule:
     split_test: 0.2
     split_seed: *seed
     splits_path: null
-    batch_size_train_val: 10
-    batch_size_test: 10
+    batch_size_train_val: 1024
+    batch_size_test: 1024
 
     # Data loading
     num_workers: 0
