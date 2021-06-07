@@ -5,13 +5,9 @@ import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
 
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
-
-
 # Current project imports
 import goli
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
+from goli.config._loader import load_datamodule, load_metrics, load_trainer
 
 from goli.trainer.predictor import PredictorModule
 
