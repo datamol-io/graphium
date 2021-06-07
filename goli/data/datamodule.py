@@ -154,9 +154,9 @@ class DGLBaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_csv(path, **kwargs):
-        if str(path).endswith(".csv"):
+        if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
             sep = ","
-        elif str(path).endswith(".tsv"):
+        elif str(path).endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
             sep = "\t"
         else:
             raise ValueError(f"unsupported file `{path}`")
