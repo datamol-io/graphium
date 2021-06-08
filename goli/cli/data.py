@@ -2,6 +2,8 @@ import click
 
 from loguru import logger
 
+import goli
+
 from .main import main_cli
 
 
@@ -25,13 +27,31 @@ def data_cli():
     required=True,
     help="Where to download the Goli dataset.",
 )
-def download(name, output):
+@click.option(
+    "--progress",
+    type=bool,
+    is_flag=True,
+    default=False,
+    required=False,
+    help="Whether to extract the dataset if it's a zip file.",
+)
+def download(name, output, progress):
 
-    logger.info(name)
-    logger.info(output)
+    args = {}
+    args["name"] = name
+    args["output_path"] = output
+    args["extract_zip"] = True
+    args["progress"] = progress
+
+    logger.info(f"Download dataset '{name}' into {output}.")
+
+    fpath = goli.data.utils.download_goli_dataset(**args)
+
+    logger.info(f"Dataset available at {fpath}.")
 
 
 @data_cli.command(name="list", help="List available Goli dataset.")
 def list():
 
-    logger.info("hello")
+    logger.info("Goli datasets:")
+    logger.info(goli.data.utils.list_goli_datasets())
