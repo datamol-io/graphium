@@ -11,17 +11,17 @@ docs_dir: "docs"
 
 nav:
   - Overview: index.md
-  - Examples:
-      - Using GNN layers: examples/basics/using_gnn_layers.ipynb
-      - Implementing GNN layers: examples/basics/implementing_gnn_layers.ipynb
-      - Making GNN networks: examples/basics/making_gnn_networks.ipynb
-      - Simple Molecular Model: examples/model_training/simple-molecular-model.ipynb
+  - Tutorials:
+      - Using GNN layers: tutorials/basics/using_gnn_layers.ipynb
+      - Implementing GNN layers: tutorials/basics/implementing_gnn_layers.ipynb
+      - Making GNN networks: tutorials/basics/making_gnn_networks.ipynb
+      - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
+  - Contribute: contribute.md
   - API:
     - goli.nn: api/goli.nn.md
     - goli.features: api/goli.features.md
     - goli.trainer: api/goli.trainer.md
     - goli.data: api/goli.data.md
-    - goli.cli: api/goli.cli.md
     - goli.utils: api/goli.utils.md
   - CLI: cli-references.md
 
