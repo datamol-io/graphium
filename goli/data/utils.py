@@ -5,7 +5,7 @@ import pandas as pd
 
 import goli
 
-GOLI_DATASETS_BASE_URL = "s3://goli-public/datasets"
+GOLI_DATASETS_BASE_URL = "gcs://goli-public/datasets"
 GOLI_DATASETS = {
     "ZINC-micro": "ZINC-micro.zip",
     "ZINC-bench-gnn": "ZINC-bench-gnn.zip",
