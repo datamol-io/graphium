@@ -30,11 +30,12 @@ nav:
 theme:
   name: material
   palette:
-    primary: teal
-    accent: purple
+    primary: red
+    accent: indigo
   features:
-    # - navigation.instant
     - navigation.expand
+  favicon: images/logo.png
+  logo: images/logo.png
 
 extra_css:
   - _assets/css/custom.css
