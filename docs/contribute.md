@@ -5,25 +5,14 @@ The below documents the development lifecycle of Datamol.
 ## Setup a dev environment
 
 ```bash
-conda create -n datamol
-conda activate datamol
+conda create -n goli
+conda activate goli
 
 mamba env update -f env.yml
 
-conda deactivate && conda activate datamol
+conda deactivate && conda activate goli
 pip install -e .
 ```
-
-## Continuous Integration
-
-Datamol uses Github Actions to:
-
-- **Build and test** `datamol`.
-  - Multiple combinations of OS, Python and RDKit versions are tested.
-- **Check** the code:
-  - Formatting with `black`.
-  - Static type check with `mypy`.
-- **Documentation**: build and deploy the documentation on `master` and for every new git tag.
 
 ## Run tests
 
@@ -36,16 +25,9 @@ pytest
 You can build and serve the documentation locally with:
 
 ```bash
-# Regenerate the API doc
-python -m datamol._mkdocs
-
 # Build and serve the doc
 mike serve
 ```
-
-### Multi-versionning
-
-The doc is built for eash push on `master` and every git tags using [mike](https://github.com/jimporter/mike). Everything is automated using Github Actions. Please refer to the official mike's documentation for the details.
 
 ## Release a new version
 
@@ -58,3 +40,4 @@ The doc is built for eash push on `master` and every git tags using [mike](https
   - Add a git tag.
   - Push the git tag.
   - Add a new release on the GH repo associated with the git tag.
+  - Update the conda forge feedstock.

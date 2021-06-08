@@ -15,13 +15,13 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/valence-discovery/goli)](https://github.com/valence-discovery/goli/stargazers)
 [![GitHub Repo stars](https://img.shields.io/github/forks/valence-discovery/goli)](https://github.com/valence-discovery/goli/network/members)
 
-goli is a python library to work with molecules. It's a layer built on top of [RDKit](https://www.rdkit.org/) and aims to be as light as possible.
+A deep learning library focused on graph representation learning for real-world chemical tasks.
 
-- 🐍 Simple pythonic API
-- ⚗️ RDKit first: all you manipulate are `rdkit.Chem.Mol` objects.
-- ✅ Manipulating molecules often rely on many options; goli provides good defaults by design.
-- 🧠 Performance matters: built-in efficient parallelization when possible with optional progress bar.
-- 🕹️ Modern IO: out-of-the-box support for remote paths using `fsspec` to read and write multiple formats (sdf, xlsx, csv, etc).
+- ✅ State-of-the-art GNN architectures.
+- 🐍 Extensible API: build your own GNN model and train it with ease.
+- ⚗️ Rich featurization: powerful and flexible built-in molecular featurization.
+- 🧠 Pretrained models: for fast and easy inference or transfer learning.
+- ⮔ Read-to-use training loop based on [Pytorch Lightning](https://www.pytorchlightning.ai/).
 
 ## Try Online
 
@@ -37,6 +37,22 @@ Use conda:
 
 ```bash
 mamba install -c conda-forge goli
+```
+
+or pip:
+
+```bash
+pip install goli
+```
+
+## Quick API Tour
+
+```python
+import goli
+
+# TODO: show a quick snippet of goli that:
+# - build a model and train it
+# - or load a model and do inference.
 ```
 
 ## Changelogs
