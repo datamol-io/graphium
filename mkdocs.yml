@@ -16,7 +16,9 @@ nav:
       - Implementing GNN layers: tutorials/basics/implementing_gnn_layers.ipynb
       - Making GNN networks: tutorials/basics/making_gnn_networks.ipynb
       - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
+  - Goli Design: design.md
   - Contribute: contribute.md
+  - License: license.md
   - API:
     - goli.nn: api/goli.nn.md
     - goli.features: api/goli.features.md
