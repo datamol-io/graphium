@@ -25,7 +25,7 @@ LOSS_DICT = {
 }
 
 GOLI_PRETRAINED_MODELS = {
-    "ZINC-micro-dummy-test": "s3://goli-public/pretrained-models/ZINC-micro-dummy-test.ckpt"
+    "ZINC-micro-dummy-test": "gcs://goli-public/pretrained-models/ZINC-micro-dummy-test.ckpt"
 }
 
 
