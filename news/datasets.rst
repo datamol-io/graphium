@@ -5,7 +5,7 @@
 
 **Changed:**
 
-* <news item>
+* Remove examples folder in doc to tutorials.
 
 **Deprecated:**
 
