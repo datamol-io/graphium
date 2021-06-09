@@ -27,7 +27,7 @@ CONFIG_FILE = f"expts/config_{DATA_NAME}_pretrained.yaml"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-NUM_LAYERS_TO_DROP = range(4)
+NUM_LAYERS_TO_DROP = [3]  # range(3)
 
 
 def main(cfg: DictConfig) -> None:
@@ -40,7 +40,7 @@ def main(cfg: DictConfig) -> None:
 
     for num_layers_to_drop in NUM_LAYERS_TO_DROP:
 
-        export_df_path = f"predictions/fingerprint-drop-output-{DATA_NAME}-{num_layers_to_drop}.csv"
+        export_df_path = f"predictions/fingerprint-drop-output-{DATA_NAME}-{num_layers_to_drop}.csv.gz"
 
         predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
         predictor.model.drop_post_nn_layers(num_layers_to_drop=num_layers_to_drop)
