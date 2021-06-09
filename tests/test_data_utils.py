@@ -12,7 +12,7 @@ def test_list_datasets():
 def test_download_datasets(tmpdir):
     dataset_dir = tmpdir.mkdir("goli-datasets")
 
-    data_path = goli.data.utils.download_goli_dataset("ZINC-micro", output_path=dataset_dir)
+    data_path = goli.data.utils.download_goli_dataset("goli-zinc-micro", output_path=dataset_dir)
 
     fpath = goli.utils.fs.join(data_path, "ZINC-micro.csv")
     df = pd.read_csv(fpath)
