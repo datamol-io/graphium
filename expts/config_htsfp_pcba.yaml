@@ -1,19 +1,22 @@
 constants:
   seed: &seed 42
-  raise_train_error: false   # Whether the code should raise an error if it crashes during training
+  raise_train_error: True   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  module_type: "DGLOGBDataModule"
+  module_type: "DGLFromSmilesDataModule"
   args:
-    dataset_name: "ogbg-molpcba"
-    cache_data_path: goli/data/cache/ogb-molpcba/full-morefeatures.cache
+    df_path: https://storage.googleapis.com/goli-public/datasets/htsfp_pcba.csv.gz
+
+    cache_data_path: goli/data/cache/htsfp_pcba/full.cache
+    label_cols: "assayID-*"
+    smiles_col: SMILES
 
     # Weights
     weights_type: null
-    sample_size: null
+    sample_size: 100000
 
     # Featurization
-    featurization_n_jobs: 8
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -30,13 +33,16 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
-    batch_size_train_val: 1800
-    batch_size_test: 1800
+    split_val: 0.1
+    split_test: 0.1
+    split_seed: *seed
+    batch_size_train_val: 1024
+    batch_size_test: 1024
 
-  # Data loading
-  num_workers: 8
-  pin_memory: False
-  persistent_workers: False  # Keep True on Windows if running multiple workers
+    # Data loading
+    num_workers: 8
+    pin_memory: True
+    persistent_workers: True  # Keep True on Windows if running multiple workers
 
 
 architecture:
@@ -66,7 +72,7 @@ architecture:
     residual_type: simple
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: *hidden_dim
+    out_dim: &out_mlp_dim 700
     hidden_dims: *hidden_dim
     depth: 5
     activation: none
@@ -85,8 +91,8 @@ architecture:
       scalers: [identity]
   
   post_nn:
-    out_dim: 128
-    hidden_dims: *hidden_dim
+    out_dim: 689
+    hidden_dims: *out_mlp_dim
     depth: 3
     activation: relu
     last_activation: sigmoid
@@ -106,7 +112,7 @@ predictor:
     weight_decay: 0
   lr_reduce_on_plateau_kwargs:
     factor: 0.5
-    patience: 20
+    patience: 13
     min_lr: 2.e-4
   scheduler_kwargs:
     monitor: &monitor averageprecision/val
@@ -175,14 +181,14 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/ogb-molpcba
+    save_dir: logs/htsfp_pcba
   early_stopping:
     monitor: *monitor
     min_delta: 0
-    patience: 80
+    patience: 40
     mode: *mode
   model_checkpoint:
-    dirpath: models_checkpoints/ogb-molpcba/
+    dirpath: models_checkpoints/htsfp_pcba/
     filename: "model"
     monitor: *monitor
     mode: *mode

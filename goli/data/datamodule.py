@@ -288,7 +288,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.featurization = featurization
 
         self.smiles_col = smiles_col
-        self.label_cols = label_cols
+        self.label_cols = self._get_label_cols(label_cols)
         self.idx_col = idx_col
         self.sample_size = sample_size
 
@@ -327,17 +327,17 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if self._load_from_cache():
             return True
 
-        # Only load the useful columns, as some dataset can be very large
-        # when loading all columns
-        usecols = (
-            check_arg_iterator(self.smiles_col, enforce_type=list)
-            + check_arg_iterator(self.label_cols, enforce_type=list)
-            + check_arg_iterator(self.idx_col, enforce_type=list)
-            + check_arg_iterator(self.weights_col, enforce_type=list)
-        )
-
         # Load the dataframe
         if self.df is None:
+            # Only load the useful columns, as some dataset can be very large
+            # when loading all columns
+            usecols = (
+                check_arg_iterator(self.smiles_col, enforce_type=list)
+                + check_arg_iterator(self.label_cols, enforce_type=list)
+                + check_arg_iterator(self.idx_col, enforce_type=list)
+                + check_arg_iterator(self.weights_col, enforce_type=list)
+            )
+
             df = self._read_csv(self.df_path, usecols=usecols)
         else:
             df = self.df
@@ -362,7 +362,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # - or compute the features on-the-fly during `next(iter(dataloader))`
         # For now we compute in advance and hold everything in memory.
         featurization_args = self.featurization or {}
-        featurization_args.setdefault("on_error", "ignore")
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
         features = dm.utils.parallelized(
             transform_smiles,
@@ -423,6 +422,27 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         if stage == "test" or stage is None:
             self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
+
+
+    def _get_label_cols(self, label_cols):
+        if self.df is None:
+            # Only load the useful columns, as some dataset can be very large
+            # when loading all columns
+            df = self._read_csv(self.df_path, nrows=0)
+        else:
+            df = self.df
+        cols = list(df.columns)
+
+        if isinstance(label_cols, str):
+            if label_cols[0] == "*":
+                label_cols = [col for col in cols if str(col).endswith(label_cols[1:])]
+            elif label_cols[-1] == "*":
+                label_cols = [col for col in cols if str(col).startswith(label_cols[:-1])]
+            else:
+                label_cols = [label_cols]
+        
+        return check_arg_iterator(label_cols, enforce_type=list)
+        
 
     @property
     def is_prepared(self):
@@ -878,3 +898,6 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
 
         return ogb_metadata
+
+
+
