@@ -375,7 +375,9 @@ class PredictorModule(pl.LightningModule):
         # Specify which metrics to use
         metrics_to_use = self.metrics
         if step_name == "train":
-            metrics_to_use = {key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set}
+            metrics_to_use = {
+                key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set
+            }
 
         # Compute the additional metrics
         for key, metric in metrics_to_use.items():
@@ -447,7 +449,13 @@ class PredictorModule(pl.LightningModule):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None
-        loss = self.compute_loss(preds=preds, targets=targets, weights=weights, target_nan_mask=self.target_nan_mask, loss_fun=self.loss_fun)
+        loss = self.compute_loss(
+            preds=preds,
+            targets=targets,
+            weights=weights,
+            target_nan_mask=self.target_nan_mask,
+            loss_fun=self.loss_fun,
+        )
         metrics_logs = self.get_metrics_logs(
             preds=preds, targets=targets, weights=weights, step_name=step_name, loss=loss
         )
