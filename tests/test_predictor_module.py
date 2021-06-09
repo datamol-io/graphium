@@ -3,8 +3,8 @@ import yaml
 import goli
 
 
-def test_load_pretrained_model(datadir, tmpdir):
-    predictor = goli.trainer.PredictorModule.load_pretrained_models("ZINC-micro-dummy-test")
+def test_load_pretrained_model():
+    predictor = goli.trainer.PredictorModule.load_pretrained_models("goli-zinc-micro-dummy-test")
     assert isinstance(predictor, goli.trainer.predictor.PredictorModule)
 
 
@@ -41,7 +41,7 @@ def test_training(datadir, tmpdir):
     trainer = goli.config.load_trainer(yaml_config)
 
     # Load a pretrained model
-    predictor = goli.trainer.PredictorModule.load_pretrained_models("ZINC-micro-dummy-test")
+    predictor = goli.trainer.PredictorModule.load_pretrained_models("goli-zinc-micro-dummy-test")
 
     # Inference
     results = trainer.predict(predictor, datamodule=datamodule, return_predictions=True)
