@@ -27,7 +27,7 @@ CONFIG_FILE = f"expts/config_{DATA_NAME}_pretrained.yaml"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-NUM_LAYERS_TO_DROP = [3] # range(3)
+NUM_LAYERS_TO_DROP = [3]  # range(3)
 
 
 def main(cfg: DictConfig) -> None:
