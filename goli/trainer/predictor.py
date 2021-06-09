@@ -47,7 +47,7 @@ class EpochSummary:
         ):
             self
             self.predictions = predictions.detach().cpu()
-            self.loss = loss.detach().cpu()
+            self.loss = loss.detach().cpu().item()
             self.monitored_metric = monitored_metric
             self.monitored = metrics[monitored_metric].detach().cpu()
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
@@ -209,7 +209,7 @@ class PredictorModule(pl.LightningModule):
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
-        self.metrics_on_training_set = metrics_on_training_set
+        self.metrics_on_training_set = {} if metrics_on_training_set is None else metrics_on_training_set
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs
