@@ -5,13 +5,9 @@ import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
 
-from pytorch_lightning import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint
-
-
 # Current project imports
 import goli
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
+from goli.config._loader import load_datamodule, load_metrics, load_trainer
 
 from goli.trainer.predictor import PredictorModule
 
@@ -20,7 +16,7 @@ from goli.trainer.predictor import PredictorModule
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
-MODEL_FILE = "models_checkpoints/ogb-molpcba/model.ckpt"
+MODEL_FILE = "models_checkpoints/ogb-molpcba/model-v2.ckpt"
 
 CONFIG_FILE = "expts/config_molPCBA.yaml"
 
@@ -37,11 +33,12 @@ def main(cfg: DictConfig) -> None:
     print(metrics)
 
     predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
+    predictor.metrics = metrics
 
     print(predictor.model)
     print(predictor.summarize(mode=4, to_print=False))
 
-    trainer = load_trainer(cfg, metrics)
+    trainer = load_trainer(cfg)
 
     # Run the model testing
     trainer.test(model=predictor, datamodule=datamodule, ckpt_path=MODEL_FILE)

@@ -46,7 +46,7 @@ def main(cfg: DictConfig) -> None:
     print(predictor.model)
     print(predictor.summarize(mode=4, to_print=False))
 
-    trainer = load_trainer(cfg, metrics)
+    trainer = load_trainer(cfg)
 
     # Run the model training
     print("\n------------ TRAINING STARTED ------------")

@@ -26,6 +26,7 @@ from goli.utils import fs
 from goli.features import mol_to_dglgraph
 from goli.features import mol_to_dglgraph_signature
 from goli.data.collate import goli_collate_fn
+from goli.utils.arg_checker import check_arg_iterator
 
 
 import torch
@@ -125,6 +126,14 @@ class DGLBaseDataModule(pl.LightningDataModule):
             shuffle=False,
         )
 
+    def predict_dataloader(self, **kwargs):
+
+        return self._dataloader(
+            dataset=self.dataset,  # type: ignore
+            batch_size=self.batch_size_test,
+            shuffle=False,
+        )
+
     @property
     def is_prepared(self):
         raise NotImplementedError()
@@ -145,6 +154,18 @@ class DGLBaseDataModule(pl.LightningDataModule):
         raise NotImplementedError()
 
     # Private methods
+
+    @staticmethod
+    def _read_csv(path, **kwargs):
+        if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
+            sep = ","
+        elif str(path).endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
+            sep = "\t"
+        else:
+            raise ValueError(f"unsupported file `{path}`")
+        kwargs.setdefault("sep", sep)
+        df = pd.read_csv(path, **kwargs)
+        return df
 
     def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool):
         """Get a dataloader for a given dataset"""
@@ -309,18 +330,33 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if self._load_from_cache():
             return True
 
+        # Only load the useful columns, as some dataset can be very large
+        # when loading all columns
+        usecols = (
+            check_arg_iterator(self.smiles_col, enforce_type=list)
+            + check_arg_iterator(self.label_cols, enforce_type=list)
+            + check_arg_iterator(self.idx_col, enforce_type=list)
+            + check_arg_iterator(self.weights_col, enforce_type=list)
+        )
+
         # Load the dataframe
         if self.df is None:
-            df = pd.read_csv(self.df_path)
+            df = self._read_csv(self.df_path, usecols=usecols)
         else:
             df = self.df
+
         df = self._sub_sample_df(df)
 
         logger.info(f"Prepare dataset with {len(df)} data points.")
 
         # Extract smiles and labels
         smiles, labels, indices, weights, sample_idx = self._extract_smiles_labels(
-            df, self.smiles_col, self.label_cols, self.idx_col
+            df,
+            smiles_col=self.smiles_col,
+            label_cols=self.label_cols,
+            idx_col=self.idx_col,
+            weights_col=self.weights_col,
+            weights_type=self.weights_type,
         )
 
         # Precompute the features
@@ -329,6 +365,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # - or compute the features on-the-fly during `next(iter(dataloader))`
         # For now we compute in advance and hold everything in memory.
         featurization_args = self.featurization or {}
+        featurization_args.setdefault("on_error", "ignore")
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
         features = dm.utils.parallelized(
             transform_smiles,
@@ -336,6 +373,28 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             progress=self.featurization_progress,
             n_jobs=self.featurization_n_jobs,
         )
+
+        # Warn about None molecules
+        is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
+        if len(is_none) > 0:
+            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in is_none]
+            msg = "\n".join(mols_to_msg)
+            logger.warning(
+                (f"{len(is_none)} molecules will be removed since they failed featurization:\n" + msg)
+            )
+
+        # Remove None molecules
+        if len(is_none) > 0:
+            df.drop(df.index[is_none], axis=0)
+            features = [feat for feat in features if not (feat is None)]
+            sample_idx = np.delete(sample_idx, is_none, axis=0)
+            smiles = np.delete(smiles, is_none, axis=0)
+            if labels is not None:
+                labels = np.delete(labels, is_none, axis=0)
+            if weights is not None:
+                weights = np.delete(weights, is_none, axis=0)
+            if indices is not None:
+                indices = np.delete(indices, is_none, axis=0)
 
         # Get splits indices
         self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
@@ -416,17 +475,26 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             return 0
 
     def get_first_graph(self):
-        """Low memory footprint method to get the first datapoint DGL graph."""
+        """
+        Low memory footprint method to get the first datapoint DGL graph.
+        The first 10 rows of the data are read in case the first one has a featurization
+        error. If all 10 first element, then `None` is returned, otherwise the first
+        graph to not fail is returned.
+        """
         if self.df is None:
-            df = pd.read_csv(self.df_path, nrows=1)
+            df = self._read_csv(self.df_path, nrows=10)
         else:
-            df = self.df.iloc[0:1, :]
+            df = self.df.iloc[0:10, :]
 
         smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         featurization_args = self.featurization or {}
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
-        graph = transform_smiles(smiles[0])
+        graph = None
+        for s in smiles:
+            graph = transform_smiles(s)
+            if graph is not None:
+                break
         return graph
 
     # Private methods
@@ -513,7 +581,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         idx_col: str = None,
         weights_col: str = None,
         weights_type: str = None,
-    ):
+    ) -> Tuple[
+        np.ndarray, np.ndarray, Union[type(None), np.ndarray], Union[type(None), np.ndarray], np.ndarray
+    ]:
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
         """
@@ -532,14 +602,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if label_cols is None:
             label_cols = df.columns.drop(smiles_col)
 
-        smiles = df[smiles_col].to_list()
-        labels = df[label_cols].values
+        smiles = df[smiles_col].values
+        labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
+        labels = np.stack(labels, axis=1)
 
         indices = None
         if idx_col is not None:
-            indices = df[idx_col].to_list()
+            indices = df[idx_col].values
 
-        sample_idx = df.index
+        sample_idx = df.index.values
 
         # Extract the weights
         weights = None
@@ -601,7 +672,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = pd.read_csv(splits_path)
+                splits = self._read_csv(splits_path)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -633,7 +704,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         Returns the number of elements of the current DataModule
         """
         if self.df is None:
-            df = pd.read_csv(self.df_path)
+            df = self._read_csv(self.df_path, usecols=[self.smiles_col])
         else:
             df = self.df
 
