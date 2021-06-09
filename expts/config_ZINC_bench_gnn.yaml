@@ -4,6 +4,7 @@ constants:
 
 datamodule:
   module_type: "DGLFromSmilesDataModule"
+  args:
     df_path: goli/data/ZINC_bench_gnn/smiles_score.csv
     cache_data_path: goli/data/cache/ZINC_bench_gnn/smiles_score.cache
     label_cols: ['score']
@@ -20,8 +21,8 @@ datamodule:
       explicit_H: False
       use_bonds_weights: False
       pos_encoding_as_features: &pos_enc
-        pos_type: laplacian_eigvec
-        num_pos: 3
+        pos_type: centroid_effective_resistances_v1
+        num_pos: 1
         normalization: "none"
         disconnected_comp: True
       pos_encoding_as_directions: *pos_enc
@@ -68,7 +69,8 @@ architecture:
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
+#      aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
+      aggregators: [mean, max, dir0/forward, dir0/backward]
       scalers: [identity, amplification, attenuation]
   
   post_nn:
@@ -142,7 +144,7 @@ trainer:
   early_stopping:
     monitor: *monitor
     min_delta: 0
-    patience: 200
+    patience: 80
     mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/ZINC_bench_gnn/
