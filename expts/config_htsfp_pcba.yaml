@@ -5,9 +5,9 @@ constants:
 datamodule:
   module_type: "DGLFromSmilesDataModule"
   args:
-    df_path: https://storage.googleapis.com/goli-public/datasets/htsfp_pcba.csv.gz
+    df_path: https://storage.googleapis.com/goli-public/datasets/goli-htsfp-pcba.csv.gz
 
-    cache_data_path: goli/data/cache/htsfp_pcba/full.cache
+    cache_data_path: goli/data/cache/htsfp-pcba/full.cache
     label_cols: "assayID-*"
     smiles_col: SMILES
 
@@ -36,8 +36,8 @@ datamodule:
     split_val: 0.1
     split_test: 0.1
     split_seed: *seed
-    batch_size_train_val: 1024
-    batch_size_test: 1024
+    batch_size_train_val: 1500
+    batch_size_test: 1500
 
     # Data loading
     num_workers: 8
@@ -181,14 +181,14 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/htsfp_pcba
+    save_dir: logs/htsfp-pcba
   early_stopping:
     monitor: *monitor
     min_delta: 0
     patience: 40
     mode: *mode
   model_checkpoint:
-    dirpath: models_checkpoints/htsfp_pcba/
+    dirpath: models_checkpoints/htsfp-pcba/
     filename: "model"
     monitor: *monitor
     mode: *mode

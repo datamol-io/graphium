@@ -56,8 +56,8 @@ class EpochSummary:
     def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
         metrics[f"loss/{name}"] = loss
         self.summaries[name] = EpochSummary.Results(
-            targets=targets[:10],
-            predictions=predictions[:10],
+            targets=targets,
+            predictions=predictions,
             loss=loss,
             metrics=metrics,
             monitored_metric=f"{self.monitor}/{name}",

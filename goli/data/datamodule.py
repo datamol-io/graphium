@@ -296,7 +296,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.featurization = featurization
 
         self.smiles_col = smiles_col
-        self.label_cols = self._get_label_cols(label_cols, smiles_col)
+        self.label_cols = self._parse_label_cols(label_cols, smiles_col)
         self.idx_col = idx_col
         self.sample_size = sample_size
 
@@ -431,7 +431,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if stage == "test" or stage is None:
             self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
 
-    def _get_label_cols(self, label_cols: Union[type(None), str, List[str]], smiles_col: str) -> List[str]:
+    def _parse_label_cols(self, label_cols: Union[type(None), str, List[str]], smiles_col: str) -> List[str]:
+        r"""
+        Parse the choice of label columns depending on the type of input.
+        The input parameters `label_cols` and `smiles_col` are described in
+        the `__init__` method.
+        """
         if self.df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
@@ -440,6 +445,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             df = self.df
         cols = list(df.columns)
 
+        # A star `*` at the beginning or end of the string specifies to look for all
+        # columns that starts/end with a specific string
         if isinstance(label_cols, str):
             if label_cols[0] == "*":
                 label_cols = [col for col in cols if str(col).endswith(label_cols[1:])]
