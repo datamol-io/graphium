@@ -7,9 +7,10 @@ import goli
 
 GOLI_DATASETS_BASE_URL = "gcs://goli-public/datasets"
 GOLI_DATASETS = {
-    "ZINC-micro": "ZINC-micro.zip",
-    "ZINC-bench-gnn": "ZINC-bench-gnn.zip",
-    "htsfp-t20000": "htsfp-t20000_full.csv.gz",
+    "goli-zinc-micro": "goli-zinc-micro.zip",
+    "goli-zinc-bench-gnn": "goli-zinc-bench-gnn.zip",
+    "goli-htsfp": "goli-htsfp.csv.gz",
+    "goli-htsfp-pcba": "goli-htsfp-pcba.csv.gz",
 }
 
 
