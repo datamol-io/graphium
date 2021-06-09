@@ -49,7 +49,7 @@ class EpochSummary:
             self.predictions = predictions.clone().detach().cpu()
             self.loss = loss.clone().detach().cpu()
             self.monitored_metric = monitored_metric
-            self.monitored = metrics[monitored_metric]
+            self.monitored = metrics[monitored_metric].clone().detach().cpu()
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
             self.n_epochs = n_epochs
 
@@ -382,7 +382,7 @@ class PredictorModule(pl.LightningModule):
         )
 
         # Compute the metrics always used in regression tasks
-        metric_logs = {f"{self.loss_fun._get_name()}/{step_name}": loss}
+        metric_logs = {}
         metric_logs[f"mean_pred/{step_name}"] = nan_mean(preds)
         metric_logs[f"std_pred/{step_name}"] = nan_std(preds)
         metric_logs[f"mean_target/{step_name}"] = nan_mean(targets)
@@ -400,6 +400,10 @@ class PredictorModule(pl.LightningModule):
                 metric_logs[metric_name] = metric(preds, targets)
             except Exception as e:
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
+
+        # Convert all metrics to CPU, except for the loss
+        metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
+        metric_logs[f"{self.loss_fun._get_name()}/{step_name}"] = loss
 
         return loss, metric_logs
 

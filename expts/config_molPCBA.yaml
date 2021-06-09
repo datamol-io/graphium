@@ -98,7 +98,7 @@ architecture:
 
 predictor:
   metrics_on_progress_bar: ["mae", "averageprecision", "auroc"]
-  metrics_on_training_set: ["mae", "averageprecision"]
+  metrics_on_training_set: ["mae", "averageprecision", "auroc"]
   loss_fun: bce
   random_seed: *seed
   optim_kwargs:

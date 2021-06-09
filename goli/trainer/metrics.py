@@ -230,6 +230,7 @@ class MetricWrapper:
                 - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
                   has a different number of NaNs, so the metric will be computed separately
                   on each column, and the metric result will be averaged over all columns.
+                  *This option might slowdown the computation if there are too many labels*
 
             kwargs:
                 Other arguments to call with the metric
