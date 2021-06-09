@@ -1,4 +1,38 @@
-# Contribute to goli
+# Goli Library Design
+
+---
+
+**Section from the previous README:**
+
+### Data setup
+
+Then, you need to download the data needed to run the code. Right now, we have 2 sets of data folders, present in the link [here](https://drive.google.com/drive/folders/1RrbNZkEE2rf41_iroa1LbIyegW00h3Ql?usp=sharing).
+
+- **micro_ZINC** (Synthetic dataset)
+  - A small subset (1000 mols) of the ZINC dataset
+  - The score is the subtraction of the computed LogP and the synthetic accessibility score SA
+  - The data must be downloaded to the folder `./goli/data/micro_ZINC/`
+
+- **ZINC_bench_gnn** (Synthetic dataset)
+  - A subset (12000 mols) of the ZINC dataset
+  - The score is the subtraction of the computed LogP and the synthetic accessibility score SA
+  - These are the same 12k molecules provided by the [Benchmarking-gnn](https://github.com/graphdeeplearning/benchmarking-gnns) repository.
+    - We provide the pre-processed graphs in `ZINC_bench_gnn/data_from_benchmark`
+    - We provide the SMILES in `ZINC_bench_gnn/smiles_score.csv`, with the train-val-test indexes in the file `indexes_train_val_test.csv`.
+      - The first 10k elements are the training set
+      - The next 1k the valid set
+      - The last 1k the test set.
+  - The data must be downloaded to the folder `./goli/data/ZINC_bench_gnn/`
+
+Then, you can run the main file to make sure that all the dependancies are correctly installed and that the code works as expected.
+
+```bash
+python expts/main_micro_zinc.py
+```
+
+---
+
+**TODO: explain the internal design of Goli so people can contribute to it more easily.**
 
 ## Structure of the code
 

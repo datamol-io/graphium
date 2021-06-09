@@ -24,6 +24,10 @@ LOSS_DICT = {
     "cosine": torch.nn.CosineEmbeddingLoss(),
 }
 
+GOLI_PRETRAINED_MODELS = {
+    "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test.ckpt"
+}
+
 
 class EpochSummary:
     r"""Container for collecting epoch-wise results"""
@@ -523,3 +527,24 @@ class PredictorModule(pl.LightningModule):
         summary_str = self.summarize(to_print=False).__repr__()
 
         return model_str + "\n\n" + summary_str
+
+    @staticmethod
+    def list_pretrained_models():
+        """List available pretrained models."""
+        return GOLI_PRETRAINED_MODELS
+
+    @staticmethod
+    def load_pretrained_models(name: str):
+        """Load a pretrained model from its name.
+
+        Args:
+            name: Name of the model to load. List available
+                from `goli.trainer.PredictorModule.list_pretrained_models()`.
+        """
+
+        if name not in GOLI_PRETRAINED_MODELS:
+            raise ValueError(
+                f"The model '{name}' is not available. Choose from {set(GOLI_PRETRAINED_MODELS.keys())}."
+            )
+
+        return PredictorModule.load_from_checkpoint(GOLI_PRETRAINED_MODELS[name])

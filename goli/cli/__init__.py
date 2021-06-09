@@ -1,2 +1,2 @@
-from .main import main
-from .train import train
+from .main import main_cli
+from .data import data_cli
