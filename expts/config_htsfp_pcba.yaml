@@ -13,7 +13,7 @@ datamodule:
 
     # Weights
     weights_type: null
-    sample_size: 100000
+    sample_size: null
 
     # Featurization
     featurization_n_jobs: -1
@@ -74,7 +74,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: &out_mlp_dim 700
     hidden_dims: *hidden_dim
-    depth: 5
+    depth: 4
     activation: none
     last_activation: none
     dropout: &dropout_gnn 0.2
