@@ -36,8 +36,8 @@ datamodule:
     split_val: 0.1
     split_test: 0.1
     split_seed: *seed
-    batch_size_train_val: 1500
-    batch_size_test: 1500
+    batch_size_train_val: 1024
+    batch_size_test: 1024
 
     # Data loading
     num_workers: 8
