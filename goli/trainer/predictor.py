@@ -46,10 +46,10 @@ class EpochSummary:
             n_epochs: int,
         ):
             self
-            self.predictions = predictions.detach()
-            self.loss = loss.detach()
+            self.predictions = predictions.detach().cpu()
+            self.loss = loss.detach().cpu()
             self.monitored_metric = monitored_metric
-            self.monitored = metrics[monitored_metric].detach()
+            self.monitored = metrics[monitored_metric].detach().cpu()
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
             self.n_epochs = n_epochs
 
