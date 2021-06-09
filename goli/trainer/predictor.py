@@ -45,19 +45,19 @@ class EpochSummary:
             monitored_metric: str,
             n_epochs: int,
         ):
-            self.targets = targets.clone().detach().cpu()
-            self.predictions = predictions.clone().detach().cpu()
-            self.loss = loss.clone().detach().cpu()
+            self
+            self.predictions = predictions.detach()
+            self.loss = loss.detach()
             self.monitored_metric = monitored_metric
-            self.monitored = metrics[monitored_metric].clone().detach().cpu()
+            self.monitored = metrics[monitored_metric].detach()
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
             self.n_epochs = n_epochs
 
     def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
         metrics[f"loss/{name}"] = loss
         self.summaries[name] = EpochSummary.Results(
-            targets=targets,
-            predictions=predictions,
+            targets=targets[:10],
+            predictions=predictions[:10],
             loss=loss,
             metrics=metrics,
             monitored_metric=f"{self.monitor}/{name}",
@@ -340,7 +340,7 @@ class PredictorModule(pl.LightningModule):
         return loss
 
     def get_metrics_logs(
-        self, preds: Tensor, targets: Tensor, weights: Optional[Tensor], step_name: str, loss_name: str
+        self, preds: Tensor, targets: Tensor, weights: Optional[Tensor], step_name: str, loss: Tensor
     ) -> Dict[str, Any]:
         r"""
         Get the logs for the loss and the different metrics, in a format compatible with
@@ -361,25 +361,9 @@ class PredictorModule(pl.LightningModule):
                 - "val": On the validation set
                 - "test": On the test set
 
-            loss_name:
-                Name of the loss to display in tensorboard
-
-        Returns:
-            A dictionary with the keys value being:
-
-            - `loss_name`: The value of the loss
-            - `"log"`: A dictionary of type `Dict[str, Tensor]`
-                containing the metrics to log on tensorboard.
         """
 
         targets = targets.to(dtype=preds.dtype, device=preds.device)
-        loss = self.compute_loss(
-            preds=preds,
-            targets=targets,
-            weights=weights,
-            target_nan_mask=self.target_nan_mask,
-            loss_fun=self.loss_fun,
-        )
 
         # Compute the metrics always used in regression tasks
         metric_logs = {}
@@ -402,27 +386,42 @@ class PredictorModule(pl.LightningModule):
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
 
         # Convert all metrics to CPU, except for the loss
+        metric_logs[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
         metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
-        metric_logs[f"{self.loss_fun._get_name()}/{step_name}"] = loss
 
-        return loss, metric_logs
+        return metric_logs
 
-    def _general_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[str, Tensor], batch_idx: int, step_name: str) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        y = batch.pop("labels")
-        weights = batch.pop("weights", None)
         preds = self.forward(batch)
-        step_dict = {"preds": preds, "targets": y, "weights": weights}
-        return step_dict
+        targets = batch.pop("labels").to(dtype=preds.dtype)
+        weights = batch.pop("weights", None)
+
+        loss = self.compute_loss(
+            preds=preds,
+            targets=targets,
+            weights=weights,
+            target_nan_mask=self.target_nan_mask,
+            loss_fun=self.loss_fun,
+        )
+
+        preds = preds.detach().cpu()
+        targets = targets.detach().cpu()
+        if weights is not None:
+            weights = weights.detach().cpu()
+
+        step_dict = {"preds": preds, "targets": targets, "weights": weights}
+        step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
+        return loss, step_dict
 
     def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        step_dict = self._general_step(batch=batch, batch_idx=batch_idx)
-        loss, metrics_logs = self.get_metrics_logs(
+        loss, step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="train")
+        metrics_logs = self.get_metrics_logs(
             preds=step_dict["preds"],
             targets=step_dict["targets"],
             weights=step_dict["weights"],
             step_name="train",
-            loss_name="loss",
+            loss=loss,
         )
 
         step_dict.update(metrics_logs)
@@ -433,10 +432,10 @@ class PredictorModule(pl.LightningModule):
         return step_dict
 
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx)
+        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val")[1]
 
     def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx)
+        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val")[1]
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
@@ -448,9 +447,9 @@ class PredictorModule(pl.LightningModule):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None
-        loss_name = f"loss/{step_name}"
-        loss, metrics_logs = self.get_metrics_logs(
-            preds=preds, targets=targets, weights=weights, step_name=step_name, loss_name=loss_name
+        loss = self.compute_loss(preds=preds, targets=targets, weights=weights, target_nan_mask=self.target_nan_mask, loss_fun=self.loss_fun)
+        metrics_logs = self.get_metrics_logs(
+            preds=preds, targets=targets, weights=weights, step_name=step_name, loss=loss
         )
 
         self.epoch_summary.set_results(
@@ -506,7 +505,7 @@ class PredictorModule(pl.LightningModule):
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
         results_on_progress_bar = self.epoch_summary.get_results_on_progress_bar("val")
-        prog_dict["loss/val"] = self.epoch_summary.summaries["val"].loss.tolist()
+        prog_dict["loss/val"] = self.epoch_summary.summaries["val"].loss
         prog_dict.update(results_on_progress_bar)
         return prog_dict
 

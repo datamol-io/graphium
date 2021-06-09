@@ -42,7 +42,7 @@ datamodule:
     # Data loading
     num_workers: 8
     pin_memory: True
-    persistent_workers: True  # Keep True on Windows if running multiple workers
+    persistent_workers: False  # Keep True on Windows if running multiple workers
 
 
 architecture:
@@ -103,8 +103,8 @@ architecture:
     residual_type: simple
 
 predictor:
-  metrics_on_progress_bar: [] #["mae", "averageprecision", "auroc"]
-  metrics_on_training_set: [] #["mae", "averageprecision"]
+  metrics_on_progress_bar: ["mae", "averageprecision", "auroc"]
+  metrics_on_training_set: ["mae", "averageprecision"]
   loss_fun: bce
   random_seed: *seed
   optim_kwargs:
