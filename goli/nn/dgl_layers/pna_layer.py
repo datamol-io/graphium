@@ -152,7 +152,7 @@ class BasePNALayer(BaseDGLLayer):
                 Whether a graph was appended to the end of the batch
                 if all the elements of the batch had no edges.
         """
-        no_edges = torch.all(g.in_degree(range(g.num_nodes())) == 0)
+        no_edges = torch.all(g.in_degrees(range(g.num_nodes())) == 0)
         if no_edges:
             new_g = deepcopy(dgl.unbatch(g)[0])
             new_g.add_edges(0, 0)

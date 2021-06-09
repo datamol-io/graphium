@@ -234,8 +234,16 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             smiles_col: Name of the SMILES column. If set to `None`, it will look for
                 a column with the word "smile" (case insensitive) in it.
                 If no such column is found, an error will be raised.
-            label_cols: Name of the columns to use as labels. If set to None, all the
-                columns are used except the SMILES one.
+            label_cols: Name of the columns to use as labels, with different options.
+
+                - `list`: A list of all column names to use
+                - `None`: All the columns are used except the SMILES one.
+                - `str`: The name of the single column to use
+                - `*str`: A string starting by a `*` means all columns whose name
+                  ends with the specified `str`
+                - `str*`: A string ending by a `*` means all columns whose name
+                  starts with the specified `str`
+
             weights_col: Name of the column to use as sample weights. If `None`, no
                 weights are used. This parameter cannot be used together with `weights_type`.
             weights_type: The type of weights to use. This parameter cannot be used together with `weights_col`.
@@ -288,7 +296,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.featurization = featurization
 
         self.smiles_col = smiles_col
-        self.label_cols = label_cols
+        self.label_cols = self._parse_label_cols(label_cols, smiles_col)
         self.idx_col = idx_col
         self.sample_size = sample_size
 
@@ -327,17 +335,17 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if self._load_from_cache():
             return True
 
-        # Only load the useful columns, as some dataset can be very large
-        # when loading all columns
-        usecols = (
-            check_arg_iterator(self.smiles_col, enforce_type=list)
-            + check_arg_iterator(self.label_cols, enforce_type=list)
-            + check_arg_iterator(self.idx_col, enforce_type=list)
-            + check_arg_iterator(self.weights_col, enforce_type=list)
-        )
-
         # Load the dataframe
         if self.df is None:
+            # Only load the useful columns, as some dataset can be very large
+            # when loading all columns
+            usecols = (
+                check_arg_iterator(self.smiles_col, enforce_type=list)
+                + check_arg_iterator(self.label_cols, enforce_type=list)
+                + check_arg_iterator(self.idx_col, enforce_type=list)
+                + check_arg_iterator(self.weights_col, enforce_type=list)
+            )
+
             df = self._read_csv(self.df_path, usecols=usecols)
         else:
             df = self.df
@@ -362,7 +370,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # - or compute the features on-the-fly during `next(iter(dataloader))`
         # For now we compute in advance and hold everything in memory.
         featurization_args = self.featurization or {}
-        featurization_args.setdefault("on_error", "ignore")
         transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
         features = dm.utils.parallelized(
             transform_smiles,
@@ -423,6 +430,35 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         if stage == "test" or stage is None:
             self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
+
+    def _parse_label_cols(self, label_cols: Union[type(None), str, List[str]], smiles_col: str) -> List[str]:
+        r"""
+        Parse the choice of label columns depending on the type of input.
+        The input parameters `label_cols` and `smiles_col` are described in
+        the `__init__` method.
+        """
+        if self.df is None:
+            # Only load the useful columns, as some dataset can be very large
+            # when loading all columns
+            df = self._read_csv(self.df_path, nrows=0)
+        else:
+            df = self.df
+        cols = list(df.columns)
+
+        # A star `*` at the beginning or end of the string specifies to look for all
+        # columns that starts/end with a specific string
+        if isinstance(label_cols, str):
+            if label_cols[0] == "*":
+                label_cols = [col for col in cols if str(col).endswith(label_cols[1:])]
+            elif label_cols[-1] == "*":
+                label_cols = [col for col in cols if str(col).startswith(label_cols[:-1])]
+            else:
+                label_cols = [label_cols]
+
+        elif label_cols is None:
+            label_cols = [col for col in cols if col != smiles_col]
+
+        return check_arg_iterator(label_cols, enforce_type=list)
 
     @property
     def is_prepared(self):
@@ -574,7 +610,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self,
         df: pd.DataFrame,
         smiles_col: str = None,
-        label_cols: List[str] = None,
+        label_cols: List[str] = [],
         idx_col: str = None,
         weights_col: str = None,
         weights_type: str = None,
@@ -595,9 +631,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 )
 
             smiles_col = smiles_col_all[0]
-
-        if label_cols is None:
-            label_cols = df.columns.drop(smiles_col)
 
         smiles = df[smiles_col].values
         labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
