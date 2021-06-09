@@ -18,7 +18,7 @@ Visit https://valence-discovery.github.io/goli/.
 
 ## Installation
 
-Use conda:
+Use either [`mamba`](https://github.com/mamba-org/mamba) or [`conda`](https://docs.conda.io/en/latest/):
 
 ```bash
 mamba install -c conda-forge goli
