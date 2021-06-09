@@ -569,7 +569,7 @@ def mol_to_dglgraph(
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: torch.dtype = torch.float32,
-    on_error: str = "warn",
+    on_error: str = "ignore",
 ) -> dgl.DGLGraph:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph

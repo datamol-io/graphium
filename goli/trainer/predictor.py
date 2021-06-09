@@ -45,9 +45,9 @@ class EpochSummary:
             monitored_metric: str,
             n_epochs: int,
         ):
-            self.targets = targets
-            self.predictions = predictions
-            self.loss = loss
+            self.targets = targets.clone().detach().cpu()
+            self.predictions = predictions.clone().detach().cpu()
+            self.loss = loss.clone().detach().cpu()
             self.monitored_metric = monitored_metric
             self.monitored = metrics[monitored_metric]
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
@@ -122,6 +122,7 @@ class PredictorModule(pl.LightningModule):
         target_nan_mask: Optional[Union[int, float, str]] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
+        metrics_on_training_set: Optional[List[str]] = None,
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -187,6 +188,11 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar:
                 The metrics names from `metrics` to display also on the progress bar of the training
 
+            metrics_on_training_set:
+                The metrics names from `metrics` to be computed on the training set for each iteration.
+                If `None`, all the metrics are computed. Using less metrics can significantly improve
+                performance, depending on the number of readouts.
+
         """
 
         self.save_hyperparameters()
@@ -203,6 +209,7 @@ class PredictorModule(pl.LightningModule):
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
+        self.metrics_on_training_set = metrics_on_training_set
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs
@@ -381,9 +388,13 @@ class PredictorModule(pl.LightningModule):
         metric_logs[f"mean_target/{step_name}"] = nan_mean(targets)
         metric_logs[f"std_target/{step_name}"] = nan_std(targets)
 
+        # Specify which metrics to use
+        metrics_to_use = self.metrics
+        if step_name == "train":
+            metrics_to_use = {key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set}
+
         # Compute the additional metrics
-        # TODO: NaN mask `target_nan_mask` not implemented here
-        for key, metric in self.metrics.items():
+        for key, metric in metrics_to_use.items():
             metric_name = f"{key}/{step_name}"
             try:
                 metric_logs[metric_name] = metric(preds, targets)
