@@ -40,7 +40,7 @@ datamodule:
     batch_size_test: 1024
 
     # Data loading
-    num_workers: 8
+    num_workers: 0  # On many dataset, no improvement was noticed from more workers, but memory accumulates and explodes.
     pin_memory: True
     persistent_workers: False  # Keep True on Windows if running multiple workers
 
