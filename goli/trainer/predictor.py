@@ -45,9 +45,9 @@ class EpochSummary:
             monitored_metric: str,
             n_epochs: int,
         ):
-            self
+            self.targets = targets.detach().cpu()
             self.predictions = predictions.detach().cpu()
-            self.loss = loss.detach().cpu().item()
+            self.loss = loss.item() if isinstance(loss, Tensor) else loss
             self.monitored_metric = monitored_metric
             self.monitored = metrics[monitored_metric].detach().cpu()
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
@@ -472,7 +472,7 @@ class PredictorModule(pl.LightningModule):
         return metrics_logs
 
     def training_epoch_end(self, outputs: Dict):
-
+        
         self._general_epoch_end(outputs=outputs, step_name="train")
 
     def validation_epoch_end(self, outputs: List):
