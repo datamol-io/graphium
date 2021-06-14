@@ -72,12 +72,15 @@ class EpochSummary:
 
         metrics[f"loss/{name}"] = loss
         monitor_name = f"{self.monitor}/{name}"
+        if not monitor_name in self.best_summaries.keys():
+            return True
+
         if self.mode == "max":
             return metrics[monitor_name] > self.best_summaries[name].monitored
         elif self.mode == "min":
             return metrics[monitor_name] < self.best_summaries[name].monitored
         else:
-            return ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
+            ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
 
     def get_results(self, name):
         return self.summaries[name]

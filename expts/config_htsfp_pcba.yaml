@@ -36,8 +36,8 @@ datamodule:
     split_val: 0.1
     split_test: 0.1
     split_seed: *seed
-    batch_size_train_val: 1024
-    batch_size_test: 1024
+    batch_size_train_val: 2500
+    batch_size_test: 2500
 
     # Data loading
     num_workers: 0  # On many dataset, no improvement was noticed from more workers, but memory accumulates and explodes.
@@ -48,7 +48,7 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 400
+    out_dim: &hidden_dim 512
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
@@ -72,7 +72,7 @@ architecture:
     residual_type: simple
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: &out_mlp_dim 700
+    out_dim: &out_mlp_dim 1024
     hidden_dims: *hidden_dim
     depth: 5
     activation: none
@@ -148,7 +148,7 @@ metrics:
   - name: f1 > 0.5
     metric: f1
     num_classes: 2
-    average: micro
+    average: macro
     target_nan_mask: ignore-mean-label
     threshold_kwargs: &threshold_1
       operator: greater
@@ -160,7 +160,7 @@ metrics:
   - name: f1 > 0.25
     metric: f1
     num_classes: 2
-    average: micro
+    average: macro
     target_nan_mask: ignore-mean-label
     threshold_kwargs: &threshold_2
       operator: greater
