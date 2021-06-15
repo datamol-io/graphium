@@ -53,7 +53,7 @@ architecture:
     depth: 3
     activation: relu
     last_activation: none
-    dropout: &dropout_mlp 0.3
+    dropout: &dropout_mlp 0.2
     last_dropout: *dropout_mlp
     batch_norm: &batch_norm True
     last_batch_norm: *batch_norm
@@ -77,7 +77,7 @@ architecture:
     depth: 5
     activation: none
     last_activation: none
-    dropout: &dropout_gnn 0.2
+    dropout: &dropout_gnn 0.1
     last_dropout: *dropout_gnn
     batch_norm: *batch_norm 
     last_batch_norm: *batch_norm
@@ -104,7 +104,7 @@ architecture:
 
 predictor:
   metrics_on_progress_bar: ["mae", "averageprecision", "auroc"]
-  metrics_on_training_set: ["mae", "averageprecision"]
+  metrics_on_training_set: ["mae"]
   loss_fun: bce
   random_seed: *seed
   optim_kwargs:
