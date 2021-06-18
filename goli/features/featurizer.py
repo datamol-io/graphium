@@ -1,4 +1,4 @@
-from typing import Union, List, Callable, Dict, Tuple, Any
+from typing import Union, List, Callable, Dict, Tuple, Any, Optional
 
 import inspect
 import warnings
@@ -103,6 +103,7 @@ def get_mol_atomic_features_float(
     mol: Chem.rdchem.Mol,
     property_list: Union[List[str], List[Callable]],
     offset_carbon: bool = True,
+    mask_nan: Optional[float] = 0.,
 ) -> Dict[str, np.ndarray]:
     """
     Get a dictionary of floating-point arrays of atomic properties.
@@ -152,6 +153,12 @@ def get_mol_atomic_features_float(
             Whether to subract the Carbon property from the desired atomic property.
             For example, if we want the mass of the Lithium (6.941), the mass of the
             Carbon (12.0107) will be subracted, resulting in a value of -5.0697
+
+        mask_nan:
+            Floating point value used to replace the NaNs in the atomic property.
+            This can happen when taking the electronegativity of a noble gas,
+            or other properties that are not measured for specific atoms.
+            If `None`, the NaNs are not masked.
 
     Returns:
 
@@ -272,6 +279,9 @@ def get_mol_atomic_features_float(
         if prop_name is None:
             raise ValueError("prop_name is undefined.")
 
+        # Mask the NaNs
+        if mask_nan is not None:
+            property_array[np.isnan(property_array)] = mask_nan
         prop_dict[prop_name] = property_array
 
     return prop_dict
@@ -382,7 +392,7 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
     return bond_length
 
 
-def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
+def get_mol_edge_features(mol: Chem.rdchem.Mol,  property_list: List[str], mask_nan: Optional[float] = 0.):
     r"""
     Get the following set of features for any given bond
     See `goli.features.nmp` for allowed values in one hot encoding
@@ -454,7 +464,10 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol, property_list: List[str]):
             property_array.append(np.asarray(encoding, dtype=np.float32))
 
         if num_bonds > 0:
-            prop_dict[prop] = np.stack(property_array, axis=0)
+            property_array = np.stack(property_array, axis=0)
+            if mask_nan is not None: # Mask the NaNs
+                property_array[np.isnan(property_array)] = mask_nan
+            prop_dict[prop] = property_array
         else:
             prop_dict[prop] = np.array([])
 
