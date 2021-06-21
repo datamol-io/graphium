@@ -7,7 +7,7 @@ datamodule:
   args:
     df_path: https://storage.googleapis.com/goli-public/datasets/goli-htsfp-pcba.csv.gz
 
-    cache_data_path: goli/data/cache/htsfp-pcba/full.cache
+    cache_data_path: goli/data/cache/htsfp-pcba/full.cache.gz
     label_cols: "assayID-*"
     smiles_col: SMILES
 

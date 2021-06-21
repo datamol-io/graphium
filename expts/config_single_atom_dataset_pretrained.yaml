@@ -6,7 +6,7 @@ datamodule:
   module_type: "DGLFromSmilesDataModule"
   args:
     df_path: goli/data/single_atom_dataset/single_atom_dataset.csv
-    cache_data_path: null # goli/data/cache/BindingDB/full.cache
+    cache_data_path: null # goli/data/cache/BindingDB/full.cache.gz
     label_cols: ['score']
     smiles_col: SMILES
     sample_size: null
