@@ -27,7 +27,6 @@ CONFIG_FILE = f"expts/config_{DATA_NAME}_pretrained.yaml"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-
 def main(cfg: DictConfig) -> None:
 
     cfg = deepcopy(cfg)
