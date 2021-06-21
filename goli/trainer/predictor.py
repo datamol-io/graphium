@@ -476,7 +476,7 @@ class PredictorModule(pl.LightningModule):
         return metrics_logs
 
     def training_epoch_end(self, outputs: Dict):
-        
+
         self._general_epoch_end(outputs=outputs, step_name="train")
 
     def validation_epoch_end(self, outputs: List):
