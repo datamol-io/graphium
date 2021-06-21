@@ -6,7 +6,7 @@ datamodule:
   module_type: "DGLFromSmilesDataModule"
   args:
     df_path: goli/data/BindingDB/BindingDB_All.tsv
-    cache_data_path: null # goli/data/cache/BindingDB/full.cache
+    cache_data_path: null # goli/data/cache/BindingDB/full.cache.gz
     label_cols: ['IC50 (nM)']
     smiles_col: Ligand SMILES
     sample_size: null
