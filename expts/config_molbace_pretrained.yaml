@@ -43,4 +43,3 @@ trainer:
   trainer:
     gpus: 1
 
-    
