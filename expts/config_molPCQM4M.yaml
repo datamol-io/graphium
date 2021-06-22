@@ -29,6 +29,7 @@ datamodule:
         normalization: "none"
         disconnected_comp: True
       pos_encoding_as_directions: *pos_enc
+      mask_nan: raise
 
     # Train, val, test parameters
     batch_size_train_val: 512
