@@ -285,10 +285,10 @@ def get_mol_atomic_features_float(
             raise ValueError("prop_name is undefined.")
 
         # Mask the NaNs
-        if (mask_nan is not None and np.isnan(property_array).any(0)):
-            if (mask_nan == "raise"):
+        if mask_nan is not None and np.isnan(property_array).any(0):
+            if mask_nan == "raise":
                 raise ValueError(f"molecules will be removed since there is a nan in the featurization")
-            elif (mask_nan == "warn"):
+            elif mask_nan == "warn":
                 logger.warning(f" molecules will be removed since there is a nan in the featurization ")
             else:
                 property_array[np.isnan(property_array)] = mask_nan
@@ -402,7 +402,9 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
     return bond_length
 
 
-def get_mol_edge_features(mol: Chem.rdchem.Mol,  property_list: List[str], mask_nan: Union[str, float, type(None)] = None):
+def get_mol_edge_features(
+    mol: Chem.rdchem.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = None
+):
     r"""
     Get the following set of features for any given bond
     See `goli.features.nmp` for allowed values in one hot encoding
@@ -475,10 +477,10 @@ def get_mol_edge_features(mol: Chem.rdchem.Mol,  property_list: List[str], mask_
 
         if num_bonds > 0:
             property_array = np.stack(property_array, axis=0)
-            if (mask_nan is not None and np.isnan(property_array).any()): # Mask the NaNs
-                if (mask_nan == "raise"):
+            if mask_nan is not None and np.isnan(property_array).any():  # Mask the NaNs
+                if mask_nan == "raise":
                     raise ValueError(f"molecules will be removed since there is a nan in the featurization")
-                elif (mask_nan == "warn"):
+                elif mask_nan == "warn":
                     logger.warning(f" molecules will be removed since there is a nan in the featurization ")
                 else:
                     property_array[np.isnan(property_array)] = mask_nan
@@ -499,7 +501,7 @@ def mol_to_adj_and_features(
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
-    mask_nan: Union[str, float, type(None)] = None,   
+    mask_nan: Union[str, float, type(None)] = None,
 ) -> Union[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -569,13 +571,13 @@ def mol_to_adj_and_features(
 
     # Get the node features
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
-    atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float,mask_nan=mask_nan)
+    atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float, mask_nan=mask_nan)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
     ndata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in ndata]
     ndata = np.concatenate(ndata, axis=1) if len(ndata) > 0 else None
 
     # Get the edge features
-    edge_features = get_mol_edge_features(mol, edge_property_list,mask_nan=mask_nan)
+    edge_features = get_mol_edge_features(mol, edge_property_list, mask_nan=mask_nan)
     edata = list(edge_features.values())
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
     edata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
@@ -598,7 +600,7 @@ def mol_to_dglgraph(
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: torch.dtype = torch.float32,
-    on_error: str = "ignore",  
+    on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = None,
 ) -> dgl.DGLGraph:
     r"""
