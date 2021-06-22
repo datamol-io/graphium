@@ -213,7 +213,9 @@ class PredictorModule(pl.LightningModule):
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
         self.metrics_on_progress_bar = metrics_on_progress_bar
-        self.metrics_on_training_set = list(self.metrics.keys()) if metrics_on_training_set is None else metrics_on_training_set
+        self.metrics_on_training_set = (
+            list(self.metrics.keys()) if metrics_on_training_set is None else metrics_on_training_set
+        )
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
         self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs

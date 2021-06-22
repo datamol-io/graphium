@@ -714,10 +714,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             test_indices = splits["test"].dropna().astype("int").tolist()
 
         # Filter train, val and test indices
-        _, train_idx, _ = np.intersect1d(sample_idx,train_indices, return_indices=True)
+        _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
         train_indices = train_idx.tolist()
         train_indices.sort()
-        _, valid_idx, _ = np.intersect1d(sample_idx,val_indices, return_indices=True)
+        _, valid_idx, _ = np.intersect1d(sample_idx, val_indices, return_indices=True)
         val_indices = valid_idx.tolist()
         val_indices.sort()
         _, test_idx, _ = np.intersect1d(sample_idx, test_indices, return_indices=True)
@@ -864,7 +864,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         """Download, extract and load an OGB dataset."""
 
         base_dir = fs.get_cache_dir("ogb")
-        if metadata['download_name'] == "pcqm4m":
+        if metadata["download_name"] == "pcqm4m":
             dataset_dir = base_dir / (metadata["download_name"] + "_kddcup2021")
         else:
             dataset_dir = base_dir / metadata["download_name"]
@@ -884,7 +884,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             zf.extractall(base_dir)
 
         # Load CSV file
-        if metadata['download_name']== "pcqm4m":
+        if metadata["download_name"] == "pcqm4m":
             df_path = dataset_dir / "raw" / "data.csv.gz"
         else:
             df_path = dataset_dir / "mapping" / "mol.csv.gz"
@@ -892,12 +892,12 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         df = pd.read_csv(df_path)
 
         # Load split from the OGB dataset and save them in a single CSV file
-        if metadata['download_name'] == "pcqm4m":
+        if metadata["download_name"] == "pcqm4m":
             split_name = metadata["split"]
             split_dict = torch.load(dataset_dir / "split_dict.pt")
-            train_split = pd.DataFrame(split_dict['train'])
-            val_split = pd.DataFrame(split_dict['valid'])
-            test_split = pd.DataFrame(split_dict['test'])
+            train_split = pd.DataFrame(split_dict["train"])
+            val_split = pd.DataFrame(split_dict["valid"])
+            test_split = pd.DataFrame(split_dict["test"])
             splits = pd.concat([train_split, val_split, test_split], axis=1)  # type: ignore
             splits.columns = ["train", "val", "test"]
 
@@ -923,7 +923,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             splits.to_csv(splits_path, index=None)
 
         # Get column names: OGB columns are predictable
-        if metadata['download_name'] == "pcqm4m":
+        if metadata["download_name"] == "pcqm4m":
             idx_col = df.columns[0]
             smiles_col = df.columns[-2]
             label_cols = df.columns[-1:].to_list()
