@@ -36,6 +36,8 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
     metrics = {}
     cfg_metrics = deepcopy(config["metrics"])
+    if cfg_metrics is None:
+        return metrics
 
     for this_metric in cfg_metrics:
         name = this_metric.pop("name")
