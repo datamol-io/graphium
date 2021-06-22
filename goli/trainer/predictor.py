@@ -49,11 +49,12 @@ class EpochSummary:
             monitored_metric: str,
             n_epochs: int,
         ):
-            self
+            self.targets = targets.detach().cpu()
             self.predictions = predictions.detach().cpu()
-            self.loss = loss.detach().cpu().item()
+            self.loss = loss.item() if isinstance(loss, Tensor) else loss
             self.monitored_metric = monitored_metric
-            self.monitored = metrics[monitored_metric].detach().cpu()
+            if monitored_metric in metrics.keys():
+                self.monitored = metrics[monitored_metric].detach().cpu()
             self.metrics = {key: value.tolist() for key, value in metrics.items()}
             self.n_epochs = n_epochs
 
@@ -76,12 +77,15 @@ class EpochSummary:
 
         metrics[f"loss/{name}"] = loss
         monitor_name = f"{self.monitor}/{name}"
+        if not monitor_name in self.best_summaries.keys():
+            return True
+
         if self.mode == "max":
             return metrics[monitor_name] > self.best_summaries[name].monitored
         elif self.mode == "min":
             return metrics[monitor_name] < self.best_summaries[name].monitored
         else:
-            return ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
+            ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
 
     def get_results(self, name):
         return self.summaries[name]
