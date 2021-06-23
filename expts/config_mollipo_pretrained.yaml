@@ -7,7 +7,7 @@ datamodule:
   args:
     cache_data_path: null
     dataset_name: "ogbg-mollipo"
-    cache_data_path: goli/data/cache/ogb-mollipo/full.cache
+    cache_data_path: goli/data/cache/ogb-mollipo/full.cache.gz
 
     # Weights
     weights_type: null
