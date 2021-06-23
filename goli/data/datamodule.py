@@ -724,10 +724,6 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         test_indices = test_idx.tolist()
         test_indices.sort()
 
-        # train_indices = [ii for ii, idx in enumerate(sample_idx) if idx in train_indices]
-        # val_indices = [ii for ii, idx in enumerate(sample_idx) if idx in val_indices]
-        # test_indices = [ii for ii, idx in enumerate(sample_idx) if idx in test_indices]
-
         return train_indices, val_indices, test_indices
 
     def _sub_sample_df(self, df):
