@@ -156,14 +156,13 @@ def get_mol_atomic_features_float(
 
         mask_nan:
             Deal with molecules that fail a part of the featurization.
-            "raise": DEFAULT. Raise an error when there is a nan in the featurization
-            "warn": Raise a warning when there is a nan in the featurization
-            "None": Don't do anything
-            "Floating value": Replace nans by the specified value
-            Floating point value used to replace the NaNs in the atomic property.
-            This can happen when taking the electronegativity of a noble gas,
+            NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
-            If `None`, the NaNs are not masked.
+
+            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "warn": Raise a warning when there is a nan in the featurization
+            - "None": Don't do anything
+            - "Floating value": Replace nans by the specified value
 
     Returns:
 
