@@ -547,7 +547,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             # Save featurization args used
             cache["featurization_args"] = mol_to_dglgraph_signature(dict(self.featurization or {}))
 
-            with fsspec.open(self.cache_data_path, "wb") as f:
+            with fsspec.open(self.cache_data_path, "wb", compression="infer") as f:
                 torch.save(cache, f)
 
     def _load_from_cache(self):
@@ -567,7 +567,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         logger.info(f"Try reloading the data module from {self.cache_data_path}.")
 
         # Load cache
-        with fsspec.open(self.cache_data_path, "rb") as f:
+        with fsspec.open(self.cache_data_path, "rb", compression="infer") as f:
             cache = torch.load(f)
 
         # Are the required keys present?
