@@ -1,14 +1,14 @@
 from typing import Union, Callable, Optional, Dict, Any
 
 from copy import deepcopy
+
 import torch
-from torch.nn import functional as F
-import torch.nn as nn
+
 import operator as op
 
-from pytorch_lightning.metrics.utils import reduce
-from pytorch_lightning.metrics.functional import auroc
-from pytorch_lightning.metrics.functional import (
+from torchmetrics.utilities import reduce
+from torchmetrics.functional import auroc
+from torchmetrics.functional import (
     accuracy,
     average_precision,
     confusion_matrix,
@@ -18,7 +18,6 @@ from pytorch_lightning.metrics.functional import (
     precision,
     recall,
     auroc,
-    multiclass_auroc,
     mean_absolute_error,
     mean_squared_error,
 )
@@ -181,7 +180,6 @@ METRICS_CLASSIFICATION = {
     "precisionrecallcurve": precision_recall_curve,
     "precision": precision,
     "recall": recall,
-    "multiclass_auroc": multiclass_auroc,
 }
 
 METRICS_REGRESSION = {
