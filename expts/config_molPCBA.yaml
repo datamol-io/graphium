@@ -73,7 +73,7 @@ architecture:
     last_activation: none
     dropout: &dropout_gnn 0.2
     last_dropout: *dropout_gnn
-    batch_norm: *batch_norm 
+    batch_norm: *batch_norm
     last_batch_norm: *batch_norm
     residual_type: simple
     pooling: ['sum', 'max']
@@ -83,7 +83,7 @@ architecture:
       # num_heads: 3
       aggregators: [mean, max, sum, dir1/dx_abs]
       scalers: [identity]
-  
+
   post_nn:
     out_dim: 128
     hidden_dims: *hidden_dim
@@ -187,11 +187,10 @@ trainer:
     monitor: *monitor
     mode: *mode
     save_top_k: 1
-    period: 1
+    every_n_val_epochs: 1
   trainer:
     max_epochs: 1000
     min_epochs: 100
     gpus: 1
     accumulate_grad_batches: 1
 
-    
