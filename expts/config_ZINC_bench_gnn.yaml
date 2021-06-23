@@ -60,7 +60,7 @@ architecture:
     activation: relu
     last_activation: none
     dropout: *dropout
-    batch_norm: *batch_norm 
+    batch_norm: *batch_norm
     last_batch_norm: *batch_norm
     residual_type: simple
     pooling: 'sum'
@@ -70,7 +70,7 @@ architecture:
       # num_heads: 3
       aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
       scalers: [identity, amplification, attenuation]
-  
+
   post_nn:
     out_dim: 1
     hidden_dims: *middle_dim
@@ -137,7 +137,7 @@ metrics:
     threshold_kwargs: *threshold_0
 
 trainer:
-  logger: 
+  logger:
     save_dir: logs/ZINC_bench_gnn
   early_stopping:
     monitor: *monitor
@@ -150,10 +150,9 @@ trainer:
     monitor: *monitor
     mode: *mode
     save_top_k: 1
-    period: 1
+    every_n_val_epochs: 1
   trainer:
     max_epochs: 2000
     min_epochs: 100
     gpus: 1
 
-    
