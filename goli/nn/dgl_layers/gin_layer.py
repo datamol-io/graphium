@@ -21,7 +21,7 @@ class GINLayer(BaseDGLLayer):
         out_dim: int,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
-        batch_norm: bool = False,
+        norm: Union[str, Callable] = "none",
         init_eps: float = 0.0,
         learn_eps: bool = True,
     ):
@@ -46,8 +46,13 @@ class GINLayer(BaseDGLLayer):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm:
-                Whether to use batch normalization
+            norm:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
 
             init_eps :
                 Initial :math:`\epsilon` value, default: ``0``.
@@ -62,7 +67,7 @@ class GINLayer(BaseDGLLayer):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            batch_norm=batch_norm,
+            norm=norm,
         )
 
         # Specify to consider the edges weight in the aggregation
@@ -81,8 +86,8 @@ class GINLayer(BaseDGLLayer):
             layers=2,
             activation=self.activation_layer,
             last_activation="none",
-            batch_norm=self.batch_norm,
-            last_batch_norm=False,
+            norm=self.norm,
+            last_norm="none",
         )
 
     def message_func(self, g):

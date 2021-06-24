@@ -25,7 +25,7 @@ class test_FeedForwardNN(ut.TestCase):
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
-        "batch_norm": False,
+        "norm": "none",
         "dropout": 0.2,
         "name": "LNN",
         "layer_type": FCLayer,
@@ -289,7 +289,7 @@ class test_FeedForwardDGL(ut.TestCase):
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
-        "batch_norm": False,
+        "norm": "none",
         "dropout": 0.2,
         "name": "LNN",
     }
@@ -559,7 +559,7 @@ class test_FullDGLNetwork(ut.TestCase):
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
-        "batch_norm": False,
+        "norm": "none",
         "dropout": 0.2,
         "name": "LNN",
     }
