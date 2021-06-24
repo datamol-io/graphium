@@ -252,7 +252,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         skip_steps: int = 1,
         dropout=0.0,
         activation: Union[str, Callable] = "none",
-        norm="none",
+        normalization="none",
         bias=False,
     ):
         r"""
@@ -280,7 +280,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
             activation: str, Callable
                 The activation function to use after the skip weights
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -307,7 +307,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
                     this_dim,
                     activation=activation,
                     dropout=dropout,
-                    norm=norm,
+                    normalization=normalization,
                     bias=False,
                 )
             )

@@ -25,7 +25,7 @@ class test_FeedForwardNN(ut.TestCase):
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
-        "norm": "none",
+        "normalization": "none",
         "dropout": 0.2,
         "name": "LNN",
         "layer_type": FCLayer,
@@ -91,10 +91,10 @@ class test_FeedForwardNN(ut.TestCase):
         hidden_dims = [6, 6, 6, 6, 6]
         batch = 2
 
-        for norm in self.norms:
+        for normalization in self.norms:
             this_kwargs = deepcopy(self.kwargs)
-            this_kwargs["norm"] = norm
-            err_msg = f"norm = {norm}"
+            this_kwargs["normalization"] = normalization
+            err_msg = f"normalization = {normalization}"
             lnn = FeedForwardNN(
                 in_dim=in_dim,
                 out_dim=out_dim,
@@ -359,9 +359,9 @@ class test_FeedForwardDGL(ut.TestCase):
         for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
-                    for norm in self.norms:
+                    for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, norm={norm}"
+                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
                             gnn = FeedForwardDGL(
@@ -372,7 +372,7 @@ class test_FeedForwardDGL(ut.TestCase):
                                 residual_skip_steps=residual_skip_steps,
                                 layer_type=layer_type,
                                 pooling=pooling,
-                                norm=norm,
+                                normalization=normalization,
                                 **this_kwargs,
                                 **self.kwargs,
                             )
@@ -406,9 +406,9 @@ class test_FeedForwardDGL(ut.TestCase):
         for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
-                    for norm in self.norms:
+                    for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, norm={norm}"
+                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
                             gnn = FeedForwardDGL(
@@ -452,9 +452,9 @@ class test_FeedForwardDGL(ut.TestCase):
         for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
-                    for norm in self.norms:
+                    for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, norm={norm}"
+                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
                             gnn = FeedForwardDGL(
@@ -498,9 +498,9 @@ class test_FeedForwardDGL(ut.TestCase):
         for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
-                    for norm in self.norms:
+                    for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, norm={norm}"
+                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
                             gnn = FeedForwardDGL(
@@ -548,9 +548,9 @@ class test_FeedForwardDGL(ut.TestCase):
         for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
-                    for norm in self.norms:
+                    for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, norm={norm}"
+                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
                             gnn = FeedForwardDGL(
@@ -601,7 +601,7 @@ class test_FullDGLNetwork(ut.TestCase):
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
-        "norm": "none",
+        "normalization": "none",
         "dropout": 0.2,
         "name": "LNN",
     }
@@ -647,9 +647,9 @@ class test_FullDGLNetwork(ut.TestCase):
         for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
             for residual_skip_steps in [1, 2, 3]:
                 for virtual_node in self.virtual_nodes:
-                    for norm in self.norms:
+                    for normalization in self.norms:
                         for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, norm={norm}"
+                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
                             gnn_kwargs = dict(

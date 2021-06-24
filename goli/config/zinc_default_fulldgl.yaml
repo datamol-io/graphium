@@ -30,7 +30,7 @@ architecture:
     activation: &activation relu
     last_activation: &last_activation none
     dropout: &dropout 0.1
-    norm: &norm "batch_norm"
+    normalization: &normalization "batch_norm"
     residual_type: none
 
   post_nn_kwargs:
@@ -40,7 +40,7 @@ architecture:
     activation: *activation
     last_activation: *last_activation
     dropout: *dropout
-    norm: *norm
+    normalization: *normalization
     residual_type: none
 
   gnn_kwargs:
@@ -50,7 +50,7 @@ architecture:
     activation: *activation
     last_activation: *last_activation
     dropout: *dropout
-    norm: *norm
+    normalization: *normalization
     residual_type: simple
     pooling: "sum"
     virtual_node: "sum"

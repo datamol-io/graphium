@@ -22,7 +22,7 @@ class GATLayer(BaseDGLLayer):
         num_heads: int,
         activation="elu",
         dropout: float = 0.0,
-        norm: Union[str, Callable] = "none",
+        normalization: Union[str, Callable] = "none",
     ):
         r"""
         GAT: Graph Attention Network
@@ -48,7 +48,7 @@ class GATLayer(BaseDGLLayer):
             dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -64,7 +64,7 @@ class GATLayer(BaseDGLLayer):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            norm=norm,
+            normalization=normalization,
         )
 
         self.gatconv = GATConv(
@@ -99,7 +99,7 @@ class GATLayer(BaseDGLLayer):
         """
 
         h = self.gatconv(g, h).flatten(1)
-        self.apply_norm_activation_dropout(h, norm="batch_norm", activation=True, dropout=False)
+        self.apply_norm_activation_dropout(h, normalization="batch_norm", activation=True, dropout=False)
 
         return h
 

@@ -22,7 +22,7 @@ class GatedGCNLayer(BaseDGLLayer):
         out_dim_edges: int,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
-        norm: Union[str, Callable] = "none",
+        normalization: Union[str, Callable] = "none",
     ):
         r"""
         ResGatedGCN: Residual Gated Graph ConvNets
@@ -46,7 +46,7 @@ class GatedGCNLayer(BaseDGLLayer):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -61,7 +61,7 @@ class GatedGCNLayer(BaseDGLLayer):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            norm=norm,
+            normalization=normalization,
         )
 
         self.A = nn.Linear(in_dim, out_dim, bias=True)
