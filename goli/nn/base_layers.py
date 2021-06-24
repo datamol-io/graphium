@@ -114,8 +114,9 @@ class FCLayer(nn.Module):
 
     def _parse_norm(self, norm):
 
+        parsed_norm = None
         if norm is None or norm == "none":
-            parsed_norm = None
+            pass
         elif callable(norm):
             parsed_norm = norm
         elif norm == "batch_norm":
