@@ -284,13 +284,15 @@ def get_mol_atomic_features_float(
             raise ValueError("prop_name is undefined.")
 
         # Mask the NaNs
-        if mask_nan is not None and np.isnan(property_array).any(0):
+        nans = np.isnan(property_array)
+        if mask_nan is not None and nans.any():
+            msg = f"There are {np.sum(nans)} NaNs in the atom featurization"
             if mask_nan == "raise":
-                raise ValueError(f"molecules will be removed since there is a nan in the featurization")
+                raise ValueError(msg)
             elif mask_nan == "warn":
-                logger.warning(f" molecules will be removed since there is a nan in the featurization ")
+                logger.warning(msg)
             else:
-                property_array[np.isnan(property_array)] = mask_nan
+                property_array[nans] = mask_nan
         prop_dict[prop_name] = property_array
 
     return prop_dict
@@ -476,13 +478,17 @@ def get_mol_edge_features(
 
         if num_bonds > 0:
             property_array = np.stack(property_array, axis=0)
-            if mask_nan is not None and np.isnan(property_array).any():  # Mask the NaNs
+            # Mask the NaNs
+
+            nans = np.isnan(property_array)
+            if mask_nan is not None and nans.any():  # Mask the NaNs
+                msg = f"There are {np.sum(nans)} NaNs in the bond featurization"
                 if mask_nan == "raise":
-                    raise ValueError(f"molecules will be removed since there is a nan in the featurization")
+                    raise ValueError(msg)
                 elif mask_nan == "warn":
-                    logger.warning(f" molecules will be removed since there is a nan in the featurization ")
+                    logger.warning(msg)
                 else:
-                    property_array[np.isnan(property_array)] = mask_nan
+                    property_array[nans] = mask_nan
             prop_dict[prop] = property_array
         else:
             prop_dict[prop] = np.array([])
