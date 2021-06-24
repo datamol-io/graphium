@@ -49,8 +49,8 @@ architecture:
     last_activation: none
     dropout: &dropout_mlp 0.3
     last_dropout: *dropout_mlp
-    batch_norm: &batch_norm True
-    last_batch_norm: *batch_norm
+    norm: &norm "batch_norm"
+    last_norm: *norm
     residual_type: simple
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
@@ -61,8 +61,8 @@ architecture:
     last_activation: none
     dropout: *dropout_mlp
     last_dropout: *dropout_mlp
-    batch_norm: *batch_norm
-    last_batch_norm: *batch_norm
+    norm: *norm
+    last_norm: *norm
     residual_type: simple
 
   gnn:  # Set as null to avoid a post-nn network
@@ -73,8 +73,8 @@ architecture:
     last_activation: none
     dropout: &dropout_gnn 0.2
     last_dropout: *dropout_gnn
-    batch_norm: *batch_norm
-    last_batch_norm: *batch_norm
+    norm: *norm
+    last_norm: *norm
     residual_type: simple
     pooling: ['sum', 'max']
     virtual_node: 'none'
@@ -92,8 +92,8 @@ architecture:
     last_activation: sigmoid
     dropout: *dropout_mlp
     last_dropout: 0.
-    batch_norm: *batch_norm
-    last_batch_norm: False
+    norm: *norm
+    last_norm: "none"
     residual_type: simple
 
 predictor:

@@ -42,7 +42,7 @@ class test_DGL_Layers(ut.TestCase):
     kwargs = {
         "activation": "relu",
         "dropout": 0.1,
-        "batch_norm": True,
+        "norm": "batch_norm",
     }
 
     def test_gcnlayer(self):
