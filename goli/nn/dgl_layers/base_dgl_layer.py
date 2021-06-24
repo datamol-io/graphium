@@ -80,7 +80,11 @@ class BaseDGLLayer(nn.Module):
         return parsed_norm
 
     def apply_norm_activation_dropout(
-        self, h: torch.Tensor, norm: Union[str, Callable] = True, activation: bool = True, dropout: bool = True
+        self,
+        h: torch.Tensor,
+        norm: Union[str, Callable] = True,
+        activation: bool = True,
+        dropout: bool = True,
     ):
         r"""
         Apply the different normalization and the dropout to the
