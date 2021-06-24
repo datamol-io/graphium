@@ -40,8 +40,8 @@ class S2SReadout(nn.Module):
             layers=fc_layers,
             activation="relu",
             last_activation=final_activation,
-            norm="batch_norm",
-            last_norm="none",
+            normalization="batch_norm",
+            last_normalization="none",
             device=device,
         )
 
@@ -218,7 +218,7 @@ class VirtualNode(nn.Module):
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
-        norm: Union[str, Callable] = "none",
+        normalization: Union[str, Callable] = "none",
         bias: bool = True,
         residual: bool = True,
     ):
@@ -238,7 +238,7 @@ class VirtualNode(nn.Module):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -268,7 +268,7 @@ class VirtualNode(nn.Module):
             out_dim=dim,
             activation=activation,
             dropout=dropout,
-            norm=norm,
+            normalization=normalization,
             bias=bias,
         )
 

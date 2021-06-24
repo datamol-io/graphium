@@ -25,7 +25,7 @@ class BasePNALayer(BaseDGLLayer):
         scalers: List[str],
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
-        norm: Union[str, Callable] = "none",
+        normalization: Union[str, Callable] = "none",
         avg_d: float = 1.0,
         last_activation: Union[Callable, str] = "none",
         in_dim_edges: int = 0,
@@ -64,7 +64,7 @@ class BasePNALayer(BaseDGLLayer):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -88,7 +88,7 @@ class BasePNALayer(BaseDGLLayer):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            norm=norm,
+            normalization=normalization,
         )
 
         # Edge dimensions
@@ -268,7 +268,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         scalers: List[str],
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
-        norm: Union[str, Callable] = "none",
+        normalization: Union[str, Callable] = "none",
         avg_d: Dict[str, float] = {"log": 1.0},
         last_activation: Union[Callable, str] = "none",
         posttrans_layers: int = 1,
@@ -300,7 +300,7 @@ class PNAConvolutionalLayer(BasePNALayer):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -330,7 +330,7 @@ class PNAConvolutionalLayer(BasePNALayer):
             avg_d=avg_d,
             activation=activation,
             dropout=0,
-            norm="none",
+            normalization="none",
             last_activation=last_activation,
             in_dim_edges=in_dim_edges,
         )
@@ -344,8 +344,8 @@ class PNAConvolutionalLayer(BasePNALayer):
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
-            norm=norm,
-            last_norm=norm,
+            normalization=normalization,
+            last_normalization=normalization,
         )
 
     def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:
@@ -432,7 +432,7 @@ class PNAMessagePassingLayer(BasePNALayer):
         scalers: List[str],
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
-        norm: Union[str, Callable] = "none",
+        normalization: Union[str, Callable] = "none",
         avg_d: Dict[str, float] = {"log": 1.0},
         last_activation: Union[Callable, str] = "none",
         posttrans_layers: int = 1,
@@ -465,7 +465,7 @@ class PNAMessagePassingLayer(BasePNALayer):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -498,7 +498,7 @@ class PNAMessagePassingLayer(BasePNALayer):
             avg_d=avg_d,
             activation=activation,
             dropout=0,
-            norm="none",
+            normalization="none",
             last_activation=last_activation,
             in_dim_edges=in_dim_edges,
         )
@@ -512,8 +512,8 @@ class PNAMessagePassingLayer(BasePNALayer):
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
-            norm=norm,
-            last_norm=norm,
+            normalization=normalization,
+            last_normalization=normalization,
         )
 
         # MLP used on the aggregated messages MLP(h'_u)
@@ -525,8 +525,8 @@ class PNAMessagePassingLayer(BasePNALayer):
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
-            norm=norm,
-            last_norm=norm,
+            normalization=normalization,
+            last_normalization=normalization,
         )
 
     def pretrans_edges(self, edges) -> Dict[str, torch.Tensor]:

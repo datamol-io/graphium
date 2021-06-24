@@ -4,6 +4,7 @@ constants:
 
 datamodule:
   module_type: "DGLFromSmilesDataModule"
+  args:
     df_path: https://storage.googleapis.com/goli-public/datasets/goli-zinc-bench-gnn.zip
     cache_data_path: goli/data/cache/ZINC_bench_gnn/smiles_score.cache
     label_cols: ['score']
@@ -49,8 +50,8 @@ architecture:
     activation: relu
     last_activation: none
     dropout: &dropout 0.
-    norm: &norm "batch_norm"
-    last_norm: *norm
+    normalization: &normalization "batch_norm"
+    last_normalization: *normalization
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
@@ -60,8 +61,8 @@ architecture:
     activation: relu
     last_activation: none
     dropout: *dropout
-    norm: *norm
-    last_norm: *norm
+    normalization: *normalization
+    last_normalization: *normalization
     residual_type: simple
     pooling: 'sum'
     virtual_node: none
@@ -78,8 +79,8 @@ architecture:
     activation: relu
     last_activation: none
     dropout: *dropout
-    norm: *norm
-    last_norm: "none"
+    normalization: *normalization
+    last_normalization: "none"
     residual_type: none
 
 

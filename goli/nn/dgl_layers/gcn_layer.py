@@ -21,7 +21,7 @@ class GCNLayer(BaseDGLLayer):
         out_dim: int,
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
-        norm: Union[str, Callable] = "none",
+        normalization: Union[str, Callable] = "none",
     ):
         r"""
         Graph convolutional network (GCN) layer from
@@ -42,7 +42,7 @@ class GCNLayer(BaseDGLLayer):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            norm:
+            normalization:
                 Normalization to use. Choices:
 
                 - "none" or `None`: No normalization
@@ -56,7 +56,7 @@ class GCNLayer(BaseDGLLayer):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            norm=norm,
+            normalization=normalization,
         )
 
         self.conv = GraphConv(
