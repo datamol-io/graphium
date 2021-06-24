@@ -716,13 +716,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
         train_indices = train_idx.tolist()
-        train_indices.sort()
         _, valid_idx, _ = np.intersect1d(sample_idx, val_indices, return_indices=True)
         val_indices = valid_idx.tolist()
-        val_indices.sort()
         _, test_idx, _ = np.intersect1d(sample_idx, test_indices, return_indices=True)
         test_indices = test_idx.tolist()
-        test_indices.sort()
 
         return train_indices, val_indices, test_indices
 
