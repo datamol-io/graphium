@@ -15,12 +15,6 @@ $CHANGELOG_FILENAME = 'CHANGELOG.rst'
 $CHANGELOG_TEMPLATE = 'TEMPLATE.rst'
 $CHANGELOG_NEWS = 'news'
 
-$FORGE_FEEDSTOCK_ORG = 'valence-forge'
-$FORGE_RERENDER = True
-$FORGE_USE_GIT_URL = True
-$FORGE_FORK = False
-$FORGE_PULL_REQUEST = False
-
 $ACTIVITIES = ['check', 'authors', 'changelog', 'version_bump', 'tag', 'push_tag', 'ghrelease']
 
 $VERSION_BUMP_PATTERNS = [('goli/_version.py', r'__version__\s*=.*', "__version__ = \"$VERSION\""),

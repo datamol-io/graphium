@@ -40,8 +40,8 @@ class S2SReadout(nn.Module):
             layers=fc_layers,
             activation="relu",
             last_activation=final_activation,
-            batch_norm=True,
-            last_batch_norm=False,
+            normalization="batch_norm",
+            last_normalization="none",
             device=device,
         )
 
@@ -218,7 +218,7 @@ class VirtualNode(nn.Module):
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
-        batch_norm: bool = False,
+        normalization: Union[str, Callable] = "none",
         bias: bool = True,
         residual: bool = True,
     ):
@@ -238,8 +238,13 @@ class VirtualNode(nn.Module):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm:
-                Whether to use batch normalization
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
 
             bias:
                 Whether to add a bias to the neural network
@@ -263,7 +268,7 @@ class VirtualNode(nn.Module):
             out_dim=dim,
             activation=activation,
             dropout=dropout,
-            batch_norm=batch_norm,
+            normalization=normalization,
             bias=bias,
         )
 

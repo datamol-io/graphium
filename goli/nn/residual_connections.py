@@ -252,7 +252,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         skip_steps: int = 1,
         dropout=0.0,
         activation: Union[str, Callable] = "none",
-        batch_norm=False,
+        normalization="none",
         bias=False,
     ):
         r"""
@@ -280,8 +280,13 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
             activation: str, Callable
                 The activation function to use after the skip weights
 
-            batch_norm: bool
-                Whether to apply batch normalisation after the weights
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization in the hidden layers.
+                - `Callable`: Any callable function
 
             bias: bool
                 Whether to apply add a bias after the weights
@@ -302,7 +307,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
                     this_dim,
                     activation=activation,
                     dropout=dropout,
-                    batch_norm=batch_norm,
+                    normalization=normalization,
                     bias=False,
                 )
             )
