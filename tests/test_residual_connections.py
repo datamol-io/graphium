@@ -95,7 +95,11 @@ class test_ResidualConnectionWeighted(ut.TestCase):
             shape = (3, 11)
             full_dims = [shape[1]] * (num_loops + 1)
             rc = ResidualConnectionWeighted(
-                skip_steps=skip_steps, out_dims=full_dims[1:], activation="none", batch_norm=False, bias=False
+                skip_steps=skip_steps,
+                out_dims=full_dims[1:],
+                activation="none",
+                normalization="none",
+                bias=False,
             )
 
             h_original = [torch.ones(shape) * (ii + 1) for ii in range(num_loops)]

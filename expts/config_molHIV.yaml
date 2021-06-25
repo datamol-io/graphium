@@ -48,8 +48,8 @@ architecture:
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    batch_norm: &batch_norm True
-    last_batch_norm: *batch_norm
+    normalization: &normalization "batch_norm"
+    last_normalization: *normalization
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
@@ -59,8 +59,8 @@ architecture:
     activation: none
     last_activation: none
     dropout: *dropout
-    batch_norm: *batch_norm
-    last_batch_norm: *batch_norm
+    normalization: *normalization
+    last_normalization: *normalization
     residual_type: simple
     pooling: sum
     virtual_node: 'none'
@@ -77,8 +77,8 @@ architecture:
     activation: relu
     last_activation: sigmoid
     dropout: *dropout
-    batch_norm: *batch_norm
-    last_batch_norm: False
+    normalization: *normalization
+    last_normalization: "none"
     residual_type: none
 
 predictor:

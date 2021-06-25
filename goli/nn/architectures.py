@@ -22,8 +22,8 @@ class FeedForwardNN(nn.Module):
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
         last_dropout: float = 0.0,
-        batch_norm: bool = False,
-        last_batch_norm: bool = False,
+        normalization: Union[str, Callable] = "none",
+        last_normalization: Union[str, Callable] = "none",
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         name: str = "LNN",
@@ -66,10 +66,15 @@ class FeedForwardNN(nn.Module):
             last_dropout:
                 The ratio of units to dropout for the last_layer. Must be between 0 and 1
 
-            batch_norm:
-                Whether to use batch normalization
+            normalization:
+                Normalization to use. Choices:
 
-            last_batch_norm:
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
+
+            last_normalization:
                 Whether to use batch normalization in the last layer
 
             residual_type:
@@ -118,8 +123,8 @@ class FeedForwardNN(nn.Module):
         self.last_activation = get_activation(last_activation)
         self.dropout = dropout
         self.last_dropout = last_dropout
-        self.batch_norm = batch_norm
-        self.last_batch_norm = last_batch_norm
+        self.normalization = normalization
+        self.last_normalization = last_normalization
         self.residual_type = None if residual_type is None else residual_type.lower()
         self.residual_skip_steps = residual_skip_steps
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
@@ -171,7 +176,7 @@ class FeedForwardNN(nn.Module):
                 out_dims=out_dims,
                 dropout=self.dropout,
                 activation=self.activation,
-                batch_norm=self.batch_norm,
+                normalization=self.normalization,
                 bias=False,
             )
         else:
@@ -196,14 +201,14 @@ class FeedForwardNN(nn.Module):
         self.layers = nn.ModuleList()
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
-        this_batch_norm = self.batch_norm
+        this_norm = self.normalization
         this_dropout = self.dropout
 
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
             if ii == self.depth - 1:
                 this_activation = self.last_activation
-                this_batch_norm = self.last_batch_norm
+                this_norm = self.last_normalization
                 this_dropout = self.last_dropout
 
             # Create the layer
@@ -213,7 +218,7 @@ class FeedForwardNN(nn.Module):
                     out_dim=this_out_dim,
                     activation=this_activation,
                     dropout=this_dropout,
-                    batch_norm=this_batch_norm,
+                    normalization=this_norm,
                     **self.layer_kwargs,
                 )
             )
@@ -267,8 +272,8 @@ class FeedForwardDGL(FeedForwardNN):
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
         last_dropout: float = 0.0,
-        batch_norm: bool = False,
-        last_batch_norm: bool = False,
+        normalization: Union[str, Callable] = "none",
+        last_normalization: Union[str, Callable] = "none",
         residual_type: str = "none",
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
@@ -317,10 +322,15 @@ class FeedForwardDGL(FeedForwardNN):
             last_dropout:
                 The ratio of units to dropout for the last layer. Must be between 0 and 1
 
-            batch_norm:
-                Whether to use batch normalization
+            normalization:
+                Normalization to use. Choices:
 
-            last_batch_norm:
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
+
+            last_normalization:
                 Whether to use batch normalization in the last layer
 
             residual_type:
@@ -419,8 +429,8 @@ class FeedForwardDGL(FeedForwardNN):
             depth=depth,
             activation=activation,
             last_activation=last_activation,
-            batch_norm=batch_norm,
-            last_batch_norm=last_batch_norm,
+            normalization=normalization,
+            last_normalization=last_normalization,
             residual_type=residual_type,
             residual_skip_steps=residual_skip_steps,
             name=name,
@@ -460,7 +470,7 @@ class FeedForwardDGL(FeedForwardNN):
         self.virtual_node_layers = nn.ModuleList()
         this_in_dim = self.full_dims[0]
         this_activation = self.activation
-        this_batch_norm = self.batch_norm
+        this_norm = self.normalization
         this_dropout = self.dropout
 
         # Find the appropriate edge dimensions, depending if edges are used,
@@ -495,7 +505,7 @@ class FeedForwardDGL(FeedForwardNN):
                     out_dim=this_out_dim,
                     activation=this_activation,
                     dropout=this_dropout,
-                    batch_norm=this_batch_norm,
+                    normalization=this_norm,
                     **self.layer_kwargs,
                     **this_edge_kwargs,
                 )
@@ -508,7 +518,7 @@ class FeedForwardDGL(FeedForwardNN):
                         dim=this_out_dim * self.layers[-1].out_dim_factor,
                         activation=this_activation,
                         dropout=this_dropout,
-                        batch_norm=this_batch_norm,
+                        normalization=this_norm,
                         bias=True,
                         vn_type=self.virtual_node,
                         residual=self.residual_type is not None,
@@ -538,7 +548,7 @@ class FeedForwardDGL(FeedForwardNN):
             out_dim=self.out_dim,
             activation="none",
             dropout=self.dropout,
-            batch_norm=self.batch_norm,
+            normalization=self.normalization,
         )
 
     def _pool_layer_forward(self, g, h):

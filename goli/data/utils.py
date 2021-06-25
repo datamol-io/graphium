@@ -10,7 +10,6 @@ GOLI_DATASETS = {
     "goli-zinc-micro": "goli-zinc-micro.zip",
     "goli-zinc-bench-gnn": "goli-zinc-bench-gnn.zip",
     "goli-htsfp": "goli-htsfp.csv.gz",
-    "goli-htsfp-pcba": "goli-htsfp-pcba.csv.gz",
 }
 
 

@@ -14,7 +14,7 @@ class BaseDGLLayer(nn.Module):
         out_dim: int,
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
-        batch_norm: bool = False,
+        normalization: Union[str, Callable] = "none",
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -36,8 +36,13 @@ class BaseDGLLayer(nn.Module):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm:
-                Whether to use batch normalization
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
         """
 
         super().__init__()
@@ -45,7 +50,7 @@ class BaseDGLLayer(nn.Module):
         # Basic attributes
         self.in_dim = in_dim
         self.out_dim = out_dim
-        self.batch_norm = batch_norm
+        self.normalization = normalization
         self.dropout = dropout
         self.activation = activation
 
@@ -56,12 +61,30 @@ class BaseDGLLayer(nn.Module):
         if dropout > 0:
             self.dropout_layer = nn.Dropout(p=dropout)
 
-        self.batch_norm_layer = None
-        if batch_norm:
-            self.batch_norm_layer = nn.BatchNorm1d(out_dim * self.out_dim_factor)
+        self.norm_layer = self._parse_norm(normalization)
+
+    def _parse_norm(self, normalization):
+
+        if normalization is None or normalization == "none":
+            parsed_norm = None
+        elif callable(normalization):
+            parsed_norm = normalization
+        elif normalization == "batch_norm":
+            parsed_norm = nn.BatchNorm1d(self.out_dim * self.out_dim_factor)
+        elif normalization == "layer_norm":
+            parsed_norm = nn.LayerNorm(self.out_dim * self.out_dim_factor)
+        else:
+            raise ValueError(
+                f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"
+            )
+        return parsed_norm
 
     def apply_norm_activation_dropout(
-        self, h: torch.Tensor, batch_norm: bool = True, activation: bool = True, dropout: bool = True
+        self,
+        h: torch.Tensor,
+        normalization: Union[str, Callable] = True,
+        activation: bool = True,
+        dropout: bool = True,
     ):
         r"""
         Apply the different normalization and the dropout to the
@@ -72,8 +95,13 @@ class BaseDGLLayer(nn.Module):
             h:
                 Feature tensor, to be normalized
 
-            batch_norm:
-                Whether to apply the batch_norm layer
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
 
             activation:
                 Whether to apply the activation layer
@@ -88,8 +116,8 @@ class BaseDGLLayer(nn.Module):
 
         """
 
-        if batch_norm and (self.batch_norm_layer is not None):
-            h = self.batch_norm_layer(h)
+        if self.norm_layer is not None:
+            h = self.norm_layer(h)
 
         if activation and (self.activation_layer is not None):
             h = self.activation_layer(h)

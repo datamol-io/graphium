@@ -1,4 +1,5 @@
 import torch
+from typing import Union, Callable
 
 from dgl.nn.pytorch import GATConv
 from dgl import DGLGraph
@@ -21,7 +22,7 @@ class GATLayer(BaseDGLLayer):
         num_heads: int,
         activation="elu",
         dropout: float = 0.0,
-        batch_norm: bool = False,
+        normalization: Union[str, Callable] = "none",
     ):
         r"""
         GAT: Graph Attention Network
@@ -47,8 +48,13 @@ class GATLayer(BaseDGLLayer):
             dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm: bool
-                Whether to use batch normalization
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization in the hidden layers.
+                - `Callable`: Any callable function
         """
 
         self.num_heads = num_heads
@@ -58,7 +64,7 @@ class GATLayer(BaseDGLLayer):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            batch_norm=batch_norm,
+            normalization=normalization,
         )
 
         self.gatconv = GATConv(
@@ -93,7 +99,7 @@ class GATLayer(BaseDGLLayer):
         """
 
         h = self.gatconv(g, h).flatten(1)
-        self.apply_norm_activation_dropout(h, batch_norm=True, activation=True, dropout=False)
+        self.apply_norm_activation_dropout(h, normalization="batch_norm", activation=True, dropout=False)
 
         return h
 
