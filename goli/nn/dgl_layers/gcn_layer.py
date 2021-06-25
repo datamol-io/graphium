@@ -1,5 +1,5 @@
 import torch
-from typing import List, Dict, Tuple, Union, Callable
+from typing import Union, Callable
 
 from dgl.nn.pytorch import GraphConv
 from dgl import DGLGraph
@@ -21,7 +21,7 @@ class GCNLayer(BaseDGLLayer):
         out_dim: int,
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
-        batch_norm: bool = False,
+        normalization: Union[str, Callable] = "none",
     ):
         r"""
         Graph convolutional network (GCN) layer from
@@ -42,8 +42,13 @@ class GCNLayer(BaseDGLLayer):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
-            batch_norm:
-                Whether to use batch normalization
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
         """
 
         super().__init__(
@@ -51,7 +56,7 @@ class GCNLayer(BaseDGLLayer):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            batch_norm=batch_norm,
+            normalization=normalization,
         )
 
         self.conv = GraphConv(

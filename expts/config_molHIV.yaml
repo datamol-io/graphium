@@ -7,7 +7,7 @@ datamodule:
   args:
     cache_data_path: null
     dataset_name: "ogbg-molhiv"
-    cache_data_path: goli/data/cache/ogb-molhiv/full.cache
+    cache_data_path: goli/data/cache/ogb-molhiv/full.cache.gz
 
     # Weights
     weights_type: sample_balanced
@@ -48,8 +48,8 @@ architecture:
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    batch_norm: &batch_norm True
-    last_batch_norm: *batch_norm
+    normalization: &normalization "batch_norm"
+    last_normalization: *normalization
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
@@ -59,8 +59,8 @@ architecture:
     activation: none
     last_activation: none
     dropout: *dropout
-    batch_norm: *batch_norm 
-    last_batch_norm: *batch_norm
+    normalization: *normalization
+    last_normalization: *normalization
     residual_type: simple
     pooling: sum
     virtual_node: 'none'
@@ -69,7 +69,7 @@ architecture:
       # num_heads: 3
       aggregators: [mean, max, min, dir1/dx_abs, dir1/smooth]
       scalers: [identity]
-  
+
   post_nn:
     out_dim: 1
     hidden_dims: *hidden_dim
@@ -77,8 +77,8 @@ architecture:
     activation: relu
     last_activation: sigmoid
     dropout: *dropout
-    batch_norm: *batch_norm
-    last_batch_norm: False
+    normalization: *normalization
+    last_normalization: "none"
     residual_type: none
 
 predictor:
@@ -156,10 +156,9 @@ trainer:
     monitor: *monitor
     mode: *mode
     save_top_k: 1
-    period: 1
+    every_n_val_epochs: 1
   trainer:
     max_epochs: 1000
     min_epochs: 100
     gpus: 1
 
-    

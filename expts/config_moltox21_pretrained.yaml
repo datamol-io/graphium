@@ -7,7 +7,7 @@ datamodule:
   args:
     cache_data_path: null
     dataset_name: "ogbg-moltox21"
-    cache_data_path: goli/data/cache/ogb-moltox21/full.cache
+    cache_data_path: goli/data/cache/ogb-moltox21/full.cache.gz
 
     # Weights
     weights_type: null
@@ -43,4 +43,3 @@ trainer:
   trainer:
     gpus: 1
 
-    

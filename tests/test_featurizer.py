@@ -7,6 +7,7 @@ import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
+from loguru import logger
 
 from goli.features.featurizer import (
     get_mol_atomic_features_onehot,
@@ -26,6 +27,8 @@ class test_featurizer(ut.TestCase):
         "OCCc1c(C)[n+](cs1)Cc2cnc(C)nc2N",
         "O1C=C[C@H]([C@H]1O2)c3c2cc(OC)c4c3OC(=O)C5=C4CCC(=O)5",
     ]
+
+    smiles_noble = ["[He].[He]", "[He][He]", "[Kr][Kr]"]
 
     atomic_onehot_props = [
         "atomic-number",
@@ -75,7 +78,9 @@ class test_featurizer(ut.TestCase):
         props = deepcopy(self.atomic_onehot_props)
         bad_props = ["bob"]
 
-        for s in self.smiles:
+        all_smiles = self.smiles + self.smiles_noble
+
+        for s in all_smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
             mol = dm.to_mol(s)
 
@@ -98,7 +103,8 @@ class test_featurizer(ut.TestCase):
 
         bad_props = ["bob"]
 
-        for s in self.smiles:
+        all_smiles = self.smiles + self.smiles_noble
+        for s in all_smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
             mol = dm.to_mol(s)
 
@@ -114,11 +120,46 @@ class test_featurizer(ut.TestCase):
             with self.assertRaises(ValueError, msg=err_msg):
                 get_mol_atomic_features_float(mol, property_list=bad_props)
 
+    def test_get_mol_atomic_features_float_nan_mask(self):
+
+        for s in self.smiles_noble:
+            mol = dm.to_mol(s)
+
+            # Nothing happens when `mask_nan = None`, nans are still in the property array
+            prop_dict = get_mol_atomic_features_float(
+                mol, property_list=self.atomic_float_props, mask_nan=None
+            )
+            prop_array = np.concatenate(list(prop_dict.values()), axis=0)
+            nans = np.isnan(prop_array)
+
+            # Capture a raised error when `mask_nan = "raise"`
+            with self.assertRaises(ValueError):
+                prop_dict = get_mol_atomic_features_float(
+                    mol, property_list=self.atomic_float_props, mask_nan="raise"
+                )
+
+            # Not sure how to Capture a logged warning when `mask_nan = "warn"`
+            # Here, I'm testing a behaviour similar to `mask_nan = None`
+            prop_dict = get_mol_atomic_features_float(
+                mol, property_list=self.atomic_float_props, mask_nan="warn"
+            )
+            prop_array = np.concatenate(list(prop_dict.values()), axis=0)
+            self.assertEqual(len(self.atomic_float_props), len(prop_dict))
+            self.assertTrue(any(np.isnan(prop_array)))
+
+            # NaNs are replaced by `42` when `mask_nan=42`
+            prop_dict = get_mol_atomic_features_float(mol, property_list=self.atomic_float_props, mask_nan=42)
+            prop_array = np.concatenate(list(prop_dict.values()), axis=0)
+            self.assertEqual(len(self.atomic_float_props), len(prop_dict))
+            self.assertFalse(any(np.isnan(prop_array)))
+            self.assertTrue(all(prop_array[nans] == 42))
+
     def test_get_mol_edge_features(self):
         props = deepcopy(self.edge_props)
         bad_props = ["bob"]
 
-        for s in self.smiles:
+        all_smiles = self.smiles + self.smiles_noble
+        for s in all_smiles:
             err_msg = f"\n\tError for params:\n\t\tSMILES: {s}"
             mol = dm.to_mol(s)
             for ii in range(len(props)):

@@ -40,7 +40,7 @@ class FCLayer(nn.Module):
         out_dim: int,
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
-        batch_norm: bool = False,
+        normalization: Union[str, Callable] = "none",
         bias: bool = True,
         init_fn: Union[type(None), Callable] = None,
     ):
@@ -63,8 +63,13 @@ class FCLayer(nn.Module):
                 The ratio of units to dropout. No dropout by default.
             activation:
                 Activation function to use.
-            batch_norm:
-                Whether to use batch normalization
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
             bias:
                 Whether to enable bias in for the linear layer.
             init_fn:
@@ -74,8 +79,8 @@ class FCLayer(nn.Module):
         Attributes:
             dropout (int):
                 The ratio of units to dropout.
-            batch_norm (int):
-                Whether to use batch normalization
+            normalization (None or Callable):
+                Normalization layer
             linear (torch.nn.Linear):
                 The linear layer
             activation (torch.nn.Module):
@@ -98,15 +103,31 @@ class FCLayer(nn.Module):
         self.bias = bias
         self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         self.dropout = None
-        self.batch_norm = None
-        if batch_norm:
-            self.batch_norm = nn.BatchNorm1d(out_dim)
+        self.normalization = self._parse_norm(normalization)
+
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
         self.init_fn = nn.init.xavier_uniform_
 
         self.reset_parameters()
+
+    def _parse_norm(self, normalization):
+
+        parsed_norm = None
+        if normalization is None or normalization == "none":
+            pass
+        elif callable(normalization):
+            parsed_norm = normalization
+        elif normalization == "batch_norm":
+            parsed_norm = nn.BatchNorm1d(self.out_dim)
+        elif normalization == "layer_norm":
+            parsed_norm = nn.LayerNorm(self.out_dim)
+        else:
+            raise ValueError(
+                f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"
+            )
+        return parsed_norm
 
     def reset_parameters(self, init_fn=None):
         init_fn = init_fn or self.init_fn
@@ -139,11 +160,12 @@ class FCLayer(nn.Module):
 
         h = self.linear(h)
 
-        if self.batch_norm is not None:
+        if self.normalization is not None:
             if h.shape[1] != self.out_dim:
-                h = self.batch_norm(h.transpose(1, 2)).transpose(1, 2)
+                h = self.normalization(h.transpose(1, 2)).transpose(1, 2)
             else:
-                h = self.batch_norm(h)
+                h = self.normalization(h)
+
         if self.dropout is not None:
             h = self.dropout(h)
         if self.activation is not None:
@@ -165,8 +187,8 @@ class MLP(nn.Module):
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout=0.0,
-        batch_norm=False,
-        last_batch_norm=False,
+        normalization="none",
+        last_normalization="none",
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -188,10 +210,16 @@ class MLP(nn.Module):
                 Activation function to use in the last layer.
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
-            batch_norm:
-                Whether to use batch normalization in the hidden layers.
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization in the hidden layers.
+                - `Callable`: Any callable function
+
                 if `layers==1`, this parameter is ignored
-            last_batch_norm:
+            last_normalization:
                 Whether to use batch normalization in the last layer
 
         """
@@ -209,7 +237,7 @@ class MLP(nn.Module):
                     in_dim,
                     out_dim,
                     activation=last_activation,
-                    batch_norm=last_batch_norm,
+                    normalization=last_normalization,
                     dropout=dropout,
                 )
             )
@@ -219,7 +247,7 @@ class MLP(nn.Module):
                     in_dim,
                     hidden_dim,
                     activation=activation,
-                    batch_norm=batch_norm,
+                    normalization=normalization,
                     dropout=dropout,
                 )
             )
@@ -229,7 +257,7 @@ class MLP(nn.Module):
                         hidden_dim,
                         hidden_dim,
                         activation=activation,
-                        batch_norm=batch_norm,
+                        normalization=normalization,
                         dropout=dropout,
                     )
                 )
@@ -238,7 +266,7 @@ class MLP(nn.Module):
                     hidden_dim,
                     out_dim,
                     activation=last_activation,
-                    batch_norm=last_batch_norm,
+                    normalization=last_normalization,
                     dropout=dropout,
                 )
             )

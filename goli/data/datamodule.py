@@ -550,7 +550,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             # Save featurization args used
             cache["featurization_args"] = mol_to_dglgraph_signature(dict(self.featurization or {}))
 
-            with fsspec.open(self.cache_data_path, "wb") as f:
+            with fsspec.open(self.cache_data_path, "wb", compression="infer") as f:
                 torch.save(cache, f)
 
     def _load_from_cache(self):
@@ -570,7 +570,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         logger.info(f"Try reloading the data module from {self.cache_data_path}.")
 
         # Load cache
-        with fsspec.open(self.cache_data_path, "rb") as f:
+        with fsspec.open(self.cache_data_path, "rb", compression="infer") as f:
             cache = torch.load(f)
 
         # Are the required keys present?
@@ -634,6 +634,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 )
 
             smiles_col = smiles_col_all[0]
+
+        if label_cols is None:
+            label_cols = df.columns.drop(smiles_col)
+
+        label_cols = check_arg_iterator(label_cols, enforce_type=list)
 
         smiles = df[smiles_col].values
         labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
@@ -712,9 +717,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             test_indices = splits["test"].dropna().astype("int").tolist()
 
         # Filter train, val and test indices
-        train_indices = [ii for ii, idx in enumerate(sample_idx) if idx in train_indices]
-        val_indices = [ii for ii, idx in enumerate(sample_idx) if idx in val_indices]
-        test_indices = [ii for ii, idx in enumerate(sample_idx) if idx in test_indices]
+        _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
+        train_indices = train_idx.tolist()
+        _, valid_idx, _ = np.intersect1d(sample_idx, val_indices, return_indices=True)
+        val_indices = valid_idx.tolist()
+        _, test_idx, _ = np.intersect1d(sample_idx, test_indices, return_indices=True)
+        test_indices = test_idx.tolist()
 
         return train_indices, val_indices, test_indices
 
@@ -852,8 +860,8 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         """Download, extract and load an OGB dataset."""
 
         base_dir = fs.get_cache_dir("ogb")
-        if metadata['download_name'] == "pcqm4m":
-            dataset_dir = base_dir / (metadata["download_name"]+"_kddcup2021")
+        if metadata["download_name"] == "pcqm4m":
+            dataset_dir = base_dir / (metadata["download_name"] + "_kddcup2021")
         else:
             dataset_dir = base_dir / metadata["download_name"]
 
@@ -872,7 +880,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             zf.extractall(base_dir)
 
         # Load CSV file
-        if metadata['download_name']== "pcqm4m":
+        if metadata["download_name"] == "pcqm4m":
             df_path = dataset_dir / "raw" / "data.csv.gz"
         else:
             df_path = dataset_dir / "mapping" / "mol.csv.gz"
@@ -880,12 +888,12 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         df = pd.read_csv(df_path)
 
         # Load split from the OGB dataset and save them in a single CSV file
-        if metadata['download_name'] == "pcqm4m":
+        if metadata["download_name"] == "pcqm4m":
             split_name = metadata["split"]
             split_dict = torch.load(dataset_dir / "split_dict.pt")
-            train_split = pd.DataFrame(split_dict['train'])
-            val_split = pd.DataFrame(split_dict['valid'])
-            test_split = pd.DataFrame(split_dict['test'])
+            train_split = pd.DataFrame(split_dict["train"])
+            val_split = pd.DataFrame(split_dict["valid"])
+            test_split = pd.DataFrame(split_dict["test"])
             splits = pd.concat([train_split, val_split, test_split], axis=1)  # type: ignore
             splits.columns = ["train", "val", "test"]
 
@@ -911,14 +919,15 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             splits.to_csv(splits_path, index=None)
 
         # Get column names: OGB columns are predictable
-        if metadata['download_name'] == "pcqm4m":
+        if metadata["download_name"] == "pcqm4m":
             idx_col = df.columns[0]
             smiles_col = df.columns[-2]
-            label_cols = df.columns[-1]
+            label_cols = df.columns[-1:].to_list()
         else:
             idx_col = df.columns[-1]
             smiles_col = df.columns[-2]
             label_cols = df.columns[:-2].to_list()
+
         return df, idx_col, smiles_col, label_cols, splits_path
 
     def _get_dataset_metadata(self, dataset_name: str):
