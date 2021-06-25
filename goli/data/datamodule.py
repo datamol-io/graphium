@@ -698,11 +698,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             )
 
             sub_split_test = split_test / (split_test + split_val)
-            val_indices, test_indices = train_test_split(
-                val_test_indices,
-                test_size=sub_split_test,
-                random_state=split_seed,
-            )
+            if split_test > 0:
+                val_indices, test_indices = train_test_split(
+                    val_test_indices,
+                    test_size=sub_split_test,
+                    random_state=split_seed,
+                )
+            else:
+                val_indices = val_test_indices
+                test_indices = np.array([])
 
         else:
             # Split from an indices file
