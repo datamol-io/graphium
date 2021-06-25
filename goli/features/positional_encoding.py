@@ -3,7 +3,7 @@ import numpy as np
 from scipy.sparse import spmatrix
 import torch
 
-from goli.features.spectral import compute_laplacian_positional_eigvecs
+from goli.features.spectral import compute_laplacian_positional_eigvecs, compute_centroid_effective_resistances, compute_centroid_effective_resistancesv1
 
 
 def get_all_positional_encoding(
@@ -89,6 +89,19 @@ def graph_positional_encoder(
         )
         pos_enc_sign_flip = eigvecs
         pos_enc_no_flip = eigvals_tile
+
+    elif pos_type == "centroid_effective_resistances":
+        centroid_idx, electric_potential = compute_centroid_effective_resistances(
+            adj=adj, num_pos=num_pos, disconnected_comp=disconnected_comp, **kwargs
+        )
+        pos_enc_no_flip = electric_potential
+
+    elif pos_type == "centroid_effective_resistances_v1":
+        centroid_idx, electric_potential = compute_centroid_effective_resistancesv1(
+            adj=adj, num_pos=num_pos, disconnected_comp=disconnected_comp, **kwargs
+        )
+        pos_enc_no_flip = electric_potential
+
     else:
         raise ValueError(f"Unknown `pos_type`: {pos_type}")
 
@@ -97,5 +110,8 @@ def graph_positional_encoder(
 
     if pos_enc_no_flip is not None:
         pos_enc_no_flip = torch.as_tensor(np.real(pos_enc_no_flip)).to(torch.float32)
+    if (pos_enc_no_flip is not None) and (pos_enc_no_flip.ndim == 1):
+        pos_enc_no_flip = pos_enc_no_flip.view(-1,1)
+
 
     return pos_enc_sign_flip, pos_enc_no_flip

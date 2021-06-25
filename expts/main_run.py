@@ -4,6 +4,8 @@ from os.path import dirname, abspath
 import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
+# from ogb.lsc import PCQM4MDataset
+
 
 
 # Current project imports
@@ -23,6 +25,7 @@ os.chdir(MAIN_DIR)
 
 def main(cfg: DictConfig) -> None:
     cfg = deepcopy(cfg)
+    # dataset = PCQM4MDataset(root=ROOT, only_smiles=True)
 
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)

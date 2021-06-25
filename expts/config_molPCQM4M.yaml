@@ -5,9 +5,8 @@ constants:
 datamodule:
   module_type: "DGLOGBDataModule"
   args:
-    cache_data_path: null
     dataset_name: "ogbg-molpcqm4m"
-
+    cache_data_path: goli/data/cache/ogb-molpcqm4m/full-morefeatures.cache.gz
 
     # Weights
     weights_type: null
@@ -39,7 +38,6 @@ datamodule:
   num_workers: 0
   pin_memory: False
   persistent_workers: False  # Keep True on Windows if running multiple workers
-
 
 architecture:
   model_type: fulldglnetwork
@@ -85,7 +83,6 @@ architecture:
       # num_heads: 3
       aggregators: [mean, max, sum, dir1/dx_abs]
       scalers: [identity]
-
   post_nn:
     out_dim: 1
     hidden_dims: *hidden_dim
@@ -121,8 +118,6 @@ metrics:
     metric: mae
     threshold_kwargs: null
     target_nan_mask: ignore-flatten
-
-
   - name: pearsonr
     metric: pearsonr
     threshold_kwargs: null
@@ -137,7 +132,6 @@ metrics:
     metric: spearmanr
     threshold_kwargs: null
     target_nan_mask: ignore-flatten
-
 
   - name: f1 > 5
     metric: f1

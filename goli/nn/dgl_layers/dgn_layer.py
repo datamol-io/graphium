@@ -99,7 +99,7 @@ class BaseDGNLayer:
 
         # aggregators and scalers
         h_to_cat = [
-            aggr(h=h, h_in=h_in, source_pos=source_pos, dest_pos=dest_pos) for aggr in self.aggregators
+            aggr(h=h, h_in=h_in, source_pos=source_pos, dest_pos=dest_pos, kernel_size = 1) for aggr in self.aggregators
         ]
         h = torch.cat(h_to_cat, dim=-1)
         if len(self.scalers) > 1:

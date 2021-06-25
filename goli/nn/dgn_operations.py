@@ -126,14 +126,14 @@ def aggregate_dir_dx_abs(
 
 
 def aggregate_dir_dx_no_abs(
-    h: Tensor,
-    source_pos: Tensor,
-    dest_pos: Tensor,
-    h_in: Tensor,
-    dir_idx: int,
-    temperature: Optional[float] = None,
-    **kwargs,
-) -> Tensor:
+        h: object,
+        source_pos: object,
+        dest_pos: object,
+        h_in: object,
+        dir_idx: object,
+        temperature: object = None,
+        **kwargs: object,
+) -> object:
     r"""
     The aggregation is the following:
 
@@ -222,6 +222,7 @@ def aggregate_dir_forward(
     dest_pos: Tensor,
     h_in: Tensor,
     dir_idx: int,
+    kernel_size:int,
     temperature: Optional[float] = None,
     **kwargs,
 ) -> Tensor:
@@ -247,9 +248,11 @@ def aggregate_dir_forward(
     Returns:
         h_mod: The aggregated features $y^{(l)}$
     """
+    h_mod = h
     grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
-    h_mod = h * eig_front.unsqueeze(-1)
+    for ii in range(kernel_size):
+        h_mod = h_mod * eig_front.unsqueeze(-1)
     return torch.sum(h_mod, dim=1)
 
 
@@ -259,6 +262,7 @@ def aggregate_dir_backward(
     dest_pos: Tensor,
     h_in: Tensor,
     dir_idx: int,
+    kernel_size: 1,
     temperature: Optional[float] = None,
     **kwargs,
 ) -> Tensor:
@@ -284,7 +288,7 @@ def aggregate_dir_backward(
     Returns:
         h_mod: The aggregated features $y^{(l)}$
     """
-    return aggregate_dir_forward(h, -source_pos, -dest_pos, h_in, dir_idx, temperature, **kwargs)
+    return aggregate_dir_forward(h, -source_pos, -dest_pos, h_in, dir_idx, kernel_size, temperature, **kwargs)
 
 
 DGN_AGGREGATORS = {

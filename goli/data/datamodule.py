@@ -5,6 +5,9 @@ import functools
 import importlib.resources
 import zipfile
 
+import pathlib
+from pathlib import Path
+
 from loguru import logger
 import fsspec
 import omegaconf
