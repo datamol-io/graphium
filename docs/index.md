@@ -11,7 +11,7 @@ A deep learning library focused on graph representation learning for real-world 
 
 ## Try Online
 
-Visit [![Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/valence-discovery/goli/master?urlpath=lab/tree/docs/*tutorials*.ipynb) and try goli online.
+Visit [![Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/valence-discovery/goli/master?urlpath=lab/tree/docs/*tutorials*.ipynb) and try Goli online.
 
 ## Documentation
 
