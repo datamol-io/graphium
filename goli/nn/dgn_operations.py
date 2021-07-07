@@ -222,7 +222,7 @@ def aggregate_dir_forward(
     dest_pos: Tensor,
     h_in: Tensor,
     dir_idx: int,
-    kernel_size:int,
+    kernel_size: Optional[int] = None,
     temperature: Optional[float] = None,
     **kwargs,
 ) -> Tensor:
@@ -251,7 +251,10 @@ def aggregate_dir_forward(
     h_mod = h
     grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
-    for ii in range(kernel_size):
+    if kernel_size is not None:
+        for ii in range(kernel_size):
+            h_mod = h_mod * eig_front.unsqueeze(-1)
+    else: 
         h_mod = h_mod * eig_front.unsqueeze(-1)
     return torch.sum(h_mod, dim=1)
 
@@ -262,7 +265,7 @@ def aggregate_dir_backward(
     dest_pos: Tensor,
     h_in: Tensor,
     dir_idx: int,
-    kernel_size: 1,
+    kernel_size: Optional[int] = None,
     temperature: Optional[float] = None,
     **kwargs,
 ) -> Tensor:

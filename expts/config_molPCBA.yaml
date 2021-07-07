@@ -1,6 +1,6 @@
 constants:
   seed: &seed 42
-  raise_train_error: false   # Whether the code should raise an error if it crashes during training
+  raise_train_error: False   # Whether the code should raise an error if it crashes during training
 
 datamodule:
   module_type: "DGLOGBDataModule"
@@ -23,8 +23,8 @@ datamodule:
       explicit_H: False
       use_bonds_weights: False
       pos_encoding_as_features: &pos_enc
-        pos_type: laplacian_eigvec
-        num_pos: 3
+        pos_type: centroid_effective_resistances
+        num_pos: 1
         normalization: "none"
         disconnected_comp: True
       pos_encoding_as_directions: *pos_enc
@@ -34,7 +34,7 @@ datamodule:
     batch_size_test: 1800
 
   # Data loading
-  num_workers: 8
+  num_workers: 0
   pin_memory: False
   persistent_workers: False  # Keep True on Windows if running multiple workers
 
@@ -42,7 +42,7 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 400
+    out_dim: &hidden_dim 300
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
@@ -81,7 +81,10 @@ architecture:
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, sum, dir1/dx_abs]
+      # aggregators: [mean, max, sum, dir1/dx_abs]
+      # aggregators: [mean, max, sum, dir0/dx_no_abs/rad3]
+      aggregators: [mean, max, sum, dir0/forward/rad1,dir0/forward/rad2,dir0/forward/rad3, dir0/backward/rad1,dir0/backward/rad2, dir0/backward/rad3]
+      # aggregators: [mean, max, sum, dir0/forward/rad3 dir0/backward/rad3]
       scalers: [identity]
 
   post_nn:
@@ -142,7 +145,7 @@ metrics:
   - name: f1 > 0.5
     metric: f1
     num_classes: 2
-    average: micro
+    average: macro
     target_nan_mask: ignore-mean-label
     threshold_kwargs: &threshold_1
       operator: greater
@@ -154,7 +157,7 @@ metrics:
   - name: f1 > 0.25
     metric: f1
     num_classes: 2
-    average: micro
+    average: macro
     target_nan_mask: ignore-mean-label
     threshold_kwargs: &threshold_2
       operator: greater

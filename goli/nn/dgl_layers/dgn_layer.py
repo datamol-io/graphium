@@ -1,4 +1,5 @@
 import torch
+import re
 from typing import Dict, List, Tuple, Union, Callable
 from functools import partial
 
@@ -65,9 +66,16 @@ class BaseDGNLayer:
                 agg_dir, agg_fn_name = agg_split[0], agg_split[1]
                 dir_idx = int(agg_dir[3:])
                 temperature = None
+                radius = None
                 if len(agg_split) > 2:
-                    temperature = float(agg_split[2])
-                this_agg = partial(DGN_AGGREGATORS[agg_fn_name], dir_idx=dir_idx, temperature=temperature)
+                    # temperature = float(agg_split[2])
+                    r = re.compile("([a-zA-Z]+)([0-9-.]+)")
+                    m = r.match(agg_split[2])
+                    if m.group(1) == "temp":
+                        temperature = float(m.group(2))
+                    elif m.group(1) == "rad": 
+                        radius = int(m.group(2))
+                this_agg = partial(DGN_AGGREGATORS[agg_fn_name], dir_idx=dir_idx, temperature=temperature, kernel_size=radius)
 
             if this_agg is None:
                 raise ValueError(f"aggregator `{agg_name}` not a valid choice.")
@@ -99,7 +107,7 @@ class BaseDGNLayer:
 
         # aggregators and scalers
         h_to_cat = [
-            aggr(h=h, h_in=h_in, source_pos=source_pos, dest_pos=dest_pos, kernel_size = 1) for aggr in self.aggregators
+            aggr(h=h, h_in=h_in, source_pos=source_pos, dest_pos=dest_pos) for aggr in self.aggregators
         ]
         h = torch.cat(h_to_cat, dim=-1)
         if len(self.scalers) > 1:

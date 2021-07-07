@@ -21,8 +21,8 @@ datamodule:
       explicit_H: False
       use_bonds_weights: False
       pos_encoding_as_features: &pos_enc
-        pos_type: laplacian_eigvec
-        num_pos: 3
+        pos_type: centroid_effective_resistances
+        num_pos: 1
         normalization: "none"
         disconnected_comp: True
       pos_encoding_as_directions: *pos_enc
@@ -75,12 +75,15 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: simple
-    pooling: [sum, max, dir1]
+    pooling: [sum, max, dir0]
     virtual_node: 'sum'
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
+      # aggregators: [mean, max, dir1/dx_abs, dir1/smooth, dir2/dx_abs, dir1/dx_abs/.2]
+      # aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
+      # aggregators: [mean, max, dir0/dx_no_abs, dir0/smooth]
+      aggregators: [mean, max, dir0/forward, dir0/backward]
       scalers: [identity, amplification, attenuation]
 
   post_nn:
