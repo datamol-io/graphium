@@ -1,6 +1,6 @@
 constants:
   seed: &seed 42
-  raise_train_error: False   # Whether the code should raise an error if it crashes during training
+  raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 datamodule:
   module_type: "DGLOGBDataModule"
@@ -42,7 +42,7 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 300
+    out_dim: &hidden_dim 350
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
@@ -84,7 +84,7 @@ architecture:
       # aggregators: [mean, max, sum, dir1/dx_abs]
       # aggregators: [mean, max, sum, dir0/dx_no_abs/rad3]
       aggregators: [mean, max, sum, dir0/forward/rad1,dir0/forward/rad2,dir0/forward/rad3, dir0/backward/rad1,dir0/backward/rad2, dir0/backward/rad3]
-      # aggregators: [mean, max, sum, dir0/forward/rad3 dir0/backward/rad3]
+      # aggregators: [mean, max, sum, dir0/forward/rad1 dir0/backward/rad1]
       scalers: [identity]
 
   post_nn:

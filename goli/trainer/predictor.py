@@ -397,9 +397,9 @@ class PredictorModule(pl.LightningModule):
             except Exception as e:
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
 
-        # Convert all metrics to CPU, except for the loss
-        metric_logs[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
-        metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
+        # Detach all metrics
+        metric_logs[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach()
+        metric_logs = {key: metric.detach() for key, metric in metric_logs.items()}
 
         return metric_logs
 
@@ -417,13 +417,13 @@ class PredictorModule(pl.LightningModule):
             loss_fun=self.loss_fun,
         )
 
-        preds = preds.detach().cpu()
-        targets = targets.detach().cpu()
+        preds = preds.detach()
+        targets = targets.detach()
         if weights is not None:
-            weights = weights.detach().cpu()
+            weights = weights.detach()
 
         step_dict = {"preds": preds, "targets": targets, "weights": weights}
-        step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
+        step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach()
         return loss, step_dict
 
     def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
