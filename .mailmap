@@ -9,8 +9,15 @@
 # This file is up-to-date if the command git log --format="%aN <%aE>" | sort -u
 # gives no duplicates.
 
-Dom <dominique@invivoai.com>
+Ali <feraktal@yahoo.com>
+Dom <dominique@invivoai.com> Ubuntu <ubuntu@ip-172-31-21-253.us-east-2.compute.internal>
+Dom <dominique@invivoai.com> Ubuntu <ubuntu@ip-172-31-29-17.us-east-2.compute.internal>
+Dom <dominique@invivoai.com> Ubuntu <ubuntu@ip-172-31-28-104.us-east-2.compute.internal>
+Dom <dominique@invivoai.com> Ubuntu <ubuntu@ip-172-31-30-152.us-east-2.compute.internal>
 DomInvivo <47570400+DomInvivo@users.noreply.github.com>
-Hadrien Mary <hadrien.mary@gmail.com> Hadrien Mary <hadim@users.noreply.github.com>
+Dominique <dominique@valencediscovery.com>
+Hadrien Mary <hadrien.mary@gmail.com> hadim <hadim@users.noreply.github.com>
+Hannes Stärk <hannes.staerk@gmail.com> Hannes Stärk <32128654+HannesStark@users.noreply.github.com>
 Therence1 <38595485+Therence1@users.noreply.github.com>
 Ubuntu <ubuntu@ip-172-31-19-91.us-east-2.compute.internal>
+alip67 <alip67@users.noreply.github.com>

@@ -19,7 +19,7 @@ $PYPI_BUILD_COMMANDS = ['sdist']
 $PYPI_UPLOAD = True
 $PYPI_NAME = "goli-life"
 
-$ACTIVITIES = ['check', 'authors', 'changelog', 'version_bump', 'tag', 'push_tag', 'ghrelease', 'pypi']
+$ACTIVITIES = ['check', 'authors', 'changelog', 'version_bump', 'tag', 'push_tag', 'ghrelease']
 
 $VERSION_BUMP_PATTERNS = [('goli/_version.py', r'__version__\s*=.*', "__version__ = \"$VERSION\""),
                           ('setup.py', r'version\s*=.*,', "version=\"$VERSION\",")
