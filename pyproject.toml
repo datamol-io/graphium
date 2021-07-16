@@ -8,7 +8,7 @@ minversion = "6.0"
 # nb_test_files = false # buggy at the moment
 # addopts = "--verbose --cov --cov-report xml --cov-report term"
 addopts = "--verbose"
-testpaths = ["tests", "notebooks"]
+testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:tensorboard.*:",
     "ignore::DeprecationWarning:ray.*:",
