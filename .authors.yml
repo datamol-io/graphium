@@ -8,6 +8,8 @@
     - ubuntu@ip-172-31-29-17.us-east-2.compute.internal
     - ubuntu@ip-172-31-28-104.us-east-2.compute.internal
     - ubuntu@ip-172-31-30-152.us-east-2.compute.internal
+  aliases:
+    - Ubuntu
 - name: DomInvivo
   email: 47570400+DomInvivo@users.noreply.github.com
   num_commits: 2
@@ -33,3 +35,5 @@
   github: Therence1
 - name: Hannes Stärk
   email: hannes.staerk@gmail.com
+  alternate_emails:
+    - 32128654+HannesStark@users.noreply.github.com
