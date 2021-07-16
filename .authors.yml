@@ -8,13 +8,11 @@
   - ubuntu@ip-172-31-29-17.us-east-2.compute.internal
   - ubuntu@ip-172-31-28-104.us-east-2.compute.internal
   - ubuntu@ip-172-31-30-152.us-east-2.compute.internal
+  - 47570400+DomInvivo@users.noreply.github.com
   aliases:
   - Ubuntu
-- name: DomInvivo
-  email: 47570400+DomInvivo@users.noreply.github.com
-  num_commits: 2
-  first_commit: 2021-01-19 15:30:48
-  github: invivoai
+  - Dominique
+  - DomInvivo
 - name: Hadrien Mary
   email: hadrien.mary@gmail.com
   alternate_emails:
