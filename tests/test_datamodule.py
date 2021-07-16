@@ -116,25 +116,6 @@ class Test_DataModule(ut.TestCase):
 
         ds = goli.data.DGLOGBDataModule(**dm_args)
 
-        # test metadata
-        assert set(ds.metadata.keys()) == {
-            "num tasks",
-            "eval metric",
-            "download_name",
-            "version",
-            "url",
-            "add_inverse_edge",
-            "data type",
-            "has_node_attr",
-            "has_edge_attr",
-            "task type",
-            "num classes",
-            "split",
-            "additional node files",
-            "additional edge files",
-            "binary",
-        }
-
         ds.prepare_data()
         ds.setup()
 
