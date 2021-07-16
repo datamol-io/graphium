@@ -3,6 +3,11 @@
   num_commits: 103
   first_commit: 2021-01-20 01:31:50
   github: invivoai
+  alternate_emails:
+    - ubuntu@ip-172-31-21-253.us-east-2.compute.internal
+    - ubuntu@ip-172-31-29-17.us-east-2.compute.internal
+    - ubuntu@ip-172-31-28-104.us-east-2.compute.internal
+    - ubuntu@ip-172-31-30-152.us-east-2.compute.internal
 - name: DomInvivo
   email: 47570400+DomInvivo@users.noreply.github.com
   num_commits: 2
@@ -14,6 +19,8 @@
   - hadim@users.noreply.github.com
   num_commits: 46
   first_commit: 2021-01-20 10:31:10
+  aliases:
+    - hadim
   github: invivoai
 - name: Ubuntu
   email: ubuntu@ip-172-31-19-91.us-east-2.compute.internal
@@ -24,3 +31,5 @@
   num_commits: 1
   first_commit: 2021-03-21 11:41:43
   github: Therence1
+- name: Hannes Stärk
+  email: hannes.staerk@gmail.com
