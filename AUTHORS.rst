@@ -3,7 +3,6 @@ Authors are sorted alphabetically.
 
 * Ali
 * Dom
-* DomInvivo
 * Dominique
 * Hadrien Mary
 * Hannes Stärk

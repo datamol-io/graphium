@@ -1,6 +1,6 @@
 - name: Dom
   email: dominique@invivoai.com
-  num_commits: 207
+  num_commits: 86
   first_commit: 2021-01-20 01:31:50
   github: invivoai
   alternate_emails:
@@ -17,7 +17,7 @@
   email: hadrien.mary@gmail.com
   alternate_emails:
   - hadim@users.noreply.github.com
-  num_commits: 2
+  num_commits: 4
   first_commit: 2021-01-20 10:31:10
   aliases:
   - hadim
