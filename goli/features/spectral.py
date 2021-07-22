@@ -40,8 +40,8 @@ def compute_laplacian_positional_eigvecs(
             comp = list(component)
             this_L = L_norm[comp][:, comp]
             this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
-            eigvecs[comp, :] = this_eigvecs
-            eigvals_tile[comp, :] = this_eigvals
+            eigvecs[comp, :] = np.real(this_eigvecs)
+            eigvals_tile[comp, :] = np.real(this_eigvals)
     else:
         eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
         eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
