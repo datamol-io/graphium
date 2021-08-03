@@ -23,10 +23,15 @@ datamodule:
       explicit_H: False
       use_bonds_weights: False
       pos_encoding_as_features: &pos_enc
-        pos_type: centroid_effective_resistances
-        num_pos: 1
+        pos_type: laplacian_eigvec
+        num_pos: 3
         normalization: "none"
         disconnected_comp: True
+      # pos_encoding_as_features: &pos_enc
+      #   pos_type: centroid_effective_resistances
+      #   num_pos: 1
+      #   normalization: "none"
+      #   disconnected_comp: True
       pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
@@ -75,15 +80,15 @@ architecture:
     last_dropout: *dropout_gnn
     normalization: *normalization
     last_normalization: *normalization
-    residual_type: simple
+    residual_type: random
     pooling: ['sum', 'max']
     virtual_node: 'none'
     layer_type: 'dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
-      # aggregators: [mean, max, sum, dir1/dx_abs]
+      aggregators: [mean, max, sum, dir1/dx_abs]
       # aggregators: [mean, max, sum, dir0/dx_no_abs/rad3]
-      aggregators: [mean, max, sum, dir0/forward/rad1,dir0/forward/rad2,dir0/forward/rad3, dir0/backward/rad1,dir0/backward/rad2, dir0/backward/rad3]
+      # aggregators: [mean, max, sum, dir0/forward/rad1,dir0/forward/rad2,dir0/forward/rad3, dir0/backward/rad1,dir0/backward/rad2, dir0/backward/rad3]
       # aggregators: [mean, max, sum, dir0/forward/rad1 dir0/backward/rad1]
       scalers: [identity]
 

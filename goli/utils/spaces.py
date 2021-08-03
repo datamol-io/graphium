@@ -11,6 +11,7 @@ from goli.nn.dgl_layers import (
     PNAMessagePassingLayer,
     DGNConvolutionalLayer,
     DGNMessagePassingLayer,
+    DGNHybridTransformerLayer,
 )
 
 from goli.nn.residual_connections import (
@@ -19,6 +20,7 @@ from goli.nn.residual_connections import (
     ResidualConnectionNone,
     ResidualConnectionSimple,
     ResidualConnectionWeighted,
+    ResidualConnectionRandom,
 )
 
 
@@ -35,6 +37,7 @@ DGL_LAYERS_DICT = {
     "pna-msgpass": PNAMessagePassingLayer,
     "dgn-conv": DGNConvolutionalLayer,
     "dgn-msgpass": DGNMessagePassingLayer,
+    "dgn_hybrid_trans": DGNHybridTransformerLayer,
 }
 
 LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
@@ -47,4 +50,5 @@ RESIDUALS_DICT = {
     "weighted": ResidualConnectionWeighted,
     "concat": ResidualConnectionConcat,
     "densenet": ResidualConnectionDenseNet,
+    "random": ResidualConnectionRandom,
 }

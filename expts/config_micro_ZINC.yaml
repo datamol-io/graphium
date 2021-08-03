@@ -20,11 +20,25 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
+      # pos_encoding_as_features: &pos_enc
+      #   pos_type: laplacian_eigvec
+      #   num_pos: 3
+      #   normalization: "none"
+      #   disconnected_comp: True
+      # pos_encoding_as_features: &pos_enc
+      #   pos_type: centroid_effective_resistances
+      #   num_pos: 1
+      #   normalization: "none"
+      #   disconnected_comp: True
       pos_encoding_as_features: &pos_enc
-        pos_type: centroid_effective_resistances
-        num_pos: 1
-        normalization: "none"
-        disconnected_comp: True
+        - pos_type: laplacian_eigvec
+          num_pos: 3
+          normalization: "none"
+          disconnected_comp: True
+        - pos_type: centroid_effective_resistances
+          num_pos: 1
+          normalization: "none"
+          disconnected_comp: True
       pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
@@ -83,7 +97,8 @@ architecture:
       # aggregators: [mean, max, dir1/dx_abs, dir1/smooth, dir2/dx_abs, dir1/dx_abs/.2]
       # aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
       # aggregators: [mean, max, dir0/dx_no_abs, dir0/smooth]
-      aggregators: [mean, max, dir0/forward, dir0/backward]
+      # aggregators: [mean, max, dir0/forward, dir0/backward]
+      aggregators: [mean, max, sum, dir1/dx_abs]
       scalers: [identity, amplification, attenuation]
 
   post_nn:
