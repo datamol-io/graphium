@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Dict, Union
+from typing import Tuple, Optional, Dict, Union, List,Any
 import numpy as np
 from scipy.sparse import spmatrix
 import torch
@@ -8,8 +8,8 @@ from goli.features.spectral import compute_laplacian_positional_eigvecs, compute
 
 def get_all_positional_encoding(
     adj: Union[np.ndarray, spmatrix],
-    pos_encoding_as_features: Optional[Dict] = None,
-    pos_encoding_as_directions: Optional[Dict] = None,
+    pos_encoding_as_features: Optional[List[Dict[str, Any]]] = None,
+    pos_encoding_as_directions: Optional[List[Dict[str, Any]]] = None,
 ) -> Tuple[np.ndarray, np.ndarray]:
     r"""
     Get features positional encoding and direction positional encoding.
@@ -24,44 +24,33 @@ def get_all_positional_encoding(
 
     if not isinstance(pos_encoding_as_features, list):
         pos_encoding_as_features = [pos_encoding_as_features]
+    elif pos_encoding_as_features is None:
+        pos_encoding_as_features = []
+
+    if not isinstance(pos_encoding_as_directions, list):
         pos_encoding_as_directions = [pos_encoding_as_directions]
+    elif pos_encoding_as_directions is None:
+        pos_encoding_as_directions = []
+
 
     pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = None, None, None
+    pos_enc_feats_sign_flip_list = []
+    pos_enc_feats_no_flip_list = []
 
-    for ii, _ in enumerate(pos_encoding_as_features):
+    for i in range(len(pos_encoding_as_features)):
+        
+        pos_encoding_as_features_tmp = pos_encoding_as_features[i]
 
-        pos_enc_feats_sign_flip_tmp, pos_enc_feats_no_flip_tmp, pos_enc_dir_tmp = None, None, None
-        pos_encoding_as_features_tmp = {} if pos_encoding_as_features[ii] is None else pos_encoding_as_features[ii]
-        pos_encoding_as_directions_tmp = {} if pos_encoding_as_directions[ii] is None else pos_encoding_as_directions[ii]
+        pos_enc_feats_sign_flip_tmp, pos_enc_feats_no_flip_tmp = None, None
 
         # Get the positional encoding for the features
-        if len(pos_encoding_as_features_tmp) > 0:
-            pos_enc_feats_sign_flip_tmp, pos_enc_feats_no_flip_tmp = graph_positional_encoder(
+        pos_enc_feats_sign_flip_tmp, pos_enc_feats_no_flip_tmp = graph_positional_encoder(
                 adj, **pos_encoding_as_features_tmp
             )
 
-        # Get the positional encoding for the directions
-        if len(pos_encoding_as_directions_tmp) > 0:
-            if pos_encoding_as_directions_tmp == pos_encoding_as_features_tmp:
+        pos_enc_feats_sign_flip_list.append(pos_enc_feats_sign_flip_tmp)
+        pos_enc_feats_no_flip_list.append(pos_enc_feats_no_flip_tmp)
 
-                # Concatenate the sign-flip and non-sign-flip positional encodings 
-                if pos_enc_feats_sign_flip_tmp is None:
-                    pos_enc_dir_tmp = pos_enc_feats_no_flip_tmp
-                elif pos_enc_feats_no_flip_tmp is None:
-                    pos_enc_dir_tmp = pos_enc_feats_sign_flip_tmp
-                else:
-                    pos_enc_dir_tmp = np.concatenate((pos_enc_feats_sign_flip_tmp, pos_enc_feats_no_flip_tmp), axis=1)
-
-            else:
-                pos_enc_dir1, pos_enc_dir2 = graph_positional_encoder(adj, **pos_encoding_as_directions_tmp)
-                # Concatenate both positional encodings
-                if pos_enc_dir1 is None:
-                    pos_enc_dir_tmp = pos_enc_dir2
-                elif pos_enc_dir2 is None:
-                    pos_enc_dir_tmp = pos_enc_dir1
-                else:
-                    pos_enc_dir_tmp = np.concatenate((pos_enc_dir1, pos_enc_dir2), axis=1)
-        
         if pos_enc_feats_sign_flip is None:
             pos_enc_feats_sign_flip = pos_enc_feats_sign_flip_tmp
         elif (pos_enc_feats_sign_flip is not None) and (pos_enc_feats_sign_flip_tmp is not None): 
@@ -72,10 +61,43 @@ def get_all_positional_encoding(
         elif (pos_enc_feats_no_flip is not None) and (pos_enc_feats_no_flip_tmp is not None): 
             pos_enc_feats_no_flip = np.concatenate((pos_enc_feats_no_flip, pos_enc_feats_no_flip_tmp), axis=1)
 
+    for i in range(len(pos_encoding_as_directions)):
+
+        pos_encoding_as_directions_tmp = pos_encoding_as_directions[i]
+        pos_enc_dir_tmp = None
+
+        # Get the positional encoding for the directions
+
+        if pos_encoding_as_directions_tmp in pos_encoding_as_features:
+
+            idx = pos_encoding_as_features.index(pos_encoding_as_directions_tmp)
+
+            # Concatenate the sign-flip and non-sign-flip positional encodings 
+            if pos_enc_feats_sign_flip_list[idx] is None:
+                pos_enc_dir_tmp = pos_enc_feats_no_flip_list[idx]
+            elif pos_enc_feats_no_flip_list[idx] is None:
+                pos_enc_dir_tmp = pos_enc_feats_sign_flip_list[idx]
+            else:
+                pos_enc_dir_tmp = np.concatenate((pos_enc_feats_sign_flip_list[idx], pos_enc_feats_no_flip_list[idx]), axis=1)
+
+        else:
+            pos_enc_dir1, pos_enc_dir2 = graph_positional_encoder(adj, **pos_encoding_as_directions_tmp)
+            # Concatenate both positional encodings
+            if pos_enc_dir1 is None:
+                pos_enc_dir_tmp = pos_enc_dir2
+            elif pos_enc_dir2 is None:
+                pos_enc_dir_tmp = pos_enc_dir1
+            else:
+                pos_enc_dir_tmp = np.concatenate((pos_enc_dir1, pos_enc_dir2), axis=1)
+        
         if pos_enc_dir is None:
             pos_enc_dir = pos_enc_dir_tmp
         elif (pos_enc_dir is not None) and (pos_enc_dir_tmp is not None): 
-            pos_enc_dir = np.concatenate((pos_enc_dir, pos_enc_dir_tmp), axis=1)
+            pos_enc_dir = torch.cat([pos_enc_dir, pos_enc_dir_tmp], dim=-1)
+
+
+
+
 
     return pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 

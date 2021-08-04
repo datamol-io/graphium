@@ -98,7 +98,8 @@ architecture:
       # aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
       # aggregators: [mean, max, dir0/dx_no_abs, dir0/smooth]
       # aggregators: [mean, max, dir0/forward, dir0/backward]
-      aggregators: [mean, max, sum, dir1/dx_abs]
+      aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
+      # aggregators: [mean, max, sum, dir1/dx_abs, dir3/forward, dir3/backward]
       scalers: [identity, amplification, attenuation]
 
   post_nn:
