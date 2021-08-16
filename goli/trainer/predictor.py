@@ -1,3 +1,4 @@
+from goli.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import os
 import numpy as np
@@ -21,11 +22,10 @@ LOSS_DICT = {
     "bce": torch.nn.BCELoss(),
     "l1": torch.nn.L1Loss(),
     "mae": torch.nn.L1Loss(),
-    "cosine": torch.nn.CosineEmbeddingLoss(),
 }
 
 GOLI_PRETRAINED_MODELS = {
-    "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test.ckpt"
+    "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
 }
 
 
@@ -314,14 +314,22 @@ class PredictorModule(pl.LightningModule):
             targets:
                 Target values
 
+            weights:
+                No longer supported, will raise an error.
+
             target_nan_mask:
 
-                - None: Do not change behaviour if there are nans
+                - None: Do not change behaviour if there are NaNs
 
-                - int, float: Value used to replace nans. For example, if `target_nan_mask==0`, then
-                  all nans will be replaced by zeros
+                - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
+                  all NaNs will be replaced by zeros
 
-                - 'ignore': Nans will be ignored when computing the loss.
+                - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
+
+                - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
+                  has a different number of NaNs, so the metric will be computed separately
+                  on each column, and the metric result will be averaged over all columns.
+                  *This option might slowdown the computation if there are too many labels*
 
             loss_fun:
                 Loss function to use
@@ -330,22 +338,13 @@ class PredictorModule(pl.LightningModule):
             Tensor:
                 Resulting loss
         """
-        if target_nan_mask is None:
-            pass
-        elif isinstance(target_nan_mask, (int, float)):
-            targets = targets.clone()
-            targets[torch.isnan(targets)] = target_nan_mask
-        elif target_nan_mask == "ignore":
-            nans = torch.isnan(targets)
-            targets = targets[~nans]
-            preds = preds[~nans]
-        else:
-            raise ValueError(f"Invalid option `{target_nan_mask}`")
 
-        if weights is None:
-            loss = loss_fun(preds, targets)
-        else:
-            loss = loss_fun(preds, targets, weights=weights)
+        wrapped_loss_fun = MetricWrapper(
+            metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask
+        )
+        if weights is not None:
+            raise NotImplementedError("Weights are no longer supported in the loss")
+        loss = wrapped_loss_fun(preds=preds, target=targets)
 
         return loss
 
@@ -518,7 +517,9 @@ class PredictorModule(pl.LightningModule):
             yaml.dump(full_dict, file)
 
     def on_train_start(self):
-        self.logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
+        hparams_log = deepcopy(self.hparams)
+        hparams_log["n_params"] = self.n_params
+        self.logger.log_hyperparams(hparams_log, self.epoch_summary.get_results("val").metrics)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()
