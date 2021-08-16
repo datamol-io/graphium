@@ -25,7 +25,7 @@ LOSS_DICT = {
 }
 
 GOLI_PRETRAINED_MODELS = {
-    "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test.ckpt"
+    "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
 }
 
 
@@ -517,7 +517,9 @@ class PredictorModule(pl.LightningModule):
             yaml.dump(full_dict, file)
 
     def on_train_start(self):
-        self.logger.log_hyperparams(self.hparams, self.epoch_summary.get_results("val").metrics)
+        hparams_log = deepcopy(self.hparams)
+        hparams_log["n_params"] = self.n_params
+        self.logger.log_hyperparams(hparams_log, self.epoch_summary.get_results("val").metrics)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = super().get_progress_bar_dict()

@@ -56,7 +56,7 @@ Different utilities for molecules, such as Smiles to adjacency graph transformer
 
 ### trainer
 
-The trainer contains the interface to the `pytorch-lightning` library, with `ModelWrapper` being the main class used for any NN model, either for regression or classification. It also contains some modifications to the logger and model_summary from `pytorch-lightning` to enable more flexibility.
+The trainer contains the interface to the `pytorch-lightning` library, with `PredictorModule` being the main class used for any NN model, either for regression or classification. It also contains some modifications to the logger and model_summary from `pytorch-lightning` to enable more flexibility.
 
 ### utils
 
@@ -78,11 +78,11 @@ To be used in the configuration file as a `goli.model.layer_name`, it must also 
 
 All NN and GNN architectures compatible with the `DGL` library are provided in the file `goli/dgl/architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `goli.nn.architectures.FeedForwardNN` for regular neural networks, from `goli.nn.architectures.FeedForwardDGL` for DGL neural network, or from any of their sub-classes.
 
-### Changing the ModelWrapper and loss function
+### Changing the PredictorModule and loss function
 
-The `ModelWrapper` is a general pytorch-lightning module that should work with any kind of `pytorch.nn.Module` or `pl.LightningModule`. The class defines a structure of including models, loss functions, batch sizes, collate functions, metrics...
+The `PredictorModule` is a general pytorch-lightning module that should work with any kind of `pytorch.nn.Module` or `pl.LightningModule`. The class defines a structure of including models, loss functions, batch sizes, collate functions, metrics...
 
-Some loss functions are already implemented in the ModelWrapper, including `mse, bce, mae, cosine`, but some tasks will require more complex loss functions. One can add any new function in `goli.trainer.predictor.ModelWrapper._parse_loss_fun`.
+Some loss functions are already implemented in the PredictorModule, including `mse, bce, mae, cosine`, but some tasks will require more complex loss functions. One can add any new function in `goli.trainer.predictor.PredictorModule._parse_loss_fun`.
 
 ### Changing the metrics used
 
