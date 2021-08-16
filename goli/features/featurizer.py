@@ -646,11 +646,22 @@ def mol_to_dglgraph(
             The torch data type used to build the graph
 
         on_error:
-            What to do when the featurization fails.
+            What to do when the featurization fails. This can change the
+            behavior of `mask_nan`.
 
             - "raise": Raise an error
             - "warn": Raise a warning and return None
             - "ignore": Ignore the error and return None
+
+        mask_nan:
+            Deal with molecules that fail a part of the featurization.
+            NaNs can happen when taking the of a noble gas,
+            or other properties that are not measured for specific atoms.
+
+            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "warn": Raise a warning when there is a nan in the featurization
+            - "None": Don't do anything
+            - "Floating value": Replace nans by the specified value
 
     Returns:
 

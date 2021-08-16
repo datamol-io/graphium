@@ -130,6 +130,7 @@ dmypy.json
 
 # Custom GitIgnore
 *.code-workspace
+*.out
 lightning_logs/
 logs/
 .vscode/
@@ -137,15 +138,10 @@ models_checkpoints/
 multirun/
 outputs/
 aws_multirun/
-
 rever/
-
-
 
 goli/data/ZINC_bench_gnn/
 goli/data/BindingDB/
 goli/data/cache/
-
 predictions/
-
 expts_untracked/

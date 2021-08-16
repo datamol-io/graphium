@@ -113,7 +113,7 @@ predictor:
     monitor: &monitor mae/val
     mode: &mode min
     frequency: 1
-  target_nan_mask: ignore # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
+  target_nan_mask: ignore-flatten # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
 
 
 metrics:
