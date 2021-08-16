@@ -641,8 +641,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         label_cols = check_arg_iterator(label_cols, enforce_type=list)
 
         smiles = df[smiles_col].values
-        labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
-        labels = np.stack(labels, axis=1)
+        if len(label_cols) > 0:
+            labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
+            labels = np.stack(labels, axis=1)
+        else:
+            labels = np.zeros([len(smiles), 0])
 
         indices = None
         if idx_col is not None:
@@ -701,11 +704,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             )
 
             sub_split_test = split_test / (split_test + split_val)
-            val_indices, test_indices = train_test_split(
-                val_test_indices,
-                test_size=sub_split_test,
-                random_state=split_seed,
-            )
+            if split_test > 0:
+                val_indices, test_indices = train_test_split(
+                    val_test_indices,
+                    test_size=sub_split_test,
+                    random_state=split_seed,
+                )
+            else:
+                val_indices = val_test_indices
+                test_indices = np.array([])
 
         else:
             # Split from an indices file

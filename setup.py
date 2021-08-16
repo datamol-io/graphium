@@ -29,7 +29,7 @@ install_requires = [
 
 setup(
     name="goli",
-    version="0.1.0",
+    version="0.2.2",
     author="Valence Discovery",
     author_email="dominique@valencediscovery.com",
     url="https://github.com/valence-discovery/goli",
