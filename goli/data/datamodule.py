@@ -638,8 +638,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         label_cols = check_arg_iterator(label_cols, enforce_type=list)
 
         smiles = df[smiles_col].values
-        labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
-        labels = np.stack(labels, axis=1)
+        if len(label_cols) > 0:
+            labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
+            labels = np.stack(labels, axis=1)
+        else:
+            labels = np.zeros([len(smiles), 0])
 
         indices = None
         if idx_col is not None:
