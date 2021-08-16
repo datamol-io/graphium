@@ -29,7 +29,7 @@ class DGNHybridTransformerLayer(DGNMessagePassingLayer):
         # h: # [num_nodes_total, in_dim]
         h = super().forward(g=g, h=h, e=e) # [num_nodes_total, out_dim]
         m,n = h.size()
-        
+    
         
         # Take the tensor h, and transform it into a tensor of shape [sequence_lenght, batch_size, out_dim]
         seq_len = g.batch_num_nodes().max()
@@ -37,16 +37,20 @@ class DGNHybridTransformerLayer(DGNMessagePassingLayer):
         h_mask = h_mask < g.batch_num_nodes().unsqueeze(0)
         h_mask = h_mask.unsqueeze(-1).repeat([1, 1, h.shape[-1]]) # [sequence_lenght, batch_size, out_dim]
 
-        # src: [sequence_lenght, batch_size, out_dim]
+        #src: [sequence_lenght, batch_size, out_dim]
         src = torch.zeros([g.batch_num_nodes().max(), g.batch_size, h.shape[-1]], dtype=h.dtype, device=h.device)
         src = src.masked_scatter(h_mask, h.flatten())
-        src_mask = ~h_mask[:,:,-1].t()
+        
+        # src_mask = ~h_mask[:,:,-1].t()
 
-        h = self.transformer_layer(src=src, src_key_padding_mask = src_mask) # [sequence_lenght, batch_size, num_dim]
+        h = self.transformer_layer(src=src) #src_key_padding_mask = src_mask) # [sequence_lenght, batch_size, num_dim]
         h = h[h_mask]
         h = h.reshape([m,n]) # [num_nodes_total, out_dim]
 
-        
+        # idea1: del src, src_mask
+        # idea2: line 42 -> h = src.masked_scatter
+        # idea3: ???
+
         return h # [num_nodes_total, out_dim]
 
 
