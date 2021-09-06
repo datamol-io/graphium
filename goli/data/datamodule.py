@@ -339,14 +339,16 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if self.df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
+            label_cols = check_arg_iterator(self.label_cols, enforce_type=list)
             usecols = (
                 check_arg_iterator(self.smiles_col, enforce_type=list)
-                + check_arg_iterator(self.label_cols, enforce_type=list)
+                + label_cols
                 + check_arg_iterator(self.idx_col, enforce_type=list)
                 + check_arg_iterator(self.weights_col, enforce_type=list)
             )
+            label_dtype = {col: np.float16 for col in label_cols}
 
-            df = self._read_csv(self.df_path, usecols=usecols)
+            df = self._read_csv(self.df_path, usecols=usecols, dtype=label_dtype)
         else:
             df = self.df
 
