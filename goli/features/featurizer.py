@@ -92,7 +92,7 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
-            property_array.append(np.asarray(one_hot, dtype=np.float32))
+            property_array.append(np.asarray(one_hot, dtype=np.float16))
 
         prop_dict[prop_name] = np.stack(property_array, axis=0)
 
@@ -182,7 +182,7 @@ def get_mol_atomic_features_float(
 
         prop_name = None
 
-        property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float32)
+        property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float16)
         for ii, atom in enumerate(mol.GetAtoms()):
 
             val = None
@@ -474,7 +474,7 @@ def get_mol_edge_features(
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
-            property_array.append(np.asarray(encoding, dtype=np.float32))
+            property_array.append(np.asarray(encoding, dtype=np.float16))
 
         if num_bonds > 0:
             property_array = np.stack(property_array, axis=0)
