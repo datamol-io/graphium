@@ -604,7 +604,7 @@ def mol_to_dglgraph(
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
-    dtype: torch.dtype = torch.float32,
+    dtype: torch.dtype = torch.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = None,
 ) -> dgl.DGLGraph:
@@ -741,15 +741,15 @@ def mol_to_dglgraph(
 
     # Add sign-flip positional encoding
     if pos_enc_feats_sign_flip is not None:
-        graph.ndata["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip
+        graph.ndata["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip.to(dtype=dtype)
 
     # Add non-sign-flip positional encoding
     if pos_enc_feats_no_flip is not None:
-        graph.ndata["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip
+        graph.ndata["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip.to(dtype=dtype)
 
     # Add positional encoding for directional use
     if pos_enc_dir is not None:
-        graph.ndata["pos_dir"] = pos_enc_dir
+        graph.ndata["pos_dir"] = pos_enc_dir.to(dtype=dtype)
 
     return graph
 
