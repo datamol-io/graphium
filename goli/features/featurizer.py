@@ -718,7 +718,7 @@ def mol_to_dglgraph(
             return None
 
     # Transform the matrix and data into a DGLGraph object
-    graph = dgl.from_scipy(adj)
+    graph = dgl.from_scipy(adj, idtype=torch.int32)
 
     # Assign the node data
     if ndata is not None:
