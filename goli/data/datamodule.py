@@ -8,6 +8,8 @@ import zipfile
 from loguru import logger
 import fsspec
 import omegaconf
+import gc
+import time
 
 import pandas as pd
 import numpy as np
@@ -20,7 +22,7 @@ import pytorch_lightning as pl
 import datamol as dm
 
 from goli.utils import fs
-from goli.features import mol_to_dglgraph
+from goli.features import mol_to_dglgraph_dict
 from goli.features import mol_to_dglgraph_signature
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
@@ -372,13 +374,17 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # - or compute the features on-the-fly during `next(iter(dataloader))`
         # For now we compute in advance and hold everything in memory.
         featurization_args = self.featurization or {}
-        transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
+        transform_smiles = functools.partial(mol_to_dglgraph_dict, **featurization_args)
         features = dm.utils.parallelized(
             transform_smiles,
-            smiles,
+            smiles.tolist(),
             progress=self.featurization_progress,
             n_jobs=self.featurization_n_jobs,
+            batch_size=len(smiles) // 100,
         )
+
+        time.sleep(1)
+        gc.collect()
 
         # Warn about None molecules
         is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
@@ -478,10 +484,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
     def num_node_feats(self):
         """Return the number of node features in the first graph"""
 
-        graph = self.get_first_graph()
+        graph_dict = self.get_first_graph()
         num_feats = 0
-        if "feat" in graph.ndata.keys():
-            num_feats += graph.ndata["feat"].shape[1]
+        if "feat" in graph_dict["ndata"].keys():
+            num_feats += graph_dict["ndata"]["feat"].shape[1]
         return num_feats
 
     @property
@@ -489,23 +495,23 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of node features in the first graph
         including positional encoding features."""
 
-        graph = self.get_first_graph()
+        graph_dict = self.get_first_graph()
         num_feats = 0
-        if "feat" in graph.ndata.keys():
-            num_feats += graph.ndata["feat"].shape[1]
-        if "pos_enc_feats_sign_flip" in graph.ndata.keys():
-            num_feats += graph.ndata["pos_enc_feats_sign_flip"].shape[1]
-        if "pos_enc_feats_no_flip" in graph.ndata.keys():
-            num_feats += graph.ndata["pos_enc_feats_no_flip"].shape[1]
+        if "feat" in graph_dict["ndata"].keys():
+            num_feats += graph_dict["ndata"]["feat"].shape[1]
+        if "pos_enc_feats_sign_flip" in graph_dict["ndata"].keys():
+            num_feats += graph_dict["ndata"]["pos_enc_feats_sign_flip"].shape[1]
+        if "pos_enc_feats_no_flip" in graph_dict["ndata"].keys():
+            num_feats += graph_dict["ndata"]["pos_enc_feats_no_flip"].shape[1]
         return num_feats
 
     @property
     def num_edge_feats(self):
         """Return the number of edge features in the first graph"""
 
-        graph = self.get_first_graph()
-        if "feat" in graph.edata.keys():
-            return graph.edata["feat"].shape[1]  # type: ignore
+        graph_dict = self.get_first_graph()
+        if "feat" in graph_dict["edata"].keys():
+            return graph_dict["edata"]["feat"].shape[1]  # type: ignore
         else:
             return 0
 
@@ -524,7 +530,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         featurization_args = self.featurization or {}
-        transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
+        transform_smiles = functools.partial(mol_to_dglgraph_dict, **featurization_args)
         graph = None
         for s in smiles:
             graph = transform_smiles(s)
@@ -572,9 +578,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # This allows loading the cache much faster if it is zipped or in the cloud
         filesystem, _ = fsspec.core.url_to_fs(self.cache_data_path, mode="rb")
         protocol = check_arg_iterator(filesystem.protocol, enforce_type=list)
-        filesystem = fsspec.filesystem("filecache", target_protocol=protocol[0], target_options={'anon': True}, cache_storage='/tmp/files/', compression="infer")
+        filesystem = fsspec.filesystem("filecache", target_protocol=protocol[0], target_options={'anon': True}, cache_storage='/tmp/datamodule_files/', compression="infer")
         with filesystem.open(self.cache_data_path, "rb", compression="infer") as f:
             cache = torch.load(f)
+
 
         # Are the required keys present?
         excepted_cache_keys = {
