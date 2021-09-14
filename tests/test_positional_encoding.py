@@ -10,7 +10,7 @@ import datamol as dm
 
 from goli.features.featurizer import (
     mol_to_adj_and_features,
-    mol_to_dglgraph,
+    mol_to_dglgraph_dict,
 )
 from goli.features.positional_encoding import graph_positional_encoder
 

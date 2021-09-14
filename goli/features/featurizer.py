@@ -29,7 +29,7 @@ def _to_dense_tensor(array_or_tensor, dtype):
             array_or_tensor = torch.from_numpy(array_or_tensor)
         if not isinstance(array_or_tensor, torch.Tensor):
             array_or_tensor = torch.as_tensor(array_or_tensor)
-        if array_or_tensor.is_sparse():
+        if array_or_tensor.is_sparse:
             if array_or_tensor.dtype == torch.float16:
                 array_or_tensor = array_or_tensor.to(torch.float32)
             array_or_tensor = array_or_tensor.to_dense()
