@@ -8,8 +8,10 @@ import zipfile
 from loguru import logger
 import fsspec
 import omegaconf
-import gc
 import time
+from tqdm import tqdm
+from joblib import Parallel, delayed
+from joblib.externals.loky import get_reusable_executor
 
 import pandas as pd
 import numpy as np
@@ -19,19 +21,14 @@ from sklearn.model_selection import train_test_split
 import dgl
 import pytorch_lightning as pl
 
-import datamol as dm
-
 from goli.utils import fs
-from goli.features import mol_to_dglgraph_dict
-from goli.features import mol_to_dglgraph_signature
+from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
-
 
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
-
 
 class DGLDataset(Dataset):
     def __init__(
@@ -375,16 +372,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # For now we compute in advance and hold everything in memory.
         featurization_args = self.featurization or {}
         transform_smiles = functools.partial(mol_to_dglgraph_dict, **featurization_args)
-        features = dm.utils.parallelized(
-            transform_smiles,
-            smiles.tolist(),
-            progress=self.featurization_progress,
-            n_jobs=self.featurization_n_jobs,
-            batch_size=len(smiles) // 100,
-        )
 
-        time.sleep(1)
-        gc.collect()
+        features = Parallel(n_jobs=self.featurization_n_jobs, backend="multiprocessing")(
+            delayed(transform_smiles)(s) for s in tqdm(smiles)
+        )
 
         # Warn about None molecules
         is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
