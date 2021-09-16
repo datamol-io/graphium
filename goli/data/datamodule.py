@@ -30,6 +30,7 @@ import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
+
 class DGLDataset(Dataset):
     def __init__(
         self,
@@ -329,12 +330,14 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.val_indices = None
         self.test_indices = None
 
-        if prepare_dict_or_graph=="dict":
+        if prepare_dict_or_graph == "dict":
             self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
-        elif prepare_dict_or_graph=="graph":
+        elif prepare_dict_or_graph == "graph":
             self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
         else:
-            raise ValueError(f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`")
+            raise ValueError(
+                f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`"
+            )
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -588,10 +591,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # This allows loading the cache much faster if it is zipped or in the cloud
         filesystem, _ = fsspec.core.url_to_fs(self.cache_data_path, mode="rb")
         protocol = check_arg_iterator(filesystem.protocol, enforce_type=list)
-        filesystem = fsspec.filesystem("filecache", target_protocol=protocol[0], target_options={'anon': True}, cache_storage='/tmp/datamodule_files/', compression="infer")
+        filesystem = fsspec.filesystem(
+            "filecache",
+            target_protocol=protocol[0],
+            target_options={"anon": True},
+            cache_storage="/tmp/datamodule_files/",
+            compression="infer",
+        )
         with filesystem.open(self.cache_data_path, "rb", compression="infer") as f:
             cache = torch.load(f)
-
 
         # Are the required keys present?
         excepted_cache_keys = {

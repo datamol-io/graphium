@@ -118,7 +118,7 @@ def normalize_matrix(matrix, degree_vector=None, normalization: str = None):
             raise ValueError("`degree_vector` cannot be `None` if `normalization` is not `None`")
     else:
         if is_dtype_numpy_array(matrix.dtype):
-            with np.errstate(divide='ignore', invalid='ignore'):
+            with np.errstate(divide="ignore", invalid="ignore"):
                 degree_inv = np.expand_dims(degree_vector ** -0.5, axis=1)
                 degree_inv[np.isinf(degree_inv)] = 0
         elif is_dtype_torch_tensor(matrix.dtype):
