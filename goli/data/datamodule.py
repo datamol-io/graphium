@@ -22,7 +22,7 @@ import dgl
 import pytorch_lightning as pl
 
 from goli.utils import fs
-from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature
+from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
 
@@ -373,9 +373,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_args = self.featurization or {}
         transform_smiles = functools.partial(mol_to_dglgraph_dict, **featurization_args)
 
-        features = Parallel(n_jobs=self.featurization_n_jobs, backend="multiprocessing")(
-            delayed(transform_smiles)(s) for s in tqdm(smiles)
-        )
+        if self.featurization_n_jobs == 0:
+            features = [transform_smiles(s) for s in tqdm(smiles)]
+        else:
+            features = Parallel(n_jobs=self.featurization_n_jobs, backend="multiprocessing")(
+                delayed(transform_smiles)(s) for s in tqdm(smiles)
+            )
 
         # Warn about None molecules
         is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])

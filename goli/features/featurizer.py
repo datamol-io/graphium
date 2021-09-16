@@ -1,42 +1,52 @@
 from typing import Union, List, Callable, Dict, Tuple, Any, Optional
 
 import inspect
-import warnings
 from loguru import logger
 
 import numpy as np
-from scipy.sparse import csr, csr_matrix, issparse, coo_matrix
-import dgl
+from scipy.sparse import csr_matrix, issparse, coo_matrix
 import torch
+import dgl
 
 from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
-import datamol as dm
+from datamol import to_mol
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
 from goli.features.positional_encoding import get_all_positional_encoding
 
-
-def _to_dense_tensor(array_or_tensor, dtype):
+def _to_dense_array(array, dtype):
     # Assign the node data
-    if array_or_tensor is not None:
-        if issparse(array_or_tensor):
-            if array_or_tensor.dtype == np.float16:
-                array_or_tensor = array_or_tensor.astype(np.float32)
-            array_or_tensor = array_or_tensor.todense()
-        if isinstance(array_or_tensor, np.ndarray):
-            array_or_tensor = torch.from_numpy(array_or_tensor)
-        if not isinstance(array_or_tensor, torch.Tensor):
-            array_or_tensor = torch.as_tensor(array_or_tensor)
-        if array_or_tensor.is_sparse:
-            if array_or_tensor.dtype == torch.float16:
-                array_or_tensor = array_or_tensor.to(torch.float32)
-            array_or_tensor = array_or_tensor.to_dense()
-        if dtype is not None:
-            array_or_tensor = array_or_tensor.to(dtype=dtype)
+    if array is not None:
+        if issparse(array):
+            if array.dtype == np.float16:
+                array = array.astype(np.float32)
+            array = array.todense()
 
-    return array_or_tensor
+        array = array.astype(dtype)
+    return array
+
+
+# def _to_dense_tensor(array_or_tensor, dtype):
+#     # Assign the node data
+#     if array_or_tensor is not None:
+#         if issparse(array_or_tensor):
+#             if array_or_tensor.dtype == np.float16:
+#                 array_or_tensor = array_or_tensor.astype(np.float32)
+#             array_or_tensor = array_or_tensor.todense()
+#         if isinstance(array_or_tensor, np.ndarray):
+#             array_or_tensor = torch.from_numpy(array_or_tensor)
+#         if not isinstance(array_or_tensor, torch.Tensor):
+#             array_or_tensor = torch.as_tensor(array_or_tensor)
+#         if array_or_tensor.is_sparse:
+#             if array_or_tensor.dtype == torch.float16:
+#                 array_or_tensor = array_or_tensor.to(torch.float32)
+#             array_or_tensor = array_or_tensor.todense()
+#         if dtype is not None:
+#             array_or_tensor = array_or_tensor.to(dtype=dtype)
+
+#     return array_or_tensor
 
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
     r"""
@@ -580,7 +590,7 @@ def mol_to_adj_and_features(
     """
 
     if isinstance(mol, str):
-        mol = dm.to_mol(mol)
+        mol = to_mol(mol)
 
     # Add or remove explicit hydrogens
     if explicit_H:
@@ -601,8 +611,8 @@ def mol_to_adj_and_features(
     ndata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in ndata]
 
     if len(ndata) > 0:
-        ndata = np.concatenate(ndata, axis=1)
-        ndata = torch.as_tensor(ndata, dtype=torch.float16).to_sparse()
+        ndata = np.concatenate(ndata, axis=1).astype(np.float32)
+        ndata = coo_matrix(ndata)
     else:
         ndata = None
 
@@ -611,8 +621,8 @@ def mol_to_adj_and_features(
     edata = list(edge_features.values())
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
     if len(edata) > 0:
-        edata = np.concatenate(edata, axis=1)
-        edata = torch.as_tensor(edata, dtype=torch.float16).to_sparse()
+        edata = np.concatenate(edata, axis=1).astype(np.float32)
+        edata = coo_matrix(edata)
     else:
         edata = None
 
@@ -634,7 +644,7 @@ def mol_to_dglgraph_dict(
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
-    dtype: torch.dtype = torch.float16,
+    dtype: np.dtype = np.float32,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = None,
 ) -> Dict:
@@ -673,7 +683,7 @@ def mol_to_dglgraph_dict(
             such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
 
         dtype:
-            The torch data type used to build the graph
+            The numpy data type used to build the graph
 
         on_error:
             What to do when the featurization fails. This can change the
@@ -707,7 +717,7 @@ def mol_to_dglgraph_dict(
     try:
 
         if isinstance(mol, str):
-            mol = dm.to_mol(mol)
+            mol = to_mol(mol)
         if explicit_H:
             mol = Chem.AddHs(mol)
         else:
@@ -756,10 +766,10 @@ def mol_to_dglgraph_dict(
     # Assign the edge data. Due to DGL only supporting Hetero-graphs, we
     # need to duplicate each edge information for its 2 entries
     if edata is not None:
-        if edata.is_sparse:
-            edata = edata.to(torch.float32).to_dense()
+        if issparse(edata):
+            edata = edata.astype(np.float32).todense()
         src_ids, dst_ids = np.argwhere(adj).transpose()
-        hetero_edata = torch.zeros(size=(edata.shape[0] * 2, edata.shape[1]), dtype=edata.dtype)
+        hetero_edata = np.zeros(shape=(edata.shape[0] * 2, edata.shape[1]), dtype=edata.dtype)
         for ii in range(mol.GetNumBonds()):
             bond = mol.GetBondWithIdx(ii)
             src, dst = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
@@ -768,7 +778,7 @@ def mol_to_dglgraph_dict(
             hetero_edata[id1, :] = edata[ii, :]
             hetero_edata[id2, :] = edata[ii, :]
 
-        dgl_dict["edata"]["feat"] = hetero_edata.to_sparse().to(torch.float16)
+        dgl_dict["edata"]["feat"] = coo_matrix(hetero_edata)
 
     # Add sign-flip positional encoding
     if pos_enc_feats_sign_flip is not None:
@@ -795,7 +805,7 @@ def mol_to_dglgraph(
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
-    dtype: torch.dtype = torch.float16,
+    dtype: np.dtype = np.float32,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = None,
 ) -> dgl.DGLGraph:
@@ -885,7 +895,7 @@ def mol_to_dglgraph(
 
 
 def dgl_dict_to_graph(
-    adj, ndata: Dict=None, edata:Dict=None, dtype:torch.dtype=None,
+    adj, ndata: Dict=None, edata:Dict=None, dtype:np.dtype=None,
 ) -> dgl.DGLGraph:
 
     # Transform the matrix and data into a DGLGraph object
@@ -893,11 +903,11 @@ def dgl_dict_to_graph(
 
     if ndata is not None:
         for key, val in ndata.items():
-            graph.ndata[key] = _to_dense_tensor(val, dtype=dtype)
+            graph.ndata[key] = torch.as_tensor(_to_dense_array(val, dtype=np.float32))
 
     if edata is not None:
         for key, val in edata.items():
-            graph.edata[key] = _to_dense_tensor(val, dtype=dtype)
+            graph.edata[key] = torch.as_tensor(_to_dense_array(val, dtype=np.float32))
 
     return graph
 
