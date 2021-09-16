@@ -16,7 +16,7 @@ from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
 from goli.features.positional_encoding import get_all_positional_encoding
 
-def _to_dense_array(array, dtype):
+def _to_dense_array(array, dtype=None):
     # Assign the node data
     if array is not None:
         if issparse(array):
@@ -24,7 +24,8 @@ def _to_dense_array(array, dtype):
                 array = array.astype(np.float32)
             array = array.todense()
 
-        array = array.astype(dtype)
+        if dtype is not None:
+            array = array.astype(dtype)
     return array
 
 
@@ -895,7 +896,7 @@ def mol_to_dglgraph(
 
 
 def dgl_dict_to_graph(
-    adj, ndata: Dict=None, edata:Dict=None, dtype:np.dtype=None,
+    adj, ndata: Dict, edata:Dict, dtype:np.dtype=None,
 ) -> dgl.DGLGraph:
 
     # Transform the matrix and data into a DGLGraph object
@@ -903,11 +904,11 @@ def dgl_dict_to_graph(
 
     if ndata is not None:
         for key, val in ndata.items():
-            graph.ndata[key] = torch.as_tensor(_to_dense_array(val, dtype=np.float32))
+            graph.ndata[key] = torch.as_tensor(_to_dense_array(val, dtype=dtype))
 
     if edata is not None:
         for key, val in edata.items():
-            graph.edata[key] = torch.as_tensor(_to_dense_array(val, dtype=np.float32))
+            graph.edata[key] = torch.as_tensor(_to_dense_array(val, dtype=dtype))
 
     return graph
 
