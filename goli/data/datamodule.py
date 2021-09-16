@@ -1,7 +1,7 @@
 from typing import List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
-import functools
+from functools import partial
 import importlib.resources
 import zipfile
 
@@ -22,7 +22,7 @@ import dgl
 import pytorch_lightning as pl
 
 from goli.utils import fs
-from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph
+from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, dgl_dict_to_graph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
 
@@ -220,6 +220,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         collate_fn: Optional[Callable] = None,
+        prepare_dict_or_graph: str = "dict",
     ):
         """
 
@@ -278,6 +279,14 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 - `int`: The maximum number of elements to take from the dataset.
                 - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
                 - `None`: all elements are considered.
+            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs or dict.
+                Possible options:
+
+                - "graph": Process molecules as dgl.DGLGraph. It's slower during pre-processing
+                  and requires more RAM, but faster during training.
+                - "dict": Process molecules as a Dict. It's faster and requires less RAM during
+                  pre-processing, but slower during training since DGLGraphs will be created
+                  during data-loading.
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -292,7 +301,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.df_path = df_path
 
         self.cache_data_path = str(cache_data_path) if cache_data_path is not None else None
-        self.featurization = featurization
+        self.featurization = featurization if featurization is not None else {}
 
         self.smiles_col = smiles_col
         self.label_cols = self._parse_label_cols(label_cols, smiles_col)
@@ -319,6 +328,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.train_indices = None
         self.val_indices = None
         self.test_indices = None
+
+        if prepare_dict_or_graph=="dict":
+            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
+        elif prepare_dict_or_graph=="graph":
+            self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
+        else:
+            raise ValueError(f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`")
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -370,14 +386,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # - or cache the data and read from it during `next(iter(dataloader))`
         # - or compute the features on-the-fly during `next(iter(dataloader))`
         # For now we compute in advance and hold everything in memory.
-        featurization_args = self.featurization or {}
-        transform_smiles = functools.partial(mol_to_dglgraph_dict, **featurization_args)
 
         if self.featurization_n_jobs == 0:
-            features = [transform_smiles(s) for s in tqdm(smiles)]
+            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
         else:
             features = Parallel(n_jobs=self.featurization_n_jobs, backend="multiprocessing")(
-                delayed(transform_smiles)(s) for s in tqdm(smiles)
+                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
             )
 
         # Warn about None molecules
@@ -478,10 +492,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
     def num_node_feats(self):
         """Return the number of node features in the first graph"""
 
-        graph_dict = self.get_first_graph()
+        graph = self.get_first_graph()
         num_feats = 0
-        if "feat" in graph_dict["ndata"].keys():
-            num_feats += graph_dict["ndata"]["feat"].shape[1]
+        if "feat" in graph.ndata.keys():
+            num_feats += graph.ndata["feat"].shape[1]
         return num_feats
 
     @property
@@ -489,23 +503,23 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of node features in the first graph
         including positional encoding features."""
 
-        graph_dict = self.get_first_graph()
+        graph = self.get_first_graph()
         num_feats = 0
-        if "feat" in graph_dict["ndata"].keys():
-            num_feats += graph_dict["ndata"]["feat"].shape[1]
-        if "pos_enc_feats_sign_flip" in graph_dict["ndata"].keys():
-            num_feats += graph_dict["ndata"]["pos_enc_feats_sign_flip"].shape[1]
-        if "pos_enc_feats_no_flip" in graph_dict["ndata"].keys():
-            num_feats += graph_dict["ndata"]["pos_enc_feats_no_flip"].shape[1]
+        if "feat" in graph.ndata.keys():
+            num_feats += graph.ndata["feat"].shape[1]
+        if "pos_enc_feats_sign_flip" in graph.ndata.keys():
+            num_feats += graph.ndata["pos_enc_feats_sign_flip"].shape[1]
+        if "pos_enc_feats_no_flip" in graph.ndata.keys():
+            num_feats += graph.ndata["pos_enc_feats_no_flip"].shape[1]
         return num_feats
 
     @property
     def num_edge_feats(self):
         """Return the number of edge features in the first graph"""
 
-        graph_dict = self.get_first_graph()
-        if "feat" in graph_dict["edata"].keys():
-            return graph_dict["edata"]["feat"].shape[1]  # type: ignore
+        graph = self.get_first_graph()
+        if "feat" in graph.edata.keys():
+            return graph.edata["feat"].shape[1]  # type: ignore
         else:
             return 0
 
@@ -523,13 +537,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
-        featurization_args = self.featurization or {}
-        transform_smiles = functools.partial(mol_to_dglgraph_dict, **featurization_args)
         graph = None
         for s in smiles:
-            graph = transform_smiles(s)
+            graph = self.smiles_transformer(s)
             if graph is not None:
                 break
+
+        if isinstance(graph, dict):
+            graph = dgl_dict_to_graph(**graph)
+
         return graph
 
     # Private methods

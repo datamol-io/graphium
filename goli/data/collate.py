@@ -1,9 +1,9 @@
-import collections.abc
-
+from collections.abc import Mapping
 from torch.utils.data.dataloader import default_collate
-
 import dgl
+from inspect import signature, _empty
 
+from goli.features import dgl_dict_to_graph
 
 def goli_collate_fn(elements):
     """This collate function is identical to the default
@@ -25,11 +25,25 @@ def goli_collate_fn(elements):
 
     elem = elements[0]
 
-    if isinstance(elem, collections.abc.Mapping):
+    params = signature(dgl_dict_to_graph).parameters
+    dgl_dict_mandatory_params = [key for key, val in params.items() if val.default == _empty]
+
+    if isinstance(elem, Mapping):
         batch = {}
         for key in elem:
-            if isinstance(elem[key], dgl.DGLGraph):
+
+            # If the features are a dictionary containing DGLGraph elements,
+            # Convert to DGLGraph and use the dgl batching.
+            if isinstance(elem[key], Mapping) and \
+                all([this_param in list(elem[key].keys()) for this_param in dgl_dict_mandatory_params]):
+                graphs = [dgl_dict_to_graph(**d[key]) for d in elements]
+                batch[key] = dgl.batch(graphs)
+
+            # If a DGLGraph is provided, use the dgl batching
+            elif isinstance(elem[key], dgl.DGLGraph):
                 batch[key] = dgl.batch([d[key] for d in elements])
+
+            # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
         return batch
