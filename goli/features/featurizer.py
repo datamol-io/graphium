@@ -16,6 +16,7 @@ from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
 from goli.features.positional_encoding import get_all_positional_encoding
 
+
 def _to_dense_array(array, dtype=None):
     # Assign the node data
     if array is not None:
@@ -48,6 +49,7 @@ def _to_dense_array(array, dtype=None):
 #             array_or_tensor = array_or_tensor.to(dtype=dtype)
 
 #     return array_or_tensor
+
 
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
     r"""
@@ -634,7 +636,6 @@ def mol_to_adj_and_features(
     return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 
 
-
 def mol_to_dglgraph_dict(
     mol: Chem.rdchem.Mol,
     atom_property_list_onehot: List[str] = [],
@@ -896,7 +897,10 @@ def mol_to_dglgraph(
 
 
 def dgl_dict_to_graph(
-    adj, ndata: Dict, edata:Dict, dtype:np.dtype=None,
+    adj,
+    ndata: Dict,
+    edata: Dict,
+    dtype: np.dtype = None,
 ) -> dgl.DGLGraph:
 
     # Transform the matrix and data into a DGLGraph object

@@ -5,6 +5,7 @@ from inspect import signature, _empty
 
 from goli.features import dgl_dict_to_graph
 
+
 def goli_collate_fn(elements):
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
@@ -34,8 +35,9 @@ def goli_collate_fn(elements):
 
             # If the features are a dictionary containing DGLGraph elements,
             # Convert to DGLGraph and use the dgl batching.
-            if isinstance(elem[key], Mapping) and \
-                all([this_param in list(elem[key].keys()) for this_param in dgl_dict_mandatory_params]):
+            if isinstance(elem[key], Mapping) and all(
+                [this_param in list(elem[key].keys()) for this_param in dgl_dict_mandatory_params]
+            ):
                 graphs = [dgl_dict_to_graph(**d[key]) for d in elements]
                 batch[key] = dgl.batch(graphs)
 
