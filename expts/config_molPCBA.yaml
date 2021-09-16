@@ -6,14 +6,14 @@ datamodule:
   module_type: "DGLOGBDataModule"
   args:
     dataset_name: "ogbg-molpcba"
-    cache_data_path: goli/data/cache/ogb-molpcba/full-morefeatures.cache
+    cache_data_path: null # goli/data/cache/ogb-molpcba/full-morefeatures.cache
 
     # Weights
     weights_type: null
     sample_size: null
 
     # Featurization
-    featurization_n_jobs: 8
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
