@@ -30,6 +30,31 @@ def _to_dense_array(array, dtype=None):
     return array
 
 
+def _mask_nans_inf(mask_nan, array, array_name):
+
+    if (mask_nan is None) or (array is None):
+        return array
+
+    new_array = array
+    if issparse(new_array):
+        new_array = new_array.data
+    nans = ~np.isfinite(new_array)
+
+    # Mask the NaNs
+    if nans.any():
+        msg = f"There are {np.sum(nans)} NaNs in `{array_name}`"
+        if mask_nan == "raise":
+            raise ValueError(msg)
+        elif mask_nan == "warn":
+            logger.warning(msg)
+        else:
+            new_array[nans] = mask_nan
+            if issparse(array):
+                array.data = new_array
+                new_array = array
+    return new_array
+
+
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
     r"""
     Get the following set of features for any given atom
@@ -171,9 +196,9 @@ def get_mol_atomic_features_float(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan in the featurization
             - "warn": Raise a warning when there is a nan in the featurization
-            - "None": Don't do anything
+            - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
 
     Returns:
@@ -296,16 +321,7 @@ def get_mol_atomic_features_float(
             raise ValueError("prop_name is undefined.")
 
         # Mask the NaNs
-        nans = np.isnan(property_array)
-        if mask_nan is not None and nans.any():
-            msg = f"There are {np.sum(nans)} NaNs in the atom featurization"
-            if mask_nan == "raise":
-                raise ValueError(msg)
-            elif mask_nan == "warn":
-                logger.warning(msg)
-            else:
-                property_array[nans] = mask_nan
-        prop_dict[prop_name] = property_array
+        prop_dict[prop_name] = _mask_nans_inf(mask_nan, property_array, "atom featurization")
 
     return prop_dict
 
@@ -491,17 +507,7 @@ def get_mol_edge_features(
         if num_bonds > 0:
             property_array = np.stack(property_array, axis=0)
             # Mask the NaNs
-
-            nans = np.isnan(property_array)
-            if mask_nan is not None and nans.any():  # Mask the NaNs
-                msg = f"There are {np.sum(nans)} NaNs in the bond featurization"
-                if mask_nan == "raise":
-                    raise ValueError(msg)
-                elif mask_nan == "warn":
-                    logger.warning(msg)
-                else:
-                    property_array[nans] = mask_nan
-            prop_dict[prop] = property_array
+            prop_dict[prop] = _mask_nans_inf(mask_nan, property_array, "edge property")
         else:
             prop_dict[prop] = np.array([])
 
@@ -571,9 +577,9 @@ def mol_to_adj_and_features(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan in the featurization
             - "warn": Raise a warning when there is a nan in the featurization
-            - "None": Don't do anything
+            - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
     Returns:
 
@@ -647,6 +653,11 @@ def mol_to_adj_and_features(
     pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = get_all_positional_encoding(
         adj, pos_encoding_as_features, pos_encoding_as_directions
     )
+
+    # Mask the NaNs
+    pos_enc_feats_sign_flip = _mask_nans_inf(mask_nan, pos_enc_feats_sign_flip, "pos_enc_feats_sign_flip")
+    pos_enc_feats_no_flip = _mask_nans_inf(mask_nan, pos_enc_feats_no_flip, "pos_enc_feats_no_flip")
+    pos_enc_dir = _mask_nans_inf(mask_nan, pos_enc_dir, "pos_enc_dir")
 
     return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 
@@ -725,9 +736,9 @@ def mol_to_dglgraph_dict(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan in the featurization
             - "warn": Raise a warning when there is a nan in the featurization
-            - "None": Don't do anything
+            - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
 
     Returns:
@@ -902,9 +913,9 @@ def mol_to_dglgraph(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan in the featurization
             - "warn": Raise a warning when there is a nan in the featurization
-            - "None": Don't do anything
+            - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
 
     Returns:
