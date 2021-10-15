@@ -1,21 +1,58 @@
 from typing import Union, List, Callable, Dict, Tuple, Any, Optional
 
 import inspect
-import warnings
 from loguru import logger
 
 import numpy as np
-from scipy.sparse import csr_matrix
-import dgl
+from scipy.sparse import csr_matrix, issparse, coo_matrix
 import torch
+import dgl
 
 from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
-import datamol as dm
+from datamol import to_mol
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
 from goli.features.positional_encoding import get_all_positional_encoding
+
+
+def _to_dense_array(array, dtype=None):
+    # Assign the node data
+    if array is not None:
+        if issparse(array):
+            if array.dtype == np.float16:  # float16 doesn't support `todense`
+                array = array.astype(np.float32)
+            array = array.todense()
+
+        if dtype is not None:
+            array = array.astype(dtype)
+    return array
+
+
+def _mask_nans_inf(mask_nan, array, array_name):
+
+    if (mask_nan is None) or (array is None):
+        return array
+
+    new_array = array
+    if issparse(new_array):
+        new_array = new_array.data
+    nans = ~np.isfinite(new_array)
+
+    # Mask the NaNs
+    if nans.any():
+        msg = f"There are {np.sum(nans)} NaNs in `{array_name}`"
+        if mask_nan == "raise":
+            raise ValueError(msg)
+        elif mask_nan == "warn":
+            logger.warning(msg)
+        else:
+            new_array[nans] = mask_nan
+            if issparse(array):
+                array.data = new_array
+                new_array = array
+    return new_array
 
 
 def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
@@ -92,7 +129,7 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
-            property_array.append(np.asarray(one_hot, dtype=np.float32))
+            property_array.append(np.asarray(one_hot, dtype=np.float16))
 
         prop_dict[prop_name] = np.stack(property_array, axis=0)
 
@@ -159,9 +196,9 @@ def get_mol_atomic_features_float(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan in the featurization
             - "warn": Raise a warning when there is a nan in the featurization
-            - "None": Don't do anything
+            - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
 
     Returns:
@@ -182,7 +219,7 @@ def get_mol_atomic_features_float(
 
         prop_name = None
 
-        property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float32)
+        property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float16)
         for ii, atom in enumerate(mol.GetAtoms()):
 
             val = None
@@ -284,16 +321,7 @@ def get_mol_atomic_features_float(
             raise ValueError("prop_name is undefined.")
 
         # Mask the NaNs
-        nans = np.isnan(property_array)
-        if mask_nan is not None and nans.any():
-            msg = f"There are {np.sum(nans)} NaNs in the atom featurization"
-            if mask_nan == "raise":
-                raise ValueError(msg)
-            elif mask_nan == "warn":
-                logger.warning(msg)
-            else:
-                property_array[nans] = mask_nan
-        prop_dict[prop_name] = property_array
+        prop_dict[prop_name] = _mask_nans_inf(mask_nan, property_array, "atom featurization")
 
     return prop_dict
 
@@ -474,22 +502,12 @@ def get_mol_edge_features(
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
-            property_array.append(np.asarray(encoding, dtype=np.float32))
+            property_array.append(np.asarray(encoding, dtype=np.float16))
 
         if num_bonds > 0:
             property_array = np.stack(property_array, axis=0)
             # Mask the NaNs
-
-            nans = np.isnan(property_array)
-            if mask_nan is not None and nans.any():  # Mask the NaNs
-                msg = f"There are {np.sum(nans)} NaNs in the bond featurization"
-                if mask_nan == "raise":
-                    raise ValueError(msg)
-                elif mask_nan == "warn":
-                    logger.warning(msg)
-                else:
-                    property_array[nans] = mask_nan
-            prop_dict[prop] = property_array
+            prop_dict[prop] = _mask_nans_inf(mask_nan, property_array, "edge property")
         else:
             prop_dict[prop] = np.array([])
 
@@ -506,11 +524,14 @@ def mol_to_adj_and_features(
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
+    dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = None,
 ) -> Union[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
+
+    It also returns the positional encodings associated to the graph.
 
     Parameters:
 
@@ -542,6 +563,24 @@ def mol_to_adj_and_features(
             Whether to use the floating-point value of the bonds in the adjacency matrix,
             such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
 
+        pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for node features.
+
+        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for directional features.
+
+        dtype:
+            The numpy data type used to build the graph
+
+        mask_nan:
+            Deal with molecules that fail a part of the featurization.
+            NaNs can happen when taking the of a noble gas,
+            or other properties that are not measured for specific atoms.
+
+            - "raise": Raise an error when there is a nan in the featurization
+            - "warn": Raise a warning when there is a nan in the featurization
+            - "None": DEFAULT. Don't do anything
+            - "Floating value": Replace nans by the specified value
     Returns:
 
         adj:
@@ -552,15 +591,30 @@ def mol_to_adj_and_features(
             `atom_property_list_onehot` and `atom_property_list_float`.
             If no properties are given, it returns `None`
 
-        edata
+        edata:
             Concatenated node edge of the molecule, based on the properties from
             `edge_property_list`.
             If no properties are given, it returns `None`
 
+        pos_enc_feats_sign_flip:
+            Node positional encoding that requires augmentation via sign-flip.
+            For example, eigenvectors of the Laplacian are ambiguous to the
+            sign and are returned here.
+
+        pos_enc_feats_no_flip:
+            Node positional encoding that requires does not use sign-flip.
+            For example, distance from centroid are returned here.
+
+        pos_enc_dir:
+            Node positional encoding used to define directions. This can thus
+            be used for relative position inference.
+            This is used, for example, by `DGNConvolutionalLayer` to define
+            the direction of the messages.
+
     """
 
     if isinstance(mol, str):
-        mol = dm.to_mol(mol)
+        mol = to_mol(mol)
 
     # Add or remove explicit hydrogens
     if explicit_H:
@@ -572,29 +626,43 @@ def mol_to_adj_and_features(
     adj = GetAdjacencyMatrix(mol, useBO=use_bonds_weights, force=True)
     if add_self_loop:
         adj = adj + np.eye(adj.shape[0])
-    adj = csr_matrix(adj)
+    adj = csr_matrix(adj, dtype=np.int8)
 
     # Get the node features
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
     atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float, mask_nan=mask_nan)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
     ndata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in ndata]
-    ndata = np.concatenate(ndata, axis=1) if len(ndata) > 0 else None
+
+    if len(ndata) > 0:
+        ndata = np.concatenate(ndata, axis=1).astype(dtype)
+        ndata = coo_matrix(ndata)
+    else:
+        ndata = None
 
     # Get the edge features
     edge_features = get_mol_edge_features(mol, edge_property_list, mask_nan=mask_nan)
     edata = list(edge_features.values())
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
-    edata = np.concatenate(edata, axis=1) if len(edata) > 0 else None
+    if len(edata) > 0:
+        edata = np.concatenate(edata, axis=1).astype(dtype)
+        edata = coo_matrix(edata)
+    else:
+        edata = None
 
     pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = get_all_positional_encoding(
         adj, pos_encoding_as_features, pos_encoding_as_directions
     )
 
+    # Mask the NaNs
+    pos_enc_feats_sign_flip = _mask_nans_inf(mask_nan, pos_enc_feats_sign_flip, "pos_enc_feats_sign_flip")
+    pos_enc_feats_no_flip = _mask_nans_inf(mask_nan, pos_enc_feats_no_flip, "pos_enc_feats_no_flip")
+    pos_enc_dir = _mask_nans_inf(mask_nan, pos_enc_dir, "pos_enc_dir")
+
     return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 
 
-def mol_to_dglgraph(
+def mol_to_dglgraph_dict(
     mol: Chem.rdchem.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
@@ -604,13 +672,17 @@ def mol_to_dglgraph(
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
-    dtype: torch.dtype = torch.float32,
+    dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = None,
-) -> dgl.DGLGraph:
+) -> Dict:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
-    and a set of atom and bond features.
+    and a set of atom and bond features, and re-organizes them into a dictionary
+    that allows to build a `DGLGraph` object.
+
+    Compared to `mol_to_dglgraph`, this function does not build the graph directly,
+    and is thus faster, less memory heavy, and compatible with other frameworks.
 
     Parameters:
 
@@ -642,8 +714,14 @@ def mol_to_dglgraph(
             Whether to use the floating-point value of the bonds in the adjacency matrix,
             such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
 
+        pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for node features.
+
+        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for directional features.
+
         dtype:
-            The torch data type used to build the graph
+            The numpy data type used to build the graph
 
         on_error:
             What to do when the featurization fails. This can change the
@@ -658,18 +736,26 @@ def mol_to_dglgraph(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": DEFAULT. Raise an error when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan in the featurization
             - "warn": Raise a warning when there is a nan in the featurization
-            - "None": Don't do anything
+            - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
 
     Returns:
 
         graph:
-            DGL graph, with `graph.ndata['n']` corresponding to the concatenated
-            node data from `atom_property_list_onehot` and `atom_property_list_float`,
-            `graph.edata['e']` corresponding to the concatenated edge data from `edge_property_list`
+            A dictionary containing the keys required to build a DGLGraph fromt the function
+            `mol_to_dglgraph_dict`. The keys are:
 
+            - "adj": A sparse int-array containing the adjacency matrix
+
+            - "ndata": A dictionnary containing different keys and numpy
+              arrays associated to the node features.
+
+            - "edata": A dictionnary containing different keys and numpy
+              arrays associated to the edge features.
+
+            - "dtype": The numpy dtype for the floating data.
     """
 
     input_mol = mol
@@ -677,7 +763,7 @@ def mol_to_dglgraph(
     try:
 
         if isinstance(mol, str):
-            mol = dm.to_mol(mol)
+            mol = to_mol(mol)
         if explicit_H:
             mol = Chem.AddHs(mol)
         else:
@@ -717,18 +803,18 @@ def mol_to_dglgraph(
         elif on_error.lower() == "ignore":
             return None
 
-    # Transform the matrix and data into a DGLGraph object
-    graph = dgl.from_scipy(adj)
+    dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
 
     # Assign the node data
     if ndata is not None:
-        graph.ndata["feat"] = torch.from_numpy(ndata).to(dtype=dtype)
+        dgl_dict["ndata"]["feat"] = ndata
 
     # Assign the edge data. Due to DGL only supporting Hetero-graphs, we
     # need to duplicate each edge information for its 2 entries
     if edata is not None:
-        src_ids, dst_ids = graph.all_edges()
-        hetero_edata = np.zeros_like(edata, shape=(edata.shape[0] * 2, edata.shape[1]))
+        edata = _to_dense_array(edata, dtype=dtype)
+        src_ids, dst_ids = np.argwhere(adj).transpose()
+        hetero_edata = np.zeros(shape=(edata.shape[0] * 2, edata.shape[1]), dtype=edata.dtype)
         for ii in range(mol.GetNumBonds()):
             bond = mol.GetBondWithIdx(ii)
             src, dst = bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()
@@ -737,31 +823,178 @@ def mol_to_dglgraph(
             hetero_edata[id1, :] = edata[ii, :]
             hetero_edata[id2, :] = edata[ii, :]
 
-        graph.edata["feat"] = torch.from_numpy(hetero_edata).to(dtype=dtype)
+        dgl_dict["edata"]["feat"] = coo_matrix(hetero_edata)
 
     # Add sign-flip positional encoding
     if pos_enc_feats_sign_flip is not None:
-        graph.ndata["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip
+        dgl_dict["ndata"]["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip
 
     # Add non-sign-flip positional encoding
     if pos_enc_feats_no_flip is not None:
-        graph.ndata["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip
+        dgl_dict["ndata"]["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip
 
     # Add positional encoding for directional use
     if pos_enc_dir is not None:
-        graph.ndata["pos_dir"] = pos_enc_dir
+        dgl_dict["ndata"]["pos_dir"] = pos_enc_dir
+
+    return dgl_dict
+
+
+def mol_to_dglgraph(
+    mol: Chem.rdchem.Mol,
+    atom_property_list_onehot: List[str] = [],
+    atom_property_list_float: List[Union[str, Callable]] = [],
+    edge_property_list: List[str] = [],
+    add_self_loop: bool = False,
+    explicit_H: bool = False,
+    use_bonds_weights: bool = False,
+    pos_encoding_as_features: Dict[str, Any] = None,
+    pos_encoding_as_directions: Dict[str, Any] = None,
+    dtype: np.dtype = np.float16,
+    on_error: str = "ignore",
+    mask_nan: Union[str, float, type(None)] = None,
+) -> dgl.DGLGraph:
+    r"""
+    Transforms a molecule into an adjacency matrix representing the molecular graph
+    and a set of atom and bond features.
+
+    Then, the adjacency matrix and node/edge features are used to build a
+    `DGLGraph` with pytorch Tensors.
+
+    Parameters:
+
+        mol:
+            The molecule to be converted
+
+        atom_property_list_onehot:
+            List of the properties used to get one-hot encoding of the atom type,
+            such as the atom index represented as a one-hot vector.
+            See function `get_mol_atomic_features_onehot`
+
+        atom_property_list_float:
+            List of the properties used to get floating-point encoding of the atom type,
+            such as the atomic mass or electronegativity.
+            See function `get_mol_atomic_features_float`
+
+        edge_property_list:
+            List of the properties used to encode the edges, such as the edge type
+            and the stereo type.
+
+        add_self_loop:
+            Whether to add a value of `1` on the diagonal of the adjacency matrix.
+
+        explicit_H:
+            Whether to consider the Hydrogens explicitely. If `False`, the hydrogens
+            are implicit.
+
+        use_bonds_weights:
+            Whether to use the floating-point value of the bonds in the adjacency matrix,
+            such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
+
+        pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for node features.
+
+        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
+            to generate positional encoding for directional features.
+
+        dtype:
+            The numpy data type used to build the graph
+
+        on_error:
+            What to do when the featurization fails. This can change the
+            behavior of `mask_nan`.
+
+            - "raise": Raise an error
+            - "warn": Raise a warning and return None
+            - "ignore": Ignore the error and return None
+
+        mask_nan:
+            Deal with molecules that fail a part of the featurization.
+            NaNs can happen when taking the of a noble gas,
+            or other properties that are not measured for specific atoms.
+
+            - "raise": Raise an error when there is a nan in the featurization
+            - "warn": Raise a warning when there is a nan in the featurization
+            - "None": DEFAULT. Don't do anything
+            - "Floating value": Replace nans by the specified value
+
+    Returns:
+
+        graph:
+            DGL graph, with `graph.ndata['feat']` corresponding to the concatenated
+            node data from `atom_property_list_onehot` and `atom_property_list_float`,
+            `graph.edata['feat']` corresponding to the concatenated edge data from `edge_property_list`.
+            There are also additional entries for the positional encodings.
+
+    """
+
+    dgl_dict = mol_to_dglgraph_dict(
+        mol=mol,
+        atom_property_list_onehot=atom_property_list_onehot,
+        atom_property_list_float=atom_property_list_float,
+        edge_property_list=edge_property_list,
+        add_self_loop=add_self_loop,
+        explicit_H=explicit_H,
+        use_bonds_weights=use_bonds_weights,
+        pos_encoding_as_features=pos_encoding_as_features,
+        pos_encoding_as_directions=pos_encoding_as_directions,
+        dtype=dtype,
+        on_error=on_error,
+        mask_nan=mask_nan,
+    )
+
+    if dgl_dict is not None:
+        return dgl_dict_to_graph(**dgl_dict)
+
+    return None
+
+
+def dgl_dict_to_graph(
+    adj,
+    ndata: Dict,
+    edata: Dict,
+    dtype: np.dtype = None,
+) -> dgl.DGLGraph:
+    """
+    Convert an adjacency matrix with node/edge data into a `DGLGraph`
+    of torch Tensors.
+
+    Parameters:
+
+        adj: A numpy array containing the adjacency matrix
+
+        ndata: A dictionnary containing different keys and numpy
+            arrays associated to the node features `DGLGraph.ndata`.
+
+        edata: A dictionnary containing different keys and numpy
+            arrays associated to the edge features `DGLGraph.edata`.
+
+        dtype: The numpy dtype for the floating data. The arrays
+            will be converted to `torch.Tensor` when building the graph.
+    """
+
+    # Transform the matrix and data into a DGLGraph object
+    graph = dgl.from_scipy(adj, idtype=torch.int32)
+
+    if ndata is not None:
+        for key, val in ndata.items():
+            graph.ndata[key] = torch.as_tensor(_to_dense_array(val, dtype=dtype))
+
+    if edata is not None:
+        for key, val in edata.items():
+            graph.edata[key] = torch.as_tensor(_to_dense_array(val, dtype=dtype))
 
     return graph
 
 
 def mol_to_dglgraph_signature(featurizer_args: Dict[str, Any] = None):
-    """Get the default arguments of `mol_to_dglgraph` and update it
+    """Get the default arguments of `mol_to_dglgraph_dict` and update it
     with a provided dict of arguments in order to get a fulle signature
     of the featurizer args actually used for the features computation.
     """
 
-    # Get the signature of `mol_to_dglgraph`
-    signature = inspect.signature(mol_to_dglgraph)
+    # Get the signature of `mol_to_dglgraph_dict`
+    signature = inspect.signature(mol_to_dglgraph_dict)
 
     # Filter out empty arguments (without default value)
     parameters = list(filter(lambda param: param.default is not param.empty, signature.parameters.values()))

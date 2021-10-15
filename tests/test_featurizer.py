@@ -14,6 +14,7 @@ from goli.features.featurizer import (
     get_mol_atomic_features_float,
     get_mol_edge_features,
     mol_to_adj_and_features,
+    mol_to_dglgraph_dict,
     mol_to_dglgraph,
 )
 

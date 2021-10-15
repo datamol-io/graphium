@@ -10,7 +10,7 @@ import datamol as dm
 
 from goli.features.featurizer import (
     mol_to_adj_and_features,
-    mol_to_dglgraph,
+    mol_to_dglgraph_dict,
 )
 from goli.features.positional_encoding import graph_positional_encoder
 
@@ -50,7 +50,7 @@ class test_positional_encoder(ut.TestCase):
                     true_num_pos = min(num_pos, len(eigvals))
                     eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
                     eigvecs = np.sign(eigvecs[0:1, :]) * eigvecs
-                    pos_enc_sign_flip = (np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip).numpy()
+                    pos_enc_sign_flip = np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip
 
                     # Compare the positional encoding
                     if disconnected_comp and ("." in self.smiles[ii]):
@@ -85,7 +85,7 @@ class test_positional_encoder(ut.TestCase):
                     true_num_pos = min(num_pos, len(eigvals))
                     eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
                     eigvecs = np.sign(eigvecs[0:1, :]) * eigvecs
-                    pos_enc_sign_flip = (np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip).numpy()
+                    pos_enc_sign_flip = np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip
 
                     if not ("." in self.smiles[ii]):
                         np.testing.assert_array_almost_equal(

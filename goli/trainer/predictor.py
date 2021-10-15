@@ -4,6 +4,7 @@ import os
 import numpy as np
 from copy import deepcopy
 import yaml
+import dgl
 
 import torch
 from torch import nn, Tensor
@@ -281,8 +282,23 @@ class PredictorModule(pl.LightningModule):
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         """
-        out = self.model.forward(inputs["features"])
+        feats = self._convert_features_dtype(inputs["features"])
+        out = self.model.forward(feats)
         return out
+
+    def _convert_features_dtype(self, feats):
+        # Convert features to dtype
+        if isinstance(feats, torch.Tensor):
+            feats = feats.to(self.dtype)
+        elif isinstance(feats, dgl.DGLHeteroGraph):
+            for key, val in feats.ndata.items():
+                if isinstance(val, torch.Tensor):
+                    feats.ndata[key] = val.to(dtype=self.dtype)
+            for key, val in feats.edata.items():
+                if isinstance(val, torch.Tensor):
+                    feats.edata[key] = val.to(dtype=self.dtype)
+
+        return feats
 
     def configure_optimizers(self):
         optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
@@ -481,8 +497,12 @@ class PredictorModule(pl.LightningModule):
         return metrics_logs
 
     def training_epoch_end(self, outputs: Dict):
-
-        self._general_epoch_end(outputs=outputs, step_name="train")
+        """
+        Nothing happens at the end of the training epoch.
+        It serves no purpose to do a general step for the training,
+        but it can explode the RAM when using a large dataset.
+        """
+        pass
 
     def validation_epoch_end(self, outputs: List):
 

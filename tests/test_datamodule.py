@@ -35,6 +35,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["pin_memory"] = True
         dm_args["featurization_n_jobs"] = 16
         dm_args["featurization_progress"] = True
+        dm_args["featurization_backend"] = "multiprocessing"
 
         dm = goli.data.DGLFromSmilesDataModule(**dm_args)
 
@@ -113,6 +114,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["pin_memory"] = True
         dm_args["featurization_n_jobs"] = 16
         dm_args["featurization_progress"] = True
+        dm_args["featurization_backend"] = "loky"
 
         ds = goli.data.DGLOGBDataModule(**dm_args)
 
