@@ -8,10 +8,8 @@ import zipfile
 from loguru import logger
 import fsspec
 import omegaconf
-import time
 from tqdm import tqdm
 from joblib import Parallel, delayed
-from joblib.externals.loky import get_reusable_executor
 import tempfile
 
 import pandas as pd
@@ -599,15 +597,14 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # Load cache and save it locally in a temp folder.
         # This allows loading the cache much faster if it is zipped or in the cloud
         filesystem, _ = fsspec.core.url_to_fs(self.cache_data_path, mode="rb")
-        # protocol = check_arg_iterator(filesystem.protocol, enforce_type=list)
-        filesystem = fs.get_cache_dir(suffix="datamodules")
-            # fsspec.filesystem(
-            #     "filecache",
-            #     target_protocol=protocol[0],
-            #     target_options={"anon": True},
-            #     cache_storage=tempfile.TemporaryDirectory(),
-            #     compression="infer",
-            # )
+        protocol = check_arg_iterator(filesystem.protocol, enforce_type=list)
+        filesystem = fsspec.filesystem(
+            "filecache",
+            target_protocol=protocol[0],
+            target_options={"anon": True},
+            cache_storage=tempfile.TemporaryDirectory().name,
+            compression="infer",
+        )
         with filesystem.open(self.cache_data_path, "rb", compression="infer") as f:
             cache = torch.load(f)
 
@@ -836,6 +833,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
+        featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
     ):
         """
@@ -853,6 +851,12 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
+            featurization_backend: The backend to use for the molecular featurization.
+
+                - "multiprocessing": Default. Found to be faster and cause less memory issues.
+                - "loky": joblib's Default. Found to cause memory leaks.
+                - "threading": Found to be slow.
+
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
             sample_size:
 
@@ -884,6 +888,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dm_args["pin_memory"] = pin_memory
         dm_args["featurization_n_jobs"] = featurization_n_jobs
         dm_args["featurization_progress"] = featurization_progress
+        dm_args["featurization_backend"] = featurization_backend
         dm_args["persistent_workers"] = persistent_workers
         dm_args["collate_fn"] = collate_fn
         dm_args["weights_col"] = weights_col
