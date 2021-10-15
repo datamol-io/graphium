@@ -93,9 +93,9 @@ def graph_positional_encoder(
         raise ValueError(f"Unknown `pos_type`: {pos_type}")
 
     if pos_enc_sign_flip is not None:
-        pos_enc_sign_flip = torch.as_tensor(np.real(pos_enc_sign_flip)).to(torch.float32)
+        pos_enc_sign_flip = np.real(pos_enc_sign_flip).astype(np.float32)
 
     if pos_enc_no_flip is not None:
-        pos_enc_no_flip = torch.as_tensor(np.real(pos_enc_no_flip)).to(torch.float32)
+        pos_enc_no_flip = np.real(pos_enc_no_flip).astype(np.float32)
 
     return pos_enc_sign_flip, pos_enc_no_flip

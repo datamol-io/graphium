@@ -1,13 +1,16 @@
 from typing import List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
-import functools
+from functools import partial
 import importlib.resources
 import zipfile
 
 from loguru import logger
 import fsspec
 import omegaconf
+from tqdm import tqdm
+from joblib import Parallel, delayed
+import tempfile
 
 import pandas as pd
 import numpy as np
@@ -17,14 +20,10 @@ from sklearn.model_selection import train_test_split
 import dgl
 import pytorch_lightning as pl
 
-import datamol as dm
-
 from goli.utils import fs
-from goli.features import mol_to_dglgraph
-from goli.features import mol_to_dglgraph_signature
+from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, dgl_dict_to_graph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
-
 
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
@@ -220,7 +219,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
+        featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
+        prepare_dict_or_graph: str = "dict",
     ):
         """
 
@@ -273,12 +274,26 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
+            featurization_backend: The backend to use for the molecular featurization.
+
+                - "multiprocessing": Default. Found to be faster and cause less memory issues.
+                - "loky": joblib's Default. Found to cause memory leaks.
+                - "threading": Found to be slow.
+
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
             sample_size:
 
                 - `int`: The maximum number of elements to take from the dataset.
                 - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
                 - `None`: all elements are considered.
+            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs or dict.
+                Possible options:
+
+                - "graph": Process molecules as dgl.DGLGraph. It's slower during pre-processing
+                  and requires more RAM, but faster during training.
+                - "dict": Process molecules as a Dict. It's faster and requires less RAM during
+                  pre-processing, but slower during training since DGLGraphs will be created
+                  during data-loading.
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -293,7 +308,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.df_path = df_path
 
         self.cache_data_path = str(cache_data_path) if cache_data_path is not None else None
-        self.featurization = featurization
+        self.featurization = featurization if featurization is not None else {}
 
         self.smiles_col = smiles_col
         self.label_cols = self._parse_label_cols(label_cols, smiles_col)
@@ -312,6 +327,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
+        self.featurization_backend = featurization_backend
 
         self.dataset = None
         self.train_ds = None
@@ -320,6 +336,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.train_indices = None
         self.val_indices = None
         self.test_indices = None
+
+        if prepare_dict_or_graph == "dict":
+            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
+        elif prepare_dict_or_graph == "graph":
+            self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
+        else:
+            raise ValueError(
+                f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`"
+            )
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -339,14 +364,16 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if self.df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
+            label_cols = check_arg_iterator(self.label_cols, enforce_type=list)
             usecols = (
                 check_arg_iterator(self.smiles_col, enforce_type=list)
-                + check_arg_iterator(self.label_cols, enforce_type=list)
+                + label_cols
                 + check_arg_iterator(self.idx_col, enforce_type=list)
                 + check_arg_iterator(self.weights_col, enforce_type=list)
             )
+            label_dtype = {col: np.float16 for col in label_cols}
 
-            df = self._read_csv(self.df_path, usecols=usecols)
+            df = self._read_csv(self.df_path, usecols=usecols, dtype=label_dtype)
         else:
             df = self.df
 
@@ -369,14 +396,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # - or cache the data and read from it during `next(iter(dataloader))`
         # - or compute the features on-the-fly during `next(iter(dataloader))`
         # For now we compute in advance and hold everything in memory.
-        featurization_args = self.featurization or {}
-        transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
-        features = dm.utils.parallelized(
-            transform_smiles,
-            smiles,
-            progress=self.featurization_progress,
-            n_jobs=self.featurization_n_jobs,
-        )
+
+        if self.featurization_n_jobs == 0:
+            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
+        else:
+            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
+                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
+            )
 
         # Warn about None molecules
         is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
@@ -521,13 +547,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
-        featurization_args = self.featurization or {}
-        transform_smiles = functools.partial(mol_to_dglgraph, **featurization_args)
         graph = None
         for s in smiles:
-            graph = transform_smiles(s)
+            graph = self.smiles_transformer(s)
             if graph is not None:
                 break
+
+        if isinstance(graph, dict):
+            graph = dgl_dict_to_graph(**graph)
+
         return graph
 
     # Private methods
@@ -566,8 +594,18 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # Reload from cache if it exists and is valid
         logger.info(f"Try reloading the data module from {self.cache_data_path}.")
 
-        # Load cache
-        with fsspec.open(self.cache_data_path, "rb", compression="infer") as f:
+        # Load cache and save it locally in a temp folder.
+        # This allows loading the cache much faster if it is zipped or in the cloud
+        filesystem, _ = fsspec.core.url_to_fs(self.cache_data_path, mode="rb")
+        protocol = check_arg_iterator(filesystem.protocol, enforce_type=list)
+        filesystem = fsspec.filesystem(
+            "filecache",
+            target_protocol=protocol[0],
+            target_options={"anon": True},
+            cache_storage=tempfile.TemporaryDirectory().name,
+            compression="infer",
+        )
+        with filesystem.open(self.cache_data_path, "rb", compression="infer") as f:
             cache = torch.load(f)
 
         # Are the required keys present?
@@ -795,6 +833,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
+        featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
     ):
         """
@@ -812,6 +851,12 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
+            featurization_backend: The backend to use for the molecular featurization.
+
+                - "multiprocessing": Default. Found to be faster and cause less memory issues.
+                - "loky": joblib's Default. Found to cause memory leaks.
+                - "threading": Found to be slow.
+
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
             sample_size:
 
@@ -843,6 +888,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dm_args["pin_memory"] = pin_memory
         dm_args["featurization_n_jobs"] = featurization_n_jobs
         dm_args["featurization_progress"] = featurization_progress
+        dm_args["featurization_backend"] = featurization_backend
         dm_args["persistent_workers"] = persistent_workers
         dm_args["collate_fn"] = collate_fn
         dm_args["weights_col"] = weights_col
