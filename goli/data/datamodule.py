@@ -12,6 +12,7 @@ import time
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from joblib.externals.loky import get_reusable_executor
+import tempfile
 
 import pandas as pd
 import numpy as np
@@ -220,6 +221,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
+        featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "dict",
     ):
@@ -274,6 +276,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
             featurization_n_jobs: Number of cores to use for the featurization.
             featurization_progress: whether to show a progress bar during featurization.
+            featurization_backend: The backend to use for the molecular featurization.
+
+                - "multiprocessing": Default. Found to be faster and cause less memory issues.
+                - "loky": joblib's Default. Found to cause memory leaks.
+                - "threading": Found to be slow.
+
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
             sample_size:
 
@@ -321,6 +329,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
+        self.featurization_backend = featurization_backend
 
         self.dataset = None
         self.train_ds = None
@@ -393,7 +402,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if self.featurization_n_jobs == 0:
             features = [self.smiles_transformer(s) for s in tqdm(smiles)]
         else:
-            features = Parallel(n_jobs=self.featurization_n_jobs, backend="multiprocessing")(
+            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
                 delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
             )
 
@@ -590,14 +599,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         # Load cache and save it locally in a temp folder.
         # This allows loading the cache much faster if it is zipped or in the cloud
         filesystem, _ = fsspec.core.url_to_fs(self.cache_data_path, mode="rb")
-        protocol = check_arg_iterator(filesystem.protocol, enforce_type=list)
-        filesystem = fsspec.filesystem(
-            "filecache",
-            target_protocol=protocol[0],
-            target_options={"anon": True},
-            cache_storage="/tmp/datamodule_files/",
-            compression="infer",
-        )
+        # protocol = check_arg_iterator(filesystem.protocol, enforce_type=list)
+        filesystem = fs.get_cache_dir(suffix="datamodules")
+            # fsspec.filesystem(
+            #     "filecache",
+            #     target_protocol=protocol[0],
+            #     target_options={"anon": True},
+            #     cache_storage=tempfile.TemporaryDirectory(),
+            #     compression="infer",
+            # )
         with filesystem.open(self.cache_data_path, "rb", compression="infer") as f:
             cache = torch.load(f)
 
