@@ -497,8 +497,12 @@ class PredictorModule(pl.LightningModule):
         return metrics_logs
 
     def training_epoch_end(self, outputs: Dict):
-
-        self._general_epoch_end(outputs=outputs, step_name="train")
+        """
+        Nothing happens at the end of the training epoch.
+        It serves no purpose to do a general step for the training,
+        but it can explode the RAM when using a large dataset.
+        """
+        pass
 
     def validation_epoch_end(self, outputs: List):
 
