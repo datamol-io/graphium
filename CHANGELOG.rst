@@ -7,22 +7,6 @@ goli Change Log
 v0.2.5
 ====================
 
-**Authors:**
-
-
-
-
-v0.2.4
-====================
-
-**Authors:**
-
-
-
-
-v0.2.3
-====================
-
 **Added:**
 
 * Caching of the pre-processed dataset when loading from a zip file or from the cloud. These operations used to be extremely slow.
