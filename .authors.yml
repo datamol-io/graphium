@@ -1,6 +1,6 @@
 - name: Dom
   email: dominique@invivoai.com
-  num_commits: 84
+  num_commits: 94
   first_commit: 2021-01-20 01:31:50
   github: invivoai
   alternate_emails:
@@ -43,7 +43,7 @@
   first_commit: 2021-06-10 11:27:50
 - name: Dominique
   email: dominique@valencediscovery.com
-  num_commits: 21
+  num_commits: 38
   first_commit: 2021-05-31 21:23:27
 - name: Ali
   email: feraktal@yahoo.com
