@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from typing import List, Union
+from typing import Iterable, List, Union
 from inspect import getfullargspec
 from copy import copy, deepcopy
 from loguru import logger
@@ -141,6 +141,51 @@ def nan_mean(input: Tensor, **kwargs) -> Tensor:
     return mean
 
 
+def nan_median(input: Tensor, **kwargs) -> Tensor:
+    r"""
+    Return the median of all elements, while ignoring the NaNs.
+    Contrarily to `torch.nanmedian`, this function supports a list
+    of dimensions, or `dim=None`, and does not return the index of the median
+
+    Parameters:
+
+        input: The input tensor.
+
+        dim (int or tuple(int)): The dimension or dimensions to reduce.
+
+        keepdim (bool): whether the output tensor has dim retained or not.
+
+        dtype (torch.dtype, optional):
+            The desired data type of returned tensor.
+            If specified, the input tensor is casted to dtype before the operation is performed.
+            This is useful for preventing data type overflows. Default: None.
+
+    Returns:
+        output: The resulting median of the tensor.
+            Contrarily to `torch.median`, it does not return the index of the median
+    """
+
+    dim = kwargs.pop("dim", None)
+    keepdim = kwargs.pop("keepdim", False)
+
+    if isinstance(dim, Iterable) and not isinstance(dim, str):
+        # Implement the median for a list of dimensions
+        for d in dim:
+            input = input.unsqueeze(-1)
+            input = input.transpose(d, -1)
+            if not keepdim:
+                input = input.squeeze(d)
+        input = input.flatten(-len(dim))
+        median, _ = torch.nanmedian(input, dim=-1, keepdim=False)
+    else:
+        if dim is None:
+            median = torch.nanmedian(input.flatten())
+        else:
+            median, _ = torch.median(input, dim=dim, keepdim=keepdim)
+
+    return median
+
+
 def nan_var(input: Tensor, unbiased: bool = True, **kwargs) -> Tensor:
     r"""
     Return the variace of all elements, while ignoring the NaNs.
@@ -207,6 +252,39 @@ def nan_std(input: Tensor, unbiased: bool = True, **kwargs) -> Tensor:
 
     return torch.sqrt(nan_var(input=input, unbiased=unbiased, **kwargs))
 
+
+def nan_mad(input: Tensor, normal: bool = True, **kwargs) -> Tensor:
+    r"""
+    Return the median absolute deviation of all elements, while ignoring the NaNs.
+
+    Parameters:
+
+        input: The input tensor.
+
+        normal: whether to multiply the result by 1.4826 to mimic the
+            standard deviation for normal distributions.
+
+        dim (int or tuple(int)): The dimension or dimensions to reduce.
+
+        keepdim (bool): whether the output tensor has dim retained or not.
+
+        dtype (torch.dtype, optional):
+            The desired data type of returned tensor.
+            If specified, the input tensor is casted to dtype before the operation is performed.
+            This is useful for preventing data type overflows. Default: None.
+
+    Returns:
+        output: The resulting median absolute deviation of the tensor
+    """
+    median_kwargs = deepcopy(kwargs)
+    median_kwargs.pop("keepdim", None)
+    dim = median_kwargs.pop("dim", [ii for ii in range(input.ndim)])
+    median = nan_median(input, dim=dim, keepdim=True, **median_kwargs)
+    dist = (input - median).abs()
+    mad = nan_median(dist, **kwargs)
+    if normal:
+        mad = mad * 1.4826
+    return mad
 
 class ModuleListConcat(torch.nn.ModuleList):
     def __init__(self, dim: int = -1):
