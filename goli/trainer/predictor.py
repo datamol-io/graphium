@@ -16,7 +16,7 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.trainer.model_summary import ModelSummaryExtended
 from goli.config.config_convert import recursive_config_reformating
-from goli.utils.tensor import nan_mean, nan_std
+from goli.utils.tensor import nan_mean, nan_std, nan_mad
 
 LOSS_DICT = {
     "mse": torch.nn.MSELoss(),
@@ -394,8 +394,10 @@ class PredictorModule(pl.LightningModule):
         metric_logs = {}
         metric_logs[f"mean_pred/{step_name}"] = nan_mean(preds)
         metric_logs[f"std_pred/{step_name}"] = nan_std(preds)
+        metric_logs[f"mad_pred/{step_name}"] = nan_mad(preds)
         metric_logs[f"mean_target/{step_name}"] = nan_mean(targets)
         metric_logs[f"std_target/{step_name}"] = nan_std(targets)
+        metric_logs[f"mad_target/{step_name}"] = nan_mad(targets)
 
         # Specify which metrics to use
         metrics_to_use = self.metrics
