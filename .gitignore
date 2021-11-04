@@ -145,3 +145,4 @@ goli/data/BindingDB/
 goli/data/cache/
 predictions/
 expts_untracked/
+debug/

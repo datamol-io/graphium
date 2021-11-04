@@ -398,6 +398,8 @@ class PredictorModule(pl.LightningModule):
         metric_logs[f"mean_target/{step_name}"] = nan_mean(targets)
         metric_logs[f"std_target/{step_name}"] = nan_std(targets)
         metric_logs[f"mad_target/{step_name}"] = nan_mad(targets)
+        if torch.cuda.is_available():
+            metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated()/(2**30))
 
         # Specify which metrics to use
         metrics_to_use = self.metrics
