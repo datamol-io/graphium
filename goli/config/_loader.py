@@ -13,7 +13,6 @@ from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FeedForwardNN
 from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
 from goli.trainer.predictor import PredictorModule
 
-# from goli.trainer.model_summary import BestEpochFromSummary
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 

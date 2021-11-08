@@ -990,11 +990,15 @@ def dgl_dict_to_graph(
 
     if ndata is not None:
         for key, val in ndata.items():
-            graph.ndata[key] = torch.as_tensor(_mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="ndata"))
+            graph.ndata[key] = torch.as_tensor(
+                _mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="ndata")
+            )
 
     if edata is not None:
         for key, val in edata.items():
-            graph.edata[key] = torch.as_tensor(_mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="edata"))
+            graph.edata[key] = torch.as_tensor(
+                _mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="edata")
+            )
 
     return graph
 

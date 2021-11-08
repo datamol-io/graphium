@@ -48,8 +48,8 @@ def compute_laplacian_positional_eigvecs(
 
     # Eigenvalues previously set to infinite are now set to 0
     # Any NaN in the eigvals or eigvecs will be set to 0
-    eigvecs[~np.isfinite(eigvecs)] = 0.
-    eigvals_tile[~np.isfinite(eigvals_tile)] = 0.
+    eigvecs[~np.isfinite(eigvecs)] = 0.0
+    eigvals_tile[~np.isfinite(eigvals_tile)] = 0.0
 
     return eigvals_tile, eigvecs
 
