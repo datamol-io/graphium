@@ -21,9 +21,10 @@ os.chdir(MAIN_DIR)
 DATA_NAME = "molHIV"
 DATA_CONFIG = f"{MAIN_DIR}/expts/config_{DATA_NAME}_pretrained.yaml"
 
-MODEL_NAME = "htsfp-pcba-24M"
-MODEL_FILE = f"gs://goli-private/pretrained-models/{MODEL_NAME}/model.ckpt"
-MODEL_CONFIG = f"gs://goli-private/pretrained-models/{MODEL_NAME}/configs.yaml"
+MODEL_PATH = None
+MODEL_NAME = None
+MODEL_FILE = f"{MODEL_PATH}/{MODEL_NAME}/model.ckpt"
+MODEL_CONFIG = f"{MODEL_PATH}/{MODEL_NAME}/configs.yaml"
 
 
 # MODEL_FILE = "models_checkpoints/micro_ZINC/model.ckpt"
