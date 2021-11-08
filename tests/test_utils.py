@@ -2,6 +2,7 @@
 Unit tests for the metrics and wrappers of goli/utils/...
 """
 
+from typing import Tuple
 from goli.utils.tensor import nan_mean, nan_std, nan_var, nan_median
 import torch
 import numpy as np
@@ -80,10 +81,13 @@ class test_nan_statistics(ut.TestCase):
     def test_nan_median(self):
 
         for keepdim in [False, True]:
-            for dim in self.dims:
+            # Cannot test
+            for dim in self.dims:  # in [d for d in self.dims if not isinstance(d, Tuple)]:
                 err_msg = f"Error for :\n dim = {dim}\n keepdim = {keepdim}"
 
-                tensor = self.tensor.clone()
+                tensor = torch.randn(
+                    (7, 9, 11)
+                )  # Need odd number of values to properly compare torch to numpy
 
                 # Prepare the arguments for numpy vs torch
                 if dim is not None:
@@ -93,10 +97,12 @@ class test_nan_statistics(ut.TestCase):
                     torch_kwargs = {}
                     numpy_kwargs = {}
 
-                # Compare the nan-mean
+                # Compare the nan-median
                 torch_med = nan_median(tensor, **torch_kwargs)
                 numpy_med = np.nanmedian(tensor.numpy(), **numpy_kwargs)
-                np.testing.assert_almost_equal(torch_med.numpy(), numpy_med, decimal=6, err_msg=err_msg)
+                torch_sum = torch.nansum(tensor, **torch_kwargs)
+                np.testing.assert_almost_equal(torch_med.numpy(), numpy_med, decimal=4, err_msg=err_msg)
+                self.assertListEqual(list(torch_med.shape), list(torch_sum.shape))
 
 
 if __name__ == "__main__":

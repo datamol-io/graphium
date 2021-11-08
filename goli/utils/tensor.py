@@ -169,19 +169,22 @@ def nan_median(input: Tensor, **kwargs) -> Tensor:
     keepdim = kwargs.pop("keepdim", False)
 
     if isinstance(dim, Iterable) and not isinstance(dim, str):
+        dim = list(dim)
+        dim.sort()
         # Implement the median for a list of dimensions
         for d in dim:
             input = input.unsqueeze(-1)
             input = input.transpose(d, -1)
-            if not keepdim:
-                input = input.squeeze(d)
         input = input.flatten(-len(dim))
         median, _ = torch.nanmedian(input, dim=-1, keepdim=False)
+        if not keepdim:
+            for d in dim[::-1]:
+                median = median.squeeze(d)
     else:
         if dim is None:
             median = torch.nanmedian(input.flatten())
         else:
-            median, _ = torch.median(input, dim=dim, keepdim=keepdim)
+            median, _ = torch.nanmedian(input, dim=dim, keepdim=keepdim)
 
     return median
 
