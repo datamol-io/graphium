@@ -421,7 +421,9 @@ class PredictorModule(pl.LightningModule):
 
         return metric_logs
 
-    def _general_step(self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool) -> Dict[str, Any]:
+    def _general_step(
+        self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
+    ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)
         targets = batch.pop("labels").to(dtype=preds.dtype)
@@ -446,7 +448,9 @@ class PredictorModule(pl.LightningModule):
         return loss, step_dict
 
     def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        loss, step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=False)
+        loss, step_dict = self._general_step(
+            batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=False
+        )
         metrics_logs = self.get_metrics_logs(
             preds=step_dict["preds"],
             targets=step_dict["targets"],
