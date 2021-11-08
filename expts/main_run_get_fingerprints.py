@@ -31,7 +31,7 @@ MODEL_CONFIG = f"{MODEL_PATH}/{MODEL_NAME}/configs.yaml"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-NUM_LAYERS_TO_DROP =  range(4)
+NUM_LAYERS_TO_DROP = range(4)
 
 
 def main() -> None:
@@ -48,13 +48,15 @@ def main() -> None:
 
     for num_layers_to_drop in NUM_LAYERS_TO_DROP:
 
-        export_df_path = f"predictions/fingerprint-{DATA_NAME}-model-{MODEL_NAME}-dropped-{num_layers_to_drop}.csv.gz"
+        export_df_path = (
+            f"predictions/fingerprint-{DATA_NAME}-model-{MODEL_NAME}-dropped-{num_layers_to_drop}.csv.gz"
+        )
 
         predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
         predictor.model.drop_post_nn_layers(num_layers_to_drop=num_layers_to_drop)
 
         print(predictor.model)
-        print(predictor.summarize(mode=4, to_print=False))
+        print(predictor.summarize(max_depth=4))
 
         trainer = load_trainer(data_cfg)
 
