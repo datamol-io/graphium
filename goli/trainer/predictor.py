@@ -421,7 +421,7 @@ class PredictorModule(pl.LightningModule):
 
         return metric_logs
 
-    def _general_step(self, batch: Dict[str, Tensor], batch_idx: int, step_name: str) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)
         targets = batch.pop("labels").to(dtype=preds.dtype)
@@ -435,17 +435,18 @@ class PredictorModule(pl.LightningModule):
             loss_fun=self.loss_fun,
         )
 
-        preds = preds.detach().cpu()
-        targets = targets.detach().cpu()
+        device = "cpu" if to_cpu else None
+        preds = preds.detach().to(device=device)
+        targets = targets.detach().to(device=device)
         if weights is not None:
-            weights = weights.detach().cpu()
+            weights = weights.detach().to(device=device)
 
         step_dict = {"preds": preds, "targets": targets, "weights": weights}
         step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
         return loss, step_dict
 
     def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        loss, step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="train")
+        loss, step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=False)
         metrics_logs = self.get_metrics_logs(
             preds=step_dict["preds"],
             targets=step_dict["targets"],
@@ -468,10 +469,10 @@ class PredictorModule(pl.LightningModule):
         return step_dict
 
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val")[1]
+        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
 
     def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val")[1]
+        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
