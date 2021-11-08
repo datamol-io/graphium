@@ -15,7 +15,7 @@ from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.config.config_convert import recursive_config_reformating
-from goli.utils.tensor import nan_mean, nan_std, nan_mad
+from goli.utils.tensor import nan_mean, nan_std, nan_median
 
 LOSS_DICT = {
     "mse": torch.nn.MSELoss(),
@@ -393,10 +393,10 @@ class PredictorModule(pl.LightningModule):
         metric_logs = {}
         metric_logs[f"mean_pred/{step_name}"] = nan_mean(preds)
         metric_logs[f"std_pred/{step_name}"] = nan_std(preds)
-        metric_logs[f"mad_pred/{step_name}"] = nan_mad(preds)
+        metric_logs[f"median_pred/{step_name}"] = nan_median(preds)
         metric_logs[f"mean_target/{step_name}"] = nan_mean(targets)
         metric_logs[f"std_target/{step_name}"] = nan_std(targets)
-        metric_logs[f"mad_target/{step_name}"] = nan_mad(targets)
+        metric_logs[f"median_target/{step_name}"] = nan_median(targets)
         if torch.cuda.is_available():
             metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2 ** 30))
 
