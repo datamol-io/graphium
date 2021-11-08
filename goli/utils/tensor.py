@@ -215,8 +215,9 @@ def nan_var(input: Tensor, unbiased: bool = True, **kwargs) -> Tensor:
     mean_kwargs.pop("keepdim", None)
     dim = mean_kwargs.pop("dim", [ii for ii in range(input.ndim)])
     mean = nan_mean(input, dim=dim, keepdim=True, **mean_kwargs)
-    dist = (input - mean).abs() ** 2
-    var = nan_mean(dist, **kwargs)
+    dist = input - mean
+    dist2 = dist * dist
+    var = nan_mean(dist2, **kwargs)
 
     if unbiased:
         num = torch.sum(~torch.isnan(input), **kwargs)
@@ -285,6 +286,7 @@ def nan_mad(input: Tensor, normal: bool = True, **kwargs) -> Tensor:
     if normal:
         mad = mad * 1.4826
     return mad
+
 
 class ModuleListConcat(torch.nn.ModuleList):
     def __init__(self, dim: int = -1):

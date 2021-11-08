@@ -556,7 +556,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 break
 
         if isinstance(graph, dict):
-            graph = dgl_dict_to_graph(**graph, mask_nan=0.)
+            graph = dgl_dict_to_graph(**graph, mask_nan=0.0)
 
         return graph
 

@@ -14,7 +14,6 @@ import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
 from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
-from goli.trainer.model_summary import ModelSummaryExtended
 from goli.config.config_convert import recursive_config_reformating
 from goli.utils.tensor import nan_mean, nan_std, nan_mad
 
@@ -399,7 +398,7 @@ class PredictorModule(pl.LightningModule):
         metric_logs[f"std_target/{step_name}"] = nan_std(targets)
         metric_logs[f"mad_target/{step_name}"] = nan_mad(targets)
         if torch.cuda.is_available():
-            metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated()/(2**30))
+            metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2 ** 30))
 
         # Specify which metrics to use
         metrics_to_use = self.metrics
@@ -460,6 +459,12 @@ class PredictorModule(pl.LightningModule):
 
         self.logger.log_metrics(metrics_logs, step=self.global_step)
 
+        # Predictions and targets are no longer needed after the step.
+        # Keeping them will increase memory usage significantly for large datasets.
+        step_dict.pop("preds")
+        step_dict.pop("targets")
+        step_dict.pop("weights")
+
         return step_dict
 
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
@@ -508,7 +513,7 @@ class PredictorModule(pl.LightningModule):
         """
         pass
 
-    def validation_epoch_end(self, outputs: List):
+    def validation_epoch_end(self, outputs: Dict[str, Any]):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
 
@@ -527,7 +532,7 @@ class PredictorModule(pl.LightningModule):
             with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
                 yaml.dump(full_dict, file)
 
-    def test_epoch_end(self, outputs: List):
+    def test_epoch_end(self, outputs: Dict[str, Any]):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
         self.log_dict(metrics_logs)
@@ -551,26 +556,6 @@ class PredictorModule(pl.LightningModule):
         prog_dict["loss/val"] = self.epoch_summary.summaries["val"].loss
         prog_dict.update(results_on_progress_bar)
         return prog_dict
-
-    def summarize(self, mode: str = ModelSummaryExtended.MODE_DEFAULT, to_print=True) -> ModelSummaryExtended:
-        r"""
-        Provide a summary of the class, usually to be printed
-        """
-        model_summary = None
-
-        if isinstance(mode, int):
-            mode = ModelSummaryExtended.MODES[mode - 1]
-
-        if mode in ModelSummaryExtended.MODES:
-            model_summary = ModelSummaryExtended(self, mode=mode)
-            if to_print:
-                log.info("\n" + str(model_summary))
-        elif mode is not None:
-            raise MisconfigurationException(
-                f"`mode` can be None, {', '.join(ModelSummaryExtended.MODES)}, got {mode}"
-            )
-
-        return model_summary
 
     def __repr__(self) -> str:
         r"""
