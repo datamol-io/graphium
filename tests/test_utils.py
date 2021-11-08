@@ -86,7 +86,7 @@ class test_nan_statistics(ut.TestCase):
                 err_msg = f"Error for :\n dim = {dim}\n keepdim = {keepdim}"
 
                 tensor = torch.randn(
-                    (7, 9, 11)
+                    (7, 9, 11, 13)
                 )  # Need odd number of values to properly compare torch to numpy
 
                 # Prepare the arguments for numpy vs torch
