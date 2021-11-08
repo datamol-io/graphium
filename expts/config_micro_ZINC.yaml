@@ -165,5 +165,6 @@ trainer:
   trainer:
     max_epochs: 25
     min_epochs: 5
-    gpus: 1
+    gpus: null
+    gradient_clip_val: 0.5
 
