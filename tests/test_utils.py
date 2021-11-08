@@ -77,7 +77,6 @@ class test_nan_statistics(ut.TestCase):
                     numpy_var = np.nanvar(tensor.numpy(), **numpy_kwargs)
                     np.testing.assert_almost_equal(torch_var.numpy(), numpy_var, decimal=6, err_msg=err_msg)
 
-
     def test_nan_median(self):
 
         for keepdim in [False, True]:
@@ -98,6 +97,7 @@ class test_nan_statistics(ut.TestCase):
                 torch_med = nan_median(tensor, **torch_kwargs)
                 numpy_med = np.nanmedian(tensor.numpy(), **numpy_kwargs)
                 np.testing.assert_almost_equal(torch_med.numpy(), numpy_med, decimal=6, err_msg=err_msg)
+
 
 if __name__ == "__main__":
     ut.main()
