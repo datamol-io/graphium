@@ -56,7 +56,7 @@ Different utilities for molecules, such as Smiles to adjacency graph transformer
 
 ### trainer
 
-The trainer contains the interface to the `pytorch-lightning` library, with `PredictorModule` being the main class used for any NN model, either for regression or classification. It also contains some modifications to the logger and model_summary from `pytorch-lightning` to enable more flexibility.
+The trainer contains the interface to the `pytorch-lightning` library, with `PredictorModule` being the main class used for any NN model, either for regression or classification. It also contains some modifications to the logger from `pytorch-lightning` to enable more flexibility.
 
 ### utils
 
