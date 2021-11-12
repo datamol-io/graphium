@@ -140,7 +140,7 @@ def get_mol_atomic_features_float(
     mol: Chem.rdchem.Mol,
     property_list: Union[List[str], List[Callable]],
     offset_carbon: bool = True,
-    mask_nan: Union[str, float, type(None)] = None,
+    mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Dict[str, np.ndarray]:
     """
     Get a dictionary of floating-point arrays of atomic properties.
@@ -196,10 +196,10 @@ def get_mol_atomic_features_float(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": Raise an error when there is a nan in the featurization
-            - "warn": Raise a warning when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan or inf in the featurization
+            - "warn": Raise a warning when there is a nan or inf in the featurization
             - "None": DEFAULT. Don't do anything
-            - "Floating value": Replace nans by the specified value
+            - "Floating value": Replace nans or inf by the specified value
 
     Returns:
 
@@ -432,7 +432,7 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
 
 
 def get_mol_edge_features(
-    mol: Chem.rdchem.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = None
+    mol: Chem.rdchem.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = "raise"
 ):
     r"""
     Get the following set of features for any given bond
@@ -525,7 +525,7 @@ def mol_to_adj_and_features(
     pos_encoding_as_features: Dict[str, Any] = None,
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
-    mask_nan: Union[str, float, type(None)] = None,
+    mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Union[csr_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -577,10 +577,10 @@ def mol_to_adj_and_features(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": Raise an error when there is a nan in the featurization
-            - "warn": Raise a warning when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan or inf in the featurization
+            - "warn": Raise a warning when there is a nan or inf in the featurization
             - "None": DEFAULT. Don't do anything
-            - "Floating value": Replace nans by the specified value
+            - "Floating value": Replace nans or inf by the specified value
     Returns:
 
         adj:
@@ -674,7 +674,7 @@ def mol_to_dglgraph_dict(
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
-    mask_nan: Union[str, float, type(None)] = None,
+    mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Dict:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -736,10 +736,10 @@ def mol_to_dglgraph_dict(
             NaNs can happen when taking the of a noble gas,
             or other properties that are not measured for specific atoms.
 
-            - "raise": Raise an error when there is a nan in the featurization
-            - "warn": Raise a warning when there is a nan in the featurization
+            - "raise": Raise an error when there is a nan or inf in the featurization
+            - "warn": Raise a warning when there is a nan or inf in the featurization
             - "None": DEFAULT. Don't do anything
-            - "Floating value": Replace nans by the specified value
+            - "Floating value": Replace nans or inf by the specified value
 
     Returns:
 
@@ -852,7 +852,7 @@ def mol_to_dglgraph(
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
-    mask_nan: Union[str, float, type(None)] = None,
+    mask_nan: Union[str, float, type(None)] = "raise",
 ) -> dgl.DGLGraph:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -954,6 +954,7 @@ def dgl_dict_to_graph(
     ndata: Dict,
     edata: Dict,
     dtype: np.dtype = None,
+    mask_nan: Union[str, float, type(None)] = "raise",
 ) -> dgl.DGLGraph:
     """
     Convert an adjacency matrix with node/edge data into a `DGLGraph`
@@ -971,6 +972,17 @@ def dgl_dict_to_graph(
 
         dtype: The numpy dtype for the floating data. The arrays
             will be converted to `torch.Tensor` when building the graph.
+
+        mask_nan:
+            Deal with molecules that fail a part of the featurization.
+            NaNs can happen when taking the of a noble gas,
+            or other properties that are not measured for specific atoms.
+
+            - "raise": Raise an error when there is a nan or inf in the featurization
+            - "warn": Raise a warning when there is a nan or inf in the featurization
+            - "None": DEFAULT. Don't do anything
+            - "Floating value": Replace nans or inf by the specified value
+
     """
 
     # Transform the matrix and data into a DGLGraph object
@@ -978,11 +990,15 @@ def dgl_dict_to_graph(
 
     if ndata is not None:
         for key, val in ndata.items():
-            graph.ndata[key] = torch.as_tensor(_to_dense_array(val, dtype=dtype))
+            graph.ndata[key] = torch.as_tensor(
+                _mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="ndata")
+            )
 
     if edata is not None:
         for key, val in edata.items():
-            graph.edata[key] = torch.as_tensor(_to_dense_array(val, dtype=dtype))
+            graph.edata[key] = torch.as_tensor(
+                _mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="edata")
+            )
 
     return graph
 

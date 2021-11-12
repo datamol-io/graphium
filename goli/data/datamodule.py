@@ -85,7 +85,9 @@ class DGLBaseDataModule(pl.LightningDataModule):
         self.persistent_workers = persistent_workers
 
         if collate_fn is None:
-            self.collate_fn = goli_collate_fn
+            # Some values become `inf` when changing data type. `mask_nan` deals with that
+            self.collate_fn = partial(goli_collate_fn, mask_nan=0)
+            self.collate_fn.__name__ = goli_collate_fn.__name__
         else:
             self.collate_fn = collate_fn
 
@@ -554,7 +556,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 break
 
         if isinstance(graph, dict):
-            graph = dgl_dict_to_graph(**graph)
+            graph = dgl_dict_to_graph(**graph, mask_nan=0.0)
 
         return graph
 

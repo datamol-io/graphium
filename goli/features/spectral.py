@@ -47,7 +47,9 @@ def compute_laplacian_positional_eigvecs(
         eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
 
     # Eigenvalues previously set to infinite are now set to 0
-    eigvals_tile[np.isinf(eigvals_tile)] = 0
+    # Any NaN in the eigvals or eigvecs will be set to 0
+    eigvecs[~np.isfinite(eigvecs)] = 0.0
+    eigvals_tile[~np.isfinite(eigvals_tile)] = 0.0
 
     return eigvals_tile, eigvecs
 
@@ -77,7 +79,7 @@ def _get_positional_eigvecs(matrix, num_pos: int):
     eigvecs = eigvecs[:, :num_pos]
 
     # Normalize the eigvecs
-    eigvecs = eigvecs / (np.sqrt(np.sum(eigvecs ** 2, axis=0, keepdims=True)) + 1e-8)
+    eigvecs = eigvecs / np.maximum(np.sqrt(np.sum(eigvecs ** 2, axis=0, keepdims=True)), 1e-4)
 
     return eigvals, eigvecs
 
