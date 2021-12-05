@@ -12,6 +12,7 @@ from goli.utils.tensor import ModuleListConcat
 
 EPS = 1e-6
 
+
 class S2SReadout(nn.Module):
     r"""
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
@@ -144,6 +145,7 @@ class DirPooling(nn.Module):
 
         return pooled
 
+
 class LogSumPooling(AvgPooling):
     r"""
     Apply pooling over the nodes in the graph using a mean aggregation,
@@ -153,6 +155,7 @@ class LogSumPooling(AvgPooling):
 
     $$r^{(i)} = \frac{\log N_i}{N_i}\sum_{k=1}^{N_i} x^{(i)}_k$$
     """
+
     def forward(self, graph, feat):
         r"""Compute log-sum pooling.
 

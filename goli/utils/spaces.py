@@ -19,6 +19,7 @@ from goli.nn.residual_connections import (
     ResidualConnectionNone,
     ResidualConnectionSimple,
     ResidualConnectionWeighted,
+    ResidualConnectionRandom,
 )
 
 
@@ -47,4 +48,5 @@ RESIDUALS_DICT = {
     "weighted": ResidualConnectionWeighted,
     "concat": ResidualConnectionConcat,
     "densenet": ResidualConnectionDenseNet,
+    "random": ResidualConnectionRandom,
 }
