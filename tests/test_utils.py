@@ -2,9 +2,11 @@
 Unit tests for the metrics and wrappers of goli/utils/...
 """
 
-from goli.utils.tensor import nan_mean, nan_std, nan_var
+from typing import Tuple
+from goli.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median
 import torch
 import numpy as np
+import scipy as sp
 import unittest as ut
 
 
@@ -76,6 +78,56 @@ class test_nan_statistics(ut.TestCase):
                     torch_var = nan_var(tensor, **torch_kwargs)
                     numpy_var = np.nanvar(tensor.numpy(), **numpy_kwargs)
                     np.testing.assert_almost_equal(torch_var.numpy(), numpy_var, decimal=6, err_msg=err_msg)
+
+    def test_nan_median(self):
+
+        for keepdim in [False, True]:
+            # Cannot test
+            for dim in self.dims:  # in [d for d in self.dims if not isinstance(d, Tuple)]:
+                err_msg = f"Error for :\n dim = {dim}\n keepdim = {keepdim}"
+
+                tensor = torch.randn(
+                    (7, 9, 11, 13)
+                )  # Need odd number of values to properly compare torch to numpy
+
+                # Prepare the arguments for numpy vs torch
+                if dim is not None:
+                    torch_kwargs = {"dim": dim, "keepdim": keepdim}
+                    numpy_kwargs = {"axis": dim, "keepdims": keepdim}
+                else:
+                    torch_kwargs = {}
+                    numpy_kwargs = {}
+
+                # Compare the nan-median
+                torch_med = nan_median(tensor, **torch_kwargs)
+                numpy_med = np.nanmedian(tensor.numpy(), **numpy_kwargs)
+                torch_sum = torch.nansum(tensor, **torch_kwargs)
+                np.testing.assert_almost_equal(torch_med.numpy(), numpy_med, decimal=4, err_msg=err_msg)
+                self.assertListEqual(list(torch_med.shape), list(torch_sum.shape))
+
+    def test_nan_mad(self):
+
+        for normal in [False, True]:
+            # Cannot test
+            for dim in self.dims:  # in [d for d in self.dims if not isinstance(d, Tuple)]:
+                err_msg = f"Error for :\n dim = {dim}\n normal = {normal}"
+
+                tensor = torch.randn(
+                    (7, 9, 11, 13)
+                )  # Need odd number of values to properly compare torch to numpy
+
+                # Prepare the arguments for numpy vs torch
+                if dim is not None:
+                    torch_kwargs = {"dim": dim, "keepdim": False, "normal": normal}
+                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1.4826 if normal else 1.0}
+                else:
+                    torch_kwargs = {"normal": normal}
+                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1.4826 if normal else 1.0}
+
+                # Compare the nan-median
+                torch_mad = nan_mad(tensor, **torch_kwargs)
+                numpy_mad = sp.stats.median_absolute_deviation(tensor.numpy(), **numpy_kwargs)
+                np.testing.assert_almost_equal(torch_mad.numpy(), numpy_mad, decimal=4, err_msg=err_msg)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ from goli.utils.tensor import ModuleListConcat
 
 EPS = 1e-6
 
-
 class S2SReadout(nn.Module):
     r"""
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
@@ -145,6 +144,35 @@ class DirPooling(nn.Module):
 
         return pooled
 
+class LogSumPooling(AvgPooling):
+    r"""
+    Apply pooling over the nodes in the graph using a mean aggregation,
+    but scaled by the log of the number of nodes. This gives the same
+    expressive power as the sum, but helps deal with graphs that are
+    significantly larger than others by using a logarithmic scale.
+
+    $$r^{(i)} = \frac{\log N_i}{N_i}\sum_{k=1}^{N_i} x^{(i)}_k$$
+    """
+    def forward(self, graph, feat):
+        r"""Compute log-sum pooling.
+
+        Parameters:
+            graph : DGLGraph
+                The graph.
+            feat : torch.Tensor
+                The input feature with shape :math:`(N, *)` where
+                :math:`N` is the number of nodes in the graph.
+
+        Returns:
+            readout: torch.Tensor
+                The output feature with shape :math:`(B, *)`, where
+                :math:`B` refers to the batch size.
+        """
+        mean_pool = super().forward(graph=graph, feat=feat)
+        lognum = torch.log(torch.as_tensor(graph.batch_num_nodes(), dtype=feat.dtype, device=feat.device))
+        pool = mean_pool * lognum.unsqueeze(-1)
+        return pool
+
 
 def parse_pooling_layer(in_dim: int, pooling: Union[str, List[str]], n_iters: int = 2, n_layers: int = 2):
     r"""
@@ -191,6 +219,8 @@ def parse_pooling_layer(in_dim: int, pooling: Union[str, List[str]], n_iters: in
             pool_layer.append(SumPooling())
         elif this_pool == "mean":
             pool_layer.append(AvgPooling())
+        elif this_pool == "logsum":
+            pool_layer.append(LogSumPooling())
         elif this_pool == "max":
             pool_layer.append(MaxPooling())
         elif this_pool == "min":
@@ -317,7 +347,7 @@ class VirtualNode(nn.Module):
             pool = sum_nodes(g, "h")
         elif self.vn_type == "logsum":
             pool = mean_nodes(g, "h")
-            lognum = torch.log(torch.tensor(g.batch_num_nodes, dtype=h.dtype, device=h.device))
+            lognum = torch.log(torch.tensor(g.batch_num_nodes(), dtype=h.dtype, device=h.device))
             pool = pool * lognum.unsqueeze(-1)
         else:
             raise ValueError(

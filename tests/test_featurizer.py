@@ -14,6 +14,7 @@ from goli.features.featurizer import (
     get_mol_atomic_features_float,
     get_mol_edge_features,
     mol_to_adj_and_features,
+    mol_to_dglgraph_dict,
     mol_to_dglgraph,
 )
 
@@ -111,7 +112,7 @@ class test_featurizer(ut.TestCase):
             for ii in range(len(props)):
                 this_props = props[:ii]
                 err_msg2 = err_msg + f"\n\t\tprops: {this_props}"
-                prop_dict = get_mol_atomic_features_float(mol, property_list=this_props)
+                prop_dict = get_mol_atomic_features_float(mol, property_list=this_props, mask_nan=None)
                 self.assertListEqual(list(prop_dict.keys()), this_props, msg=err_msg)
                 for key, val in prop_dict.items():
                     err_msg3 = err_msg2 + f"\n\t\tkey: {key}"

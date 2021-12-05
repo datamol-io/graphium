@@ -47,7 +47,9 @@ def compute_laplacian_positional_eigvecs(
         eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
 
     # Eigenvalues previously set to infinite are now set to 0
-    eigvals_tile[np.isinf(eigvals_tile)] = 0
+    # Any NaN in the eigvals or eigvecs will be set to 0
+    eigvecs[~np.isfinite(eigvecs)] = 0.0
+    eigvals_tile[~np.isfinite(eigvals_tile)] = 0.0
 
     return eigvals_tile, eigvecs
 
@@ -77,7 +79,7 @@ def _get_positional_eigvecs(matrix, num_pos: int):
     eigvecs = eigvecs[:, :num_pos]
 
     # Normalize the eigvecs
-    eigvecs = eigvecs / (np.sqrt(np.sum(eigvecs ** 2, axis=0, keepdims=True)) + 1e-8)
+    eigvecs = eigvecs / np.maximum(np.sqrt(np.sum(eigvecs ** 2, axis=0, keepdims=True)), 1e-4)
 
     return eigvals, eigvecs
 
@@ -118,8 +120,9 @@ def normalize_matrix(matrix, degree_vector=None, normalization: str = None):
             raise ValueError("`degree_vector` cannot be `None` if `normalization` is not `None`")
     else:
         if is_dtype_numpy_array(matrix.dtype):
-            degree_inv = np.expand_dims(degree_vector ** -0.5, axis=1)
-            degree_inv[np.isinf(degree_inv)] = 0
+            with np.errstate(divide="ignore", invalid="ignore"):
+                degree_inv = np.expand_dims(degree_vector ** -0.5, axis=1)
+                degree_inv[np.isinf(degree_inv)] = 0
         elif is_dtype_torch_tensor(matrix.dtype):
             degree_inv = torch.unsqueeze(degree_vector ** -0.5, dim=1)
             degree_inv[torch.isinf(degree_inv)] = 0

@@ -40,7 +40,7 @@ def main(cfg: DictConfig) -> None:
     predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
 
     print(predictor.model)
-    print(predictor.summarize(mode=4, to_print=False))
+    print(predictor.summarize(max_depth=4))
 
     trainer = load_trainer(cfg)
 
