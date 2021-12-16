@@ -108,7 +108,7 @@ class test_ResidualConnectionRandom(ut.TestCase):
                     rc = ResidualConnectionRandom(skip_steps=skip_steps, num_layers=num_loops)
                 continue
 
-            rc = ResidualConnectionRandom(skip_steps=skip_steps, num_layers=num_loops+1)
+            rc = ResidualConnectionRandom(skip_steps=skip_steps, num_layers=num_loops + 1)
             shape = (3, 11)
             h_original = [torch.ones(shape) * (ii + 1) for ii in range(num_loops)]
 
@@ -117,6 +117,7 @@ class test_ResidualConnectionRandom(ut.TestCase):
             for ii in range(num_loops):
                 print(ii)
                 h, h_prev = rc.forward(h_original[ii], h_prev, step_idx=ii)
+
 
 class test_ResidualConnectionWeighted(ut.TestCase):
     def test_get_true_out_dims_weighted(self):
