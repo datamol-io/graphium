@@ -529,23 +529,33 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
 
 class ResidualConnectionRandom(ResidualConnectionBase):
-    def __init__(self, out_dims, skip_steps: int = 1):
+    def __init__(self, skip_steps=1, out_dims: List[int]=None, num_layers: int=None):
         r"""
-        Class for the simple residual connections proposed by ResNet,
-        where the current layer output is summed to a
-        previous layer output.
+        Class for the random residual connection, where each layer is connected
+        to each following layer with a random weight between 0 and 1.
         Parameters:
-            skip_steps: int
-                The number of steps to skip between the residual connections.
-                If `1`, all the layers are connected. If `2`, half of the
-                layers are connected.
+            skip_steps:
+                Parameter only there for compatibility with other classes of the same parent.
+            out_dims:
+                The list of output dimensions. Only required to get the number
+                of layers. Must be provided if `num_layers` is None.
+            num_layers:
+                The number of layers. Must be provided if `out_dims` is None.
         """
+        if skip_steps != 1:
+            raise ValueError("Only `skip_step=1` is implemented")
         super().__init__(skip_steps=skip_steps)
-        self.out_dims = out_dims
-        self.num_layers = len(self.out_dims)
+
+        if out_dims is not None:
+            if num_layers is not None:
+                assert num_layers == len(out_dims)
+            num_layers = len(out_dims)
+        if num_layers is None:
+            raise ValueError("Either `out_dims` or `num_layers` must be provided")
+        self.num_layers = num_layers
+
         self.random_dict_weights = {}
         for ii in range(1, self.num_layers):
-            this_dim = self.out_dims[ii]
             random_weights = torch.rand(ii)
             self.random_dict_weights[ii] = random_weights
 
