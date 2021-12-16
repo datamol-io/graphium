@@ -75,7 +75,7 @@ architecture:
     dropout: *dropout
     normalization: *normalization
     last_normalization: *normalization
-    residual_type: simple
+    residual_type: random
     pooling: [sum, max, dir1]
     virtual_node: 'sum'
     layer_type: 'dgn-msgpass'
