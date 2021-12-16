@@ -16,6 +16,7 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.config.config_convert import recursive_config_reformating
 from goli.utils.tensor import nan_mean, nan_std, nan_median
+from goli.utils.fs import mkdir
 
 LOSS_DICT = {
     "mse": torch.nn.MSELoss(),
@@ -534,6 +535,7 @@ class PredictorModule(pl.LightningModule):
 
         # Write the YAML file with the metrics
         if self.current_epoch >= 1:
+            mkdir(tb_path)
             with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
                 yaml.dump(full_dict, file)
 

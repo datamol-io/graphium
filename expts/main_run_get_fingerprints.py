@@ -18,68 +18,69 @@ from goli.trainer.predictor import PredictorModule
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 os.chdir(MAIN_DIR)
 
-DATA_NAME = "molHIV"
-DATA_CONFIG = f"{MAIN_DIR}/expts/config_{DATA_NAME}_pretrained.yaml"
-
-MODEL_PATH = None
-MODEL_NAME = None
-MODEL_FILE = f"{MODEL_PATH}/{MODEL_NAME}/model.ckpt"
-MODEL_CONFIG = f"{MODEL_PATH}/{MODEL_NAME}/configs.yaml"
-
 
 # MODEL_FILE = "models_checkpoints/micro_ZINC/model.ckpt"
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-NUM_LAYERS_TO_DROP = range(4)
 
 
 def main() -> None:
 
-    with fsspec.open(DATA_CONFIG, "r") as f:
-        data_cfg = yaml.safe_load(f)
-    with fsspec.open(os.path.join(MODEL_CONFIG), "r") as f:
-        model_cfg = yaml.safe_load(f)
+    NUM_LAYERS_TO_DROP = range(4)
+    DATA_NAME_ALL = ["molbace", "mollipo", "moltox21", "molHIV"]
 
-    # Load and initialize the dataset
-    data_cfg["datamodule"]["args"]["featurization"] = model_cfg["datamodule"]["args"]["featurization"]
-    datamodule = load_datamodule(data_cfg)
-    print("\ndatamodule:\n", datamodule, "\n")
+    for data_name in DATA_NAME_ALL:
+        DATA_CONFIG = f"{MAIN_DIR}/expts/config_{data_name}_pretrained.yaml"
 
-    for num_layers_to_drop in NUM_LAYERS_TO_DROP:
+        MODEL_PATH = "saved_models"
+        MODEL_NAME = "mega_pubchem_L1000_VCAP_v4"
+        MODEL_FILE = f"{MODEL_PATH}/{MODEL_NAME}/model.ckpt"
+        MODEL_CONFIG = f"{MODEL_PATH}/{MODEL_NAME}/configs.yaml"
 
-        export_df_path = (
-            f"predictions/fingerprint-{DATA_NAME}-model-{MODEL_NAME}-dropped-{num_layers_to_drop}.csv.gz"
-        )
+        with fsspec.open(DATA_CONFIG, "r") as f:
+            data_cfg = yaml.safe_load(f)
+        with fsspec.open(os.path.join(MODEL_CONFIG), "r") as f:
+            model_cfg = yaml.safe_load(f)
 
-        predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
-        predictor.model.drop_post_nn_layers(num_layers_to_drop=num_layers_to_drop)
+        # Load and initialize the dataset
+        data_cfg["datamodule"]["args"]["featurization"] = model_cfg["datamodule"]["args"]["featurization"]
+        datamodule = load_datamodule(data_cfg)
+        print("\ndatamodule:\n", datamodule, "\n")
 
-        print(predictor.model)
-        print(predictor.summarize(max_depth=4))
+        for num_layers_to_drop in NUM_LAYERS_TO_DROP:
 
-        trainer = load_trainer(data_cfg)
+            export_dir = f"predictions/fingerprints-model-{MODEL_NAME}"
+            export_df_path = f"{export_dir}/{data_name}-dropped-{num_layers_to_drop}.csv.gz"
 
-        # Run the model prediction
-        preds = trainer.predict(model=predictor, datamodule=datamodule)
-        if isinstance(preds[0], torch.Tensor):
-            preds = [p.detach().cpu().numpy() for p in preds]
-        preds = np.concatenate(preds, axis=0)
+            predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
+            predictor.model.drop_post_nn_layers(num_layers_to_drop=num_layers_to_drop)
 
-        # Generate output dataframe
-        df = {"SMILES": datamodule.dataset.smiles}
+            print(predictor.model)
+            print(predictor.summarize(max_depth=4))
 
-        target = datamodule.dataset.labels
-        for ii in range(target.shape[1]):
-            df[f"Target-{ii}"] = target[:, ii]
+            trainer = load_trainer(data_cfg)
 
-        for ii in range(preds.shape[1]):
-            df[f"Preds-{ii}"] = preds[:, ii]
-        df = pd.DataFrame(df)
-        mkdir("predictions")
-        df.to_csv(export_df_path)
-        print(df)
-        print(f"file saved to:`{export_df_path}`")
+            # Run the model prediction
+            preds = trainer.predict(model=predictor, datamodule=datamodule)
+            if isinstance(preds[0], torch.Tensor):
+                preds = [p.detach().cpu().numpy() for p in preds]
+            preds = np.concatenate(preds, axis=0)
+
+            # Generate output dataframe
+            df = {"SMILES": datamodule.dataset.smiles}
+
+            target = datamodule.dataset.labels
+            for ii in range(target.shape[1]):
+                df[f"Target-{ii}"] = target[:, ii]
+
+            for ii in range(preds.shape[1]):
+                df[f"Preds-{ii}"] = preds[:, ii]
+            df = pd.DataFrame(df)
+            mkdir(export_dir)
+            df.to_csv(export_df_path)
+            print(df)
+            print(f"file saved to:`{export_df_path}`")
 
 
 if __name__ == "__main__":
