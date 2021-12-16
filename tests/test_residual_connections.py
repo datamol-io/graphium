@@ -12,6 +12,7 @@ from goli.nn.residual_connections import (
     ResidualConnectionNone,
     ResidualConnectionSimple,
     ResidualConnectionWeighted,
+    ResidualConnectionRandom,
 )
 
 
@@ -76,6 +77,46 @@ class test_ResidualConnectionSimple(ut.TestCase):
                 np.testing.assert_array_equal(
                     h_prev.numpy(), h_expected_prev, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
+
+
+class test_ResidualConnectionRandom(ut.TestCase):
+    def test_get_true_out_dims_random(self):
+        full_dims = [4, 6, 8, 10, 12]
+        in_dims, out_dims = full_dims[:-1], full_dims[1:]
+        rc = ResidualConnectionRandom(skip_steps=1, out_dims=out_dims)
+        true_out_dims = rc.get_true_out_dims(out_dims)
+        expected_out_dims = out_dims[:-1]
+
+        self.assertListEqual(expected_out_dims, true_out_dims)
+
+        rc = ResidualConnectionRandom(skip_steps=1, num_layers=len(out_dims))
+        true_out_dims = rc.get_true_out_dims(out_dims)
+        expected_out_dims = out_dims[:-1]
+
+        self.assertListEqual(expected_out_dims, true_out_dims)
+
+        with self.assertRaises(ValueError):
+            rc = ResidualConnectionRandom(skip_steps=1, out_dims=None, num_layers=None)
+
+    def test_forward_random(self):
+
+        for skip_steps in [1, 2, 3]:
+            num_loops = 10
+
+            if skip_steps > 1:
+                with self.assertRaises(ValueError):
+                    rc = ResidualConnectionRandom(skip_steps=skip_steps, num_layers=num_loops)
+                continue
+
+            rc = ResidualConnectionRandom(skip_steps=skip_steps, num_layers=num_loops + 1)
+            shape = (3, 11)
+            h_original = [torch.ones(shape) * (ii + 1) for ii in range(num_loops)]
+
+            h_prev = None
+            # Not really testing the expected values due to randomness, just testing if it runs
+            for ii in range(num_loops):
+                print(ii)
+                h, h_prev = rc.forward(h_original[ii], h_prev, step_idx=ii)
 
 
 class test_ResidualConnectionWeighted(ut.TestCase):
