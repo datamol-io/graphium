@@ -529,7 +529,7 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
 
 class ResidualConnectionRandom(ResidualConnectionBase):
-    def __init__(self, skip_steps=1, out_dims: List[int]=None, num_layers: int=None):
+    def __init__(self, skip_steps=1, out_dims: List[int] = None, num_layers: int = None):
         r"""
         Class for the random residual connection, where each layer is connected
         to each following layer with a random weight between 0 and 1.

@@ -23,8 +23,6 @@ os.chdir(MAIN_DIR)
 # CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 
 
-
-
 def main() -> None:
 
     NUM_LAYERS_TO_DROP = range(4)

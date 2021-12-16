@@ -6,7 +6,11 @@ import inspect
 
 from goli.nn.base_layers import FCLayer, get_activation
 from goli.nn.dgl_layers import BaseDGLLayer
-from goli.nn.residual_connections import ResidualConnectionBase, ResidualConnectionWeighted, ResidualConnectionRandom
+from goli.nn.residual_connections import (
+    ResidualConnectionBase,
+    ResidualConnectionWeighted,
+    ResidualConnectionRandom,
+)
 from goli.nn.dgl_layers.pooling import parse_pooling_layer, VirtualNode
 from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
 
@@ -170,8 +174,8 @@ class FeedForwardNN(nn.Module):
         Create the residual connection classes.
         The out_dims is only used if the residual classes requires weights
         """
-        if (self.residual_class == ResidualConnectionWeighted):
-        # if self.residual_class.has_weights:
+        if self.residual_class == ResidualConnectionWeighted:
+            # if self.residual_class.has_weights:
             residual_layer = self.residual_class(
                 skip_steps=self.residual_skip_steps,
                 out_dims=out_dims,
@@ -180,11 +184,11 @@ class FeedForwardNN(nn.Module):
                 normalization=self.normalization,
                 bias=False,
             )
-        elif (self.residual_class == ResidualConnectionRandom):
+        elif self.residual_class == ResidualConnectionRandom:
             residual_layer = self.residual_class(
-                out_dims = out_dims,
+                out_dims=out_dims,
                 skip_steps=self.residual_skip_steps,
-                )
+            )
         else:
             residual_layer = self.residual_class(skip_steps=self.residual_skip_steps)
 
