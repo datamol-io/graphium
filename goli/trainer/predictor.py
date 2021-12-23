@@ -202,6 +202,9 @@ class PredictorModule(pl.LightningModule):
                 If `None`, all the metrics are computed. Using less metrics can significantly improve
                 performance, depending on the number of readouts.
 
+            n_flag_steps:
+                An integer that specifies the number of times to loop FLAG during training. Default value of 0
+                trains GNNs without FLAG, and any value greater than 0 will use FLAG with that many iterations.
         """
 
         self.save_hyperparameters()
@@ -467,8 +470,6 @@ class PredictorModule(pl.LightningModule):
 
         # Perturb the features
         pert_batch = deepcopy(batch)
-        pert_batch['features'] = pert_batch["features"]
-        pert_batch['labels'] = pert_batch['labels']
         pert_batch['features'].ndata['feat'] = batch['features'].ndata['feat'] + pert
         
         preds = self.forward(pert_batch)
@@ -487,7 +488,7 @@ class PredictorModule(pl.LightningModule):
         for _ in range(M-1):
             loss.backward()
             pert_data = pert.detach() + alpha*torch.sign(pert.grad.detach())
-            pert.data = pert_data.data # This is not actually good anymore (look at SE posts)
+            pert.data = pert_data.data
             pert.grad[:] = 0
             pert_batch['features'].ndata['feat'] = batch['features'].ndata['feat'] + pert
             preds = self.forward(pert_batch)
@@ -519,7 +520,7 @@ class PredictorModule(pl.LightningModule):
                 batch=batch, 
                 batch_idx=batch_idx, 
                 step_name="train", 
-                to_cpu=False, 
+                to_cpu=True, 
                 M=self.n_flag_steps, 
                 alpha=0.001
             )
