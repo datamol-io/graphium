@@ -453,53 +453,53 @@ class PredictorModule(pl.LightningModule):
         return loss, step_dict
 
     def flag_step(
-        self, 
-        batch: Dict[str, Tensor], 
-        batch_idx: int, 
-        step_name: str, 
-        to_cpu: bool, 
-        M: int, 
-        alpha: float
+        self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool, M: int, alpha: float
     ) -> Dict[str, Any]:
 
-        X = self._convert_features_dtype(batch['features'])
-        X_shape = X.ndata['feat'].shape
+        X = self._convert_features_dtype(batch["features"])
+        X_shape = X.ndata["feat"].shape
 
         pert = torch.FloatTensor(X_shape).uniform_(-alpha, alpha).to(device=X.device)
         pert.requires_grad = True
 
         # Perturb the features
         pert_batch = deepcopy(batch)
-        pert_batch['features'].ndata['feat'] = batch['features'].ndata['feat'] + pert
-        
+        pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
+
         preds = self.forward(pert_batch)
         targets = batch.pop("labels").to(dtype=preds.dtype)
         weights = batch.pop("weights", None)
-        loss = self.compute_loss(
-           preds=preds,
-           targets=targets,
-           weights=weights,
-           target_nan_mask=self.target_nan_mask,
-           loss_fun=self.loss_fun,
-       )/M
+        loss = (
+            self.compute_loss(
+                preds=preds,
+                targets=targets,
+                weights=weights,
+                target_nan_mask=self.target_nan_mask,
+                loss_fun=self.loss_fun,
+            )
+            / M
+        )
 
         # Iteratively augment data by applying perturbations
         # Accumulate the gradients to be applied to the weights of the network later on
-        for _ in range(M-1):
+        for _ in range(M - 1):
             loss.backward()
-            pert_data = pert.detach() + alpha*torch.sign(pert.grad.detach())
+            pert_data = pert.detach() + alpha * torch.sign(pert.grad.detach())
             pert.data = pert_data.data
             pert.grad[:] = 0
-            pert_batch['features'].ndata['feat'] = batch['features'].ndata['feat'] + pert
+            pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
             preds = self.forward(pert_batch)
-            loss = self.compute_loss(
-           		preds=preds,
-           		targets=targets,
-           		weights=weights,
-           		target_nan_mask=self.target_nan_mask,
-           		loss_fun=self.loss_fun,
-       	    )/M
-        
+            loss = (
+                self.compute_loss(
+                    preds=preds,
+                    targets=targets,
+                    weights=weights,
+                    target_nan_mask=self.target_nan_mask,
+                    loss_fun=self.loss_fun,
+                )
+                / M
+            )
+
         device = "cpu" if to_cpu else None
         preds = preds.detach().to(device=device)
         targets = targets.detach().to(device=device)
@@ -515,17 +515,17 @@ class PredictorModule(pl.LightningModule):
         step_dict = None
 
         # Train using FLAG
-        if (self.n_flag_steps > 0):
+        if self.n_flag_steps > 0:
             loss, step_dict = self.flag_step(
-                batch=batch, 
-                batch_idx=batch_idx, 
-                step_name="train", 
-                to_cpu=True, 
-                M=self.n_flag_steps, 
-                alpha=0.001
+                batch=batch,
+                batch_idx=batch_idx,
+                step_name="train",
+                to_cpu=True,
+                M=self.n_flag_steps,
+                alpha=0.001,
             )
         # Train normally, without using FLAG
-        elif (self.n_flag_steps == 0):
+        elif self.n_flag_steps == 0:
             loss, step_dict = self._general_step(
                 batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True
             )
