@@ -132,7 +132,7 @@ class PredictorModule(pl.LightningModule):
         metrics_on_progress_bar: List[str] = [],
         metrics_on_training_set: Optional[List[str]] = None,
         flag_n_steps: int = 0,
-        flag_alpha: float = 0.01
+        flag_alpha: float = 0.01,
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -204,8 +204,8 @@ class PredictorModule(pl.LightningModule):
                 performance, depending on the number of readouts.
 
             flag_n_steps:
-                An integer that specifies the number of ascent steps when running FLAG during training. 
-                Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that 
+                An integer that specifies the number of ascent steps when running FLAG during training.
+                Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
                 many iterations.
 
             flag_alpha:
@@ -527,12 +527,7 @@ class PredictorModule(pl.LightningModule):
 
         # Train using FLAG
         if self.flag_n_steps > 0:
-            loss, step_dict = self.flag_step(
-                batch=batch,
-                batch_idx=batch_idx,
-                step_name="train",
-                to_cpu=True
-            )
+            loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
         # Train normally, without using FLAG
         elif self.flag_n_steps == 0:
             loss, step_dict = self._general_step(
