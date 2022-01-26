@@ -61,7 +61,7 @@ def _get_positional_eigvecs(matrix, num_pos: int):
         # Make `eigs` deterministic for inference time
         num_nodes = matrix.shape[0]
         rand_gen = np.random.RandomState(42)
-        v0 = (np.ones(num_nodes) + 1e-5* rand_gen.randn(num_nodes))
+        v0 = np.ones(num_nodes) + 1e-5 * rand_gen.randn(num_nodes)
 
         eigvals, eigvecs = eigs(matrix, k=num_pos, which="SR", tol=0, v0=v0)
 
