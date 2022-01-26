@@ -1,3 +1,4 @@
+from turtle import pos
 from torch import nn
 import torch
 import dgl
@@ -927,13 +928,31 @@ class FullDGLNetwork(nn.Module):
 
         """
 
+        if self.training:
+            return self._forward(g, flip_pos_enc="random")
+        else:
+            # If in test mode, try 2 different sign flips and average them together
+            h1 = self._forward(g, flip_pos_enc="no-flip")
+            if "pos_enc_feats_sign_flip" in g.ndata.keys():
+                h2 = self._forward(g, flip_pos_enc="sign-flip")
+                return (h1 + h2) / 2
+            else:
+                return h1
+
+    def _forward(self, g: dgl.DGLGraph, flip_pos_enc: str) -> torch.Tensor:
         # Get the node features and positional embedding
         h = g.ndata["feat"]
         if "pos_enc_feats_sign_flip" in g.ndata.keys():
             pos_enc = g.ndata["pos_enc_feats_sign_flip"]
-            rand_sign_shape = ([1] * (pos_enc.ndim - 1)) + [pos_enc.shape[-1]]
-            rand_sign = torch.sign(torch.randn(rand_sign_shape, dtype=h.dtype, device=h.device))
-            h = torch.cat((h, pos_enc * rand_sign), dim=-1)
+            if flip_pos_enc == "random":
+                rand_sign_shape = ([1] * (pos_enc.ndim - 1)) + [pos_enc.shape[-1]]
+                rand_sign = torch.sign(torch.randn(rand_sign_shape, dtype=h.dtype, device=h.device))
+                pos_enc = pos_enc * rand_sign
+            elif flip_pos_enc == "no-flip":
+                pass
+            elif flip_pos_enc == "sign-flip":
+                pos_enc = -pos_enc
+            h = torch.cat((h, pos_enc), dim=-1)
         if "pos_enc_feats_no_flip" in g.ndata.keys():
             pos_enc = g.ndata["pos_enc_feats_no_flip"]
             h = torch.cat((h, pos_enc), dim=-1)
