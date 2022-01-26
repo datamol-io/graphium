@@ -819,6 +819,7 @@ class FullDGLNetwork(nn.Module):
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
                 by positional encodings with sign-flips. In case no such encoding is given,
                 this parameter is ignored.
+                NOTE: The inference time will be slowed-down proportionaly to this parameter.
 
             name:
                 Name attributed to the current network, for display and printing
