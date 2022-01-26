@@ -1,4 +1,3 @@
-from turtle import pos
 from torch import nn
 import torch
 import dgl
