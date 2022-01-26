@@ -783,6 +783,7 @@ class FullDGLNetwork(nn.Module):
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        num_inference_to_average: int = 1,
         name: str = "DGL_GNN",
     ):
         r"""
@@ -814,6 +815,11 @@ class FullDGLNetwork(nn.Module):
                 MLP network after the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a post-processing MLP.
 
+            num_inference_to_average:
+                Number of inferences to average at val/test time. This is used to avoid the noise introduced
+                by positional encodings with sign-flips. In case no such encoding is given,
+                this parameter is ignored.
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -821,6 +827,7 @@ class FullDGLNetwork(nn.Module):
 
         super().__init__()
         self.name = name
+        self.num_inference_to_average = num_inference_to_average
 
         # Initialize the networks
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
@@ -930,13 +937,13 @@ class FullDGLNetwork(nn.Module):
         if self.training:
             return self._forward(g, flip_pos_enc="random")
         else:
-            # If in test mode, try 2 different sign flips and average them together
-            h1 = self._forward(g, flip_pos_enc="no-flip")
-            if "pos_enc_feats_sign_flip" in g.ndata.keys():
-                h2 = self._forward(g, flip_pos_enc="sign-flip")
-                return (h1 + h2) / 2
-            else:
-                return h1
+            # If in test mode, try different sign flips according to `self.num_inference_to_average` and average them together
+            h = [self._forward(g, flip_pos_enc="no-flip")]
+            if ("pos_enc_feats_sign_flip" in g.ndata.keys()) and self.num_inference_to_average > 1:
+                h.append(self._forward(g, flip_pos_enc="sign-flip"))
+                for _ in range(2, self.num_inference_to_average):
+                    h.append(self._forward(g, flip_pos_enc="random"))
+            return torch.mean(torch.stack(h, dim=-1), dim=-1)
 
     def _forward(self, g: dgl.DGLGraph, flip_pos_enc: str) -> torch.Tensor:
         # Get the node features and positional embedding
