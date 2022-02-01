@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 import dgl
-from typing import List, Dict, Tuple, Union, Callable, Any, Optional
+from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
 from goli.nn.base_layers import FCLayer, get_activation
@@ -829,6 +829,7 @@ class FullDGLNetwork(nn.Module):
         super().__init__()
         self.name = name
         self.num_inference_to_average = num_inference_to_average
+        self._concat_last_layers = None
 
         # Initialize the networks
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
@@ -992,9 +993,49 @@ class FullDGLNetwork(nn.Module):
 
         # Run the output network
         if self.post_nn is not None:
-            h = self.post_nn.forward(h)
+            if self.concat_last_layers is None:
+                h = self.post_nn.forward(h)
+            else:
+                # Concatenate the output of the last layers according to `self._concat_last_layers``.
+                # Useful for generating fingerprints
+                h = [h]
+                for ii in range(len(self.post_nn.layers)):
+                    h.insert(0, self.post_nn.layers[ii].forward(h[0]))  # Append in reverse order
+                h = torch.cat([h[ii] for ii in self._concat_last_layers], dim=-1)
 
         return h
+
+    @property
+    def concat_last_layers(self) -> Union[type(None), Iterable[int]]:
+        """
+        Property to control the output of the `self.forward`.
+        If set to a list of integer, the `forward` function will
+        concatenate the output of different layers.
+
+        If set to `None`, the output of the last layer is returned.
+
+        NOTE: The indexes are inverted. 0 is the last layer, 1 is the second last, etc.
+        """
+        return self._concat_last_layers
+
+    @concat_last_layers.setter
+    def concat_last_layers(self, value: Union[type(None), int, Iterable[int]]) -> None:
+        """
+        Set the property to control the output of the `self.forward`.
+        If set to a list of integer, the `forward` function will
+        concatenate the output of different layers.
+        If a single integer is provided, it will output that specific layer.
+
+        If set to `None`, the output of the last layer is returned.
+
+        NOTE: The indexes are inverted. 0 is the last layer, 1 is the second last, etc.
+
+        Parameters:
+            value: Output layers to concatenate, in reverse order (`0` is the last layer)
+        """
+        if (value is not None) and not isinstance(value, Iterable):
+            value = [value]
+        self._concat_last_layers = value
 
     def __repr__(self):
         r"""
