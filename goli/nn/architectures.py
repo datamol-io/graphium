@@ -1000,7 +1000,7 @@ class FullDGLNetwork(nn.Module):
                 # Useful for generating fingerprints
                 h = [h]
                 for ii in range(len(self.post_nn.layers)):
-                    h.insert(0, self.post_nn.layers[ii].forward(h[0])) # Append in reverse order
+                    h.insert(0, self.post_nn.layers[ii].forward(h[0]))  # Append in reverse order
                 h = torch.cat([h[ii] for ii in self._concat_last_layers], dim=-1)
 
         return h

@@ -26,7 +26,7 @@ os.chdir(MAIN_DIR)
 def main() -> None:
 
     LIST_CONCAT_LAST_LAYERS = [1, 0, [1, 2], [0, 1, 2]]
-    DATA_NAME_ALL = ["molbace"] #, "mollipo", "moltox21", "molHIV"]
+    DATA_NAME_ALL = ["molbace"]  # , "mollipo", "moltox21", "molHIV"]
     MODEL_PATH = "gs://goli-public/pretrained-models"
     MODEL_NAME = "goli-zinc-micro-dummy-test"
     MODEL_FILE = f"{MODEL_PATH}/{MODEL_NAME}/model.ckpt"
@@ -39,7 +39,6 @@ def main() -> None:
 
     for data_name in DATA_NAME_ALL:
         DATA_CONFIG = f"{MAIN_DIR}/expts/config_{data_name}_pretrained.yaml"
-
 
         with fsspec.open(DATA_CONFIG, "r") as f:
             data_cfg = yaml.safe_load(f)
