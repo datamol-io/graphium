@@ -25,16 +25,21 @@ os.chdir(MAIN_DIR)
 
 def main() -> None:
 
-    NUM_LAYERS_TO_DROP = range(4)
-    DATA_NAME_ALL = ["molbace", "mollipo", "moltox21", "molHIV"]
+    LIST_CONCAT_LAST_LAYERS = [1, 0, [1, 2], [0, 1, 2]]
+    DATA_NAME_ALL = ["molbace"] #, "mollipo", "moltox21", "molHIV"]
+    MODEL_PATH = "gs://goli-public/pretrained-models"
+    MODEL_NAME = "goli-zinc-micro-dummy-test"
+    MODEL_FILE = f"{MODEL_PATH}/{MODEL_NAME}/model.ckpt"
+    MODEL_CONFIG = f"{MODEL_PATH}/{MODEL_NAME}/configs.yaml"
+
+    predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
+
+    print(predictor.model)
+    print(predictor.summarize(max_depth=4))
 
     for data_name in DATA_NAME_ALL:
         DATA_CONFIG = f"{MAIN_DIR}/expts/config_{data_name}_pretrained.yaml"
 
-        MODEL_PATH = "saved_models"
-        MODEL_NAME = "mega_pubchem_L1000_VCAP_v4"
-        MODEL_FILE = f"{MODEL_PATH}/{MODEL_NAME}/model.ckpt"
-        MODEL_CONFIG = f"{MODEL_PATH}/{MODEL_NAME}/configs.yaml"
 
         with fsspec.open(DATA_CONFIG, "r") as f:
             data_cfg = yaml.safe_load(f)
@@ -46,17 +51,11 @@ def main() -> None:
         datamodule = load_datamodule(data_cfg)
         print("\ndatamodule:\n", datamodule, "\n")
 
-        for num_layers_to_drop in NUM_LAYERS_TO_DROP:
-
+        for concat_last_layers in LIST_CONCAT_LAST_LAYERS:
             export_dir = f"predictions/fingerprints-model-{MODEL_NAME}"
-            export_df_path = f"{export_dir}/{data_name}-dropped-{num_layers_to_drop}.csv.gz"
+            export_df_path = f"{export_dir}/{data_name}-concatlayers-{concat_last_layers}.csv.gz"
 
-            predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
-            predictor.model.drop_post_nn_layers(num_layers_to_drop=num_layers_to_drop)
-
-            print(predictor.model)
-            print(predictor.summarize(max_depth=4))
-
+            predictor.model.concat_last_layers = concat_last_layers
             trainer = load_trainer(data_cfg)
 
             # Run the model prediction
