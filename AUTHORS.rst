@@ -4,6 +4,7 @@ Authors are sorted alphabetically.
 * Ali
 * Dom
 * Dominique
+* Gabriela Moisescu-Pareja
 * Hadrien Mary
 * Hannes Stärk
 * Therence1
