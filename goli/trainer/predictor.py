@@ -652,7 +652,7 @@ class PredictorModule(pl.LightningModule):
         Controls how the class is printed
         """
         model_str = self.model.__repr__()
-        summary_str = self.summarize(to_print=False).__repr__()
+        summary_str = self.summarize().__repr__()
 
         return model_str + "\n\n" + summary_str
 
