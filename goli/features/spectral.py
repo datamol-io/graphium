@@ -58,7 +58,12 @@ def _get_positional_eigvecs(matrix, num_pos: int):
 
     mat_len = matrix.shape[0]
     if num_pos < mat_len - 1:  # Compute the k-lowest eigenvectors
-        eigvals, eigvecs = eigs(matrix, k=num_pos, which="SR", tol=0)
+        # Make `eigs` deterministic for inference time
+        num_nodes = matrix.shape[0]
+        rand_gen = np.random.RandomState(42)
+        v0 = np.ones(num_nodes) + 1e-5 * rand_gen.randn(num_nodes)
+
+        eigvals, eigvecs = eigs(matrix, k=num_pos, which="SR", tol=0, v0=v0)
 
     else:  # Compute all eigenvectors
 
