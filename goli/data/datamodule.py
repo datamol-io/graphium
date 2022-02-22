@@ -447,7 +447,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if stage == "test" or stage is None:
             self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
 
-    def _featurize_molecules(self, smiles: Iterable[str], sample_idx: Iterable[int]=None) -> Tuple[List, List]:
+    def _featurize_molecules(
+        self, smiles: Iterable[str], sample_idx: Iterable[int] = None
+    ) -> Tuple[List, List]:
         """
         Precompute the features (graphs, fingerprints, etc.) from the SMILES.
         Features are computed from `self.smiles_transformer`.
