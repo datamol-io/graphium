@@ -12,7 +12,6 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 from goli.nn.dgl_layers.pooling import parse_pooling_layer, VirtualNode
-from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
 
 
 class FeedForwardNN(nn.Module):
@@ -135,6 +134,8 @@ class FeedForwardNN(nn.Module):
         self.name = name
 
         # Parse the layer and residuals
+        from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
+
         self.layer_class, self.layer_name = self._parse_class_from_dict(layer_type, LAYERS_DICT)
         self.residual_class, self.residual_name = self._parse_class_from_dict(residual_type, RESIDUALS_DICT)
 

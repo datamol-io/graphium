@@ -10,7 +10,6 @@ from inspect import signature
 
 import torch
 from torch import nn, Tensor
-import torch.optim.lr_scheduler as sc
 
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
@@ -19,27 +18,10 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from goli.config.config_convert import recursive_config_reformating
 from goli.utils.tensor import nan_mean, nan_std, nan_median
 from goli.utils.fs import mkdir
-
-LOSS_DICT = {
-    "mse": torch.nn.MSELoss(),
-    "bce": torch.nn.BCELoss(),
-    "l1": torch.nn.L1Loss(),
-    "mae": torch.nn.L1Loss(),
-}
+from goli.utils.spaces import LOSS_DICT, SCHEDULER_DICT
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
-}
-
-SCHEDULER_DICT = {
-    "CosineAnnealingLR": sc.CosineAnnealingLR,
-    "CosineAnnealingWarmRestarts": sc.CosineAnnealingWarmRestarts,
-    "CyclicLR": sc.CyclicLR,
-    "ExponentialLR": sc.ExponentialLR,
-    "LambdaLR": sc.LambdaLR,
-    "MultiStepLR": sc.MultiStepLR,
-    "ReduceLROnPlateau": sc.ReduceLROnPlateau,
-    "StepLR": sc.StepLR,
 }
 
 
