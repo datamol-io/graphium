@@ -324,8 +324,13 @@ class PredictorModule(pl.LightningModule):
     def forward(self, inputs: Dict) -> Dict[str, Union[torch.Tensor, Any]]:
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
-        A dict of Tensors is returned to allow inherited class to manage
-        multiple outputs in the `forward` without breaking the rest of the module.
+        If the output of `out = self.model.forward` is a dictionary with a `"preds"` key,
+        it is returned directly. Otherwise, a new dictionary is created and
+        returns `{"preds": out}`.
+
+        Returns:
+            A dict with a key `"preds"` representing the prediction of the network.
+
         """
         # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
