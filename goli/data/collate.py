@@ -8,9 +8,7 @@ from goli.features import dgl_dict_to_graph
 
 
 def goli_collate_fn(
-    elements,
-    mask_nan: Union[str, float, type(None)] = "raise",
-    do_not_collate_keys: List[str] = []
+    elements, mask_nan: Union[str, float, type(None)] = "raise", do_not_collate_keys: List[str] = []
 ):
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
