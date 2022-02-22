@@ -10,8 +10,8 @@ from goli.trainer.metrics import (
     Thresholder,
     pearsonr,
     spearmanr,
-    mean_squared_error,
 )
+from torchmetrics.functional import mean_squared_error
 
 
 class test_Metrics(ut.TestCase):
