@@ -264,20 +264,25 @@ class PredictorModule(pl.LightningModule):
 
         # Set the lightning scheduler
         self.scheduler_kwargs = {
-                "interval": "epoch",
-                "monitor": "loss/val",
-                "mode": "min",
-                "frequency": 1,
-                "strict": True,}
+            "interval": "epoch",
+            "monitor": "loss/val",
+            "mode": "min",
+            "frequency": 1,
+            "strict": True,
+        }
         self.scheduler_kwargs.update(scheduler_kwargs)
 
         # Set the depreciated arguments, if provided
         if lr_reduce_on_plateau_kwargs is not None:
-            logger.warning("`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead.")
+            logger.warning(
+                "`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead."
+            )
             if torch_scheduler_kwargs is not None:
-                raise ValueError("Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided")
+                raise ValueError(
+                    "Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided"
+                )
             torch_scheduler_kwargs = {
-                "type": "ReduceLROnPlateau",
+                "module_type": "ReduceLROnPlateau",
                 **lr_reduce_on_plateau_kwargs,
             }
 
@@ -286,7 +291,7 @@ class PredictorModule(pl.LightningModule):
             self.torch_scheduler_kwargs = {}
         else:
             self.torch_scheduler_kwargs = torch_scheduler_kwargs
-        self.torch_scheduler_kwargs.setdefault("type", "ReduceLROnPlateau")
+        self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
 
         # Initialize the epoch summary
         monitor = self.scheduler_kwargs["monitor"].split("/")[0]
@@ -348,12 +353,12 @@ class PredictorModule(pl.LightningModule):
     def configure_optimizers(self):
         # Configure the parameters for the schedulers
         sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
-        scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("type")]
-        sig =  signature(scheduler_class.__init__)
+        scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
+        sig = signature(scheduler_class.__init__)
         key_args = [p.name for p in sig.parameters.values() if p.kind == p.KEYWORD_ONLY]
-        if ("monitor" in key_args):
+        if "monitor" in key_args:
             sc_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
-        if ("mode" in key_args):
+        if "mode" in key_args:
             sc_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
 
         # Define the optimizer and schedulers

@@ -430,7 +430,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
             )
 
-        df, features, sample_idx, smiles, labels, weights, indices = self._remove_none_molecules(idx_none, df, features, sample_idx, smiles, labels, weights, indices)
+        df, features, sample_idx, smiles, labels, weights, indices = self._remove_none_molecules(
+            idx_none, df, features, sample_idx, smiles, labels, weights, indices
+        )
 
         # Get splits indices
         self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
