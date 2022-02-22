@@ -332,16 +332,10 @@ class PredictorModule(pl.LightningModule):
         out = self.model.forward(feats)
 
         # Convert the output of the model to a dictionary
-        if isinstance(out, dict):
-            assert "preds" in out.keys()
+        if isinstance(out, dict) and ("preds" in out.keys()):
             out_dict = out
-        elif isinstance(out, (tuple, list)):
-            out_dict = {f"out_{ii}": out[ii] for ii in range(1, len(out))}
-            out_dict["preds"] = out[0]
-        elif isinstance(out, Tensor):
-            out_dict = {"preds": out}
         else:
-            raise ValueError("Output of `self.model.forward` not understood")
+            out_dict = {"preds": out}
 
         return out_dict
 
