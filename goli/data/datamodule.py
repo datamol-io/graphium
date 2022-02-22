@@ -95,6 +95,7 @@ class DGLBaseDataModule(pl.LightningDataModule):
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
+        self._predict_ds = None
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -127,7 +128,7 @@ class DGLBaseDataModule(pl.LightningDataModule):
     def predict_dataloader(self, **kwargs):
 
         return self._dataloader(
-            dataset=self.dataset,  # type: ignore
+            dataset=self.predict_ds,  # type: ignore
             batch_size=self.batch_size_test,
             shuffle=False,
         )
@@ -147,6 +148,19 @@ class DGLBaseDataModule(pl.LightningDataModule):
     @property
     def num_edge_feats(self):
         raise NotImplementedError()
+
+    @property
+    def predict_ds(self):
+        """Get the dataset used for the prediction"""
+        if self._predict_ds is None:
+            return self.test_ds
+        else:
+            return self._predict_ds
+
+    @predict_ds.setter
+    def predict_ds(self, value):
+        """Set the dataset for the prediction"""
+        self._predict_ds = value
 
     def get_first_graph(self):
         raise NotImplementedError()
@@ -335,6 +349,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
+        self._predict_ds = None
         self.train_indices = None
         self.val_indices = None
         self.test_indices = None
@@ -407,26 +422,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             )
 
         # Warn about None molecules
-        is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
-        if len(is_none) > 0:
-            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in is_none]
+        idx_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
+        if len(idx_none) > 0:
+            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in idx_none]
             msg = "\n".join(mols_to_msg)
             logger.warning(
-                (f"{len(is_none)} molecules will be removed since they failed featurization:\n" + msg)
+                (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
             )
 
-        # Remove None molecules
-        if len(is_none) > 0:
-            df.drop(df.index[is_none], axis=0)
-            features = [feat for feat in features if not (feat is None)]
-            sample_idx = np.delete(sample_idx, is_none, axis=0)
-            smiles = np.delete(smiles, is_none, axis=0)
-            if labels is not None:
-                labels = np.delete(labels, is_none, axis=0)
-            if weights is not None:
-                weights = np.delete(weights, is_none, axis=0)
-            if indices is not None:
-                indices = np.delete(indices, is_none, axis=0)
+        df, features, sample_idx, smiles, labels, weights, indices = self._remove_none_molecules(idx_none, df, features, sample_idx, smiles, labels, weights, indices)
 
         # Get splits indices
         self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
@@ -458,6 +462,30 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         if stage == "test" or stage is None:
             self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
+
+    @staticmethod
+    def _remove_none_molecules(idx_none, *args):
+        if len(idx_none) == 0:
+            return args
+
+        out = []
+        for arg in args:
+            if isinstance(arg, pd.DataFrame):
+                new = arg.drop(arg.index[idx_none], axis=0)
+            elif isinstance(arg, np.ndarray):
+                new = np.delete(arg, idx_none, axis=0)
+            elif isinstance(arg, torch.Tensor):
+                not_none = torch.ones(arg.shape[0], dtype=bool)
+                not_none[idx_none] = False
+                new = arg[not_none]
+            elif isinstance(arg, (list, tuple)):
+                arg = list(arg)
+                new = [elem for ii, elem in enumerate(arg) if ii not in idx_none]
+            else:
+                new = arg
+            out.append(new)
+
+        return out
 
     def _parse_label_cols(self, label_cols: Union[type(None), str, List[str]], smiles_col: str) -> List[str]:
         r"""
@@ -496,9 +524,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
     @property
     def is_setup(self):
-        if not hasattr(self, "train_ds"):
+        if not (hasattr(self, "train_ds") or hasattr(self, "test_ds")):
             return False
-        return getattr(self, "train_ds") is not None
+        return (getattr(self, "train_ds") is not None) or (getattr(self, "test_ds") is not None)
 
     @property
     def num_node_feats(self):

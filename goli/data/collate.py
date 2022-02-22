@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from torch.utils.data.dataloader import default_collate
 import dgl
 from inspect import signature, _empty
-from typing import Union
+from typing import Union, List
 
 from goli.features import dgl_dict_to_graph
 
@@ -10,6 +10,7 @@ from goli.features import dgl_dict_to_graph
 def goli_collate_fn(
     elements,
     mask_nan: Union[str, float, type(None)] = "raise",
+    do_not_collate_keys: List[str] = []
 ):
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
@@ -41,6 +42,9 @@ def goli_collate_fn(
             - "warn": Raise a warning when there is a nan or inf in the featurization
             - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans or inf by the specified value
+
+        do_not_batch_keys:
+            Keys to ignore for the collate
     """
 
     elem = elements[0]
@@ -63,6 +67,10 @@ def goli_collate_fn(
             # If a DGLGraph is provided, use the dgl batching
             elif isinstance(elem[key], dgl.DGLGraph):
                 batch[key] = dgl.batch([d[key] for d in elements])
+
+            # Ignore the collate for specific keys
+            elif key in do_not_collate_keys:
+                batch[key] = [d[key] for d in elements]
 
             # Otherwise, use the default torch batching
             else:
