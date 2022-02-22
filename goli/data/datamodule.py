@@ -408,28 +408,10 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             weights_type=self.weights_type,
         )
 
-        # Precompute the features
-        # NOTE(hadim): in case of very large dataset we could:
-        # - or cache the data and read from it during `next(iter(dataloader))`
-        # - or compute the features on-the-fly during `next(iter(dataloader))`
-        # For now we compute in advance and hold everything in memory.
+        # Convert SMILES to features (graphs, fingerprints, etc.)
+        features, idx_none = self._featurize_molecules(smiles, sample_idx)
 
-        if self.featurization_n_jobs == 0:
-            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
-        else:
-            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
-                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
-            )
-
-        # Warn about None molecules
-        idx_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
-        if len(idx_none) > 0:
-            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in idx_none]
-            msg = "\n".join(mols_to_msg)
-            logger.warning(
-                (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
-            )
-
+        # Filter the molecules, labels, etc. for the molecules that failed featurization
         df, features, sample_idx, smiles, labels, weights, indices = self._remove_none_molecules(
             idx_none, df, features, sample_idx, smiles, labels, weights, indices
         )
@@ -465,10 +447,68 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         if stage == "test" or stage is None:
             self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
 
+    def _featurize_molecules(self, smiles: Iterable[str], sample_idx: Iterable[int]=None) -> Tuple[List, List]:
+        """
+        Precompute the features (graphs, fingerprints, etc.) from the SMILES.
+        Features are computed from `self.smiles_transformer`.
+        A warning is issued to mention which molecules failed featurization.
+
+        Note:
+            (hadim): in case of very large dataset we could:
+            - or cache the data and read from it during `next(iter(dataloader))`
+            - or compute the features on-the-fly during `next(iter(dataloader))`
+            For now we compute in advance and hold everything in memory.
+
+        Parameters:
+            smiles: A list of all the molecular SMILES to featurize
+            sample_idx: The indexes corresponding to the sampled SMILES.
+                If not provided, computed from `numpy.arange`.
+
+        Returns:
+            features: A list of all the featurized molecules
+            idx_none: A list of the indexes that failed featurization
+        """
+
+        # Loop all the smiles and compute the features
+        if self.featurization_n_jobs == 0:
+            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
+        else:
+            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
+                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
+            )
+
+        # Warn about None molecules
+        if sample_idx is None:
+            sample_idx = np.arange(len(smiles))
+        idx_none = [ii for ii, feat in enumerate(features) if feat is None]
+        if len(idx_none) > 0:
+            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in idx_none]
+            msg = "\n".join(mols_to_msg)
+            logger.warning(
+                (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
+            )
+
+        return features, idx_none
+
     @staticmethod
-    def _remove_none_molecules(idx_none, *args):
+    def _remove_none_molecules(
+        idx_none: Iterable, *args: Union[pd.DataFrame, np.ndarray, torch.Tensor, list, tuple]
+    ) -> List[Union[pd.DataFrame, np.ndarray, torch.Tensor, list, tuple]]:
+        """
+        Filter the molecules, labels, etc. for the molecules that failed featurization.
+
+        Parameters:
+            idx_none: A list of the indexes that failed featurization
+            args: Any argument from which to filter the failed SMILES.
+                Can be a `list`, `tuple`, `Tensor`, `array` or `DataFrame`.
+                Otherwise, it is not filtered.
+
+        Returns:
+            out: All the `args` with the indexes from `idx_none` removed.
+        """
         if len(idx_none) == 0:
             return args
+        idx_none = np.asarray(idx_none)
 
         out = []
         for arg in args:
