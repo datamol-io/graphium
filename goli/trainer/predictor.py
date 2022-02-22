@@ -5,10 +5,12 @@ import numpy as np
 from copy import deepcopy
 import yaml
 import dgl
+from loguru import logger
+from inspect import signature
 
 import torch
 from torch import nn, Tensor
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+import torch.optim.lr_scheduler as sc
 
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
@@ -27,6 +29,17 @@ LOSS_DICT = {
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
+}
+
+SCHEDULER_DICT = {
+    "CosineAnnealingLR": sc.CosineAnnealingLR,
+    "CosineAnnealingWarmRestarts": sc.CosineAnnealingWarmRestarts,
+    "CyclicLR": sc.CyclicLR,
+    "ExponentialLR": sc.ExponentialLR,
+    "LambdaLR": sc.LambdaLR,
+    "MultiStepLR": sc.MultiStepLR,
+    "ReduceLROnPlateau": sc.ReduceLROnPlateau,
+    "StepLR": sc.StepLR,
 }
 
 
@@ -127,6 +140,7 @@ class PredictorModule(pl.LightningModule):
         random_seed: int = 42,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
+        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[int, float, str]] = None,
         metrics: Dict[str, Callable] = None,
@@ -161,6 +175,7 @@ class PredictorModule(pl.LightningModule):
                 - weight_decay `float`: Weight decay used to regularize the optimizer (Default=`0.`)
 
             lr_reduce_on_plateau_kwargs:
+                DEPRECIATED. USE `torch_scheduler_kwargs` instead.
                 Dictionnary for the reduction of learning rate when reaching plateau, with possible keys below.
 
                 - factor `float`: Factor by which to reduce the learning rate (Default=`0.5`)
@@ -172,8 +187,15 @@ class PredictorModule(pl.LightningModule):
                 - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate
                   of all param groups or each group respectively (Default=`1e-4`)
 
+            torch_scheduler_kwargs:
+                Dictionnary for the scheduling of learning rate, with possible keys below.
+
+                - type `str`: Type of the learning rate to use from pytorch. Examples are
+                  `'ReduceLROnPlateau'` (default), `'CosineAnnealingWarmRestarts'`, `'StepLR'`, etc.
+                - **kwargs: Any other argument for the learning rate scheduler
+
             scheduler_kwargs:
-                Dictionnary for the scheduling of the learning rate modification
+                Dictionnary for the scheduling of the learning rate modification used by pytorch-lightning
 
                 - monitor `str`: metric to track (Default=`"loss/val"`)
                 - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
@@ -231,9 +253,7 @@ class PredictorModule(pl.LightningModule):
             list(self.metrics.keys()) if metrics_on_training_set is None else metrics_on_training_set
         )
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
         self.optim_kwargs = optim_kwargs
-        self.scheduler_kwargs = scheduler_kwargs
         self.flag_n_steps = flag_n_steps
         self.flag_alpha = flag_alpha
 
@@ -242,22 +262,35 @@ class PredictorModule(pl.LightningModule):
         self.optim_kwargs.setdefault("lr", 1e-3)
         self.optim_kwargs.setdefault("weight_decay", 0.0)
 
-        self.lr_reduce_on_plateau_kwargs = (
-            lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
-        )
-        self.lr_reduce_on_plateau_kwargs.setdefault("factor", 0.5)
-        self.lr_reduce_on_plateau_kwargs.setdefault("patience", 10)
-        self.lr_reduce_on_plateau_kwargs.setdefault("min_lr", 1e-4)
+        # Set the lightning scheduler
+        self.scheduler_kwargs = {
+                "interval": "epoch",
+                "monitor": "loss/val",
+                "mode": "min",
+                "frequency": 1,
+                "strict": True,}
+        self.scheduler_kwargs.update(scheduler_kwargs)
 
-        self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.scheduler_kwargs.setdefault("monitor", "loss/val")
-        self.scheduler_kwargs.setdefault("interval", "epoch")
-        self.scheduler_kwargs.setdefault("mode", "min")
-        self.scheduler_kwargs.setdefault("frequency", 1)
-        self.scheduler_kwargs.setdefault("strict", True)
+        # Set the depreciated arguments, if provided
+        if lr_reduce_on_plateau_kwargs is not None:
+            logger.warning("`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead.")
+            if torch_scheduler_kwargs is not None:
+                raise ValueError("Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided")
+            torch_scheduler_kwargs = {
+                "type": "ReduceLROnPlateau",
+                **lr_reduce_on_plateau_kwargs,
+            }
 
-        monitor = scheduler_kwargs["monitor"].split("/")[0]
-        mode = scheduler_kwargs["mode"]
+        # Set the pytorch scheduler arguments
+        if torch_scheduler_kwargs is None:
+            self.torch_scheduler_kwargs = {}
+        else:
+            self.torch_scheduler_kwargs = torch_scheduler_kwargs
+        self.torch_scheduler_kwargs.setdefault("type", "ReduceLROnPlateau")
+
+        # Initialize the epoch summary
+        monitor = self.scheduler_kwargs["monitor"].split("/")[0]
+        mode = self.scheduler_kwargs["mode"]
         self.epoch_summary = EpochSummary(
             monitor, mode=mode, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
@@ -313,12 +346,21 @@ class PredictorModule(pl.LightningModule):
         return feats
 
     def configure_optimizers(self):
-        optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
+        # Configure the parameters for the schedulers
+        sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
+        scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("type")]
+        sig =  signature(scheduler_class.__init__)
+        key_args = [p.name for p in sig.parameters.values() if p.kind == p.KEYWORD_ONLY]
+        if ("monitor" in key_args):
+            sc_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
+        if ("mode" in key_args):
+            sc_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
 
+        # Define the optimizer and schedulers
+        optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
+        torch_scheduler = scheduler_class(optimizer=optimiser, **sc_kwargs)
         scheduler = {
-            "scheduler": ReduceLROnPlateau(
-                optimizer=optimiser, mode=self.scheduler_kwargs["mode"], **self.lr_reduce_on_plateau_kwargs
-            ),
+            "scheduler": torch_scheduler,
             **self.scheduler_kwargs,
         }
         return [optimiser], [scheduler]
