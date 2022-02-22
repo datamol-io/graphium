@@ -1,6 +1,10 @@
 from copy import deepcopy
+import torch
+import torch.optim.lr_scheduler as sc
+import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
+from goli.trainer.metrics import pearsonr, spearmanr
 
 from goli.nn.dgl_layers import (
     GATLayer,
@@ -50,3 +54,43 @@ RESIDUALS_DICT = {
     "densenet": ResidualConnectionDenseNet,
     "random": ResidualConnectionRandom,
 }
+
+LOSS_DICT = {
+    "mse": torch.nn.MSELoss(),
+    "bce": torch.nn.BCELoss(),
+    "l1": torch.nn.L1Loss(),
+    "mae": torch.nn.L1Loss(),
+}
+
+SCHEDULER_DICT = {
+    "CosineAnnealingLR": sc.CosineAnnealingLR,
+    "CosineAnnealingWarmRestarts": sc.CosineAnnealingWarmRestarts,
+    "CyclicLR": sc.CyclicLR,
+    "ExponentialLR": sc.ExponentialLR,
+    "LambdaLR": sc.LambdaLR,
+    "MultiStepLR": sc.MultiStepLR,
+    "ReduceLROnPlateau": sc.ReduceLROnPlateau,
+    "StepLR": sc.StepLR,
+}
+
+METRICS_CLASSIFICATION = {
+    "accuracy": met.accuracy,
+    "averageprecision": met.average_precision,
+    "auroc": met.auroc,
+    "confusionmatrix": met.confusion_matrix,
+    "f1": met.f1,
+    "fbeta": met.fbeta,
+    "precisionrecallcurve": met.precision_recall_curve,
+    "precision": met.precision,
+    "recall": met.recall,
+}
+
+METRICS_REGRESSION = {
+    "mae": met.mean_absolute_error,
+    "mse": met.mean_squared_error,
+    "pearsonr": pearsonr,
+    "spearmanr": spearmanr,
+}
+
+METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)
+METRICS_DICT.update(METRICS_REGRESSION)
