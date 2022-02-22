@@ -128,8 +128,7 @@ class PredictorModule(pl.LightningModule):
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
         metrics_on_training_set: Optional[List[str]] = None,
-        flag_n_steps: int = 0,
-        flag_alpha: float = 0.01,
+        flag_kwargs: Dict[str, Any] = None,
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -187,14 +186,18 @@ class PredictorModule(pl.LightningModule):
                 - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
 
             target_nan_mask:
-                TODO: It's not implemented for the metrics yet!!
 
-                - None: Do not change behaviour if there are nans
+                - None: Do not change behaviour if there are NaNs
 
-                - int, float: Value used to replace nans. For example, if `target_nan_mask==0`, then
-                  all nans will be replaced by zeros
+                - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
+                  all NaNs will be replaced by zeros
 
-                - 'ignore': Nans will be ignored when computing the loss.
+                - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
+
+                - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
+                  has a different number of NaNs, so the metric will be computed separately
+                  on each column, and the metric result will be averaged over all columns.
+                  *This option might slowdown the computation if there are too many labels*
 
             metrics:
                 A dictionnary of metrics to compute on the prediction, other than the loss function.
@@ -208,13 +211,15 @@ class PredictorModule(pl.LightningModule):
                 If `None`, all the metrics are computed. Using less metrics can significantly improve
                 performance, depending on the number of readouts.
 
-            flag_n_steps:
-                An integer that specifies the number of ascent steps when running FLAG during training.
-                Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
-                many iterations.
+            flag_kwargs:
+                Keyword arguments used for FLAG, and adversarial data augmentation for graph networks.
+                See: https://arxiv.org/abs/2010.09891
 
-            flag_alpha:
-                A float that specifies the ascent step size when running FLAG.
+                - n_steps: An integer that specifies the number of ascent steps when running FLAG during training.
+                  Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
+                  many iterations.
+
+                - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01
         """
 
         self.save_hyperparameters()
@@ -235,14 +240,20 @@ class PredictorModule(pl.LightningModule):
             list(self.metrics.keys()) if metrics_on_training_set is None else metrics_on_training_set
         )
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        self.optim_kwargs = optim_kwargs
-        self.flag_n_steps = flag_n_steps
-        self.flag_alpha = flag_alpha
 
-        # Set the default value for the optimizer
-        self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.optim_kwargs.setdefault("lr", 1e-3)
-        self.optim_kwargs.setdefault("weight_decay", 0.0)
+        # Set the parameters and default values for the FLAG adversarial augmentation, and check values
+        self.flag_kwargs = {"alpha": 0.01, "n_steps": 0}
+        if flag_kwargs is not None:
+            self.flag_kwargs.update(flag_kwargs)
+        assert isinstance(self.flag_kwargs["n_steps"], int) and (self.flag_kwargs["n_steps"] >= 0)
+        assert self.flag_kwargs["alpha"] > 0
+
+        # Set the parameters and default value for the optimizer, and check values
+        self.optim_kwargs = {"lr": 1e-3, "weight_decay": 0.0}
+        if optim_kwargs is not None:
+            self.optim_kwargs.update(optim_kwargs)
+        assert self.optim_kwargs["lr"] > 0
+        assert self.optim_kwargs["weight_decay"] >= 0
 
         # Set the lightning scheduler
         self.scheduler_kwargs = {
@@ -252,7 +263,8 @@ class PredictorModule(pl.LightningModule):
             "frequency": 1,
             "strict": True,
         }
-        self.scheduler_kwargs.update(scheduler_kwargs)
+        if scheduler_kwargs is not None:
+            self.scheduler_kwargs.update(scheduler_kwargs)
 
         # Set the depreciated arguments, if provided
         if lr_reduce_on_plateau_kwargs is not None:
@@ -309,14 +321,29 @@ class PredictorModule(pl.LightningModule):
 
         return loss_fun
 
-    def forward(self, inputs: Dict) -> Dict[str, Any]:
+    def forward(self, inputs: Dict) -> Dict[str, Union[torch.Tensor, Any]]:
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
+        A dict of Tensors is returned to allow inherited class to manage
+        multiple outputs in the `forward` without breaking the rest of the module.
         """
+        # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
-        out = {}
-        out["preds"] = self.model.forward(feats)
-        return out
+        out = self.model.forward(feats)
+
+        # Convert the output of the model to a dictionary
+        if isinstance(out, dict):
+            assert "preds" in out.keys()
+            out_dict = out
+        elif isinstance(out, (tuple, list)):
+            out_dict = {f"out_{ii}": out[ii] for ii in range(1, len(out))}
+            out_dict["preds"] = out[0]
+        elif isinstance(out, Tensor):
+            out_dict = {"preds": out}
+        else:
+            raise ValueError("Output of `self.model.forward` not understood")
+
+        return out_dict
 
     def _convert_features_dtype(self, feats):
         # Convert features to dtype
@@ -498,10 +525,12 @@ class PredictorModule(pl.LightningModule):
         Github: https://github.com/devnkong/FLAG
         """
 
+        alpha, n_steps = self.flag_kwargs["alpha"], self.flag_kwargs["n_steps"]
+
         X = self._convert_features_dtype(batch["features"])
         X_shape = X.ndata["feat"].shape
 
-        pert = torch.FloatTensor(X_shape).uniform_(-self.flag_alpha, self.flag_alpha).to(device=X.device)
+        pert = torch.FloatTensor(X_shape).uniform_(-alpha, alpha).to(device=X.device)
         pert.requires_grad = True
 
         # Perturb the features
@@ -519,14 +548,14 @@ class PredictorModule(pl.LightningModule):
                 target_nan_mask=self.target_nan_mask,
                 loss_fun=self.loss_fun,
             )
-            / self.flag_n_steps
+            / n_steps
         )
 
         # Iteratively augment data by applying perturbations
         # Accumulate the gradients to be applied to the weights of the network later on
-        for _ in range(self.flag_n_steps - 1):
+        for _ in range(n_steps - 1):
             loss.backward()
-            pert_data = pert.detach() + self.flag_alpha * torch.sign(pert.grad.detach())
+            pert_data = pert.detach() + alpha * torch.sign(pert.grad.detach())
             pert.data = pert_data.data
             pert.grad[:] = 0
             pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
@@ -539,7 +568,7 @@ class PredictorModule(pl.LightningModule):
                     target_nan_mask=self.target_nan_mask,
                     loss_fun=self.loss_fun,
                 )
-                / self.flag_n_steps
+                / n_steps
             )
 
         device = "cpu" if to_cpu else None
@@ -557,10 +586,10 @@ class PredictorModule(pl.LightningModule):
         step_dict = None
 
         # Train using FLAG
-        if self.flag_n_steps > 0:
+        if self.flag_kwargs["n_steps"] > 0:
             loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
         # Train normally, without using FLAG
-        elif self.flag_n_steps == 0:
+        elif self.flag_kwargs["n_steps"] == 0:
             loss, step_dict = self._general_step(
                 batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True
             )
