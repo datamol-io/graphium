@@ -289,12 +289,13 @@ class PredictorModule(pl.LightningModule):
 
         return loss_fun
 
-    def forward(self, inputs: Dict):
+    def forward(self, inputs: Dict) -> Dict[str, Any]:
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         """
         feats = self._convert_features_dtype(inputs["features"])
-        out = self.model.forward(feats)
+        out = {}
+        out["preds"] = self.model.forward(feats)
         return out
 
     def _convert_features_dtype(self, feats):
@@ -437,7 +438,7 @@ class PredictorModule(pl.LightningModule):
         self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        preds = self.forward(batch)
+        preds = self.forward(batch)["preds"]
         targets = batch.pop("labels").to(dtype=preds.dtype)
         weights = batch.pop("weights", None)
 
@@ -478,7 +479,7 @@ class PredictorModule(pl.LightningModule):
         pert_batch = deepcopy(batch)
         pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
 
-        preds = self.forward(pert_batch)
+        preds = self.forward(pert_batch)["preds"]
         targets = batch.pop("labels").to(dtype=preds.dtype)
         weights = batch.pop("weights", None)
         loss = (
@@ -500,7 +501,7 @@ class PredictorModule(pl.LightningModule):
             pert.data = pert_data.data
             pert.grad[:] = 0
             pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
-            preds = self.forward(pert_batch)
+            preds = self.forward(pert_batch)["preds"]
             loss = (
                 self.compute_loss(
                     preds=preds,
