@@ -399,7 +399,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         logger.info(f"Prepare dataset with {len(df)} data points.")
 
         # Extract smiles and labels
-        smiles, labels, indices, weights, sample_idx = self._extract_smiles_labels(
+        smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
             smiles_col=self.smiles_col,
             label_cols=self.label_cols,
@@ -412,8 +412,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         features, idx_none = self._featurize_molecules(smiles, sample_idx)
 
         # Filter the molecules, labels, etc. for the molecules that failed featurization
-        df, features, sample_idx, smiles, labels, weights, indices = self._filter_none_molecules(
-            idx_none, df, features, sample_idx, smiles, labels, weights, indices
+        df, features, smiles, labels, sample_idx, extras = self._filter_none_molecules(
+            idx_none, df, features, smiles, labels, sample_idx, extras
         )
 
         # Get splits indices
@@ -495,7 +495,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
     @staticmethod
     def _filter_none_molecules(
         idx_none: Iterable, *args: Union[pd.DataFrame, np.ndarray, torch.Tensor, list, tuple]
-    ) -> List[Union[pd.DataFrame, np.ndarray, torch.Tensor, list, tuple]]:
+    ) -> List[Union[pd.DataFrame, np.ndarray, torch.Tensor, list, tuple, Dict]]:
         """
         Filter the molecules, labels, etc. for the molecules that failed featurization.
 
@@ -527,9 +527,15 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             elif isinstance(arg, (list, tuple)):
                 arg = list(arg)
                 new = [elem for ii, elem in enumerate(arg) if ii not in idx_none]
+            elif isinstance(arg, dict):
+                new = {}
+                for key, val in arg.items():
+                    new[key] = DGLFromSmilesDataModule._filter_none_molecules(idx_none, val)
             else:
                 new = arg
             out.append(new)
+
+        out = tuple(out) if len(out) > 1 else out[0]
 
         return out
 
@@ -621,7 +627,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             df = self.df.iloc[0:10, :]
 
-        smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+        smiles, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         graph = None
         for s in smiles:
@@ -729,7 +735,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         weights_col: str = None,
         weights_type: str = None,
     ) -> Tuple[
-        np.ndarray, np.ndarray, Union[type(None), np.ndarray], Union[type(None), np.ndarray], np.ndarray
+        np.ndarray, np.ndarray, Union[type(None), np.ndarray], Dict[str, Union[type(None), np.ndarray]]
     ]:
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
@@ -790,7 +796,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
             weights /= np.max(weights)  # Put the max weight to 1
 
-        return smiles, labels, indices, weights, sample_idx
+        extras = {"indices": indices, "weights": weights}
+        return smiles, labels, sample_idx, extras
 
     def _get_split_indices(
         self,

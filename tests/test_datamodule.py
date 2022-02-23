@@ -198,7 +198,8 @@ class Test_DataModule(ut.TestCase):
         array_of_num = np.stack([list_of_num, list_of_num, list_of_num], axis=1)
         array_of_str = np.stack([list_of_str, list_of_str, list_of_str], axis=1)
         tensor_of_num = torch.as_tensor(array_of_num)
-        df = pd.DataFrame({"str": list_of_str, "num": list_of_num})
+        dic = {"str": list_of_str, "num": list_of_num}
+        df = pd.DataFrame(dic)
         df_shuffled = df.sample(frac=1)
 
         # Create different indexes to use for filtering
@@ -224,6 +225,7 @@ class Test_DataModule(ut.TestCase):
                 tensor_of_num_2,
                 df_2,
                 df_shuffled_2,
+                dic_2,
             ) = goli.data.DGLFromSmilesDataModule._filter_none_molecules(
                 idx_none,
                 list_of_num,
@@ -234,6 +236,7 @@ class Test_DataModule(ut.TestCase):
                 tensor_of_num,
                 df,
                 df_shuffled,
+                dic,
             )
 
             df_shuffled_2 = df_shuffled_2.sort_values(by="num")
@@ -246,6 +249,8 @@ class Test_DataModule(ut.TestCase):
                 self.assertListEqual(array_of_num_2[:, jj].tolist(), filtered_num, msg=msg)
                 self.assertListEqual(array_of_str_2[:, jj].tolist(), filtered_str, msg=msg)
                 self.assertListEqual(tensor_of_num_2[:, jj].tolist(), filtered_num, msg=msg)
+            self.assertListEqual(dic_2["num"], filtered_num, msg=msg)
+            self.assertListEqual(dic_2["str"], filtered_str, msg=msg)
             self.assertListEqual(df_2["num"].tolist(), filtered_num, msg=msg)
             self.assertListEqual(df_2["str"].tolist(), filtered_str, msg=msg)
 
