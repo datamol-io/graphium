@@ -6,14 +6,14 @@ datamodule:
   module_type: "DGLOGBDataModule"
   args:
     cache_data_path: null
-    dataset_name: "ogbg-lsc-pcqm4m"
+    dataset_name: "ogbg-lsc-pcqm4mv2"
 
     # Weights
     weights_type: null
     sample_size: null
 
     # Featurization
-    featurization_n_jobs: 8
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -31,8 +31,8 @@ datamodule:
       mask_nan: raise
 
     # Train, val, test parameters
-    batch_size_train_val: 512
-    batch_size_test: 512
+    batch_size_train_val: 1024
+    batch_size_test: 1024
 
   # Data loading
   num_workers: 0
@@ -98,7 +98,7 @@ architecture:
     residual_type: simple
 
 predictor:
-  metrics_on_progress_bar: [ "mae", "pearsonr"]
+  metrics_on_progress_bar: ["mae", "pearsonr"]
   loss_fun: mse
   random_seed: *seed
   optim_kwargs:
@@ -163,14 +163,14 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/ogb-molpcqm4m
+    save_dir: logs/ogb-molpcqm4mv2
   early_stopping:
     monitor: *monitor
     min_delta: 0
     patience: 80
     mode: *mode
   model_checkpoint:
-    dirpath: models_checkpoints/ogb-molpcqm4m/
+    dirpath: models_checkpoints/ogb-molpcqm4mv2/
     filename: "model"
     monitor: *monitor
     mode: *mode
