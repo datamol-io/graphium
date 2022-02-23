@@ -431,8 +431,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             smiles=smiles,
             features=features,
             labels=labels,
-            indices=indices,
-            weights=weights,
+            **extras,
         )
 
         self._save_to_cache()
