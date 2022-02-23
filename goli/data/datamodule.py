@@ -412,7 +412,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         features, idx_none = self._featurize_molecules(smiles, sample_idx)
 
         # Filter the molecules, labels, etc. for the molecules that failed featurization
-        df, features, sample_idx, smiles, labels, weights, indices = self._remove_none_molecules(
+        df, features, sample_idx, smiles, labels, weights, indices = self._filter_none_molecules(
             idx_none, df, features, sample_idx, smiles, labels, weights, indices
         )
 
@@ -493,7 +493,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         return features, idx_none
 
     @staticmethod
-    def _remove_none_molecules(
+    def _filter_none_molecules(
         idx_none: Iterable, *args: Union[pd.DataFrame, np.ndarray, torch.Tensor, list, tuple]
     ) -> List[Union[pd.DataFrame, np.ndarray, torch.Tensor, list, tuple]]:
         """
@@ -504,6 +504,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             args: Any argument from which to filter the failed SMILES.
                 Can be a `list`, `tuple`, `Tensor`, `array` or `DataFrame`.
                 Otherwise, it is not filtered.
+                WARNING: If a `DataFrame` is passed, it filters by the row indexes,
+                NOT by the `DataFrame.index`.
 
         Returns:
             out: All the `args` with the indexes from `idx_none` removed.
@@ -774,13 +776,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
                 weights = np.zeros(labels.shape)
                 weights[labels == 0] = ratio_pos_neg
-                weights[labels == 1] = ratio_pos_neg ** -1
+                weights[labels == 1] = ratio_pos_neg**-1
 
             elif weights_type == "sample_balanced":
                 ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
                 weights = np.zeros(labels.shape)
                 weights[labels == 0] = ratio_pos_neg
-                weights[labels == 1] = ratio_pos_neg ** -1
+                weights[labels == 1] = ratio_pos_neg**-1
                 weights = np.prod(weights, axis=1)
 
             else:
