@@ -238,6 +238,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "dict",
+        dataset_class: type=DGLDataset,
     ):
         """
 
@@ -310,6 +311,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 - "dict": Process molecules as a Dict. It's faster and requires less RAM during
                   pre-processing, but slower during training since DGLGraphs will be created
                   during data-loading.
+            dataset_class: The class used to create the dataset from which to sample.
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -353,6 +355,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.train_indices = None
         self.val_indices = None
         self.test_indices = None
+        self.dataset_class = dataset_class
 
         if prepare_dict_or_graph == "dict":
             self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
@@ -427,7 +430,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
-        self.dataset = DGLDataset(
+        self.dataset = self.dataset_class(
             smiles=smiles,
             features=features,
             labels=labels,
