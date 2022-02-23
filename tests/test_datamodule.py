@@ -2,6 +2,9 @@ import pathlib
 import tempfile
 
 import unittest as ut
+import numpy as np
+import torch
+import pandas as pd
 
 import goli
 
@@ -186,6 +189,71 @@ class Test_DataModule(ut.TestCase):
 
         assert datam.num_node_feats == 2
         assert datam.num_edge_feats == 8
+
+    def test_none_filtering(self):
+        # Create the objects to filter
+        list_of_num = [ii for ii in range(100)]
+        list_of_str = [str(ii) for ii in list_of_num]
+        tuple_of_num = tuple(list_of_num)
+        array_of_num = np.stack([list_of_num, list_of_num, list_of_num], axis=1)
+        array_of_str = np.stack([list_of_str, list_of_str, list_of_str], axis=1)
+        tensor_of_num = torch.as_tensor(array_of_num)
+        df = pd.DataFrame({"str": list_of_str, "num": list_of_num})
+        df_shuffled = df.sample(frac=1)
+
+        # Create different indexes to use for filtering
+        all_idx_none = [[3, 17, 88], [22, 33, 44, 55, 66, 77, 88], [], np.arange(len(list_of_num))]
+
+        # Loop all the indexes and filter the objects.
+        for ii, idx_none in enumerate(all_idx_none):
+            msg = f"Failed for ii={ii}"
+
+            # Create the true filtered sequences
+            filtered_num = [ii for ii in range(100) if ii not in idx_none]
+            filtered_str = [str(ii) for ii in filtered_num]
+            assert len(filtered_num) == len(list_of_num) - len(idx_none)
+            assert len(filtered_str) == len(list_of_str) - len(idx_none)
+
+            # Filter the sequences from the Datamodule function
+            (
+                list_of_num_2,
+                list_of_str_2,
+                tuple_of_num_2,
+                array_of_num_2,
+                array_of_str_2,
+                tensor_of_num_2,
+                df_2,
+                df_shuffled_2,
+            ) = goli.data.DGLFromSmilesDataModule._filter_none_molecules(
+                idx_none,
+                list_of_num,
+                list_of_str,
+                tuple_of_num,
+                array_of_num,
+                array_of_str,
+                tensor_of_num,
+                df,
+                df_shuffled,
+            )
+
+            df_shuffled_2 = df_shuffled_2.sort_values(by="num")
+
+            # Assert the filtering is done correctly
+            self.assertListEqual(list_of_num_2, filtered_num, msg=msg)
+            self.assertListEqual(list_of_str_2, filtered_str, msg=msg)
+            self.assertListEqual(list(tuple_of_num_2), filtered_num, msg=msg)
+            for jj in range(array_of_num.shape[1]):
+                self.assertListEqual(array_of_num_2[:, jj].tolist(), filtered_num, msg=msg)
+                self.assertListEqual(array_of_str_2[:, jj].tolist(), filtered_str, msg=msg)
+                self.assertListEqual(tensor_of_num_2[:, jj].tolist(), filtered_num, msg=msg)
+            self.assertListEqual(df_2["num"].tolist(), filtered_num, msg=msg)
+            self.assertListEqual(df_2["str"].tolist(), filtered_str, msg=msg)
+
+            # When the dataframe is shuffled, the lists are different because the filtering
+            # is done on the row indexes, not the dataframe indexes.
+            if (len(idx_none) > 0) and (len(idx_none) < len(df_shuffled)):
+                self.assertTrue(df_shuffled_2["num"].tolist() != filtered_num, msg=msg)
+                self.assertTrue(df_shuffled_2["str"].tolist() != filtered_str, msg=msg)
 
 
 if __name__ == "__main__":
