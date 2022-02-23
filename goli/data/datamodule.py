@@ -496,7 +496,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
     @staticmethod
     def _filter_none_molecules(
-        idx_none: Iterable, *args: Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]]
+        idx_none: Iterable,
+        *args: Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]],
     ) -> List[Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]]]:
         """
         Filter the molecules, labels, etc. for the molecules that failed featurization.
@@ -506,8 +507,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             args: Any argument from which to filter the failed SMILES.
                 Can be a `list`, `tuple`, `Tensor`, `np.array`, `Dict`, `pd.DataFrame`, `pd.Series`.
                 Otherwise, it is not filtered.
-                WARNING: If a `DataFrame` is passed, it filters by the row indexes,
-                NOT by the `DataFrame.index`.
+                WARNING: If a `pd.DataFrame` or `pd.Series` is passed, it filters by the row indexes,
+                NOT by the `DataFrame.index` or `Series.index`! Be careful!
 
         Returns:
             out: All the `args` with the indexes from `idx_none` removed.
@@ -521,7 +522,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             if isinstance(arg, pd.DataFrame):
                 new = arg.drop(arg.index[idx_none], axis=0)
             elif isinstance(arg, pd.Series):
-                new = arg.drop(idx_none, axis=0)
+                new = arg.drop(arg.index[idx_none], axis=0)
             elif isinstance(arg, np.ndarray):
                 new = np.delete(arg, idx_none, axis=0)
             elif isinstance(arg, torch.Tensor):
