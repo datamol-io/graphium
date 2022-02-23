@@ -78,7 +78,7 @@ class StdPooling(nn.Module):
         """
 
         readout = torch.sqrt(
-            self.relu((self.sum_pooler(graph, feat**2)) - (self.sum_pooler(graph, feat) ** 2)) + EPS
+            self.relu((self.sum_pooler(graph, feat ** 2)) - (self.sum_pooler(graph, feat) ** 2)) + EPS
         )
         return readout
 

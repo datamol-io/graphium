@@ -45,7 +45,7 @@ class test_positional_encoder(ut.TestCase):
                     eigvals, eigvecs = np.linalg.eig(lap)
                     sort_idx = np.argsort(eigvals)
                     eigvals, eigvecs = eigvals[sort_idx], eigvecs[:, sort_idx]
-                    eigvecs = eigvecs / (np.sum(eigvecs**2, axis=0, keepdims=True) + 1e-8)
+                    eigvecs = eigvecs / (np.sum(eigvecs ** 2, axis=0, keepdims=True) + 1e-8)
 
                     true_num_pos = min(num_pos, len(eigvals))
                     eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
@@ -80,7 +80,7 @@ class test_positional_encoder(ut.TestCase):
                     eigvals, eigvecs = np.linalg.eig(lap)
                     sort_idx = np.argsort(eigvals)
                     eigvals, eigvecs = eigvals[sort_idx], eigvecs[:, sort_idx]
-                    eigvecs = eigvecs / (np.sum(eigvecs**2, axis=0, keepdims=True) + 1e-8)
+                    eigvecs = eigvecs / (np.sum(eigvecs ** 2, axis=0, keepdims=True) + 1e-8)
 
                     true_num_pos = min(num_pos, len(eigvals))
                     eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
