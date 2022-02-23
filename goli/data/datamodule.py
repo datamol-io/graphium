@@ -238,7 +238,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "dict",
-        dataset_class: type=DGLDataset,
+        dataset_class: type = DGLDataset,
     ):
         """
 
