@@ -10,16 +10,10 @@ from pytorch_lightning import Trainer
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FeedForwardNN
-from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
 from goli.trainer.predictor import PredictorModule
+from goli.utils.spaces import DATAMODULE_DICT
 
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
-
-
-DATAMODULE_DICT = {
-    "DGLFromSmilesDataModule": DGLFromSmilesDataModule,
-    "DGLOGBDataModule": DGLOGBDataModule,
-}
 
 
 def load_datamodule(

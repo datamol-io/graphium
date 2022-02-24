@@ -5,6 +5,7 @@ import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
 from goli.trainer.metrics import pearsonr, spearmanr
+from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
 
 from goli.nn.dgl_layers import (
     GATLayer,
@@ -94,3 +95,9 @@ METRICS_REGRESSION = {
 
 METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)
 METRICS_DICT.update(METRICS_REGRESSION)
+
+
+DATAMODULE_DICT = {
+    "DGLFromSmilesDataModule": DGLFromSmilesDataModule,
+    "DGLOGBDataModule": DGLOGBDataModule,
+}

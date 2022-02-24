@@ -4,6 +4,7 @@ import os
 from functools import partial
 import importlib.resources
 import zipfile
+from copy import deepcopy
 
 from loguru import logger
 import fsspec
@@ -28,6 +29,32 @@ from goli.utils.arg_checker import check_arg_iterator
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
+
+PCQM4M_meta = {
+    "num tasks": 1,
+    "eval metric": "mae",
+    "download_name": "pcqm4m_kddcup2021",
+    "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m_kddcup2021.zip",
+    "data type": "mol",
+    "has_node_attr": True,
+    "has_edge_attr": True,
+    "task type": "regression",
+    "num classes": -1,
+    "split": "scaffold",
+    "additional node files": "None",
+    "additional edge files": "None",
+    "binary": False,
+    "version": 1,
+}
+
+PCQM4Mv2_meta = deepcopy(PCQM4M_meta)
+PCQM4Mv2_meta.update(
+    {
+        "download_name": "pcqm4m-v2",
+        "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip",
+        "version": 2,
+    }
+)
 
 
 class DGLDataset(Dataset):
@@ -998,10 +1025,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         """Download, extract and load an OGB dataset."""
 
         base_dir = fs.get_cache_dir("ogb")
-        if metadata["download_name"] == "pcqm4m":
-            dataset_dir = base_dir / (metadata["download_name"] + "_kddcup2021")
-        else:
-            dataset_dir = base_dir / metadata["download_name"]
+        dataset_dir = base_dir / metadata["download_name"]
 
         if not dataset_dir.exists():
 
@@ -1018,7 +1042,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             zf.extractall(base_dir)
 
         # Load CSV file
-        if metadata["download_name"] == "pcqm4m":
+        if metadata["download_name"].startswith("pcqm4m"):
             df_path = dataset_dir / "raw" / "data.csv.gz"
         else:
             df_path = dataset_dir / "mapping" / "mol.csv.gz"
@@ -1026,12 +1050,16 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         df = pd.read_csv(df_path)
 
         # Load split from the OGB dataset and save them in a single CSV file
-        if metadata["download_name"] == "pcqm4m":
+        if metadata["download_name"].startswith("pcqm4m"):
             split_name = metadata["split"]
             split_dict = torch.load(dataset_dir / "split_dict.pt")
             train_split = pd.DataFrame(split_dict["train"])
             val_split = pd.DataFrame(split_dict["valid"])
-            test_split = pd.DataFrame(split_dict["test"])
+            if "test" in split_dict.keys():
+                test_split = pd.DataFrame(split_dict["test"])
+            else:
+                test_split = pd.DataFrame(split_dict["test-dev"])
+
             splits = pd.concat([train_split, val_split, test_split], axis=1)  # type: ignore
             splits.columns = ["train", "val", "test"]
 
@@ -1057,7 +1085,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             splits.to_csv(splits_path, index=None)
 
         # Get column names: OGB columns are predictable
-        if metadata["download_name"] == "pcqm4m":
+        if metadata["download_name"].startswith("pcqm4m"):
             idx_col = df.columns[0]
             smiles_col = df.columns[-2]
             label_cols = df.columns[-1:].to_list()
@@ -1070,7 +1098,6 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
 
     def _get_dataset_metadata(self, dataset_name: str):
         ogb_metadata = self._get_ogb_metadata()
-
         if dataset_name not in ogb_metadata.index:
             raise ValueError(f"'{dataset_name}' is not a valid dataset name.")
 
@@ -1081,9 +1108,12 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
 
         with importlib.resources.open_text("ogb.graphproppred", "master.csv") as f:
             ogb_metadata = pd.read_csv(f)
-
         ogb_metadata = ogb_metadata.set_index(ogb_metadata.columns[0])
         ogb_metadata = ogb_metadata.T
+
+        # Add metadata related to PCQM4M
+        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"]))
+        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"]))
 
         # Only keep datasets of type 'mol'
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
