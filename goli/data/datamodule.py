@@ -48,11 +48,14 @@ PCQM4M_meta = {
 }
 
 PCQM4Mv2_meta = deepcopy(PCQM4M_meta)
-PCQM4Mv2_meta.update({
-    "download_name": "pcqm4m-v2",
-    "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip",
-    "version": 2,
-    })
+PCQM4Mv2_meta.update(
+    {
+        "download_name": "pcqm4m-v2",
+        "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip",
+        "version": 2,
+    }
+)
+
 
 class DGLDataset(Dataset):
     def __init__(
