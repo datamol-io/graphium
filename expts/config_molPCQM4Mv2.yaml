@@ -1,21 +1,19 @@
 constants:
   seed: &seed 42
-  raise_train_error: false   # Whether the code should raise an error if it crashes during training
+  raise_train_error: True   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  module_type: "DGLFromSmilesDataModule"
+  module_type: "DGLOGBDataModule"
   args:
-    df_path: gs://goli-public/datasets/goli-pcba-micro/pcba-micro.csv.gz
-    cache_data_path: goli/data/cache/pcba-micro/full.cache
-    label_cols: PCBA-*
-    smiles_col: smiles
+    cache_data_path: null
+    dataset_name: "ogbg-lsc-pcqm4mv2"
 
     # Weights
     weights_type: null
     sample_size: null
 
     # Featurization
-    featurization_n_jobs: 8
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -30,13 +28,14 @@ datamodule:
         normalization: "none"
         disconnected_comp: True
       pos_encoding_as_directions: *pos_enc
+      mask_nan: raise
 
     # Train, val, test parameters
-    batch_size_train_val: 200
-    batch_size_test: 200
+    batch_size_train_val: 1024
+    batch_size_test: 1024
 
   # Data loading
-  num_workers: 8
+  num_workers: 0
   pin_memory: False
   persistent_workers: False  # Keep True on Windows if running multiple workers
 
@@ -44,21 +43,21 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 20
+    out_dim: &hidden_dim 420
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
     last_activation: none
-    dropout: &dropout_mlp 0.3
+    dropout: &dropout_mlp 0.2
     last_dropout: *dropout_mlp
     normalization: &normalization "batch_norm"
     last_normalization: *normalization
     residual_type: simple
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 4
-    hidden_dims: 4
-    depth: 2
+    out_dim: 32
+    hidden_dims: 32
+    depth: 3
     activation: relu
     last_activation: none
     dropout: *dropout_mlp
@@ -70,7 +69,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: *hidden_dim
     hidden_dims: *hidden_dim
-    depth: 5
+    depth: 16
     activation: none
     last_activation: none
     dropout: &dropout_gnn 0.2
@@ -78,7 +77,7 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: simple
-    pooling: ['sum', 'max']
+    pooling: ['sum', 'max', 'dir1']
     virtual_node: 'none'
     layer_type: 'dgn-msgpass'
     layer_kwargs:
@@ -87,11 +86,11 @@ architecture:
       scalers: [identity]
 
   post_nn:
-    out_dim: 48
+    out_dim: 1
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
-    last_activation: sigmoid
+    last_activation: none
     dropout: *dropout_mlp
     last_dropout: 0.
     normalization: *normalization
@@ -99,9 +98,8 @@ architecture:
     residual_type: simple
 
 predictor:
-  metrics_on_progress_bar: ["mae", "averageprecision", "auroc"]
-  metrics_on_training_set: ["mae", "averageprecision", "auroc"]
-  loss_fun: bce
+  metrics_on_progress_bar: ["mae", "pearsonr"]
+  loss_fun: mse
   random_seed: *seed
   optim_kwargs:
     lr: 5.e-3
@@ -111,13 +109,11 @@ predictor:
     patience: 20
     min_lr: 2.e-4
   scheduler_kwargs:
-    monitor: &monitor averageprecision/val
-    mode: &mode max
+    monitor: &monitor mae/val
+    mode: &mode min
     frequency: 1
-  target_nan_mask: ignore-mean-label # null: no mask, 0: 0 mask, ignore-flatten: ignore nan values from loss and flatten tensor, ignore-mean-label: ignore nan values from loss and average over labels
-  flag_kwargs:
-    n_steps: 0
-    alpha: 0.01
+  target_nan_mask: ignore-flatten # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
+
 
 metrics:
   - name: mae
@@ -125,76 +121,64 @@ metrics:
     threshold_kwargs: null
     target_nan_mask: ignore-flatten
 
-  - name: averageprecision
-    metric: averageprecision
-    target_nan_mask: ignore-mean-label
-    threshold_kwargs:
-      threshold: null
-      th_on_preds: False
-      th_on_target: False
-      target_to_int: True
 
-  - name: auroc
-    metric: auroc
-    target_nan_mask: ignore-mean-label
-    threshold_kwargs:
-      threshold: null
-      th_on_preds: False
-      th_on_target: False
-      target_to_int: True
+  - name: pearsonr
+    metric: pearsonr
+    threshold_kwargs: null
+    target_nan_mask: ignore-flatten
 
-  - name: f1 > 0.5
+  - name: mse
+    metric: mse
+    threshold_kwargs: null
+    target_nan_mask: ignore-flatten
+
+  - name: spearmanr
+    metric: spearmanr
+    threshold_kwargs: null
+    target_nan_mask: ignore-flatten
+
+
+  - name: f1 > 5
     metric: f1
     num_classes: 2
     average: micro
-    target_nan_mask: ignore-mean-label
     threshold_kwargs: &threshold_1
       operator: greater
-      threshold: 0.5
+      threshold: 5
       th_on_preds: True
-      th_on_target: False
+      th_on_target: True
       target_to_int: True
 
-  - name: f1 > 0.25
+  - name: f1 > 4
     metric: f1
     num_classes: 2
     average: micro
-    target_nan_mask: ignore-mean-label
     threshold_kwargs: &threshold_2
       operator: greater
-      threshold: 0.25
+      threshold: 4
       th_on_preds: True
-      th_on_target: False
+      th_on_target: True
       target_to_int: True
 
-  - name: recall > 0.5
-    metric: recall
-    target_nan_mask: ignore-mean-label
-    threshold_kwargs: *threshold_1
-
-  - name: recall > 0.25
-    metric: recall
-    target_nan_mask: ignore-mean-label
-    threshold_kwargs: *threshold_2
 
 trainer:
   logger:
-    save_dir: logs/pcba-micro
+    save_dir: logs/ogb-molpcqm4mv2
   early_stopping:
     monitor: *monitor
     min_delta: 0
     patience: 80
     mode: *mode
   model_checkpoint:
-    dirpath: models_checkpoints/pcba-micro/
+    dirpath: models_checkpoints/ogb-molpcqm4mv2/
     filename: "model"
     monitor: *monitor
     mode: *mode
     save_top_k: 1
     every_n_val_epochs: 1
   trainer:
-    max_epochs: 30
-    min_epochs: 10
+    max_epochs: 1000
+    min_epochs: 100
     gpus: 1
     accumulate_grad_batches: 1
 

@@ -6,8 +6,7 @@ datamodule:
   module_type: "DGLOGBDataModule"
   args:
     cache_data_path: null
-    dataset_name: "ogbg-molpcqm4m"
-
+    dataset_name: "ogbg-lsc-pcqm4m"
 
     # Weights
     weights_type: null
@@ -99,7 +98,7 @@ architecture:
     residual_type: simple
 
 predictor:
-  metrics_on_progress_bar: ["mse", "mae", "pearsonr"]
+  metrics_on_progress_bar: [ "mae", "pearsonr"]
   loss_fun: mse
   random_seed: *seed
   optim_kwargs:
@@ -176,7 +175,7 @@ trainer:
     monitor: *monitor
     mode: *mode
     save_top_k: 1
-    period: 1
+    every_n_val_epochs: 1
   trainer:
     max_epochs: 1000
     min_epochs: 100

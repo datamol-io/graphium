@@ -4,6 +4,7 @@ import os
 from functools import partial
 import importlib.resources
 import zipfile
+from copy import deepcopy
 
 from loguru import logger
 import fsspec
@@ -28,6 +29,32 @@ from goli.utils.arg_checker import check_arg_iterator
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
+
+PCQM4M_meta = {
+    "num tasks": 1,
+    "eval metric": "mae",
+    "download_name": "pcqm4m_kddcup2021",
+    "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m_kddcup2021.zip",
+    "data type": "mol",
+    "has_node_attr": True,
+    "has_edge_attr": True,
+    "task type": "regression",
+    "num classes": -1,
+    "split": "scaffold",
+    "additional node files": "None",
+    "additional edge files": "None",
+    "binary": False,
+    "version": 1,
+}
+
+PCQM4Mv2_meta = deepcopy(PCQM4M_meta)
+PCQM4Mv2_meta.update(
+    {
+        "download_name": "pcqm4m-v2",
+        "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip",
+        "version": 2,
+    }
+)
 
 
 class DGLDataset(Dataset):
@@ -95,6 +122,7 @@ class DGLBaseDataModule(pl.LightningDataModule):
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
+        self._predict_ds = None
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -127,7 +155,7 @@ class DGLBaseDataModule(pl.LightningDataModule):
     def predict_dataloader(self, **kwargs):
 
         return self._dataloader(
-            dataset=self.dataset,  # type: ignore
+            dataset=self.predict_ds,  # type: ignore
             batch_size=self.batch_size_test,
             shuffle=False,
         )
@@ -147,6 +175,19 @@ class DGLBaseDataModule(pl.LightningDataModule):
     @property
     def num_edge_feats(self):
         raise NotImplementedError()
+
+    @property
+    def predict_ds(self):
+        """Get the dataset used for the prediction"""
+        if self._predict_ds is None:
+            return self.test_ds
+        else:
+            return self._predict_ds
+
+    @predict_ds.setter
+    def predict_ds(self, value):
+        """Set the dataset for the prediction"""
+        self._predict_ds = value
 
     def get_first_graph(self):
         raise NotImplementedError()
@@ -224,6 +265,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "dict",
+        dataset_class: type = DGLDataset,
     ):
         """
 
@@ -296,6 +338,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 - "dict": Process molecules as a Dict. It's faster and requires less RAM during
                   pre-processing, but slower during training since DGLGraphs will be created
                   during data-loading.
+            dataset_class: The class used to create the dataset from which to sample.
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -335,9 +378,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
+        self._predict_ds = None
         self.train_indices = None
         self.val_indices = None
         self.test_indices = None
+        self.dataset_class = dataset_class
 
         if prepare_dict_or_graph == "dict":
             self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
@@ -384,7 +429,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         logger.info(f"Prepare dataset with {len(df)} data points.")
 
         # Extract smiles and labels
-        smiles, labels, indices, weights, sample_idx = self._extract_smiles_labels(
+        smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
             smiles_col=self.smiles_col,
             label_cols=self.label_cols,
@@ -393,40 +438,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             weights_type=self.weights_type,
         )
 
-        # Precompute the features
-        # NOTE(hadim): in case of very large dataset we could:
-        # - or cache the data and read from it during `next(iter(dataloader))`
-        # - or compute the features on-the-fly during `next(iter(dataloader))`
-        # For now we compute in advance and hold everything in memory.
+        # Convert SMILES to features (graphs, fingerprints, etc.)
+        features, idx_none = self._featurize_molecules(smiles, sample_idx)
 
-        if self.featurization_n_jobs == 0:
-            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
-        else:
-            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
-                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
-            )
-
-        # Warn about None molecules
-        is_none = np.array([ii for ii, feat in enumerate(features) if feat is None])
-        if len(is_none) > 0:
-            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in is_none]
-            msg = "\n".join(mols_to_msg)
-            logger.warning(
-                (f"{len(is_none)} molecules will be removed since they failed featurization:\n" + msg)
-            )
-
-        # Remove None molecules
-        if len(is_none) > 0:
-            df.drop(df.index[is_none], axis=0)
-            features = [feat for feat in features if not (feat is None)]
-            sample_idx = np.delete(sample_idx, is_none, axis=0)
-            smiles = np.delete(smiles, is_none, axis=0)
-            if labels is not None:
-                labels = np.delete(labels, is_none, axis=0)
-            if weights is not None:
-                weights = np.delete(weights, is_none, axis=0)
-            if indices is not None:
-                indices = np.delete(indices, is_none, axis=0)
+        # Filter the molecules, labels, etc. for the molecules that failed featurization
+        df, features, smiles, labels, sample_idx, extras = self._filter_none_molecules(
+            idx_none, df, features, smiles, labels, sample_idx, extras
+        )
 
         # Get splits indices
         self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
@@ -439,12 +457,11 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         )
 
         # Make the torch datasets (mostly a wrapper there is no memory overhead here)
-        self.dataset = DGLDataset(
+        self.dataset = self.dataset_class(
             smiles=smiles,
             features=features,
             labels=labels,
-            indices=indices,
-            weights=weights,
+            **extras,
         )
 
         self._save_to_cache()
@@ -458,6 +475,101 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         if stage == "test" or stage is None:
             self.test_ds = Subset(self.dataset, self.test_indices)  # type: ignore
+
+    def _featurize_molecules(
+        self, smiles: Iterable[str], sample_idx: Iterable[int] = None
+    ) -> Tuple[List, List]:
+        """
+        Precompute the features (graphs, fingerprints, etc.) from the SMILES.
+        Features are computed from `self.smiles_transformer`.
+        A warning is issued to mention which molecules failed featurization.
+
+        Note:
+            (hadim): in case of very large dataset we could:
+            - or cache the data and read from it during `next(iter(dataloader))`
+            - or compute the features on-the-fly during `next(iter(dataloader))`
+            For now we compute in advance and hold everything in memory.
+
+        Parameters:
+            smiles: A list of all the molecular SMILES to featurize
+            sample_idx: The indexes corresponding to the sampled SMILES.
+                If not provided, computed from `numpy.arange`.
+
+        Returns:
+            features: A list of all the featurized molecules
+            idx_none: A list of the indexes that failed featurization
+        """
+
+        # Loop all the smiles and compute the features
+        if self.featurization_n_jobs == 0:
+            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
+        else:
+            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
+                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
+            )
+
+        # Warn about None molecules
+        if sample_idx is None:
+            sample_idx = np.arange(len(smiles))
+        idx_none = [ii for ii, feat in enumerate(features) if feat is None]
+        if len(idx_none) > 0:
+            mols_to_msg = [f"{sample_idx[idx]}: {smiles[idx]}" for idx in idx_none]
+            msg = "\n".join(mols_to_msg)
+            logger.warning(
+                (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
+            )
+
+        return features, idx_none
+
+    @staticmethod
+    def _filter_none_molecules(
+        idx_none: Iterable,
+        *args: Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]],
+    ) -> List[Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]]]:
+        """
+        Filter the molecules, labels, etc. for the molecules that failed featurization.
+
+        Parameters:
+            idx_none: A list of the indexes that failed featurization
+            args: Any argument from which to filter the failed SMILES.
+                Can be a `list`, `tuple`, `Tensor`, `np.array`, `Dict`, `pd.DataFrame`, `pd.Series`.
+                Otherwise, it is not filtered.
+                WARNING: If a `pd.DataFrame` or `pd.Series` is passed, it filters by the row indexes,
+                NOT by the `DataFrame.index` or `Series.index`! Be careful!
+
+        Returns:
+            out: All the `args` with the indexes from `idx_none` removed.
+        """
+        if len(idx_none) == 0:
+            return args
+        idx_none = np.asarray(idx_none)
+
+        out = []
+        for arg in args:
+            if isinstance(arg, pd.DataFrame):
+                new = arg.drop(arg.index[idx_none], axis=0)
+            elif isinstance(arg, pd.Series):
+                new = arg.drop(arg.index[idx_none], axis=0)
+            elif isinstance(arg, np.ndarray):
+                new = np.delete(arg, idx_none, axis=0)
+            elif isinstance(arg, torch.Tensor):
+                not_none = torch.ones(arg.shape[0], dtype=bool)
+                not_none[idx_none] = False
+                new = arg[not_none]
+            elif isinstance(arg, (list, tuple)):
+                arg = list(arg)
+                new = [elem for ii, elem in enumerate(arg) if ii not in idx_none]
+            elif isinstance(arg, dict):
+                new = {}
+                for key, val in arg.items():
+                    new[key] = DGLFromSmilesDataModule._filter_none_molecules(idx_none, val)
+            else:
+                new = arg
+            out.append(new)
+
+        out = tuple(out) if len(out) > 1 else out[0]
+
+        return out
 
     def _parse_label_cols(self, label_cols: Union[type(None), str, List[str]], smiles_col: str) -> List[str]:
         r"""
@@ -496,9 +608,9 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
     @property
     def is_setup(self):
-        if not hasattr(self, "train_ds"):
+        if not (hasattr(self, "train_ds") or hasattr(self, "test_ds")):
             return False
-        return getattr(self, "train_ds") is not None
+        return (getattr(self, "train_ds") is not None) or (getattr(self, "test_ds") is not None)
 
     @property
     def num_node_feats(self):
@@ -547,7 +659,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             df = self.df.iloc[0:10, :]
 
-        smiles, _, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+        smiles, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         graph = None
         for s in smiles:
@@ -655,7 +767,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         weights_col: str = None,
         weights_type: str = None,
     ) -> Tuple[
-        np.ndarray, np.ndarray, Union[type(None), np.ndarray], Union[type(None), np.ndarray], np.ndarray
+        np.ndarray, np.ndarray, Union[type(None), np.ndarray], Dict[str, Union[type(None), np.ndarray]]
     ]:
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
@@ -716,7 +828,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
             weights /= np.max(weights)  # Put the max weight to 1
 
-        return smiles, labels, indices, weights, sample_idx
+        extras = {"indices": indices, "weights": weights}
+        return smiles, labels, sample_idx, extras
 
     def _get_split_indices(
         self,
@@ -912,10 +1025,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         """Download, extract and load an OGB dataset."""
 
         base_dir = fs.get_cache_dir("ogb")
-        if metadata["download_name"] == "pcqm4m":
-            dataset_dir = base_dir / (metadata["download_name"] + "_kddcup2021")
-        else:
-            dataset_dir = base_dir / metadata["download_name"]
+        dataset_dir = base_dir / metadata["download_name"]
 
         if not dataset_dir.exists():
 
@@ -932,7 +1042,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             zf.extractall(base_dir)
 
         # Load CSV file
-        if metadata["download_name"] == "pcqm4m":
+        if metadata["download_name"].startswith("pcqm4m"):
             df_path = dataset_dir / "raw" / "data.csv.gz"
         else:
             df_path = dataset_dir / "mapping" / "mol.csv.gz"
@@ -940,12 +1050,16 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         df = pd.read_csv(df_path)
 
         # Load split from the OGB dataset and save them in a single CSV file
-        if metadata["download_name"] == "pcqm4m":
+        if metadata["download_name"].startswith("pcqm4m"):
             split_name = metadata["split"]
             split_dict = torch.load(dataset_dir / "split_dict.pt")
             train_split = pd.DataFrame(split_dict["train"])
             val_split = pd.DataFrame(split_dict["valid"])
-            test_split = pd.DataFrame(split_dict["test"])
+            if "test" in split_dict.keys():
+                test_split = pd.DataFrame(split_dict["test"])
+            else:
+                test_split = pd.DataFrame(split_dict["test-dev"])
+
             splits = pd.concat([train_split, val_split, test_split], axis=1)  # type: ignore
             splits.columns = ["train", "val", "test"]
 
@@ -971,7 +1085,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             splits.to_csv(splits_path, index=None)
 
         # Get column names: OGB columns are predictable
-        if metadata["download_name"] == "pcqm4m":
+        if metadata["download_name"].startswith("pcqm4m"):
             idx_col = df.columns[0]
             smiles_col = df.columns[-2]
             label_cols = df.columns[-1:].to_list()
@@ -984,7 +1098,6 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
 
     def _get_dataset_metadata(self, dataset_name: str):
         ogb_metadata = self._get_ogb_metadata()
-
         if dataset_name not in ogb_metadata.index:
             raise ValueError(f"'{dataset_name}' is not a valid dataset name.")
 
@@ -995,9 +1108,12 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
 
         with importlib.resources.open_text("ogb.graphproppred", "master.csv") as f:
             ogb_metadata = pd.read_csv(f)
-
         ogb_metadata = ogb_metadata.set_index(ogb_metadata.columns[0])
         ogb_metadata = ogb_metadata.T
+
+        # Add metadata related to PCQM4M
+        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"]))
+        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"]))
 
         # Only keep datasets of type 'mol'
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
