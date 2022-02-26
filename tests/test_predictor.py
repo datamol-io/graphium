@@ -16,7 +16,6 @@ class test_Predictor(ut.TestCase):
         target = (torch.rand(10, 5) > 0.5).to(preds.dtype)
         for this_loss in losses:
             loss_fun = PredictorModule.parse_loss_fun(this_loss)
-            print(this_loss)
             loss = loss_fun(preds, target)
 
 

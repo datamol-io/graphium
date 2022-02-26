@@ -5,10 +5,11 @@ import numpy as np
 from copy import deepcopy
 import yaml
 import dgl
+from loguru import logger
+from inspect import signature
 
 import torch
 from torch import nn, Tensor
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
@@ -17,13 +18,7 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from goli.config.config_convert import recursive_config_reformating
 from goli.utils.tensor import nan_mean, nan_std, nan_median
 from goli.utils.fs import mkdir
-
-LOSS_DICT = {
-    "mse": torch.nn.MSELoss(),
-    "bce": torch.nn.BCELoss(),
-    "l1": torch.nn.L1Loss(),
-    "mae": torch.nn.L1Loss(),
-}
+from goli.utils.spaces import LOSS_DICT, SCHEDULER_DICT
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
@@ -127,13 +122,13 @@ class PredictorModule(pl.LightningModule):
         random_seed: int = 42,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
+        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[int, float, str]] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: List[str] = [],
         metrics_on_training_set: Optional[List[str]] = None,
-        flag_n_steps: int = 0,
-        flag_alpha: float = 0.01,
+        flag_kwargs: Dict[str, Any] = None,
     ):
         r"""
         A class that allows to use regression or classification models easily
@@ -161,6 +156,7 @@ class PredictorModule(pl.LightningModule):
                 - weight_decay `float`: Weight decay used to regularize the optimizer (Default=`0.`)
 
             lr_reduce_on_plateau_kwargs:
+                DEPRECIATED. USE `torch_scheduler_kwargs` instead.
                 Dictionnary for the reduction of learning rate when reaching plateau, with possible keys below.
 
                 - factor `float`: Factor by which to reduce the learning rate (Default=`0.5`)
@@ -172,8 +168,15 @@ class PredictorModule(pl.LightningModule):
                 - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate
                   of all param groups or each group respectively (Default=`1e-4`)
 
+            torch_scheduler_kwargs:
+                Dictionnary for the scheduling of learning rate, with possible keys below.
+
+                - type `str`: Type of the learning rate to use from pytorch. Examples are
+                  `'ReduceLROnPlateau'` (default), `'CosineAnnealingWarmRestarts'`, `'StepLR'`, etc.
+                - **kwargs: Any other argument for the learning rate scheduler
+
             scheduler_kwargs:
-                Dictionnary for the scheduling of the learning rate modification
+                Dictionnary for the scheduling of the learning rate modification used by pytorch-lightning
 
                 - monitor `str`: metric to track (Default=`"loss/val"`)
                 - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
@@ -183,14 +186,18 @@ class PredictorModule(pl.LightningModule):
                 - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
 
             target_nan_mask:
-                TODO: It's not implemented for the metrics yet!!
 
-                - None: Do not change behaviour if there are nans
+                - None: Do not change behaviour if there are NaNs
 
-                - int, float: Value used to replace nans. For example, if `target_nan_mask==0`, then
-                  all nans will be replaced by zeros
+                - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
+                  all NaNs will be replaced by zeros
 
-                - 'ignore': Nans will be ignored when computing the loss.
+                - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
+
+                - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
+                  has a different number of NaNs, so the metric will be computed separately
+                  on each column, and the metric result will be averaged over all columns.
+                  *This option might slowdown the computation if there are too many labels*
 
             metrics:
                 A dictionnary of metrics to compute on the prediction, other than the loss function.
@@ -204,13 +211,15 @@ class PredictorModule(pl.LightningModule):
                 If `None`, all the metrics are computed. Using less metrics can significantly improve
                 performance, depending on the number of readouts.
 
-            flag_n_steps:
-                An integer that specifies the number of ascent steps when running FLAG during training.
-                Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
-                many iterations.
+            flag_kwargs:
+                Keyword arguments used for FLAG, and adversarial data augmentation for graph networks.
+                See: https://arxiv.org/abs/2010.09891
 
-            flag_alpha:
-                A float that specifies the ascent step size when running FLAG.
+                - n_steps: An integer that specifies the number of ascent steps when running FLAG during training.
+                  Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
+                  many iterations.
+
+                - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01
         """
 
         self.save_hyperparameters()
@@ -231,33 +240,56 @@ class PredictorModule(pl.LightningModule):
             list(self.metrics.keys()) if metrics_on_training_set is None else metrics_on_training_set
         )
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
-        self.lr_reduce_on_plateau_kwargs = lr_reduce_on_plateau_kwargs
-        self.optim_kwargs = optim_kwargs
-        self.scheduler_kwargs = scheduler_kwargs
-        self.flag_n_steps = flag_n_steps
-        self.flag_alpha = flag_alpha
 
-        # Set the default value for the optimizer
-        self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.optim_kwargs.setdefault("lr", 1e-3)
-        self.optim_kwargs.setdefault("weight_decay", 0.0)
+        # Set the parameters and default values for the FLAG adversarial augmentation, and check values
+        self.flag_kwargs = {"alpha": 0.01, "n_steps": 0}
+        if flag_kwargs is not None:
+            self.flag_kwargs.update(flag_kwargs)
+        assert isinstance(self.flag_kwargs["n_steps"], int) and (self.flag_kwargs["n_steps"] >= 0)
+        assert self.flag_kwargs["alpha"] > 0
 
-        self.lr_reduce_on_plateau_kwargs = (
-            lr_reduce_on_plateau_kwargs if lr_reduce_on_plateau_kwargs is not None else {}
-        )
-        self.lr_reduce_on_plateau_kwargs.setdefault("factor", 0.5)
-        self.lr_reduce_on_plateau_kwargs.setdefault("patience", 10)
-        self.lr_reduce_on_plateau_kwargs.setdefault("min_lr", 1e-4)
+        # Set the parameters and default value for the optimizer, and check values
+        self.optim_kwargs = {"lr": 1e-3, "weight_decay": 0.0}
+        if optim_kwargs is not None:
+            self.optim_kwargs.update(optim_kwargs)
+        assert self.optim_kwargs["lr"] > 0
+        assert self.optim_kwargs["weight_decay"] >= 0
 
-        self.optim_kwargs = optim_kwargs if optim_kwargs is not None else {}
-        self.scheduler_kwargs.setdefault("monitor", "loss/val")
-        self.scheduler_kwargs.setdefault("interval", "epoch")
-        self.scheduler_kwargs.setdefault("mode", "min")
-        self.scheduler_kwargs.setdefault("frequency", 1)
-        self.scheduler_kwargs.setdefault("strict", True)
+        # Set the lightning scheduler
+        self.scheduler_kwargs = {
+            "interval": "epoch",
+            "monitor": "loss/val",
+            "mode": "min",
+            "frequency": 1,
+            "strict": True,
+        }
+        if scheduler_kwargs is not None:
+            self.scheduler_kwargs.update(scheduler_kwargs)
 
-        monitor = scheduler_kwargs["monitor"].split("/")[0]
-        mode = scheduler_kwargs["mode"]
+        # Set the depreciated arguments, if provided
+        if lr_reduce_on_plateau_kwargs is not None:
+            logger.warning(
+                "`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead."
+            )
+            if torch_scheduler_kwargs is not None:
+                raise ValueError(
+                    "Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided"
+                )
+            torch_scheduler_kwargs = {
+                "module_type": "ReduceLROnPlateau",
+                **lr_reduce_on_plateau_kwargs,
+            }
+
+        # Set the pytorch scheduler arguments
+        if torch_scheduler_kwargs is None:
+            self.torch_scheduler_kwargs = {}
+        else:
+            self.torch_scheduler_kwargs = torch_scheduler_kwargs
+        self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
+
+        # Initialize the epoch summary
+        monitor = self.scheduler_kwargs["monitor"].split("/")[0]
+        mode = self.scheduler_kwargs["mode"]
         self.epoch_summary = EpochSummary(
             monitor, mode=mode, metrics_on_progress_bar=self.metrics_on_progress_bar
         )
@@ -289,13 +321,28 @@ class PredictorModule(pl.LightningModule):
 
         return loss_fun
 
-    def forward(self, inputs: Dict):
+    def forward(self, inputs: Dict) -> Dict[str, Union[torch.Tensor, Any]]:
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
+        If the output of `out = self.model.forward` is a dictionary with a `"preds"` key,
+        it is returned directly. Otherwise, a new dictionary is created and
+        returns `{"preds": out}`.
+
+        Returns:
+            A dict with a key `"preds"` representing the prediction of the network.
+
         """
+        # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
         out = self.model.forward(feats)
-        return out
+
+        # Convert the output of the model to a dictionary
+        if isinstance(out, dict) and ("preds" in out.keys()):
+            out_dict = out
+        else:
+            out_dict = {"preds": out}
+
+        return out_dict
 
     def _convert_features_dtype(self, feats):
         # Convert features to dtype
@@ -312,12 +359,21 @@ class PredictorModule(pl.LightningModule):
         return feats
 
     def configure_optimizers(self):
-        optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
+        # Configure the parameters for the schedulers
+        sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
+        scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
+        sig = signature(scheduler_class.__init__)
+        key_args = [p.name for p in sig.parameters.values() if p.kind == p.KEYWORD_ONLY]
+        if "monitor" in key_args:
+            sc_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
+        if "mode" in key_args:
+            sc_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
 
+        # Define the optimizer and schedulers
+        optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
+        torch_scheduler = scheduler_class(optimizer=optimiser, **sc_kwargs)
         scheduler = {
-            "scheduler": ReduceLROnPlateau(
-                optimizer=optimiser, mode=self.scheduler_kwargs["mode"], **self.lr_reduce_on_plateau_kwargs
-            ),
+            "scheduler": torch_scheduler,
             **self.scheduler_kwargs,
         }
         return [optimiser], [scheduler]
@@ -437,7 +493,7 @@ class PredictorModule(pl.LightningModule):
         self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        preds = self.forward(batch)
+        preds = self.forward(batch)["preds"]
         targets = batch.pop("labels").to(dtype=preds.dtype)
         weights = batch.pop("weights", None)
 
@@ -468,17 +524,19 @@ class PredictorModule(pl.LightningModule):
         Github: https://github.com/devnkong/FLAG
         """
 
+        alpha, n_steps = self.flag_kwargs["alpha"], self.flag_kwargs["n_steps"]
+
         X = self._convert_features_dtype(batch["features"])
         X_shape = X.ndata["feat"].shape
 
-        pert = torch.FloatTensor(X_shape).uniform_(-self.flag_alpha, self.flag_alpha).to(device=X.device)
+        pert = torch.FloatTensor(X_shape).uniform_(-alpha, alpha).to(device=X.device)
         pert.requires_grad = True
 
         # Perturb the features
         pert_batch = deepcopy(batch)
         pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
 
-        preds = self.forward(pert_batch)
+        preds = self.forward(pert_batch)["preds"]
         targets = batch.pop("labels").to(dtype=preds.dtype)
         weights = batch.pop("weights", None)
         loss = (
@@ -489,18 +547,18 @@ class PredictorModule(pl.LightningModule):
                 target_nan_mask=self.target_nan_mask,
                 loss_fun=self.loss_fun,
             )
-            / self.flag_n_steps
+            / n_steps
         )
 
         # Iteratively augment data by applying perturbations
         # Accumulate the gradients to be applied to the weights of the network later on
-        for _ in range(self.flag_n_steps - 1):
+        for _ in range(n_steps - 1):
             loss.backward()
-            pert_data = pert.detach() + self.flag_alpha * torch.sign(pert.grad.detach())
+            pert_data = pert.detach() + alpha * torch.sign(pert.grad.detach())
             pert.data = pert_data.data
             pert.grad[:] = 0
             pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
-            preds = self.forward(pert_batch)
+            preds = self.forward(pert_batch)["preds"]
             loss = (
                 self.compute_loss(
                     preds=preds,
@@ -509,7 +567,7 @@ class PredictorModule(pl.LightningModule):
                     target_nan_mask=self.target_nan_mask,
                     loss_fun=self.loss_fun,
                 )
-                / self.flag_n_steps
+                / n_steps
             )
 
         device = "cpu" if to_cpu else None
@@ -527,10 +585,10 @@ class PredictorModule(pl.LightningModule):
         step_dict = None
 
         # Train using FLAG
-        if self.flag_n_steps > 0:
+        if self.flag_kwargs["n_steps"] > 0:
             loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
         # Train normally, without using FLAG
-        elif self.flag_n_steps == 0:
+        elif self.flag_kwargs["n_steps"] == 0:
             loss, step_dict = self._general_step(
                 batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True
             )

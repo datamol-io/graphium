@@ -2,7 +2,6 @@
 Unit tests for the metrics and wrappers of goli/utils/...
 """
 
-from typing import Tuple
 from goli.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median
 import torch
 import numpy as np

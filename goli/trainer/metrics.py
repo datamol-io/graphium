@@ -1,26 +1,7 @@
 from typing import Union, Callable, Optional, Dict, Any
-
-from copy import deepcopy
-
 import torch
-
 import operator as op
-
 from torchmetrics.utilities import reduce
-from torchmetrics.functional import auroc
-from torchmetrics.functional import (
-    accuracy,
-    average_precision,
-    confusion_matrix,
-    f1,
-    fbeta,
-    precision_recall_curve,
-    precision,
-    recall,
-    auroc,
-    mean_absolute_error,
-    mean_squared_error,
-)
 
 from goli.utils.tensor import nan_mean
 
@@ -170,29 +151,6 @@ def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "eleme
     return spearman
 
 
-METRICS_CLASSIFICATION = {
-    "accuracy": accuracy,
-    "averageprecision": average_precision,
-    "auroc": auroc,
-    "confusionmatrix": confusion_matrix,
-    "f1": f1,
-    "fbeta": fbeta,
-    "precisionrecallcurve": precision_recall_curve,
-    "precision": precision,
-    "recall": recall,
-}
-
-METRICS_REGRESSION = {
-    "mae": mean_absolute_error,
-    "mse": mean_squared_error,
-    "pearsonr": pearsonr,
-    "spearmanr": spearmanr,
-}
-
-METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)
-METRICS_DICT.update(METRICS_REGRESSION)
-
-
 class MetricWrapper:
     r"""
     Allows to initialize a metric from a name or Callable, and initialize the
@@ -233,6 +191,7 @@ class MetricWrapper:
             kwargs:
                 Other arguments to call with the metric
         """
+        from goli.utils.spaces import METRICS_DICT
 
         self.metric = METRICS_DICT[metric] if isinstance(metric, str) else metric
 
