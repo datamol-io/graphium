@@ -19,7 +19,13 @@ $PYPI_BUILD_COMMANDS = ['sdist']
 $PYPI_UPLOAD = True
 $PYPI_NAME = "goli-life"
 
-$ACTIVITIES = ['check', 'authors', 'changelog', 'version_bump', 'tag', 'push_tag', 'ghrelease']
+$FORGE_FEEDSTOCK_ORG = 'valence-forge'
+$FORGE_RERENDER = True
+$FORGE_USE_GIT_URL = True
+$FORGE_FORK = False
+$FORGE_PULL_REQUEST = False
+
+$ACTIVITIES = ['check', 'authors', 'changelog', 'version_bump', 'tag', 'push_tag', 'ghrelease', 'forge']
 
 $VERSION_BUMP_PATTERNS = [('goli/_version.py', r'__version__\s*=.*', "__version__ = \"$VERSION\""),
                           ('setup.py', r'version\s*=.*,', "version=\"$VERSION\",")
