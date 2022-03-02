@@ -99,8 +99,8 @@ def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elemen
 
     shifted_x = preds - torch.mean(preds, dim=0)
     shifted_y = target - torch.mean(target, dim=0)
-    sigma_x = torch.sqrt(torch.sum(shifted_x ** 2, dim=0))
-    sigma_y = torch.sqrt(torch.sum(shifted_y ** 2, dim=0))
+    sigma_x = torch.sqrt(torch.sum(shifted_x**2, dim=0))
+    sigma_y = torch.sqrt(torch.sum(shifted_y**2, dim=0))
 
     pearson = torch.sum(shifted_x * shifted_y, dim=0) / (sigma_x * sigma_y + EPS)
     pearson = torch.clamp(pearson, min=-1, max=1)
