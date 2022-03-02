@@ -41,8 +41,8 @@ setup(
         "Documentation": "https://valence-discovery.github.io/goli",
         "Source Code": "https://github.com/valence-discovery/goli",
     },
-    python_requires=">=3.7,<3.9",
-    install_requires=install_requires,
+    python_requires=">=3.7",
+    # install_requires=install_requires,
     packages=find_packages(),
     include_package_data=True,
     entry_points={
