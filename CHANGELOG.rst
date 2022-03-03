@@ -4,6 +4,16 @@ goli Change Log
 
 .. current developments
 
+v0.2.9
+====================
+
+**Authors:**
+
+* Dom
+* Hadrien Mary
+
+
+
 v0.2.8
 ====================
 
