@@ -675,7 +675,7 @@ class PredictorModule(pl.LightningModule):
         tb_path = self.logger.log_dir
 
         # Write the YAML file with the metrics
-        if self.current_epoch >= 1:
+        if self.current_epoch >= 0:
             mkdir(tb_path)
             with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
                 yaml.dump(full_dict, file)
