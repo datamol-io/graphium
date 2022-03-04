@@ -618,7 +618,7 @@ class PredictorModule(pl.LightningModule):
         return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
 
     def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
+        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="test", to_cpu=True)[1]
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
