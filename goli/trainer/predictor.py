@@ -51,7 +51,7 @@ class EpochSummary:
             self.monitored_metric = monitored_metric
             if monitored_metric in metrics.keys():
                 self.monitored = metrics[monitored_metric].detach().cpu()
-            self.metrics = {key: value.tolist() for key, value in metrics.items()}
+            self.metrics = {key: value.tolist() if isinstance(value, (Tensor, np.ndarray)) else value for key, value in metrics.items()}
             self.n_epochs = n_epochs
 
     def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
