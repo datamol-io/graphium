@@ -51,7 +51,10 @@ class EpochSummary:
             self.monitored_metric = monitored_metric
             if monitored_metric in metrics.keys():
                 self.monitored = metrics[monitored_metric].detach().cpu()
-            self.metrics = {key: value.tolist() if isinstance(value, (Tensor, np.ndarray)) else value for key, value in metrics.items()}
+            self.metrics = {
+                key: value.tolist() if isinstance(value, (Tensor, np.ndarray)) else value
+                for key, value in metrics.items()
+            }
             self.n_epochs = n_epochs
 
     def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
@@ -466,7 +469,7 @@ class PredictorModule(pl.LightningModule):
         metric_logs[f"std_target/{step_name}"] = nan_std(targets)
         metric_logs[f"median_target/{step_name}"] = nan_median(targets)
         if torch.cuda.is_available():
-            metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2**30))
+            metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2 ** 30))
 
         # Specify which metrics to use
         metrics_to_use = self.metrics
