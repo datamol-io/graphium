@@ -4,6 +4,40 @@ goli Change Log
 
 .. current developments
 
+v0.2.11
+====================
+
+**Added:**
+
+* Nothing
+
+**Changed:**
+
+* Nothing
+
+**Deprecated:**
+
+* Nothing
+
+**Removed:**
+
+* Nothing
+
+**Fixed:**
+
+* Fix the lr-scheduler that did not use the `monitor` and `mode` correctly.
+
+**Security:**
+
+* Nothing
+
+**Authors:**
+
+* Dom
+* Hadrien Mary
+
+
+
 v0.2.10
 ====================
 
