@@ -366,7 +366,7 @@ class PredictorModule(pl.LightningModule):
         sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
         scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
         sig = signature(scheduler_class.__init__)
-        key_args = [p.name for p in sig.parameters.values() if p.kind == p.KEYWORD_ONLY]
+        key_args = [p.name for p in sig.parameters.values()]
         if "monitor" in key_args:
             sc_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
         if "mode" in key_args:
