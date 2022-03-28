@@ -38,14 +38,14 @@ class EpochSummary:
     class Results:
         def __init__(
             self,
-            targets: Tensor,
-            predictions: Tensor,
-            loss: float,
-            metrics: dict,
-            monitored_metric: str,
+            targets: Union[Tensor, Dict[str, Tensor]],                               # For each task
+            predictions: Union[Tensor, Dict[str, Tensor]],                           # For each task
+            loss: Union[float, Dict[str, float]],          # For each task: need dict[task : loss]
+            metrics: Union[dict, Dict[str, Any]],          # For each task: need dict[task : dict[metrics]]
+            monitored_metric: Union[str, Dict[str, str]],  # For each task
             n_epochs: int,
         ):
-            self.targets = targets.detach().cpu()
+            self.targets = targets.detach().cpu()               # Update these
             self.predictions = predictions.detach().cpu()
             self.loss = loss.item() if isinstance(loss, Tensor) else loss
             self.monitored_metric = monitored_metric
@@ -121,16 +121,16 @@ class PredictorModule(pl.LightningModule):
         self,
         model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
-        loss_fun: Union[str, Callable],
+        loss_fun: Union[str, Callable, Dict[str, str]],                                        # per task
         random_seed: int = 42,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[int, float, str]] = None,
-        metrics: Dict[str, Callable] = None,
-        metrics_on_progress_bar: List[str] = [],
-        metrics_on_training_set: Optional[List[str]] = None,
+        metrics: Dict[str, Callable] = None,                    # per task ???
+        metrics_on_progress_bar: Union[List[str], Dict[str, List[str]]] = None,                # per task
+        metrics_on_training_set: Optional[Union[List[str], Dict[str, List[str]]]] = None,      # per task
         flag_kwargs: Dict[str, Any] = None,
     ):
         r"""
@@ -234,7 +234,11 @@ class PredictorModule(pl.LightningModule):
         self.model = model_class(**model_kwargs)
 
         # Basic attributes
-        self.loss_fun = self.parse_loss_fun(loss_fun)
+        # Loss
+        if isinstance(loss_fun, List):
+            for task in loss_fun:
+                self.loss_fun[task['task_name']] = self.parse_loss_fun(task['task_loss'])
+        else: self.loss_fun = self.parse_loss_fun(loss_fun)
         self.random_seed = random_seed
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
