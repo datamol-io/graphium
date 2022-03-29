@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from typing import Iterable, List, Union
+from typing import Iterable, List, Union, Callable
 from inspect import getfullargspec
 from copy import copy, deepcopy
 from loguru import logger
@@ -349,3 +349,59 @@ def arg_in_func(fn, arg):
     """
     fn_args = getfullargspec(fn)
     return (fn_args.varkw is not None) or (arg in fn_args[0])
+
+
+class DictTensor(dict):
+    """
+    A class that combines the functionality of `dict` and `torch.Tensor`.
+    Specifically, it is a dict of Tensor, but it has all the methods and attributes of a Tensor.
+    When a given method or attribute is called, it will be called on each element
+    of the dict, and a new dict is returned.
+
+    If a given method is available in both `dict` and `torch.Tensor`, then the one
+    from `Tensor` is not available.
+
+    All methods from `Tensor` starting or ending with an underscore `_` are not available.
+    """
+
+    @staticmethod
+    def _dict_func_wrapper(func):
+        """
+        A function that wraps another function to be called on each value of the `self` dictionary,
+        then returns a new dictionary.
+        """
+        def wrap(dict_obj, *args, **kwargs):
+            return {k: func(v, *args, **kwargs) for k, v in dict_obj.items()}
+        return wrap
+
+    def _create_property(self, prop):
+        """
+        A function that creates a property from a name.
+        When the property is called, it will be called on each value of the `self` dictionary,
+        then returns a new dictionary.
+        """
+        setattr(self.__class__, prop, 
+            property(fget=lambda self: {k: getattr(v, prop) for k, v in self.items()}))
+
+    def __init__(self, dict_tensor):
+        super().__init__(dict_tensor)
+
+        # Assert that the dictionary is a dict of Tensor
+        assert isinstance(dict_tensor, dict), "`dict_tensor` must be a dict"
+        assert all([isinstance(val, Tensor) for val in dict_tensor.values()]), "`dict_tensor` must contain Tensor"
+        
+        # From `torch.Tensor`, find the functions/methods/attributes to register
+        tensor_func_names = {f for f in dir(Tensor) if not ((f.endswith("_")) or (f.startswith("_")))}
+        dict_func_names = {f for f in dir(dict) if not ((f.endswith("_")) or (f.startswith("_")))}
+        func_names_to_register = tensor_func_names - dict_func_names
+
+        # Loop all selected functions/methods/attributes to register them in the current class
+        for func_name in func_names_to_register:
+            func = getattr(Tensor, func_name)
+            if isinstance(func, Callable):
+                # Register the methods and functions
+                setattr(DictTensor, func_name, self._dict_func_wrapper(func))
+            else:
+                # Register the attributes as properties
+                self._create_property(func_name)
+
