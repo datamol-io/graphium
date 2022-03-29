@@ -45,6 +45,7 @@ class EpochSummary:
             monitored_metric: Union[str, Dict[str, str]],  # For each task
             n_epochs: int,
         ):
+            # OR, we can create a class TensorDict. I think that's a good idea
             self.targets = targets.detach().cpu()               # Update these
             self.predictions = predictions.detach().cpu()
             self.loss = loss.item() if isinstance(loss, Tensor) else loss
@@ -429,6 +430,11 @@ class PredictorModule(pl.LightningModule):
                 Resulting loss
         """
 
+        # TODO (DOM):
+        # Compute `task_losses`, a dictionary containing the loss for each task
+        # Compute `loss`, a weighted sum of the tasks based on `task_weight`
+        # Return loss, task_losses
+
         wrapped_loss_fun = MetricWrapper(
             metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask
         )
@@ -465,6 +471,11 @@ class PredictorModule(pl.LightningModule):
         targets = targets.to(dtype=preds.dtype, device=preds.device)
 
         # Compute the metrics always used in regression tasks
+        # TODO: (DOM)
+        # Compute the stats below for each task
+        # Group the logs below into stats folder, one per task.
+        # Example:
+        # metric_logs[f"{task_name}_stats/{step_name}/mean_pred"] = nan_mean(preds[task_name])
         metric_logs = {}
         metric_logs[f"mean_pred/{step_name}"] = nan_mean(preds)
         metric_logs[f"std_pred/{step_name}"] = nan_std(preds)
@@ -475,12 +486,21 @@ class PredictorModule(pl.LightningModule):
         if torch.cuda.is_available():
             metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2**30))
 
+        # TODO: (DOM)
+        # If you're on the training set, not all metrics are used because it would take too much time otherwise.
+        # Here, you need to select only the metrics used on the training set `if step_name == "train"`.
+        # This has to be changed to support for each task.
+
         # Specify which metrics to use
         metrics_to_use = self.metrics
         if step_name == "train":
             metrics_to_use = {
                 key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set
             }
+
+        # TODO: (DOM)
+        # Here, compute the metrics for each task, and group them with the same logic as above.
+        # metric_name = f"{task_name}_{key}/{step_name}"
 
         # Compute the additional metrics
         for key, metric in metrics_to_use.items():
@@ -513,6 +533,10 @@ class PredictorModule(pl.LightningModule):
         )
 
         device = "cpu" if to_cpu else None
+        # TODO: (DOM)
+        # Everywhere that preds and targets are detached, we need to detach each element of the dictionary
+        # preds = {k: v.detach().to(device=device) for k, v in preds.items()}
+        # OR, we can create a class TensorDict. I think that's a good idea
         preds = preds.detach().to(device=device)
         targets = targets.detach().to(device=device)
         if weights is not None:
