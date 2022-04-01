@@ -134,6 +134,7 @@ dmypy.json
 lightning_logs/
 logs/
 .vscode/
+.idea/
 models_checkpoints/
 multirun/
 outputs/

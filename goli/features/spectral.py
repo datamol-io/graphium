@@ -57,24 +57,14 @@ def compute_laplacian_positional_eigvecs(
 def _get_positional_eigvecs(matrix, num_pos: int):
 
     mat_len = matrix.shape[0]
-    if num_pos < mat_len - 1:  # Compute the k-lowest eigenvectors
-        # Make `eigs` deterministic for inference time
-        num_nodes = matrix.shape[0]
-        rand_gen = np.random.RandomState(42)
-        v0 = np.ones(num_nodes) + 1e-5 * rand_gen.randn(num_nodes)
+    eigvals, eigvecs = eig(matrix.todense())
 
-        eigvals, eigvecs = eigs(matrix, k=num_pos, which="SR", tol=0, v0=v0)
-
-    else:  # Compute all eigenvectors
-
-        eigvals, eigvecs = eig(matrix.todense())
-
-        # Pad with non-sense eigenvectors if required
-        if num_pos > mat_len:
-            temp_EigVal = np.ones(num_pos - mat_len, dtype=np.float64) + float("inf")
-            temp_EigVec = np.zeros((mat_len, num_pos - mat_len), dtype=np.float64)
-            eigvals = np.concatenate([eigvals, temp_EigVal], axis=0)
-            eigvecs = np.concatenate([eigvecs, temp_EigVec], axis=1)
+    # Pad with non-sense eigenvectors if required
+    if num_pos > mat_len:
+        temp_EigVal = np.ones(num_pos - mat_len, dtype=np.float64) + float("inf")
+        temp_EigVec = np.zeros((mat_len, num_pos - mat_len), dtype=np.float64)
+        eigvals = np.concatenate([eigvals, temp_EigVal], axis=0)
+        eigvecs = np.concatenate([eigvecs, temp_EigVec], axis=1)
 
     # Sort and keep only the first `num_pos` elements
     sort_idx = eigvals.argsort()
