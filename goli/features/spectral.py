@@ -29,24 +29,21 @@ def compute_laplacian_positional_eigvecs(
     L = -adj + D_mat
     L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
 
+    components = []
     if disconnected_comp:
         # Get the list of connected components
         components = list(nx.connected_components(nx.from_scipy_sparse_matrix(adj)))
+
+    # Compute the eigenvectors for each connected component, and stack them together
+    if len(components) > 1:
         eigvals_tile = np.zeros((L_norm.shape[0], num_pos), dtype=np.float64)
         eigvecs = np.zeros_like(eigvals_tile)
-
-        # Compute the eigenvectors for each connected component, and stack them together
-        if len(components) > 1:
-            for component in components:
-                comp = list(component)
-                this_L = L_norm[comp][:, comp]
-                this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
-                eigvecs[comp, :] = np.real(this_eigvecs)
-                eigvals_tile[comp, :] = np.real(this_eigvals)
-        else: # Faster to avoid indexing with comp if not needed
-            this_eigvals, this_eigvecs = _get_positional_eigvecs(L_norm, num_pos=num_pos)
-            eigvecs = np.real(this_eigvecs)
-            eigvals_tile = np.real(this_eigvals)
+        for component in components:
+            comp = list(component)
+            this_L = L_norm[comp][:, comp]
+            this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
+            eigvecs[comp, :] = np.real(this_eigvecs)
+            eigvals_tile[comp, :] = np.real(this_eigvals)
     else:
         eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
         eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
