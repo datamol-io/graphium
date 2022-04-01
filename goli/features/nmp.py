@@ -16,21 +16,15 @@ def float_or_none(string):
         val = None
     return val
 
+# It's much faster to index from a list than a DataFrame, which can have big impact
+# when featurizing millions of molecules
 BOND_RADIUS_SINGLE = [float_or_none(elem) for elem in PERIODIC_TABLE["SingleBondRadius"]]
 BOND_RADIUS_DOUBLE = [float_or_none(elem) for elem in PERIODIC_TABLE["DoubleBondRadius"]]
 BOND_RADIUS_TRIPLE = [float_or_none(elem) for elem in PERIODIC_TABLE["TripleBondRadius"]]
 ELECTRONEGATIVITY = [float_or_none(elem) for elem in PERIODIC_TABLE["Electronegativity"]]
 FIRST_IONIZATION = [float_or_none(elem) for elem in PERIODIC_TABLE["FirstIonization"]]
 MELTING_POINT = [float_or_none(elem) for elem in PERIODIC_TABLE["MeltingPoint"]]
-METAL = []
-for ii in range(len(PERIODIC_TABLE)):
-    if PERIODIC_TABLE["Metal"][ii+1] == "yes":
-        val = 2
-    elif PERIODIC_TABLE["Metalloid"][ii+1] == "yes":
-        val = 1
-    else:
-        val = 0
-    METAL.append(val)
+METAL = (2 * (PERIODIC_TABLE["Metal"] == "yes") + (PERIODIC_TABLE["Metalloid"] == "yes")).tolist()
 
 ATOM_LIST = [
     "C",
