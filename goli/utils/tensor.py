@@ -9,7 +9,7 @@ from copy import copy, deepcopy
 from loguru import logger
 
 from rdkit.Chem import AllChem
-from torch.tensor import Tensor
+from torch import Tensor
 
 
 def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 600) -> None:
