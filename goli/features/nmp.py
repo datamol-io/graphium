@@ -16,6 +16,7 @@ def float_or_none(string):
         val = None
     return val
 
+
 # It's much faster to index from a list than a DataFrame, which can have big impact
 # when featurizing millions of molecules
 BOND_RADIUS_SINGLE = [float_or_none(elem) for elem in PERIODIC_TABLE["SingleBondRadius"]]

@@ -16,6 +16,7 @@ from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
 from goli.features.positional_encoding import get_all_positional_encoding
 
+
 def _to_dense_array(array, dtype=None):
     # Assign the node data
     if array is not None:
@@ -258,31 +259,27 @@ def get_mol_atomic_features_float(
                 elif prop in ["formal-charge"]:
                     val = atom.GetFormalCharge()
                 elif prop in ["vdw-radius"]:
-                    val = periodic_table.GetRvdw(atom.GetAtomicNum()) - offC * periodic_table.GetRvdw(
-                        C_num
-                    )
+                    val = periodic_table.GetRvdw(atom.GetAtomicNum()) - offC * periodic_table.GetRvdw(C_num)
                 elif prop in ["covalent-radius"]:
                     val = periodic_table.GetRcovalent(
                         atom.GetAtomicNum()
                     ) - offC * periodic_table.GetRcovalent(C_num)
                 elif prop in ["electronegativity"]:
                     val = (
-                        nmp.ELECTRONEGATIVITY[atom.GetAtomicNum()-1]
-                        - offC * nmp.ELECTRONEGATIVITY[C_num-1]
+                        nmp.ELECTRONEGATIVITY[atom.GetAtomicNum() - 1]
+                        - offC * nmp.ELECTRONEGATIVITY[C_num - 1]
                     )
                 elif prop in ["ionization", "first-ionization"]:
                     prop_name = "ionization"
                     val = (
-                        nmp.FIRST_IONIZATION[atom.GetAtomicNum()-1]
-                        - offC * nmp.FIRST_IONIZATION[C_num-1]
+                        nmp.FIRST_IONIZATION[atom.GetAtomicNum() - 1] - offC * nmp.FIRST_IONIZATION[C_num - 1]
                     ) / 5
                 elif prop in ["melting-point"]:
                     val = (
-                        nmp.MELTING_POINT[atom.GetAtomicNum()-1]
-                        - offC * nmp.MELTING_POINT[C_num-1]
+                        nmp.MELTING_POINT[atom.GetAtomicNum() - 1] - offC * nmp.MELTING_POINT[C_num - 1]
                     ) / 200
                 elif prop in ["metal"]:
-                    val = nmp.METAL[atom.GetAtomicNum()-1]
+                    val = nmp.METAL[atom.GetAtomicNum() - 1]
                 elif "-bond" in prop:
                     bonds = [bond.GetBondTypeAsDouble() for bond in atom.GetBonds()]
                     if prop in ["single-bond"]:
@@ -389,20 +386,20 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
 
     # Get single bond atomic radius
     if bond_type == Chem.rdchem.BondType.SINGLE:
-        rad1 = [nmp.BOND_RADIUS_SINGLE[atom1-1]]
-        rad2 = [nmp.BOND_RADIUS_SINGLE[atom2-1]]
+        rad1 = [nmp.BOND_RADIUS_SINGLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_SINGLE[atom2 - 1]]
     # Get double bond atomic radius
     elif bond_type == Chem.rdchem.BondType.DOUBLE:
-        rad1 = [nmp.BOND_RADIUS_DOUBLE[atom1-1]]
-        rad2 = [nmp.BOND_RADIUS_DOUBLE[atom2-1]]
+        rad1 = [nmp.BOND_RADIUS_DOUBLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_DOUBLE[atom2 - 1]]
     # Get triple bond atomic radius
     elif bond_type == Chem.rdchem.BondType.TRIPLE:
-        rad1 = [nmp.BOND_RADIUS_TRIPLE[atom1-1]]
-        rad2 = [nmp.BOND_RADIUS_TRIPLE[atom2-1]]
+        rad1 = [nmp.BOND_RADIUS_TRIPLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_TRIPLE[atom2 - 1]]
     # Get average of single bond and double bond atomic radius
     elif bond_type == Chem.rdchem.BondType.AROMATIC:
-        rad1 = [nmp.BOND_RADIUS_SINGLE[atom1-1], nmp.BOND_RADIUS_DOUBLE[atom1-1]]
-        rad2 = [nmp.BOND_RADIUS_SINGLE[atom2-1], nmp.BOND_RADIUS_DOUBLE[atom2-1]]
+        rad1 = [nmp.BOND_RADIUS_SINGLE[atom1 - 1], nmp.BOND_RADIUS_DOUBLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_SINGLE[atom2 - 1], nmp.BOND_RADIUS_DOUBLE[atom2 - 1]]
 
     # Average the bond lengths, while ignoring nans in case some missing value
     rad1_float = [elem for elem in rad1 if elem is not None]
@@ -411,12 +408,12 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
     if len(rad1_float) > 0:
         rad1_float = sum(rad1_float) / len(rad1_float)
     else:
-        rad1_float = float(nmp.BOND_RADIUS_SINGLE[atom1-1])
+        rad1_float = float(nmp.BOND_RADIUS_SINGLE[atom1 - 1])
 
     if len(rad2_float) > 0:
         rad2_float = sum(rad2_float) / len(rad2_float)
     else:
-        rad2_float = float(nmp.BOND_RADIUS_SINGLE[atom2-1])
+        rad2_float = float(nmp.BOND_RADIUS_SINGLE[atom2 - 1])
 
     bond_length = rad1_float + rad2_float
     return bond_length
@@ -503,6 +500,7 @@ def get_mol_edge_features(
             prop_dict[prop] = np.array([])
 
     return prop_dict
+
 
 def mol_to_adj_and_features(
     mol: Union[str, Chem.rdchem.Mol],
