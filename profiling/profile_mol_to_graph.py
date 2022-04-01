@@ -1,12 +1,14 @@
 from tqdm import tqdm
 import datamol as dm
+import pickle
 
 from goli.data.utils import load_micro_zinc
 from goli.features.featurizer import mol_to_dglgraph, mol_to_adj_and_features
 
 def main():
     df = load_micro_zinc()
-    smiles = df["SMILES"].values
+    smiles = df["SMILES"].values.tolist()
+    smiles = smiles * 1
     print("Num smiles: ", len(smiles))
 
     pos_enc = {
@@ -32,12 +34,12 @@ def main():
         "pos_encoding_as_directions": pos_enc,
         }
 
+    graphs = []
     for s in tqdm(smiles):
         mol = dm.to_mol(s)
-        graph = mol_to_adj_and_features(mol, **featurizer)
+        graphs.append(mol_to_dglgraph(mol, **featurizer))
 
-    print(graph)
-
+    print(graphs[0])
 
 if __name__ == "__main__":
     main()
