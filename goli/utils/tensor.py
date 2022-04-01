@@ -82,7 +82,8 @@ def one_of_k_encoding(val: Any, classes: Iterable[Any]) -> np.ndarray:
             encoding[i] = 1
             found = True
             break
-    if not found: encoding[-1] = 1
+    if not found:
+        encoding[-1] = 1
     return encoding
 
 

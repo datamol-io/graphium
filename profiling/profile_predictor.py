@@ -10,6 +10,7 @@ from goli.trainer.predictor import PredictorModule
 from goli.config._loader import load_datamodule, load_metrics, load_trainer
 from pytorch_lightning import Trainer
 
+
 def main():
     MODEL_PATH = "gs://goli-private/pretrained-models/micro_model/model.ckpt"
     CONFIG_PATH = "gs://goli-private/pretrained-models/micro_model/configs.yaml"
