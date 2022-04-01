@@ -264,7 +264,7 @@ def get_mol_atomic_features_float(
                 elif prop in ["covalent-radius"]:
                     val = periodic_table.GetRcovalent(
                         atom.GetAtomicNum()
-                    ) - offC * periodic_table.GetRcovalent(C_num-1)
+                    ) - offC * periodic_table.GetRcovalent(C_num)
                 elif prop in ["electronegativity"]:
                     val = (
                         nmp.ELECTRONEGATIVITY[atom.GetAtomicNum()-1]
