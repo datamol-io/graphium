@@ -36,12 +36,17 @@ def compute_laplacian_positional_eigvecs(
         eigvecs = np.zeros_like(eigvals_tile)
 
         # Compute the eigenvectors for each connected component, and stack them together
-        for component in components:
-            comp = list(component)
-            this_L = L_norm[comp][:, comp]
-            this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
-            eigvecs[comp, :] = np.real(this_eigvecs)
-            eigvals_tile[comp, :] = np.real(this_eigvals)
+        if len(components) > 1:
+            for component in components:
+                comp = list(component)
+                this_L = L_norm[comp][:, comp]
+                this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
+                eigvecs[comp, :] = np.real(this_eigvecs)
+                eigvals_tile[comp, :] = np.real(this_eigvals)
+        else: # Faster to avoid indexing with comp if not needed
+            this_eigvals, this_eigvecs = _get_positional_eigvecs(L_norm, num_pos=num_pos)
+            eigvecs = np.real(this_eigvecs)
+            eigvals_tile = np.real(this_eigvals)
     else:
         eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
         eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
