@@ -278,8 +278,8 @@ def get_mol_atomic_features_float(
                     ) / 5
                 elif prop in ["melting-point"]:
                     val = (
-                        nmp.PERIODIC_TABLE["MeltingPoint"][atom.GetAtomicNum()-1]
-                        - offC * nmp.PERIODIC_TABLE["MeltingPoint"][C_num-1]
+                        nmp.MELTING_POINT[atom.GetAtomicNum()-1]
+                        - offC * nmp.MELTING_POINT[C_num-1]
                     ) / 200
                 elif prop in ["metal"]:
                     val = nmp.METAL[atom.GetAtomicNum()-1]
