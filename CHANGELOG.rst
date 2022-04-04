@@ -32,7 +32,7 @@ v0.2.12
 
 **Fixed:**
 
-* Fix the lr-scheduler that did not use the `monitor` and `mode` correctly.
+* Nothing
 
 **Security:**
 
