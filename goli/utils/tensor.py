@@ -3,13 +3,13 @@ import torch
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from typing import Iterable, List, Union
+from typing import Iterable, List, Union, Any
 from inspect import getfullargspec
 from copy import copy, deepcopy
 from loguru import logger
 
 from rdkit.Chem import AllChem
-from torch.tensor import Tensor
+from torch import Tensor
 
 
 def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 600) -> None:
@@ -62,7 +62,7 @@ def is_dtype_numpy_array(dtype: Union[np.dtype, torch.dtype]) -> bool:
     return (is_num or is_numpy) and not is_torch
 
 
-def one_of_k_encoding(val: int, num_classes: int, dtype=int) -> np.ndarray:
+def one_of_k_encoding(val: Any, classes: Iterable[Any]) -> np.ndarray:
     r"""Converts a single value to a one-hot vector.
 
     Parameters:
@@ -72,20 +72,17 @@ def one_of_k_encoding(val: int, num_classes: int, dtype=int) -> np.ndarray:
         num_classes: iterator
             a list or 1D array of allowed
             choices for val to take
-        dtype: type
-            data type of the the return.
-            Possible types are int, float, bool, ...
     Returns:
-        A numpy 1D array of length len(num_classes) + 1
+        A list of length len(num_classes) + 1
     """
-
-    encoding = np.zeros(len(num_classes) + 1, dtype=dtype)
-    # not using index of, in case, someone fuck up
-    # and there are duplicates in the allowed choices
-    for i, v in enumerate(num_classes):
+    encoding = [0] * (len(classes) + 1)
+    found = False
+    for i, v in enumerate(classes):
         if v == val:
             encoding[i] = 1
-    if np.sum(encoding) == 0:  # aka not found
+            found = True
+            break
+    if not found:
         encoding[-1] = 1
     return encoding
 

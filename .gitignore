@@ -131,9 +131,11 @@ dmypy.json
 # Custom GitIgnore
 *.code-workspace
 *.out
+*.cache
 lightning_logs/
 logs/
 .vscode/
+.idea/
 models_checkpoints/
 multirun/
 outputs/
