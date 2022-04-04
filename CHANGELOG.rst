@@ -4,6 +4,47 @@ goli Change Log
 
 .. current developments
 
+v0.2.12
+====================
+
+**Added:**
+
+* New functions use specifically to profile parts of the code.
+* Support of Pytorch >=1.9 with a single line fixed from torch.tensor import Tensor -> from torch import Tensor.
+
+**Changed:**
+
+* Featurization of molecules into graphs is 3 times faster on Laptop and 2.2 times faster on GCP instance.
+  * Improvements in atom properties speed by getting atomic information from global lists, not from a dataframe where indexing is slow.
+  * Improvements in bond properties speed by getting atomic information from global lists, not from a dataframe. Also optimized the get_estimated_bond_length.
+  * Improved positional encodings speed by using scipy.linalg.eig instead of scipy.linalg.eigs. The second is faster for large graphs, but not small ones. Also some code optimization. There might be tiny differences in eigenvectors, but it shouldn't change much the network's output. For most molecules, the eigenvectors are identical.
+  * Other optimizations using more native python. Less numpy, more lists.
+  * Moved back to loky for parallel backend. It benefits more from the optimized code, and memory leaks seem to no longer be an issue. Probably since the code is closer to native python with numpy arrays being replaced by lists.
+  * Checked that the featurization gives the same results as before.
+
+**Deprecated:**
+
+* Nothing
+
+**Removed:**
+
+* Nothing
+
+**Fixed:**
+
+* Nothing
+
+**Security:**
+
+* Nothing
+
+**Authors:**
+
+* Dom
+* Hadrien Mary
+
+
+
 v0.2.11
 ====================
 
