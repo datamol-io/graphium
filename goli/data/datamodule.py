@@ -57,6 +57,16 @@ PCQM4Mv2_meta.update(
 )
 
 
+# TODO (Dom):
+class MultiTaskDataLoader(DataLoader):
+    pass
+    # Takes a dictionary of datasets.
+    # Takes a batch sizes
+    # Sample each dataset in proportion of their size
+    # If dataset_1 has 10k elements and dataset_2 has 100k elements,
+    # then 10 times more elements are sampled from dataset_2.
+    # At each iteration, sample a quasi-constant amount from each dataset
+
 class DGLDataset(Dataset):
     def __init__(
         self,
@@ -215,6 +225,7 @@ class DGLBaseDataModule(pl.LightningDataModule):
         else:
             num_workers = self.num_workers
 
+        # TODO (Dom): Use MultiTaskDataLoader instead.
         loader = DataLoader(
             dataset=dataset,
             num_workers=num_workers,
@@ -225,6 +236,15 @@ class DGLBaseDataModule(pl.LightningDataModule):
             persistent_workers=self.persistent_workers,
         )
         return loader
+
+
+# TODO (Dom):
+class MultiTaskDGMFromSmilesDataModule(pl.LightningDataModule):
+    pass
+    # Take a dict of parameters for DGLFromSmilesDataModule
+    # Initialize many DGLFromSmilesDataModule.
+    # When `setup` and `prepare_data` are called, call it for all DGLFromSmilesDataModule
+    # ALSO!! check other functions needed by pl.Trainer to make it work with the Predictor. Maybe just the Dataloader???
 
 
 class DGLFromSmilesDataModule(DGLBaseDataModule):
