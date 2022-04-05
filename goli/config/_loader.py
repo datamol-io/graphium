@@ -7,7 +7,6 @@ from loguru import logger
 
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from goli.nn.architectures import FullDGLMultiTaskNetwork
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FeedForwardNN
@@ -59,8 +58,6 @@ def load_architecture(
     elif model_type == "fulldglsiamesenetwork":
         model_class = FullDGLSiameseNetwork
         kwargs["dist_method"] = cfg_arch["dist_method"]
-    elif model_type == "fulldglmultitasknetwork":
-        model_class = FullDGLMultiTaskNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
@@ -69,7 +66,6 @@ def load_architecture(
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
     post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
-    task_heads_kwargs = dict(cfg_arch["task_heads"]) if cfg_arch["task_heads"] is not None else None
 
     # Set the input dimensions
     if pre_nn_kwargs is not None:
@@ -90,7 +86,6 @@ def load_architecture(
         pre_nn_kwargs=pre_nn_kwargs,
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         post_nn_kwargs=post_nn_kwargs,
-        task_heads_kwargs=task_heads_kwargs
     )
 
     return model_class, model_kwargs
