@@ -262,7 +262,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        featurization_backend: str = "multiprocessing",
+        featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "dict",
         dataset_class: type = DGLDataset,
@@ -320,7 +320,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             featurization_progress: whether to show a progress bar during featurization.
             featurization_backend: The backend to use for the molecular featurization.
 
-                - "multiprocessing": Default. Found to be faster and cause less memory issues.
+                - "multiprocessing": Found to cause less memory issues.
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
 
@@ -948,7 +948,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        featurization_backend: str = "multiprocessing",
+        featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
     ):
         """
@@ -968,7 +968,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
             featurization_progress: whether to show a progress bar during featurization.
             featurization_backend: The backend to use for the molecular featurization.
 
-                - "multiprocessing": Default. Found to be faster and cause less memory issues.
+                - "multiprocessing": Found to cause less memory issues.
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
 
