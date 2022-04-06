@@ -7,6 +7,17 @@ goli Change Log
 v0.2.12
 ====================
 
+**Authors:**
+
+* Dom
+* Gabriela Moisescu-Pareja
+* Hadrien Mary
+
+
+
+v0.2.12
+====================
+
 **Added:**
 
 * New functions use specifically to profile parts of the code.
