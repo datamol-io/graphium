@@ -26,12 +26,12 @@ class DictTensor(dict):
     and all comparison methods:
 
     - `__dict__`: Not available for this class.
-    - `__lt__`: Supports comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
-    - `__le__`: Supports comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
-    - `__eq__`: Supports comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
-    - `__ne__`: Supports comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
-    - `__gt__`: Supports comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
-    - `__ge__`: Supports comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
+    - `__lt__` or `<`: Supports two-way comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
+    - `__le__` or `<=`: Supports two-way comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
+    - `__eq__` or `==`: Supports two-way comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
+    - `__ne__` or `!=`: Supports two-way comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
+    - `__gt__` or `>`: Supports two-way comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
+    - `__ge__` or `>=`: Supports two-way comparison between `DictTensor` and number, `torch.Tensor` or `DictTensor`.
 
     The only major function from `torch.Tensor` that doesn't work (to my knowledge) is the indexing.
     Indexing has to be done by manually looping the dictionary.
