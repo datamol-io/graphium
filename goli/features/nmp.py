@@ -8,6 +8,25 @@ with importlib.resources.open_text("goli.features", "periodic_table.csv") as f:
     PERIODIC_TABLE = pd.read_csv(f)
 PERIODIC_TABLE = PERIODIC_TABLE.set_index("AtomicNumber")
 
+# Small function to convert strings to floats
+def float_or_none(string):
+    try:
+        val = float(string)
+    except:
+        val = None
+    return val
+
+
+# It's much faster to index from a list than a DataFrame, which can have big impact
+# when featurizing millions of molecules
+BOND_RADIUS_SINGLE = [float_or_none(elem) for elem in PERIODIC_TABLE["SingleBondRadius"]]
+BOND_RADIUS_DOUBLE = [float_or_none(elem) for elem in PERIODIC_TABLE["DoubleBondRadius"]]
+BOND_RADIUS_TRIPLE = [float_or_none(elem) for elem in PERIODIC_TABLE["TripleBondRadius"]]
+ELECTRONEGATIVITY = [float_or_none(elem) for elem in PERIODIC_TABLE["Electronegativity"]]
+FIRST_IONIZATION = [float_or_none(elem) for elem in PERIODIC_TABLE["FirstIonization"]]
+MELTING_POINT = [float_or_none(elem) for elem in PERIODIC_TABLE["MeltingPoint"]]
+METAL = (2 * (PERIODIC_TABLE["Metal"] == "yes") + (PERIODIC_TABLE["Metalloid"] == "yes")).tolist()
+
 ATOM_LIST = [
     "C",
     "N",

@@ -55,6 +55,17 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 16
+    hidden_dims: 16
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: *normalization
+    residual_type: none
+
   gnn:  # Set as null to avoid a post-nn network
     out_dim: *middle_dim
     hidden_dims: *middle_dim
