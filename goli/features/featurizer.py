@@ -213,14 +213,16 @@ def get_mol_atomic_features_float(
     periodic_table = Chem.GetPeriodicTable()
     prop_dict = {}
     C = Chem.Atom("C")
+    C_num = C.GetAtomicNum()
     offC = bool(offset_carbon)
+    atom_list = list(mol.GetAtoms())
 
     for prop in property_list:
 
         prop_name = None
 
         property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float16)
-        for ii, atom in enumerate(mol.GetAtoms()):
+        for ii, atom in enumerate(atom_list):
 
             val = None
 
@@ -230,7 +232,7 @@ def get_mol_atomic_features_float(
                 prop_name = prop
 
                 if prop in ["atomic-number"]:
-                    val = (atom.GetAtomicNum() - (offC * C.GetAtomicNum())) / 5
+                    val = (atom.GetAtomicNum() - (offC * C_num)) / 5
                 elif prop in ["mass", "weight"]:
                     prop_name = "mass"
                     val = (atom.GetMass() - (offC * C.GetMass())) / 10
@@ -257,36 +259,27 @@ def get_mol_atomic_features_float(
                 elif prop in ["formal-charge"]:
                     val = atom.GetFormalCharge()
                 elif prop in ["vdw-radius"]:
-                    val = periodic_table.GetRvdw(atom.GetAtomicNum()) - offC * periodic_table.GetRvdw(
-                        C.GetAtomicNum()
-                    )
+                    val = periodic_table.GetRvdw(atom.GetAtomicNum()) - offC * periodic_table.GetRvdw(C_num)
                 elif prop in ["covalent-radius"]:
                     val = periodic_table.GetRcovalent(
                         atom.GetAtomicNum()
-                    ) - offC * periodic_table.GetRcovalent(C.GetAtomicNum())
+                    ) - offC * periodic_table.GetRcovalent(C_num)
                 elif prop in ["electronegativity"]:
                     val = (
-                        nmp.PERIODIC_TABLE["Electronegativity"][atom.GetAtomicNum()]
-                        - offC * nmp.PERIODIC_TABLE["Electronegativity"][C.GetAtomicNum()]
+                        nmp.ELECTRONEGATIVITY[atom.GetAtomicNum() - 1]
+                        - offC * nmp.ELECTRONEGATIVITY[C_num - 1]
                     )
                 elif prop in ["ionization", "first-ionization"]:
                     prop_name = "ionization"
                     val = (
-                        nmp.PERIODIC_TABLE["FirstIonization"][atom.GetAtomicNum()]
-                        - offC * nmp.PERIODIC_TABLE["FirstIonization"][C.GetAtomicNum()]
+                        nmp.FIRST_IONIZATION[atom.GetAtomicNum() - 1] - offC * nmp.FIRST_IONIZATION[C_num - 1]
                     ) / 5
                 elif prop in ["melting-point"]:
                     val = (
-                        nmp.PERIODIC_TABLE["MeltingPoint"][atom.GetAtomicNum()]
-                        - offC * nmp.PERIODIC_TABLE["MeltingPoint"][C.GetAtomicNum()]
+                        nmp.MELTING_POINT[atom.GetAtomicNum() - 1] - offC * nmp.MELTING_POINT[C_num - 1]
                     ) / 200
                 elif prop in ["metal"]:
-                    if nmp.PERIODIC_TABLE["Metal"][atom.GetAtomicNum()] == "yes":
-                        val = 2
-                    elif nmp.PERIODIC_TABLE["Metalloid"][atom.GetAtomicNum()] == "yes":
-                        val = 1
-                    else:
-                        val = 0
+                    val = nmp.METAL[atom.GetAtomicNum() - 1]
                 elif "-bond" in prop:
                     bonds = [bond.GetBondTypeAsDouble() for bond in atom.GetBonds()]
                     if prop in ["single-bond"]:
@@ -384,14 +377,6 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
 
     """
 
-    # Small function to convert strings to floats
-    def float_or_nan(string):
-        try:
-            val = float(string)
-        except:
-            val = float("nan")
-        return val
-
     # Get the atoms connected by the bond
     idx1 = bond.GetBeginAtomIdx()
     idx2 = bond.GetEndAtomIdx()
@@ -401,33 +386,36 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
 
     # Get single bond atomic radius
     if bond_type == Chem.rdchem.BondType.SINGLE:
-        rad1 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom1]]
-        rad2 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom2]]
+        rad1 = [nmp.BOND_RADIUS_SINGLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_SINGLE[atom2 - 1]]
     # Get double bond atomic radius
     elif bond_type == Chem.rdchem.BondType.DOUBLE:
-        rad1 = [nmp.PERIODIC_TABLE["DoubleBondRadius"][atom1]]
-        rad2 = [nmp.PERIODIC_TABLE["DoubleBondRadius"][atom2]]
+        rad1 = [nmp.BOND_RADIUS_DOUBLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_DOUBLE[atom2 - 1]]
     # Get triple bond atomic radius
     elif bond_type == Chem.rdchem.BondType.TRIPLE:
-        rad1 = [nmp.PERIODIC_TABLE["TripleBondRadius"][atom1]]
-        rad2 = [nmp.PERIODIC_TABLE["TripleBondRadius"][atom2]]
+        rad1 = [nmp.BOND_RADIUS_TRIPLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_TRIPLE[atom2 - 1]]
     # Get average of single bond and double bond atomic radius
     elif bond_type == Chem.rdchem.BondType.AROMATIC:
-        rad1 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom1], nmp.PERIODIC_TABLE["DoubleBondRadius"][atom1]]
-        rad2 = [nmp.PERIODIC_TABLE["SingleBondRadius"][atom2], nmp.PERIODIC_TABLE["DoubleBondRadius"][atom2]]
+        rad1 = [nmp.BOND_RADIUS_SINGLE[atom1 - 1], nmp.BOND_RADIUS_DOUBLE[atom1 - 1]]
+        rad2 = [nmp.BOND_RADIUS_SINGLE[atom2 - 1], nmp.BOND_RADIUS_DOUBLE[atom2 - 1]]
 
     # Average the bond lengths, while ignoring nans in case some missing value
-    rad1_float = np.nanmean(np.array([float_or_nan(elem) for elem in rad1]))
-    rad2_float = np.nanmean(np.array([float_or_nan(elem) for elem in rad2]))
+    rad1_float = [elem for elem in rad1 if elem is not None]
+    rad2_float = [elem for elem in rad2 if elem is not None]
 
-    # If the bond radius is still nan (this shouldn't happen), take the single bond radius
-    if np.isnan(rad1_float):
-        rad1_float = float_or_nan(nmp.PERIODIC_TABLE["SingleBondRadius"][atom1])
-    if np.isnan(rad2_float):
-        rad2_float = float_or_nan(nmp.PERIODIC_TABLE["SingleBondRadius"][atom2])
+    if len(rad1_float) > 0:
+        rad1_float = sum(rad1_float) / len(rad1_float)
+    else:
+        rad1_float = float(nmp.BOND_RADIUS_SINGLE[atom1 - 1])
+
+    if len(rad2_float) > 0:
+        rad2_float = sum(rad2_float) / len(rad2_float)
+    else:
+        rad2_float = float(nmp.BOND_RADIUS_SINGLE[atom2 - 1])
 
     bond_length = rad1_float + rad2_float
-
     return bond_length
 
 
@@ -625,7 +613,7 @@ def mol_to_adj_and_features(
     # Get the adjacency matrix
     adj = GetAdjacencyMatrix(mol, useBO=use_bonds_weights, force=True)
     if add_self_loop:
-        adj = adj + np.eye(adj.shape[0])
+        adj = adj + np.eye(adj.shape[0], dtype=np.int8)
     adj = csr_matrix(adj, dtype=np.int8)
 
     # Get the node features
