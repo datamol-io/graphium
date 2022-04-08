@@ -4,7 +4,6 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
-from goli.trainer.metrics import pearsonr, spearmanr
 from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
 
 from goli.nn.dgl_layers import (
@@ -79,18 +78,23 @@ METRICS_CLASSIFICATION = {
     "averageprecision": met.average_precision,
     "auroc": met.auroc,
     "confusionmatrix": met.confusion_matrix,
-    "f1": met.f1,
-    "fbeta": met.fbeta,
+    "f1": met.f1_score,
+    "fbeta": met.fbeta_score,
     "precisionrecallcurve": met.precision_recall_curve,
     "precision": met.precision,
     "recall": met.recall,
+    "mcc": met.matthews_corrcoef,
 }
 
 METRICS_REGRESSION = {
     "mae": met.mean_absolute_error,
+    "mape": met.mean_absolute_percentage_error,
     "mse": met.mean_squared_error,
-    "pearsonr": pearsonr,
-    "spearmanr": spearmanr,
+    "msle": met.mean_squared_log_error,
+    "pearsonr": met.pearson_corrcoef,
+    "spearmanr": met.spearman_corrcoef,
+    "r2": met.r2_score,
+    "cosine": met.cosine_similarity,
 }
 
 METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)
