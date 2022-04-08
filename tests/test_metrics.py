@@ -9,10 +9,7 @@ from goli.trainer.metrics import (
     MetricWrapper,
     Thresholder,
 )
-from goli.utils.spaces import METRICS_REGRESSION
 
-pearsonr = METRICS_REGRESSION["pearsonr"]
-spearmanr = METRICS_REGRESSION["spearmanr"]
 from torchmetrics.functional import mean_squared_error
 
 
@@ -58,19 +55,6 @@ class test_Metrics(ut.TestCase):
                     self.assertListEqual(target2.tolist(), (~target_greater).tolist())
                 else:
                     self.assertListEqual(target2.tolist(), target.tolist())
-
-    def test_pearsonr_spearmanr(self):
-        preds = torch.tensor([0.0, 1, 2, 3])
-        target = torch.tensor([0.0, 1, 2, 1.5])
-
-        self.assertAlmostEqual(pearsonr(preds, target).tolist(), 0.8315, places=4)
-        self.assertAlmostEqual(spearmanr(preds, target).tolist(), 0.8, places=4)
-
-        preds = torch.tensor([76, 25, 72, 0, 60, 96, 55, 57, 10, 26, 47, 87, 97, 2, 20], dtype=float)
-        target = torch.tensor([12, 80, 35, 6, 58, 22, 41, 66, 92, 55, 46, 61, 89, 83, 14], dtype=float)
-
-        self.assertAlmostEqual(pearsonr(preds, target).tolist(), -0.0784, places=4)
-        self.assertAlmostEqual(spearmanr(preds, target).tolist(), -0.024999, places=4)
 
 
 class test_MetricWrapper(ut.TestCase):
