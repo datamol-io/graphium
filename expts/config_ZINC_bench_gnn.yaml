@@ -146,7 +146,7 @@ metrics:
 
   - name: precision < 0
     metric: precision
-    class_reduction: micro
+    average: micro
     threshold_kwargs: *threshold_0
 
 trainer:
