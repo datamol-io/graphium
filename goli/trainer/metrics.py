@@ -13,6 +13,7 @@ from goli.utils.tensor import nan_mean
 # NOTE(hadim): the below is a fix to be able to import previously saved Goli model that are incompatible
 # with the current version of torchmetrics.
 # In the future, we should NOT save any torchmetrics objects during serialization.
+# See https://github.com/valence-discovery/goli/issues/106
 sys.modules["torchmetrics.functional.regression.mean_absolute_error"] = torchmetrics.functional.regression.mae
 
 EPS = 1e-5
