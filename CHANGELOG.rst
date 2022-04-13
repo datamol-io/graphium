@@ -4,6 +4,19 @@ goli Change Log
 
 .. current developments
 
+v0.3.0
+====================
+
+**Fixed:**
+
+* Allow reloading models saved with incompat torchmetrics versions.
+
+**Authors:**
+
+* Hadrien Mary
+
+
+
 v0.2.13
 ====================
 
