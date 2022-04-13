@@ -1,9 +1,19 @@
 from typing import Union, Callable, Optional, Dict, Any
+
+import sys
+
 import torch
 import operator as op
-from torchmetrics.utilities import reduce
+
+from torchmetrics.utilities.distributed import reduce
+import torchmetrics.functional.regression.mae
 
 from goli.utils.tensor import nan_mean
+
+# NOTE(hadim): the below is a fix to be able to import previously saved Goli model that are incompatible
+# with the current version of torchmetrics.
+# In the future, we should NOT save any torchmetrics objects during serialization.
+sys.modules["torchmetrics.functional.regression.mean_absolute_error"] = torchmetrics.functional.regression.mae
 
 EPS = 1e-5
 
