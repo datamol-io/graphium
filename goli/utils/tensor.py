@@ -3,7 +3,7 @@ import torch
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from typing import Iterable, List, Union, Any
+from typing import Iterable, List, Union, Any, Callable
 from inspect import getfullargspec
 from copy import copy, deepcopy
 from loguru import logger
