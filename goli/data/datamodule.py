@@ -1,10 +1,12 @@
-from typing import List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
+from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
 from functools import partial
 import importlib.resources
 import zipfile
 from copy import deepcopy
+from itertools import cycle
+import random
 
 from loguru import logger
 import fsspec
@@ -56,17 +58,6 @@ PCQM4Mv2_meta.update(
     }
 )
 
-
-# TODO (Dom):
-class MultiTaskDataLoader(DataLoader):
-    pass
-    # Takes a dictionary of datasets.
-    # Takes a batch sizes
-    # Sample each dataset in proportion of their size
-    # If dataset_1 has 10k elements and dataset_2 has 100k elements,
-    # then 10 times more elements are sampled from dataset_2.
-    # At each iteration, sample a quasi-constant amount from each dataset
-
 class DGLDataset(Dataset):
     def __init__(
         self,
@@ -100,6 +91,84 @@ class DGLDataset(Dataset):
         datum["features"] = self.features[idx]
         datum["labels"] = self.labels[idx]
         return datum
+
+# TODO (Dom):
+class MultiTaskDataLoader(DataLoader):
+    # Takes a dictionary of datasets.
+    # Takes a batch sizes
+    # Sample each dataset in proportion of their size
+    # If dataset_1 has 10k elements and dataset_2 has 100k elements,
+    # then 10 times more elements are sampled from dataset_2.
+    # At each iteration, sample a quasi-constant amount from each dataset
+
+    """
+    Given Dict['task', DGLDataset], it returns a multi-task dataloader, which uses
+    temperature/task-proportional sampling to sample different datasets.
+    """
+
+    # Moving this below DGLDataset, since Python is executed top-to-bottom.
+    def __init__(
+        self,
+        datasets: Dict[str, DGLDataset],
+        batch_size: int,
+        shuffle,    # Need to choose whether we shuffle or not given that we are customizing the sampling process.
+        drop_last
+        #num_workers,
+        #collate_fn,
+        #pin_memory
+    ):
+        super().__init__()
+
+        self.datasets = datasets
+        self.batch_size = batch_size
+        self.drop_last = drop_last
+
+        # Compute the proportions for sampling from the datasets
+        self.dataset_sizes = {}
+        for task in datasets:
+            self.dataset_sizes[task] = len(datasets[task].features) # Is this actually the size?
+        self.sampling_weights = self.task_proportional_sampling(self.dataset_sizes.values())
+        #self.data_iters = {k: cycle(v) for k, v in self.datasets.items()} # This makes the dataset iterable, but it already is...
+        self.task_names = datasets.keys()
+
+    # Could be changed to sample by temperature or some other way.
+    def task_proportional_sampling(self, dataset_sizes):
+        total_size = sum(dataset_sizes)
+        weights = np.array([(size / total_size) for size in dataset_sizes])
+        return weights
+    
+    # Generate "indices" to iterate over
+    def sample_task_data_indices(self):
+        random_task_list = []
+        for task in self.task_names:
+            random_task_list.append(task) * self.dataset_sizes[task]
+        random_task_list = random.shuffle(random_task_list)
+        sampled_task_data_indices = []
+        for t in random_task_list:
+            sampled_task_data_indices.append((t, next(self.datasets[t]))) # Get the next datapoint and save it with the task
+        return sampled_task_data_indices
+            
+    def __len__(self):
+        return sum(v for k, v in self.dataset_sizes.items()) # Returns the number of data points, after considering all combined datasets
+
+    # Sample each dataset in proportion to the size of the respective dataset
+    # We must return the batch in such a way that it preserves the task, so that it can go to the correct output head
+    # and the correct metrics can be measured
+    def __iter__(self):
+        batch = []
+        #batch_dict = {} # This stores the datapoints as a list, separated by task
+        #for task in self.task_names:
+            #batch_dict[task] = []
+        indices_sampler = self.sample_task_data_indices()
+        for idx in indices_sampler: # Iterate over sampled data points
+            batch.append((idx))
+            if len(batch) == self.batch_size:
+                yield batch
+                batch = []
+                #for task in self.task_names:
+                #    batch_dict[task] = []
+        if len(batch) > 0 and not self.drop_last:
+            yield batch
 
 
 class DGLBaseDataModule(pl.LightningDataModule):
@@ -235,17 +304,7 @@ class DGLBaseDataModule(pl.LightningDataModule):
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
         )
-        return loader
-
-
-# TODO (Dom):
-class MultiTaskDGMFromSmilesDataModule(pl.LightningDataModule):
-    pass
-    # Take a dict of parameters for DGLFromSmilesDataModule
-    # Initialize many DGLFromSmilesDataModule.
-    # When `setup` and `prepare_data` are called, call it for all DGLFromSmilesDataModule
-    # ALSO!! check other functions needed by pl.Trainer to make it work with the Predictor. Maybe just the Dataloader???
-
+        return loader  
 
 class DGLFromSmilesDataModule(DGLBaseDataModule):
     """
@@ -949,6 +1008,34 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Controls how the class is printed"""
         return omegaconf.OmegaConf.to_yaml(self.to_dict())
 
+# TODO (Dom):
+class MultiTaskDGLFromSmilesDataModule(pl.LightningDataModule):
+    pass
+    # Take a dict of parameters for DGLFromSmilesDataModule
+    # Initialize many DGLFromSmilesDataModule.
+    # When `setup` and `prepare_data` are called, call it for all DGLFromSmilesDataModule
+    # ALSO!! check other functions needed by pl.Trainer to make it work with the Predictor. Maybe just the Dataloader???
+
+    def __init__(
+        self, 
+        task_dglfromsmilesdatamodule_kwargs: Dict[str, Any]
+        ):
+        data_modules = {}
+        for task in task_dglfromsmilesdatamodule_kwargs:
+            data_modules[task] = DGLFromSmilesDataModule(task_dglfromsmilesdatamodule_kwargs[task])
+        self.data_modules[task] = data_modules
+
+    def prepare_data(self):
+        for task in self.data_modules:
+            self.data_modules[task].prepare_data()
+    
+    def setup(self):
+        for task in self.data_modules:
+            self.data_modules[task].setup()
+
+    def train_dataloader(self):
+        return MultiTaskDataLoader(self.data_modules)
+        
 
 class DGLOGBDataModule(DGLFromSmilesDataModule):
     """Load an OGB GraphProp dataset."""
