@@ -143,7 +143,7 @@ metrics:
 
   - name: precision > 3
     metric: precision
-    class_reduction: micro
+    average: micro
     threshold_kwargs: *threshold_3
 
 trainer:
