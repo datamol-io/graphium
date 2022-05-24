@@ -1,9 +1,20 @@
 from typing import Union, Callable, Optional, Dict, Any
+
+import sys
+
 import torch
 import operator as op
-from torchmetrics.utilities import reduce
+
+from torchmetrics.utilities.distributed import reduce
+import torchmetrics.functional.regression.mae
 
 from goli.utils.tensor import nan_mean
+
+# NOTE(hadim): the below is a fix to be able to import previously saved Goli model that are incompatible
+# with the current version of torchmetrics.
+# In the future, we should NOT save any torchmetrics objects during serialization.
+# See https://github.com/valence-discovery/goli/issues/106
+sys.modules["torchmetrics.functional.regression.mean_absolute_error"] = torchmetrics.functional.regression.mae
 
 EPS = 1e-5
 
@@ -68,87 +79,6 @@ class Thresholder:
         """
 
         return f"{self.op_str}{self.threshold}"
-
-
-def pearsonr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
-    r"""
-    Computes the pearsonr correlation.
-
-    Parameters:
-        preds: estimated labels
-        target: ground truth labels
-        reduction: a method to reduce metric score over labels.
-
-            - ``'elementwise_mean'``: takes the mean (default)
-            - ``'sum'``: takes the sum
-            - ``'none'``: no reduction will be applied
-
-    Returns:
-        Tensor with the pearsonr
-
-    !!! Example
-        ``` python linenums="1"
-        x = torch.tensor([0., 1, 2, 3])
-        y = torch.tensor([0., 1, 2, 2])
-        pearsonr(x, y)
-        >>> tensor(0.9439)
-        ```
-    """
-
-    preds, target = preds.to(torch.float32), target.to(torch.float32)
-
-    shifted_x = preds - torch.mean(preds, dim=0)
-    shifted_y = target - torch.mean(target, dim=0)
-    sigma_x = torch.sqrt(torch.sum(shifted_x**2, dim=0))
-    sigma_y = torch.sqrt(torch.sum(shifted_y**2, dim=0))
-
-    pearson = torch.sum(shifted_x * shifted_y, dim=0) / (sigma_x * sigma_y + EPS)
-    pearson = torch.clamp(pearson, min=-1, max=1)
-    pearson = reduce(pearson, reduction=reduction)
-    return pearson
-
-
-def _get_rank(values):
-
-    arange = torch.arange(values.shape[0], dtype=values.dtype, device=values.device)
-
-    val_sorter = torch.argsort(values, dim=0)
-    val_rank = torch.empty_like(values)
-    if values.ndim == 1:
-        val_rank[val_sorter] = arange
-    elif values.ndim == 2:
-        for ii in range(val_rank.shape[1]):
-            val_rank[val_sorter[:, ii], ii] = arange
-    else:
-        raise ValueError(f"Only supports tensors of dimensions 1 and 2, provided dim=`{preds.ndim}`")
-
-    return val_rank
-
-
-def spearmanr(preds: torch.Tensor, target: torch.Tensor, reduction: str = "elementwise_mean") -> torch.Tensor:
-    r"""
-    Computes the spearmanr correlation.
-
-    Parameters:
-        preds: estimated labels
-        target: ground truth labels
-        reduction: a method to reduce metric score over labels.
-            - ``'elementwise_mean'``: takes the mean (default)
-            - ``'sum'``: takes the sum
-            - ``'none'``: no reduction will be applied
-
-    Returns:
-        Tensor with the spearmanr
-
-    !!! Example
-        x = torch.tensor([0., 1, 2, 3])
-        y = torch.tensor([0., 1, 2, 1.5])
-        spearmanr(x, y)
-        tensor(0.8)
-    """
-
-    spearman = pearsonr(_get_rank(preds), _get_rank(target), reduction=reduction)
-    return spearman
 
 
 class MetricWrapper:
