@@ -38,15 +38,14 @@ class EpochSummary:
     class Results:
         def __init__(
             self,
-            targets: Union[Tensor, Dict[str, Tensor]],                               # For each task
-            predictions: Union[Tensor, Dict[str, Tensor]],                           # For each task
-            loss: Union[float, Dict[str, float]],          # For each task: need dict[task : loss]
-            metrics: Union[dict, Dict[str, Any]],          # For each task: need dict[task : dict[metrics]]
-            monitored_metric: Union[str, Dict[str, str]],  # For each task
+            targets: Tensor,
+            predictions: Tensor,
+            loss: float,
+            metrics: dict,
+            monitored_metric: str,
             n_epochs: int,
         ):
-            # OR, we can create a class TensorDict. I think that's a good idea
-            self.targets = targets.detach().cpu()               # Update these
+            self.targets = targets.detach().cpu()
             self.predictions = predictions.detach().cpu()
             self.loss = loss.item() if isinstance(loss, Tensor) else loss
             self.monitored_metric = monitored_metric
@@ -122,16 +121,16 @@ class PredictorModule(pl.LightningModule):
         self,
         model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
-        loss_fun: Union[str, Callable, Dict[str, str]],                                        # per task
+        loss_fun: Union[str, Callable],
         random_seed: int = 42,
         optim_kwargs: Optional[Dict[str, Any]] = None,
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[int, float, str]] = None,
-        metrics: Dict[str, Callable] = None,                    # per task ???
-        metrics_on_progress_bar: Union[List[str], Dict[str, List[str]]] = None,                # per task
-        metrics_on_training_set: Optional[Union[List[str], Dict[str, List[str]]]] = None,      # per task
+        metrics: Dict[str, Callable] = None,
+        metrics_on_progress_bar: List[str] = [],
+        metrics_on_training_set: Optional[List[str]] = None,
         flag_kwargs: Dict[str, Any] = None,
     ):
         r"""
@@ -235,11 +234,7 @@ class PredictorModule(pl.LightningModule):
         self.model = model_class(**model_kwargs)
 
         # Basic attributes
-        # Loss
-        if isinstance(loss_fun, List):
-            for task in loss_fun:
-                self.loss_fun[task['task_name']] = self.parse_loss_fun(task['task_loss'])
-        else: self.loss_fun = self.parse_loss_fun(loss_fun)
+        self.loss_fun = self.parse_loss_fun(loss_fun)
         self.random_seed = random_seed
         self.target_nan_mask = target_nan_mask
         self.metrics = metrics if metrics is not None else {}
@@ -430,11 +425,6 @@ class PredictorModule(pl.LightningModule):
                 Resulting loss
         """
 
-        # TODO (DOM):
-        # Compute `task_losses`, a dictionary containing the loss for each task
-        # Compute `loss`, a weighted sum of the tasks based on `task_weight`
-        # Return loss, task_losses
-
         wrapped_loss_fun = MetricWrapper(
             metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask
         )
@@ -471,11 +461,6 @@ class PredictorModule(pl.LightningModule):
         targets = targets.to(dtype=preds.dtype, device=preds.device)
 
         # Compute the metrics always used in regression tasks
-        # TODO: (DOM)
-        # Compute the stats below for each task
-        # Group the logs below into stats folder, one per task.
-        # Example:
-        # metric_logs[f"{task_name}_stats/{step_name}/mean_pred"] = nan_mean(preds[task_name])
         metric_logs = {}
         metric_logs[f"mean_pred/{step_name}"] = nan_mean(preds)
         metric_logs[f"std_pred/{step_name}"] = nan_std(preds)
@@ -486,21 +471,12 @@ class PredictorModule(pl.LightningModule):
         if torch.cuda.is_available():
             metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2**30))
 
-        # TODO: (DOM)
-        # If you're on the training set, not all metrics are used because it would take too much time otherwise.
-        # Here, you need to select only the metrics used on the training set `if step_name == "train"`.
-        # This has to be changed to support for each task.
-
         # Specify which metrics to use
         metrics_to_use = self.metrics
         if step_name == "train":
             metrics_to_use = {
                 key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set
             }
-
-        # TODO: (DOM)
-        # Here, compute the metrics for each task, and group them with the same logic as above.
-        # metric_name = f"{task_name}_{key}/{step_name}"
 
         # Compute the additional metrics
         for key, metric in metrics_to_use.items():
@@ -533,10 +509,6 @@ class PredictorModule(pl.LightningModule):
         )
 
         device = "cpu" if to_cpu else None
-        # TODO: (DOM)
-        # Everywhere that preds and targets are detached, we need to detach each element of the dictionary
-        # preds = {k: v.detach().to(device=device) for k, v in preds.items()}
-        # OR, we can create a class TensorDict. I think that's a good idea
         preds = preds.detach().to(device=device)
         targets = targets.detach().to(device=device)
         if weights is not None:
