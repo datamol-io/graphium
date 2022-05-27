@@ -93,16 +93,19 @@ class DGLDataset(Dataset):
         return datum
 
 class SingleTaskDGLDataset(Dataset):
+    """"
+    For the MTL pipeline, this replaces (for now) the DGLDataset class, 
+    since we do not need to perform featurization straight away. 
+    The featurization occurs after gathering all the unique molecules across all datasets.
+    """"
     def __init__(
         self,
-        #features: List[dgl.DGLGraph],        feature are removed since featurization occurs after combining datasets
         labels: Union[torch.Tensor, np.ndarray],
         smiles: Optional[List[str]] = None,
         indices: Optional[List[str]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
     ):
         self.smiles = smiles
-        self.features = features
         self.labels = labels
         self.indices = indices
         self.weights = weights
@@ -122,12 +125,9 @@ class SingleTaskDGLDataset(Dataset):
         if self.weights is not None:
             datum["weights"] = self.weights[idx]
 
-        #datum["features"] = self.features[idx]
         datum["labels"] = self.labels[idx]
         return datum
 
-# TODO (Gabriela): Implement this with WebDataset
-# TODO (Gabriela): Canonical ordering for smiles when searching for molecules in multiple datasets
 class MultitaskDGLDataset(Dataset):
     """
     This custom dataset combines several datasets into one.
@@ -135,7 +135,7 @@ class MultitaskDGLDataset(Dataset):
     def __init__(
         self,
         datasets: Dict[str, DGLDataset],
-        features = List[dgl.DGLGraph] # Since we featurize later (happens inside here probably)
+        features = Dict[str, dgl.DGLGraph] # Since we featurize later (happens inside here probably)
     ):
         self.datasets = datasets
         self.features = features
@@ -156,7 +156,7 @@ class MultitaskDGLDataset(Dataset):
         # weights: technically don't need this any longer
         
         # features
-        datum["features"] = self.features # featurization happens inside the multitask dataset
+        datum["features"] = self.features # featurization happens inside the multitask dataset. Need to modify this
         
         # labels: depend on task
         datum["labels"] = self._get_molecule_labels(self.smiles[idx], self.datasets, self.smiles_to_indices)
@@ -1147,20 +1147,20 @@ class MTLDGLFromSmilesDataModule(DGLBaseDataModule):
 
     def __init__(
         self,
-        df: pd.DataFrame = None,
-        df_path: Optional[Union[str, os.PathLike]] = None,
+        task_specific_df: Dict[str, pd.DataFrame] = None,         # task dict
+        task_specific_df_path: Optional[Dict[str, Union[str, os.PathLike]]] = None,  # task dict
+        task_specific_smiles_col: Dict[str, str] = None,         # task dict
+        task_specific_label_col: Dict[str, List[str]] = None,   # task dict
+        task_specific_weights_col: Dict[str, str] = None,        # task dict
+        task_specific_weights_type: Dict[str, str] = None,       # task dict
+        task_specific_idx_col: Dict[str, str] = None,            # task dict
+        task_specific_sample_size: Dict[str, Union[int, float, None]] = None,      # task dict
+        task_specific_split_val: Dict[str, float] = None,         # task dict
+        task_specific_split_test: Dict[str, float]= None,        # task dict
+        task_specific_split_seed: Dict[str, int] = None,         # task dict
+        task_specific_splits_path: Optional[Dict[str, Union[str, os.PathLike]]] = None,  # task dict
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
-        smiles_col: str = None,
-        label_cols: List[str] = None,
-        weights_col: str = None,
-        weights_type: str = None,
-        idx_col: str = None,
-        sample_size: Union[int, float, type(None)] = None,
-        split_val: float = 0.2,
-        split_test: float = 0.2,
-        split_seed: int = None,
-        splits_path: Optional[Union[str, os.PathLike]] = None,
         batch_size_train_val: int = 16,
         batch_size_test: int = 16,
         num_workers: int = 0,
@@ -1169,9 +1169,9 @@ class MTLDGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
-        collate_fn: Optional[Callable] = None,
+        collate_fn: Optional[Callable] = None,      # need new one
         prepare_dict_or_graph: str = "dict",
-        dataset_class: type = DGLDataset,
+        dataset_class: type = MultitaskDGLDataset,
     ):
         """
 
@@ -1246,39 +1246,45 @@ class MTLDGLFromSmilesDataModule(DGLBaseDataModule):
                   during data-loading.
             dataset_class: The class used to create the dataset from which to sample.
         """
+        # We create a DGLBaseDataModule type here.
         super().__init__(
             batch_size_train_val=batch_size_train_val,
             batch_size_test=batch_size_test,
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
-            collate_fn=collate_fn,
+            collate_fn=collate_fn, 
         )
 
-        self.df = df
-        self.df_path = df_path
+        # Just store all the input arguments for creating the basic object. 
+        # All these arguments are relevant for creating the single-task dataset.
+        self.df = task_specific_df
+        self.df_path = task_specific_df_path
+        self.smiles_col = task_specific_smiles_col
+        self.label_cols = {task: self._parse_label_cols(task_specific_label_col[task], task_specific_smiles_col[task]) for task in self.df.keys()}
+        self.idx_col = task_specific_idx_col
+        self.sample_size = task_specific_sample_size
 
-        self.cache_data_path = str(cache_data_path) if cache_data_path is not None else None
-        self.featurization = featurization if featurization is not None else {}
-
-        self.smiles_col = smiles_col
-        self.label_cols = self._parse_label_cols(label_cols, smiles_col)
-        self.idx_col = idx_col
-        self.sample_size = sample_size
-
-        self.weights_col = weights_col
-        self.weights_type = weights_type
+        self.weights_col = task_specific_weights_col
+        self.weights_type = task_specific_weights_type
         if self.weights_col is not None:
             assert self.weights_type is None
 
-        self.split_val = split_val
-        self.split_test = split_test
-        self.split_seed = split_seed
-        self.splits_path = splits_path
+        # Keep the splits in mind for MTL!
+        self.split_val = task_specific_split_val
+        self.split_test = task_specific_split_test
+        self.split_seed = task_specific_split_seed
+        self.splits_path = task_specific_splits_path
+
+        # Here we take care of caching and featurization arguments
+        self.cache_data_path = str(cache_data_path) if cache_data_path is not None else None
+        self.featurization = featurization if featurization is not None else {}
+
 
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
+
 
         self.dataset = None
         self.train_ds = None
@@ -1299,78 +1305,161 @@ class MTLDGLFromSmilesDataModule(DGLBaseDataModule):
                 f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`"
             )
 
-    def prepare_data(self): # Can create train_ds, val_ds and test_ds here instead of setup. Be careful with the featurization (to not compute several times)
-        """Called only from a single process in distributed settings. Steps:
+    def prepare_single_task_data(
+        self, 
+        df: pd.DataFrame = None,
+        df_path: Optional[Union[str, os.PathLike]] = None,
+        smiles_col: str = None,
+        label_cols: List[str] = None,
+        weights_col: str = None,
+        weights_type: str = None,
+        idx_col: str = None
+        ):
+        """"
+        This functions uses the logic for a single task from the original data module.
+        The input parameters relate to everything necessary for creating a single task dataset.
+        This function generates a SingleTaskDGLDataset for the given dataset.
+        Notably, we skip computing features here. Caching also occurs for the multi-task dataset.
+
+        - Load the dataframe
+        - Extract smiles and labels from the dataframe.
+        - Compute or set split indices.
+
+        Called only from a single process in distributed settings. Steps:
 
         - If cache is set and exists, reload from cache.
-        - Load the dataframe if its a path.
+        - Load the dataframe if it's a path.
         - Extract smiles and labels from the dataframe.
         - Compute the features.
         - Compute or set split indices.
-        - Make the list of dict dataset.
+        - Make the list of dict dataset.                
         """
 
-        if self._load_from_cache():
-            return True
-
         # Load the dataframe
-        if self.df is None:
-            # Only load the useful columns, as some dataset can be very large
+        if df is None:
+            # Only load the useful columns, as some datasets can be very large
             # when loading all columns
-            label_cols = check_arg_iterator(self.label_cols, enforce_type=list)
+            label_columns = check_arg_iterator(label_cols, enforce_type=list)
             usecols = (
-                check_arg_iterator(self.smiles_col, enforce_type=list)
-                + label_cols
-                + check_arg_iterator(self.idx_col, enforce_type=list)
-                + check_arg_iterator(self.weights_col, enforce_type=list) # Can remove the weights (Dom says it's OK)
+                check_arg_iterator(smiles_col, enforce_type=list)
+                + label_columns
+                + check_arg_iterator(idx_col, enforce_type=list) # No need to add the weights
             )
-            label_dtype = {col: np.float16 for col in label_cols}
+            label_dtype = {col: np.float16 for col in label_columns}
 
-            df = self._read_csv(self.df_path, usecols=usecols, dtype=label_dtype)
+            data_frame = self._read_csv(df_path, usecols=usecols, dtype=label_dtype)
         else:
-            df = self.df
+            data_frame = df
+        
+        data_frame = self._sub_sample_df(data_frame)
 
-        df = self._sub_sample_df(df)
-
-        logger.info(f"Prepare dataset with {len(df)} data points.")
+        logger.info(f"Prepare single-task dataset with {len(data_frame)} data points.")
 
         # Extract smiles and labels
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
-            smiles_col=self.smiles_col,
-            label_cols=self.label_cols,
-            idx_col=self.idx_col,
-            weights_col=self.weights_col,
-            weights_type=self.weights_type,
+            smiles_col=smiles_col,
+            label_cols=label_cols,
+            idx_col=idx_col,
+            weights_col=weights_col,
+            weights_type=weights_type,
         )
 
-        # Convert SMILES to features (graphs, fingerprints, etc.)
-        features, idx_none = self._featurize_molecules(smiles, sample_idx)
+        return data_frame, smiles, labels, sample_idx, extras
+
+    def prepare_data(self):
+        """Called only from a single process in distributed settings. Steps:
+        
+        - If cache is set and exists, reload from cache.
+        - Generate single task datasets.
+        - Compute the features.
+        - Combine single task datasets into multi-task dataset.
+        """
+
+        # Load from cache. Need to make some changes here.
+
+
+        # Load the single-task dataframes
+        single_task_data_dict = {}
+        single_task_smiles_labels_extras = {}
+        for task in self.df.keys():
+            smiles_labels_extras = {}
+            single_task_data_dict[task], smiles_labels_extras['smiles'], smiles_labels_extras['labels'], smiles_labels_extras['sample_idx'], smiles_labels_extras['extras'] = self.prepare_single_task_data(
+                df=self.df[task],
+                df_path=self.df_path[task],
+                smiles_col=self.smiles_col[task],
+                labels_cols=self.label_cols[task],
+                weights_col=self.weights_col[task],
+                weights_type=self.weights_type[task],
+                idx_col=self.idx_col[task]
+            )
+            single_task_smiles_labels_extras[task] = smiles_labels_extras
+
+        # Get the unique smiles in order to featurize
+        unique_smiles, unique_smiles_to_idx_in_datasets = self._get_unique_molecules_and_indices_in_datasets(single_task_data_dict)
+
+        # Featurize the molecules
+        features, idx_none = self._featurize_molecules(unique_smiles)
 
         # Filter the molecules, labels, etc. for the molecules that failed featurization
-        df, features, smiles, labels, sample_idx, extras = self._filter_none_molecules(
-            idx_none, df, features, smiles, labels, sample_idx, extras
-        )
+        for task in single_task_data_dict:
+            single_task_data_dict[task], single_task_smiles_labels_extras[task]['features'], single_task_smiles_labels_extras[task]['smiles'], single_task_smiles_labels_extras[task]['labels'], single_task_smiles_labels_extras[task]['sample_idx'], single_task_smiles_labels_extras[task]['extras'] = self._filter_none_molecules(
+                idx_none, single_task_data_dict[task], features, single_task_smiles_labels_extras[task]['smiles'], single_task_smiles_labels_extras[task]['labels'], single_task_smiles_labels_extras[task]['sample_idx'], single_task_smiles_labels_extras[task]['extras']
+            )
 
         # Get splits indices
-        self.train_indices, self.val_indices, self.test_indices = self._get_split_indices(
-            len(df),
-            split_val=self.split_val,
-            split_test=self.split_test,
-            split_seed=self.split_seed,
-            splits_path=self.splits_path,
-            sample_idx=sample_idx,
-        )
+        self.train_indices = {}
+        self.val_indices = {}
+        self.test_indices = {}
+        for task in single_task_data_dict:
+            self.train_indices[task], self.val_indices[task], self.test_indices[task] = self._get_split_indices(
+                len(single_task_data_dict[task]),
+                split_val=self.split_val[task],
+                split_test=self.split_test[task],
+                split_seed=self.split_seed[task],
+                splits_path=self.splits_path[task],
+                sample_idx=single_task_smiles_labels_extras['sample_idx']
+            )
 
-        # Make the torch datasets (mostly a wrapper there is no memory overhead here)
-        self.dataset = self.dataset_class(
-            smiles=smiles,
-            features=features,
-            labels=labels,
-            **extras,
-        )
+        # Split the dict of task-specific datasets into three: one for training, one for val, one for test
+        train_single_task_dataset_dict = {}
+        val_single_task_dataset_dict = {}
+        test_single_task_dataset_dict = {}
+        for task in single_task_data_dict:
+            train_single_task_dataset_dict[task] = Subset(single_task_data_dict[task], self.train_indices[task])
+            val_single_task_dataset_dict[task] = Subset(single_task_data_dict[task], self.val_indices[task])
+            test_single_task_dataset_dict[task] = Subset(single_task_data_dict[task], self.test_indices[task])
 
-        self._save_to_cache()
+
+        # Create 3 multitask datasets: one for train, one for val, one for test
+        self.train_ds = MultitaskDGLDataset(train_single_task_dataset_dict)
+        self.val_ds = MultitaskDGLDataset(val_single_task_dataset_dict)
+        self.test_ds = MultitaskDGLDataset(test_single_task_dataset_dict)
+
+
+    def _get_unique_molecules_and_indices_in_datasets(datasets: Dict[str, pd.DataFrame]):
+        """ This function returns all the unique molecules (represented by SMILES) among all datasets """
+
+        smiles_to_idx_in_datasets = {}
+        for task, dataset in datasets.items():
+            smiles_to_idx_in_datasets[task] = {smiles: i for i, smiles in enumerate(dataset["smiles"])}
+
+        # Get the list of unique SMILES strings across all datasets
+        smiles_list = []
+        for dataset_indices in smiles_to_idx_in_datasets.values():
+            smiles_list.extend(dataset_indices.keys())
+        unique_smiles = list(set(smiles_list))
+
+        # Now we must return the exact data for each molecule (SMILES).
+        unique_smiles_to_idx_in_datasets = {}
+        for smiles in unique_smiles:
+            task_specific_indices = {}
+            for task, dataset_indices in smiles_to_idx_in_datasets.items():
+                task_specific_indices[task] = dataset_indices[smiles]
+            unique_smiles_to_idx_in_datasets[smiles] = task_specific_indices # task: index
+
+        return unique_smiles, unique_smiles_to_idx_in_datasets
+
 
     def setup(self, stage: str = None): # Can get rid of setup because a single dataset will have molecules exclusively in train, val or test
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
@@ -1477,19 +1566,25 @@ class MTLDGLFromSmilesDataModule(DGLBaseDataModule):
 
         return out
 
-    def _parse_label_cols(self, label_cols: Union[type(None), str, List[str]], smiles_col: str) -> List[str]:
+    def _parse_label_cols(
+        self, 
+        df: pd.DataFrame, 
+        str: Optional[Union[str, os.PathLike]], 
+        label_cols: Union[type(None), str, List[str]], 
+        smiles_col: str
+        ) -> List[str]:
         r"""
         Parse the choice of label columns depending on the type of input.
         The input parameters `label_cols` and `smiles_col` are described in
         the `__init__` method.
         """
-        if self.df is None:
+        if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            df = self._read_csv(self.df_path, nrows=0)
+            data_frame = self._read_csv(df_path, nrows=0)
         else:
-            df = self.df
-        cols = list(df.columns)
+            data_frame = df
+        cols = list(data_frame.columns)
 
         # A star `*` at the beginning or end of the string specifies to look for all
         # columns that starts/end with a specific string
