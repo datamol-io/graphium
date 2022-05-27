@@ -1124,3 +1124,82 @@ class FullDGLSiameseNetwork(FullDGLNetwork):
             raise ValueError(f"Unsupported `dist_method`: {self.dist_method}")
 
         return out
+
+class TaskHeads(nn.Module):
+    """
+    Each task has its own specific MLP. By providing task-specific params, we can modify
+    MLPs for specific tasks as we want.
+    """
+    def __init__(
+        self, # Be careful with in_dim
+        in_dim,
+        task_heads_kwargs: Dict[str, Any]
+    ):
+        super().__init__()
+
+        self.task_heads = nn.ModuleDict()
+        for task in task_heads_kwargs: # Make sure it works with def in config file.
+            self.task_heads[task['task_name']] = FeedForwardNN(
+                in_dim=in_dim,
+                **task['task_nn']
+            )
+    
+    # Return a dictionary: Dict[task_name, Tensor]
+    # Predictor class handles it.
+    def forward(self, h: torch.Tensor):
+        task_head_outputs = {}
+
+        for task in self.task_heads:
+            task_head_outputs[task] = self.task_heads[task](h)
+        
+        return task_head_outputs
+
+class FullDGLMultiTaskNetwork(FullDGLNetwork):
+    """
+    Class that allows to implement a full multi-task graph neural network architecture,
+    including the pre-processing MLP, post-processing MLP and the task-specific heads.
+
+    In this model, the tasks share a full DGL network as a "trunk", and then they have task-specific MLPs.
+
+    Each molecular graph is associated with a variety of tasks, so the network should output the task-specific preedictions for a graph.
+    """
+    def __init__(
+        self,
+        gnn_kwargs: Dict[str, Any],
+        task_heads_kwargs: Dict[str, Any],
+        pre_nn_kwargs: Optional[Dict[str, Any]] = None,
+        pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
+        post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        num_inference_to_average: int = 1,
+        name: str = "MTL_DGL_GNN"
+    ):
+        # Here we just store an instance of a FullDGLNetwork
+        # But are we really making use of the inheritance?
+        self.FullDGLNetwork = super.__init__(
+            gnn_kwargs=gnn_kwargs,
+            pre_nn_kwargs=pre_nn_kwargs,
+            pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+            post_nn_kwargs=post_nn_kwargs,
+            num_inference_to_average=num_inference_to_average,
+            name=name
+        )
+
+        self.TaskHeads = TaskHeads(
+            in_dim=self.FullDGLNetwork.out_dim(),
+            task_heads_kwargs=task_heads_kwargs
+        )
+
+        self.model = nn.Sequential()
+        # Add the full DGL network trunk
+        self.model.add_module(
+            'FullDGLNetwork',
+            self.FullDGLNetwork
+        )
+        # Add the task-specific heads
+        self.model.add_module(
+            'TaskHeads',
+            self.TaskHeads
+        )
+
+    def forward(self, g: dgl.DGLGraph):
+        return self.model(g)
