@@ -735,7 +735,7 @@ def mol_to_dglgraph_dict(
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
-) -> Dict:
+) -> DGLGraphDict:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features, and re-organizes them into a dictionary

@@ -264,7 +264,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph: str = "dict",
+        prepare_dict_or_graph: str = "dgldict",
         dataset_class: type = DGLDataset,
     ):
         """
@@ -385,12 +385,18 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.dataset_class = dataset_class
 
         if prepare_dict_or_graph == "dict":
+            logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dgldict'` instead of 'dict'")
+            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
+        elif prepare_dict_or_graph == "dgldict":
             self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
         elif prepare_dict_or_graph == "graph":
+            logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dglgraph'` instead of 'graph'")
+            self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
+        elif prepare_dict_or_graph == "dglgraph":
             self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
         else:
             raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`"
+                f"`prepare_dict_or_graph` should be either 'dgldict' or 'dglgraph', Provided: `{prepare_dict_or_graph}`"
             )
 
     def prepare_data(self):
