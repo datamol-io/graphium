@@ -22,7 +22,7 @@ import dgl
 import pytorch_lightning as pl
 
 from goli.utils import fs
-from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, dgl_dict_to_graph
+from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, DGLGraphDict
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
 
@@ -667,8 +667,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             if graph is not None:
                 break
 
-        if isinstance(graph, dict):
-            graph = dgl_dict_to_graph(**graph, mask_nan=0.0)
+        if isinstance(graph, DGLGraphDict):
+            graph = graph.make_dgl_graph(mask_nan=0.0)
 
         return graph
 
