@@ -23,7 +23,7 @@ class Thresholder:
     def __init__(
         self,
         threshold: float,
-        operator: str = "greater",
+        operator: Union[str, Callable] = "greater",
         th_on_preds: bool = True,
         th_on_target: bool = False,
         target_to_int: bool = False,
@@ -34,18 +34,19 @@ class Thresholder:
         self.th_on_target = th_on_target
         self.th_on_preds = th_on_preds
         self.target_to_int = target_to_int
+        self.op_name = None
 
         # Operator can either be a string, or a callable
         if isinstance(operator, str):
-            op_name = operator.lower()
-            if op_name in ["greater", "gt"]:
+            self.op_name = operator.lower()
+            if self.op_name in ["greater", "gt"]:
                 op_str = ">"
                 operator = op.gt
-            elif op_name in ["lower", "lt"]:
+            elif self.op_name in ["lower", "lt"]:
                 op_str = "<"
                 operator = op.lt
             else:
-                raise ValueError(f"operator `{op_name}` not supported")
+                raise ValueError(f"operator `{self.op_name}` not supported")
         elif callable(operator):
             op_str = operator.__name__
         elif operator is None:
@@ -79,6 +80,30 @@ class Thresholder:
         """
 
         return f"{self.op_str}{self.threshold}"
+
+    def __getstate__(self):
+        """Serialize the class for pickling."""
+        state = {}
+        state["threshold"] = self.threshold
+        state["th_on_target"] = self.th_on_target
+        state["th_on_preds"] = self.th_on_preds
+        state["target_to_int"] = self.target_to_int
+        if self.op_name is not None:
+            state["operator"] = self.op_name
+        else:
+            state["operator"] = self.operator
+        return state
+
+    def __setstate__(self, state: dict):
+        """Reload the class from pickling."""
+        op_str = state.pop("op_str", None)
+
+        if (op_str is not None) and not ("operator" in state.keys()):
+            if op_str == ">":
+                state["operator"] = "greater"
+            elif op_str == "<":
+                state["operator"] = "lower"
+        self.__init__(**state)
 
 
 class MetricWrapper:
@@ -123,7 +148,12 @@ class MetricWrapper:
         """
         from goli.utils.spaces import METRICS_DICT
 
-        self.metric = METRICS_DICT[metric] if isinstance(metric, str) else metric
+        if isinstance(metric, str):
+            self.metric_name = metric
+            self.metric = METRICS_DICT[metric]
+        else:
+            self.metric_name = None
+            self.metric = metric
 
         self.thresholder = None
         if threshold_kwargs is not None:
@@ -199,3 +229,21 @@ class MetricWrapper:
             full_str += f"({self.thresholder})"
 
         return full_str
+
+    def __getstate__(self):
+        """Serialize the class for pickling."""
+        state = {}
+        if self.metric_name is None:
+            state["metric"] = self.metric
+        else:
+            state["metric"] = self.metric_name
+        state["target_nan_mask"] = self.target_nan_mask
+        state["kwargs"] = self.kwargs
+        state["threshold_kwargs"] = None
+        if self.thresholder is not None:
+            state["threshold_kwargs"] = self.thresholder.__getstate__()
+        return state
+
+    def __setstate__(self, state: dict):
+        """Reload the class from pickling."""
+        self.__init__(**state)
