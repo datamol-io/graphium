@@ -45,7 +45,7 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &middle_dim 90
+    out_dim: &middle_dim 300
     hidden_dims: *middle_dim
     depth: 0
     activation: relu

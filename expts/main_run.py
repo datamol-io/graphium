@@ -17,9 +17,10 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/config_molHIV.yaml"
 # CONFIG_FILE = "expts/config_molPCQM4M.yaml"
 # CONFIG_FILE = "expts/config_molPCQM4Mv2.yaml"
-CONFIG_FILE = "expts/config_micro_ZINC.yaml"
+# CONFIG_FILE = "expts/config_micro_ZINC.yaml"
 # CONFIG_FILE = "expts/config_micro-PCBA.yaml"
 # CONFIG_FILE = "expts/config_ZINC_bench_gnn.yaml"
+CONFIG_FILE = "expts_untracked/config_htsfp_pcba.yaml"
 os.chdir(MAIN_DIR)
 
 

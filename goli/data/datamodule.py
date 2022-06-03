@@ -334,10 +334,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 Possible options:
 
                 - "graph": Process molecules as dgl.DGLGraph. It's slower during pre-processing
-                  and requires more RAM, but faster during training.
+                  and requires more RAM. It is faster during training with `num_workers=0`, but
+                  slower with larger `num_workers`.
                 - "dict": Process molecules as a Dict. It's faster and requires less RAM during
-                  pre-processing, but slower during training since DGLGraphs will be created
-                  during data-loading.
+                  pre-processing. It is slower during training with with `num_workers=0` since
+                  DGLGraphs will be created during data-loading, but faster with large
+                  `num_workers`, and less likely to cause memory issues with the parallelization.
             dataset_class: The class used to create the dataset from which to sample.
         """
         super().__init__(
