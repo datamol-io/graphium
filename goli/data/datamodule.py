@@ -386,14 +386,17 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.test_indices = None
         self.dataset_class = dataset_class
 
+        # Depreciated options
         if prepare_dict_or_graph == "dict":
             logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dgldict'` instead of 'dict'")
-            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
-        elif prepare_dict_or_graph == "dgldict":
-            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
+            prepare_dict_or_graph = "dgldict"
         elif prepare_dict_or_graph == "graph":
             logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dglgraph'` instead of 'graph'")
-            self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
+            prepare_dict_or_graph = "dglgraph"
+
+        # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
+        if prepare_dict_or_graph == "dgldict":
+            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
         elif prepare_dict_or_graph == "dglgraph":
             self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
         else:
