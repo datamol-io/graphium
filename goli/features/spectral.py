@@ -76,7 +76,7 @@ def _get_positional_eigvecs(matrix, num_pos: int):
     eigvecs = eigvecs[:, :num_pos]
 
     # Normalize the eigvecs
-    eigvecs = eigvecs / np.maximum(np.sqrt(np.sum(eigvecs**2, axis=0, keepdims=True)), 1e-4)
+    eigvecs = eigvecs / np.maximum(np.sqrt(np.sum(eigvecs ** 2, axis=0, keepdims=True)), 1e-4)
 
     return eigvals, eigvecs
 
@@ -118,10 +118,10 @@ def normalize_matrix(matrix, degree_vector=None, normalization: str = None):
     else:
         if is_dtype_numpy_array(matrix.dtype):
             with np.errstate(divide="ignore", invalid="ignore"):
-                degree_inv = np.expand_dims(degree_vector**-0.5, axis=1)
+                degree_inv = np.expand_dims(degree_vector ** -0.5, axis=1)
                 degree_inv[np.isinf(degree_inv)] = 0
         elif is_dtype_torch_tensor(matrix.dtype):
-            degree_inv = torch.unsqueeze(degree_vector**-0.5, dim=1)
+            degree_inv = torch.unsqueeze(degree_vector ** -0.5, dim=1)
             degree_inv[torch.isinf(degree_inv)] = 0
 
     # Compute the normalized matrix
@@ -130,7 +130,7 @@ def normalize_matrix(matrix, degree_vector=None, normalization: str = None):
     elif normalization.lower() == "sym":
         matrix = degree_inv * matrix * degree_inv.T
     elif normalization.lower() == "inv":
-        matrix = (degree_inv**2) * matrix
+        matrix = (degree_inv ** 2) * matrix
     else:
         raise ValueError(
             f'`normalization` should be `None`, `"None"`, `"sym"` or `"inv"`, but `{normalization}` was provided'

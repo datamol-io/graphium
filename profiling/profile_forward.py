@@ -42,16 +42,13 @@ def timed_fulldgl_forward(self, g: dgl.DGLGraph, flip_pos_enc: str) -> torch.Ten
         g.ndata["h"] = h
     print("node features: ", time() - t0)
 
-
     t0 = time()
     # Run the pre-processing network on edge features
     # If there are no edges, skip the forward and change the dimension of e
     if self.pre_nn_edges is not None:
         e = g.edata["e"]
         if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
-            e = torch.zeros(
-                list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype
-            )
+            e = torch.zeros(list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype)
         else:
             e = self.pre_nn_edges.forward(e)
         g.edata["e"] = e
@@ -61,7 +58,6 @@ def timed_fulldgl_forward(self, g: dgl.DGLGraph, flip_pos_enc: str) -> torch.Ten
     # Run the graph neural network
     h = self.gnn.forward(g)
     print("GNN: ", time() - t0)
-
 
     t0 = time()
     # Run the output network
@@ -78,7 +74,6 @@ def timed_fulldgl_forward(self, g: dgl.DGLGraph, flip_pos_enc: str) -> torch.Ten
     print("output nn: ", time() - t0)
 
     return h
-
 
 
 def timed_dgllayer_forward(self, layer, g, h, e, step_idx) -> torch.Tensor:
@@ -117,14 +112,17 @@ def main():
     cfg["datamodule"]["args"]
     cfg["datamodule"]["args"]["cache_data_path"] = "goli/data/cache/profiling/forward_data.cache"
     cfg["datamodule"]["args"]["df_path"] = DATA_PATH
-    cfg["datamodule"]["args"]["sample_size"] = NUM_FORWARD_LOOPS*BATCH_SIZE
+    cfg["datamodule"]["args"]["sample_size"] = NUM_FORWARD_LOOPS * BATCH_SIZE
     cfg["datamodule"]["args"]["prepare_dict_or_graph"] = "dglgraph"
 
     datamodule = load_datamodule(cfg)
     datamodule.prepare_data()
 
     dglgraphs = [datamodule.dataset[ii]["features"] for ii in range(len(datamodule.dataset))]
-    dglgraphs = [dgl.batch(dglgraphs[ii*(BATCH_SIZE+1):(ii+1)*(BATCH_SIZE+1)]) for ii in range(NUM_FORWARD_LOOPS)]
+    dglgraphs = [
+        dgl.batch(dglgraphs[ii * (BATCH_SIZE + 1) : (ii + 1) * (BATCH_SIZE + 1)])
+        for ii in range(NUM_FORWARD_LOOPS)
+    ]
     for ii in range(NUM_FORWARD_LOOPS):
         dglgraphs[ii].ndata["feat"] = dglgraphs[ii].ndata["feat"].to(dtype=torch.float32)
         dglgraphs[ii].edata["feat"] = dglgraphs[ii].edata["feat"].to(dtype=torch.float32)
