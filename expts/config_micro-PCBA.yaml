@@ -1,6 +1,6 @@
 constants:
   seed: &seed 42
-  raise_train_error: false   # Whether the code should raise an error if it crashes during training
+  raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 datamodule:
   module_type: "DGLFromSmilesDataModule"
@@ -9,6 +9,7 @@ datamodule:
     cache_data_path: goli/data/cache/pcba-micro/full.cache
     label_cols: PCBA-*
     smiles_col: smiles
+    prepare_dict_or_graph: dglgraph
 
     # Weights
     weights_type: null
@@ -32,7 +33,7 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
-    batch_size_train_val: 200
+    batch_size_train_val: 1000
     batch_size_test: 200
 
   # Data loading
@@ -44,7 +45,7 @@ datamodule:
 architecture:
   model_type: fulldglnetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 20
+    out_dim: &hidden_dim 200
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
@@ -70,7 +71,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: *hidden_dim
     hidden_dims: *hidden_dim
-    depth: 5
+    depth: 10
     activation: none
     last_activation: none
     dropout: &dropout_gnn 0.2

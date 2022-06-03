@@ -20,6 +20,13 @@ from goli.utils.tensor import nan_mean, nan_std, nan_median
 from goli.utils.fs import mkdir
 from goli.utils.spaces import LOSS_DICT, SCHEDULER_DICT
 
+from time import time
+TIME_FORWARD = 0.
+TIME_LOSS = 0.
+TIME_METRICS = 0.
+TIME_DETACH = 0.
+TIME_LOG = 0.
+
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
 }
@@ -496,10 +503,14 @@ class PredictorModule(pl.LightningModule):
         self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
+        T0 = time()
         preds = self.forward(batch)["preds"]
+        global TIME_FORWARD
+        TIME_FORWARD += time() - T0
         targets = batch.pop("labels").to(dtype=preds.dtype)
         weights = batch.pop("weights", None)
 
+        T0 = time()
         loss = self.compute_loss(
             preds=preds,
             targets=targets,
@@ -507,7 +518,10 @@ class PredictorModule(pl.LightningModule):
             target_nan_mask=self.target_nan_mask,
             loss_fun=self.loss_fun,
         )
+        global TIME_LOSS
+        TIME_LOSS += time() - T0
 
+        T0 = time()
         device = "cpu" if to_cpu else None
         preds = preds.detach().to(device=device)
         targets = targets.detach().to(device=device)
@@ -516,6 +530,8 @@ class PredictorModule(pl.LightningModule):
 
         step_dict = {"preds": preds, "targets": targets, "weights": weights}
         step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
+        global TIME_DETACH
+        TIME_DETACH += time() - T0
         return loss, step_dict
 
     def flag_step(
@@ -596,6 +612,7 @@ class PredictorModule(pl.LightningModule):
                 batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True
             )
 
+        T0 = time()
         metrics_logs = self.get_metrics_logs(
             preds=step_dict["preds"],
             targets=step_dict["targets"],
@@ -603,17 +620,30 @@ class PredictorModule(pl.LightningModule):
             step_name="train",
             loss=loss,
         )
+        global TIME_METRICS
+        TIME_METRICS += time() - T0
 
         step_dict.update(metrics_logs)
         step_dict["loss"] = loss
 
+        T0 = time()
         self.logger.log_metrics(metrics_logs, step=self.global_step)
-
+        global TIME_LOG
+        TIME_LOG += time() - T0
         # Predictions and targets are no longer needed after the step.
         # Keeping them will increase memory usage significantly for large datasets.
         step_dict.pop("preds")
         step_dict.pop("targets")
         step_dict.pop("weights")
+
+        global TIME_FORWARD
+        global TIME_LOSS
+        global TIME_DETACH
+        print("TIME_FORWARD", TIME_FORWARD,)
+        print("TIME_LOSS", TIME_LOSS,)
+        print("TIME_METRICS", TIME_METRICS,)
+        print("TIME_DETACH", TIME_DETACH,)
+        print("TIME_LOG", TIME_LOG,)
 
         return step_dict
 
