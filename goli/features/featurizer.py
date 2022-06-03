@@ -649,11 +649,12 @@ def mol_to_adj_and_features(
 
     return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 
+
 class DGLGraphDict(dict):
     def __init__(
         self,
         dic: Dict,
-        ):
+    ):
         """
         Store the parameters required to initialize a `dgl.DGLGraph`, but
         as a dictionary to reduce memory consumption.
@@ -680,7 +681,7 @@ class DGLGraphDict(dict):
             - "warn": Raise a warning when there is a nan or inf in the featurization
             - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans or inf by the specified value
-    """
+        """
         default_dic = {
             "dtype": np.float16,
             "mask_nan": "raise",

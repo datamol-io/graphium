@@ -822,13 +822,13 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
                 weights = np.zeros(labels.shape)
                 weights[labels == 0] = ratio_pos_neg
-                weights[labels == 1] = ratio_pos_neg**-1
+                weights[labels == 1] = ratio_pos_neg ** -1
 
             elif weights_type == "sample_balanced":
                 ratio_pos_neg = np.sum(labels, axis=0, keepdims=1) / labels.shape[0]
                 weights = np.zeros(labels.shape)
                 weights[labels == 0] = ratio_pos_neg
-                weights[labels == 1] = ratio_pos_neg**-1
+                weights[labels == 1] = ratio_pos_neg ** -1
                 weights = np.prod(weights, axis=1)
 
             else:
