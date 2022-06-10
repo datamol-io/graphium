@@ -174,6 +174,7 @@ class MetricWrapper:
     @staticmethod
     def _get_metric(metric):
         from goli.utils.spaces import METRICS_DICT
+
         if isinstance(metric, str):
             metric_name = metric
             metric = METRICS_DICT[metric]
