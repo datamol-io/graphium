@@ -152,9 +152,18 @@ class test_MetricWrapper(ut.TestCase):
                             target_nan_mask=target_nan_mask,
                             **kwargs,
                         )
+
+                        # Check that the metric can be saved and re-loaded without error
                         torch.save(metric_wrapper, pickle_file)
                         metric_wrapper2 = torch.load(pickle_file)
                         self.assertTrue(metric_wrapper == metric_wrapper2, msg=err_msg)
+
+                        # Check that the metric only contains primitive types
+                        state = metric_wrapper.__getstate__()
+                        if state["threshold_kwargs"] is not None:
+                            self.assertIsInstance(state["threshold_kwargs"], dict, msg=err_msg)
+                        if isinstance(metric, str):
+                            self.assertIsInstance(state["metric"], str, msg=err_msg)
 
 
 if __name__ == "__main__":
