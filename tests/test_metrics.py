@@ -139,7 +139,7 @@ class test_MetricWrapper(ut.TestCase):
             {"threshold": 0.4, "operator": "lower"},
             {"threshold": 0.5, "operator": "lower", "th_on_preds": False, "th_on_target": True},
             {"threshold": 0.6, "operator": "lower", "target_to_int": True},
-            ]
+        ]
 
         for metric in metrics:
             for target_nan_mask in target_nan_masks:
@@ -150,7 +150,7 @@ class test_MetricWrapper(ut.TestCase):
                             metric=metric,
                             threshold_kwargs=threshold_kwargs,
                             target_nan_mask=target_nan_mask,
-                            **kwargs
+                            **kwargs,
                         )
                         torch.save(metric_wrapper, pickle_file)
                         metric_wrapper2 = torch.load(pickle_file)
