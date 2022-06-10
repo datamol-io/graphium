@@ -76,6 +76,10 @@ class Thresholder:
                 raise ValueError(f"operator `{op_name}` not supported")
         elif callable(operator):
             op_str = operator.__name__
+            if op_str == "lt":
+                op_str = "<"
+            elif op_str == "gt":
+                op_str = ">"
         elif operator is None:
             pass
         else:
@@ -106,6 +110,17 @@ class Thresholder:
         state["operator"], state["op_str"] = self._get_operator(state["operator"])
         self.__dict__.update(state)
         self.__init__(**state)
+
+    def __eq__(self, obj) -> bool:
+        is_eq = [
+            self.threshold == obj.threshold,
+            self.th_on_target == obj.th_on_target,
+            self.th_on_preds == obj.th_on_preds,
+            self.target_to_int == obj.target_to_int,
+            self.operator == obj.operator,
+            self.op_str == obj.op_str,
+        ]
+        return all(is_eq)
 
 
 class MetricWrapper:
@@ -234,6 +249,16 @@ class MetricWrapper:
 
         return full_str
 
+    def __eq__(self, obj) -> bool:
+        is_eq = [
+            self.metric == obj.metric,
+            self.metric_name == obj.metric_name,
+            self.thresholder == obj.thresholder,
+            self.target_nan_mask == obj.target_nan_mask,
+            self.kwargs == obj.kwargs,
+        ]
+        return is_eq
+
     def __getstate__(self):
         """Serialize the class for pickling."""
         state = {}
@@ -251,4 +276,9 @@ class MetricWrapper:
     def __setstate__(self, state: dict):
         """Reload the class from pickling."""
         state["metric"], state["metric_name"] = self._get_metric(state["metric"])
+        thresholder = state.pop("threshold_kwargs", None)
+        if thresholder is not None:
+            thresholder = Thresholder(**thresholder)
+        state["thresholder"] = thresholder
+
         self.__dict__.update(state)
