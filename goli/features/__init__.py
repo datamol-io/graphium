@@ -6,3 +6,4 @@ from .featurizer import mol_to_dglgraph_dict
 from .featurizer import mol_to_dglgraph
 from .featurizer import dgl_dict_to_graph
 from .featurizer import mol_to_dglgraph_signature
+from .featurizer import DGLGraphDict

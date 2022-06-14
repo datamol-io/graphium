@@ -1,3 +1,4 @@
+from os import stat
 from typing import Union, Callable, Optional, Dict, Any
 
 import sys
@@ -23,7 +24,7 @@ class Thresholder:
     def __init__(
         self,
         threshold: float,
-        operator: str = "greater",
+        operator: Union[str, Callable] = "greater",
         th_on_preds: bool = True,
         th_on_target: bool = False,
         target_to_int: bool = False,
@@ -34,27 +35,7 @@ class Thresholder:
         self.th_on_target = th_on_target
         self.th_on_preds = th_on_preds
         self.target_to_int = target_to_int
-
-        # Operator can either be a string, or a callable
-        if isinstance(operator, str):
-            op_name = operator.lower()
-            if op_name in ["greater", "gt"]:
-                op_str = ">"
-                operator = op.gt
-            elif op_name in ["lower", "lt"]:
-                op_str = "<"
-                operator = op.lt
-            else:
-                raise ValueError(f"operator `{op_name}` not supported")
-        elif callable(operator):
-            op_str = operator.__name__
-        elif operator is None:
-            pass
-        else:
-            raise TypeError(f"operator must be either `str` or `callable`, provided: `{type(operator)}`")
-
-        self.operator = operator
-        self.op_str = op_str
+        self.operator, self.op_str = self._get_operator(operator)
 
     def compute(self, preds: torch.Tensor, target: torch.Tensor):
         # Apply the threshold on the predictions
@@ -79,6 +60,67 @@ class Thresholder:
         """
 
         return f"{self.op_str}{self.threshold}"
+
+    @staticmethod
+    def _get_operator(operator):
+        """Operator can either be a string, or a callable"""
+        if isinstance(operator, str):
+            op_name = operator.lower()
+            if op_name in ["greater", "gt"]:
+                op_str = ">"
+                operator = op.gt
+            elif op_name in ["lower", "lt"]:
+                op_str = "<"
+                operator = op.lt
+            else:
+                raise ValueError(f"operator `{op_name}` not supported")
+        elif callable(operator):
+            op_str = operator.__name__
+            if op_str == "lt":
+                op_str = "<"
+            elif op_str == "gt":
+                op_str = ">"
+        elif operator is None:
+            pass
+        else:
+            raise TypeError(f"operator must be either `str` or `callable`, provided: `{type(operator)}`")
+
+        return operator, op_str
+
+    def __getstate__(self):
+        """Serialize the class for pickling."""
+        state = {}
+        state["threshold"] = self.threshold
+        state["th_on_target"] = self.th_on_target
+        state["th_on_preds"] = self.th_on_preds
+        state["target_to_int"] = self.target_to_int
+
+        # Set the operator state.
+        # If it's a callable, it's up to the user to ensure it unserializes well
+        operator = self.operator
+        if operator == op.lt:
+            operator = "lower"
+        elif operator == op.gt:
+            operator = "greater"
+        state["operator"] = operator
+
+        return state
+
+    def __setstate__(self, state: dict):
+        state["operator"], state["op_str"] = self._get_operator(state["operator"])
+        self.__dict__.update(state)
+        self.__init__(**state)
+
+    def __eq__(self, obj) -> bool:
+        is_eq = [
+            self.threshold == obj.threshold,
+            self.th_on_target == obj.th_on_target,
+            self.th_on_preds == obj.th_on_preds,
+            self.target_to_int == obj.target_to_int,
+            self.operator == obj.operator,
+            self.op_str == obj.op_str,
+        ]
+        return all(is_eq)
 
 
 class MetricWrapper:
@@ -121,17 +163,25 @@ class MetricWrapper:
             kwargs:
                 Other arguments to call with the metric
         """
-        from goli.utils.spaces import METRICS_DICT
 
-        self.metric = METRICS_DICT[metric] if isinstance(metric, str) else metric
-
+        self.metric, self.metric_name = self._get_metric(metric)
         self.thresholder = None
         if threshold_kwargs is not None:
             self.thresholder = Thresholder(**threshold_kwargs)
-
         self.target_nan_mask = target_nan_mask
-
         self.kwargs = kwargs
+
+    @staticmethod
+    def _get_metric(metric):
+        from goli.utils.spaces import METRICS_DICT
+
+        if isinstance(metric, str):
+            metric_name = metric
+            metric = METRICS_DICT[metric]
+        else:
+            metric_name = None
+            metric = metric
+        return metric, metric_name
 
     def compute(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         r"""
@@ -199,3 +249,37 @@ class MetricWrapper:
             full_str += f"({self.thresholder})"
 
         return full_str
+
+    def __eq__(self, obj) -> bool:
+        is_eq = [
+            self.metric == obj.metric,
+            self.metric_name == obj.metric_name,
+            self.thresholder == obj.thresholder,
+            self.target_nan_mask == obj.target_nan_mask,
+            self.kwargs == obj.kwargs,
+        ]
+        return is_eq
+
+    def __getstate__(self):
+        """Serialize the class for pickling."""
+        state = {}
+        if self.metric_name is None:
+            state["metric"] = self.metric
+        else:
+            state["metric"] = self.metric_name
+        state["target_nan_mask"] = self.target_nan_mask
+        state["kwargs"] = self.kwargs
+        state["threshold_kwargs"] = None
+        if self.thresholder is not None:
+            state["threshold_kwargs"] = self.thresholder.__getstate__()
+        return state
+
+    def __setstate__(self, state: dict):
+        """Reload the class from pickling."""
+        state["metric"], state["metric_name"] = self._get_metric(state["metric"])
+        thresholder = state.pop("threshold_kwargs", None)
+        if thresholder is not None:
+            thresholder = Thresholder(**thresholder)
+        state["thresholder"] = thresholder
+
+        self.__dict__.update(state)
