@@ -4,27 +4,33 @@ from time import time
 import yaml
 import fsspec
 
-from goli.data.utils import load_micro_zinc
-from goli.trainer.predictor import PredictorModule
-
-from goli.config._loader import load_datamodule, load_metrics, load_trainer
+from goli.config._loader import load_datamodule, load_metrics, load_trainer, load_predictor, load_architecture
 from pytorch_lightning import Trainer
 
 
 def main():
-    MODEL_PATH = "gs://goli-private/pretrained-models/micro_model/model.ckpt"
-    CONFIG_PATH = "gs://goli-private/pretrained-models/micro_model/configs.yaml"
-    DATA_PATH = "https://storage.googleapis.com/goli-public/datasets/goli-zinc-bench-gnn/smiles_score.csv.gz"
+    CONFIG_PATH = "expts/config_micro-PCBA.yaml"
+    # DATA_PATH = "https://storage.googleapis.com/goli-public/datasets/goli-zinc-bench-gnn/smiles_score.csv.gz"
 
     with fsspec.open(CONFIG_PATH, "r") as f:
         cfg = yaml.safe_load(f)
-    cfg["datamodule"]["args"]["cache_data_path"] = "goli/data/cache/profiling_data.cache"
-    cfg["datamodule"]["args"]["df_path"] = DATA_PATH
+    cfg["datamodule"]["args"]["cache_data_path"] = "goli/data/cache/profiling/predictor_data.cache"
+    # cfg["datamodule"]["args"]["df_path"] = DATA_PATH
     cfg["trainer"]["trainer"]["max_epochs"] = 5
     cfg["trainer"]["trainer"]["min_epochs"] = 5
 
     datamodule = load_datamodule(cfg)
-    predictor = PredictorModule.load_from_checkpoint(MODEL_PATH)
+
+    # Initialize the network
+    model_class, model_kwargs = load_architecture(
+        cfg,
+        in_dim_nodes=datamodule.num_node_feats_with_positional_encoding,
+        in_dim_edges=datamodule.num_edge_feats,
+    )
+
+    metrics = load_metrics(cfg)
+    print(metrics)
+    predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
     trainer = load_trainer(cfg)
     trainer.fit(model=predictor, datamodule=datamodule)
 
