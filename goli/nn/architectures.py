@@ -5,7 +5,7 @@ from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
 from goli.nn.base_layers import FCLayer, get_activation
-from goli.nn.dgl_layers import BaseDGLLayer
+from goli.nn.dgl_layers import BaseGraphLayer
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionWeighted,
@@ -598,7 +598,7 @@ class FeedForwardDGL(FeedForwardNN):
 
     def _dgl_layer_forward(
         self,
-        layer: BaseDGLLayer,
+        layer: BaseGraphLayer,
         g: dgl.DGLGraph,
         h: torch.Tensor,
         e: Union[torch.Tensor, None],
@@ -1143,7 +1143,7 @@ class TaskHeads(nn.Module):
                 in_dim=in_dim,
                 **task['task_nn']
             )
-    
+
     # Return a dictionary: Dict[task_name, Tensor]
     # Predictor class handles it.
     def forward(self, h: torch.Tensor):
@@ -1151,7 +1151,7 @@ class TaskHeads(nn.Module):
 
         for task in self.task_heads:
             task_head_outputs[task] = self.task_heads[task](h)
-        
+
         return task_head_outputs
 
 class FullDGLMultiTaskNetwork(FullDGLNetwork):

@@ -3,7 +3,7 @@ import torch.nn as nn
 from typing import Tuple, Union, Callable
 from dgl import DGLGraph
 
-from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.nn.base_graph_layer import BaseGraphLayer
 from goli.utils.decorators import classproperty
 
 """
@@ -13,7 +13,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class GatedGCNLayer(BaseDGLLayer):
+class GatedGCNLayer(BaseGraphLayer):
     def __init__(
         self,
         in_dim: int,

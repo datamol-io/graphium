@@ -4,7 +4,7 @@ from typing import Union, Callable
 from dgl.nn.pytorch import GraphConv
 from dgl import DGLGraph
 
-from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.nn.base_graph_layer import BaseGraphLayer
 from goli.utils.decorators import classproperty
 
 """
@@ -14,7 +14,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class GCNLayer(BaseDGLLayer):
+class GCNLayer(BaseGraphLayer):
     def __init__(
         self,
         in_dim: int,
