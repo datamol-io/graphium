@@ -60,6 +60,60 @@ PCQM4Mv2_meta.update(
     }
 )
 
+@staticmethod
+def smiles_to_unique_mol_ids(smiles: List[str]):
+    """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
+    unique_mol_ids = []
+    for smile in smiles:
+        mol = dm.to_mol(mol=smile)
+        id = dm.unique_id(mol)
+        unique_mol_ids.append(id)
+    return unique_mol_ids
+
+@staticmethod
+def get_indices(data_list: List, query_list: List):
+    """This function searches for data_list's elements within query_list and returns the indices of query_list where they were found."""
+    not_found = set(query_list)
+    datum_idx_map = {}
+    for index, datum in enumerate(data_list):
+        if datum in not_found:
+            datum_idx_map[datum] = index
+            not_found.remove(datum)
+            if len(not_found) == 0:
+                break
+    return [datum_idx_map[d] for d in query_list]
+
+# Modify this if the dictionaries change structure.
+@staticmethod
+def concatenate_respective_lists_and_save_indices(dict_containing_lists: Dict[str, List], key_containing_list: str):
+    """Given a dict with values List, this function concatenates all the lists into one, and saves the respective indices of each key's list in the concatenated list.
+    
+    Currently this function assumes the following structure:
+        {
+            "key": {
+                "key_containing_list": []
+                "other_key": Any
+                ...
+            }
+            ...
+        }
+    """
+    concatenated_list = []
+    dict_respective_indices = {}
+    start = 0
+    for key, value in dict_containing_lists.items():
+        list = value[key_containing_list]
+        concatenated_list.extend(list)
+
+        end = start + len(list) - 1
+
+        dict_respective_indices[key] = {}
+        dict_respective_indices[key]["start"] = start
+        dict_respective_indices[key]["end"] = end
+
+        start = end + 1
+    return concatenated_list, dict_respective_indices
+
 class DGLDataset(Dataset):
     def __init__(
         self,
@@ -141,10 +195,10 @@ class MultitaskDGLDataset(Dataset): # Need to verify with collate function and d
     def __init__(self, datasets):
         super().__init__()
         self.datasets = datasets
-        self.task_specific_smiles_to_idx_map = self._get_smiles_to_idx(self.datasets)
-        self.unique_mol_ids = self._get_unique_ids(self.datasets)  # Molecules are identified by their unique_id (provided by datamol)
-        self.smiles = self._get_unique_smiles(self.task_specific_smiles_to_idx_map)
+        self.unique_mol_ids = None
         self.labels_size = self._set_label_size_dict()
+
+        all_smiles, task_specific_indices_in_all_smiles = concatenate_respective_lists_and_save_indices(self.datasets, "smiles")
 
     def __len__(self):
         return len(self.unique_mol_ids)
@@ -154,64 +208,6 @@ class MultitaskDGLDataset(Dataset): # Need to verify with collate function and d
 
         if self.smiles is not None:
             datum["unique_ids"] = self.unique_mol_ids[idx]
-
-        # Now we save the task-specific labels
-            datum["labels"] = {}
-            for task in self.datasets:
-                # Get the index for the smiles in this particular task dataset
-                task_specific_idx = self.task_specific_smiles_to_idx_map[task][self.smiles[idx]] # for carbon this returns 0
-                datum["labels"][task] = self.datasets[task]["labels"][task_specific_idx]
-                # Add features
-                datum["features"][task] = self.datasets[task]["features"][task_specific_idx]
-        return datum
-
-    def _get_smiles_to_idx(self, datasets):
-        # For each dataset, we map a SMILES string to its index, so that later we can easily index the molecule data.
-        # This operation is linear in total number of data points across all datasets.
-        task_specific_smiles_to_idx_map = {}
-        for task, dataset in datasets.items():
-            #dataset["smiles"] is a list and so it contains the indices implicitly
-            task_specific_smiles_to_idx_map[task] = {smiles: idx for idx, smiles in enumerate(dataset["smiles"])}
-
-        return task_specific_smiles_to_idx_map
-   
-    def _get_unique_smiles(self, task_specific_smiles_to_idx_map):
-        # Get the list of unique SMILES strings across all datasets
-        smiles_list = []
-        for smiles_to_idx_map in task_specific_smiles_to_idx_map.values():
-            smiles_list.extend(smiles_to_idx_map.keys())
-        unique_smiles = list(set(smiles_list))
-
-        return unique_smiles
-
-    def _get_unique_ids(self, datasets, task_specific_smiles_to_idx_map):
-        unique_id_to_smiles = {}
-        all_unique_ids = []
-
-        for smiles_to_idx_map in task_specific_smiles_to_idx_map.values():
-            smiles_list.extend(smiles_to_idx_map.keys())
-
-
-        for task, ds in self.datasets.items():
-            smiles_list = []
-            smiles_list.extend(task_specific_smiles_to_idx_map[task].keys())
-
-            smiles_and_unique_id_map = {}
-            smiles_and_unique_id_map["smiles"] = smiles_list
-            smiles_and_unique_id_map["unique_ids"] = []
-            for smile in smiles_list:
-                mol = dm.to_mol(mol=smile)
-                unique_id = dm.unique_id(mol)
-                smiles_and_unique_id_map["unique_ids"].append(unique_id)
-                all_unique_ids.append(unique_id)
-
-                # Fill the unique_id to smiles list map
-                if unique_id not in unique_id_to_smiles:
-                    unique_id_to_smiles[unique_id] = [smile]
-                else:
-                    unique_id_to_smiles[unique_id].append(smile)
-        return list(set(all_unique_ids))
-
 
     def _set_label_size_dict(self):
         self.labels_size = {}
@@ -1248,14 +1244,9 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         else:       # There are dataframes already.
             task_specific_df = self.task_specific_df 
 
-        """Here we subsample the dataframes, store the data necessary to create a SingleTaskDataset 
-        for each task (smiles, labels, extras) and find all the unique smiles."""
+        """Here we subsample the dataframes, and store the data necessary to create a SingleTaskDataset for each task (smiles, labels, extras)."""
         task_specific_dataset_args = {}     # The smiles, labels, extras needed to create a single-task dataset.
-        task_to_smiles_idx = {}             # 
-        #unfeaturized_smiles = []
-        task_specific_smiles_to_unique_id = {}
-        task_specific_smiles_and_unique_id_map = {}
-        all_unique_ids = []
+        task_to_smiles_idx = {}
         for task, df in task_specific_df.items():
             # Subsample all the dataframes
             df = self._sub_sample_df(df, self.task_specific_sample_size[task])
@@ -1278,102 +1269,40 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
 
             # Store the indices of the smiles per task
             task_to_smiles_idx[task] = {smile : ([i] if smile not in task_to_smiles_idx[task] else task_to_smiles_idx[task][smile].append(i)) for i, smile in enumerate(smiles)}
-            #unfeaturized_smiles.extend(smiles)      # Should be deleted later.
-
-            # Unique ids
-            unique_id_to_smiles = {}
-
-            smiles_and_unique_id_map = {}
-            smiles_and_unique_id_map["smiles"] = smiles
-            smiles_and_unique_id_map["unique_ids"] = []
-            for smile in smiles:
-                mol = dm.to_mol(mol=smile)
-                unique_id = dm.unique_id(mol)
-                smiles_and_unique_id_map["unique_ids"].append(unique_id)
-                all_unique_ids.append(unique_id)
-
-                # Fill the unique_id to smiles list map
-                if unique_id not in unique_id_to_smiles:
-                    unique_id_to_smiles[unique_id] = [smile]
-                else:
-                    unique_id_to_smiles[unique_id].append(smile)
-
-            ######################### UNIQUE ID CODE ############################
-            #smiles_and_unique_id_map = {}
-            #smiles_and_unique_id_map["smiles"] = smiles
-
-            # We will only featurize the molecules over unique_id, not over the unique smiles.
-            #unique_id_to_smiles = {}
-            #task_specific_smiles_to_unique_id[task] = {}
-            #for smile in smiles:
-            #    mol = dm.to_mol(mol=smile)
-            #    unique_id = dm.unique_id(mol)
-
-
-                
-                # Fill the smiles_to_unique_id map
-                #task_specific_smiles_to_unique_id[task][smile] = unique_id
-
-                # Fill the unique_id to smiles list map
-                #if unique_id not in unique_id_to_smiles:
-                #    unique_id_to_smiles[unique_id] = [smile]
-                #else:
-                #    unique_id_to_smiles[unique_id].append(smile)
-
-            # Get one smiles for each unique_id
-            #for id, smiles in unique_id_to_smiles.items():
-            #    unfeaturized_smiles.append(smiles[0])            
-            #####################################################################
-        # Get the unique unique_ids
-        unique_unique_ids = list(set(all_unique_ids))
-        # Get one smiles for each unique unique_id
-        unique_unfeaturized_smiles = []
-        for id in unique_unique_ids:
-            unique_unfeaturized_smiles.append(unique_id_to_smiles[id][0])
-        #unique_unfeaturized_smiles = list(set(unfeaturized_smiles))     # Get only the unique smiles
 
         """Compute the features (graphs, fingerprints, etc.) for the unique smiles found."""
-        # For each unique smiles encountered, the dict will store its feature and its index with respect to a task.
-        features, idx_none = self._featurize_molecules(unique_unfeaturized_smiles)
-        unique_unique_ids_idx_none = idx_none
-        unique_unique_ids_none = unique_unique_ids[unique_unique_ids_idx_none]
-        for task in task_specific_smiles_and_unique_id_map:
-            task_specific_smiles_and_unique_id_map[task]["idx_none"] = self._get_indices(unique_unique_ids_none, task_specific_smiles_and_unique_id_map[task]["unique_ids"])
+        task_specific_featurization_info = {}
+        all_smiles, task_specific_featurization_info = concatenate_respective_lists_and_save_indices(task_specific_dataset_args, "smiles")
+        all_unique_ids = smiles_to_unique_mol_ids(all_smiles)
+        unique_unique_ids, unique_id_first_indices, inv_all_unique_ids = np.unique(all_unique_ids, return_index=True, return_inverse=True)
 
-        smiles_to_features = {}
-        for idx, smile in enumerate(unique_unfeaturized_smiles):
-            smiles_to_features[smile] = features[idx]
-        # Also store unique_id to features
-        unique_id_to_features = {}
-        for idx, smile in enumerate(unique_unfeaturized_smiles):
-            id = task_specific_smiles_to_unique_id[task][smile]
-            unique_id_to_features[id] = features[idx]
+        smiles_to_featurize = all_smiles[unique_id_first_indices]  # Get a list of smiles corresponding to the unique_unique_ids
+        features, idx_none = self._featurize_molecules(smiles_to_featurize)
 
-        """Filter data based on molecules which failed featurization. Create single task datasets as well"""
-        # unique_id's that failed featurization
-        #smiles_none = [unique_unfeaturized_smiles[i] for i in idx_none] # Smiles (first one chosen corresponding to a particular unique_id) that failed featurization
-        #unique_id_none = [dm.unique_id(dm.to_mol(mol=smile)) for smile in smiles_none] # unique_ids that failed featurization
+        # Store the features for each task's dataset, and save idx_none for each task's smiles to be used for filtering
+        for task in task_specific_dataset_args.keys():
+            start_idx = task_specific_featurization_info[task]["start"]
+            end_idx = task_specific_featurization_info[task]["end"]
+            task_specific_dataset_args[task]["features"] = [features[i] for i in range(start_idx, end_idx + 1)]
 
+            # Updating idx_none per task
+            task_specific_idx_none = [i for i, feat in enumerate(task_specific_dataset_args[task]["features"]) if feat is None]
+            task_specific_featurization_info[task]["idx_none"] = task_specific_idx_none
+
+        """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
-        #smiles_none = [unique_unfeaturized_smiles[i] for i in idx_none] # Smiles that failed featurization
-        for task, smiles_indices in task_to_smiles_idx.items():         # Remove the failed smiles from the dict
-            idx_none = task_specific_smiles_and_unique_id_map[task]["idx_none"]
-            #for smile in smiles_none:
-            #    idx_none.extend(smiles_indices.pop(smile, None))        # The indices to filter out for a given task
-            # Filter the dataframe, smiles, labels, etc. for the molecules that failed featurization
-            df, smiles, labels, sample_idx, extras = self._filter_none_molecules(
+        for task in task_specific_dataset_args:
+            idx_none = task_specific_featurization_info[task]["idx_none"]
+            df, smiles, labels, features, sample_idx, extras = self._filter_none_molecules(
                 idx_none, df, smiles, labels, sample_idx, extras
             )
             # Update the data
             task_specific_df[task] = df
             task_specific_dataset_args[task]["smiles"] = smiles
             task_specific_dataset_args[task]["labels"] = labels
+            task_specific_dataset_args[task]["features"] = features
             task_specific_dataset_args[task]["sample_idx"] = sample_idx
             task_specific_dataset_args[task]["extras"] = extras
-            features = []
-            for smile in smiles:
-                features.append(smiles_to_features[smile])
-            task_specific_dataset_args[task]["features"] = features
 
             # We now have all the necessary components to make single-task datasets
             self.single_task_datasets[task] = SingleTaskDataset(
@@ -1405,7 +1334,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             self.val_singletask_datasets[task] = Subset(self.single_task_datasets[task], val_indices)
             self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], test_indices)
 
-        """Create 3 multitask datasets: one for train, one for val, one for test"""
+        """Create 3 multitask datasets: one for train, one for val, one for test""" # Moved to setup
         #self.train_ds = MultitaskDGLDataset(train_singletask_datasets)
         #self.val_ds = MultitaskDGLDataset(val_singletask_datasets)
         #self.test_ds = MultitaskDGLDataset(test_singletask_datasets)
@@ -1466,18 +1395,6 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             )
 
         return features, idx_none
-
-    @staticmethod
-    def _get_indices(data_list, query_list):
-        not_found = set(query_list)
-        datum_index_mapping = {}
-        for index, datum in enumerate(data_list):
-            if datum in not_found:
-                datum_index_mapping[datum] = index
-                not_found.remove(datum)
-                if len(not_found) == 0:
-                    break
-        return [datum_index_mapping[d] for d in query_list]
     
     @staticmethod
     def _filter_none_molecules(
