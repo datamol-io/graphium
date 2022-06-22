@@ -82,7 +82,7 @@ class BaseGraphLayer(nn.Module):
     def apply_norm_activation_dropout(
         self,
         h: torch.Tensor,
-        normalization: Union[str, Callable] = True,
+        normalization: bool = True,
         activation: bool = True,
         dropout: bool = True,
     ):
@@ -96,12 +96,7 @@ class BaseGraphLayer(nn.Module):
                 Feature tensor, to be normalized
 
             normalization:
-                Normalization to use. Choices:
-
-                - "none" or `None`: No normalization
-                - "batch_norm": Batch normalization
-                - "layer_norm": Layer normalization
-                - `Callable`: Any callable function
+                Whether to apply the normalization
 
             activation:
                 Whether to apply the activation layer
@@ -116,7 +111,7 @@ class BaseGraphLayer(nn.Module):
 
         """
 
-        if self.norm_layer is not None:
+        if normalization and (self.norm_layer is not None):
             h = self.norm_layer(h)
 
         if activation and (self.activation_layer is not None):
