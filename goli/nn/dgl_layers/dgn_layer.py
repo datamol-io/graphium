@@ -3,7 +3,7 @@ from typing import Dict, List, Tuple, Union, Callable
 from functools import partial
 
 from goli.nn.dgl_layers.pna_layer import PNAConvolutionalLayer, PNAMessagePassingLayer
-from goli.nn.pna_operations import PNA_AGGREGATORS
+from goli.nn.pna_operations import PNA_DGL_AGGREGATORS
 from goli.nn.dgn_operations import DGN_AGGREGATORS
 
 
@@ -56,8 +56,8 @@ class BaseDGNLayer:
             this_agg = None
 
             # Get the aggregator from PNA if not a directional aggregation
-            if agg_name in PNA_AGGREGATORS.keys():
-                this_agg = PNA_AGGREGATORS[agg_name]
+            if agg_name in PNA_DGL_AGGREGATORS.keys():
+                this_agg = PNA_DGL_AGGREGATORS[agg_name]
 
             # If the directional, get the right aggregator
             elif "dir" == agg_name[:3]:
@@ -121,7 +121,7 @@ class DGNConvolutionalLayer(BaseDGNLayer, PNAConvolutionalLayer):
     https://arxiv.org/pdf/2010.02863.pdf
     """
 
-    def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
+    def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
         return BaseDGNLayer.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
@@ -154,7 +154,7 @@ class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
     https://arxiv.org/pdf/2010.02863.pdf
     """
 
-    def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
+    def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
         return BaseDGNLayer.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
