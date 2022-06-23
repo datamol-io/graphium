@@ -6,14 +6,12 @@ from torch.nn import Linear
 from torch_scatter import scatter
 
 from torch_geometric.nn.conv import MessagePassing
-from torch_geometric.typing import Adj, OptTensor
+from torch_geometric.typing import OptTensor
 from torch_geometric.utils import degree
 
 from goli.utils.decorators import classproperty
 from goli.nn.base_layers import MLP, get_activation
 from goli.nn.base_graph_layer import BaseGraphLayer
-from goli.nn.pna_operations import PNA_DGL_AGGREGATORS, PNA_DGL_SCALERS
-
 
 class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
     r"""
