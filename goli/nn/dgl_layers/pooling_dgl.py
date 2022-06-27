@@ -13,7 +13,7 @@ from goli.utils.tensor import ModuleListConcat
 EPS = 1e-6
 
 
-class S2SReadout(nn.Module):
+class S2SReadoutDgl(nn.Module):
     r"""
     Performs a Set2Set aggregation of all the graph nodes' features followed by a series of fully connected layers
     """
@@ -50,7 +50,7 @@ class S2SReadout(nn.Module):
         return self.mlp(x)
 
 
-class StdPooling(nn.Module):
+class StdPoolingDgl(nn.Module):
     r"""Apply standard deviation pooling over the nodes in the graph.
 
     $$r^{(i)} = \sigma_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
@@ -83,7 +83,7 @@ class StdPooling(nn.Module):
         return readout
 
 
-class MinPooling(MaxPooling):
+class MinPoolingDgl(MaxPooling):
     r"""Apply min pooling over the nodes in the graph.
 
     $$r^{(i)} = \min_{k=1}^{N_i}\left( x^{(i)}_k \right)$$
@@ -108,7 +108,7 @@ class MinPooling(MaxPooling):
         return -super().forward(graph, -feat)
 
 
-class DirPooling(nn.Module):
+class DirPoolingDgl(nn.Module):
     r"""
     Apply pooling over the nodes in the graph using a directional potential
     with an inner product.
@@ -146,7 +146,7 @@ class DirPooling(nn.Module):
         return pooled
 
 
-class LogSumPooling(AvgPooling):
+class LogSumPoolingDgl(AvgPooling):
     r"""
     Apply pooling over the nodes in the graph using a mean aggregation,
     but scaled by the log of the number of nodes. This gives the same
@@ -177,7 +177,7 @@ class LogSumPooling(AvgPooling):
         return pool
 
 
-def parse_pooling_layer(in_dim: int, pooling: Union[str, List[str]], n_iters: int = 2, n_layers: int = 2):
+def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], n_iters: int = 2, n_layers: int = 2):
     r"""
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
@@ -223,19 +223,19 @@ def parse_pooling_layer(in_dim: int, pooling: Union[str, List[str]], n_iters: in
         elif this_pool == "mean":
             pool_layer.append(AvgPooling())
         elif this_pool == "logsum":
-            pool_layer.append(LogSumPooling())
+            pool_layer.append(LogSumPoolingDgl())
         elif this_pool == "max":
             pool_layer.append(MaxPooling())
         elif this_pool == "min":
-            pool_layer.append(MinPooling())
+            pool_layer.append(MinPoolingDgl())
         elif this_pool == "std":
-            pool_layer.append(StdPooling())
+            pool_layer.append(StdPoolingDgl())
         elif this_pool == "s2s":
             pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers))
             out_pool_dim += in_dim
         elif isinstance(this_pool, str) and (this_pool[:3] == "dir"):
             dir_idx = int(this_pool[3:])
-            pool_layer.append(DirPooling(dir_idx=dir_idx))
+            pool_layer.append(DirPoolingDgl(dir_idx=dir_idx))
         elif (this_pool == "none") or (this_pool is None):
             pass
         else:
@@ -244,7 +244,7 @@ def parse_pooling_layer(in_dim: int, pooling: Union[str, List[str]], n_iters: in
     return pool_layer, out_pool_dim
 
 
-class VirtualNode(nn.Module):
+class VirtualNodeDgl(nn.Module):
     def __init__(
         self,
         dim: int,

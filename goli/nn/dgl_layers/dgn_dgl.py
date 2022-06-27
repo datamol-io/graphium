@@ -2,12 +2,12 @@ import torch
 from typing import Dict, List, Tuple, Union, Callable
 from functools import partial
 
-from goli.nn.dgl_layers.pna_layer import PNAConvolutionalLayer, PNAMessagePassingLayer
+from goli.nn.dgl_layers.pna_dgl import PNAConvolutionalDgl, PNAMessagePassingDgl
 from goli.nn.pna_operations import PNA_DGL_AGGREGATORS
 from goli.nn.dgn_operations import DGN_AGGREGATORS
 
 
-class BaseDGNLayer:
+class BaseDGNDgl:
     def parse_aggregators(self, aggregators_name: List[str]) -> List[Callable]:
         r"""
         Parse the aggregators from a list of strings into a list of callables.
@@ -108,7 +108,7 @@ class BaseDGNLayer:
         return {"h": h}
 
 
-class DGNConvolutionalLayer(BaseDGNLayer, PNAConvolutionalLayer):
+class DGNConvolutionalDgl(BaseDGNDgl, PNAConvolutionalDgl):
     r"""
     Implementation of the convolutional architecture of the DGN layer,
     previously known as `DGNSimpleLayer`. This layer aggregates the
@@ -122,21 +122,21 @@ class DGNConvolutionalLayer(BaseDGNLayer, PNAConvolutionalLayer):
     """
 
     def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
-        return BaseDGNLayer.parse_aggregators(self, aggregators)
+        return BaseDGNDgl.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.message_func(self, edges)
+        return BaseDGNDgl.message_func(self, edges)
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.reduce_func(self, nodes)
+        return BaseDGNDgl.reduce_func(self, nodes)
 
     def pretrans_edges(self, edges):
-        pretrans = PNAConvolutionalLayer.pretrans_edges(self, edges)
+        pretrans = PNAConvolutionalDgl.pretrans_edges(self, edges)
         pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
         return pretrans
 
 
-class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
+class DGNMessagePassingDgl(BaseDGNDgl, PNAMessagePassingDgl):
     r"""
     Implementation of the message passing architecture of the DGN message passing layer,
     previously known as `DGNLayerComplex`. This layer applies an MLP as
@@ -155,15 +155,15 @@ class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
     """
 
     def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
-        return BaseDGNLayer.parse_aggregators(self, aggregators)
+        return BaseDGNDgl.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.message_func(self, edges)
+        return BaseDGNDgl.message_func(self, edges)
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.reduce_func(self, nodes)
+        return BaseDGNDgl.reduce_func(self, nodes)
 
     def pretrans_edges(self, edges):
-        pretrans = PNAMessagePassingLayer.pretrans_edges(self, edges)
+        pretrans = PNAMessagePassingDgl.pretrans_edges(self, edges)
         pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
         return pretrans

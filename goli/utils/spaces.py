@@ -7,14 +7,14 @@ from goli.nn.base_layers import FCLayer
 from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
 
 from goli.nn.dgl_layers import (
-    GATLayer,
-    GCNLayer,
-    GINLayer,
-    GatedGCNLayer,
-    PNAConvolutionalLayer,
-    PNAMessagePassingLayer,
-    DGNConvolutionalLayer,
-    DGNMessagePassingLayer,
+    GATDgl,
+    GCNDgl,
+    GINDgl,
+    GatedGCNDgl,
+    PNAConvolutionalDgl,
+    PNAMessagePassingDgl,
+    DGNConvolutionalDgl,
+    DGNMessagePassingDgl,
 )
 
 from goli.nn.residual_connections import (
@@ -32,14 +32,14 @@ FC_LAYERS_DICT = {
 }
 
 DGL_LAYERS_DICT = {
-    "gcn": GCNLayer,
-    "gin": GINLayer,
-    "gat": GATLayer,
-    "gated-gcn": GatedGCNLayer,
-    "pna-conv": PNAConvolutionalLayer,
-    "pna-msgpass": PNAMessagePassingLayer,
-    "dgn-conv": DGNConvolutionalLayer,
-    "dgn-msgpass": DGNMessagePassingLayer,
+    "gcn": GCNDgl,
+    "gin": GINDgl,
+    "gat": GATDgl,
+    "gated-gcn": GatedGCNDgl,
+    "pna-conv": PNAConvolutionalDgl,
+    "pna-msgpass": PNAMessagePassingDgl,
+    "dgn-conv": DGNConvolutionalDgl,
+    "dgn-msgpass": DGNMessagePassingDgl,
 }
 
 LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)

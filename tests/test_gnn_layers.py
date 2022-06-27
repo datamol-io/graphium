@@ -11,14 +11,14 @@ import dgl
 from copy import deepcopy
 
 from goli.nn.dgl_layers import (
-    GATLayer,
-    GCNLayer,
-    GINLayer,
-    GatedGCNLayer,
-    PNAConvolutionalLayer,
-    PNAMessagePassingLayer,
-    DGNConvolutionalLayer,
-    DGNMessagePassingLayer,
+    GATDgl,
+    GCNDgl,
+    GINDgl,
+    GatedGCNDgl,
+    PNAConvolutionalDgl,
+    PNAMessagePassingDgl,
+    DGNConvolutionalDgl,
+    DGNMessagePassingDgl,
 )
 
 
@@ -49,7 +49,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        layer = GCNLayer(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
+        layer = GCNDgl(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
 
         # Check the re-implementation of abstract methods
         self.assertFalse(layer.layer_supports_edges)
@@ -66,7 +66,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        layer = GINLayer(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
+        layer = GINDgl(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
 
         # Check the re-implementation of abstract methods
         self.assertFalse(layer.layer_supports_edges)
@@ -84,7 +84,7 @@ class test_DGL_Layers(ut.TestCase):
         num_heads = 3
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        layer = GATLayer(in_dim=self.in_dim, out_dim=self.out_dim, num_heads=num_heads, **self.kwargs).to(
+        layer = GATDgl(in_dim=self.in_dim, out_dim=self.out_dim, num_heads=num_heads, **self.kwargs).to(
             float
         )
 
@@ -104,7 +104,7 @@ class test_DGL_Layers(ut.TestCase):
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["e"]
-        layer = GatedGCNLayer(
+        layer = GatedGCNDgl(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
             in_dim_edges=self.in_dim_edges,
@@ -138,7 +138,7 @@ class test_DGL_Layers(ut.TestCase):
         aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
-        layer = PNAConvolutionalLayer(
+        layer = PNAConvolutionalDgl(
             in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
@@ -154,7 +154,7 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
         # Now try with edges
-        layer = PNAConvolutionalLayer(
+        layer = PNAConvolutionalDgl(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
             aggregators=aggregators,
@@ -187,7 +187,7 @@ class test_DGL_Layers(ut.TestCase):
         aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
-        layer = PNAMessagePassingLayer(
+        layer = PNAMessagePassingDgl(
             in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
@@ -204,7 +204,7 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
         # Now try with edges
-        layer = PNAMessagePassingLayer(
+        layer = PNAMessagePassingDgl(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
             aggregators=aggregators,
@@ -253,7 +253,7 @@ class test_DGL_Layers(ut.TestCase):
         ]
         scalers = ["identity", "amplification", "attenuation"]
 
-        layer = DGNConvolutionalLayer(
+        layer = DGNConvolutionalDgl(
             in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
@@ -269,7 +269,7 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
         # Now try with edges
-        layer = DGNConvolutionalLayer(
+        layer = DGNConvolutionalDgl(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
             aggregators=aggregators,
@@ -318,7 +318,7 @@ class test_DGL_Layers(ut.TestCase):
         ]
         scalers = ["identity", "amplification", "attenuation"]
 
-        layer = DGNMessagePassingLayer(
+        layer = DGNMessagePassingDgl(
             in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
@@ -335,7 +335,7 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
         # Now try with edges
-        layer = DGNMessagePassingLayer(
+        layer = DGNMessagePassingDgl(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
             aggregators=aggregators,

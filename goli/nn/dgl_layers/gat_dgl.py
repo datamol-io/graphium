@@ -1,49 +1,51 @@
 import torch
-import dgl.function as fn
+from typing import Union, Callable
+
+from dgl.nn.pytorch import GATConv
 from dgl import DGLGraph
-from typing import Callable, Union
 
 from goli.nn.base_graph_layer import BaseGraphLayer
-from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
 """
-    GIN: Graph Isomorphism Networks
-    HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
-    https://arxiv.org/pdf/1810.00826.pdf
+    GAT: Graph Attention Network
+    Graph Attention Networks (Veličković et al., ICLR 2018)
+    https://arxiv.org/abs/1710.10903
 """
 
 
-class GINLayer(BaseGraphLayer):
+class GATDgl(BaseGraphLayer):
     def __init__(
         self,
         in_dim: int,
         out_dim: int,
-        activation: Union[Callable, str] = "relu",
+        num_heads: int,
+        activation="elu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
-        init_eps: float = 0.0,
-        learn_eps: bool = True,
     ):
         r"""
-        GIN: Graph Isomorphism Networks
-        HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
-        https://arxiv.org/pdf/1810.00826.pdf
+        GAT: Graph Attention Network
+        Graph Attention Networks (Veličković et al., ICLR 2018)
+        https://arxiv.org/abs/1710.10903
 
-        [!] code adapted from dgl implementation of GINConv
+        The implementation is built on top of the DGL ``GATCONV`` layer
 
         Parameters:
 
-            in_dim:
+            in_dim: int
                 Input feature dimensions of the layer
 
-            out_dim:
+            out_dim: int
                 Output feature dimensions of the layer
 
-            activation:
+            num_heads: int
+                Number of heads in Multi-Head Attention
+
+            activation: str, Callable
                 activation function to use in the layer
 
-            dropout:
+            dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
             normalization:
@@ -51,16 +53,11 @@ class GINLayer(BaseGraphLayer):
 
                 - "none" or `None`: No normalization
                 - "batch_norm": Batch normalization
-                - "layer_norm": Layer normalization
+                - "layer_norm": Layer normalization in the hidden layers.
                 - `Callable`: Any callable function
-
-            init_eps :
-                Initial :math:`\epsilon` value, default: ``0``.
-
-            learn_eps :
-                If True, :math:`\epsilon` will be a learnable parameter.
-
         """
+
+        self.num_heads = num_heads
 
         super().__init__(
             in_dim=in_dim,
@@ -70,45 +67,23 @@ class GINLayer(BaseGraphLayer):
             normalization=normalization,
         )
 
-        # Specify to consider the edges weight in the aggregation
-
-        # to specify whether eps is trainable or not.
-        if learn_eps:
-            self.eps = torch.nn.Parameter(torch.FloatTensor([init_eps]))
-        else:
-            self.register_buffer("eps", torch.FloatTensor([init_eps]))
-
-        # The weights of the model, applied after the aggregation
-        self.mlp = MLP(
-            in_dim=self.in_dim,
-            hidden_dim=self.in_dim,
-            out_dim=self.out_dim,
-            layers=2,
-            activation=self.activation_layer,
-            last_activation="none",
-            normalization=self.normalization,
-            last_normalization="none",
+        self.gatconv = GATConv(
+            in_feats=self.in_dim,
+            out_feats=self.out_dim,
+            num_heads=self.num_heads,
+            feat_drop=self.dropout,
+            attn_drop=self.dropout,
+            activation=None,  # Activation is applied after
         )
-
-    def message_func(self, g):
-        r"""
-        If edge weights are provided, use them to weight the messages
-        """
-
-        if "w" in g.edata.keys():
-            func = fn.u_mul_e("h", "w", "m")
-        else:
-            func = fn.copy_u("h", "m")
-        return func
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
         r"""
-        Apply the GIN convolutional layer, with the specified activations,
+        Apply the graph convolutional layer, with the specified activations,
         normalizations and dropout.
 
         Parameters:
 
-            g:
+            g: dgl.DGLGraph
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -123,16 +98,8 @@ class GINLayer(BaseGraphLayer):
 
         """
 
-        # Aggregate the message
-        g = g.local_var()
-        g.ndata["h"] = h
-        func = fn.copy_u("h", "m")
-        g.update_all(self.message_func(g), fn.sum("m", "neigh"))
-        h = (1 + self.eps) * h + g.ndata["neigh"]
-
-        # Apply the MLP
-        h = self.mlp(h)
-        h = self.apply_norm_activation_dropout(h)
+        h = self.gatconv(g, h).flatten(1)
+        self.apply_norm_activation_dropout(h, normalization="batch_norm", activation=True, dropout=False)
 
         return h
 
@@ -158,7 +125,7 @@ class GINLayer(BaseGraphLayer):
 
         Returns:
 
-            bool:
+            uses_edges: bool
                 Always ``False`` for the current class
         """
         return False
@@ -173,7 +140,7 @@ class GINLayer(BaseGraphLayer):
 
         Returns:
 
-            bool:
+            uses_edges: bool
                 Always ``False`` for the current class
         """
         return False
@@ -193,7 +160,7 @@ class GINLayer(BaseGraphLayer):
 
         Returns:
 
-            int:
-                Always ``1`` for the current class
+            dim_factor: int
+                Always ``self.num_heads`` for the current class
         """
-        return 1
+        return self.num_heads
