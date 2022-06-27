@@ -1,32 +1,36 @@
 import torch
-from typing import Union, Callable
-
-from dgl.nn.pytorch import GraphConv
+import dgl.function as fn
 from dgl import DGLGraph
+from typing import Callable, Union
 
 from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
 """
-    GCN: Graph Convolutional Networks
-    Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
-    http://arxiv.org/abs/1609.02907
+    GIN: Graph Isomorphism Networks
+    HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
+    https://arxiv.org/pdf/1810.00826.pdf
 """
 
 
-class GCNLayer(BaseGraphLayer):
+class GINDgl(BaseGraphLayer):
     def __init__(
         self,
         in_dim: int,
         out_dim: int,
-        activation: Union[str, Callable] = "relu",
+        activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        init_eps: float = 0.0,
+        learn_eps: bool = True,
     ):
         r"""
-        Graph convolutional network (GCN) layer from
-        Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
-        http://arxiv.org/abs/1609.02907
+        GIN: Graph Isomorphism Networks
+        HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
+        https://arxiv.org/pdf/1810.00826.pdf
+
+        [!] code adapted from dgl implementation of GINConv
 
         Parameters:
 
@@ -49,6 +53,13 @@ class GCNLayer(BaseGraphLayer):
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
+
+            init_eps :
+                Initial :math:`\epsilon` value, default: ``0``.
+
+            learn_eps :
+                If True, :math:`\epsilon` will be a learnable parameter.
+
         """
 
         super().__init__(
@@ -59,19 +70,40 @@ class GCNLayer(BaseGraphLayer):
             normalization=normalization,
         )
 
-        self.conv = GraphConv(
-            in_feats=in_dim,
-            out_feats=out_dim,
-            norm="both",
-            weight=True,
-            bias=True,
-            activation=None,
-            allow_zero_in_degree=False,
+        # Specify to consider the edges weight in the aggregation
+
+        # to specify whether eps is trainable or not.
+        if learn_eps:
+            self.eps = torch.nn.Parameter(torch.FloatTensor([init_eps]))
+        else:
+            self.register_buffer("eps", torch.FloatTensor([init_eps]))
+
+        # The weights of the model, applied after the aggregation
+        self.mlp = MLP(
+            in_dim=self.in_dim,
+            hidden_dim=self.in_dim,
+            out_dim=self.out_dim,
+            layers=2,
+            activation=self.activation_layer,
+            last_activation="none",
+            normalization=self.normalization,
+            last_normalization="none",
         )
+
+    def message_func(self, g):
+        r"""
+        If edge weights are provided, use them to weight the messages
+        """
+
+        if "w" in g.edata.keys():
+            func = fn.u_mul_e("h", "w", "m")
+        else:
+            func = fn.copy_u("h", "m")
+        return func
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
         r"""
-        Apply the graph convolutional layer, with the specified activations,
+        Apply the GIN convolutional layer, with the specified activations,
         normalizations and dropout.
 
         Parameters:
@@ -91,7 +123,15 @@ class GCNLayer(BaseGraphLayer):
 
         """
 
-        h = self.conv(g, h)
+        # Aggregate the message
+        g = g.local_var()
+        g.ndata["h"] = h
+        func = fn.copy_u("h", "m")
+        g.update_all(self.message_func(g), fn.sum("m", "neigh"))
+        h = (1 + self.eps) * h + g.ndata["neigh"]
+
+        # Apply the MLP
+        h = self.mlp(h)
         h = self.apply_norm_activation_dropout(h)
 
         return h
@@ -103,7 +143,7 @@ class GCNLayer(BaseGraphLayer):
 
         Returns:
 
-            bool
+            supports_edges: bool
                 Always ``False`` for the current class
         """
         return False

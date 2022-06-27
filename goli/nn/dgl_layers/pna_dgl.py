@@ -16,7 +16,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class BasePNALayer(BaseGraphLayer):
+class BasePNADgl(BaseGraphLayer):
     def __init__(
         self,
         in_dim: int,
@@ -247,7 +247,7 @@ class BasePNALayer(BaseGraphLayer):
         return self.edge_features
 
 
-class PNAConvolutionalLayer(BasePNALayer):
+class PNAConvolutionalDgl(BasePNADgl):
     r"""
     Implementation of the convolutional architecture of the PNA layer,
     previously known as `PNASimpleLayer`. This layer aggregates the
@@ -406,7 +406,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         return h
 
 
-class PNAMessagePassingLayer(BasePNALayer):
+class PNAMessagePassingDgl(BasePNADgl):
     r"""
     Implementation of the message passing architecture of the PNA message passing layer,
     previously known as `PNALayerComplex`. This layer applies an MLP as

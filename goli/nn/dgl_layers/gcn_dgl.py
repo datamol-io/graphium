@@ -1,51 +1,45 @@
 import torch
 from typing import Union, Callable
 
-from dgl.nn.pytorch import GATConv
+from dgl.nn.pytorch import GraphConv
 from dgl import DGLGraph
 
 from goli.nn.base_graph_layer import BaseGraphLayer
 from goli.utils.decorators import classproperty
 
 """
-    GAT: Graph Attention Network
-    Graph Attention Networks (Veličković et al., ICLR 2018)
-    https://arxiv.org/abs/1710.10903
+    GCN: Graph Convolutional Networks
+    Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
+    http://arxiv.org/abs/1609.02907
 """
 
 
-class GATLayer(BaseGraphLayer):
+class GCNDgl(BaseGraphLayer):
     def __init__(
         self,
         in_dim: int,
         out_dim: int,
-        num_heads: int,
-        activation="elu",
+        activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
     ):
         r"""
-        GAT: Graph Attention Network
-        Graph Attention Networks (Veličković et al., ICLR 2018)
-        https://arxiv.org/abs/1710.10903
-
-        The implementation is built on top of the DGL ``GATCONV`` layer
+        Graph convolutional network (GCN) layer from
+        Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
+        http://arxiv.org/abs/1609.02907
 
         Parameters:
 
-            in_dim: int
+            in_dim:
                 Input feature dimensions of the layer
 
-            out_dim: int
+            out_dim:
                 Output feature dimensions of the layer
 
-            num_heads: int
-                Number of heads in Multi-Head Attention
-
-            activation: str, Callable
+            activation:
                 activation function to use in the layer
 
-            dropout: float
+            dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
             normalization:
@@ -53,11 +47,9 @@ class GATLayer(BaseGraphLayer):
 
                 - "none" or `None`: No normalization
                 - "batch_norm": Batch normalization
-                - "layer_norm": Layer normalization in the hidden layers.
+                - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
         """
-
-        self.num_heads = num_heads
 
         super().__init__(
             in_dim=in_dim,
@@ -67,13 +59,14 @@ class GATLayer(BaseGraphLayer):
             normalization=normalization,
         )
 
-        self.gatconv = GATConv(
-            in_feats=self.in_dim,
-            out_feats=self.out_dim,
-            num_heads=self.num_heads,
-            feat_drop=self.dropout,
-            attn_drop=self.dropout,
-            activation=None,  # Activation is applied after
+        self.conv = GraphConv(
+            in_feats=in_dim,
+            out_feats=out_dim,
+            norm="both",
+            weight=True,
+            bias=True,
+            activation=None,
+            allow_zero_in_degree=False,
         )
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
@@ -83,7 +76,7 @@ class GATLayer(BaseGraphLayer):
 
         Parameters:
 
-            g: dgl.DGLGraph
+            g:
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -98,8 +91,8 @@ class GATLayer(BaseGraphLayer):
 
         """
 
-        h = self.gatconv(g, h).flatten(1)
-        self.apply_norm_activation_dropout(h, normalization="batch_norm", activation=True, dropout=False)
+        h = self.conv(g, h)
+        h = self.apply_norm_activation_dropout(h)
 
         return h
 
@@ -110,7 +103,7 @@ class GATLayer(BaseGraphLayer):
 
         Returns:
 
-            supports_edges: bool
+            bool
                 Always ``False`` for the current class
         """
         return False
@@ -125,7 +118,7 @@ class GATLayer(BaseGraphLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -140,7 +133,7 @@ class GATLayer(BaseGraphLayer):
 
         Returns:
 
-            uses_edges: bool
+            bool:
                 Always ``False`` for the current class
         """
         return False
@@ -160,7 +153,7 @@ class GATLayer(BaseGraphLayer):
 
         Returns:
 
-            dim_factor: int
-                Always ``self.num_heads`` for the current class
+            int:
+                Always ``1`` for the current class
         """
-        return self.num_heads
+        return 1

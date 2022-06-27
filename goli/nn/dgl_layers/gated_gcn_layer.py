@@ -13,7 +13,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class GatedGCNLayer(BaseGraphLayer):
+class GatedGCNDgl(BaseGraphLayer):
     def __init__(
         self,
         in_dim: int,

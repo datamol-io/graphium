@@ -11,7 +11,7 @@ from goli.nn.residual_connections import (
     ResidualConnectionWeighted,
     ResidualConnectionRandom,
 )
-from goli.nn.dgl_layers.pooling import parse_pooling_layer, VirtualNode
+from goli.nn.dgl_layers.pooling_dgl import parse_pooling_layer_dgl, VirtualNodeDgl
 
 
 class FeedForwardNN(nn.Module):
@@ -525,7 +525,7 @@ class FeedForwardDGL(FeedForwardNN):
             # Create the Virtual Node layer, except at the last layer
             if ii < len(residual_out_dims):
                 self.virtual_node_layers.append(
-                    VirtualNode(
+                    VirtualNodeDgl(
                         dim=this_out_dim * self.layers[-1].out_dim_factor,
                         activation=this_activation,
                         dropout=this_dropout,
@@ -551,7 +551,7 @@ class FeedForwardDGL(FeedForwardNN):
             self.residual_edges_layer, _ = self._create_residual_connection(out_dims=layer_out_dims_edges)
         else:
             self.residual_edges_layer = None
-        self.global_pool_layer, out_pool_dim = parse_pooling_layer(layer_out_dims[-1], self.pooling)
+        self.global_pool_layer, out_pool_dim = parse_pooling_layer_dgl(layer_out_dims[-1], self.pooling)
 
         # Output linear layer
         self.out_linear = FCLayer(
