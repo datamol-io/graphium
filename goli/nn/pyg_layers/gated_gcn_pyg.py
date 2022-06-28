@@ -1,3 +1,10 @@
+"""
+Unit tests for the different layers of goli/nn/pyg_layers/...
+
+The layers are not thoroughly tested due to the difficulty of testing them
+"""
+
+
 import torch
 import torch.nn as nn
 from typing import Union, Callable
