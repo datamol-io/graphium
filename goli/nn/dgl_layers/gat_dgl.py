@@ -4,7 +4,7 @@ from typing import Union, Callable
 from dgl.nn.pytorch import GATConv
 from dgl import DGLGraph
 
-from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.utils.decorators import classproperty
 
 """
@@ -14,7 +14,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class GATDgl(BaseGraphLayer):
+class GATDgl(BaseGraphModule):
     def __init__(
         self,
         in_dim: int,

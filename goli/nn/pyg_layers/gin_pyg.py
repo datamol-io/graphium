@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import torch_geometric.nn as pyg_nn
 from typing import Callable, Union
 
-from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
@@ -20,7 +20,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class GINConvPyg(BaseGraphLayer):
+class GINConvPyg(BaseGraphModule):
     def __init__(
         self,
         in_dim: int,
@@ -159,7 +159,7 @@ class GINConvPyg(BaseGraphLayer):
 
 
 
-class GINEConvPyg(BaseGraphLayer):
+class GINEConvPyg(BaseGraphModule):
     def __init__(
         self,
         in_dim: int,

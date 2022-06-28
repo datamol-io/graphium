@@ -6,7 +6,7 @@ from copy import deepcopy
 
 from goli.nn.pna_operations import PNA_DGL_AGGREGATORS, PNA_DGL_SCALERS
 from goli.nn.base_layers import MLP, get_activation
-from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.utils.decorators import classproperty
 
 """
@@ -16,7 +16,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class BasePNADgl(BaseGraphLayer):
+class BasePNADgl(BaseGraphModule):
     def __init__(
         self,
         in_dim: int,

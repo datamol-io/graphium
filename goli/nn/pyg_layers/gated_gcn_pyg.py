@@ -2,13 +2,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple, Union, Callable
-import torch_geometric.nn as pyg_nn
+from torch_geometric.nn.conv import MessagePassing
 from torch_scatter import scatter
 
 from goli.nn.base_graph_layer import BaseGraphStructure
 from goli.utils.decorators import classproperty
+from goli.nn.base_layers import FCLayer
 
-class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
+class GatedGCNPyg(MessagePassing, BaseGraphStructure):
     def __init__(
         self,
         in_dim: int,
@@ -50,12 +51,13 @@ class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
                 - `Callable`: Any callable function
 
         """
-        super(pyg_nn.conv.MessagePassing, self).__init__(
+        MessagePassing.__init__(
+            self,
             aggr = "add",
             flow = "source_to_target",
-            node_dim = -2
-        )
-        super(BaseGraphStructure, self).__init__(
+            node_dim = -2)
+        BaseGraphStructure.__init__(
+            self,
             in_dim=in_dim,
             out_dim=out_dim,
             activation=activation,
@@ -63,13 +65,15 @@ class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
             normalization=normalization,
         )
 
+        self._initialize_activation_dropout_norm()
+        self.norm_edges = self._parse_norm(normalization)
+
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)
         self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
 
-        self.norm_edges = self._parse_norm(normalization)
 
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
@@ -79,9 +83,6 @@ class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
         e               : [n_edges, in_dim]
         edge_index      : [2, n_edges]
         """
-        if self.residual:
-            x_in = x
-            e_in = e
 
         Ax = self.A(x)
         Bx = self.B(x)
@@ -89,14 +90,9 @@ class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
         Dx = self.D(x)
         Ex = self.E(x)
 
-        # Handling for Equivariant and Stable PE using LapPE
-        # ICLR 2022 https://openreview.net/pdf?id=e95i1IHcWj
-        pe_LapPE = batch.pe_EquivStableLapPE if self.EquivStablePE else None
-
         x, e = self.propagate(edge_index,
                               Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce,
-                              e=e, Ax=Ax,
-                              PE=pe_LapPE)
+                              e=e, Ax=Ax)
 
         x = self.apply_norm_activation_dropout(x)
         e = self.norm_edges(e)
@@ -107,7 +103,7 @@ class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
 
         return batch
 
-    def message(self, Dx_i, Ex_j, PE_i, PE_j, Ce):
+    def message(self, Dx_i, Ex_j, Ce):
         """
         {}x_i           : [n_edges, out_dim]
         {}x_j           : [n_edges, out_dim]
@@ -115,13 +111,6 @@ class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
         """
         e_ij = Dx_i + Ex_j + Ce
         sigma_ij = torch.sigmoid(e_ij)
-
-        # Handling for Equivariant and Stable PE using LapPE
-        # ICLR 2022 https://openreview.net/pdf?id=e95i1IHcWj
-        if self.EquivStablePE:
-            r_ij = ((PE_i - PE_j) ** 2).sum(dim=-1, keepdim=True)
-            r_ij = self.mlp_r_ij(r_ij)  # the MLP is 1 dim --> hidden_dim --> 1 dim
-            sigma_ij = sigma_ij * r_ij
 
         self.e = e_ij
         return sigma_ij
