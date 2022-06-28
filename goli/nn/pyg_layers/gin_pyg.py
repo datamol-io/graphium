@@ -154,8 +154,6 @@ class GINConvPyg(BaseGraphModule):
         return 1
 
 
-
-
 class GINEConvPyg(BaseGraphModule):
     def __init__(
         self,
@@ -222,7 +220,7 @@ class GINEConvPyg(BaseGraphModule):
             last_normalization="none",
         )
 
-        self.model = pyg_nn.GINEConv(gin_nn) #, node_dim=-1)
+        self.model = pyg_nn.GINEConv(gin_nn)  # , node_dim=-1)
 
     def forward(self, batch):
 
@@ -292,5 +290,3 @@ class GINEConvPyg(BaseGraphModule):
                 Always ``1`` for the current class
         """
         return 1
-
-

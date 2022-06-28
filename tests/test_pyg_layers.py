@@ -26,9 +26,9 @@ class test_Pyg_Layers(ut.TestCase):
 
     edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
     edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
-    x1 = torch.zeros(edge_idx1.max()+1, in_dim, dtype=torch.float32)
+    x1 = torch.zeros(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
     e1 = torch.ones(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
-    x2 = torch.ones(edge_idx2.max()+1, in_dim, dtype=torch.float32)
+    x2 = torch.ones(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
     e2 = torch.zeros(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
     # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
     # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
@@ -41,7 +41,6 @@ class test_Pyg_Layers(ut.TestCase):
         "dropout": 0.1,
         "normalization": "batch_norm",
     }
-
 
     def test_ginlayer(self):
 
@@ -108,7 +107,6 @@ class test_Pyg_Layers(ut.TestCase):
         bg2 = layer.forward(bg)
         self.assertEqual(bg2.x.shape[0], h_in.shape[0])
         self.assertEqual(bg2.x.shape[1], self.out_dim * layer.out_dim_factor)
-
 
     def test_pnamessagepassinglayer(self):
 

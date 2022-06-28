@@ -13,6 +13,7 @@ from goli.utils.decorators import classproperty
 from goli.nn.base_layers import MLP, get_activation
 from goli.nn.base_graph_layer import BaseGraphStructure
 
+
 class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
     r"""
     Implementation of the message passing architecture of the PNA message passing layer,
@@ -99,9 +100,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
 
         """
 
-        MessagePassing.__init__(
-            self,
-            node_dim=0)
+        MessagePassing.__init__(self, node_dim=0)
         BaseGraphStructure.__init__(
             self,
             in_dim=in_dim,
@@ -154,12 +153,11 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         x, edge_index, edge_attr = batch.x, batch.edge_index, batch.edge_attr
 
         out = self.propagate(edge_index, x=x, edge_attr=edge_attr, size=None)
-        out = self.posttrans(out) # No more towers and concat with x
+        out = self.posttrans(out)  # No more towers and concat with x
         batch.x = out
         return batch
 
-    def message(self, x_i: Tensor, x_j: Tensor,
-                edge_attr: OptTensor) -> Tensor:
+    def message(self, x_i: Tensor, x_j: Tensor, edge_attr: OptTensor) -> Tensor:
 
         h: Tensor = x_i  # Dummy.
         if (edge_attr is not None) and (self.edge_encoder is not None):
@@ -168,28 +166,28 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         else:
             h = torch.cat([x_i, x_j], dim=-1)
 
-        return self.pretrans(h) # No more towers
+        return self.pretrans(h)  # No more towers
 
-    def aggregate(self, inputs: Tensor, index: Tensor, edge_index: Tensor,
-                  dim_size: Optional[int] = None) -> Tensor:
+    def aggregate(
+        self, inputs: Tensor, index: Tensor, edge_index: Tensor, dim_size: Optional[int] = None
+    ) -> Tensor:
 
         outs = []
 
         for aggregator in self.aggregators:
-            if aggregator == 'sum':
-                out = scatter(inputs, index, 0, None, dim_size, reduce='sum')
-            elif aggregator == 'mean':
-                out = scatter(inputs, index, 0, None, dim_size, reduce='mean')
-            elif aggregator == 'min':
-                out = scatter(inputs, index, 0, None, dim_size, reduce='min')
-            elif aggregator == 'max':
-                out = scatter(inputs, index, 0, None, dim_size, reduce='max')
-            elif aggregator in ['var', 'std']:
-                mean = scatter(inputs, index, 0, None, dim_size, reduce='mean')
-                mean_squares = scatter(inputs * inputs, index, 0, None,
-                                       dim_size, reduce='mean')
+            if aggregator == "sum":
+                out = scatter(inputs, index, 0, None, dim_size, reduce="sum")
+            elif aggregator == "mean":
+                out = scatter(inputs, index, 0, None, dim_size, reduce="mean")
+            elif aggregator == "min":
+                out = scatter(inputs, index, 0, None, dim_size, reduce="min")
+            elif aggregator == "max":
+                out = scatter(inputs, index, 0, None, dim_size, reduce="max")
+            elif aggregator in ["var", "std"]:
+                mean = scatter(inputs, index, 0, None, dim_size, reduce="mean")
+                mean_squares = scatter(inputs * inputs, index, 0, None, dim_size, reduce="mean")
                 out = mean_squares - mean * mean
-                if aggregator == 'std':
+                if aggregator == "std":
                     out = torch.sqrt(torch.relu(out) + 1e-5)
             else:
                 raise ValueError(f'Unknown aggregator "{aggregator}".')
@@ -201,16 +199,16 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
 
         outs = []
         for scaler in self.scalers:
-            if scaler == 'identity':
+            if scaler == "identity":
                 pass
-            elif scaler == 'amplification':
-                out = out * (torch.log(deg + 1) / self.avg_d['log'])
-            elif scaler == 'attenuation':
-                out = out * (self.avg_d['log'] / torch.log(deg + 1))
-            elif scaler == 'linear':
-                out = out * (deg / self.avg_d['lin'])
-            elif scaler == 'inverse_linear':
-                out = out * (self.avg_d['lin'] / deg)
+            elif scaler == "amplification":
+                out = out * (torch.log(deg + 1) / self.avg_d["log"])
+            elif scaler == "attenuation":
+                out = out * (self.avg_d["log"] / torch.log(deg + 1))
+            elif scaler == "linear":
+                out = out * (deg / self.avg_d["lin"])
+            elif scaler == "inverse_linear":
+                out = out * (self.avg_d["lin"] / deg)
             else:
                 raise ValueError(f'Unknown scaler "{scaler}".')
             outs.append(out)
@@ -251,7 +249,6 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         """
         return 1
 
-
     @property
     def layer_inputs_edges(self) -> bool:
         r"""
@@ -267,7 +264,6 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         """
         return self.edge_features
 
-
     @classproperty
     def layer_supports_edges(cls) -> bool:
         r"""
@@ -279,4 +275,3 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
                 Always ``True`` for the current class
         """
         return True
-

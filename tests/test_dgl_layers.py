@@ -84,9 +84,7 @@ class test_DGL_Layers(ut.TestCase):
         num_heads = 3
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        layer = GATDgl(in_dim=self.in_dim, out_dim=self.out_dim, num_heads=num_heads, **self.kwargs).to(
-            float
-        )
+        layer = GATDgl(in_dim=self.in_dim, out_dim=self.out_dim, num_heads=num_heads, **self.kwargs).to(float)
 
         # Check the re-implementation of abstract methods
         self.assertFalse(layer.layer_supports_edges)
