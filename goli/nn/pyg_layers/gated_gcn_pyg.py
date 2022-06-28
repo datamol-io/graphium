@@ -5,10 +5,10 @@ from typing import Tuple, Union, Callable
 import torch_geometric.nn as pyg_nn
 from torch_scatter import scatter
 
-from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphStructure
 from goli.utils.decorators import classproperty
 
-class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphLayer):
+class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphStructure):
     def __init__(
         self,
         in_dim: int,
@@ -50,15 +50,18 @@ class GatedGCNPyg(pyg_nn.conv.MessagePassing, BaseGraphLayer):
                 - `Callable`: Any callable function
 
         """
-        super(BaseGraphLayer, self).__init__(
+        super(pyg_nn.conv.MessagePassing, self).__init__(
+            aggr = "add",
+            flow = "source_to_target",
+            node_dim = -2
+        )
+        super(BaseGraphStructure, self).__init__(
             in_dim=in_dim,
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
             normalization=normalization,
         )
-        super(pyg_nn.conv.MessagePassing, self).__init__(
-            aggr = "add", flow = "source_to_target", node_dim = -2)
 
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)

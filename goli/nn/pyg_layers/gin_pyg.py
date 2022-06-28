@@ -225,7 +225,7 @@ class GINEConvPyg(BaseGraphLayer):
             last_normalization="none",
         )
 
-        self.model = pyg_nn.GINEConv(gin_nn)
+        self.model = pyg_nn.GINEConv(gin_nn) #, node_dim=-1)
 
     def forward(self, batch):
 

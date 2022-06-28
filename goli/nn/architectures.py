@@ -5,7 +5,7 @@ from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
 from goli.nn.base_layers import FCLayer, get_activation
-from goli.nn.dgl_layers import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphLayer
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionWeighted,
