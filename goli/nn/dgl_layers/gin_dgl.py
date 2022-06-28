@@ -3,7 +3,7 @@ import dgl.function as fn
 from dgl import DGLGraph
 from typing import Callable, Union
 
-from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
@@ -14,7 +14,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class GINDgl(BaseGraphLayer):
+class GINDgl(BaseGraphModule):
     def __init__(
         self,
         in_dim: int,

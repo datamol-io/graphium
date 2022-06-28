@@ -55,6 +55,20 @@ class BaseGraphStructure():
         self.dropout = dropout
         self.activation = activation
 
+    def _initialize_activation_dropout_norm(self):
+
+        if not isinstance(self, nn.Module):
+            raise TypeError("This function requires the current object to be an `nn.Module`. Use multi-inheritance or the class `BaseGraphModule` instead")
+
+        # Build the layers
+        self.activation_layer = get_activation(self.activation)
+
+        self.dropout_layer = None
+        if self.dropout > 0:
+            self.dropout_layer = nn.Dropout(p=self.dropout)
+
+        self.norm_layer = self._parse_norm(self.normalization)
+
 
     def _parse_norm(self, normalization):
 
@@ -192,7 +206,7 @@ class BaseGraphStructure():
 
 
 
-class BaseGraphLayer(nn.Module, BaseGraphStructure):
+class BaseGraphModule(BaseGraphStructure, nn.Module):
     def __init__(
         self,
         in_dim: int,
@@ -200,7 +214,6 @@ class BaseGraphLayer(nn.Module, BaseGraphStructure):
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
-        **kwargs,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -231,7 +244,7 @@ class BaseGraphLayer(nn.Module, BaseGraphStructure):
                 - `Callable`: Any callable function
         """
 
-        super(BaseGraphStructure, self).__init__(
+        super(BaseGraphModule, self).__init__(
             in_dim = in_dim,
             out_dim = out_dim,
             normalization = normalization,
@@ -239,11 +252,4 @@ class BaseGraphLayer(nn.Module, BaseGraphStructure):
             activation = activation,
             )
 
-        # Build the layers
-        self.activation_layer = get_activation(activation)
-
-        self.dropout_layer = None
-        if dropout > 0:
-            self.dropout_layer = nn.Dropout(p=dropout)
-
-        self.norm_layer = self._parse_norm(normalization)
+        self._initialize_activation_dropout_norm()

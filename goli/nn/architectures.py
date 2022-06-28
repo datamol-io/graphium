@@ -5,7 +5,7 @@ from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
 
 from goli.nn.base_layers import FCLayer, get_activation
-from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionWeighted,
@@ -598,7 +598,7 @@ class FeedForwardDGL(FeedForwardNN):
 
     def _dgl_layer_forward(
         self,
-        layer: BaseGraphLayer,
+        layer: BaseGraphModule,
         g: dgl.DGLGraph,
         h: torch.Tensor,
         e: Union[torch.Tensor, None],

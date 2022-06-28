@@ -29,10 +29,10 @@ class test_Pyg_Layers(ut.TestCase):
 
     edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
     edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
-    x1 = torch.zeros(edge_idx1.max()+1, in_dim, dtype=float)
-    e1 = torch.ones(edge_idx1.shape[-1], in_dim_edges, dtype=float)
-    x2 = torch.ones(edge_idx2.max()+1, in_dim, dtype=float)
-    e2 = torch.zeros(edge_idx2.shape[-1], in_dim_edges, dtype=float)
+    x1 = torch.zeros(edge_idx1.max()+1, in_dim, dtype=torch.float32)
+    e1 = torch.ones(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
+    x2 = torch.ones(edge_idx2.max()+1, in_dim, dtype=torch.float32)
+    e2 = torch.zeros(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
     # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
     # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
     g1 = Data(x=x1, edge_index=edge_idx1, edge_attr=e1)
@@ -50,7 +50,7 @@ class test_Pyg_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.x
-        layer = GINConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
+        layer = GINConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
 
         # Check the re-implementation of abstract methods
         self.assertFalse(layer.layer_supports_edges)
@@ -67,7 +67,7 @@ class test_Pyg_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.x
-        layer = GINEConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
+        layer = GINEConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
 
         # Check the re-implementation of abstract methods
         self.assertTrue(layer.layer_supports_edges)
@@ -80,7 +80,7 @@ class test_Pyg_Layers(ut.TestCase):
             bg = layer.forward(bg)
 
         # Create new edge attributes with same dim and check that it works
-        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim), dtype=float)
+        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim), dtype=torch.float32)
         bg = layer.forward(bg)
         self.assertEqual(bg.x.shape[0], h_in.shape[0])
         self.assertEqual(bg.x.shape[1], self.out_dim * layer.out_dim_factor)
@@ -122,7 +122,7 @@ class test_Pyg_Layers(ut.TestCase):
 
         layer = PNAMessagePassingPyg(
             in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
-        ).to(float)
+        )
 
         # Check the re-implementation of abstract methods
         self.assertTrue(layer.layer_supports_edges)
@@ -145,7 +145,7 @@ class test_Pyg_Layers(ut.TestCase):
             scalers=scalers,
             in_dim_edges=self.in_dim_edges,
             **self.kwargs,
-        ).to(float)
+        )
 
         # Check the re-implementation of abstract methods
         self.assertTrue(layer.layer_supports_edges)
