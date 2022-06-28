@@ -11,9 +11,9 @@ from torch_geometric.utils import degree
 
 from goli.utils.decorators import classproperty
 from goli.nn.base_layers import MLP, get_activation
-from goli.nn.base_graph_layer import BaseGraphLayer
+from goli.nn.base_graph_layer import BaseGraphStructure
 
-class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
+class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
     r"""
     Implementation of the message passing architecture of the PNA message passing layer,
     previously known as `PNALayerComplex`. This layer applies an MLP as
@@ -42,7 +42,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
-        avg_d: Dict[str, float] = {"log": 1.0},
+        avg_d: Dict[str, float] = {"log": 1.0, "lin": 1.0},
         last_activation: Union[Callable, str] = "none",
         posttrans_layers: int = 1,
         pretrans_layers: int = 1,
@@ -99,31 +99,30 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
 
         """
 
-        super(BaseGraphLayer, self).__init__(
+        MessagePassing.__init__(
+            self,
+            node_dim=0)
+        BaseGraphStructure.__init__(
+            self,
             in_dim=in_dim,
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
             normalization=normalization,
         )
-        super().__init__(node_dim=0)
 
         self.aggregators = aggregators
         self.scalers = scalers
-        self.in_dim_edges = in_dim_edges
 
         # Edge dimensions
         self.in_dim_edges = in_dim_edges
+        self.edge_encoder = None
         if self.in_dim_edges > 0:
-            self.edge_encoder = Linear(self.in_dim_edges, self.F_in)
+            self.edge_encoder = Linear(self.in_dim_edges, self.in_dim_edges)
 
         # Initializing basic attributes
         self.avg_d = avg_d
         self.last_activation = get_activation(last_activation)
-
-        # Initializing aggregators and scalers
-        self.aggregators = self.parse_aggregators(aggregators)
-        self.scalers = self._parse_scalers(scalers)
 
         # MLP used on each pair of nodes with their edge MLP(h_u, h_v, e_uv)
         self.pretrans = MLP(
@@ -140,7 +139,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
 
         # MLP used on the aggregated messages of the neighbours
         self.posttrans = MLP(
-            in_dim=(len(aggregators) * len(scalers)) * (self.in_dim + self.in_dim_edges),
+            in_dim=(len(aggregators) * len(scalers)) * self.in_dim,
             hidden_dim=self.out_dim,
             out_dim=self.out_dim,
             layers=posttrans_layers,
@@ -156,26 +155,26 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
 
         out = self.propagate(edge_index, x=x, edge_attr=edge_attr, size=None)
         out = self.posttrans(out) # No more towers and concat with x
+        batch.x = out
         return batch
 
     def message(self, x_i: Tensor, x_j: Tensor,
                 edge_attr: OptTensor) -> Tensor:
 
         h: Tensor = x_i  # Dummy.
-        if edge_attr is not None:
+        if (edge_attr is not None) and (self.edge_encoder is not None):
             edge_attr = self.edge_encoder(edge_attr)
-            edge_attr = edge_attr.view(-1, 1, self.F_in)
-            edge_attr = edge_attr.repeat(1, self.towers, 1)
             h = torch.cat([x_i, x_j, edge_attr], dim=-1)
         else:
             h = torch.cat([x_i, x_j], dim=-1)
 
         return self.pretrans(h) # No more towers
 
-    def aggregate(self, inputs: Tensor, index: Tensor,
+    def aggregate(self, inputs: Tensor, index: Tensor, edge_index: Tensor,
                   dim_size: Optional[int] = None) -> Tensor:
 
         outs = []
+
         for aggregator in self.aggregators:
             if aggregator == 'sum':
                 out = scatter(inputs, index, 0, None, dim_size, reduce='sum')
@@ -185,7 +184,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
                 out = scatter(inputs, index, 0, None, dim_size, reduce='min')
             elif aggregator == 'max':
                 out = scatter(inputs, index, 0, None, dim_size, reduce='max')
-            elif aggregator == 'var' or aggregator == 'std':
+            elif aggregator in ['var', 'std']:
                 mean = scatter(inputs, index, 0, None, dim_size, reduce='mean')
                 mean_squares = scatter(inputs * inputs, index, 0, None,
                                        dim_size, reduce='mean')
@@ -198,20 +197,20 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
         out = torch.cat(outs, dim=-1)
 
         deg = degree(index, dim_size, dtype=inputs.dtype)
-        deg = deg.clamp_(1).view(-1, 1, 1)
+        deg = deg.clamp_(1).view(-1, 1)
 
         outs = []
         for scaler in self.scalers:
             if scaler == 'identity':
                 pass
             elif scaler == 'amplification':
-                out = out * (torch.log(deg + 1) / self.avg_deg['log'])
+                out = out * (torch.log(deg + 1) / self.avg_d['log'])
             elif scaler == 'attenuation':
-                out = out * (self.avg_deg['log'] / torch.log(deg + 1))
+                out = out * (self.avg_d['log'] / torch.log(deg + 1))
             elif scaler == 'linear':
-                out = out * (deg / self.avg_deg['lin'])
+                out = out * (deg / self.avg_d['lin'])
             elif scaler == 'inverse_linear':
-                out = out * (self.avg_deg['lin'] / deg)
+                out = out * (self.avg_d['lin'] / deg)
             else:
                 raise ValueError(f'Unknown scaler "{scaler}".')
             outs.append(out)
@@ -252,17 +251,6 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
         """
         return 1
 
-    @classproperty
-    def layer_supports_edges(cls) -> bool:
-        r"""
-        Return a boolean specifying if the layer type supports edges or not.
-
-        Returns:
-
-            bool:
-                Always ``True`` for the current class
-        """
-        return True
 
     @property
     def layer_inputs_edges(self) -> bool:
@@ -278,3 +266,17 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphLayer):
                 Returns ``self.edge_features``
         """
         return self.edge_features
+
+
+    @classproperty
+    def layer_supports_edges(cls) -> bool:
+        r"""
+        Return a boolean specifying if the layer type supports edges or not.
+
+        Returns:
+
+            bool:
+                Always ``True`` for the current class
+        """
+        return True
+

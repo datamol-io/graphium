@@ -7,7 +7,7 @@ from goli.nn.base_layers import get_activation
 from goli.utils.decorators import classproperty
 
 
-class BaseGraphLayer(nn.Module):
+class BaseGraphStructure():
     def __init__(
         self,
         in_dim: int,
@@ -15,6 +15,7 @@ class BaseGraphLayer(nn.Module):
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -54,14 +55,6 @@ class BaseGraphLayer(nn.Module):
         self.dropout = dropout
         self.activation = activation
 
-        # Build the layers
-        self.activation_layer = get_activation(activation)
-
-        self.dropout_layer = None
-        if dropout > 0:
-            self.dropout_layer = nn.Dropout(p=dropout)
-
-        self.norm_layer = self._parse_norm(normalization)
 
     def _parse_norm(self, normalization):
 
@@ -196,3 +189,61 @@ class BaseGraphLayer(nn.Module):
         f = self.out_dim_factor
         out_dim_f_print = "" if f == 1 else f" * {f}"
         return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}{out_dim_f_print}, activation={self.activation})"
+
+
+
+class BaseGraphLayer(nn.Module, BaseGraphStructure):
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        activation: Union[str, Callable] = "relu",
+        dropout: float = 0.0,
+        normalization: Union[str, Callable] = "none",
+        **kwargs,
+    ):
+        r"""
+        Abstract class used to standardize the implementation of DGL layers
+        in the current library. It will allow a network to seemlesly swap between
+        different GNN layers by better understanding the expected inputs
+        and outputs.
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the layer
+
+            out_dim:
+                Output feature dimensions of the layer
+
+            activation:
+                activation function to use in the layer
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
+        """
+
+        super(BaseGraphStructure, self).__init__(
+            in_dim = in_dim,
+            out_dim = out_dim,
+            normalization = normalization,
+            dropout = dropout,
+            activation = activation,
+            )
+
+        # Build the layers
+        self.activation_layer = get_activation(activation)
+
+        self.dropout_layer = None
+        if dropout > 0:
+            self.dropout_layer = nn.Dropout(p=dropout)
+
+        self.norm_layer = self._parse_norm(normalization)
