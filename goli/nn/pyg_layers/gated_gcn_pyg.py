@@ -1,13 +1,11 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from typing import Tuple, Union, Callable
+from typing import Union, Callable
 from torch_geometric.nn.conv import MessagePassing
 from torch_scatter import scatter
 
 from goli.nn.base_graph_layer import BaseGraphStructure
 from goli.utils.decorators import classproperty
-from goli.nn.base_layers import FCLayer
 
 class GatedGCNPyg(MessagePassing, BaseGraphStructure):
     def __init__(
