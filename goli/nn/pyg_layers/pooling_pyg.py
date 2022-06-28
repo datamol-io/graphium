@@ -12,6 +12,7 @@ from goli.utils.tensor import ModuleListConcat
 
 EPS = 1e-6
 
+
 def global_min_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
     r"""Returns batch-wise graph-level-outputs by taking the channel-wise
     minimum across the node dimension, so that for a single graph
@@ -31,7 +32,7 @@ def global_min_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
     :rtype: :class:`Tensor`
     """
     size = int(batch.max().item() + 1) if size is None else size
-    return scatter(x, batch, dim=0, dim_size=size, reduce='min')
+    return scatter(x, batch, dim=0, dim_size=size, reduce="min")
 
 
 def global_logsum_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
@@ -54,7 +55,7 @@ def global_logsum_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None)
     :rtype: :class:`Tensor`
     """
     size = int(batch.max().item() + 1) if size is None else size
-    mean_pool = scatter(x, batch, dim=0, dim_size=size, reduce='mean')
+    mean_pool = scatter(x, batch, dim=0, dim_size=size, reduce="mean")
     _, num_nodes = torch.unique(batch, return_counts=True)
     lognum = torch.log(num_nodes)
     return mean_pool * lognum.unsqueeze(-1)
@@ -79,8 +80,8 @@ def global_std_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
     :rtype: :class:`Tensor`
     """
     size = int(batch.max().item() + 1) if size is None else size
-    mean = scatter(x, batch, dim=0, out=None, dim_size=size, reduce='mean')
-    mean_squares = scatter(x * x, batch, dim=0, out=None, dim_size=size, reduce='mean')
+    mean = scatter(x, batch, dim=0, out=None, dim_size=size, reduce="mean")
+    mean_squares = scatter(x * x, batch, dim=0, out=None, dim_size=size, reduce="mean")
     out = mean_squares - mean * mean
     return torch.sqrt(torch.relu(out) + 1e-5)
 
@@ -198,9 +199,7 @@ class VirtualNodePyg(nn.Module):
             bias=bias,
         )
 
-    def forward(
-        self, x: Tensor, vn_x: Tensor, batch: LongTensor
-    ) -> Tuple[Tensor, Tensor]:
+    def forward(self, x: Tensor, vn_x: Tensor, batch: LongTensor) -> Tuple[Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
 

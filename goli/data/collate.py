@@ -11,8 +11,8 @@ from goli.features import dgl_dict_to_graph
 def goli_collate_fn(
     elements,
     labels_size_dict: Optional[Dict[str, int]],
-    mask_nan: Union[str, float, Type[None]] = "raise", 
-    do_not_collate_keys: List[str] = []
+    mask_nan: Union[str, float, Type[None]] = "raise",
+    do_not_collate_keys: List[str] = [],
 ):
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
@@ -80,13 +80,15 @@ def goli_collate_fn(
                 batch[key] = [d[key] for d in elements]
 
             # Multitask setting: We have to pad the missing labels
-            elif key == 'labels':
-                if labels_size_dict is not None:    # If we have to pad for the MTL setting
+            elif key == "labels":
+                if labels_size_dict is not None:  # If we have to pad for the MTL setting
                     for datum in elements:
                         nonempty_labels = datum["labels"].keys()
                         for label in labels_size_dict:
                             if label not in nonempty_labels:
-                                datum['labels'][label] = torch.full((labels_size_dict[label], len(elements)), torch.nan)
+                                datum["labels"][label] = torch.full(
+                                    (labels_size_dict[label], len(elements)), torch.nan
+                                )
                 else:
                     batch[key] = default_collate([d[key] for d in elements])
             # Otherwise, use the default torch batching

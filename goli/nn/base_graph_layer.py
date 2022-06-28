@@ -7,7 +7,7 @@ from goli.nn.base_layers import get_activation
 from goli.utils.decorators import classproperty
 
 
-class BaseGraphStructure():
+class BaseGraphStructure:
     def __init__(
         self,
         in_dim: int,
@@ -58,7 +58,9 @@ class BaseGraphStructure():
     def _initialize_activation_dropout_norm(self):
 
         if not isinstance(self, nn.Module):
-            raise TypeError("This function requires the current object to be an `nn.Module`. Use multi-inheritance or the class `BaseGraphModule` instead")
+            raise TypeError(
+                "This function requires the current object to be an `nn.Module`. Use multi-inheritance or the class `BaseGraphModule` instead"
+            )
 
         # Build the layers
         self.activation_layer = get_activation(self.activation)
@@ -68,7 +70,6 @@ class BaseGraphStructure():
             self.dropout_layer = nn.Dropout(p=self.dropout)
 
         self.norm_layer = self._parse_norm(self.normalization)
-
 
     def _parse_norm(self, normalization):
 
@@ -205,7 +206,6 @@ class BaseGraphStructure():
         return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}{out_dim_f_print}, activation={self.activation})"
 
 
-
 class BaseGraphModule(BaseGraphStructure, nn.Module):
     def __init__(
         self,
@@ -245,11 +245,11 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
         """
 
         super(BaseGraphModule, self).__init__(
-            in_dim = in_dim,
-            out_dim = out_dim,
-            normalization = normalization,
-            dropout = dropout,
-            activation = activation,
-            )
+            in_dim=in_dim,
+            out_dim=out_dim,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+        )
 
         self._initialize_activation_dropout_norm()

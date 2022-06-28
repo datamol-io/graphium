@@ -14,6 +14,7 @@ from torch_scatter import scatter
 from goli.nn.base_graph_layer import BaseGraphStructure
 from goli.utils.decorators import classproperty
 
+
 class GatedGCNPyg(MessagePassing, BaseGraphStructure):
     def __init__(
         self,
@@ -56,11 +57,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
                 - `Callable`: Any callable function
 
         """
-        MessagePassing.__init__(
-            self,
-            aggr = "add",
-            flow = "source_to_target",
-            node_dim = -2)
+        MessagePassing.__init__(self, aggr="add", flow="source_to_target", node_dim=-2)
         BaseGraphStructure.__init__(
             self,
             in_dim=in_dim,
@@ -79,7 +76,6 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
 
-
     def forward(self, batch):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
 
@@ -95,9 +91,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         Dx = self.D(x)
         Ex = self.E(x)
 
-        x, e = self.propagate(edge_index,
-                              Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce,
-                              e=e, Ax=Ax)
+        x, e = self.propagate(edge_index, Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce, e=e, Ax=Ax)
 
         x = self.apply_norm_activation_dropout(x)
         e = self.norm_edges(e)
@@ -129,12 +123,10 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         dim_size = Bx.shape[0]  # or None ??   <--- Double check this
 
         sum_sigma_x = sigma_ij * Bx_j
-        numerator_eta_xj = scatter(sum_sigma_x, index, 0, None, dim_size,
-                                   reduce='sum')
+        numerator_eta_xj = scatter(sum_sigma_x, index, 0, None, dim_size, reduce="sum")
 
         sum_sigma = sigma_ij
-        denominator_eta_xj = scatter(sum_sigma, index, 0, None, dim_size,
-                                     reduce='sum')
+        denominator_eta_xj = scatter(sum_sigma, index, 0, None, dim_size, reduce="sum")
 
         out = numerator_eta_xj / (denominator_eta_xj + 1e-6)
         return out
@@ -210,4 +202,3 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
                 Always ``1`` for the current class
         """
         return 1
-

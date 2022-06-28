@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Union, Any, Callable, Dict, Hashable
 from torch import Tensor
 
+
 class DictTensor(dict):
     """
     A class that combines the functionality of `dict` and `torch.Tensor`.
@@ -96,13 +97,13 @@ class DictTensor(dict):
 
     not_accepted_methods = {"__dict__"}
     from_tensor_methods = {
-                            "__lt__",
-                            "__le__",
-                            "__eq__",
-                            "__ne__",
-                            "__gt__",
-                            "__ge__",
-                            }
+        "__lt__",
+        "__le__",
+        "__eq__",
+        "__ne__",
+        "__gt__",
+        "__ge__",
+    }
 
     def _dict_func_wrapper(self, func: Callable):
         """
@@ -115,6 +116,7 @@ class DictTensor(dict):
         Parameters:
             func: The function to be wrapped.
         """
+
         def wrap(first_input: Union[DictTensor, Any], *args, **kwargs):
 
             # The following lines are for when a function is 'bounded' and
@@ -135,7 +137,9 @@ class DictTensor(dict):
                     if isinstance(arg0, DictTensor):
                         # If the first arg is also a `DictTensor`, loop it as well to apply
                         # the function to each pair of values from the `DictTensor`
-                        assert set(first_input.keys()) == set(arg0.keys()), f"Keys do not match. \nkeys1={first_input.keys()}\nkeys2={arg0.keys()}"
+                        assert set(first_input.keys()) == set(
+                            arg0.keys()
+                        ), f"Keys do not match. \nkeys1={first_input.keys()}\nkeys2={arg0.keys()}"
                         out[k] = this_func(v, arg0[k], *this_args[1:], **this_kwargs)
                     else:
                         # In the regular case, simply apply the function to each value of the `DictTensor`
@@ -152,6 +156,7 @@ class DictTensor(dict):
 
             out = self._to_dict_tensor(out, raise_if_type_error=False)
             return out
+
         return wrap
 
     def _create_property(self, prop_name: str):
@@ -160,8 +165,11 @@ class DictTensor(dict):
         When the property is called, it will be called on each value of the `self` dictionary,
         then returns a new dictionary.
         """
-        setattr(self.__class__, prop_name,
-            property(fget=lambda self: {k: getattr(v, prop_name) for k, v in self.items()}))
+        setattr(
+            self.__class__,
+            prop_name,
+            property(fget=lambda self: {k: getattr(v, prop_name) for k, v in self.items()}),
+        )
 
     def __init__(self, dic: Dict[Hashable, Tensor]):
         """
@@ -173,12 +181,16 @@ class DictTensor(dict):
 
         # Assert that the dictionary is a dict of Tensor
         assert isinstance(dic, dict), f"Must be a dict, got {type(dic)}"
-        assert all([isinstance(val, Tensor) for val in dic.values()]), f"Must only contain `torch.Tensor`, found {[type(v) for v in dic.values()]}"
+        assert all(
+            [isinstance(val, Tensor) for val in dic.values()]
+        ), f"Must only contain `torch.Tensor`, found {[type(v) for v in dic.values()]}"
 
         # From `torch.Tensor`, find the functions/methods/attributes to register
-        tensor_func_names = {f for f in dir(Tensor)} # if not ((f.endswith("_")) or (f.startswith("_")))}
-        dict_func_names = {f for f in dir(dict)} # if not ((f.endswith("_")) or (f.startswith("_")))}
-        func_names_to_register = (tensor_func_names - dict_func_names - self.not_accepted_methods) | self.from_tensor_methods
+        tensor_func_names = {f for f in dir(Tensor)}  # if not ((f.endswith("_")) or (f.startswith("_")))}
+        dict_func_names = {f for f in dir(dict)}  # if not ((f.endswith("_")) or (f.startswith("_")))}
+        func_names_to_register = (
+            tensor_func_names - dict_func_names - self.not_accepted_methods
+        ) | self.from_tensor_methods
 
         # Loop all selected functions/methods/attributes to register them in the current class
         for func_name in func_names_to_register:
@@ -191,7 +203,7 @@ class DictTensor(dict):
                 self._create_property(func_name)
 
     @staticmethod
-    def _to_dict_tensor(dic: Dict[Hashable, Tensor], raise_if_type_error:bool=True) -> DictTensor:
+    def _to_dict_tensor(dic: Dict[Hashable, Tensor], raise_if_type_error: bool = True) -> DictTensor:
         """
         Convert a dictionary of tensors into a `DictTensor`
         """
