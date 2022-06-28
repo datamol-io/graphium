@@ -4,12 +4,9 @@ Unit tests for the different layers of goli/dgl/dgl_layers/...
 The layers are not thoroughly tested due to the difficulty of testing them
 """
 
-import numpy as np
 import torch
-from torch.utils.data.dataloader import default_collate
 import unittest as ut
 from torch_geometric.data import Data, Batch
-from torch_geometric.utils import add_self_loops
 from copy import deepcopy
 
 from goli.nn.pyg_layers import (
