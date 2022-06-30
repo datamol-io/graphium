@@ -11,8 +11,6 @@ from goli.nn.residual_connections import (
     ResidualConnectionWeighted,
     ResidualConnectionRandom,
 )
-from goli.nn.dgl_layers.pooling_dgl import parse_pooling_layer_dgl, VirtualNodeDgl
-
 
 class FeedForwardNN(nn.Module):
     def __init__(
@@ -272,12 +270,13 @@ class FeedForwardNN(nn.Module):
         return class_str + layer_str
 
 
-class FeedForwardDGL(FeedForwardNN):
+class FeedForwardGraphBase(FeedForwardNN):
     def __init__(
         self,
         in_dim: int,
         out_dim: int,
         hidden_dims: List[int],
+        layer_type: Union[str, nn.Module],
         depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
@@ -291,17 +290,22 @@ class FeedForwardDGL(FeedForwardNN):
         hidden_dims_edges: List[int] = [],
         pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "GNN",
-        layer_type: Union[str, nn.Module] = "gcn",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
     ):
         r"""
+        **Astract class, must be inherited to override the following methods:**
+        - `_graph_layer_forward`
+        - `_parse_virtual_node_class`
+        - `_parse_pooling_layer`
+
         A flexible neural network architecture, with variable hidden dimensions,
         support for multiple layer types, and support for different residual
         connections.
 
-        This class is meant to work with different DGL-based graph neural networks
-        layers. Any layer must inherit from `goli.nn.dgl_layers.BaseDGLLayer`.
+        This class is meant to work with different graph neural networks
+        layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
+        or `goli.nn.base_graph_layer.BaseGraphLayer`.
 
         Parameters:
 
@@ -390,17 +394,21 @@ class FeedForwardDGL(FeedForwardNN):
 
             layer_type:
                 The type of layers to use in the network.
-                Either a class that inherits from `goli.nn.dgl_layers.BaseDGLLayer`,
+                A class that inherits from `goli.nn.dgl_layers.BaseDGLLayer`,
                 or one of the following strings
 
-                - "gcn": `GCNLayer`
-                - "gin": `GINLayer`
-                - "gat": `GATLayer`
-                - "gated-gcn": `GatedGCNLayer`
-                - "pna-conv": `PNAConvolutionalLayer`
-                - "pna-msgpass": `PNAMessagePassingLayer`
-                - "dgn-conv": `DGNConvolutionalLayer`
-                - "dgn-msgpass": `DGNMessagePassingLayer`
+                - "dgl:gcn": GCNDgl
+                - "dgl:gin": GINDgl
+                - "dgl:gat": GATDgl
+                - "dgl:gated-gcn": GatedGCNDgl
+                - "dgl:pna-conv": PNAConvolutionalDgl
+                - "dgl:pna-msgpass": PNAMessagePassingDgl
+                - "dgl:dgn-conv": DGNConvolutionalDgl
+                - "dgl:dgn-msgpass": DGNMessagePassingDgl
+                - "pyg:gin": GINConvPyg
+                - "pyg:gine": GINEConvPyg
+                - "pyg:gated-gcn": GatedGCNPyg
+                - "pyg:pna-msgpass": PNAMessagePassingPyg
 
             layer_kwargs:
                 The arguments to be used in the initialization of the layer provided by `layer_type`
@@ -432,6 +440,8 @@ class FeedForwardDGL(FeedForwardNN):
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
         self.pooling = pooling
 
+        self.virtual_node_class = self._parse_virtual_node_class()
+
         # Initialize the parent `FeedForwardNN`
         super().__init__(
             in_dim=in_dim,
@@ -460,6 +470,16 @@ class FeedForwardDGL(FeedForwardNN):
             (self.in_dim_edges > 0) or (self.full_dims_edges is not None)
         ) and not self.layer_class.layer_supports_edges:
             raise ValueError(f"Cannot use edge features with class `{self.layer_class}`")
+
+    def _parse_virtual_node_class(self) -> type:
+        r"""
+        Virtual method to parse the VirtualNode class. Must be inherited.
+
+        Should simply return the class of the virtual node that works
+        with the specified graph. Example below.
+        `return goli.nn.dgl_layers.pooling_dgl.VirtualNodeDgl`.
+        """
+        raise NotImplementedError
 
     def _create_layers(self):
         r"""
@@ -525,7 +545,7 @@ class FeedForwardDGL(FeedForwardNN):
             # Create the Virtual Node layer, except at the last layer
             if ii < len(residual_out_dims):
                 self.virtual_node_layers.append(
-                    VirtualNodeDgl(
+                    self.virtual_node_class(
                         dim=this_out_dim * self.layers[-1].out_dim_factor,
                         activation=this_activation,
                         dropout=this_dropout,
@@ -551,7 +571,7 @@ class FeedForwardDGL(FeedForwardNN):
             self.residual_edges_layer, _ = self._create_residual_connection(out_dims=layer_out_dims_edges)
         else:
             self.residual_edges_layer = None
-        self.global_pool_layer, out_pool_dim = parse_pooling_layer_dgl(layer_out_dims[-1], self.pooling)
+        self.global_pool_layer, out_pool_dim = self._parse_pooling_layer(layer_out_dims[-1], self.pooling)
 
         # Output linear layer
         self.out_linear = FCLayer(
@@ -596,10 +616,10 @@ class FeedForwardDGL(FeedForwardNN):
 
         return pooled_h
 
-    def _dgl_layer_forward(
+    def _graph_layer_forward(
         self,
         layer: BaseGraphModule,
-        g: dgl.DGLGraph,
+        g,
         h: torch.Tensor,
         e: Union[torch.Tensor, None],
         h_prev: Union[torch.Tensor, None],
@@ -607,18 +627,20 @@ class FeedForwardDGL(FeedForwardNN):
         step_idx: int,
     ) -> Tuple[torch.Tensor, Union[torch.Tensor, None], Union[torch.Tensor, None], Union[torch.Tensor, None]]:
         r"""
-        Apply the *i-th* DGL graph layer, where *i* is the index given by `step_idx`.
+        Apply the *i-th* graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.
 
         Then, the residual is also applied on both the features and the edges (if applicable)
 
+        **This function is virtual, so it needs to be implemented by the child class.**
+
         Parameters:
 
             layer:
-                The DGL layer used for the convolution
+                The layer used for the convolution
 
             g:
-                graph on which the convolution is done
+                batched graphs on which the convolution is done
 
             h (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
@@ -655,23 +677,40 @@ class FeedForwardDGL(FeedForwardNN):
 
         """
 
-        # Apply the GNN layer with the right inputs/outputs
-        if layer.layer_inputs_edges and layer.layer_outputs_edges:
-            h, e = layer(g=g, h=h, e=e)
-        elif layer.layer_inputs_edges:
-            h = layer(g=g, h=h, e=e)
-        elif layer.layer_outputs_edges:
-            h, e = layer(g=g, h=h)
-        else:
-            h = layer(g=g, h=h)
+        raise NotImplementedError("Virtual method must be overwritten by child class")
 
-        # Apply the residual layers on the features and edges (if applicable)
-        if step_idx < len(self.layers) - 1:
-            h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
-            if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
-                e, e_prev = self.residual_edges_layer.forward(e, e_prev, step_idx=step_idx)
+    def _parse_pooling_layer(self, in_dim: int, pooling: Union[str, List[str]], **kwargs) -> Tuple[nn.Module, int]:
+        r"""
+        Return the pooling layer
+        **This function is virtual, so it needs to be implemented by the child class.**
 
-        return h, e, h_prev, e_prev
+        Parameters:
+
+            in_dim:
+                The dimension at the input layer of the pooling
+
+            pooling:
+                The list of pooling layers to use. The accepted strings are:
+
+                - "sum": `SumPooling`
+                - "mean": `MeanPooling`
+                - "max": `MaxPooling`
+                - "min": `MinPooling`
+                - "std": `StdPooling`
+                - "s2s": `Set2Set`
+                - "dir{int}": `DirPooling`
+
+            kwargs:
+                Kew-word arguments for the pooling layer initialization
+
+        Return:
+            pool_layer: Pooling layer module
+            out_pool_dim: Output dimension of the pooling layer
+
+        """
+        raise NotImplementedError
+
+
 
     def _virtual_node_forward(
         self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
@@ -715,24 +754,23 @@ class FeedForwardDGL(FeedForwardNN):
 
         return h, vn_h
 
-    def forward(self, g: dgl.DGLGraph) -> torch.Tensor:
+    def forward(self, g, h: torch.Tensor, e: torch.Tensor) -> torch.Tensor:
         r"""
         Apply the full graph neural network on the input graph and node features.
 
         Parameters:
 
             g:
-                graph on which the convolution is done.
-                Must contain the following elements:
+                batched graphs on which the convolution is done
 
-                - `g.ndata["h"]`: `torch.Tensor[..., N, Din]`.
-                  Input node feature tensor, before the network.
-                  `N` is the number of nodes, `Din` is the input features
+            h (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the input features
 
-                - `g.edata["e"]`: `torch.Tensor[..., N, Ein]` **Optional**.
-                  The edge features to use. It will be ignored if the
-                  model doesn't supporte edge features or if
-                  `self.in_dim_edges==0`.
+            e (torch.Tensor[..., N, Ein]):
+                Edge feature tensor, before convolution.
+                `N` is the number of nodes, `Ein` is the input edge features
+
 
         Returns:
 
@@ -745,10 +783,6 @@ class FeedForwardDGL(FeedForwardNN):
 
         """
 
-        # Get node and edge features
-        h = g.ndata["h"]
-        e = g.edata["e"] if (self.in_dim_edges > 0) else None
-
         # Initialize values of the residuals and virtual node
         h_prev = None
         e_prev = None
@@ -756,7 +790,7 @@ class FeedForwardDGL(FeedForwardNN):
 
         # Apply the forward loop of the layers, residuals and virtual nodes
         for ii, layer in enumerate(self.layers):
-            h, e, h_prev, e_prev = self._dgl_layer_forward(
+            h, e, h_prev, e_prev = self._graph_layer_forward(
                 layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
             h, vn_h = self._virtual_node_forward(g=g, h=h, vn_h=vn_h, step_idx=ii)
@@ -777,7 +811,7 @@ class FeedForwardDGL(FeedForwardNN):
         return class_str + layer_str + pool_str + out_str
 
 
-class FullDGLNetwork(nn.Module):
+class FullGraphNetwork(nn.Module):
     def __init__(
         self,
         gnn_kwargs: Dict[str, Any],
@@ -849,7 +883,8 @@ class FullDGLNetwork(nn.Module):
             assert next_in_dim == gnn_kwargs["in_dim_edges"]
 
         name = gnn_kwargs.pop("name", "GNN")
-        self.gnn = FeedForwardDGL(**gnn_kwargs, name=name)
+        gnn_class = self._parse_feed_forward_gnn(gnn_kwargs)
+        self.gnn = gnn_class(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
 
         if post_nn_kwargs is not None:
@@ -857,6 +892,31 @@ class FullDGLNetwork(nn.Module):
             post_nn_kwargs.setdefault("in_dim", next_in_dim)
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim
+
+    @staticmethod
+    def _parse_feed_forward_gnn(gnn_kwargs):
+
+        layer_type = gnn_kwargs.get("layer_type")
+        layer_name = layer_type
+        if not isinstance(layer_name, str):
+            if inspect.isclass(layer_name):
+                layer_name = layer_name.__name__
+            else:
+                raise TypeError("`layer_type` should be `str` or class")
+        layer_name = layer_name.lower()
+
+        if inspect.isclass(layer_type):
+            if layer_name.startswith("dgl:") or layer_name.endswith("dgl"):
+                # Importing here to avoid circular imports
+                from goli.nn.architectures import FeedForwardDGL
+                return FeedForwardDGL
+            if layer_name.startswith("pyg:") or layer_name.endswith("pyg"):
+                # Importing here to avoid circular imports
+                from goli.nn.architectures import FeedForwardPyg
+                return FeedForwardPyg
+            else:
+                raise TypeError(f"Can't recognize if layer class uses Pyg or DGL")
+
 
     def _check_bad_arguments(self):
         r"""
@@ -1086,7 +1146,7 @@ class FullDGLNetwork(nn.Module):
         return self.gnn.in_dim_edges
 
 
-class FullDGLSiameseNetwork(FullDGLNetwork):
+class FullDGLSiameseNetwork(FullGraphNetwork):
     def __init__(self, pre_nn_kwargs, gnn_kwargs, post_nn_kwargs, dist_method, name="Siamese_DGL_GNN"):
 
         # Initialize the parent nn.Module
@@ -1150,7 +1210,7 @@ class TaskHeads(nn.Module):
         return task_head_outputs
 
 
-class FullDGLMultiTaskNetwork(FullDGLNetwork):
+class FullDGLMultiTaskNetwork(FullGraphNetwork):
     """
     Class that allows to implement a full multi-task graph neural network architecture,
     including the pre-processing MLP, post-processing MLP and the task-specific heads.
