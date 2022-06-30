@@ -17,6 +17,8 @@ from goli.nn.dgl_layers import (
     DGNMessagePassingDgl,
 )
 
+from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg
+
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
     ResidualConnectionDenseNet,
@@ -32,18 +34,26 @@ FC_LAYERS_DICT = {
 }
 
 DGL_LAYERS_DICT = {
-    "gcn": GCNDgl,
-    "gin": GINDgl,
-    "gat": GATDgl,
-    "gated-gcn": GatedGCNDgl,
-    "pna-conv": PNAConvolutionalDgl,
-    "pna-msgpass": PNAMessagePassingDgl,
-    "dgn-conv": DGNConvolutionalDgl,
-    "dgn-msgpass": DGNMessagePassingDgl,
+    "dgl:gcn": GCNDgl,
+    "dgl:gin": GINDgl,
+    "dgl:gat": GATDgl,
+    "dgl:gated-gcn": GatedGCNDgl,
+    "dgl:pna-conv": PNAConvolutionalDgl,
+    "dgl:pna-msgpass": PNAMessagePassingDgl,
+    "dgl:dgn-conv": DGNConvolutionalDgl,
+    "dgl:dgn-msgpass": DGNMessagePassingDgl,
+}
+
+PYG_LAYERS_DICT = {
+    "pyg:gin": GINConvPyg,
+    "pyg:gine": GINEConvPyg,
+    "pyg:gated-gcn": GatedGCNPyg,
+    "pyg:pna-msgpass": PNAMessagePassingPyg,
 }
 
 LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
 LAYERS_DICT.update(deepcopy(FC_LAYERS_DICT))
+LAYERS_DICT.update(deepcopy(PYG_LAYERS_DICT))
 
 
 RESIDUALS_DICT = {

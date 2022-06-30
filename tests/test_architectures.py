@@ -9,7 +9,7 @@ import unittest as ut
 import dgl
 from copy import deepcopy
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardDGL, FullDGLNetwork, FullDGLSiameseNetwork
+from goli.nn.architectures import FeedForwardNN, FeedForwardDGL #, FullDGLNetwork, FullDGLSiameseNetwork
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -345,13 +345,13 @@ class test_FeedForwardDGL(ut.TestCase):
     pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
 
     layers_kwargs = {
-        "gcn": {},
-        "gin": {},
-        "gat": {"layer_kwargs": {"num_heads": 3}},
-        "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "pna-conv": {"layer_kwargs": pna_kwargs},
-        "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+        "dgl:gcn": {},
+        "dgl:gin": {},
+        "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
+        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
+        "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
     def test_dgl_forward_no_residual(self):
@@ -596,84 +596,84 @@ class test_FeedForwardDGL(ut.TestCase):
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
 
-class test_FullDGLNetwork(ut.TestCase):
+# class test_FullDGLNetwork(ut.TestCase):
 
-    kwargs = {
-        "activation": "relu",
-        "last_activation": "none",
-        "normalization": "none",
-        "dropout": 0.2,
-        "name": "LNN",
-    }
+#     kwargs = {
+#         "activation": "relu",
+#         "last_activation": "none",
+#         "normalization": "none",
+#         "dropout": 0.2,
+#         "name": "LNN",
+#     }
 
-    in_dim = 7
-    out_dim = 11
-    in_dim_edges = 13
-    hidden_dims = [6, 6, 6, 6, 6]
+#     in_dim = 7
+#     out_dim = 11
+#     in_dim_edges = 13
+#     hidden_dims = [6, 6, 6, 6, 6]
 
-    g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
-    g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
-    g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    g1.edata["feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    g2.edata["feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
-    batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
-    batch = [dgl.add_self_loop(g) for g in batch]
-    bg = dgl.batch(batch)
+#     g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
+#     g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
+#     g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
+#     g1.edata["feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
+#     g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
+#     g2.edata["feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+#     batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
+#     batch = [dgl.add_self_loop(g) for g in batch]
+#     bg = dgl.batch(batch)
 
-    virtual_nodes = ["none", "mean", "sum"]
-    norms = ["none", None, "batch_norm", "layer_norm"]
-    pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
+#     virtual_nodes = ["none", "mean", "sum"]
+#     norms = ["none", None, "batch_norm", "layer_norm"]
+#     pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
 
-    gnn_layers_kwargs = {
-        "gcn": {},
-        "gin": {},
-        "gat": {"layer_kwargs": {"num_heads": 3}},
-        "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "pna-conv": {"layer_kwargs": pna_kwargs},
-        "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
-    }
+#     gnn_layers_kwargs = {
+#         "gcn": {},
+#         "gin": {},
+#         "gat": {"layer_kwargs": {"num_heads": 3}},
+#         "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+#         "pna-conv": {"layer_kwargs": pna_kwargs},
+#         "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+#         "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+#     }
 
-    def test_full_network_densenet(self):
+#     def test_full_network_densenet(self):
 
-        temp_dim_1 = 5
-        temp_dim_2 = 17
+#         temp_dim_1 = 5
+#         temp_dim_2 = 17
 
-        pre_nn_kwargs = dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4, 4, 4, 4])
+#         pre_nn_kwargs = dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4, 4, 4, 4])
 
-        post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.out_dim, hidden_dims=[3, 3, 3, 3])
+#         post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.out_dim, hidden_dims=[3, 3, 3, 3])
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
+#         for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
+#             for residual_skip_steps in [1, 2, 3]:
+#                 for virtual_node in self.virtual_nodes:
+#                     for normalization in self.norms:
+#                         for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
+#                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+#                             layer_type = layer_name.split("#")[0]
 
-                            gnn_kwargs = dict(
-                                in_dim=temp_dim_1,
-                                out_dim=temp_dim_2,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="densenet",
-                                residual_skip_steps=residual_skip_steps,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                **this_kwargs,
-                                **self.kwargs,
-                            )
+#                             gnn_kwargs = dict(
+#                                 in_dim=temp_dim_1,
+#                                 out_dim=temp_dim_2,
+#                                 hidden_dims=self.hidden_dims,
+#                                 residual_type="densenet",
+#                                 residual_skip_steps=residual_skip_steps,
+#                                 layer_type=layer_type,
+#                                 pooling=pooling,
+#                                 **this_kwargs,
+#                                 **self.kwargs,
+#                             )
 
-                            net = FullDGLNetwork(
-                                pre_nn_kwargs=pre_nn_kwargs,
-                                gnn_kwargs=gnn_kwargs,
-                                post_nn_kwargs=post_nn_kwargs,
-                            )
-                            bg = deepcopy(self.bg)
-                            h_out = net.forward(bg)
+#                             net = FullDGLNetwork(
+#                                 pre_nn_kwargs=pre_nn_kwargs,
+#                                 gnn_kwargs=gnn_kwargs,
+#                                 post_nn_kwargs=post_nn_kwargs,
+#                             )
+#                             bg = deepcopy(self.bg)
+#                             h_out = net.forward(bg)
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
-                            self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+#                             dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
+#                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
 
 if __name__ == "__main__":
