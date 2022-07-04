@@ -8,8 +8,10 @@ The layers are not thoroughly tested due to the difficulty of testing them
 import torch
 import torch.nn as nn
 from typing import Union, Callable
+
 from torch_geometric.nn.conv import MessagePassing
 from torch_scatter import scatter
+from torch_geometric.data import Data, Batch
 
 from goli.nn.base_graph_layer import BaseGraphStructure
 from goli.utils.decorators import classproperty
@@ -76,7 +78,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
 
-    def forward(self, batch):
+    def forward(self, batch: Union[Data, Batch]):
         x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
 
         """
@@ -94,7 +96,8 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         x, e = self.propagate(edge_index, Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce, e=e, Ax=Ax)
 
         x = self.apply_norm_activation_dropout(x)
-        e = self.norm_edges(e)
+        if self.norm_edges is not None:
+            e = self.norm_edges(e)
         e = self.apply_norm_activation_dropout(e, normalization=False)
 
         batch.x = x

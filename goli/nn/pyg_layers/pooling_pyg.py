@@ -1,3 +1,4 @@
+from turtle import forward
 import torch
 import torch.nn as nn
 from torch import Tensor, LongTensor
@@ -5,9 +6,10 @@ from typing import List, Union, Callable, Tuple, Optional
 
 from torch_geometric.nn import global_add_pool, global_max_pool, global_mean_pool
 from torch_scatter import scatter
+from torch_geometric.data import Data, Batch
 
 from goli.nn.base_layers import MLP, FCLayer
-from goli.utils.tensor import ModuleListConcat
+from goli.utils.tensor import ModuleListConcat, ModuleWrap
 
 
 EPS = 1e-6
@@ -85,6 +87,9 @@ def global_std_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
     out = mean_squares - mean * mean
     return torch.sqrt(torch.relu(out) + 1e-5)
 
+class PoolingWrapperPyg(ModuleWrap):
+    def forward(self, g, h, *args, **kwargs):
+        return self.func(h, g.batch, *args, **kwargs)
 
 def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]]):
     r"""
@@ -99,11 +104,13 @@ def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]]):
         pooling:
             The list of pooling layers to use. The accepted strings are:
 
-            - "sum": `SumPooling`
-            - "mean": `MeanPooling`
-            - "max": `MaxPooling`
-            - "min": `MinPooling`
-            - "std": `StdPooling`
+            - "none": No pooling
+            - "sum": Sum all the nodes for each graph
+            - "mean": Mean all the nodes for each graph
+            - "logsum": Mean all the nodes then multiply by log(num_nodes) for each graph
+            - "max": Max all the nodes for each graph
+            - "min": Min all the nodes for each graph
+            - "std": Standard deviation of all the nodes for each graph
 
     """
 
@@ -119,17 +126,17 @@ def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]]):
         this_pool = None if this_pool is None else this_pool.lower()
         out_pool_dim += in_dim
         if this_pool == "sum":
-            pool_layer.append(global_add_pool)
+            pool_layer.append(PoolingWrapperPyg(global_add_pool))
         elif this_pool == "mean":
-            pool_layer.append(global_mean_pool)
+            pool_layer.append(PoolingWrapperPyg(global_mean_pool))
         elif this_pool == "logsum":
-            pool_layer.append(global_logsum_pool)
+            pool_layer.append(PoolingWrapperPyg(global_logsum_pool))
         elif this_pool == "max":
-            pool_layer.append(global_max_pool)
+            pool_layer.append(PoolingWrapperPyg(global_max_pool))
         elif this_pool == "min":
-            pool_layer.append(global_min_pool)
+            pool_layer.append(PoolingWrapperPyg(global_min_pool))
         elif this_pool == "std":
-            pool_layer.append(global_std_pool)
+            pool_layer.append(PoolingWrapperPyg(global_std_pool))
         elif (this_pool == "none") or (this_pool is None):
             pass
         else:
@@ -156,8 +163,20 @@ class VirtualNodePyg(nn.Module):
 
         Parameters:
 
-            in_dim:
-                Input feature dimensions of the virtual node layer
+            dim:
+                Input and output feature dimensions of the virtual node layer
+
+            vn_type:
+                The type of the virtual node. Choices are:
+
+                - "none": No pooling
+                - "sum": Sum all the nodes for each graph
+                - "mean": Mean all the nodes for each graph
+                - "logsum": Mean all the nodes then multiply by log(num_nodes) for each graph
+                - "max": Max all the nodes for each graph
+                - "min": Min all the nodes for each graph
+                - "std": Standard deviation of all the nodes for each graph
+
 
             activation:
                 activation function to use in the neural network layer.
@@ -189,6 +208,7 @@ class VirtualNodePyg(nn.Module):
             return
 
         self.vn_type = vn_type.lower()
+        self.layer = parse_pooling_layer_pyg(in_dim=self.dim, pooling=self.vn_type)
         self.residual = residual
         self.fc_layer = FCLayer(
             in_dim=dim,
@@ -199,17 +219,20 @@ class VirtualNodePyg(nn.Module):
             bias=bias,
         )
 
-    def forward(self, x: Tensor, vn_x: Tensor, batch: LongTensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
 
         Parameters:
 
-            x (torch.Tensor[..., N, Din]):
+            g:
+                PyG Graphs or Batched graphs.
+
+            h (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
 
-            vn_x (torch.Tensor[..., M, Din]):
+            vn_h (torch.Tensor[..., M, Din]):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features.
                 It is added to the result after the MLP, as a residual connection
@@ -218,11 +241,11 @@ class VirtualNodePyg(nn.Module):
 
         Returns:
 
-            `x = torch.Tensor[..., N, Dout]`:
+            `h = torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
 
-            `vn_x = torch.Tensor[..., M, Dout]`:
+            `vn_h = torch.Tensor[..., M, Dout]`:
                 Graph feature tensor to be used at the next virtual node, or `None`
                 `M` is the number of graphs, `Dout` is the output features
 
@@ -230,28 +253,18 @@ class VirtualNodePyg(nn.Module):
 
         # Pool the features
         if self.vn_type is None:
-            return x, vn_x
-        elif self.vn_type == "mean":
-            pool = global_mean_pool(x, batch)
-        elif self.vn_type == "max":
-            pool = global_max_pool(x, batch)
-        elif self.vn_type == "sum":
-            pool = global_add_pool(x, batch)
-        elif self.vn_type == "logsum":
-            pool = global_logsum_pool(x, batch)
+            return h, vn_h
         else:
-            raise ValueError(
-                f'Undefined input "{self.pooling}". Accepted values are "none", "sum", "mean", "logsum"'
-            )
+            pool = self.layer(g, h)
 
         # Compute the new virtual node features
-        vn_x_temp = self.fc_layer.forward(vn_x + pool)
+        vn_h_temp = self.fc_layer.forward(vn_h + pool)
         if self.residual:
-            vn_x = vn_x + vn_x_temp
+            vn_h = vn_h + vn_h_temp
         else:
-            vn_x = vn_x_temp
+            vn_h = vn_h_temp
 
         # Add the virtual node value to the graph features
-        x = x + vn_x[batch]
+        h = h + vn_h[g]
 
-        return x, vn_x
+        return h, vn_h

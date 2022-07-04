@@ -605,10 +605,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
 
         if len(self.global_pool_layer) > 0:
-            pooled_h = []
-            for this_pool in self.global_pool_layer:
-                pooled_h.append(this_pool(g, h))
-            pooled_h = torch.cat(pooled_h, dim=-1)
+            pooled_h = self.global_pool_layer(g, h)
         else:
             pooled_h = h
 
@@ -897,6 +894,8 @@ class FullGraphNetwork(nn.Module):
     def _parse_feed_forward_gnn(gnn_kwargs):
 
         layer_type = gnn_kwargs.get("layer_type")
+
+        # Get the layer name
         layer_name = layer_type
         if not isinstance(layer_name, str):
             if inspect.isclass(layer_name):
@@ -905,17 +904,17 @@ class FullGraphNetwork(nn.Module):
                 raise TypeError("`layer_type` should be `str` or class")
         layer_name = layer_name.lower()
 
-        if inspect.isclass(layer_type):
-            if layer_name.startswith("dgl:") or layer_name.endswith("dgl"):
-                # Importing here to avoid circular imports
-                from goli.nn.architectures import FeedForwardDGL
-                return FeedForwardDGL
-            if layer_name.startswith("pyg:") or layer_name.endswith("pyg"):
-                # Importing here to avoid circular imports
-                from goli.nn.architectures import FeedForwardPyg
-                return FeedForwardPyg
-            else:
-                raise TypeError(f"Can't recognize if layer class uses Pyg or DGL")
+        # Return the right FeedForward class
+        if layer_name.startswith("dgl:") or layer_name.endswith("dgl"):
+            # Importing here to avoid circular imports
+            from goli.nn.architectures import FeedForwardDGL
+            return FeedForwardDGL
+        if layer_name.startswith("pyg:") or layer_name.endswith("pyg"):
+            # Importing here to avoid circular imports
+            from goli.nn.architectures import FeedForwardPyg
+            return FeedForwardPyg
+        else:
+            raise TypeError(f"Can't recognize if layer class uses Pyg or DGL")
 
 
     def _check_bad_arguments(self):
