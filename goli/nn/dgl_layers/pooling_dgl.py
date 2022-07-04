@@ -262,8 +262,8 @@ class VirtualNodeDgl(nn.Module):
 
         Parameters:
 
-            in_dim:
-                Input feature dimensions of the virtual node layer
+            dim:
+                Input and output feature dimensions of the virtual node layer
 
             activation:
                 activation function to use in the neural network layer.

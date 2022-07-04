@@ -80,24 +80,20 @@ class FeedForwardPyg(FeedForwardGraphBase):
                 Edge feature tensor to be used at the next residual connection, or `None`
 
         """
-        raise NotImplementedError # TODO!
-        # # Apply the GNN layer with the right inputs/outputs
-        # if layer.layer_inputs_edges and layer.layer_outputs_edges:
-        #     h, e = layer(g=g, h=h, e=e)
-        # elif layer.layer_inputs_edges:
-        #     h = layer(g=g, h=h, e=e)
-        # elif layer.layer_outputs_edges:
-        #     h, e = layer(g=g, h=h)
-        # else:
-        #     h = layer(g=g, h=h)
 
-        # # Apply the residual layers on the features and edges (if applicable)
-        # if step_idx < len(self.layers) - 1:
-        #     h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
-        #     if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
-        #         e, e_prev = self.residual_edges_layer.forward(e, e_prev, step_idx=step_idx)
+        g = layer(g)
+        h = g.x
+        e = g.edge_attr
 
-        # return h, e, h_prev, e_prev
+        # Apply the residual layers on the features and edges (if applicable)
+        if step_idx < len(self.layers) - 1:
+            h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
+            if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
+                e, e_prev = self.residual_edges_layer.forward(e, e_prev, step_idx=step_idx)
+        g.x = h
+        g.edge_attr = e
+
+        return h, e, h_prev, e_prev
 
     def _parse_virtual_node_class(self) -> type:
         return VirtualNodePyg

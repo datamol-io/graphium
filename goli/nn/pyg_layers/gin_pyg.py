@@ -1,6 +1,8 @@
 import torch_geometric.nn as pyg_nn
 from typing import Callable, Union
 
+from torch_geometric.data import Data, Batch
+
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
@@ -84,7 +86,7 @@ class GINConvPyg(BaseGraphModule):
 
         self.model = pyg_nn.GINConv(gin_nn)
 
-    def forward(self, batch):
+    def forward(self, batch: Union[Data, Batch]):
 
         batch.x = self.model(batch.x, batch.edge_index)
         batch.x = self.apply_norm_activation_dropout(batch.x)

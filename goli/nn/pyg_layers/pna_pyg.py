@@ -8,6 +8,7 @@ from torch_scatter import scatter
 from torch_geometric.nn.conv import MessagePassing
 from torch_geometric.typing import OptTensor
 from torch_geometric.utils import degree
+from torch_geometric.data import Data, Batch
 
 from goli.utils.decorators import classproperty
 from goli.nn.base_layers import MLP, get_activation
@@ -149,7 +150,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
             last_normalization=normalization,
         )
 
-    def forward(self, batch):
+    def forward(self, batch: Union[Data, Batch]):
         x, edge_index, edge_attr = batch.x, batch.edge_index, batch.edge_attr
 
         out = self.propagate(edge_index, x=x, edge_attr=edge_attr, size=None)
