@@ -785,8 +785,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if "feat" in graph.edata.keys():
-            return graph.edata["feat"].shape[1]  # type: ignore
+        if "edge_feat" in graph.edata.keys():
+            return graph.edata["edge_feat"].shape[1]  # type: ignore
         else:
             return 0
 
@@ -1575,8 +1575,8 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if "feat" in graph.edata.keys():
-            return graph.edata["feat"].shape[1]  # type: ignore
+        if "edge_feat" in graph.edata.keys():
+            return graph.edata["edge_feat"].shape[1]  # type: ignore
         else:
             return 0
 
@@ -2322,8 +2322,8 @@ class MTLDGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if "feat" in graph.edata.keys():
-            return graph.edata["feat"].shape[1]  # type: ignore
+        if "edge_feat" in graph.edata.keys():
+            return graph.edata["edge_feat"].shape[1]  # type: ignore
         else:
             return 0
 

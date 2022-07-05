@@ -119,7 +119,7 @@ class BasePNADgl(BaseGraphModule):
         r"""
         The message function to generate messages along the edges.
         """
-        return {"e": edges.data["e"]}
+        return {"edge_attr": edges.data["edge_attr"]}
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
         r"""
@@ -127,7 +127,7 @@ class BasePNADgl(BaseGraphModule):
         Apply the aggregators and scalers, and concatenate the results.
         """
         h_in = nodes.data["h"]
-        h = nodes.mailbox["e"]
+        h = nodes.mailbox["edge_attr"]
         D = h.shape[-2]
         h_to_cat = [aggr(h=h, h_in=h_in) for aggr in self.aggregators]
         h = torch.cat(h_to_cat, dim=-1)
@@ -357,7 +357,7 @@ class PNAConvolutionalDgl(BasePNADgl):
             edata = torch.cat([edges.src["h"], edges.data["ef"]], dim=-1)
         else:
             edata = edges.src["h"]
-        return {"e": edata}
+        return {"edge_attr": edata}
 
     def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None) -> torch.Tensor:
         r"""
@@ -538,7 +538,7 @@ class PNAMessagePassingDgl(BasePNADgl):
             z2 = torch.cat([edges.src["h"], edges.dst["h"], edges.data["ef"]], dim=-1)
         else:
             z2 = torch.cat([edges.src["h"], edges.dst["h"]], dim=-1)
-        return {"e": self.pretrans(z2)}
+        return {"edge_attr": self.pretrans(z2)}
 
     def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None) -> torch.Tensor:
         r"""

@@ -81,7 +81,7 @@ class BaseDGNDgl:
         The message function to generate messages along the edges.
         """
         return {
-            "e": edges.data["e"],
+            "edge_attr": edges.data["edge_attr"],
             "source_pos": edges.data["source_pos"],
             "dest_pos": edges.data["dest_pos"],
         }
@@ -92,7 +92,7 @@ class BaseDGNDgl:
         Apply the aggregators and scalers, and concatenate the results.
         """
         h_in = nodes.data["h"]
-        h = nodes.mailbox["e"]
+        h = nodes.mailbox["edge_attr"]
         source_pos = nodes.mailbox["source_pos"]
         dest_pos = nodes.mailbox["dest_pos"]
         D = h.shape[-2]

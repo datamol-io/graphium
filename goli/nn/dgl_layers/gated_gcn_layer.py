@@ -73,7 +73,7 @@ class GatedGCNDgl(BaseGraphModule):
     def message_func(self, edges):
         Bh_j = edges.src["Bh"]
         e_ij = edges.data["Ce"] + edges.src["Dh"] + edges.dst["Eh"]  # e_ij = Ce_ij + Dhi + Ehj
-        edges.data["e"] = e_ij
+        edges.data["edge_attr"] = e_ij
         return {"Bh_j": Bh_j, "e_ij": e_ij}
 
     def reduce_func(self, nodes):
@@ -121,11 +121,11 @@ class GatedGCNDgl(BaseGraphModule):
         g.ndata["Bh"] = self.B(h)
         g.ndata["Dh"] = self.D(h)
         g.ndata["Eh"] = self.E(h)
-        g.edata["e"] = e
+        g.edata["edge_attr"] = e
         g.edata["Ce"] = self.C(e)
         g.update_all(self.message_func, self.reduce_func)
         h = g.ndata["h"]  # result of graph convolution
-        e = g.edata["e"]  # result of graph convolution
+        e = g.edata["edge_attr"]  # result of graph convolution
 
         h = self.apply_norm_activation_dropout(h)
         e = self.apply_norm_activation_dropout(e)
