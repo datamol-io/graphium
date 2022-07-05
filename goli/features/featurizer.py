@@ -650,6 +650,79 @@ def mol_to_adj_and_features(
     return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
 
 
+class DGLGraphDict(dict):
+    def __init__(
+        self,
+        dic: Dict,
+    ):
+        """
+        Store the parameters required to initialize a `dgl.DGLGraph`, but
+        as a dictionary to reduce memory consumption.
+
+        Possible keys for the dictionary:
+
+        - adj: A numpy array containing the adjacency matrix
+
+        - ndata: A dictionnary containing different keys and numpy
+            arrays associated to the node features `DGLGraph.ndata`.
+
+        - edata: A dictionnary containing different keys and numpy
+            arrays associated to the edge features `DGLGraph.edata`.
+
+        - dtype: The numpy dtype for the floating data. The arrays
+            will be converted to `torch.Tensor` when building the graph.
+
+        - mask_nan:
+            Deal with molecules that fail a part of the featurization.
+            NaNs can happen when taking the of a noble gas,
+            or other properties that are not measured for specific atoms.
+
+            - "raise": Raise an error when there is a nan or inf in the featurization
+            - "warn": Raise a warning when there is a nan or inf in the featurization
+            - "None": DEFAULT. Don't do anything
+            - "Floating value": Replace nans or inf by the specified value
+        """
+        default_dic = {
+            "dtype": np.float16,
+            "mask_nan": "raise",
+        }
+        default_dic.update(dic)
+        super().__init__(default_dic)
+
+    def make_dgl_graph(self, **kwargs) -> dgl.DGLGraph:
+        """
+        Convert the current dictionary of parameters, containing an adjacency matrix with node/edge data
+        into a `dgl.DGLGraph` of torch Tensors.
+
+        `**kwargs` can be used to overwrite any parameter from the current dictionary. See `DGLGraphDict.__init__`
+        for a list of parameters
+        """
+        this_dict = self.copy()
+        for key, val in kwargs.items():
+            this_dict[key] = val
+        return dgl_dict_to_graph(**this_dict)
+
+    @property
+    def ndata(self):
+        return self.dgl_dict["ndata"]
+
+    @property
+    def edata(self):
+        return self.dgl_dict["edata"]
+
+    @property
+    def adj(self):
+        return self.dgl_dict["adj"]
+
+    @property
+    def dtype(self):
+        return self.dgl_dict["dtype"]
+
+    @property
+    def mask_nan(self):
+        return self.dgl_dict["mask_nan"]
+
+
 def mol_to_dglgraph_dict(
     mol: Chem.rdchem.Mol,
     atom_property_list_onehot: List[str] = [],
@@ -663,7 +736,7 @@ def mol_to_dglgraph_dict(
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
-) -> Dict:
+) -> DGLGraphDict:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features, and re-organizes them into a dictionary
@@ -824,6 +897,8 @@ def mol_to_dglgraph_dict(
     # Add positional encoding for directional use
     if pos_enc_dir is not None:
         dgl_dict["ndata"]["pos_dir"] = pos_enc_dir
+
+    dgl_dict = DGLGraphDict(dgl_dict)
 
     return dgl_dict
 

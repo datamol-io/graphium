@@ -4,6 +4,9 @@ Unit tests for the metrics and wrappers of goli/trainer/metrics/...
 
 import torch
 import unittest as ut
+import tempfile
+import os
+import operator as op
 
 from goli.trainer.metrics import (
     MetricWrapper,
@@ -123,6 +126,44 @@ class test_MetricWrapper(ut.TestCase):
                 mse.append(mean_squared_error(this_preds[ii], this_target[ii]))
             mse = torch.mean(torch.stack(mse))
             self.assertAlmostEqual(score5.tolist(), mse.tolist(), msg=err_msg)
+
+    def test_pickling(self):
+        pickle_file = os.path.join(tempfile.gettempdir(), "test_metric_pickled.pkl")
+        metrics = ["mae", "mse", mean_squared_error]
+        target_nan_masks = [None, 2, "ignore-flatten", "ignore-mean-label"]
+        other_kwargs = [{}, {"squared": False}]
+        thresholds = [
+            None,
+            {"threshold": 0.2, "operator": "greater"},
+            {"threshold": 0.3, "operator": op.lt},
+            {"threshold": 0.4, "operator": "lower"},
+            {"threshold": 0.5, "operator": "lower", "th_on_preds": False, "th_on_target": True},
+            {"threshold": 0.6, "operator": "lower", "target_to_int": True},
+        ]
+
+        for metric in metrics:
+            for target_nan_mask in target_nan_masks:
+                for kwargs in other_kwargs:
+                    for threshold_kwargs in thresholds:
+                        err_msg = f"{metric} - {target_nan_mask} - {kwargs} - {threshold_kwargs}"
+                        metric_wrapper = MetricWrapper(
+                            metric=metric,
+                            threshold_kwargs=threshold_kwargs,
+                            target_nan_mask=target_nan_mask,
+                            **kwargs,
+                        )
+
+                        # Check that the metric can be saved and re-loaded without error
+                        torch.save(metric_wrapper, pickle_file)
+                        metric_wrapper2 = torch.load(pickle_file)
+                        self.assertTrue(metric_wrapper == metric_wrapper2, msg=err_msg)
+
+                        # Check that the metric only contains primitive types
+                        state = metric_wrapper.__getstate__()
+                        if state["threshold_kwargs"] is not None:
+                            self.assertIsInstance(state["threshold_kwargs"], dict, msg=err_msg)
+                        if isinstance(metric, str):
+                            self.assertIsInstance(state["metric"], str, msg=err_msg)
 
 
 if __name__ == "__main__":
