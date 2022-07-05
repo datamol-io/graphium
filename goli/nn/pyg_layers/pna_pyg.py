@@ -151,11 +151,11 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         )
 
     def forward(self, batch: Union[Data, Batch]):
-        x, edge_index, edge_attr = batch.x, batch.edge_index, batch.edge_attr
+        h, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
 
-        out = self.propagate(edge_index, x=x, edge_attr=edge_attr, size=None)
+        out = self.propagate(edge_index, x=h, edge_attr=edge_attr, size=None)
         out = self.posttrans(out)  # No more towers and concat with x
-        batch.x = out
+        batch.h = out
         return batch
 
     def message(self, x_i: Tensor, x_j: Tensor, edge_attr: OptTensor) -> Tensor:

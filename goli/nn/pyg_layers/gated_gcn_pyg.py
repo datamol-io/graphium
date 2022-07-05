@@ -79,7 +79,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.E = nn.Linear(in_dim, out_dim, bias=True)
 
     def forward(self, batch: Union[Data, Batch]):
-        x, e, edge_index = batch.x, batch.edge_attr, batch.edge_index
+        x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
 
         """
         x               : [n_nodes, in_dim]
@@ -100,7 +100,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
             e = self.norm_edges(e)
         e = self.apply_norm_activation_dropout(e, normalization=False)
 
-        batch.x = x
+        batch.h = x
         batch.edge_attr = e
 
         return batch

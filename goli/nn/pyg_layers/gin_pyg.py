@@ -1,5 +1,5 @@
 import torch_geometric.nn as pyg_nn
-from typing import Callable, Union
+from typing import Callable, Union, Optional
 
 from torch_geometric.data import Data, Batch
 
@@ -88,8 +88,8 @@ class GINConvPyg(BaseGraphModule):
 
     def forward(self, batch: Union[Data, Batch]):
 
-        batch.x = self.model(batch.x, batch.edge_index)
-        batch.x = self.apply_norm_activation_dropout(batch.x)
+        batch.h = self.model(batch.h, batch.edge_index)
+        batch.h = self.apply_norm_activation_dropout(batch.h)
 
         return batch
 
@@ -161,6 +161,7 @@ class GINEConvPyg(BaseGraphModule):
         self,
         in_dim: int,
         out_dim: int,
+        in_dim_edges: Optional[int] = None,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
@@ -222,12 +223,12 @@ class GINEConvPyg(BaseGraphModule):
             last_normalization="none",
         )
 
-        self.model = pyg_nn.GINEConv(gin_nn)  # , node_dim=-1)
+        self.model = pyg_nn.GINEConv(gin_nn, edge_dim=in_dim_edges)  # , node_dim=-1)
 
     def forward(self, batch):
 
-        batch.x = self.model(batch.x, batch.edge_index, batch.edge_attr)
-        batch.x = self.apply_norm_activation_dropout(batch.x)
+        batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
+        batch.h = self.apply_norm_activation_dropout(batch.h)
 
         return batch
 
