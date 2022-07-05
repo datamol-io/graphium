@@ -12,6 +12,7 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
+
 class FeedForwardNN(nn.Module):
     def __init__(
         self,
@@ -680,7 +681,9 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
-    def _parse_pooling_layer(self, in_dim: int, pooling: Union[str, List[str]], **kwargs) -> Tuple[nn.Module, int]:
+    def _parse_pooling_layer(
+        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
+    ) -> Tuple[nn.Module, int]:
         r"""
         Return the pooling layer
         **This function is virtual, so it needs to be implemented by the child class.**
@@ -710,8 +713,6 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
-
-
 
     def _virtual_node_forward(
         self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
@@ -802,7 +803,7 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         return pooled_h
 
-    def _get_node_feats(self, g, key: str="h") -> Tensor:
+    def _get_node_feats(self, g, key: str = "h") -> Tensor:
         """
         Get the node features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
@@ -813,7 +814,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
-    def _get_edge_feats(self, g, key: str="edge_attr") -> Tensor:
+    def _get_edge_feats(self, g, key: str = "edge_attr") -> Tensor:
         """
         Get the edge features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
@@ -824,7 +825,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
-    def _set_node_feats(self, g: Any, node_feats: Tensor, key: str="h") -> Any:
+    def _set_node_feats(self, g: Any, node_feats: Tensor, key: str = "h") -> Any:
         """
         Set the node features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
@@ -836,7 +837,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
         return g
 
-    def _set_edge_feats(self, g: Any, edge_feats: Tensor, key: str="edge_attr") -> Any:
+    def _set_edge_feats(self, g: Any, edge_feats: Tensor, key: str = "edge_attr") -> Any:
         """
         Set the edge features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
@@ -960,14 +961,15 @@ class FullGraphNetwork(nn.Module):
         if layer_name.startswith("dgl:") or layer_name.endswith("dgl"):
             # Importing here to avoid circular imports
             from goli.nn.architectures import FeedForwardDGL
+
             return FeedForwardDGL
         if layer_name.startswith("pyg:") or layer_name.endswith("pyg"):
             # Importing here to avoid circular imports
             from goli.nn.architectures import FeedForwardPyg
+
             return FeedForwardPyg
         else:
             raise TypeError(f"Can't recognize if `{layer_name}` uses Pyg or DGL")
-
 
     def _check_bad_arguments(self):
         r"""
@@ -1017,7 +1019,6 @@ class FullGraphNetwork(nn.Module):
 
         self.post_nn.extend(layers)
 
-
     def forward(self, g: Any) -> Tensor:
         r"""
         Apply the pre-processing neural network, the graph neural network,
@@ -1058,7 +1059,9 @@ class FullGraphNetwork(nn.Module):
             # If in test mode, try different sign flips according to `self.num_inference_to_average` and average them together
             h = [self._forward(g, flip_pos_enc="no-flip")]
 
-            if (self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip") is not None) and self.num_inference_to_average > 1:
+            if (
+                self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip") is not None
+            ) and self.num_inference_to_average > 1:
                 h.append(self._forward(g, flip_pos_enc="sign-flip"))
                 for _ in range(2, self.num_inference_to_average):
                     h.append(self._forward(g, flip_pos_enc="random"))
@@ -1070,7 +1073,7 @@ class FullGraphNetwork(nn.Module):
 
         # Get the node features and positional embedding
         pos_enc_feats_sign_flip = self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip")
-        if (pos_enc_feats_sign_flip is not None):
+        if pos_enc_feats_sign_flip is not None:
             pos_enc = pos_enc_feats_sign_flip
             if flip_pos_enc == "random":
                 rand_sign_shape = ([1] * (pos_enc.ndim - 1)) + [pos_enc.shape[-1]]

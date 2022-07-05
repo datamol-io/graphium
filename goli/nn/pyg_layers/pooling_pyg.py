@@ -87,9 +87,11 @@ def global_std_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
     out = mean_squares - mean * mean
     return torch.sqrt(torch.relu(out) + 1e-5)
 
+
 class PoolingWrapperPyg(ModuleWrap):
     def forward(self, g, h, *args, **kwargs):
         return self.func(h, g.batch, *args, **kwargs)
+
 
 def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]]):
     r"""

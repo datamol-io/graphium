@@ -288,6 +288,7 @@ def nan_mad(input: Tensor, normal: bool = True, **kwargs) -> Tensor:
         mad = mad * 1.4826
     return mad
 
+
 class ModuleWrap(torch.nn.Module):
     r"""
     Wrap a function into a `torch.nn.Module`.
@@ -295,6 +296,7 @@ class ModuleWrap(torch.nn.Module):
     Parameters:
         func: function to wrap into a module
     """
+
     def __init__(self, func) -> None:
         super().__init__()
         self.func = func
@@ -306,6 +308,7 @@ class ModuleWrap(torch.nn.Module):
     def __repr__(self):
         return self.__name__
 
+
 class ModuleListConcat(torch.nn.ModuleList):
     r"""
     A list of neural modules similar to `torch.nn.ModuleList`,
@@ -315,6 +318,7 @@ class ModuleListConcat(torch.nn.ModuleList):
     Parameters:
         dim: The dimension for the concatenation
     """
+
     def __init__(self, dim: int = -1):
         super().__init__()
         self.dim = dim

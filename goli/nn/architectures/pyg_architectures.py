@@ -8,15 +8,16 @@ from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
 from goli.nn.architectures.global_architectures import FeedForwardGraphBase
 
+
 class FeedForwardPyg(FeedForwardGraphBase):
     r"""
-        A flexible neural network architecture, with variable hidden dimensions,
-        support for multiple layer types, and support for different residual
-        connections.
+    A flexible neural network architecture, with variable hidden dimensions,
+    support for multiple layer types, and support for different residual
+    connections.
 
-        This class is meant to work with different PyG-based graph neural networks
-        layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
-        or `goli.nn.base_graph_layer.BaseGraphLayer`.
+    This class is meant to work with different PyG-based graph neural networks
+    layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
+    or `goli.nn.base_graph_layer.BaseGraphLayer`.
     """
 
     def _graph_layer_forward(
@@ -27,12 +28,8 @@ class FeedForwardPyg(FeedForwardGraphBase):
         e: Union[Tensor, None],
         h_prev: Union[Tensor, None],
         e_prev: Union[Tensor, None],
-        step_idx: int
-        ) -> Tuple[
-            Tensor,
-            Union[Tensor, None],
-            Union[Tensor, None],
-            Union[Tensor, None]]:
+        step_idx: int,
+    ) -> Tuple[Tensor, Union[Tensor, None], Union[Tensor, None], Union[Tensor, None]]:
         r"""
         Apply the *i-th* PyG graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.
@@ -104,10 +101,12 @@ class FeedForwardPyg(FeedForwardGraphBase):
     def _parse_virtual_node_class(self) -> type:
         return VirtualNodePyg
 
-    def _parse_pooling_layer(self, in_dim: int, pooling: Union[str, List[str]], **kwargs) -> Tuple[Module, int]:
+    def _parse_pooling_layer(
+        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
+    ) -> Tuple[Module, int]:
         return parse_pooling_layer_pyg(in_dim, pooling, **kwargs)
 
-    def _get_node_feats(self, g: Union[Data, Batch], key: str="h") -> Tensor:
+    def _get_node_feats(self, g: Union[Data, Batch], key: str = "h") -> Tensor:
         """
         Get the node features of a PyG graph `g`.
 
@@ -117,7 +116,7 @@ class FeedForwardPyg(FeedForwardGraphBase):
         """
         return g.get(key, None)
 
-    def _get_edge_feats(self, g: Union[Data, Batch], key: str="edge_attr") -> Tensor:
+    def _get_edge_feats(self, g: Union[Data, Batch], key: str = "edge_attr") -> Tensor:
         """
         Get the edge features of a PyG graph `g`.
 
@@ -127,7 +126,9 @@ class FeedForwardPyg(FeedForwardGraphBase):
         """
         return g.get(key, None) if (self.in_dim_edges > 0) else None
 
-    def _set_node_feats(self, g: Union[Data, Batch], node_feats: Tensor, key: str="h") -> Union[Data, Batch]:
+    def _set_node_feats(
+        self, g: Union[Data, Batch], node_feats: Tensor, key: str = "h"
+    ) -> Union[Data, Batch]:
         """
         Set the node features of a PyG graph `g`, and return the graph.
 
@@ -139,7 +140,9 @@ class FeedForwardPyg(FeedForwardGraphBase):
         g[key] = node_feats
         return g
 
-    def _set_edge_feats(self, g: Union[Data, Batch], edge_feats: Tensor, key: str="edge_attr") -> Union[Data, Batch]:
+    def _set_edge_feats(
+        self, g: Union[Data, Batch], edge_feats: Tensor, key: str = "edge_attr"
+    ) -> Union[Data, Batch]:
         """
         Set the edge features of a PyG graph `g`, and return the graph.
 
