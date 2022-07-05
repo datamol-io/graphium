@@ -25,7 +25,7 @@ import dgl
 import pytorch_lightning as pl
 
 from goli.utils import fs
-from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, dgl_dict_to_graph
+from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, DGLGraphDict
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
 
@@ -432,7 +432,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph: str = "dict",
+        prepare_dict_or_graph: str = "dgldict",
         dataset_class: type = DGLDataset,
     ):
         """
@@ -502,10 +502,12 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 Possible options:
 
                 - "graph": Process molecules as dgl.DGLGraph. It's slower during pre-processing
-                  and requires more RAM, but faster during training.
+                  and requires more RAM. It is faster during training with `num_workers=0`, but
+                  slower with larger `num_workers`.
                 - "dict": Process molecules as a Dict. It's faster and requires less RAM during
-                  pre-processing, but slower during training since DGLGraphs will be created
-                  during data-loading.
+                  pre-processing. It is slower during training with with `num_workers=0` since
+                  DGLGraphs will be created during data-loading, but faster with large
+                  `num_workers`, and less likely to cause memory issues with the parallelization.
             dataset_class: The class used to create the dataset from which to sample.
         """
         super().__init__(
@@ -552,13 +554,22 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.test_indices = None
         self.dataset_class = dataset_class
 
+        # Depreciated options
         if prepare_dict_or_graph == "dict":
-            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
+            logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dgldict'` instead of 'dict'")
+            prepare_dict_or_graph = "dgldict"
         elif prepare_dict_or_graph == "graph":
+            logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dglgraph'` instead of 'graph'")
+            prepare_dict_or_graph = "dglgraph"
+
+        # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
+        if prepare_dict_or_graph == "dgldict":
+            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
+        elif prepare_dict_or_graph == "dglgraph":
             self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
         else:
             raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`"
+                f"`prepare_dict_or_graph` should be either 'dgldict' or 'dglgraph', Provided: `{prepare_dict_or_graph}`"
             )
 
     def prepare_data(self): # Can create train_ds, val_ds and test_ds here instead of setup. Be careful with the featurization (to not compute several times).
@@ -834,8 +845,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             if graph is not None:
                 break
 
-        if isinstance(graph, dict):
-            graph = dgl_dict_to_graph(**graph, mask_nan=0.0)
+        if isinstance(graph, DGLGraphDict):
+            graph = graph.make_dgl_graph(mask_nan=0.0)
 
         return graph
 
