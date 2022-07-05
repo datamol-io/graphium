@@ -501,7 +501,6 @@ class test_FeedForwardGraph(ut.TestCase):
                                 layer_class = FeedForwardPyg
                                 bg = deepcopy(self.batch_pyg)
 
-
                             gnn = layer_class(
                                 in_dim=self.in_dim,
                                 out_dim=self.out_dim,
@@ -717,14 +716,11 @@ class test_FullGraphNetwork(ut.TestCase):
         temp_dim_2 = 17
         temp_dim_edges = 21
 
-        pre_nn_kwargs_all = [
-            None,
-            dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4])
-            ]
+        pre_nn_kwargs_all = [None, dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4])]
         pre_nn_edges_kwargs_all = [
             None,
-            dict(in_dim=self.in_dim_edges, out_dim=temp_dim_edges, hidden_dims=[4, 4])
-            ]
+            dict(in_dim=self.in_dim_edges, out_dim=temp_dim_edges, hidden_dims=[4, 4]),
+        ]
 
         post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.out_dim, hidden_dims=[3, 3, 3, 3])
 
@@ -760,14 +756,16 @@ class test_FullGraphNetwork(ut.TestCase):
                                         **self.kwargs,
                                     )
 
-                                    if (not LAYERS_DICT[layer_type].layer_supports_edges) and (pre_nn_edges_kwargs is not None):
+                                    if (not LAYERS_DICT[layer_type].layer_supports_edges) and (
+                                        pre_nn_edges_kwargs is not None
+                                    ):
                                         with self.assertRaises(ValueError):
                                             net = FullGraphNetwork(
                                                 pre_nn_kwargs=pre_nn_kwargs,
                                                 pre_nn_edges_kwargs=pre_nn_edges_kwargs,
                                                 gnn_kwargs=gnn_kwargs,
                                                 post_nn_kwargs=post_nn_kwargs,
-                                                )
+                                            )
                                         continue
 
                                     net = FullGraphNetwork(
@@ -783,7 +781,9 @@ class test_FullGraphNetwork(ut.TestCase):
                                         self.fail(msg=err_msg + "\n" + e.__str__())
 
                                     dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                                    self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                                    self.assertListEqual(
+                                        list(h_out.shape), [dim_1, self.out_dim], msg=err_msg
+                                    )
 
 
 if __name__ == "__main__":

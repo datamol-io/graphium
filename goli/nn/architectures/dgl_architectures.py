@@ -8,15 +8,16 @@ from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.dgl_layers import VirtualNodeDgl, parse_pooling_layer_dgl
 from goli.nn.architectures.global_architectures import FeedForwardGraphBase
 
+
 class FeedForwardDGL(FeedForwardGraphBase):
     r"""
-        A flexible neural network architecture, with variable hidden dimensions,
-        support for multiple layer types, and support for different residual
-        connections.
+    A flexible neural network architecture, with variable hidden dimensions,
+    support for multiple layer types, and support for different residual
+    connections.
 
-        This class is meant to work with different DGL-based graph neural networks
-        layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
-        or `goli.nn.base_graph_layer.BaseGraphLayer`.
+    This class is meant to work with different DGL-based graph neural networks
+    layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
+    or `goli.nn.base_graph_layer.BaseGraphLayer`.
     """
 
     def _graph_layer_forward(
@@ -27,12 +28,8 @@ class FeedForwardDGL(FeedForwardGraphBase):
         e: Union[Tensor, None],
         h_prev: Union[Tensor, None],
         e_prev: Union[Tensor, None],
-        step_idx: int
-        ) -> Tuple[
-            Tensor,
-            Union[Tensor, None],
-            Union[Tensor, None],
-            Union[Tensor, None]]:
+        step_idx: int,
+    ) -> Tuple[Tensor, Union[Tensor, None], Union[Tensor, None], Union[Tensor, None]]:
         r"""
         Apply the *i-th* DGL graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.
@@ -102,10 +99,12 @@ class FeedForwardDGL(FeedForwardGraphBase):
     def _parse_virtual_node_class(self) -> type:
         return VirtualNodeDgl
 
-    def _parse_pooling_layer(self, in_dim: int, pooling: Union[str, List[str]], **kwargs) -> Tuple[Module, int]:
+    def _parse_pooling_layer(
+        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
+    ) -> Tuple[Module, int]:
         return parse_pooling_layer_dgl(in_dim, pooling, **kwargs)
 
-    def _get_node_feats(self, g: dgl.DGLGraph, key: str="h") -> Tensor:
+    def _get_node_feats(self, g: dgl.DGLGraph, key: str = "h") -> Tensor:
         """
         Get the node features of a DGL graph `g`.
 
@@ -115,7 +114,7 @@ class FeedForwardDGL(FeedForwardGraphBase):
         """
         return g.ndata.get(key, None)
 
-    def _get_edge_feats(self, g: dgl.DGLGraph, key: str="edge_attr") -> Tensor:
+    def _get_edge_feats(self, g: dgl.DGLGraph, key: str = "edge_attr") -> Tensor:
         """
         Get the edge features of a DGL graph `g`.
 
@@ -125,7 +124,7 @@ class FeedForwardDGL(FeedForwardGraphBase):
         """
         return g.edata.get(key, None) if (self.in_dim_edges > 0) else None
 
-    def _set_node_feats(self, g: dgl.DGLGraph, node_feats: Tensor, key: str="h") -> dgl.DGLGraph:
+    def _set_node_feats(self, g: dgl.DGLGraph, node_feats: Tensor, key: str = "h") -> dgl.DGLGraph:
         """
         Set the node features of a DGL graph `g`, and return the graph.
 
@@ -137,7 +136,7 @@ class FeedForwardDGL(FeedForwardGraphBase):
         g.ndata[key] = node_feats
         return g
 
-    def _set_edge_feats(self, g: dgl.DGLGraph, edge_feats: Tensor, key: str="edge_attr") -> dgl.DGLGraph:
+    def _set_edge_feats(self, g: dgl.DGLGraph, edge_feats: Tensor, key: str = "edge_attr") -> dgl.DGLGraph:
         """
         Set the edge features of a DGL graph `g`, and return the graph.
 
