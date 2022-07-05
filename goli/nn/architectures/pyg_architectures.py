@@ -82,17 +82,22 @@ class FeedForwardPyg(FeedForwardGraphBase):
 
         """
 
+        # Set node / edge features into the graph
+        g = self._set_node_feats(g, h, key="h")
+        g = self._set_edge_feats(g, e, key="edge_attr")
+
+        # Apply the GNN layer
         g = layer(g)
-        h = g.x
-        e = g.edge_attr
+
+        # Get the node / edge features from the graph
+        h = self._get_node_feats(g, key="h")
+        e = self._get_edge_feats(g, key="edge_attr")
 
         # Apply the residual layers on the features and edges (if applicable)
         if step_idx < len(self.layers) - 1:
             h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
             if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
                 e, e_prev = self.residual_edges_layer.forward(e, e_prev, step_idx=step_idx)
-        g.x = h
-        g.edge_attr = e
 
         return h, e, h_prev, e_prev
 
@@ -110,7 +115,7 @@ class FeedForwardPyg(FeedForwardGraphBase):
             g: graph
             key: key associated to the node features
         """
-        return g[key]
+        return g.get(key, None)
 
     def _get_edge_feats(self, g: Union[Data, Batch], key: str="edge_attr") -> Tensor:
         """
@@ -120,7 +125,7 @@ class FeedForwardPyg(FeedForwardGraphBase):
             g: graph
             key: key associated to the edge features
         """
-        return g[key] if (self.in_dim_edges > 0) else None
+        return g.get(key, None) if (self.in_dim_edges > 0) else None
 
     def _set_node_feats(self, g: Union[Data, Batch], node_feats: Tensor, key: str="h") -> Union[Data, Batch]:
         """

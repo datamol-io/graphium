@@ -113,7 +113,7 @@ class FeedForwardDGL(FeedForwardGraphBase):
             g: graph
             key: key associated to the node features
         """
-        return g.ndata[key]
+        return g.ndata.get(key, None)
 
     def _get_edge_feats(self, g: dgl.DGLGraph, key: str="edge_attr") -> Tensor:
         """
@@ -123,7 +123,7 @@ class FeedForwardDGL(FeedForwardGraphBase):
             g: graph
             key: key associated to the edge features
         """
-        return g.edata[key] if (self.in_dim_edges > 0) else None
+        return g.edata.get(key, None) if (self.in_dim_edges > 0) else None
 
     def _set_node_feats(self, g: dgl.DGLGraph, node_feats: Tensor, key: str="h") -> dgl.DGLGraph:
         """

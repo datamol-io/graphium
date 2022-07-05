@@ -755,22 +755,22 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         return h, vn_h
 
-    def forward(self, g, h: torch.Tensor, e: torch.Tensor) -> torch.Tensor:
+    def forward(self, g) -> torch.Tensor:
         r"""
         Apply the full graph neural network on the input graph and node features.
 
         Parameters:
 
             g:
-                batched graphs on which the convolution is done
+                batched graphs on which the convolution is done with the keys:
 
-            h (torch.Tensor[..., N, Din]):
-                Node feature tensor, before convolution.
-                `N` is the number of nodes, `Din` is the input features
+                - `"h"`: torch.Tensor[..., N, Din]
+                  Node feature tensor, before convolution.
+                  `N` is the number of nodes, `Din` is the input features
 
-            e (torch.Tensor[..., N, Ein]):
-                Edge feature tensor, before convolution.
-                `N` is the number of nodes, `Ein` is the input edge features
+                - `"edge_attr"` (torch.Tensor[..., N, Ein]):
+                  Edge feature tensor, before convolution.
+                  `N` is the number of nodes, `Ein` is the input edge features
 
 
         Returns:
@@ -788,6 +788,8 @@ class FeedForwardGraphBase(FeedForwardNN):
         h_prev = None
         e_prev = None
         vn_h = 0
+        h = self._get_node_feats(g, key="h")
+        e = self._get_edge_feats(g, key="edge_attr")
 
         # Apply the forward loop of the layers, residuals and virtual nodes
         for ii, layer in enumerate(self.layers):
@@ -1027,14 +1029,17 @@ class FullGraphNetwork(nn.Module):
                 graph on which the convolution is done.
                 Must contain the following elements:
 
-                - `g.ndata["h"]`: `torch.Tensor[..., N, Din]`.
+                - Node key `"feat"`: `torch.Tensor[..., N, Din]`.
                   Input node feature tensor, before the network.
                   `N` is the number of nodes, `Din` is the input features dimension ``self.pre_nn.in_dim``
 
-                - `g.edata["edge_attr"]`: `torch.Tensor[..., N, Ein]` **Optional**.
+                - Edge key `"edge_feat"`: `torch.Tensor[..., N, Ein]` **Optional**.
                   The edge features to use. It will be ignored if the
                   model doesn't supporte edge features or if
                   `self.in_dim_edges==0`.
+
+                - Other keys related to positional encodings `"pos_enc_feats_sign_flip"`,
+                  `"pos_enc_feats_no_flip"`.
 
         Returns:
 
@@ -1052,7 +1057,8 @@ class FullGraphNetwork(nn.Module):
         else:
             # If in test mode, try different sign flips according to `self.num_inference_to_average` and average them together
             h = [self._forward(g, flip_pos_enc="no-flip")]
-            if ("pos_enc_feats_sign_flip" in g.ndata.keys()) and self.num_inference_to_average > 1:
+
+            if (self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip") is not None) and self.num_inference_to_average > 1:
                 h.append(self._forward(g, flip_pos_enc="sign-flip"))
                 for _ in range(2, self.num_inference_to_average):
                     h.append(self._forward(g, flip_pos_enc="random"))
@@ -1063,8 +1069,9 @@ class FullGraphNetwork(nn.Module):
         e = self.gnn._get_edge_feats(g, key="edge_feat")
 
         # Get the node features and positional embedding
-        if "pos_enc_feats_sign_flip" in g.ndata.keys():
-            pos_enc = g.ndata["pos_enc_feats_sign_flip"]
+        pos_enc_feats_sign_flip = self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip")
+        if (pos_enc_feats_sign_flip is not None):
+            pos_enc = pos_enc_feats_sign_flip
             if flip_pos_enc == "random":
                 rand_sign_shape = ([1] * (pos_enc.ndim - 1)) + [pos_enc.shape[-1]]
                 rand_sign = torch.sign(torch.randn(rand_sign_shape, dtype=h.dtype, device=h.device))
@@ -1074,11 +1081,12 @@ class FullGraphNetwork(nn.Module):
             elif flip_pos_enc == "sign-flip":
                 pos_enc = -pos_enc
             h = torch.cat((h, pos_enc), dim=-1)
-        if "pos_enc_feats_no_flip" in g.ndata.keys():
-            pos_enc = g.ndata["pos_enc_feats_no_flip"]
-            h = torch.cat((h, pos_enc), dim=-1)
+        pos_enc_feats_no_flip = self.gnn._get_node_feats(g, "pos_enc_feats_no_flip")
+        if pos_enc_feats_no_flip is not None:
+            h = torch.cat((h, pos_enc_feats_no_flip), dim=-1)
 
         g = self.gnn._set_node_feats(g, h, key="h")
+        g = self.gnn._set_edge_feats(g, e, key="edge_attr")
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
@@ -1096,10 +1104,10 @@ class FullGraphNetwork(nn.Module):
                 )
             else:
                 e = self.pre_nn_edges.forward(e)
-            e = self.gnn._set_edge_feats(g, e, key="edge_attr")
+            g = self.gnn._set_edge_feats(g, e, key="edge_attr")
 
         # Run the graph neural network
-        h = self.gnn.forward(g, h, e)
+        h = self.gnn.forward(g)
 
         # Run the output network
         if self.post_nn is not None:
@@ -1116,7 +1124,7 @@ class FullGraphNetwork(nn.Module):
         return h
 
     @property
-    def concat_last_layers(self) -> Union[type(None), Iterable[int]]:
+    def concat_last_layers(self) -> Optional[Iterable[int]]:
         """
         Property to control the output of the `self.forward`.
         If set to a list of integer, the `forward` function will

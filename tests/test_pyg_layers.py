@@ -32,8 +32,8 @@ class test_Pyg_Layers(ut.TestCase):
     e2 = torch.zeros(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
     # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
     # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
-    g1 = Data(x=x1, edge_index=edge_idx1, edge_attr=e1)
-    g2 = Data(x=x2, edge_index=edge_idx2, edge_attr=e2)
+    g1 = Data(h=x1, edge_index=edge_idx1, edge_attr=e1)
+    g2 = Data(h=x2, edge_index=edge_idx2, edge_attr=e2)
     bg = Batch.from_data_list([g1, g2])
 
     kwargs = {
@@ -45,7 +45,7 @@ class test_Pyg_Layers(ut.TestCase):
     def test_ginlayer(self):
 
         bg = deepcopy(self.bg)
-        h_in = bg.x
+        h_in = bg.h
         layer = GINConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
 
         # Check the re-implementation of abstract methods
@@ -56,13 +56,13 @@ class test_Pyg_Layers(ut.TestCase):
 
         # Apply layer
         bg = layer.forward(bg)
-        self.assertEqual(bg.x.shape[0], h_in.shape[0])
-        self.assertEqual(bg.x.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_ginelayer(self):
 
         bg = deepcopy(self.bg)
-        h_in = bg.x
+        h_in = bg.h
         layer = GINEConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
 
         # Check the re-implementation of abstract methods
@@ -78,13 +78,13 @@ class test_Pyg_Layers(ut.TestCase):
         # Create new edge attributes with same dim and check that it works
         bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim), dtype=torch.float32)
         bg = layer.forward(bg)
-        self.assertEqual(bg.x.shape[0], h_in.shape[0])
-        self.assertEqual(bg.x.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_gatedgcnlayer(self):
 
         bg = deepcopy(self.bg)
-        h_in = bg.x
+        h_in = bg.h
         e_in = bg.edge_attr
         layer = GatedGCNPyg(
             in_dim=self.in_dim,
@@ -111,7 +111,7 @@ class test_Pyg_Layers(ut.TestCase):
     def test_pnamessagepassinglayer(self):
 
         bg = deepcopy(self.bg)
-        h_in = bg.x
+        h_in = bg.h
         aggregators = ["mean", "max", "min", "std", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
