@@ -811,7 +811,7 @@ def mol_to_dglgraph_dict(
             hetero_edata[id1, :] = edata[ii, :]
             hetero_edata[id2, :] = edata[ii, :]
 
-        dgl_dict["edata"]["feat"] = coo_matrix(hetero_edata)
+        dgl_dict["edata"]["edge_feat"] = coo_matrix(hetero_edata)
 
     # Add sign-flip positional encoding
     if pos_enc_feats_sign_flip is not None:

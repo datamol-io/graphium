@@ -1,4 +1,4 @@
-from torch import nn
+from torch import Tensor, nn
 import torch
 import dgl
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
@@ -298,6 +298,10 @@ class FeedForwardGraphBase(FeedForwardNN):
         - `_graph_layer_forward`
         - `_parse_virtual_node_class`
         - `_parse_pooling_layer`
+        - `_get_node_feats
+        - `_get_edge_feats`
+        - `_set_node_feats`
+        - `_set_edge_feats`
 
         A flexible neural network architecture, with variable hidden dimensions,
         support for multiple layer types, and support for different residual
@@ -705,7 +709,7 @@ class FeedForwardGraphBase(FeedForwardNN):
             out_pool_dim: Output dimension of the pooling layer
 
         """
-        raise NotImplementedError
+        raise NotImplementedError("Virtual method must be overwritten by child class")
 
 
 
@@ -795,6 +799,52 @@ class FeedForwardGraphBase(FeedForwardNN):
         pooled_h = self._pool_layer_forward(g=g, h=h)
 
         return pooled_h
+
+    def _get_node_feats(self, g, key: str="h") -> Tensor:
+        """
+        Get the node features of a graph `g`.
+        ***Virtual method, must be implemented in child class.***
+
+        Parameters:
+            g: graph
+            key: key associated to the node features
+        """
+        raise NotImplementedError("Virtual method must be overwritten by child class")
+
+    def _get_edge_feats(self, g, key: str="edge_attr") -> Tensor:
+        """
+        Get the edge features of a graph `g`.
+        ***Virtual method, must be implemented in child class.***
+
+        Parameters:
+            g: graph
+            key: key associated to the edge features
+        """
+        raise NotImplementedError("Virtual method must be overwritten by child class")
+
+    def _set_node_feats(self, g: Any, node_feats: Tensor, key: str="h") -> Any:
+        """
+        Set the node features of a graph `g`, and return the graph.
+        ***Virtual method, must be implemented in child class.***
+
+        Parameters:
+            g: graph
+            key: key associated to the node features
+        """
+        raise NotImplementedError("Virtual method must be overwritten by child class")
+        return g
+
+    def _set_edge_feats(self, g: Any, edge_feats: Tensor, key: str="edge_attr") -> Any:
+        """
+        Set the edge features of a graph `g`, and return the graph.
+        ***Virtual method, must be implemented in child class.***
+
+        Parameters:
+            g: graph
+            key: key associated to the edge features
+        """
+        raise NotImplementedError("Virtual method must be overwritten by child class")
+        return g
 
     def __repr__(self):
         r"""
@@ -914,7 +964,7 @@ class FullGraphNetwork(nn.Module):
             from goli.nn.architectures import FeedForwardPyg
             return FeedForwardPyg
         else:
-            raise TypeError(f"Can't recognize if layer class uses Pyg or DGL")
+            raise TypeError(f"Can't recognize if `{layer_name}` uses Pyg or DGL")
 
 
     def _check_bad_arguments(self):
@@ -965,7 +1015,8 @@ class FullGraphNetwork(nn.Module):
 
         self.post_nn.extend(layers)
 
-    def forward(self, g: dgl.DGLGraph) -> torch.Tensor:
+
+    def forward(self, g: Any) -> Tensor:
         r"""
         Apply the pre-processing neural network, the graph neural network,
         and the post-processing neural network on the graph features.
@@ -980,7 +1031,7 @@ class FullGraphNetwork(nn.Module):
                   Input node feature tensor, before the network.
                   `N` is the number of nodes, `Din` is the input features dimension ``self.pre_nn.in_dim``
 
-                - `g.edata["e"]`: `torch.Tensor[..., N, Ein]` **Optional**.
+                - `g.edata["edge_attr"]`: `torch.Tensor[..., N, Ein]` **Optional**.
                   The edge features to use. It will be ignored if the
                   model doesn't supporte edge features or if
                   `self.in_dim_edges==0`.
@@ -1007,9 +1058,11 @@ class FullGraphNetwork(nn.Module):
                     h.append(self._forward(g, flip_pos_enc="random"))
             return torch.mean(torch.stack(h, dim=-1), dim=-1)
 
-    def _forward(self, g: dgl.DGLGraph, flip_pos_enc: str) -> torch.Tensor:
+    def _forward(self, g: Any, flip_pos_enc: str) -> Tensor:
+        h = self.gnn._get_node_feats(g, key="feat")
+        e = self.gnn._get_edge_feats(g, key="edge_feat")
+
         # Get the node features and positional embedding
-        h = g.ndata["feat"]
         if "pos_enc_feats_sign_flip" in g.ndata.keys():
             pos_enc = g.ndata["pos_enc_feats_sign_flip"]
             if flip_pos_enc == "random":
@@ -1025,31 +1078,28 @@ class FullGraphNetwork(nn.Module):
             pos_enc = g.ndata["pos_enc_feats_no_flip"]
             h = torch.cat((h, pos_enc), dim=-1)
 
-        g.ndata["h"] = h
-
-        if "feat" in g.edata.keys():
-            g.edata["e"] = g.edata["feat"]
+        g = self.gnn._set_node_feats(g, h, key="h")
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
-            h = g.ndata["h"]
+            h = self.gnn._get_node_feats(g, key="h")
             h = self.pre_nn.forward(h)
-            g.ndata["h"] = h
+            g = self.gnn._set_node_feats(g, h, key="h")
 
         # Run the pre-processing network on edge features
         # If there are no edges, skip the forward and change the dimension of e
         if self.pre_nn_edges is not None:
-            e = g.edata["e"]
+            e = self.gnn._get_edge_feats(g, key="edge_attr")
             if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
                 e = torch.zeros(
                     list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype
                 )
             else:
                 e = self.pre_nn_edges.forward(e)
-            g.edata["e"] = e
+            e = self.gnn._set_edge_feats(g, e, key="edge_attr")
 
         # Run the graph neural network
-        h = self.gnn.forward(g)
+        h = self.gnn.forward(g, h, e)
 
         # Run the output network
         if self.post_nn is not None:

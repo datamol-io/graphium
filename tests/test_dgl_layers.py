@@ -32,9 +32,9 @@ class test_DGL_Layers(ut.TestCase):
     g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
     g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
     g1.ndata["h"] = torch.zeros(g1.num_nodes(), in_dim, dtype=float)
-    g1.edata["e"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=float)
+    g1.edata["edge_attr"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=float)
     g2.ndata["h"] = torch.ones(g2.num_nodes(), in_dim, dtype=float)
-    g2.edata["e"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=float)
+    g2.edata["edge_attr"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=float)
     bg = dgl.batch([g1, g2])
     bg = dgl.add_self_loop(bg)
     bg.ndata["pos_dir"] = torch.randn_like(bg.ndata["h"])
@@ -101,7 +101,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
+        e_in = bg.edata["edge_attr"]
         layer = GatedGCNDgl(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
@@ -132,7 +132,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
+        e_in = bg.edata["edge_attr"]
         aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
@@ -181,7 +181,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
+        e_in = bg.edata["edge_attr"]
         aggregators = ["mean", "max", "min", "lap", "std", "moment3", "moment4", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
@@ -231,7 +231,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
+        e_in = bg.edata["edge_attr"]
         aggregators = [
             "mean",
             "max",
@@ -296,7 +296,7 @@ class test_DGL_Layers(ut.TestCase):
 
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
-        e_in = bg.edata["e"]
+        e_in = bg.edata["edge_attr"]
         aggregators = [
             "mean",
             "max",
