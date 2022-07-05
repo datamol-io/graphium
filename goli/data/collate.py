@@ -1,9 +1,10 @@
 from collections.abc import Mapping
 import torch
 from torch.utils.data.dataloader import default_collate
-import dgl
 from inspect import signature, _empty
 from typing import Union, List, Optional, Dict, Type
+import dgl
+from torch_geometric.data import Data, Batch
 
 from goli.features import dgl_dict_to_graph
 
@@ -74,6 +75,10 @@ def goli_collate_fn(
             # If a DGLGraph is provided, use the dgl batching
             elif isinstance(elem[key], dgl.DGLGraph):
                 batch[key] = dgl.batch([d[key] for d in elements])
+
+            # If a PyG Graph is provided, use the PyG batching
+            elif isinstance(elem[key], Data):
+                batch[key] = Batch.from_data_list([d[key] for d in elements])
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
