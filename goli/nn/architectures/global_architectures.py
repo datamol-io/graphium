@@ -1,8 +1,10 @@
 from torch import Tensor, nn
 import torch
-import dgl
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
 import inspect
+
+from dgl import DGLGraph
+from torch_geometric.data import Data
 
 from goli.nn.base_layers import FCLayer, get_activation
 from goli.nn.base_graph_layer import BaseGraphModule
@@ -715,7 +717,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _virtual_node_forward(
-        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
+        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -1206,7 +1208,7 @@ class FullGraphNetwork(nn.Module):
         return self.gnn.in_dim_edges
 
 
-class FullDGLSiameseNetwork(FullGraphNetwork):
+class FullGraphSiameseNetwork(FullGraphNetwork):
     def __init__(self, pre_nn_kwargs, gnn_kwargs, post_nn_kwargs, dist_method, name="Siamese_DGL_GNN"):
 
         # Initialize the parent nn.Module
@@ -1270,7 +1272,7 @@ class TaskHeads(nn.Module):
         return task_head_outputs
 
 
-class FullDGLMultiTaskNetwork(FullGraphNetwork):
+class FullGraphMultiTaskNetwork(FullGraphNetwork):
     """
     Class that allows to implement a full multi-task graph neural network architecture,
     including the pre-processing MLP, post-processing MLP and the task-specific heads.
@@ -1309,5 +1311,5 @@ class FullDGLMultiTaskNetwork(FullGraphNetwork):
         # Add the task-specific heads
         self.model.add_module("TaskHeads", self.TaskHeads)
 
-    def forward(self, g: dgl.DGLGraph):
+    def forward(self, g: Union[DGLGraph, Data]):
         return self.model(g)

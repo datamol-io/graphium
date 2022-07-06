@@ -9,7 +9,7 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullDGLSiameseNetwork, FeedForwardNN
+from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FeedForwardNN
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 
@@ -56,7 +56,7 @@ def load_architecture(
     if model_type == "fulldglnetwork":
         model_class = FullGraphNetwork
     elif model_type == "fulldglsiamesenetwork":
-        model_class = FullDGLSiameseNetwork
+        model_class = FullGraphSiameseNetwork
         kwargs["dist_method"] = cfg_arch["dist_method"]
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")

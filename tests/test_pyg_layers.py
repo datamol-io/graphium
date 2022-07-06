@@ -105,8 +105,8 @@ class test_Pyg_Layers(ut.TestCase):
 
         # Apply layer with edges
         bg2 = layer.forward(bg)
-        self.assertEqual(bg2.x.shape[0], h_in.shape[0])
-        self.assertEqual(bg2.x.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg2.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_pnamessagepassinglayer(self):
 
@@ -128,8 +128,8 @@ class test_Pyg_Layers(ut.TestCase):
 
         # Apply layer
         bg2 = layer.forward(bg)
-        self.assertEqual(bg2.x.shape[0], h_in.shape[0])
-        self.assertEqual(bg2.x.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg2.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
 
         # Now try with edges
         bg = deepcopy(self.bg)
@@ -151,8 +151,8 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(layer.out_dim_factor, 1)
 
         bg2 = layer.forward(bg)
-        self.assertEqual(bg2.x.shape[0], h_in.shape[0])
-        self.assertEqual(bg2.x.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg2.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
         self.assertTrue((bg2.edge_attr == self.bg.edge_attr).all)
 
 

@@ -4,6 +4,16 @@ goli Change Log
 
 .. current developments
 
+v0.3.1
+====================
+
+**Authors:**
+
+* Dom
+* Dominique
+
+
+
 v0.3.0
 ====================
 

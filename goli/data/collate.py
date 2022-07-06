@@ -6,7 +6,7 @@ from typing import Union, List, Optional, Dict, Type
 import dgl
 from torch_geometric.data import Data, Batch
 
-from goli.features import dgl_dict_to_graph
+from goli.features import GraphDict
 
 
 def goli_collate_fn(
@@ -58,18 +58,13 @@ def goli_collate_fn(
 
     elem = elements[0]
 
-    params = signature(dgl_dict_to_graph).parameters
-    dgl_dict_mandatory_params = [key for key, val in params.items() if val.default == _empty]
-
     if isinstance(elem, Mapping):
         batch = {}
         for key in elem:
             # If the features are a dictionary containing DGLGraph elements,
             # Convert to DGLGraph and use the dgl batching.
-            if isinstance(elem[key], Mapping) and all(
-                [this_param in list(elem[key].keys()) for this_param in dgl_dict_mandatory_params]
-            ):
-                graphs = [dgl_dict_to_graph(**d[key], mask_nan=mask_nan) for d in elements]
+            if isinstance(elem[key], GraphDict):
+                graphs = [d[key].make_dgl_graph(mask_nan=mask_nan) for d in elements]
                 batch[key] = dgl.batch(graphs)
 
             # If a DGLGraph is provided, use the dgl batching
