@@ -1,16 +1,17 @@
 from collections.abc import Mapping
+#from pprint import pprint
 import torch
 from torch.utils.data.dataloader import default_collate
 import dgl
 from inspect import signature, _empty
-from typing import Union, List, Optional, Dict, Type
+from typing import Union, List, Optional, Dict, Type, Any
 
 from goli.features import dgl_dict_to_graph, DGLGraphDict
 
 
 def goli_collate_fn(
     elements,
-    labels_size_dict: Optional[Dict[str, int]],
+    labels_size_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise", 
     do_not_collate_keys: List[str] = []
 ):
@@ -37,9 +38,9 @@ def goli_collate_fn(
 
         labels_size_dict:
             (Note): This is an attribute of the MultiTaskDGLDataset.
-            A dictionary of the form Dict[labels, sizes] which has label/task names as keys
-            and the size of the tensor as value. The size of the tensor corresponds to how many
-            values there are to predict for that label/task.
+            A dictionary of the form Dict[tasks, sizes] which has task names as keys
+            and the size of the label tensor as value. The size of the tensor corresponds to how many
+            labels/values there are to predict for that task.
 
         mask_nan:
             Deal with the NaN/Inf when calling the function `dgl_dict_to_graph`.
@@ -76,17 +77,17 @@ def goli_collate_fn(
 
             # Multitask setting: We have to pad the missing labels
             elif key == 'labels':
-                if labels_size_dict is not None:    # If we have to pad for the MTL setting
+                if labels_size_dict is not None:
                     for datum in elements:
-                        nonempty_labels = datum["labels"].keys()
-                        for label in labels_size_dict:
-                            if label not in nonempty_labels:
-                                datum['labels'][label] = torch.full((labels_size_dict[label], len(elements)), torch.nan)
-                else:
-                    batch[key] = default_collate([d[key] for d in elements])
+                        empty_task_labels = set(labels_size_dict.keys()) - set(datum["labels"].keys())
+                        for task in empty_task_labels:
+                            datum['labels'][task] = torch.full((len(elements), labels_size_dict[task]), torch.nan)
+                batch[key] = default_collate([datum[key] for datum in elements])
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
+#        print("The batch contains: ")
+#        pprint(batch)
         return batch
     else:
         return default_collate(elements)
