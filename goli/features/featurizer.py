@@ -12,7 +12,7 @@ from torch_geometric.data import Data
 
 from rdkit import Chem
 from rdkit.Chem.rdmolops import GetAdjacencyMatrix
-from datamol import to_mol
+import datamol as dm
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
@@ -57,7 +57,7 @@ def _mask_nans_inf(mask_nan, array, array_name):
     return new_array
 
 
-def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
+def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dict[str, np.ndarray]:
     r"""
     Get the following set of features for any given atom
 
@@ -139,7 +139,7 @@ def get_mol_atomic_features_onehot(mol: Chem.rdchem.Mol, property_list: List[str
 
 
 def get_mol_atomic_features_float(
-    mol: Chem.rdchem.Mol,
+    mol: dm.Mol,
     property_list: Union[List[str], List[Callable]],
     offset_carbon: bool = True,
     mask_nan: Union[str, float, type(None)] = "raise",
@@ -321,7 +321,7 @@ def get_mol_atomic_features_float(
     return prop_dict
 
 
-def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Union[Chem.rdchem.Conformer, None]:
+def get_simple_mol_conformer(mol: dm.Mol) -> Union[Chem.rdchem.Conformer, None]:
     r"""
     If the molecule has a conformer, then it will return the conformer at idx `0`.
     Otherwise, it generates a simple molecule conformer using `rdkit.Chem.rdDistGeom.EmbedMolecule`
@@ -358,7 +358,7 @@ def get_simple_mol_conformer(mol: Chem.rdchem.Mol) -> Union[Chem.rdchem.Conforme
     return conf
 
 
-def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> float:
+def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: dm.Mol) -> float:
     r"""
     Estimate the bond length between atoms by looking at the estimated atomic radius
     that depends both on the atom type and the bond type. The resulting bond-length is
@@ -422,7 +422,7 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: Chem.rdchem.Mol) -> f
 
 
 def get_mol_edge_features(
-    mol: Chem.rdchem.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = "raise"
+    mol: dm.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = "raise"
 ):
     r"""
     Get the following set of features for any given bond
@@ -505,7 +505,7 @@ def get_mol_edge_features(
 
 
 def mol_to_adj_and_features(
-    mol: Union[str, Chem.rdchem.Mol],
+    mol: Union[str, dm.Mol],
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
     edge_property_list: List[str] = [],
@@ -604,7 +604,7 @@ def mol_to_adj_and_features(
     """
 
     if isinstance(mol, str):
-        mol = to_mol(mol)
+        mol = dm.to_mol(mol)
 
     # Add or remove explicit hydrogens
     if explicit_H:
@@ -761,7 +761,7 @@ class GraphDict(dict):
 
 
 def mol_to_graph_dict(
-    mol: Chem.rdchem.Mol,
+    mol: dm.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
     edge_property_list: List[str] = [],
@@ -861,7 +861,7 @@ def mol_to_graph_dict(
     try:
 
         if isinstance(mol, str):
-            mol = to_mol(mol)
+            mol = dm.to_mol(mol)
         if explicit_H:
             mol = Chem.AddHs(mol)
         else:
@@ -892,7 +892,7 @@ def mol_to_graph_dict(
             raise e
         elif on_error.lower() == "warn":
             smiles = input_mol
-            if isinstance(smiles, Chem.rdchem.Mol):
+            if isinstance(smiles, dm.Mol):
                 smiles = Chem.MolToSmiles(input_mol)
 
             msg = str(e) + "\nIgnoring following molecule:" + smiles
@@ -941,7 +941,7 @@ def mol_to_graph_dict(
 
 
 def mol_to_dglgraph(
-    mol: Chem.rdchem.Mol,
+    mol: dm.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
     edge_property_list: List[str] = [],
@@ -1050,7 +1050,7 @@ def mol_to_dglgraph(
 
 
 def mol_to_pyggraph(
-    mol: Chem.rdchem.Mol,
+    mol: dm.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
     edge_property_list: List[str] = [],
