@@ -15,7 +15,6 @@ class BaseGraphStructure:
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
-        **kwargs,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -244,7 +243,7 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
                 - `Callable`: Any callable function
         """
 
-        super(BaseGraphModule, self).__init__(
+        super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
             normalization=normalization,

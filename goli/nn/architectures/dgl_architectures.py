@@ -1,7 +1,7 @@
 from torch import Tensor
 from torch.nn import Module
 import dgl
-from typing import Tuple, Union, List
+from typing import Tuple, Union, List, Optional
 
 from goli.nn.base_graph_layer import BaseGraphModule
 
@@ -25,11 +25,11 @@ class FeedForwardDGL(FeedForwardGraphBase):
         layer: BaseGraphModule,
         g: dgl.DGLGraph,
         h: Tensor,
-        e: Union[Tensor, None],
-        h_prev: Union[Tensor, None],
-        e_prev: Union[Tensor, None],
+        e: Optional[Tensor],
+        h_prev: Optional[Tensor],
+        e_prev: Optional[Tensor],
         step_idx: int,
-    ) -> Tuple[Tensor, Union[Tensor, None], Union[Tensor, None], Union[Tensor, None]]:
+    ) -> Tuple[Tensor, Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         r"""
         Apply the *i-th* DGL graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.
