@@ -25,6 +25,7 @@ from sklearn.model_selection import train_test_split
 
 import dgl
 import pytorch_lightning as pl
+from goli.features.featurizer import dgl_dict_to_graph
 
 from goli.utils import fs
 from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, DGLGraphDict
