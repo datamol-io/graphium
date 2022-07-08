@@ -32,7 +32,7 @@ def compute_laplacian_positional_eigvecs(
     components = []
     if disconnected_comp:
         # Get the list of connected components
-        components = list(nx.connected_components(nx.from_scipy_sparse_matrix(adj)))
+        components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
 
     # Compute the eigenvectors for each connected component, and stack them together
     if len(components) > 1:
