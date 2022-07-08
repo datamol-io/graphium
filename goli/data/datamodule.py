@@ -36,7 +36,7 @@ from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
 import datamol as dm
-from pprint import pprint
+#from pprint import pprint
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -308,7 +308,6 @@ class MultitaskDGLDataset(Dataset):
     #     pprint(self.smiles)
     #     print("\n\n labels")
     #     pprint(self.labels)
-
 
 class DGLBaseDataModule(pl.LightningDataModule):
     def __init__(
@@ -1157,7 +1156,36 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Controls how the class is printed"""
         return omegaconf.OmegaConf.to_yaml(self.to_dict())
 
-
+class DatasetParams():
+   def __init__(
+       self,
+       task_name: str,
+       df: pd.DataFrame = None,
+       df_path: Optional[Union[str, os.PathLike]] = None,
+       smiles_col: str = None,
+       label_cols: List[str] = None,
+       weights_col: str = None,
+       weights_type: str = None,
+       idx_col: str = None,
+       sample_size: Union[int, float, Type[None]] = None,
+       split_val: float = 0.2,
+       split_test: float = 0.2,
+       split_seed: int = None,
+       splits_path: Optional[Union[str, os.PathLike]] = None,
+   ):
+       self.task_name = task_name
+       self.df = df
+       self.df_path = df_path
+       self.smiles_col = smiles_col
+       self.label_cols = label_cols
+       self.weights_col = weights_col
+       self.weights_type = weights_type
+       self.idx_col = idx_col
+       self.sample_size = sample_size
+       self.split_val = split_val
+       self.split_test = split_test
+       self.split_seed = split_seed
+       self.splits_path = splits_path
 class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
     def __init__(
         self,
@@ -1173,7 +1201,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         #task_split_test: Dict[str, float]= None,
         #task_split_seed: Dict[str, int] = None,
         #task_splits_path: Optional[Dict[str, Union[str, os.PathLike]]] = None,
-        task_specific_args: Dict[str, Any],
+        task_specific_args: Dict[str, Any],         # Create a class that so that we can have a dictionary of class
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_train_val: int = 16,
@@ -1483,11 +1511,6 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         if stage == "test" or stage is None:
             self.test_ds = MultitaskDGLDataset(self.test_singletask_datasets)  # type: ignore
 
-        # See what the datasets look like
-        for i in range(10):
-            print("The datapoints in the MTL dataset look like: ", i)
-            pprint(self.train_ds.__getitem__(i))
-
         # Produce the label sizes
         train_label_sizes = self.train_ds.set_label_size_dict()
         val_label_sizes = self.val_ds.set_label_size_dict()
@@ -1496,8 +1519,6 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         label_sizes = train_label_sizes
         label_sizes.update(val_label_sizes)
         label_sizes.update(test_label_sizes)
-        print("\n\n\nView the label sizes: ", label_sizes)
-
 
     # Cannot be used as is for the multitask version, because sample_idx does not apply.
     def _featurize_molecules(self, smiles: Iterable[str]) -> Tuple[List, List]:
