@@ -6,3 +6,8 @@ from .collate import goli_collate_fn
 from .datamodule import DGLOGBDataModule
 from .datamodule import DGLFromSmilesDataModule
 from .datamodule import DGLOGBDataModule
+from .datamodule import MultitaskDGLFromSmilesDataModule
+
+from .datamodule import DGLDataset
+from .datamodule import SingleTaskDataset
+from .datamodule import MultitaskDGLDataset
