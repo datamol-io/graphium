@@ -205,64 +205,64 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["logp"].shape == (16, 1)
             assert batch["labels"]["score"].shape == (16, 1)
 
-# class Test_Multitask_Dataset(ut.TestCase):
+class Test_Multitask_Dataset(ut.TestCase):
 
-#     def test_multitask_dataset_case_1(self):
-#         """Case: different tasks, all with the same smiles set.
-#             - Check that for each task, all smiles are received from the initial DF.
-#             - Check that for each task, you have the same label values as the initial DF.
-#         """
+    def test_multitask_dataset_case_1(self):
+        """Case: different tasks, all with the same smiles set.
+            - Check that for each task, all smiles are received from the initial DF.
+            - Check that for each task, you have the same label values as the initial DF.
+        """
 
-#         df_micro_zinc = load_micro_zinc() # Has about 1000 molecules
-#         df = df_micro_zinc.iloc[0:4]
-#         num_unique_mols = 4
+        df_micro_zinc = load_micro_zinc() # Has about 1000 molecules
+        df = df_micro_zinc.iloc[0:4]
+        num_unique_mols = 4
 
-#         # Here we take the microzinc dataset and split the labels up into 'SA', 'logp' and 'score' in order to simulate having multiple single-task datasets
-#         df_micro_zinc_SA = df[['SMILES', 'SA']]
-#         df_micro_zinc_logp = df[['SMILES', 'logp']]
-#         df_micro_zinc_score = df[['SMILES', 'score']]
+        # Here we take the microzinc dataset and split the labels up into 'SA', 'logp' and 'score' in order to simulate having multiple single-task datasets
+        df_micro_zinc_SA = df[['SMILES', 'SA']]
+        df_micro_zinc_logp = df[['SMILES', 'logp']]
+        df_micro_zinc_score = df[['SMILES', 'score']]
 
-#         # We need to turn these dataframes into single-task datasets.
-#         # We don't need to do featurization yet.
-#         ds_micro_zinc_SA = SingleTaskDataset(
-#             smiles=df_micro_zinc_SA.loc[:,'SMILES'], 
-#             labels=df_micro_zinc_SA.loc[:,'SA']
-#             )
-#         ds_micro_zinc_logp = SingleTaskDataset(
-#             smiles=df_micro_zinc_logp.loc[:,'SMILES'], 
-#             labels=df_micro_zinc_logp.loc[:,'logp']
-#             )
-#         ds_micro_zinc_score = SingleTaskDataset(
-#             smiles=df_micro_zinc_score.loc[:,'SMILES'], 
-#             labels=df_micro_zinc_score.loc[:,'score']
-#             )
+        # We need to turn these dataframes into single-task datasets.
+        # We don't need to do featurization yet.
+        ds_micro_zinc_SA = SingleTaskDataset(
+            smiles=df_micro_zinc_SA.loc[:,'SMILES'], 
+            labels=df_micro_zinc_SA.loc[:,'SA']
+            )
+        ds_micro_zinc_logp = SingleTaskDataset(
+            smiles=df_micro_zinc_logp.loc[:,'SMILES'], 
+            labels=df_micro_zinc_logp.loc[:,'logp']
+            )
+        ds_micro_zinc_score = SingleTaskDataset(
+            smiles=df_micro_zinc_score.loc[:,'SMILES'], 
+            labels=df_micro_zinc_score.loc[:,'score']
+            )
         
-#         # Create the multitask dataset
-#         datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
-#         multitask_microzinc = MultitaskDGLDataset(datasets_dict) # Can optionally have features
+        # Create the multitask dataset
+        datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
+        multitask_microzinc = MultitaskDGLDataset(datasets_dict) # Can optionally have features
 
-#         # Check: The number of unique molecules equals the number of datapoints in the multitask dataset.
-#         self.assertEqual(num_unique_mols, multitask_microzinc.__len__())
+        # Check: The number of unique molecules equals the number of datapoints in the multitask dataset.
+        self.assertEqual(num_unique_mols, multitask_microzinc.__len__())
 
-#         # Check that for each task, you have the same label values as the initial DF.
-#         for idx in range(multitask_microzinc.__len__()):
-#             smiles = df[['SMILES']].iloc[idx].values[0]
-#             #label = df[['SA']].iloc[idx]
-#             label_SA = ds_micro_zinc_SA.labels[idx]
-#             label_logp = ds_micro_zinc_logp.labels[idx]
-#             label_score = ds_micro_zinc_score.labels[idx]
+        # Check that for each task, you have the same label values as the initial DF.
+        for idx in range(multitask_microzinc.__len__()):
+            smiles = df[['SMILES']].iloc[idx].values[0]
+            #label = df[['SA']].iloc[idx]
+            label_SA = ds_micro_zinc_SA.labels[idx]
+            label_logp = ds_micro_zinc_logp.labels[idx]
+            label_score = ds_micro_zinc_score.labels[idx]
 
-#             # Search for the mol id in the multitask dataset
-#             mol_ids = smiles_to_unique_mol_ids([smiles])
-#             mol_id = mol_ids[0]
-#             found_idx = -1
-#             for i, id in enumerate(multitask_microzinc.mol_ids):
-#                 if mol_id == id: found_idx = i
+            # Search for the mol id in the multitask dataset
+            mol_ids = smiles_to_unique_mol_ids([smiles])
+            mol_id = mol_ids[0]
+            found_idx = -1
+            for i, id in enumerate(multitask_microzinc.mol_ids):
+                if mol_id == id: found_idx = i
             
-#             # Compare labels
-#             self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]['SA'])
-#             self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]['logp'])
-#             self.assertEqual(label_score, multitask_microzinc.labels[found_idx]['score'])
+            # Compare labels
+            self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]['SA'])
+            self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]['logp'])
+            self.assertEqual(label_score, multitask_microzinc.labels[found_idx]['score'])
 
     # def test_multitask_dataset_case_2(self):
     #     """Case: Different tasks, but with no intersection in the smiles (each task has a unique set of smiles)
