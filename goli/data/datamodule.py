@@ -153,9 +153,6 @@ class DGLDataset(Dataset):
         return datum
 
 class SingleTaskDataset(Dataset):
-    """For the MTL pipeline, this replaces the DGLDataset class, 
-    since we do not need to perform featurization straight away. 
-    The featurization occurs after gathering all the unique molecules across all datasets."""
     def __init__(
         self,
         labels: Union[torch.Tensor, np.ndarray],
@@ -194,102 +191,103 @@ class SingleTaskDataset(Dataset):
         return datum
 
 class MultitaskDGLDataset(Dataset):
-    """This custom dataset merges several datasets into one for multitask learning."""
+    """This class holds the information for the multitask dataset.
+  
+    Several single-task datasets can be merged to create a multi-task dataset."""
     def __init__(self, datasets: Dict[str, SingleTaskDataset]):
-        """Attributes:
-            datasets: a dictionary of SingleTaskDatasets
-            mol_ids: unique molecular IDs
-            smiles: SMILES strings
-            features: featurized molecules
-            labels_size: a dictionary that stores the dimension of labels to predict for each task 
-        """
         super().__init__()
         self.datasets = datasets
-        self.mol_ids, self.smiles, self.labels, self.features = self._merge(self.datasets)
+        
+        task = next(iter(self.datasets))
+        if "features" in datasets[task].__getitem__(0):
+            self.mol_ids, self.smiles, self.labels, self.features = self.merge(self.datasets)
+        else:
+            self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
         #self.labels_size = self.set_label_size_dict()
-
+ 
     def __len__(self):
         return len(self.mol_ids)
-
+ 
     def __getitem__(self, idx):
         datum = {}
-
+ 
         if self.mol_ids is not None:
             datum["mol_ids"] = self.mol_ids[idx]
-
+ 
         if self.smiles is not None:
             datum["smiles"] = self.smiles[idx]
-
+ 
         if self.labels is not None:
             datum["labels"] = self.labels[idx]
-
+ 
         if self.features is not None:
             datum["features"] = self.features[idx]
-
+ 
         return datum
-
-    def _merge(self, datasets):
-        mol_ids = []
-
+ 
+    def merge(self, datasets):
         all_smiles = []
         all_features = []
         all_labels = []
-
+ 
         all_tasks = []
         for task, ds in datasets.items():
             # Get data from single task ds
             ds_smiles = [ds.__getitem__(i)["smiles"] for i in range(len(ds))]
-            ds_features = [ds.__getitem__(i)["features"] for i in range(len(ds))]
             ds_labels = [ds.__getitem__(i)["labels"] for i in range(len(ds))]
-
+            if "features" in ds.__getitem__(0):
+                ds_features = [ds.__getitem__(i)["features"] for i in range(len(ds))]
+            else:
+                ds_features = None
+ 
             all_smiles.extend(ds_smiles)
-            if ds_features is not None: all_features.extend(ds_features)
             all_labels.extend(ds_labels)
-
-            for count in range(ds.__len__()):
-                all_tasks.append(task)
-
+            if ds_features is not None: all_features.extend(ds_features)
+ 
+            task_list = [task] * ds.__len__()
+            all_tasks.extend(task_list)
+ 
+        mol_ids = []
         # Get all unique mol ids.
         all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
         unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         mol_ids = unique_mol_ids
-
+ 
         #print("\n\n\nUnique mol ID's! ")
         #pprint(mol_ids)
         #print("\nAll mol IDs ")
         #pprint(all_mol_ids)
         #print("\nAll smiles ")
         #pprint(all_smiles)
-
+ 
         # Store the smiles.
-        smiles = [[] for i in range(len(mol_ids))]
+        #smiles = [[] for i in range(len(mol_ids))]
+        smiles = [[]] * len(mol_ids)
         for all_idx, unique_idx in enumerate(inv):
             smiles[unique_idx].append(all_smiles[all_idx])
-
-        # Store the features
-        #print("ALL FEATURES", all_features)
-        #print("length of mol_id", len(mol_ids))
-        #print("length of all features", len(all_features))
-        if all_features is not Empty:
-            features = [-1 for i in range(len(mol_ids))]
-            for all_idx, unique_idx in enumerate(inv):
-                features[unique_idx] = all_features[all_idx]
-
+ 
         # Store the labels.
+        #labels = [{}] * len(mol_ids)
         labels = [{} for i in range(len(mol_ids))]
         for all_idx, unique_idx in enumerate(inv):
             task = all_tasks[all_idx]
             label = all_labels[all_idx]
             labels[unique_idx][task] = label
-
-        return mol_ids, smiles, labels, features
+ 
+        #print("All features", all_features)
+        #print("length of mol_id", len(mol_ids))
+        #print("length of all features", len(all_features))
+ 
+        # Store the features
+        if len(all_features) > 0:
+            features = [-1 for i in range(len(mol_ids))]
+            for all_idx, unique_idx in enumerate(inv):
+                features[unique_idx] = all_features[all_idx]
+            return mol_ids, smiles, labels, features
+        else:
+            return mol_ids, smiles, labels
 
     def set_label_size_dict(self):
-        # TODO: Test cases for predicting one label versus several labels.
-        # The pipeline creates a torch tensor like torch.Size([1])
-        # But some tests create one like torch.Size([1, 1])
-        # Different behaviour when using torch.size(dim=1) vs. torch.size()
-
         # This gives the number of labels to predict for a given task.
         task_labels_size = {}
         for task, ds in self.datasets.items():

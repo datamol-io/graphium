@@ -1,7 +1,7 @@
 from torch import nn
 import torch
 import dgl
-from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
+from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 import inspect
 
 from goli.nn.base_layers import FCLayer, get_activation
@@ -806,7 +806,7 @@ class FullDGLNetwork(nn.Module):
                 MLP network of the node features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
 
-            pre_nn_kwargs:
+            pre_nn_edges_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
                 MLP network of the edge features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
@@ -1007,7 +1007,7 @@ class FullDGLNetwork(nn.Module):
         return h
 
     @property
-    def concat_last_layers(self) -> Union[type(None), Iterable[int]]:
+    def concat_last_layers(self) -> Union[Type[None], Iterable[int]]:
         """
         Property to control the output of the `self.forward`.
         If set to a list of integer, the `forward` function will
@@ -1020,7 +1020,7 @@ class FullDGLNetwork(nn.Module):
         return self._concat_last_layers
 
     @concat_last_layers.setter
-    def concat_last_layers(self, value: Union[type(None), int, Iterable[int]]) -> None:
+    def concat_last_layers(self, value: Union[Type[None], int, Iterable[int]]) -> None:
         """
         Set the property to control the output of the `self.forward`.
         If set to a list of integer, the `forward` function will
@@ -1125,81 +1125,301 @@ class FullDGLSiameseNetwork(FullDGLNetwork):
 
         return out
 
-class TaskHeads(nn.Module):
-    """
-    Each task has its own specific MLP. By providing task-specific params, we can modify
-    MLPs for specific tasks as we want.
-    """
+
+class TaskHeadParams():
     def __init__(
-        self, # Be careful with in_dim
-        in_dim,
-        task_heads_kwargs: Dict[str, Any]
+        self,
+        task_name: str,
+        #in_dim: int,                           # We don't need to specify the input dimension since the TaskHeads class will know which dimension to use.
+        out_dim: int,
+        hidden_dims: Union[List[int], int],     # Should this only be List? See FeedForwardNN vs. FeedForwardDGL
+        depth: Optional[int] = None,
+        activation: Union[str, Callable] = "relu",
+        last_activation: Union[str, Callable] = "none",
+        dropout: float = 0.0,
+        last_dropout: float = 0.0,
+        normalization: Union[str, Callable] = "none",
+        last_normalization: Union[str, Callable] = "none",
+        residual_type: str = "none",
+        residual_skip_steps: int = 1,
+        name: str = "LNN",
+        layer_type: Union[str, nn.Module] = "fc",
+        layer_kwargs: Optional[Dict] = None,
     ):
+        r"""
+        This class holds all the information to instatiate a TaskHead.
+        """
+
+        self.task_name = task_name
+        #self.in_dim = in_dim
+        self.nn_params = {}
+        self.nn_params["out_dim"] = out_dim
+        self.nn_params["hidden_dims"] = hidden_dims
+        self.nn_params["depth"] = depth
+        self.nn_params["activation"] = activation
+        self.nn_params["last_activation"] = last_activation
+        self.nn_params["dropout"] = dropout
+        self.nn_params["last_dropout"] = last_dropout
+        self.nn_params["normalization"] = normalization
+        self.nn_params["last_normalization"] = last_normalization
+        self.nn_params["residual_type"] = residual_type
+        self.nn_params["residual_skip_steps"] = residual_skip_steps
+        self.nn_params["name"] = name
+        self.nn_params["layer_type"] = layer_type
+        self.nn_params["layer_kwargs"] = layer_kwargs
+
+class TaskHead(FeedForwardNN):
+    def __init__(
+        self,
+        task_name: str,                         # The name matters for per-task analysis
+        in_dim: int,
+        out_dim: int,
+        hidden_dims: Union[List[int], int],     # Should this only be List? See FeedForwardNN vs. FeedForwardDGL
+        depth: Optional[int] = None,
+        activation: Union[str, Callable] = "relu",
+        last_activation: Union[str, Callable] = "none",
+        dropout: float = 0.0,
+        last_dropout: float = 0.0,
+        normalization: Union[str, Callable] = "none",
+        last_normalization: Union[str, Callable] = "none",
+        residual_type: str = "none",
+        residual_skip_steps: int = 1,
+        name: str = "LNN",
+        layer_type: Union[str, nn.Module] = "fc",
+        layer_kwargs: Optional[Dict] = None,
+    ):
+        r"""
+        This class instantiates a task head, and it is identical to the FeedForwardNN class with the addition of a `task_name` attribute.
+
+        Parameters:
+
+            task_name:
+                The name of the task for which the current output head performs predictions.
+
+            in_dim:
+                Input feature dimensions of the layer
+
+            out_dim:
+                Output feature dimensions of the layer
+
+            hidden_dims:
+                Either an integer specifying all the hidden dimensions,
+                or a list of dimensions in the hidden layers.
+                Be careful, the "simple" residual type only supports
+                hidden dimensions of the same value.
+
+            depth:
+                If `hidden_dims` is an integer, `depth` is 1 + the number of
+                hidden layers to use. If `hidden_dims` is a `list`, `depth` must
+                be `None`.
+
+            activation:
+                activation function to use in the hidden layers.
+
+            last_activation:
+                activation function to use in the last layer.
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            last_dropout:
+                The ratio of units to dropout for the last_layer. Must be between 0 and 1
+
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
+
+            last_normalization:
+                Whether to use batch normalization in the last layer
+
+            residual_type:
+                - "none": No residual connection
+                - "simple": Residual connection similar to the ResNet architecture.
+                  See class `ResidualConnectionSimple`
+                - "weighted": Residual connection similar to the Resnet architecture,
+                  but with weights applied before the summation. See class `ResidualConnectionWeighted`
+                - "concat": Residual connection where the residual is concatenated instead
+                  of being added.
+                - "densenet": Residual connection where the residual of all previous layers
+                  are concatenated. This leads to a strong increase in the number of parameters
+                  if there are multiple hidden layers.
+
+            residual_skip_steps:
+                The number of steps to skip between each residual connection.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
+
+            name:
+                Name attributed to the current network, for display and printing
+                purposes.
+
+            layer_type:
+                The type of layers to use in the network.
+                Either "fc" as the `FCLayer`, or a class representing the `nn.Module`
+                to use.
+
+            layer_kwargs:
+                The arguments to be used in the initialization of the layer provided by `layer_type`  
+        """
+
+        self.task_name = task_name
+
+        # Initialize the FeedForwardNN
+        super().__init__(
+            in_dim=in_dim,
+            out_dim=out_dim,
+            hidden_dims=hidden_dims,
+            depth=depth,
+            activation=activation,
+            last_activation=last_activation,
+            normalization=normalization,
+            last_normalization=last_normalization,
+            residual_type=residual_type,
+            residual_skip_steps=residual_skip_steps,
+            name=name,
+            layer_type=layer_type,
+            dropout=dropout,
+            last_dropout=last_dropout,
+            layer_kwargs=layer_kwargs,
+        )
+
+class TaskHeads(nn.Module):
+    def __init__(
+        self,
+        in_dim: int,
+        task_heads_params: List[Type[TaskHeadParams]],
+    ):
+        r"""
+        Class that groups all multi-task output heads together to provide the task-specific outputs.
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the layer
+
+            task_heads_params:
+                This argument is of type List[TaskHeadParams]. Each argument is used to
+                initialize a task-specific MLP.
+        """
+
         super().__init__()
 
+        self.in_dim = in_dim
+
         self.task_heads = nn.ModuleDict()
-        for task in task_heads_kwargs: # Make sure it works with def in config file.
-            self.task_heads[task['task_name']] = FeedForwardNN(
-                in_dim=in_dim,
-                **task['task_nn']
+        for head_params in task_heads_params:
+            self.task_heads[head_params.task_name] = TaskHead(
+                task_name=head_params.task_name,
+                in_dim=self.in_dim,
+                **head_params.nn_params
             )
     
     # Return a dictionary: Dict[task_name, Tensor]
-    # Predictor class handles it.
     def forward(self, h: torch.Tensor):
         task_head_outputs = {}
 
-        for task in self.task_heads:
-            task_head_outputs[task] = self.task_heads[task](h)
-        
+        for task, head in self.task_heads.items():
+            task_head_outputs[task] = head.forward(h)
+
         return task_head_outputs
 
-class FullDGLMultiTaskNetwork(FullDGLNetwork):
-    """
-    Class that allows to implement a full multi-task graph neural network architecture,
-    including the pre-processing MLP, post-processing MLP and the task-specific heads.
-
-    In this model, the tasks share a full DGL network as a "trunk", and then they have task-specific MLPs.
-
-    Each molecular graph is associated with a variety of tasks, so the network should output the task-specific preedictions for a graph.
-    """
+class FullDGLMultiTaskNetwork(nn.Module):
     def __init__(
         self,
+        task_heads_kwargs: List[Type[TaskHeadParams]],
         gnn_kwargs: Dict[str, Any],
-        task_heads_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
-        num_inference_to_average: int = 1,
-        name: str = "MTL_DGL_GNN"
+        num_inference_to_average: int = 1,                          # Should this be changed?
+        name: str = "MTL_DGL_GNN",
     ):
-        # Here we just store an instance of a FullDGLNetwork
-        # But are we really making use of the inheritance?
-        self.FullDGLNetwork = super.__init__(
+        r"""
+        Class that allows to implement a full multi-task graph neural network architecture,
+        including the pre-processing MLP, post-processing MLP and the task-specific heads.
+
+        In this model, the tasks share a full DGL network as a "trunk", and additionally have task-specific MLPs. 
+        Each molecular graph is associated with a variety of tasks, so the network outputs the task-specific preedictions for a graph.
+
+        Parameters:
+
+            task_heads_kwargs:
+                This argument is of type List[TaskHeadParams]. Each argument is used to
+                initialize a task-specific MLP.
+
+            gnn_kwargs:
+                key-word arguments to use for the initialization of the pre-processing
+                GNN network using the class `FeedForwardDGL`.
+                It must respect the following criteria:
+
+                - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
+                - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
+
+            pre_nn_kwargs:
+                key-word arguments to use for the initialization of the pre-processing
+                MLP network of the node features before the GNN, using the class `FeedForwardNN`.
+                If `None`, there won't be a pre-processing MLP.
+
+            pre_nn_edges_kwargs:
+                key-word arguments to use for the initialization of the pre-processing
+                MLP network of the edge features before the GNN, using the class `FeedForwardNN`.
+                If `None`, there won't be a pre-processing MLP.
+
+            post_nn_kwargs:
+                key-word arguments to use for the initialization of the post-processing
+                MLP network after the GNN, using the class `FeedForwardNN`.
+                If `None`, there won't be a post-processing MLP.
+
+            num_inference_to_average:
+                Number of inferences to average at val/test time. This is used to avoid the noise introduced
+                by positional encodings with sign-flips. In case no such encoding is given,
+                this parameter is ignored.
+                NOTE: The inference time will be slowed-down proportionaly to this parameter.
+
+            name:
+                Name attributed to the current network, for display and printing
+                purposes.
+        """
+
+        super().__init__()
+        self.name = name
+
+        # Initialize the FullDGLNetwork
+        self.full_dgl_network = FullDGLNetwork(
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,
             pre_nn_edges_kwargs=pre_nn_edges_kwargs,
             post_nn_kwargs=post_nn_kwargs,
             num_inference_to_average=num_inference_to_average,
-            name=name
         )
-
-        self.TaskHeads = TaskHeads(
-            in_dim=self.FullDGLNetwork.out_dim(),
-            task_heads_kwargs=task_heads_kwargs
+        
+        # Initialize TaskHeads
+        if self.full_dgl_network.post_nn is not None:                   # FullDGLNetwork uses .pre_nn which seems wrong...
+            task_heads_in_dim = self.full_dgl_network.post_nn.out_dim
+        else:
+            task_heads_in_dim =  self.full_dgl_network.gnn.out_dim
+        self.task_heads = TaskHeads(
+            #in_dim=self.full_dgl_network.out_dim(),
+            in_dim=task_heads_in_dim,
+            task_heads_params=task_heads_kwargs
         )
 
         self.model = nn.Sequential()
-        # Add the full DGL network trunk
         self.model.add_module(
             'FullDGLNetwork',
-            self.FullDGLNetwork
+            self.full_dgl_network
         )
-        # Add the task-specific heads
         self.model.add_module(
             'TaskHeads',
-            self.TaskHeads
+            self.task_heads
         )
 
     def forward(self, g: dgl.DGLGraph):
-        return self.model(g)
+        h_out_full_dgl_network = self.full_dgl_network.forward(g)
+        task_outputs = self.task_heads.forward(h_out_full_dgl_network)
+
+        return task_outputs
