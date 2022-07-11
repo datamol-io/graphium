@@ -140,6 +140,9 @@ class DirPoolingDgl(nn.Module):
                 :math:`B` refers to the batch size.
         """
 
+        if not ("pos_dir" in graph.ndata.keys()):
+            raise KeyError("`pos_dir` key missing. Positional encodings are required for the `DirPoolingDgl` layer, make sure you add them under the `dglGraph.ndata['pos_dir']` key.")
+
         dir = graph.ndata["pos_dir"][:, self.dir_idx].unsqueeze(-1)
         pooled = torch.abs(self.sum_pooler(graph, feat * dir))
 
