@@ -214,6 +214,7 @@ class MLP(nn.Module):
         dropout=0.0,
         normalization="none",
         last_normalization="none",
+        first_normalization="none",
         last_dropout=0.0,
     ):
         r"""
@@ -246,7 +247,9 @@ class MLP(nn.Module):
 
                 if `layers==1`, this parameter is ignored
             last_normalization:
-                Whether to use batch normalization in the last layer
+                Norrmalization to use **after the last layer**. Same options as `normalization`.
+            first_normalization:
+                Norrmalization to use in **before the first layer**. Same options as `normalization`.
             last_dropout:
                 The ratio of units to dropout at the last layer.
 
@@ -257,8 +260,9 @@ class MLP(nn.Module):
         self.in_dim = in_dim
         self.hidden_dim = hidden_dim
         self.out_dim = out_dim
+        self.first_normalization = get_norm(first_normalization)
 
-        self.fully_connected = nn.ModuleList()
+        self.fully_connected = nn.Sequential()
         if layers <= 1:
             self.fully_connected.append(
                 FCLayer(
@@ -316,8 +320,9 @@ class MLP(nn.Module):
                 `Dout` is the number of output features
 
         """
-        for fc in self.fully_connected:
-            h = fc(h)
+        if self.first_normalization is not None:
+            h = self.first_normalization(h)
+        h = self.fully_connected(h)
         return h
 
     def __getitem__(self, idx: int) -> nn.Module:

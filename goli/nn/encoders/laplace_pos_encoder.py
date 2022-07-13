@@ -1,7 +1,9 @@
+from typing import List, Dict
 import torch
 import torch.nn as nn
-from goli.nn.base_layers import MLP, get_norm
 
+
+from goli.nn.base_layers import MLP, get_norm
 
 class LapPENodeEncoder(torch.nn.Module):
     """Laplace Positional Embedding node encoder.
@@ -14,6 +16,7 @@ class LapPENodeEncoder(torch.nn.Module):
     """
 
     def __init__(self,
+                on_keys: Dict[str],
                 in_dim, # Size of Laplace PE embedding
                 hidden_dim,
                 out_dim,
@@ -103,5 +106,7 @@ class LapPENodeEncoder(torch.nn.Module):
         if self.post_mlp is not None:
             pos_enc = self.post_mlp(pos_enc)  # (Num nodes) x dim_pe
 
-        return pos_enc
+        output = {"node": pos_enc}
+
+        return output
 
