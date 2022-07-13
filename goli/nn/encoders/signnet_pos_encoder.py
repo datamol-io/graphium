@@ -191,6 +191,8 @@ class SignNetNodeEncoder(torch.nn.Module):
         # SignNet
         pos_enc = self.sign_inv_net(pos_enc, batch.edge_index, batch.batch)  # (Num nodes) x (pos_enc_dim)
 
-        return pos_enc
+        output = {"node": pos_enc}
+
+        return output
 
 
