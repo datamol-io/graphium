@@ -1,8 +1,9 @@
+from copy import deepcopy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from typing import Union, Callable, Optional
+from typing import Union, Callable, Optional, Type
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 
@@ -31,6 +32,33 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
     activation = activation[0]
 
     return vars(torch.nn.modules.activation)[activation]()
+
+
+def get_norm(self, normalization: Union[Type[None], str, Callable]):
+    r"""
+    returns the normalization function represented by the input string
+
+    Parameters:
+        parsed_norm: Callable, `None`, or string with value:
+            "none", "batch_norm", "layer_norm"
+
+    Returns:
+        Callable or None: The normalization function
+    """
+    parsed_norm = None
+    if normalization is None or normalization == "none":
+        pass
+    elif callable(normalization):
+        parsed_norm = normalization
+    elif normalization == "batch_norm":
+        parsed_norm = nn.BatchNorm1d(self.out_dim)
+    elif normalization == "layer_norm":
+        parsed_norm = nn.LayerNorm(self.out_dim)
+    else:
+        raise ValueError(
+            f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"
+        )
+    return deepcopy(parsed_norm)
 
 
 class FCLayer(nn.Module):
@@ -112,23 +140,6 @@ class FCLayer(nn.Module):
 
         self.reset_parameters()
 
-    def _parse_norm(self, normalization):
-
-        parsed_norm = None
-        if normalization is None or normalization == "none":
-            pass
-        elif callable(normalization):
-            parsed_norm = normalization
-        elif normalization == "batch_norm":
-            parsed_norm = nn.BatchNorm1d(self.out_dim)
-        elif normalization == "layer_norm":
-            parsed_norm = nn.LayerNorm(self.out_dim)
-        else:
-            raise ValueError(
-                f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"
-            )
-        return parsed_norm
-
     def reset_parameters(self, init_fn=None):
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
@@ -203,6 +214,7 @@ class MLP(nn.Module):
         dropout=0.0,
         normalization="none",
         last_normalization="none",
+        last_dropout=0.0,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -235,6 +247,8 @@ class MLP(nn.Module):
                 if `layers==1`, this parameter is ignored
             last_normalization:
                 Whether to use batch normalization in the last layer
+            last_dropout:
+                The ratio of units to dropout at the last layer.
 
         """
 
@@ -252,7 +266,7 @@ class MLP(nn.Module):
                     out_dim,
                     activation=last_activation,
                     normalization=last_normalization,
-                    dropout=dropout,
+                    dropout=last_dropout,
                 )
             )
         else:
@@ -281,7 +295,7 @@ class MLP(nn.Module):
                     out_dim,
                     activation=last_activation,
                     normalization=last_normalization,
-                    dropout=dropout,
+                    dropout=last_dropout,
                 )
             )
 
