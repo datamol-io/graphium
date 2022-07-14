@@ -42,12 +42,7 @@ class MLPEncoder(torch.nn.Module):
         if not (self.out_level in accepted_out_levels):
             raise ValueError(f"`out_level` must be in {accepted_out_levels}, provided {out_level}")
 
-        # Check the `on_keys`.
-        self.on_keys = on_keys
-        if len(on_keys) != 1:
-            raise ValueError(f"`{self.__class__}` only supports one key")
-        if list(on_keys.keys())[0] != "encoding":
-            raise ValueError(f"`on_keys` must contain the key 'encoding'")
+        self.on_keys = self.parse_on_keys(on_keys)
 
         # Initialize the MLP
         self.pe_encoder = MLP(
@@ -64,6 +59,14 @@ class MLPEncoder(torch.nn.Module):
             dropout=dropout,
             last_dropout=dropout,
         )
+
+    def parse_on_keys(self, on_keys):
+        # Parse the `on_keys`.
+        if len(on_keys) != 1:
+            raise ValueError(f"`{self.__class__}` only supports one key")
+        if list(on_keys.keys())[0] != "encoding":
+            raise ValueError(f"`on_keys` must contain the key 'encoding'")
+        return on_keys
 
 
     def forward(self, encoding):

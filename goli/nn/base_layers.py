@@ -34,13 +34,14 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
     return vars(torch.nn.modules.activation)[activation]()
 
 
-def get_norm(self, normalization: Union[Type[None], str, Callable]):
+def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]=None):
     r"""
     returns the normalization function represented by the input string
 
     Parameters:
-        parsed_norm: Callable, `None`, or string with value:
+        normalization: Callable, `None`, or string with value:
             "none", "batch_norm", "layer_norm"
+        dim: Dimension where to apply the norm. Mandatory for 'batch_norm' and 'layer_norm'
 
     Returns:
         Callable or None: The normalization function
@@ -51,9 +52,9 @@ def get_norm(self, normalization: Union[Type[None], str, Callable]):
     elif callable(normalization):
         parsed_norm = normalization
     elif normalization == "batch_norm":
-        parsed_norm = nn.BatchNorm1d(self.out_dim)
+        parsed_norm = nn.BatchNorm1d(dim)
     elif normalization == "layer_norm":
-        parsed_norm = nn.LayerNorm(self.out_dim)
+        parsed_norm = nn.LayerNorm(dim)
     else:
         raise ValueError(
             f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"
@@ -131,7 +132,7 @@ class FCLayer(nn.Module):
         self.bias = bias
         self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         self.dropout = None
-        self.normalization = self._parse_norm(normalization)
+        self.normalization = get_norm(normalization, dim=out_dim)
 
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
@@ -260,7 +261,7 @@ class MLP(nn.Module):
         self.in_dim = in_dim
         self.hidden_dim = hidden_dim
         self.out_dim = out_dim
-        self.first_normalization = get_norm(first_normalization)
+        self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
         self.fully_connected = nn.Sequential()
         if layers <= 1:
