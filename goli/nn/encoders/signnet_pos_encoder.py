@@ -2,6 +2,8 @@
 SignNet https://arxiv.org/abs/2202.13013
 based on https://github.com/cptq/SignNet-BasisNet
 """
+from typing import Dict
+
 import torch
 import torch.nn as nn
 from torch_geometric.nn import GINConv
@@ -121,6 +123,7 @@ class SignNetNodeEncoder(torch.nn.Module):
     """
 
     def __init__(self,
+                on_keys: Dict[str],
                 in_dim, # Size of PE embedding
                 hidden_dim,
                 out_dim,
@@ -133,6 +136,9 @@ class SignNetNodeEncoder(torch.nn.Module):
                 normalization="none",
                 ):
         super().__init__()
+
+        # Parse the `on_keys`.
+        self.on_keys = self.parse_on_keys(on_keys)
 
         if model_type not in ['MLP', 'DeepSet']:
             raise ValueError(f"Unexpected SignNet model {model_type}")
@@ -174,22 +180,27 @@ class SignNetNodeEncoder(torch.nn.Module):
         else:
             raise ValueError(f"Unexpected model {self.model_type}")
 
-    def forward(self, batch):
-        if not (hasattr(batch, 'eigvals_sn') and hasattr(batch, 'eigvecs_sn')):
-            raise ValueError("Precomputed eigen values and vectors are "
-                             f"required for {self.__class__.__name__}; "
-                             "set config 'posenc_SignNet.enable' to True")
-        # eigvals = batch.eigvals_sn
-        eigvecs = batch.eigvecs_sn
+    def parse_on_keys(self, on_keys):
+        if len(on_keys) != 1:
+            raise ValueError(f"`{self.__class__}` only supports 1 key")
+        if "eigvecs" not in on_keys.keys():
+            raise ValueError(f"`on_keys` must contain the key eigvecs. Provided {on_keys}")
 
-        # pos_enc = torch.cat((eigvecs.unsqueeze(2), eigvals), dim=2)  # (Num nodes) x (Num Eigenvectors) x 2
+        on_keys["edge_index"] = "edge_index"
+        on_keys["batch_index"] = "batch_index"
+
+        return on_keys
+
+
+    def forward(self, eigvecs, edge_index, batch_index):
+
         pos_enc = eigvecs.unsqueeze(-1)  # (Num nodes) x (Num Eigenvectors) x 1
 
         empty_mask = torch.isnan(pos_enc)
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 1
 
         # SignNet
-        pos_enc = self.sign_inv_net(pos_enc, batch.edge_index, batch.batch)  # (Num nodes) x (pos_enc_dim)
+        pos_enc = self.sign_inv_net(pos_enc, edge_index, batch_index)  # (Num nodes) x (pos_enc_dim)
 
         output = {"node": pos_enc}
 

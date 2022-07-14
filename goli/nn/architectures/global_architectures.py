@@ -132,7 +132,7 @@ class FeedForwardNN(nn.Module):
         self.dropout = dropout
         self.last_dropout = last_dropout
         self.normalization = normalization
-        self.first_normalization =  get_norm(first_normalization)
+        self.first_normalization =  get_norm(first_normalization, dim=in_dim)
         self.last_normalization = last_normalization
         self.residual_type = None if residual_type is None else residual_type.lower()
         self.residual_skip_steps = residual_skip_steps
@@ -463,7 +463,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.pooling = pooling
 
         self.virtual_node_class = self._parse_virtual_node_class()
-        self.first_normalization_edges = get_norm(first_normalization)
+        self.first_normalization_edges = get_norm(first_normalization, dim=in_dim_edges)
 
         # Initialize the parent `FeedForwardNN`
         super().__init__(

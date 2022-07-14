@@ -28,6 +28,9 @@ class LapPENodeEncoder(torch.nn.Module):
                 **model_kwargs):
         super().__init__()
 
+        # Parse the `on_keys`.
+        self.on_keys = self.parse_on_keys(on_keys)
+
         if model_type not in ['Transformer', 'DeepSet']:
             raise ValueError(f"Unexpected PE model {model_type}")
         self.model_type = model_type
@@ -38,7 +41,7 @@ class LapPENodeEncoder(torch.nn.Module):
 
         # Initial projection of eigenvalue and the node's eigenvector value
         self.linear_A = nn.Linear(2, in_dim)
-        self.first_normalization = get_norm(first_normalization)
+        self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
         if model_type == 'Transformer':
             # Transformer model for LapPE
@@ -71,6 +74,12 @@ class LapPENodeEncoder(torch.nn.Module):
                     dropout=dropout,
                     **model_kwargs)
 
+    def parse_on_keys(self, on_keys):
+        if len(on_keys) != 2:
+            raise ValueError(f"`{self.__class__}` only supports 2 keys")
+        if ("eigvals" not in on_keys.keys()) and ("eigvecs" not in on_keys.keys()):
+            raise ValueError(f"`on_keys` must contain the keys 'eigvals' and eigvecs. Provided {on_keys}")
+        return on_keys
 
     def forward(self, eigvals, eigvecs):
 
