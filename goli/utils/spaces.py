@@ -4,7 +4,7 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
-from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
+from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule, MultitaskDGLFromSmilesDataModule
 
 from goli.nn.dgl_layers import (
     GATLayer,
@@ -104,4 +104,5 @@ METRICS_DICT.update(METRICS_REGRESSION)
 DATAMODULE_DICT = {
     "DGLFromSmilesDataModule": DGLFromSmilesDataModule,
     "DGLOGBDataModule": DGLOGBDataModule,
+    "MultitaskDGLFromSmilesDataModule": MultitaskDGLFromSmilesDataModule
 }

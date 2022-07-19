@@ -1506,18 +1506,26 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         if stage == "fit" or stage is None:
             self.train_ds = MultitaskDGLDataset(self.train_singletask_datasets)  # type: ignore
             self.val_ds = MultitaskDGLDataset(self.val_singletask_datasets)  # type: ignore
+            # Produce the label sizes
+            train_label_sizes = self.train_ds.set_label_size_dict()
+            val_label_sizes = self.val_ds.set_label_size_dict()
+            #label_sizes = train_label_sizes
+            #label_sizes.update(val_label_sizes)
 
         if stage == "test" or stage is None:
             self.test_ds = MultitaskDGLDataset(self.test_singletask_datasets)  # type: ignore
+            # Produce the label sizes
+            test_label_sizes = self.test_ds.set_label_size_dict()
+            #label_sizes.update(test_label_sizes)
 
         # Produce the label sizes
-        train_label_sizes = self.train_ds.set_label_size_dict()
-        val_label_sizes = self.val_ds.set_label_size_dict()
-        test_label_sizes = self.test_ds.set_label_size_dict()
+        #train_label_sizes = self.train_ds.set_label_size_dict()
+        #val_label_sizes = self.val_ds.set_label_size_dict()
+        #test_label_sizes = self.test_ds.set_label_size_dict()
 
-        label_sizes = train_label_sizes
-        label_sizes.update(val_label_sizes)
-        label_sizes.update(test_label_sizes)
+        #label_sizes = train_label_sizes
+        #label_sizes.update(val_label_sizes)
+        #label_sizes.update(test_label_sizes)
 
     # Cannot be used as is for the multitask version, because sample_idx does not apply.
     def _featurize_molecules(self, smiles: Iterable[str]) -> Tuple[List, List]:
@@ -1701,21 +1709,33 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         error. If all 10 first element, then `None` is returned, otherwise the first
         graph to not fail is returned.
         """
-        if self.df is None:
-            df = self._read_csv(self.df_path, nrows=10)
+        keys = list(self.task_specific_args.keys())
+        task = keys[0]
+        args = self.task_specific_args[task]
+        if args["df"] is None:
+            df = self._read_csv(args["df_path"], nrows=10)
         else:
-            df = self.df.iloc[0:10, :]
+            df = args["df"].iloc[0:10, :]
 
-        smiles, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
+        smiles, labels, sample_idx, extras = self._extract_smiles_labels(
+            df,
+            smiles_col=args["smiles_col"],
+            label_cols=args["label_cols"],
+            idx_col=args["idx_col"],
+            weights_col=args["weights_col"],
+            weights_type=args["weights_type"],
+        )
+
+        #smiles, _, _, _ = self._extract_smiles_labels(df, self.smiles_col, self.label_cols)
 
         graph = None
         for s in smiles:
-            graph = self.smiles_transformer(s)
+            graph = self.smiles_transformer(s, mask_nan=0.0)
             if graph is not None:
                 break
 
         if isinstance(graph, dict):
-            graph = dgl_dict_to_graph(**graph, mask_nan=0.0)
+            graph = dgl_dict_to_graph(**graph)    # Removed mask_nan=0.0
 
         return graph
 
