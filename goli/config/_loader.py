@@ -7,9 +7,14 @@ from loguru import logger
 
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
+from goli.nn.architectures import TaskHeadParams
 
 from goli.trainer.metrics import MetricWrapper
+<<<<<<< HEAD
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FeedForwardNN
+=======
+from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FullDGLMultiTaskNetwork, FeedForwardNN
+>>>>>>> origin/master
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 
@@ -58,6 +63,8 @@ def load_architecture(
     elif model_type == "fulldglsiamesenetwork":
         model_class = FullGraphSiameseNetwork
         kwargs["dist_method"] = cfg_arch["dist_method"]
+    elif model_type == "fulldglmultitasknetwork":
+        model_class = FullDGLMultiTaskNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
@@ -66,6 +73,11 @@ def load_architecture(
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
     post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
+    task_heads_kwargs = cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None     # This is of type ListConfig containing TaskHeadParams
+    task_head_params_list = []
+    for params in omegaconf.OmegaConf.to_object(task_heads_kwargs): # This turns the ListConfig into List[TaskHeadParams]
+        params_dict = dict(params)
+        task_head_params_list.append(TaskHeadParams(**params_dict))
 
     # Set the input dimensions
     if pre_nn_kwargs is not None:
@@ -81,12 +93,21 @@ def load_architecture(
         gnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
 
     # Set the parameters for the full network
-    model_kwargs = dict(
-        gnn_kwargs=gnn_kwargs,
-        pre_nn_kwargs=pre_nn_kwargs,
-        pre_nn_edges_kwargs=pre_nn_edges_kwargs,
-        post_nn_kwargs=post_nn_kwargs,
-    )
+    if task_heads_kwargs is None:
+        model_kwargs = dict(
+            gnn_kwargs=gnn_kwargs,
+            pre_nn_kwargs=pre_nn_kwargs,
+            pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+            post_nn_kwargs=post_nn_kwargs,
+        )
+    else:
+        model_kwargs = dict(
+            gnn_kwargs=gnn_kwargs,
+            pre_nn_kwargs=pre_nn_kwargs,
+            pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+            post_nn_kwargs=post_nn_kwargs,
+            task_heads_kwargs=task_head_params_list,
+        )
 
     return model_class, model_kwargs
 
