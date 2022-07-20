@@ -9,11 +9,11 @@ import pandas as pd
 
 
 import goli
-from goli.data import load_micro_zinc, DGLDataset, SingleTaskDataset, MultitaskDGLDataset
+from goli.data import load_micro_zinc, SingleTaskDataset, MultitaskDGLDataset
 from goli.data.datamodule import smiles_to_unique_mol_ids
 
 class Test_Multitask_DataModule(ut.TestCase):
-    
+
     def test_multitask_dglfromsmiles_dm(self):
         """Cover similar testing as for the original data module."""
         df = goli.data.load_tiny_zinc()     # 100 molecules
@@ -32,7 +32,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         featurization_args["use_bonds_weights"] = False
         featurization_args["explicit_H"] = False
 
-        # Config for multitask datamodule. 
+        # Config for multitask datamodule.
 
         # Per-task arguments.
         dm_task_args_SA = {}
@@ -114,7 +114,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
             it = iter(dl)
             batch = next(it)
-            
+
             assert set(batch.keys()) == {"labels", "features", "smiles", "mol_ids"}
             assert len(batch["mol_ids"]) == 16
             #assert len(batch["smiles"]) == 16
@@ -165,7 +165,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
             it = iter(dl)
             batch = next(it)
-            
+
             assert set(batch.keys()) == {"labels", "features", "smiles", "mol_ids"}
             assert len(batch["mol_ids"]) == 16
             #assert len(batch["smiles"]) == 16
@@ -178,7 +178,7 @@ class Test_Multitask_DataModule(ut.TestCase):
 
     def test_multitask_dglfromsmiles_from_config_csv(self):
         config = goli.load_config(name="zinc_default_multitask_fulldgl")
-     
+
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
         dm = goli.data.MultitaskDGLFromSmilesDataModule(**dm_args)
 
@@ -195,7 +195,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
             it = iter(dl)
             batch = next(it)
-            
+
             assert set(batch.keys()) == {"labels", "features", "smiles", "mol_ids"}
             assert len(batch["mol_ids"]) == 16
             #assert len(batch["smiles"]) == 16
@@ -265,13 +265,6 @@ class Test_Multitask_Dataset(ut.TestCase):
             self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]['SA'])
             self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]['logp'])
             self.assertEqual(label_score, multitask_microzinc.labels[found_idx]['score'])
-<<<<<<< HEAD
-
-        # Using a data loader
-        #multitask_loader = torch.utils.data.DataLoader(multitask_microzinc, shuffle=False, num_workers=0, batch_size=1)
-        #self.assertEqual(len(smiles), len(multitask_loader))
-=======
->>>>>>> origin/master
 
     # def test_multitask_dataset_case_2(self):
     #     """Case: Different tasks, but with no intersection in the smiles (each task has a unique set of smiles)
@@ -294,38 +287,21 @@ class Test_Multitask_Dataset(ut.TestCase):
     #     # We need to turn these dataframes into single-task datasets.
     #     # We don't need to do featurization yet.
     #     ds_micro_zinc_SA = SingleTaskDataset(
-    #         smiles=df_micro_zinc_SA.loc[:,'SMILES'], 
+    #         smiles=df_micro_zinc_SA.loc[:,'SMILES'],
     #         labels=df_micro_zinc_SA.loc[:,'SA']
     #         )
     #     ds_micro_zinc_logp = SingleTaskDataset(
-    #         smiles=df_micro_zinc_logp.loc[:,'SMILES'], 
+    #         smiles=df_micro_zinc_logp.loc[:,'SMILES'],
     #         labels=df_micro_zinc_logp.loc[:,'logp']
     #         )
     #     ds_micro_zinc_score = SingleTaskDataset(
-    #         smiles=df_micro_zinc_score.loc[:,'SMILES'], 
+    #         smiles=df_micro_zinc_score.loc[:,'SMILES'],
     #         labels=df_micro_zinc_score.loc[:,'score']
     #         )
 
-<<<<<<< HEAD
-        # We need to turn these dataframes into single-task datasets.
-        # We don't need to do featurization yet.
-        ds_micro_zinc_SA = SingleTaskDataset(
-            smiles=df_micro_zinc_SA.loc[:,'SMILES'],
-            labels=df_micro_zinc_SA.loc[:,'SA']
-            )
-        ds_micro_zinc_logp = SingleTaskDataset(
-            smiles=df_micro_zinc_logp.loc[:,'SMILES'],
-            labels=df_micro_zinc_logp.loc[:,'logp']
-            )
-        ds_micro_zinc_score = SingleTaskDataset(
-            smiles=df_micro_zinc_score.loc[:,'SMILES'],
-            labels=df_micro_zinc_score.loc[:,'score']
-            )
-=======
     #     # Create the multitask dataset
     #     datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
     #     multitask_microzinc = MultitaskDGLDataset(datasets_dict) # Can optionally have features
->>>>>>> origin/master
 
     #     # The total dataset has as many molecules as there are smiles in all tasks put together
     #     self.assertEqual(total_data_points, multitask_microzinc.__len__())
@@ -383,23 +359,23 @@ class Test_Multitask_Dataset(ut.TestCase):
     #     # Here we split the data according to the task we care about.
     #     df_micro_zinc_SA = df_rows_SA[['SMILES', 'SA']]
     #     df_micro_zinc_logp = df_rows_logp[['SMILES', 'logp']]
-    #     df_micro_zinc_score = df_rows_score[['SMILES', 'score']]     
+    #     df_micro_zinc_score = df_rows_score[['SMILES', 'score']]
 
     #     # We need to turn these dataframes into single-task datasets.
     #     # We don't need to do featurization yet.
     #     ds_micro_zinc_SA = SingleTaskDataset(
-    #         smiles=df_micro_zinc_SA.loc[:,'SMILES'], 
+    #         smiles=df_micro_zinc_SA.loc[:,'SMILES'],
     #         labels=df_micro_zinc_SA.loc[:,'SA']
     #         )
     #     ds_micro_zinc_logp = SingleTaskDataset(
-    #         smiles=df_micro_zinc_logp.loc[:,'SMILES'], 
+    #         smiles=df_micro_zinc_logp.loc[:,'SMILES'],
     #         labels=df_micro_zinc_logp.loc[:,'logp']
     #         )
     #     ds_micro_zinc_score = SingleTaskDataset(
-    #         smiles=df_micro_zinc_score.loc[:,'SMILES'], 
+    #         smiles=df_micro_zinc_score.loc[:,'SMILES'],
     #         labels=df_micro_zinc_score.loc[:,'score']
     #         )
-   
+
     #     # Create the multitask dataset
     #     datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
     #     multitask_microzinc = MultitaskDGLDataset(datasets_dict) # Can optionally have features
