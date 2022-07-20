@@ -3,28 +3,18 @@ from collections.abc import Mapping
 import torch
 from torch.utils.data.dataloader import default_collate
 from inspect import signature, _empty
-<<<<<<< HEAD
 from typing import Union, List, Optional, Dict, Type
 import dgl
 from torch_geometric.data import Data, Batch
-=======
-from typing import Union, List, Optional, Dict, Type, Any
->>>>>>> origin/master
 
 from goli.features import GraphDict
 
 
 def goli_collate_fn(
     elements,
-<<<<<<< HEAD
     labels_size_dict: Optional[Dict[str, int]],
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
-=======
-    labels_size_dict: Optional[Dict[str, Any]] = None,
-    mask_nan: Union[str, float, Type[None]] = "raise", 
-    do_not_collate_keys: List[str] = []
->>>>>>> origin/master
 ):
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
@@ -91,7 +81,6 @@ def goli_collate_fn(
                 batch[key] = [d[key] for d in elements]
 
             # Multitask setting: We have to pad the missing labels
-<<<<<<< HEAD
             elif key == "labels":
                 if labels_size_dict is not None:  # If we have to pad for the MTL setting
                     for datum in elements:
@@ -103,15 +92,6 @@ def goli_collate_fn(
                                 )
                 else:
                     batch[key] = default_collate([d[key] for d in elements])
-=======
-            elif key == 'labels':
-                if labels_size_dict is not None:
-                    for datum in elements:
-                        empty_task_labels = set(labels_size_dict.keys()) - set(datum["labels"].keys())
-                        for task in empty_task_labels:
-                            datum['labels'][task] = torch.full((len(elements), labels_size_dict[task]), torch.nan)
-                batch[key] = default_collate([datum[key] for datum in elements])
->>>>>>> origin/master
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
