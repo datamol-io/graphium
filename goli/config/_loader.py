@@ -11,7 +11,7 @@ from goli.nn.architectures import TaskHeadParams
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FullDGLMultiTaskNetwork, FeedForwardNN
-from goli.trainer.predictor import PredictorModule
+from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
@@ -38,6 +38,21 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
         metrics[name] = MetricWrapper(**this_metric)
 
     return metrics
+
+def load_metrics_mtl(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+
+    task_metrics = {}
+    cfg_metrics = deepcopy(config["metrics"])
+    if cfg_metrics is None:
+        return task_metrics
+
+    for task in cfg_metrics:
+        task_metrics[task] = {}
+        for this_metric in cfg_metrics[task]:
+            name = this_metric.pop("name")
+            task_metrics[task][name] = MetricWrapper(**this_metric)
+
+    return task_metrics
 
 
 def load_architecture(
@@ -69,11 +84,9 @@ def load_architecture(
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
     post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
+    #if "task_heads" in cfg_arch: print("THE TASK HEADS: ", cfg_arch["task_heads"])
+    #else: print("NO TASK HEADS")
     task_heads_kwargs = cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None     # This is of type ListConfig containing TaskHeadParams
-    task_head_params_list = []
-    for params in omegaconf.OmegaConf.to_object(task_heads_kwargs): # This turns the ListConfig into List[TaskHeadParams]
-        params_dict = dict(params)
-        task_head_params_list.append(TaskHeadParams(**params_dict))
 
     # Set the input dimensions
     if pre_nn_kwargs is not None:
@@ -97,6 +110,11 @@ def load_architecture(
             post_nn_kwargs=post_nn_kwargs,
         )
     else:
+        task_head_params_list = []
+        for params in omegaconf.OmegaConf.to_object(task_heads_kwargs): # This turns the ListConfig into List[TaskHeadParams]
+            params_dict = dict(params)
+            task_head_params_list.append(TaskHeadParams(**params_dict))
+
         model_kwargs = dict(
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,
