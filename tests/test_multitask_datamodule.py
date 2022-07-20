@@ -9,7 +9,7 @@ import pandas as pd
 
 
 import goli
-from goli.data import load_micro_zinc, DGLDataset, SingleTaskDataset, MultitaskDGLDataset
+from goli.data import load_micro_zinc, SingleTaskDataset, MultitaskDGLDataset
 from goli.data.datamodule import smiles_to_unique_mol_ids
 
 class Test_Multitask_DataModule(ut.TestCase):

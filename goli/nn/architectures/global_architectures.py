@@ -1,6 +1,6 @@
 from torch import Tensor, nn
 import torch
-from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional
+from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 import inspect
 
 from dgl import DGLGraph
