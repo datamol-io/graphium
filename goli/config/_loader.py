@@ -10,11 +10,7 @@ from pytorch_lightning import Trainer
 from goli.nn.architectures import TaskHeadParams
 
 from goli.trainer.metrics import MetricWrapper
-<<<<<<< HEAD
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FeedForwardNN
-=======
-from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FullDGLMultiTaskNetwork, FeedForwardNN
->>>>>>> origin/master
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 
