@@ -1,19 +1,30 @@
 from collections.abc import Mapping
+#from pprint import pprint
 import torch
 from torch.utils.data.dataloader import default_collate
 from inspect import signature, _empty
+<<<<<<< HEAD
 from typing import Union, List, Optional, Dict, Type
 import dgl
 from torch_geometric.data import Data, Batch
+=======
+from typing import Union, List, Optional, Dict, Type, Any
+>>>>>>> origin/master
 
 from goli.features import GraphDict
 
 
 def goli_collate_fn(
     elements,
+<<<<<<< HEAD
     labels_size_dict: Optional[Dict[str, int]],
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
+=======
+    labels_size_dict: Optional[Dict[str, Any]] = None,
+    mask_nan: Union[str, float, Type[None]] = "raise", 
+    do_not_collate_keys: List[str] = []
+>>>>>>> origin/master
 ):
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
@@ -38,9 +49,9 @@ def goli_collate_fn(
 
         labels_size_dict:
             (Note): This is an attribute of the MultiTaskDGLDataset.
-            A dictionary of the form Dict[labels, sizes] which has label/task names as keys
-            and the size of the tensor as value. The size of the tensor corresponds to how many
-            values there are to predict for that label/task.
+            A dictionary of the form Dict[tasks, sizes] which has task names as keys
+            and the size of the label tensor as value. The size of the tensor corresponds to how many
+            labels/values there are to predict for that task.
 
         mask_nan:
             Deal with the NaN/Inf when calling the function `dgl_dict_to_graph`.
@@ -80,6 +91,7 @@ def goli_collate_fn(
                 batch[key] = [d[key] for d in elements]
 
             # Multitask setting: We have to pad the missing labels
+<<<<<<< HEAD
             elif key == "labels":
                 if labels_size_dict is not None:  # If we have to pad for the MTL setting
                     for datum in elements:
@@ -91,9 +103,20 @@ def goli_collate_fn(
                                 )
                 else:
                     batch[key] = default_collate([d[key] for d in elements])
+=======
+            elif key == 'labels':
+                if labels_size_dict is not None:
+                    for datum in elements:
+                        empty_task_labels = set(labels_size_dict.keys()) - set(datum["labels"].keys())
+                        for task in empty_task_labels:
+                            datum['labels'][task] = torch.full((len(elements), labels_size_dict[task]), torch.nan)
+                batch[key] = default_collate([datum[key] for datum in elements])
+>>>>>>> origin/master
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
+#        print("The batch contains: ")
+#        pprint(batch)
         return batch
     else:
         return default_collate(elements)
