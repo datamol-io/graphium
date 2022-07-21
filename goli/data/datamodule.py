@@ -316,7 +316,7 @@ class MultitaskDGLDataset(Dataset):
     #     print("\n\n labels")
     #     pprint(self.labels)
 
-class DGLBaseDataModule(pl.LightningDataModule):
+class BaseDataModule(pl.LightningDataModule):
     def __init__(
         self,
         batch_size_train_val: int = 16,
@@ -451,7 +451,7 @@ class DGLBaseDataModule(pl.LightningDataModule):
         )
         return loader
 
-class DGLFromSmilesDataModule(DGLBaseDataModule):
+class DGLFromSmilesDataModule(BaseDataModule):
     """
     NOTE(hadim): let's make only one class for the moment and refactor with a parent class
     once we have more concrete datamodules to implement. The class should be general enough
@@ -1193,7 +1193,7 @@ class DatasetParams():
        self.split_test = split_test
        self.split_seed = split_seed
        self.splits_path = splits_path
-class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
+class MultitaskFromSmilesDataModule(BaseDataModule):
     def __init__(
         self,
         #task_df: Dict[str, pd.DataFrame] = None,
