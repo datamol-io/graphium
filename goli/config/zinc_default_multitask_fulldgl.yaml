@@ -1,5 +1,5 @@
 datamodule:
-  module_type: "MultitaskDGLFromSmilesDataModule"
+  module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       SA:
@@ -27,7 +27,7 @@ datamodule:
         sample_size: null
         idx_col: null
         weights_col: null
-        weights_type: null 
+        weights_type: null
       score:
         df: null
         df_path: "goli/data/multitask/tiny_ZINC_score.csv"
@@ -40,7 +40,7 @@ datamodule:
         sample_size: null
         idx_col: null
         weights_col: null
-        weights_type: null 
+        weights_type: null
 
     # Featurization
     featurization_n_jobs: 16
@@ -59,7 +59,7 @@ datamodule:
     # cache_data_path: null
 
 architecture:     # The parameters for the full dgl network are taken from `config_micro_ZINC.yaml`
-  model_type: fulldglmultitasknetwork
+  model_type: FullGraphMultiTaskNetwork
   pre_nn:         # Set as null to avoid a pre-nn network
     out_dim: 32
     hidden_dims: 32

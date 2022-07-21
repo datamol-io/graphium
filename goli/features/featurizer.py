@@ -19,7 +19,7 @@ from goli.utils.tensor import one_of_k_encoding
 from goli.features.positional_encoding import get_all_positional_encoding
 
 
-def _to_dense_array(array, dtype=None):
+def to_dense_array(array, dtype=None):
     # Assign the node data
     if array is not None:
         if issparse(array):
@@ -910,7 +910,7 @@ def mol_to_graph_dict(
     # Assign the edge data. Due to DGL only supporting Hetero-graphs, we
     # need to duplicate each edge information for its 2 entries
     if edata is not None:
-        edata = _to_dense_array(edata, dtype=dtype)
+        edata = to_dense_array(edata, dtype=dtype)
         src_ids, dst_ids = np.argwhere(adj).transpose()
         hetero_edata = np.zeros(shape=(edata.shape[0] * 2, edata.shape[1]), dtype=edata.dtype)
         for ii in range(mol.GetNumBonds()):
@@ -1200,13 +1200,13 @@ def graph_dict_to_dgl(
     if ndata is not None:
         for key, val in ndata.items():
             graph.ndata[key] = torch.as_tensor(
-                _mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="ndata")
+                _mask_nans_inf(mask_nan=mask_nan, array=to_dense_array(val, dtype=dtype), array_name="ndata")
             )
 
     if edata is not None:
         for key, val in edata.items():
             graph.edata[key] = torch.as_tensor(
-                _mask_nans_inf(mask_nan=mask_nan, array=_to_dense_array(val, dtype=dtype), array_name="edata")
+                _mask_nans_inf(mask_nan=mask_nan, array=to_dense_array(val, dtype=dtype), array_name="edata")
             )
 
     return graph

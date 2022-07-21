@@ -96,7 +96,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["batch_size_test"] = 16
 
         # Create the data module
-        dm = goli.data.MultitaskDGLFromSmilesDataModule(**dm_args)
+        dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)
 
         #self.assertEqual(50, dm.num_node_feats)    # Not implemeneted error
         #self.assertEqual(6, dm.num_edge_feats)
@@ -147,7 +147,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["task_specific_args"]["logp"]["df_path"] = None
         dm_args["task_specific_args"]["score"]["df_path"] = None
 
-        dm = goli.data.MultitaskDGLFromSmilesDataModule(**dm_args)
+        dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)
 
         #assert dm.num_node_feats == 50
         #assert dm.num_edge_feats == 6
@@ -180,7 +180,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         config = goli.load_config(name="zinc_default_multitask_fulldgl")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
-        dm = goli.data.MultitaskDGLFromSmilesDataModule(**dm_args)
+        dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)
 
         dm.prepare_data()
         dm.setup()

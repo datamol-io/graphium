@@ -8,3 +8,4 @@ from .featurizer import graph_dict_to_dgl
 from .featurizer import mol_to_dglgraph_signature
 from .featurizer import GraphDict
 from .featurizer import mol_to_pyggraph
+from .featurizer import to_dense_array
