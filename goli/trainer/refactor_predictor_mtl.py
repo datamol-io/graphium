@@ -178,6 +178,10 @@ class PredictorModule(pl.LightningModule):
         else:
             out_dict = {"preds": out}
 
+        # TODO (Andy): Maybe here you add the loss and backward???
+        # Maybe simply inherit from that class, and change the forward. And call it PredictorIPUTrain???
+        # Maybe simply check the Lightning implementation of IPUs?
+
         return out_dict
 
     def _convert_features_dtype(self, feats):
@@ -195,6 +199,8 @@ class PredictorModule(pl.LightningModule):
         return feats
 
     def configure_optimizers(self):
+        # TODO (Andy): This is where the optimizer is configured
+
         # TODO: Fix scheduling with the Summary class
         # Configure the parameters for the schedulers
         # sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
@@ -260,6 +266,8 @@ class PredictorModule(pl.LightningModule):
             Tensor:
                 Resulting loss
         """
+        # TODO (Andy): This is where the loss functions are being computed. `loss_fun` is a dictionary of one loss function per task.
+
         #wrapped_loss_fun = MetricWrapper(metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask)
         wrapped_loss_fun_dict = {task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask) for task, loss in loss_fun.items()}
 
@@ -482,6 +490,24 @@ class PredictorModule(pl.LightningModule):
         self.task_epoch_summary.set_results(task_metrics=metrics_logs)
 ################################################################################################################
         return metrics_logs             # Consider returning concatenated dict for tensorboard
+
+    def on_train_epoch_start(self) -> None:
+        # TODO (Andy): Reload the model WITH the loss???
+        # Check first if loss is already there
+        # Maybe simply check the Lightning implementation of IPUs?
+        return super().on_train_epoch_start()
+
+    def on_validation_epoch_start(self) -> None:
+        # TODO (Andy): Reload the model WITHOUT the loss???
+        # Check first if loss is already missing
+        # Maybe simply check the Lightning implementation of IPUs?
+        return super().on_validation_epoch_start()
+
+    def on_test_epoch_start(self) -> None:
+        # TODO (Andy): Reload the model WITHOUT the loss???
+        # Check first if loss is already missing
+        # Maybe simply check the Lightning implementation of IPUs?
+        return super().on_test_epoch_start()
 
     def training_epoch_end(self, outputs: Dict):
         """

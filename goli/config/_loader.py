@@ -11,7 +11,7 @@ from goli.nn.architectures import TaskHeadParams
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork, FeedForwardNN
-from goli.trainer.predictor import PredictorModule
+# from goli.trainer.predictor import PredictorModule
 from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 
