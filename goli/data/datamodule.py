@@ -1365,7 +1365,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             self.smiles_transformer = partial(mol_to_pyggraph, **featurization)
         else:
             raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'dgldict' or 'dglgraph', Provided: `{prepare_dict_or_graph}`"
+                f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
 
     def prepare_data(self):
@@ -1710,12 +1710,14 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
 
         graph = self.get_first_graph()
         num_feats = 0
-        if "feat" in graph.ndata.keys():
-            num_feats += graph.ndata["feat"].shape[1]
-        if "pos_enc_feats_sign_flip" in graph.ndata.keys():
-            num_feats += graph.ndata["pos_enc_feats_sign_flip"].shape[1]
-        if "pos_enc_feats_no_flip" in graph.ndata.keys():
-            num_feats += graph.ndata["pos_enc_feats_no_flip"].shape[1]
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            graph = graph.ndata
+
+        empty = torch.Tensor([])
+        num_feats  = graph.get("feat", empty).shape[-1]
+        num_feats += graph.get("pos_enc_feats_sign_flip", empty).shape[-1]
+        num_feats += graph.get("pos_enc_feats_no_flip", empty).shape[-1]
+
         return num_feats
 
     @property
@@ -1723,10 +1725,13 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if "edge_feat" in graph.edata.keys():
-            return graph.edata["edge_feat"].shape[1]  # type: ignore
-        else:
-            return 0
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            graph = graph.edata
+
+        empty = torch.Tensor([])
+        num_feats = graph.get("edge_feat", empty).shape[-1]
+
+        return num_feats
 
     def get_first_graph(self):  # Fix this
         """
