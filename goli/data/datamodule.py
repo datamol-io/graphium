@@ -1,5 +1,3 @@
-from enum import unique
-from queue import Empty
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
@@ -7,13 +5,10 @@ from functools import partial
 import importlib.resources
 import zipfile
 from copy import deepcopy
-from itertools import cycle
-import random
 
 from loguru import logger
 import fsspec
 import omegaconf
-from sklearn import datasets
 from tqdm import tqdm
 from joblib import Parallel, delayed
 import tempfile
@@ -438,6 +433,9 @@ class BaseDataModule(pl.LightningDataModule):
             num_workers = num_workers if num_workers is not None else 0
         else:
             num_workers = self.num_workers
+
+        # TODO (Andy): if self.on_ipu, use poptorch.DataLoader instead of torch.DataLoader
+        # To change how the padding is done, check the `goli_collate_fn` or `self.collate_fn`
 
         # TODO (Gabriela): Develop new dataloader to handle special batching.
         loader = DataLoader(
