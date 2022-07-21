@@ -24,50 +24,18 @@ class SummaryInterface(object):
     def get_metrics_logs(self, **kwargs):
         raise NotImplementedError()
 
-"""
-    - This class automatically HAS 
-        1. metric to monitor (`monitor`), 
-        2. the mode, 
-        3. the metrics on progress bar
-        - It has a subclass Results which HAS 
-            1. targets,                         # predictor has
-            2. prediction,                      # predictor has
-            3. loss,                            # predictor has
-            4. metrics,                         # ????
-            5. monitored_metric,                # ????                  requires step_name and self.monitor
-            6. n_epochs                         # predictor has
-    - It ASSUMES we get access to 
-        1. step_name,                           # predictor has
-        2. targets,                             # predictor has
-        3. prediction,                          # predictor has
-        4. loss,                                # predictor has
-        5. metrics                              # ???
-        6. n_epochs,                            # predictor has
-        - but it does not have these within itself
-
-    - Things we need for various computations but which the predictor has
-        1. step_name
-        2. targets
-        3. preds
-        4. loss
-        5. n_epochs
-
-    - The RESPONSIBILITY OF THIS CLASS IS TAKING CARE OF SUMMARIES FOR THE PREDICTOR MODULE
-        - Its implementation depends on aspects of the predictor module
-        - Interface for Summary should have something like:
-            - set_results(targets, predictions, metrics)
-"""
 class Summary(SummaryInterface):
     r"""A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided."""
     #TODO (Gabriela): Default argument cannot be []
     def __init__(
-        self, 
-        loss_fun, 
-        metrics, 
-        metrics_on_training_set, 
-        metrics_on_progress_bar=[], 
-        monitor="loss", 
-        mode: str = "min"
+        self,
+        loss_fun,
+        metrics,
+        metrics_on_training_set,
+        metrics_on_progress_bar=[],
+        monitor="loss",
+        mode: str = "min",
+        task_name: Optional[str] = None,
     ):
         self.loss_fun = loss_fun
         self.metrics = metrics
@@ -87,6 +55,8 @@ class Summary(SummaryInterface):
         self.loss = None                            # What type?
         self.n_epochs: int = None
 
+        self.task_name = task_name
+
     def update_predictor_state(self, step_name, targets, predictions, loss, n_epochs):
         self.step_name = step_name
         self.targets = targets
@@ -96,24 +66,28 @@ class Summary(SummaryInterface):
 
     def set_results(self, metrics) -> float:
         r"""This function requires that self.update_predictor_state() be called before it."""
-        metrics[f"loss/{self.step_name}"] = self.loss
+
+        # Include the task_name in the loss for tensorboard, and similarly for other metrics
+        metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = self.loss
         self.summaries[self.step_name] = Summary.Results(
             targets=self.targets,
             predictions=self.predictions,
             loss=self.loss,
-            metrics=metrics,
-            monitored_metric=f"{self.monitor}/{self.step_name}",
+            metrics=metrics,                                                    # Should include task name from get_metrics_logs()
+            monitored_metric=f"{self.monitor}/{self.step_name}",                # Include task name?
             n_epochs=self.n_epochs
         )
         if self.is_best_epoch(self.step_name, self.loss, metrics):
             self.best_summaries[self.step_name] = self.summaries[self.step_name]
 
     def is_best_epoch(self, step_name, loss, metrics):
+        """TODO (Gabriela): Check for bugs related to monitor_name"""
         if not (step_name in self.best_summaries.keys()):
             return True
 
-        metrics[f"loss/{step_name}"] = loss
-        monitor_name = f"{self.monitor}/{step_name}"
+        # Include the task_name in the loss for tensorboard, and similarly for other metrics
+        metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = loss
+        monitor_name = f"{self.monitor}/{step_name}"            # Include task_name?
         if not monitor_name in self.best_summaries.keys():      # Feels like there's a bug here. What is this trying to do???
             return True
 
@@ -133,7 +107,8 @@ class Summary(SummaryInterface):
     def get_results_on_progress_bar(self, step_name):
         results = self.summaries[step_name]
         results_prog = {
-            f"{kk}/{step_name}": results.metrics[f"{kk}/{step_name}"] for kk in self.metrics_on_progress_bar
+            #f"{kk}/{step_name}": results.metrics[f"{kk}/{step_name}"] for kk in self.metrics_on_progress_bar
+            self.metric_log_name(self.task_name, kk, step_name): results.metrics[self.metric_log_name(self.task_name, kk, step_name)] for kk in self.metrics_on_progress_bar
         }
         return results_prog
 
@@ -156,18 +131,18 @@ class Summary(SummaryInterface):
     def get_metrics_logs(self) -> Dict[str, Any]:
         r"""
         Get the data about metrics to log.
-        
+
         Note: This function requires that self.update_predictor_state() be called before it."""
         targets = self.targets.to(dtype=self.predictions.dtype, device=self.predictions.device)
 
         # Compute the metrics always used in regression tasks
         metric_logs = {}
-        metric_logs[f"mean_pred/{self.step_name}"] = nan_mean(self.predictions)
-        metric_logs[f"std_pred/{self.step_name}"] = nan_std(self.predictions)
-        metric_logs[f"median_pred/{self.step_name}"] = nan_median(self.predictions)
-        metric_logs[f"mean_target/{self.step_name}"] = nan_mean(targets)
-        metric_logs[f"std_target/{self.step_name}"] = nan_std(targets)
-        metric_logs[f"median_target/{self.step_name}"] = nan_median(targets)
+        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(self.predictions)
+        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(self.predictions)
+        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(self.predictions)
+        metric_logs[self.metric_log_name(self.task_name, "mean_target", self.step_name)] = nan_mean(targets)
+        metric_logs[self.metric_log_name(self.task_name, "std_target", self.step_name)] = nan_std(targets)
+        metric_logs[self.metric_log_name(self.task_name, "median_target", self.step_name)] = nan_median(targets)
         if torch.cuda.is_available():
             metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2**30))
 
@@ -180,17 +155,25 @@ class Summary(SummaryInterface):
 
         # Compute the additional metrics
         for key, metric in metrics_to_use.items():
-            metric_name = f"{key}/{self.step_name}"
+            metric_name = self.metric_log_name(self.task_name, key, self.step_name)   #f"{key}/{self.step_name}"
             try:
                 metric_logs[metric_name] = metric(self.predictions, targets)
             except Exception as e:
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
 
         # Convert all metrics to CPU, except for the loss
-        metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
+        #metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
+        metric_logs[self.metric_log_name(self.task_name, self.loss_fun._get_name(), self.step_name)] = self.loss.detach().cpu()
+        #print("Metrics logs keys: ", metric_logs.keys())
         metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
 
         return metric_logs
+
+    def metric_log_name(self, task_name, metric_name, step_name):
+        if task_name is None:
+            return f"{metric_name}/{step_name}"
+        else:
+            return f"{task_name}/{metric_name}/{step_name}"
 
     class Results:
         def __init__(
@@ -218,12 +201,12 @@ class Summary(SummaryInterface):
 
 class TaskSummaries(SummaryInterface):
     def __init__(
-        self, 
-        task_loss_fun, 
-        task_metrics, 
-        task_metrics_on_training_set, 
-        task_metrics_on_progress_bar, 
-        monitor="loss", 
+        self,
+        task_loss_fun,
+        task_metrics,
+        task_metrics_on_training_set,
+        task_metrics_on_progress_bar,
+        monitor="loss",
         mode: str = "min"
     ):
         self.task_loss_fun = task_loss_fun
@@ -233,8 +216,8 @@ class TaskSummaries(SummaryInterface):
         self.monitor = monitor
         self.mode = mode
 
-        self.task_summaries = {}
-        self.task_best_summaries = {}
+        self.task_summaries: Dict[str, Summary] = {}
+        self.task_best_summaries: Dict[str, Summary] = {}
         self.tasks = list(task_loss_fun.keys())
 
         for task in self.tasks:
@@ -245,6 +228,7 @@ class TaskSummaries(SummaryInterface):
                 self.task_metrics_on_progress_bar[task],
                 self.monitor,
                 self.mode,
+                task_name=task,
             )
 
     def update_predictor_state(self, step_name, targets, predictions, loss, n_epochs):
@@ -270,7 +254,7 @@ class TaskSummaries(SummaryInterface):
         for task in self.tasks:
             results[task] = self.task_summaries[task].get_results(step_name)
         return results
-    
+
     def get_best_results(self, step_name):
         results = {}
         for task in self.tasks:
@@ -294,3 +278,9 @@ class TaskSummaries(SummaryInterface):
         for task in self.tasks:
             task_metrics_logs[task] = self.task_summaries[task].get_metrics_logs()
         return task_metrics_logs
+
+    def metric_log_name(self, task_name, metric_name, step_name):
+        if task_name is None:
+            return f"{metric_name}/{step_name}"
+        else:
+            return f"{task_name}/{metric_name}/{step_name}"

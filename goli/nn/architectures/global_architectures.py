@@ -1090,8 +1090,8 @@ class FullGraphNetwork(nn.Module):
         if pos_enc_feats_no_flip is not None:
             h = torch.cat((h, pos_enc_feats_no_flip), dim=-1)
 
-        g = self.gnn._set_node_feats(g, h, key="h")
-        g = self.gnn._set_edge_feats(g, e, key="edge_attr")
+        g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
+        g = self.gnn._set_edge_feats(g, e.to(self.dtype), key="edge_attr")
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
@@ -1195,7 +1195,7 @@ class FullGraphNetwork(nn.Module):
         r"""
         Returns the output dimension of the network
         """
-        if self.pre_nn is not None:
+        if self.post_nn is not None:
             return self.post_nn.out_dim
         else:
             return self.gnn.out_dim
@@ -1206,6 +1206,10 @@ class FullGraphNetwork(nn.Module):
         Returns the input edge dimension of the network
         """
         return self.gnn.in_dim_edges
+
+    @property
+    def dtype(self):
+        return self.gnn.out_linear.linear.weight.dtype
 
 
 class FullGraphSiameseNetwork(FullGraphNetwork):
@@ -1290,30 +1294,143 @@ class TaskHeadParams():
         self.nn_params["layer_type"] = layer_type
         self.nn_params["layer_kwargs"] = layer_kwargs
 
-class TaskHeads(nn.Module):
-    """
-    Each task has its own specific MLP. By providing task-specific params, we can modify
-    MLPs for specific tasks as we want.
-    """
+class TaskHead(FeedForwardNN):
+    def __init__(
+        self,
+        task_name: str,                         # The name matters for per-task analysis
+        in_dim: int,
+        out_dim: int,
+        hidden_dims: Union[List[int], int],     # Should this only be List? See FeedForwardNN vs. FeedForwardDGL
+        depth: Optional[int] = None,
+        activation: Union[str, Callable] = "relu",
+        last_activation: Union[str, Callable] = "none",
+        dropout: float = 0.0,
+        last_dropout: float = 0.0,
+        normalization: Union[str, Callable] = "none",
+        last_normalization: Union[str, Callable] = "none",
+        residual_type: str = "none",
+        residual_skip_steps: int = 1,
+        name: str = "LNN",
+        layer_type: Union[str, nn.Module] = "fc",
+        layer_kwargs: Optional[Dict] = None,
+    ):
+        r"""
+        This class instantiates a task head, and it is identical to the FeedForwardNN class with the addition of a `task_name` attribute.
+        Parameters:
+            task_name:
+                The name of the task for which the current output head performs predictions.
+            in_dim:
+                Input feature dimensions of the layer
+            out_dim:
+                Output feature dimensions of the layer
+            hidden_dims:
+                Either an integer specifying all the hidden dimensions,
+                or a list of dimensions in the hidden layers.
+                Be careful, the "simple" residual type only supports
+                hidden dimensions of the same value.
+            depth:
+                If `hidden_dims` is an integer, `depth` is 1 + the number of
+                hidden layers to use. If `hidden_dims` is a `list`, `depth` must
+                be `None`.
+            activation:
+                activation function to use in the hidden layers.
+            last_activation:
+                activation function to use in the last layer.
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+            last_dropout:
+                The ratio of units to dropout for the last_layer. Must be between 0 and 1
+            normalization:
+                Normalization to use. Choices:
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
+            last_normalization:
+                Whether to use batch normalization in the last layer
+            residual_type:
+                - "none": No residual connection
+                - "simple": Residual connection similar to the ResNet architecture.
+                  See class `ResidualConnectionSimple`
+                - "weighted": Residual connection similar to the Resnet architecture,
+                  but with weights applied before the summation. See class `ResidualConnectionWeighted`
+                - "concat": Residual connection where the residual is concatenated instead
+                  of being added.
+                - "densenet": Residual connection where the residual of all previous layers
+                  are concatenated. This leads to a strong increase in the number of parameters
+                  if there are multiple hidden layers.
+            residual_skip_steps:
+                The number of steps to skip between each residual connection.
+                If `1`, all the layers are connected. If `2`, half of the
+                layers are connected.
+            name:
+                Name attributed to the current network, for display and printing
+                purposes.
+            layer_type:
+                The type of layers to use in the network.
+                Either "fc" as the `FCLayer`, or a class representing the `nn.Module`
+                to use.
+            layer_kwargs:
+                The arguments to be used in the initialization of the layer provided by `layer_type`
+        """
 
-    def __init__(self, in_dim, task_heads_kwargs: Dict[str, Any]):  # Be careful with in_dim
+        self.task_name = task_name
+
+        # Initialize the FeedForwardNN
+        super().__init__(
+            in_dim=in_dim,
+            out_dim=out_dim,
+            hidden_dims=hidden_dims,
+            depth=depth,
+            activation=activation,
+            last_activation=last_activation,
+            normalization=normalization,
+            last_normalization=last_normalization,
+            residual_type=residual_type,
+            residual_skip_steps=residual_skip_steps,
+            name=name,
+            layer_type=layer_type,
+            dropout=dropout,
+            last_dropout=last_dropout,
+            layer_kwargs=layer_kwargs,
+        )
+
+class TaskHeads(nn.Module):
+    def __init__(
+        self,
+        in_dim: int,
+        task_heads_kwargs: List[Type[TaskHeadParams]],
+    ):
+        r"""
+        Class that groups all multi-task output heads together to provide the task-specific outputs.
+        Parameters:
+            in_dim:
+                Input feature dimensions of the layer
+            task_heads_params:
+                This argument is of type List[TaskHeadParams]. Each argument is used to
+                initialize a task-specific MLP.
+        """
+
         super().__init__()
 
         self.in_dim = in_dim
 
         self.task_heads = nn.ModuleDict()
-        for task in task_heads_kwargs:  # Make sure it works with def in config file.
-            self.task_heads[task["task_name"]] = FeedForwardNN(in_dim=in_dim, **task["task_nn"])
+        for head_params in task_heads_kwargs:
+            self.task_heads[head_params.task_name] = TaskHead(
+                task_name=head_params.task_name,
+                in_dim=self.in_dim,
+                **head_params.nn_params
+            )
 
     # Return a dictionary: Dict[task_name, Tensor]
     def forward(self, h: torch.Tensor):
         task_head_outputs = {}
 
-        for task in self.task_heads:
-            task_head_outputs[task] = self.task_heads[task](h)
+        for task, head in self.task_heads.items():
+            task_head_outputs[task] = head.forward(h)
 
         return task_head_outputs
-
 
 class FullGraphMultiTaskNetwork(FullGraphNetwork):
     """
@@ -1382,11 +1499,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 purposes.
         """
 
-        super().__init__()
-        self.name = name
-
-        # Initialize the FullDGLNetwork
-        self.full_dgl_network = FullDGLNetwork(
+        super().__init__(
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,
             pre_nn_edges_kwargs=pre_nn_edges_kwargs,
@@ -1395,13 +1508,19 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             name=name,
         )
 
-        self.TaskHeads = TaskHeads(in_dim=self.FullDGLNetwork.out_dim(), task_heads_kwargs=task_heads_kwargs)
+        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs=task_heads_kwargs)
 
-        self.model = nn.Sequential()
-        # Add the full DGL network trunk
-        self.model.add_module("FullDGLNetwork", self.FullDGLNetwork)
-        # Add the task-specific heads
-        self.model.add_module("TaskHeads", self.TaskHeads)
 
     def forward(self, g: Union[DGLGraph, Data]):
-        return self.model(g)
+        h = super().forward(g)
+        return self.task_heads(h)
+
+    @property
+    def out_dim(self):
+        r"""
+        Returns the output dimension of the network
+        """
+        if self.pre_nn is not None:
+            return self.post_nn.out_dim
+        else:
+            return self.gnn.out_dim
