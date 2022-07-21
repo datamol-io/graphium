@@ -160,13 +160,7 @@ class DGLDataset(Dataset):
 
         return datum
 
-
-# Should the SingleTaskDataset use unique_id or smiles?
 class SingleTaskDataset(Dataset):
-    """For the MTL pipeline, this replaces (for now) the DGLDataset class,
-    since we do not need to perform featurization straight away.
-    The featurization occurs after gathering all the unique molecules across all datasets."""
-
     def __init__(
         self,
         labels: Union[torch.Tensor, np.ndarray],
@@ -203,7 +197,6 @@ class SingleTaskDataset(Dataset):
             datum["weights"] = self.weights[idx]
 
         return datum
-
 
 class MultitaskDGLDataset(Dataset):
     """This class holds the information for the multitask dataset.
@@ -458,7 +451,6 @@ class DGLBaseDataModule(pl.LightningDataModule):
         )
         return loader
 
-
 class DGLFromSmilesDataModule(DGLBaseDataModule):
     """
     NOTE(hadim): let's make only one class for the moment and refactor with a parent class
@@ -628,7 +620,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
         if prepare_dict_or_graph == "dgldict":
-            self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
+            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
         elif prepare_dict_or_graph == "dglgraph":
             self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
         else:
@@ -636,9 +628,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 f"`prepare_dict_or_graph` should be either 'dgldict' or 'dglgraph', Provided: `{prepare_dict_or_graph}`"
             )
 
-    def prepare_data(
-        self,
-    ):  # Can create train_ds, val_ds and test_ds here instead of setup. Be careful with the featurization (to not compute several times).
+    def prepare_data(self): # Can create train_ds, val_ds and test_ds here instead of setup. Be careful with the featurization (to not compute several times).
         """Called only from a single process in distributed settings. Steps:
 
         - If cache is set and exists, reload from cache.
@@ -660,9 +650,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 check_arg_iterator(self.smiles_col, enforce_type=list)
                 + label_cols
                 + check_arg_iterator(self.idx_col, enforce_type=list)
-                + check_arg_iterator(
-                    self.weights_col, enforce_type=list
-                )  # Can remove the weights (Dom says it's OK)
+                + check_arg_iterator(self.weights_col, enforce_type=list) # Can remove the weights (Dom says it's OK)
             )
             label_dtype = {col: np.float16 for col in label_cols}
 
@@ -712,9 +700,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
 
         self._save_to_cache()
 
-    def setup(
-        self, stage: str = None
-    ):  # Can get rid of setup because a single dataset will have molecules exclusively in train, val or test
+    def setup(self, stage: str = None): # Can get rid of setup because a single dataset will have molecules exclusively in train, val or test
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
 
         if stage == "fit" or stage is None:
@@ -1350,12 +1336,11 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         self.val_singletask_datasets = None
         self.test_singletask_datasets = None
 
-        self.dataset = None  # Will be created later
-        self.train_ds = None  # Will be created later
-        self.val_ds = None  # Will be created later
-        self.test_ds = None  # Will be created later
+        self.dataset = None
+        self.train_ds = None
+        self.val_ds = None
+        self.test_ds = None
 
-        ######################### Basic things to do ###########################################
         # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
         if prepare_dict_or_graph == "dgl:dict":
             self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
@@ -1518,7 +1503,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             self.task_val_indices[task] = val_indices
             self.task_test_indices[task] = test_indices
 
-            # train_singletask_datasets[task] = Subset()
+            #train_singletask_datasets[task] = Subset()
             self.train_singletask_datasets[task] = Subset(self.single_task_datasets[task], train_indices)
             self.val_singletask_datasets[task] = Subset(self.single_task_datasets[task], val_indices)
             self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], test_indices)
@@ -1636,7 +1621,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             elif isinstance(arg, dict):
                 new = {}
                 for key, val in arg.items():
-                    new[key] = DGLFromSmilesDataModule._filter_none_molecules(idx_none, val)  # Careful
+                    new[key] = DGLFromSmilesDataModule._filter_none_molecules(idx_none, val)    # Careful
             else:
                 new = arg
             out.append(new)
@@ -1651,8 +1636,8 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         df_path: str,
         str: Optional[Union[str, os.PathLike]],
         label_cols: Union[Type[None], str, List[str]],
-        smiles_col: str,
-    ) -> List[str]:
+        smiles_col: str
+        ) -> List[str]:
         r"""
         Parse the choice of label columns depending on the type of input.
         The input parameters `label_cols` and `smiles_col` are described in
@@ -1733,7 +1718,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
 
         return num_feats
 
-    def get_first_graph(self):  # Fix this
+    def get_first_graph(self):
         """
         Low memory footprint method to get the first datapoint DGL graph.
         The first 10 rows of the data are read in case the first one has a featurization
@@ -1792,7 +1777,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         of string while labels are returned as a 2D numpy array.
         """
 
-        if smiles_col is None:  # Should we specify which dataset has caused the potential issue?
+        if smiles_col is None:      # Should we specify which dataset has caused the potential issue?
             smiles_col_all = [col for col in df.columns if "smile" in str(col).lower()]
             if len(smiles_col_all) == 0:
                 raise ValueError(f"No SMILES column found in dataframe. Columns are {df.columns}")
@@ -1815,7 +1800,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         else:
             labels = np.zeros([len(smiles), 0])
 
-        indices = None  # What are indices for?
+        indices = None                      # What are indices for?
         if idx_col is not None:
             indices = df[idx_col].values
 
@@ -1912,9 +1897,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         elif sample_size is None:
             pass
         else:
-            raise ValueError(
-                f"Wrong value for `self.sample_size`: {self.sample_size}"
-            )  # Maybe specify which task it was for?
+            raise ValueError(f"Wrong value for `self.sample_size`: {self.sample_size}") # Maybe specify which task it was for?
 
         return df
 
