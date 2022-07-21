@@ -75,16 +75,19 @@ def goli_collate_fn(
                 batch[key] = dgl.batch([d[key] for d in elements])
 
             # If a PyG Graph is provided, use the PyG batching
+            # Convert all numpy types to torch
+            # Convert edge indices to long
             elif isinstance(elem[key], Data):
                 pyg_batch = []
                 for this_elem in elements:
-                    this_graph = this_elem[key]
-                    for pyg_key in this_graph.keys:
-                        tensor = this_graph[pyg_key]
+                    pyg_graph = this_elem[key]
+                    for pyg_key in pyg_graph.keys:
+                        tensor = pyg_graph[pyg_key]
                         # Convert numpy/scipy to Pytorch
                         if isinstance(tensor, (ndarray, spmatrix)):
-                            this_graph[pyg_key] = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
-                    pyg_batch.append(this_graph)
+                            pyg_graph[pyg_key] = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+                    pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
+                    pyg_batch.append(pyg_graph)
 
                 batch[key] = Batch.from_data_list(pyg_batch)
 

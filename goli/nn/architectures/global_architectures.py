@@ -1090,8 +1090,8 @@ class FullGraphNetwork(nn.Module):
         if pos_enc_feats_no_flip is not None:
             h = torch.cat((h, pos_enc_feats_no_flip), dim=-1)
 
-        g = self.gnn._set_node_feats(g, h, key="h")
-        g = self.gnn._set_edge_feats(g, e, key="edge_attr")
+        g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
+        g = self.gnn._set_edge_feats(g, e.to(self.dtype), key="edge_attr")
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
@@ -1206,6 +1206,10 @@ class FullGraphNetwork(nn.Module):
         Returns the input edge dimension of the network
         """
         return self.gnn.in_dim_edges
+
+    @property
+    def dtype(self):
+        return self.gnn.out_linear.linear.weight.dtype
 
 
 class FullGraphSiameseNetwork(FullGraphNetwork):

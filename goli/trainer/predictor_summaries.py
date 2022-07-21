@@ -28,12 +28,12 @@ class Summary(SummaryInterface):
     r"""A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided."""
     #TODO (Gabriela): Default argument cannot be []
     def __init__(
-        self, 
-        loss_fun, 
-        metrics, 
-        metrics_on_training_set, 
-        metrics_on_progress_bar=[], 
-        monitor="loss", 
+        self,
+        loss_fun,
+        metrics,
+        metrics_on_training_set,
+        metrics_on_progress_bar=[],
+        monitor="loss",
         mode: str = "min",
         task_name: Optional[str] = None,
     ):
@@ -66,7 +66,7 @@ class Summary(SummaryInterface):
 
     def set_results(self, metrics) -> float:
         r"""This function requires that self.update_predictor_state() be called before it."""
-        
+
         # Include the task_name in the loss for tensorboard, and similarly for other metrics
         metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = self.loss
         self.summaries[self.step_name] = Summary.Results(
@@ -131,7 +131,7 @@ class Summary(SummaryInterface):
     def get_metrics_logs(self) -> Dict[str, Any]:
         r"""
         Get the data about metrics to log.
-        
+
         Note: This function requires that self.update_predictor_state() be called before it."""
         targets = self.targets.to(dtype=self.predictions.dtype, device=self.predictions.device)
 
@@ -201,12 +201,12 @@ class Summary(SummaryInterface):
 
 class TaskSummaries(SummaryInterface):
     def __init__(
-        self, 
-        task_loss_fun, 
-        task_metrics, 
-        task_metrics_on_training_set, 
-        task_metrics_on_progress_bar, 
-        monitor="loss", 
+        self,
+        task_loss_fun,
+        task_metrics,
+        task_metrics_on_training_set,
+        task_metrics_on_progress_bar,
+        monitor="loss",
         mode: str = "min"
     ):
         self.task_loss_fun = task_loss_fun
@@ -254,7 +254,7 @@ class TaskSummaries(SummaryInterface):
         for task in self.tasks:
             results[task] = self.task_summaries[task].get_results(step_name)
         return results
-    
+
     def get_best_results(self, step_name):
         results = {}
         for task in self.tasks:

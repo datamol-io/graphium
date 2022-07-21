@@ -210,10 +210,10 @@ class VirtualNodePyg(nn.Module):
             return
 
         self.vn_type = vn_type.lower()
-        self.layer = parse_pooling_layer_pyg(in_dim=dim, pooling=self.vn_type)
+        self.layer, out_pool_dim = parse_pooling_layer_pyg(in_dim=dim, pooling=self.vn_type)
         self.residual = residual
         self.fc_layer = FCLayer(
-            in_dim=dim,
+            in_dim=out_pool_dim,
             out_dim=dim,
             activation=activation,
             dropout=dropout,
@@ -267,6 +267,6 @@ class VirtualNodePyg(nn.Module):
             vn_h = vn_h_temp
 
         # Add the virtual node value to the graph features
-        h = h + vn_h[g]
+        h = h + vn_h[g.batch]
 
         return h, vn_h
