@@ -88,40 +88,41 @@ class OptimOptions:
         assert self.optim_kwargs["lr"] > 0
         assert self.optim_kwargs["weight_decay"] >= 0
 
-        # Set the lightning scheduler
-        scheduler_kwargs = self.scheduler_kwargs
-        self.scheduler_kwargs = {
-            "interval": "epoch",
-            "monitor": "loss/val",
-            "mode": "min",
-            "frequency": 1,
-            "strict": True,
-        }
-        if scheduler_kwargs is not None:
-            self.scheduler_kwargs.update(scheduler_kwargs)
+        """TODO: Fix scheduling with the Summary class."""
+        # # Set the lightning scheduler
+        # scheduler_kwargs = self.scheduler_kwargs
+        # self.scheduler_kwargs = {
+        #     "interval": "epoch",
+        #     "monitor": "loss/val",
+        #     "mode": "min",
+        #     "frequency": 1,
+        #     "strict": True,
+        # }
+        # if scheduler_kwargs is not None:
+        #     self.scheduler_kwargs.update(scheduler_kwargs)
 
-        # Set the depreciated arguments, if provided
-        lr_reduce_on_plateau_kwargs = self.lr_reduce_on_plateau_kwargs
-        if lr_reduce_on_plateau_kwargs is not None:
-            logger.warning(
-                "`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead."
-            )
-            if torch_scheduler_kwargs is not None:
-                raise ValueError(
-                    "Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided"
-                )
-            torch_scheduler_kwargs = {
-                "module_type": "ReduceLROnPlateau",
-                **lr_reduce_on_plateau_kwargs,
-            }
+        # # Set the depreciated arguments, if provided
+        # lr_reduce_on_plateau_kwargs = self.lr_reduce_on_plateau_kwargs
+        # if lr_reduce_on_plateau_kwargs is not None:
+        #     logger.warning(
+        #         "`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead."
+        #     )
+        #     if torch_scheduler_kwargs is not None:
+        #         raise ValueError(
+        #             "Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided"
+        #         )
+        #     torch_scheduler_kwargs = {
+        #         "module_type": "ReduceLROnPlateau",
+        #         **lr_reduce_on_plateau_kwargs,
+        #     }
 
-        # Set the pytorch scheduler arguments
-        torch_scheduler_kwargs = self.torch_scheduler_kwargs
-        if torch_scheduler_kwargs is None:
-            self.torch_scheduler_kwargs = {}
-        else:
-            self.torch_scheduler_kwargs = torch_scheduler_kwargs
-        self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
+        # # Set the pytorch scheduler arguments
+        # torch_scheduler_kwargs = self.torch_scheduler_kwargs
+        # if torch_scheduler_kwargs is None:
+        #     self.torch_scheduler_kwargs = {}
+        # else:
+        #     self.torch_scheduler_kwargs = torch_scheduler_kwargs
+        # self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
 
 @dataclass
 class EvalOptions:

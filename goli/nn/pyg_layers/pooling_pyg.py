@@ -210,7 +210,7 @@ class VirtualNodePyg(nn.Module):
             return
 
         self.vn_type = vn_type.lower()
-        self.layer = parse_pooling_layer_pyg(in_dim=self.dim, pooling=self.vn_type)
+        self.layer = parse_pooling_layer_pyg(in_dim=dim, pooling=self.vn_type)
         self.residual = residual
         self.fc_layer = FCLayer(
             in_dim=dim,
