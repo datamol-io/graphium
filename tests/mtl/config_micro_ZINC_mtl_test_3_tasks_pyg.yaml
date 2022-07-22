@@ -289,4 +289,3 @@ trainer:
     max_epochs: 25 #25
     min_epochs: 1 #5
     gpus: 1
-    detect_anomaly: True
