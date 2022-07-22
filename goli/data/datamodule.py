@@ -65,7 +65,7 @@ PCQM4Mv2_meta.update(
 )
 
 
-@staticmethod
+#@staticmethod
 def smiles_to_unique_mol_ids(smiles: List[str]):
     """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
     unique_mol_ids = []
@@ -254,6 +254,13 @@ class MultitaskDGLDataset(Dataset):
 
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
+        
+
+        print ("---------------debugging--------------------")
+        print (type(all_smiles))
+        print (type(smiles_to_unique_mol_ids))
+        print ("---------------debugging--------------------")
+
 
         mol_ids = []
         # Get all unique mol ids.
