@@ -40,3 +40,4 @@ matplotlib
 tk
 pytorch-lightning
 datamol
+PyYAML
