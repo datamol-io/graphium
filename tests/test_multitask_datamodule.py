@@ -9,12 +9,12 @@ import pandas as pd
 
 
 import goli
-from goli.data import load_micro_zinc, SingleTaskDataset, MultitaskDGLDataset
+from goli.data import load_micro_zinc, SingleTaskDataset, MultitaskDataset
 from goli.data.datamodule import smiles_to_unique_mol_ids
 
 class Test_Multitask_DataModule(ut.TestCase):
 
-    def test_multitask_dglfromsmiles_dm(self):
+    def test_multitask_fromsmiles_dm(self):
         """Cover similar testing as for the original data module."""
         df = goli.data.load_tiny_zinc()     # 100 molecules
 
@@ -125,7 +125,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["logp"].shape == (16, 1)
             assert batch["labels"]["score"].shape == (16, 1)
 
-    def test_multitask_dglfromsmiles_from_config(self):
+    def test_multitask_fromsmiles_from_config(self):
 
         config = goli.load_config(name="zinc_default_multitask_fulldgl")
 
@@ -176,7 +176,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["logp"].shape == (16, 1)
             assert batch["labels"]["score"].shape == (16, 1)
 
-    def test_multitask_dglfromsmiles_from_config_csv(self):
+    def test_multitask_fromsmiles_from_config_csv(self):
         config = goli.load_config(name="zinc_default_multitask_fulldgl")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
@@ -241,7 +241,7 @@ class Test_Multitask_Dataset(ut.TestCase):
 
         # Create the multitask dataset
         datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
-        multitask_microzinc = MultitaskDGLDataset(datasets_dict) # Can optionally have features
+        multitask_microzinc = MultitaskDataset(datasets_dict) # Can optionally have features
 
         # Check: The number of unique molecules equals the number of datapoints in the multitask dataset.
         self.assertEqual(num_unique_mols, multitask_microzinc.__len__())
@@ -301,7 +301,7 @@ class Test_Multitask_Dataset(ut.TestCase):
 
     #     # Create the multitask dataset
     #     datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
-    #     multitask_microzinc = MultitaskDGLDataset(datasets_dict) # Can optionally have features
+    #     multitask_microzinc = MultitaskDataset(datasets_dict) # Can optionally have features
 
     #     # The total dataset has as many molecules as there are smiles in all tasks put together
     #     self.assertEqual(total_data_points, multitask_microzinc.__len__())
@@ -378,7 +378,7 @@ class Test_Multitask_Dataset(ut.TestCase):
 
     #     # Create the multitask dataset
     #     datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
-    #     multitask_microzinc = MultitaskDGLDataset(datasets_dict) # Can optionally have features
+    #     multitask_microzinc = MultitaskDataset(datasets_dict) # Can optionally have features
 
     #     multitask_microzinc.print_this()
     #     pprint(df)
