@@ -19,7 +19,6 @@ from pytorch_lightning.utilities.exceptions import MisconfigurationException
 from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
 from goli.trainer.predictor_summaries import Summary, TaskSummaries
-from goli.utils.tensor import nan_mean, nan_std, nan_median
 from goli.utils.fs import mkdir
 from goli.utils.spaces import SCHEDULER_DICT
 
@@ -273,7 +272,7 @@ class PredictorModule(pl.LightningModule):
             total_loss = torch.add(total_loss, loss)
         num_tasks = len(all_task_losses.keys())
         weighted_loss = torch.div(total_loss, num_tasks)
-        return weighted_loss            # Return all_task_losses?
+        return weighted_loss, all_task_losses            # Return all_task_losses?
 
     def _general_step(
         self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
@@ -286,7 +285,7 @@ class PredictorModule(pl.LightningModule):
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.pop("weights", None)
 
-        loss = self.compute_loss(
+        loss, task_losses = self.compute_loss(
             preds=preds,
             targets=targets_dict,
             weights=weights,
@@ -310,6 +309,8 @@ class PredictorModule(pl.LightningModule):
         #step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         for task in self.tasks:     # TODO: Verify consistency with Summary class
             step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
+        
+        step_dict["task_losses"] = task_losses
         return loss, step_dict
 
     def flag_step(
@@ -391,6 +392,7 @@ class PredictorModule(pl.LightningModule):
             )
 
 #################################################################################################################
+<<<<<<< HEAD
         #self.epoch_summary.update_predictor_state(
         #    step_name="train",
         #    targets=step_dict["targets"],
@@ -403,11 +405,14 @@ class PredictorModule(pl.LightningModule):
         # Multitask
         #metrics_logs = self.get_metrics_logs(preds=step_dict["preds"], targets=step_dict["targets"], weights=None, step_name="train", loss=loss)
 
+=======
+>>>>>>> 090cb9b3be9044903a07bd6523ea4496980d806d
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
             targets=step_dict["targets"],
             predictions=step_dict["preds"],
             loss=loss,              # This is the weighted loss for now, but change to task-sepcific loss
+            task_losses=step_dict["task_losses"],
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
@@ -415,6 +420,7 @@ class PredictorModule(pl.LightningModule):
 
         step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
         step_dict["loss"] = loss                # Update loss per task or weighted loss?
+        step_dict.pop("task_losses")            # The task losses are already contained in metrics_logs
 
         self.logger.log_metrics(metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
 #################################################################################################################
@@ -429,10 +435,16 @@ class PredictorModule(pl.LightningModule):
         return step_dict  # Returning the metrics_logs with the loss
 
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
+        # We don't need the task losses to be logged since it's taken care of in the summary
+        step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
+        step_dict.pop("task_losses")
+        return step_dict
 
     def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="test", to_cpu=True)[1]
+        # We don't need the task losses to be logged since it's taken care of in the summary
+        step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="test", to_cpu=True)[1]
+        step_dict.pop("task_losses")
+        return step_dict
 
     # So it's over the entire dataset
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
@@ -450,7 +462,7 @@ class PredictorModule(pl.LightningModule):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None
-        loss = self.compute_loss(
+        loss, task_losses = self.compute_loss(
             preds=preds,
             targets=targets,
             weights=weights,
@@ -458,6 +470,7 @@ class PredictorModule(pl.LightningModule):
             loss_fun=self.loss_fun,
         )
 ################################################################################################################
+<<<<<<< HEAD
         """Note: need to update the predictor results to make the metrics_logs, but we need the metrics_logs to update the predictor_result"""
         #self.epoch_summary.update_predictor_state(            # After adding predictor results
         #    step_name=step_name,
@@ -471,11 +484,14 @@ class PredictorModule(pl.LightningModule):
         # Multitask version
         #metrics_logs = self.get_metrics_logs(preds=preds, targets=targets, weights=weights, step_name=step_name, loss=loss)
 
+=======
+>>>>>>> 090cb9b3be9044903a07bd6523ea4496980d806d
         self.task_epoch_summary.update_predictor_state(
             step_name=step_name,
             predictions=preds,
             targets=targets,
             loss=loss,
+            task_losses=task_losses,
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()

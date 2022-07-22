@@ -231,13 +231,19 @@ class TaskSummaries(SummaryInterface):
                 task_name=task,
             )
 
-    def update_predictor_state(self, step_name, targets, predictions, loss, n_epochs):
+        # Current predictor state
+        self.weighted_loss = None
+        self.step_name = None
+
+    def update_predictor_state(self, step_name, targets, predictions, loss, task_losses, n_epochs):
+        self.weighted_loss = loss
+        self.step_name = step_name
         for task in self.tasks:
             self.task_summaries[task].update_predictor_state(
                 step_name,
                 targets[task],
                 predictions[task],
-                loss,
+                task_losses[task],
                 n_epochs,
             )
 
@@ -277,6 +283,9 @@ class TaskSummaries(SummaryInterface):
         task_metrics_logs = {}
         for task in self.tasks:
             task_metrics_logs[task] = self.task_summaries[task].get_metrics_logs()
+
+        # Include global (weighted loss)
+        task_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
         return task_metrics_logs
 
     def metric_log_name(self, task_name, metric_name, step_name):
