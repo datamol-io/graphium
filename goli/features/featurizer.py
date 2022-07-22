@@ -1212,7 +1212,7 @@ def graph_dict_to_dgl(
     return graph
 
 
-def mol_to_dglgraph_signature(featurizer_args: Dict[str, Any] = None):
+def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None):
     """Get the default arguments of `mol_to_dglgraph_dict` and update it
     with a provided dict of arguments in order to get a fulle signature
     of the featurizer args actually used for the features computation.

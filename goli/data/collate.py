@@ -40,7 +40,7 @@ def goli_collate_fn(
             The elements to batch. See `torch.utils.data.dataloader.default_collate`.
 
         labels_size_dict:
-            (Note): This is an attribute of the MultiTaskDGLDataset.
+            (Note): This is an attribute of the MultitaskDataset.
             A dictionary of the form Dict[tasks, sizes] which has task names as keys
             and the size of the label tensor as value. The size of the tensor corresponds to how many
             labels/values there are to predict for that task.

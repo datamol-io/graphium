@@ -309,7 +309,7 @@ class PredictorModule(pl.LightningModule):
         #step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         for task in self.tasks:     # TODO: Verify consistency with Summary class
             step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
-        
+
         step_dict["task_losses"] = task_losses
         return loss, step_dict
 
@@ -392,21 +392,6 @@ class PredictorModule(pl.LightningModule):
             )
 
 #################################################################################################################
-<<<<<<< HEAD
-        #self.epoch_summary.update_predictor_state(
-        #    step_name="train",
-        #    targets=step_dict["targets"],
-        #    predictions=step_dict["preds"],
-        #    loss=loss,
-        #    n_epochs=self.current_epoch,
-        #)
-        #metrics_logs = self.epoch_summary.get_metrics_logs()
-
-        # Multitask
-        #metrics_logs = self.get_metrics_logs(preds=step_dict["preds"], targets=step_dict["targets"], weights=None, step_name="train", loss=loss)
-
-=======
->>>>>>> 090cb9b3be9044903a07bd6523ea4496980d806d
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
             targets=step_dict["targets"],
@@ -470,22 +455,6 @@ class PredictorModule(pl.LightningModule):
             loss_fun=self.loss_fun,
         )
 ################################################################################################################
-<<<<<<< HEAD
-        """Note: need to update the predictor results to make the metrics_logs, but we need the metrics_logs to update the predictor_result"""
-        #self.epoch_summary.update_predictor_state(            # After adding predictor results
-        #    step_name=step_name,
-        #    predictions=preds,
-        #    targets=targets,
-        #    loss=loss,
-        #    n_epochs=self.current_epoch,
-        #)
-        #metrics_logs = self.epoch_summary.get_metrics_logs()
-        #self.epoch_summary.set_results(metrics=metrics_logs)
-        # Multitask version
-        #metrics_logs = self.get_metrics_logs(preds=preds, targets=targets, weights=weights, step_name=step_name, loss=loss)
-
-=======
->>>>>>> 090cb9b3be9044903a07bd6523ea4496980d806d
         self.task_epoch_summary.update_predictor_state(
             step_name=step_name,
             predictions=preds,

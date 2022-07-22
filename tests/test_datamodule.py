@@ -40,7 +40,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "multiprocessing"
 
-        dm = goli.data.DGLFromSmilesDataModule(**dm_args)
+        dm = goli.data.GraphFromSmilesDataModule(**dm_args)
 
         assert dm.num_node_feats == 50
         assert dm.num_edge_feats == 6
@@ -70,7 +70,7 @@ class Test_DataModule(ut.TestCase):
         dm_args = dict(config.data.args)
         dm_args["df"] = df
 
-        dm = goli.data.DGLFromSmilesDataModule(**dm_args)
+        dm = goli.data.GraphFromSmilesDataModule(**dm_args)
 
         assert dm.num_node_feats == 50
         assert dm.num_edge_feats == 6
@@ -119,7 +119,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
 
-        ds = goli.data.DGLOGBDataModule(**dm_args)
+        ds = goli.data.GraphOGBDataModule(**dm_args)
 
         ds.prepare_data()
         ds.setup()
@@ -155,7 +155,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["df"] = df
         dm_args["cache_data_path"] = cache_data_path
         dm_args["featurization"] = featurization_args
-        datam = goli.data.DGLFromSmilesDataModule(**dm_args)
+        datam = goli.data.GraphFromSmilesDataModule(**dm_args)
         datam.prepare_data()
         datam.setup()
 
@@ -165,7 +165,7 @@ class Test_DataModule(ut.TestCase):
         # 2. Reload with the same arguments should not trigger a new preparation and give
         # the same feature's dimensions.
 
-        datam = goli.data.DGLFromSmilesDataModule(**dm_args)
+        datam = goli.data.GraphFromSmilesDataModule(**dm_args)
         datam.prepare_data()
         datam.setup()
 
@@ -183,7 +183,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["df"] = df
         dm_args["cache_data_path"] = cache_data_path
         dm_args["featurization"] = featurization_args
-        datam = goli.data.DGLFromSmilesDataModule(**dm_args)
+        datam = goli.data.GraphFromSmilesDataModule(**dm_args)
         datam.prepare_data()
         datam.setup()
 
@@ -236,7 +236,7 @@ class Test_DataModule(ut.TestCase):
                 tensors_of_num_2,
                 series_num_2,
                 series_num_shuffled_2,
-            ) = goli.data.DGLFromSmilesDataModule._filter_none_molecules(
+            ) = goli.data.GraphFromSmilesDataModule._filter_none_molecules(
                 idx_none,
                 list_of_num,
                 list_of_str,
