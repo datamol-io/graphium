@@ -1522,11 +1522,9 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         return self.task_heads(h)
 
     @property
-    def out_dim(self):
+    def out_dim(self) -> Dict[str, int]:
         r"""
-        Returns the output dimension of the network
+        Returns the output dimension of the network for each task
         """
-        if self.pre_nn is not None:
-            return self.post_nn.out_dim
-        else:
-            return self.gnn.out_dim
+        # TODO (Gab): check if this is right
+        return {key: head.out_dim for key, head in self.task_heads.task_heads.items()}

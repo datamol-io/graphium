@@ -113,6 +113,6 @@ METRICS_DICT.update(METRICS_REGRESSION)
 
 DATAMODULE_DICT = {
     "DGLFromSmilesDataModule": GraphFromSmilesDataModule,
-    "DGLOGBDataModule": GraphOGBDataModule,
+    "GraphOGBDataModule": GraphOGBDataModule,
     "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule
 }

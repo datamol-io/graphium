@@ -78,6 +78,7 @@ class FeedForwardDGL(FeedForwardGraphBase):
                 Edge feature tensor to be used at the next residual connection, or `None`
 
         """
+        # TODO (Dom): Merge this with the pyg model by making the DGL layers only taking `g` without `h` and `e`
         # Apply the GNN layer with the right inputs/outputs
         if layer.layer_inputs_edges and layer.layer_outputs_edges:
             h, e = layer(g=g, h=h, e=e)
