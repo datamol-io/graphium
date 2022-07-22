@@ -19,6 +19,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 import dgl
+from torch_geometric.data import Data, Batch
 import pytorch_lightning as pl
 
 from goli.utils import fs
@@ -842,6 +843,17 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         """Return the number of node features in the first graph"""
 
         graph = self.get_first_graph()
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            if "feat" in graph.ndata.keys():
+                return graph.ndata["feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
+        elif isinstance(graph, (Data, Batch)):
+            if "feat" in graph.keys:
+                return graph["feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
+
         num_feats = 0
         if "feat" in graph.ndata.keys():
             num_feats += graph.ndata["feat"].shape[1]
@@ -867,10 +879,18 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if "edge_feat" in graph.edata.keys():
-            return graph.edata["edge_feat"].shape[1]  # type: ignore
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            if "edge_feat" in graph.edata.keys():
+                return graph.edata["edge_feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
+        elif isinstance(graph, (Data, Batch)):
+            if "edge_feat" in graph.keys:
+                return graph["edge_feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
         else:
-            return 0
+            raise ValueError("Unknown edge_feat")
 
     def get_first_graph(self):
         """
