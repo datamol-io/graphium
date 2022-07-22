@@ -89,7 +89,7 @@ def goli_collate_fn(
                     pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
                     pyg_batch.append(pyg_graph)
 
-                batch[key] = Batch.from_data_list(pyg_batch)
+                batch[key] = Batch.from_data_list(pyg_batch) # TODO (Andy): Here, add the padding for constant ipu tensor size
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
