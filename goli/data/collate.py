@@ -1,19 +1,22 @@
 from collections.abc import Mapping
 #from pprint import pprint
 import torch
+from numpy import ndarray
+from scipy.sparse import spmatrix
 from torch.utils.data.dataloader import default_collate
-import dgl
 from inspect import signature, _empty
 from typing import Union, List, Optional, Dict, Type, Any
+import dgl
+from torch_geometric.data import Data, Batch
 
-from goli.features import dgl_dict_to_graph, DGLGraphDict
+from goli.features import GraphDict, to_dense_array
 
 
 def goli_collate_fn(
     elements,
     labels_size_dict: Optional[Dict[str, Any]] = None,
-    mask_nan: Union[str, float, Type[None]] = "raise", 
-    do_not_collate_keys: List[str] = []
+    mask_nan: Union[str, float, Type[None]] = "raise",
+    do_not_collate_keys: List[str] = [],
 ):
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
@@ -37,7 +40,7 @@ def goli_collate_fn(
             The elements to batch. See `torch.utils.data.dataloader.default_collate`.
 
         labels_size_dict:
-            (Note): This is an attribute of the MultiTaskDGLDataset.
+            (Note): This is an attribute of the MultitaskDataset.
             A dictionary of the form Dict[tasks, sizes] which has task names as keys
             and the size of the label tensor as value. The size of the tensor corresponds to how many
             labels/values there are to predict for that task.
@@ -63,13 +66,30 @@ def goli_collate_fn(
         for key in elem:
             # If the features are a dictionary containing DGLGraph elements,
             # Convert to DGLGraph and use the dgl batching.
-            if isinstance(elem[key], DGLGraphDict):
+            if isinstance(elem[key], GraphDict):
                 graphs = [d[key].make_dgl_graph(mask_nan=mask_nan) for d in elements]
                 batch[key] = dgl.batch(graphs)
 
             # If a DGLGraph is provided, use the dgl batching
             elif isinstance(elem[key], dgl.DGLGraph):
                 batch[key] = dgl.batch([d[key] for d in elements])
+
+            # If a PyG Graph is provided, use the PyG batching
+            # Convert all numpy types to torch
+            # Convert edge indices to long
+            elif isinstance(elem[key], Data):
+                pyg_batch = []
+                for this_elem in elements:
+                    pyg_graph = this_elem[key]
+                    for pyg_key in pyg_graph.keys:
+                        tensor = pyg_graph[pyg_key]
+                        # Convert numpy/scipy to Pytorch
+                        if isinstance(tensor, (ndarray, spmatrix)):
+                            pyg_graph[pyg_key] = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+                    pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
+                    pyg_batch.append(pyg_graph)
+
+                batch[key] = Batch.from_data_list(pyg_batch)
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:

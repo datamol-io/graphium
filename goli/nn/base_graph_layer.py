@@ -1,13 +1,13 @@
 import torch
 import torch.nn as nn
 import abc
-from typing import List, Dict, Tuple, Union, Callable
+from typing import Union, Callable
 
 from goli.nn.base_layers import get_activation
 from goli.utils.decorators import classproperty
 
 
-class BaseDGLLayer(nn.Module):
+class BaseGraphStructure:
     def __init__(
         self,
         in_dim: int,
@@ -54,14 +54,21 @@ class BaseDGLLayer(nn.Module):
         self.dropout = dropout
         self.activation = activation
 
+    def _initialize_activation_dropout_norm(self):
+
+        if not isinstance(self, nn.Module):
+            raise TypeError(
+                "This function requires the current object to be an `nn.Module`. Use multi-inheritance or the class `BaseGraphModule` instead"
+            )
+
         # Build the layers
-        self.activation_layer = get_activation(activation)
+        self.activation_layer = get_activation(self.activation)
 
         self.dropout_layer = None
-        if dropout > 0:
-            self.dropout_layer = nn.Dropout(p=dropout)
+        if self.dropout > 0:
+            self.dropout_layer = nn.Dropout(p=self.dropout)
 
-        self.norm_layer = self._parse_norm(normalization)
+        self.norm_layer = self._parse_norm(self.normalization)
 
     def _parse_norm(self, normalization):
 
@@ -82,7 +89,7 @@ class BaseDGLLayer(nn.Module):
     def apply_norm_activation_dropout(
         self,
         h: torch.Tensor,
-        normalization: Union[str, Callable] = True,
+        normalization: bool = True,
         activation: bool = True,
         dropout: bool = True,
     ):
@@ -96,12 +103,7 @@ class BaseDGLLayer(nn.Module):
                 Feature tensor, to be normalized
 
             normalization:
-                Normalization to use. Choices:
-
-                - "none" or `None`: No normalization
-                - "batch_norm": Batch normalization
-                - "layer_norm": Layer normalization
-                - `Callable`: Any callable function
+                Whether to apply the normalization
 
             activation:
                 Whether to apply the activation layer
@@ -116,7 +118,7 @@ class BaseDGLLayer(nn.Module):
 
         """
 
-        if self.norm_layer is not None:
+        if normalization and (self.norm_layer is not None):
             h = self.norm_layer(h)
 
         if activation and (self.activation_layer is not None):
@@ -201,3 +203,52 @@ class BaseDGLLayer(nn.Module):
         f = self.out_dim_factor
         out_dim_f_print = "" if f == 1 else f" * {f}"
         return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}{out_dim_f_print}, activation={self.activation})"
+
+
+class BaseGraphModule(BaseGraphStructure, nn.Module):
+    def __init__(
+        self,
+        in_dim: int,
+        out_dim: int,
+        activation: Union[str, Callable] = "relu",
+        dropout: float = 0.0,
+        normalization: Union[str, Callable] = "none",
+    ):
+        r"""
+        Abstract class used to standardize the implementation of DGL layers
+        in the current library. It will allow a network to seemlesly swap between
+        different GNN layers by better understanding the expected inputs
+        and outputs.
+
+        Parameters:
+
+            in_dim:
+                Input feature dimensions of the layer
+
+            out_dim:
+                Output feature dimensions of the layer
+
+            activation:
+                activation function to use in the layer
+
+            dropout:
+                The ratio of units to dropout. Must be between 0 and 1
+
+            normalization:
+                Normalization to use. Choices:
+
+                - "none" or `None`: No normalization
+                - "batch_norm": Batch normalization
+                - "layer_norm": Layer normalization
+                - `Callable`: Any callable function
+        """
+
+        super().__init__(
+            in_dim=in_dim,
+            out_dim=out_dim,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+        )
+
+        self._initialize_activation_dropout_norm()

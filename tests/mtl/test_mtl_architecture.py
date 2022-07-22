@@ -11,7 +11,7 @@ from copy import deepcopy
 
 import goli
 from goli.config._loader import load_architecture
-from goli.nn.architectures import TaskHeads, FullDGLMultiTaskNetwork, TaskHead, TaskHeadParams
+from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork, TaskHead, TaskHeadParams
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -48,7 +48,7 @@ task_3_kwargs = {
     "hidden_dims": [2, 2, 2],
 }
 
-# The params to create the task head MLPs. 
+# The params to create the task head MLPs.
 task_1_params = TaskHeadParams(
     **task_1_kwargs,
     **kwargs,
@@ -66,9 +66,9 @@ class test_TaskHeads(ut.TestCase):
     def test_task_head_forward(self):
         """Task heads are FeedForwardNNs, with the addition of a 'task_name' attribute.
         We want to make sure that they work as expected even though they are basically the same as FFNNs.
-        
+
         This test matches `test_forward_no_residual` for the FeedForwardNN."""
-        
+
         # Assume same setup as when testing the FFNN
         kwargs = {
             "activation": "relu",
@@ -78,7 +78,7 @@ class test_TaskHeads(ut.TestCase):
             "name": "LNN",
             "layer_type": FCLayer,
         }
-        
+
         task_name = "task"
         in_dim = 8
         out_dim = 16
@@ -234,7 +234,7 @@ class test_Multitask_NN(ut.TestCase):
                                 **self.fulldgl_kwargs,
                             )
 
-                            multitask_fulldgl_nn = FullDGLMultiTaskNetwork(
+                            multitask_fulldgl_nn = FullGraphMultiTaskNetwork(
                                 task_heads_kwargs=task_heads_params,
                                 gnn_kwargs=gnn_kwargs,
                                 pre_nn_kwargs=pre_nn_kwargs,
@@ -252,7 +252,7 @@ class test_Multitask_NN(ut.TestCase):
                             self.assertListEqual(list(h_out[task_3_kwargs["task_name"]].shape), [dim_1, task_3_kwargs["out_dim"]], msg=err_msg)
 
 
-class test_FullDGLMultiTaskNetwork(ut.TestCase):
+class test_FullGraphMultiTaskNetwork(ut.TestCase):
 
     in_dim_nodes = 7
     in_dim_edges = 13
@@ -267,7 +267,7 @@ class test_FullDGLMultiTaskNetwork(ut.TestCase):
     batch = [dgl.add_self_loop(g) for g in batch]
     bg = dgl.batch(batch)
 
-    def test_fulldglmultitasknetwork_from_config(self):
+    def test_FullGraphMultiTaskNetwork_from_config(self):
         cfg = goli.load_config(name="zinc_default_multitask_fulldgl")
 
         # Initialize the network
@@ -279,7 +279,7 @@ class test_FullDGLMultiTaskNetwork(ut.TestCase):
 
         multitask_fulldgl_nn = model_class(**model_kwargs)
 
-        # Test 
+        # Test
         bg = deepcopy(self.bg)
         h_out = multitask_fulldgl_nn.forward(bg)
 

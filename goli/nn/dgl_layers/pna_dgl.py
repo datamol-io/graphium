@@ -4,9 +4,9 @@ from dgl import DGLGraph
 from typing import Dict, List, Tuple, Union, Callable
 from copy import deepcopy
 
-from goli.nn.pna_operations import PNA_AGGREGATORS, PNA_SCALERS
+from goli.nn.pna_operations import PNA_DGL_AGGREGATORS, PNA_DGL_SCALERS
 from goli.nn.base_layers import MLP, get_activation
-from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.utils.decorators import classproperty
 
 """
@@ -16,7 +16,7 @@ from goli.utils.decorators import classproperty
 """
 
 
-class BasePNALayer(BaseDGLLayer):
+class BasePNADgl(BaseGraphModule):
     def __init__(
         self,
         in_dim: int,
@@ -100,26 +100,26 @@ class BasePNALayer(BaseDGLLayer):
         self.last_activation = get_activation(last_activation)
 
         # Initializing aggregators and scalers
-        self.aggregators = self.parse_aggregators(aggregators)
+        self.aggregators = self._parse_aggregators(aggregators)
         self.scalers = self._parse_scalers(scalers)
 
-    def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
+    def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
         r"""
         Parse the aggregators from a list of strings into a list of callables
         """
-        return [PNA_AGGREGATORS[aggr] for aggr in aggregators]
+        return [PNA_DGL_AGGREGATORS[aggr] for aggr in aggregators]
 
     def _parse_scalers(self, scalers: List[str]) -> List[Callable]:
         r"""
         Parse the scalers from a list of strings into a list of callables
         """
-        return [PNA_SCALERS[scale] for scale in scalers]
+        return [PNA_DGL_SCALERS[scale] for scale in scalers]
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
         r"""
         The message function to generate messages along the edges.
         """
-        return {"e": edges.data["e"]}
+        return {"edge_attr": edges.data["edge_attr"]}
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
         r"""
@@ -127,7 +127,7 @@ class BasePNALayer(BaseDGLLayer):
         Apply the aggregators and scalers, and concatenate the results.
         """
         h_in = nodes.data["h"]
-        h = nodes.mailbox["e"]
+        h = nodes.mailbox["edge_attr"]
         D = h.shape[-2]
         h_to_cat = [aggr(h=h, h_in=h_in) for aggr in self.aggregators]
         h = torch.cat(h_to_cat, dim=-1)
@@ -247,7 +247,7 @@ class BasePNALayer(BaseDGLLayer):
         return self.edge_features
 
 
-class PNAConvolutionalLayer(BasePNALayer):
+class PNAConvolutionalDgl(BasePNADgl):
     r"""
     Implementation of the convolutional architecture of the PNA layer,
     previously known as `PNASimpleLayer`. This layer aggregates the
@@ -357,7 +357,7 @@ class PNAConvolutionalLayer(BasePNALayer):
             edata = torch.cat([edges.src["h"], edges.data["ef"]], dim=-1)
         else:
             edata = edges.src["h"]
-        return {"e": edata}
+        return {"edge_attr": edata}
 
     def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None) -> torch.Tensor:
         r"""
@@ -406,7 +406,7 @@ class PNAConvolutionalLayer(BasePNALayer):
         return h
 
 
-class PNAMessagePassingLayer(BasePNALayer):
+class PNAMessagePassingDgl(BasePNADgl):
     r"""
     Implementation of the message passing architecture of the PNA message passing layer,
     previously known as `PNALayerComplex`. This layer applies an MLP as
@@ -538,7 +538,7 @@ class PNAMessagePassingLayer(BasePNALayer):
             z2 = torch.cat([edges.src["h"], edges.dst["h"], edges.data["ef"]], dim=-1)
         else:
             z2 = torch.cat([edges.src["h"], edges.dst["h"]], dim=-1)
-        return {"e": self.pretrans(z2)}
+        return {"edge_attr": self.pretrans(z2)}
 
     def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor = None) -> torch.Tensor:
         r"""

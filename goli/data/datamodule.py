@@ -1,5 +1,3 @@
-from enum import unique
-from queue import Empty
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
@@ -7,13 +5,10 @@ from functools import partial
 import importlib.resources
 import zipfile
 from copy import deepcopy
-from itertools import cycle
-import random
 
 from loguru import logger
 import fsspec
 import omegaconf
-from sklearn import datasets
 from tqdm import tqdm
 from joblib import Parallel, delayed
 import tempfile
@@ -24,11 +19,11 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 import dgl
+from torch_geometric.data import Data, Batch
 import pytorch_lightning as pl
-from goli.features.featurizer import dgl_dict_to_graph
 
 from goli.utils import fs
-from goli.features import mol_to_dglgraph_dict, mol_to_dglgraph_signature, mol_to_dglgraph, DGLGraphDict
+from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
 
@@ -43,7 +38,7 @@ PCQM4M_meta = {
     "num tasks": 1,
     "eval metric": "mae",
     "download_name": "pcqm4m_kddcup2021",
-    "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m_kddcup2021.zip",
+    "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m_kddcup2021.zip", # TODO: Allow PyG
     "data type": "mol",
     "has_node_attr": True,
     "has_edge_attr": True,
@@ -60,10 +55,11 @@ PCQM4Mv2_meta = deepcopy(PCQM4M_meta)
 PCQM4Mv2_meta.update(
     {
         "download_name": "pcqm4m-v2",
-        "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip",
+        "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip", # TODO: Allow PyG
         "version": 2,
     }
 )
+
 
 def smiles_to_unique_mol_ids(smiles: List[str]):
     """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
@@ -74,6 +70,8 @@ def smiles_to_unique_mol_ids(smiles: List[str]):
         unique_mol_ids.append(id)
     return unique_mol_ids
 
+
+@staticmethod
 def get_indices(data_list: List, query_list: List):
     """This function searches for data_list's elements within query_list and returns the indices of query_list where they were found."""
     not_found = set(query_list)
@@ -86,10 +84,14 @@ def get_indices(data_list: List, query_list: List):
                 break
     return [datum_idx_map[d] for d in query_list]
 
+
 # Modify this if the dictionaries change structure.
-def concatenate_respective_lists_and_save_indices(dict_containing_lists: Dict[str, List], key_containing_list: str):
+@staticmethod
+def concatenate_respective_lists_and_save_indices(
+    dict_containing_lists: Dict[str, List], key_containing_list: str
+):
     """Given a dict with values List, this function concatenates all the lists into one, and saves the respective indices of each key's list in the concatenated list.
-    
+
     Currently this function assumes the following structure:
         {
             "key": {
@@ -116,7 +118,8 @@ def concatenate_respective_lists_and_save_indices(dict_containing_lists: Dict[st
         start = end + 1
     return concatenated_list, dict_respective_indices
 
-class DGLDataset(Dataset):
+
+class DGLDataset(Dataset): # TODO: DELETE
     def __init__(
         self,
         features: List[dgl.DGLGraph],
@@ -190,46 +193,46 @@ class SingleTaskDataset(Dataset):
 
         return datum
 
-class MultitaskDGLDataset(Dataset):
+class MultitaskDataset(Dataset):
     """This class holds the information for the multitask dataset.
-  
+
     Several single-task datasets can be merged to create a multi-task dataset."""
     def __init__(self, datasets: Dict[str, SingleTaskDataset]):
         super().__init__()
         self.datasets = datasets
-        
+
         task = next(iter(self.datasets))
         if "features" in datasets[task].__getitem__(0):
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(self.datasets)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
         #self.labels_size = self.set_label_size_dict()
- 
+
     def __len__(self):
         return len(self.mol_ids)
- 
+
     def __getitem__(self, idx):
         datum = {}
- 
+
         if self.mol_ids is not None:
             datum["mol_ids"] = self.mol_ids[idx]
- 
+
         if self.smiles is not None:
             datum["smiles"] = self.smiles[idx]
- 
+
         if self.labels is not None:
             datum["labels"] = self.labels[idx]
- 
+
         if self.features is not None:
             datum["features"] = self.features[idx]
- 
+
         return datum
- 
+
     def merge(self, datasets):
         all_smiles = []
         all_features = []
         all_labels = []
- 
+
         all_tasks = []
         for task, ds in datasets.items():
             # Get data from single task ds
@@ -239,33 +242,33 @@ class MultitaskDGLDataset(Dataset):
                 ds_features = [ds.__getitem__(i)["features"] for i in range(len(ds))]
             else:
                 ds_features = None
- 
+
             all_smiles.extend(ds_smiles)
             all_labels.extend(ds_labels)
             if ds_features is not None: all_features.extend(ds_features)
- 
+
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
- 
+
         mol_ids = []
         # Get all unique mol ids.
         all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
         unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         mol_ids = unique_mol_ids
- 
+
         #print("\n\n\nUnique mol ID's! ")
         #pprint(mol_ids)
         #print("\nAll mol IDs ")
         #pprint(all_mol_ids)
         #print("\nAll smiles ")
         #pprint(all_smiles)
- 
+
         # Store the smiles.
         #smiles = [[] for i in range(len(mol_ids))]
         smiles = [[]] * len(mol_ids)
         for all_idx, unique_idx in enumerate(inv):
             smiles[unique_idx].append(all_smiles[all_idx])
- 
+
         # Store the labels.
         #labels = [{}] * len(mol_ids)
         labels = [{} for i in range(len(mol_ids))]
@@ -273,11 +276,11 @@ class MultitaskDGLDataset(Dataset):
             task = all_tasks[all_idx]
             label = all_labels[all_idx]
             labels[unique_idx][task] = label
- 
+
         #print("All features", all_features)
         #print("length of mol_id", len(mol_ids))
         #print("length of all features", len(all_features))
- 
+
         # Store the features
         if len(all_features) > 0:
             features = [-1 for i in range(len(mol_ids))]
@@ -308,7 +311,7 @@ class MultitaskDGLDataset(Dataset):
     #     print("\n\n labels")
     #     pprint(self.labels)
 
-class DGLBaseDataModule(pl.LightningDataModule):
+class BaseDataModule(pl.LightningDataModule):
     def __init__(
         self,
         batch_size_train_val: int = 16,
@@ -441,9 +444,9 @@ class DGLBaseDataModule(pl.LightningDataModule):
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
         )
-        return loader  
+        return loader
 
-class DGLFromSmilesDataModule(DGLBaseDataModule):
+class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
     """
     NOTE(hadim): let's make only one class for the moment and refactor with a parent class
     once we have more concrete datamodules to implement. The class should be general enough
@@ -480,7 +483,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph: str = "dgldict",
+        prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = DGLDataset,
     ):
         """
@@ -491,7 +494,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 `df_path`.
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
-            featurization: args to apply to the SMILES to DGL featurizer.
+            featurization: args to apply to the SMILES to Graph featurizer.
             smiles_col: Name of the SMILES column. If set to `None`, it will look for
                 a column with the word "smile" (case insensitive) in it.
                 If no such column is found, an error will be raised.
@@ -546,16 +549,19 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
                 - `int`: The maximum number of elements to take from the dataset.
                 - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
                 - `None`: all elements are considered.
-            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs or dict.
+            prepare_dict_or_graph: Whether to preprocess all molecules as `dgl:graphs`, `dgl:dict` or `pyg:graph`.
                 Possible options:
 
-                - "graph": Process molecules as dgl.DGLGraph. It's slower during pre-processing
+                - "dgl:graph": Process molecules as `dgl.DGLGraph`. It's slower during pre-processing
                   and requires more RAM. It is faster during training with `num_workers=0`, but
                   slower with larger `num_workers`.
-                - "dict": Process molecules as a Dict. It's faster and requires less RAM during
+                - "dgl:dict": Process molecules as a `dict`. It's faster and requires less RAM during
                   pre-processing. It is slower during training with with `num_workers=0` since
                   DGLGraphs will be created during data-loading, but faster with large
                   `num_workers`, and less likely to cause memory issues with the parallelization.
+                - "pyg:graph": Process molecules as `pyg.data.Data`. It's slower during pre-processing
+                  and requires more RAM. It is faster during training with `num_workers=0`, but
+                  slower with larger `num_workers`.
             dataset_class: The class used to create the dataset from which to sample.
         """
         super().__init__(
@@ -602,22 +608,16 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         self.test_indices = None
         self.dataset_class = dataset_class
 
-        # Depreciated options
-        if prepare_dict_or_graph == "dict":
-            logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dgldict'` instead of 'dict'")
-            prepare_dict_or_graph = "dgldict"
-        elif prepare_dict_or_graph == "graph":
-            logger.warning("Depreciated: Use `prepare_dict_or_graph = 'dglgraph'` instead of 'graph'")
-            prepare_dict_or_graph = "dglgraph"
-
         # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
-        if prepare_dict_or_graph == "dgldict":
-            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
-        elif prepare_dict_or_graph == "dglgraph":
+        if prepare_dict_or_graph == "dgl:dict":
+            self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
+        elif prepare_dict_or_graph == "dgl:graph":
             self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
+        elif prepare_dict_or_graph == "pyg:graph":
+            self.smiles_transformer = partial(mol_to_pyggraph, **featurization)
         else:
             raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'dgldict' or 'dglgraph', Provided: `{prepare_dict_or_graph}`"
+                f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
 
     def prepare_data(self): # Can create train_ds, val_ds and test_ds here instead of setup. Be careful with the featurization (to not compute several times).
@@ -788,7 +788,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             elif isinstance(arg, dict):
                 new = {}
                 for key, val in arg.items():
-                    new[key] = DGLFromSmilesDataModule._filter_none_molecules(idx_none, val)
+                    new[key] = GraphFromSmilesDataModule._filter_none_molecules(idx_none, val)
             else:
                 new = arg
             out.append(new)
@@ -843,6 +843,17 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of node features in the first graph"""
 
         graph = self.get_first_graph()
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            if "feat" in graph.ndata.keys():
+                return graph.ndata["feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
+        elif isinstance(graph, (Data, Batch)):
+            if "feat" in graph.keys:
+                return graph["feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
+
         num_feats = 0
         if "feat" in graph.ndata.keys():
             num_feats += graph.ndata["feat"].shape[1]
@@ -868,10 +879,18 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if "feat" in graph.edata.keys():
-            return graph.edata["feat"].shape[1]  # type: ignore
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            if "edge_feat" in graph.edata.keys():
+                return graph.edata["edge_feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
+        elif isinstance(graph, (Data, Batch)):
+            if "edge_feat" in graph.keys:
+                return graph["edge_feat"].shape[1]  # type: ignore_errors: bool
+            else:
+                return 0
         else:
-            return 0
+            raise ValueError("Unknown edge_feat")
 
     def get_first_graph(self):
         """
@@ -893,7 +912,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             if graph is not None:
                 break
 
-        if isinstance(graph, DGLGraphDict):
+        if isinstance(graph, GraphDict):
             graph = graph.make_dgl_graph(mask_nan=0.0)
 
         return graph
@@ -913,7 +932,7 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             cache["test_indices"] = self.test_indices
 
             # Save featurization args used
-            cache["featurization_args"] = mol_to_dglgraph_signature(dict(self.featurization or {}))
+            cache["featurization_args"] = mol_to_graph_signature(dict(self.featurization or {}))
 
             with fsspec.open(self.cache_data_path, "wb", compression="infer") as f:
                 torch.save(cache, f)
@@ -963,8 +982,8 @@ class DGLFromSmilesDataModule(DGLBaseDataModule):
             return False
 
         # Is the featurization signature the same?
-        current_signature = mol_to_dglgraph_signature(dict(self.featurization or {}))
-        cache_signature = mol_to_dglgraph_signature(cache["featurization_args"])
+        current_signature = mol_to_graph_signature(dict(self.featurization or {}))
+        cache_signature = mol_to_graph_signature(cache["featurization_args"])
 
         if current_signature != cache_signature:
             logger.info(f"Cache featurizer arguments are different than the provided ones.")
@@ -1185,7 +1204,7 @@ class DatasetParams():
        self.split_test = split_test
        self.split_seed = split_seed
        self.splits_path = splits_path
-class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
+class MultitaskFromSmilesDataModule(BaseDataModule):
     def __init__(
         self,
         #task_df: Dict[str, pd.DataFrame] = None,
@@ -1212,8 +1231,8 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
-        prepare_dict_or_graph: str = "dgl_dict",
-        dataset_class: type = MultitaskDGLDataset,
+        prepare_dict_or_graph: str = "pyg:graph",
+        dataset_class: type = MultitaskDataset,
     ):
         """
         Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
@@ -1261,10 +1280,10 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
                 should be implemented.
             task_splits_path: (value) A path a CSV file containing indices for the splits. The file must contains
                 3 columns "train", "val" and "test". It takes precedence over `split_val` and `split_test`.
-            
+
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
-            featurization: args to apply to the SMILES to DGL featurizer.
+            featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_train_val: batch size for training and val dataset.
             batch_size_test: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
@@ -1279,15 +1298,18 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
                 - "threading": Found to be slow.
 
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
-            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs or dict.
+            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs, DGL dict or PyG graphs.
                 Possible options:
 
-                - "graph": Process molecules as dgl.DGLGraph. It's slower during pre-processing
-                  and requires more RAM, but faster during training.
-                - "dict": Process molecules as a Dict. It's faster and requires less RAM during
-                  pre-processing, but slower during training since DGLGraphs will be created
-                  during data-loading.
-            dataset_class: The class used to create the dataset from which to sample. 
+                - "dgl:graph": Process molecules as `dgl.DGLGraph`. It's slower during pre-processing
+                  and requires more RAM. It is faster during training with `num_workers=0`, but
+                  slower with larger `num_workers`.
+                - "dgl:dict": Process molecules as a `dict`. It's faster and requires less RAM during
+                  pre-processing. It is slower during training with with `num_workers=0` since
+                  DGLGraphs will be created during data-loading, but faster with large
+                  `num_workers`, and less likely to cause memory issues with the parallelization.
+                - "pyg:graph": Process molecules as `pyg.data.Data`.
+            dataset_class: The class used to create the dataset from which to sample.
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -1333,18 +1355,21 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         self.val_ds = None
         self.test_ds = None
 
-        if prepare_dict_or_graph == "dgl_dict":         # Changed based on Dom's comments. Compare with version in this code to see if the change works or not.
-            self.smiles_transformer = partial(mol_to_dglgraph_dict, **featurization)
-        elif prepare_dict_or_graph == "graph":
+        # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
+        if prepare_dict_or_graph == "dgl:dict":
+            self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
+        elif prepare_dict_or_graph == "dgl:graph":
             self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
+        elif prepare_dict_or_graph == "pyg:graph":
+            self.smiles_transformer = partial(mol_to_pyggraph, **featurization)
         else:
             raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'dict' or 'graph', Provided: `{prepare_dict_or_graph}`"
+                f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
-        
+
         - If each cache is set and exists, reload from cache and return. Otherwise,
         - For each single-task dataset:
             - Load its dataframe from a path (if provided)
@@ -1427,7 +1452,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
 
         # Convert SMILES to features
         features, idx_none = self._featurize_molecules(smiles_to_featurize) # sample_idx is removed ... might need to add it again later in another way
-        
+
         # Store the features (including Nones, which will be filtered in the next step)
         for task in task_dataset_args.keys():
             task_dataset_args[task]["features"] = []
@@ -1447,12 +1472,12 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         self.single_task_datasets = {}
         for task, args in task_dataset_args.items():
             df, features, smiles, labels, sample_idx, extras = self._filter_none_molecules(
-                args["idx_none"], 
+                args["idx_none"],
                 task_df[task],
                 args["features"],
-                args["smiles"], 
+                args["smiles"],
                 args["labels"],
-                args["sample_idx"], 
+                args["sample_idx"],
                 args["extras"]
             )
 
@@ -1469,8 +1494,8 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 **task_dataset_args[task]["extras"],
-            )       
-            
+            )
+
         """We split the data up to create train, val and test datasets"""
         self.task_train_indices = {}
         self.task_val_indices = {}
@@ -1498,14 +1523,14 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], test_indices)
 
 
-        # TODO (Gabriela): Implement the ability to save to cache. 
+        # TODO (Gabriela): Implement the ability to save to cache.
 
     def setup(self, stage: str = None): # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDGLDataset(self.train_singletask_datasets)  # type: ignore
-            self.val_ds = MultitaskDGLDataset(self.val_singletask_datasets)  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets)  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets)  # type: ignore
             # Produce the label sizes
             train_label_sizes = self.train_ds.set_label_size_dict()
             val_label_sizes = self.val_ds.set_label_size_dict()
@@ -1513,7 +1538,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             #label_sizes.update(val_label_sizes)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDGLDataset(self.test_singletask_datasets)  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets)  # type: ignore
             # Produce the label sizes
             test_label_sizes = self.test_ds.set_label_size_dict()
             #label_sizes.update(test_label_sizes)
@@ -1568,7 +1593,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             )
 
         return features, idx_none
-    
+
     @staticmethod
     def _filter_none_molecules(
         idx_none: Iterable,
@@ -1610,7 +1635,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             elif isinstance(arg, dict):
                 new = {}
                 for key, val in arg.items():
-                    new[key] = DGLFromSmilesDataModule._filter_none_molecules(idx_none, val)    # Careful
+                    new[key] = GraphFromSmilesDataModule._filter_none_molecules(idx_none, val)    # Careful
             else:
                 new = arg
             out.append(new)
@@ -1620,11 +1645,11 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         return out
 
     def _parse_label_cols(
-        self, 
+        self,
         df: pd.DataFrame,
-        df_path: str, 
-        str: Optional[Union[str, os.PathLike]], 
-        label_cols: Union[Type[None], str, List[str]], 
+        df_path: str,
+        str: Optional[Union[str, os.PathLike]],
+        label_cols: Union[Type[None], str, List[str]],
         smiles_col: str
         ) -> List[str]:
         r"""
@@ -1684,12 +1709,14 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
 
         graph = self.get_first_graph()
         num_feats = 0
-        if "feat" in graph.ndata.keys():
-            num_feats += graph.ndata["feat"].shape[1]
-        if "pos_enc_feats_sign_flip" in graph.ndata.keys():
-            num_feats += graph.ndata["pos_enc_feats_sign_flip"].shape[1]
-        if "pos_enc_feats_no_flip" in graph.ndata.keys():
-            num_feats += graph.ndata["pos_enc_feats_no_flip"].shape[1]
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            graph = graph.ndata
+
+        empty = torch.Tensor([])
+        num_feats  = graph.get("feat", empty).shape[-1]
+        num_feats += graph.get("pos_enc_feats_sign_flip", empty).shape[-1]
+        num_feats += graph.get("pos_enc_feats_no_flip", empty).shape[-1]
+
         return num_feats
 
     @property
@@ -1697,12 +1724,15 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if "feat" in graph.edata.keys():
-            return graph.edata["feat"].shape[1]  # type: ignore
-        else:
-            return 0
+        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+            graph = graph.edata
 
-    def get_first_graph(self):      # Fix this
+        empty = torch.Tensor([])
+        num_feats = graph.get("edge_feat", empty).shape[-1]
+
+        return num_feats
+
+    def get_first_graph(self):
         """
         Low memory footprint method to get the first datapoint DGL graph.
         The first 10 rows of the data are read in case the first one has a featurization
@@ -1734,9 +1764,6 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
             if graph is not None:
                 break
 
-        if isinstance(graph, dict):
-            graph = dgl_dict_to_graph(**graph)    # Removed mask_nan=0.0
-
         return graph
 
     ########################## Private methods ######################################
@@ -1767,7 +1794,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
                 raise ValueError(f"No SMILES column found in dataframe. Columns are {df.columns}")
             elif len(smiles_col_all) > 1:
                 raise ValueError(
-                    f"Multiple SMILES column found in dataframe. SMILES Columns are {smiles_col_all}" 
+                    f"Multiple SMILES column found in dataframe. SMILES Columns are {smiles_col_all}"
                 )
 
             smiles_col = smiles_col_all[0]
@@ -1922,7 +1949,7 @@ class MultitaskDGLFromSmilesDataModule(DGLBaseDataModule):
         """Controls how the class is printed"""
         return omegaconf.OmegaConf.to_yaml(self.to_dict())
 
-class DGLOGBDataModule(DGLFromSmilesDataModule):
+class GraphOGBDataModule(GraphFromSmilesDataModule):
     """Load an OGB GraphProp dataset."""
 
     def __init__(
@@ -1950,7 +1977,7 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
                 "ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv".
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
-            featurization: args to apply to the SMILES to DGL featurizer.
+            featurization: args to apply to the SMILES to Graph featurizer.
             batch_size_train_val: batch size for training and val dataset.
             batch_size_test: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
@@ -2002,7 +2029,6 @@ class DGLOGBDataModule(DGLFromSmilesDataModule):
         dm_args["weights_type"] = weights_type
         dm_args["sample_size"] = sample_size
 
-        # Init DGLFromSmilesDataModule
         super().__init__(**dm_args)
 
     def to_dict(self):

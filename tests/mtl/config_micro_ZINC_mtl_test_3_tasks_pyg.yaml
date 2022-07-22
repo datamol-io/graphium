@@ -5,12 +5,12 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  module_type: "MultitaskDGLFromSmilesDataModule"
+  module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       SA:
         df: null
-        df_path: "goli/data/multitask/tiny_ZINC_SA.csv"
+        df_path: "goli/data/micro_ZINC/micro_ZINC.csv"
         smiles_col: "SMILES"
         label_cols: ["SA"]
         split_val: 0.2
@@ -23,7 +23,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       logp:
         df: null
-        df_path: "goli/data/multitask/tiny_ZINC_logp.csv"
+        df_path: "goli/data/micro_ZINC/micro_ZINC.csv"
         smiles_col: "SMILES"
         label_cols: ["logp"]
         split_val: 0.2
@@ -36,7 +36,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       score:
         df: null
-        df_path: "goli/data/multitask/tiny_ZINC_score.csv"
+        df_path: "goli/data/micro_ZINC/micro_ZINC.csv"
         smiles_col: "SMILES"
         label_cols: ["score"]
         split_val: 0.2
@@ -49,7 +49,8 @@ datamodule:
         weights_type: null                # This may not always be provided
 
     # Featurization
-    featurization_n_jobs: -1
+    prepare_dict_or_graph: pyg:graph
+    featurization_n_jobs: 0
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -71,7 +72,7 @@ datamodule:
     # cache_data_path: null
 
 architecture:
-  model_type: fulldglmultitasknetwork
+  model_type: FullGraphMultiTaskNetwork
   pre_nn:   # Set as null to avoid a pre-nn network
     out_dim: 32
     hidden_dims: 32
@@ -83,7 +84,7 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
-  pre_nn_edges:   # Set as null to avoid a pre-nn network
+  pre_nn_edges:  # Set as null to avoid a pre-nn network
     out_dim: 16
     hidden_dims: 16
     depth: 2
@@ -94,9 +95,9 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
-  gnn:  # Set as null to avoid a post-nn network
+  gnn:
     out_dim: 32
-    hidden_dims: 32
+    hidden_dims: 64
     depth: 4
     activation: relu
     last_activation: none
@@ -104,15 +105,16 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: random
-    pooling: [sum, max, dir1]
+    pooling: [sum, max]
     virtual_node: 'sum'
-    layer_type: 'dgn-msgpass'
+    layer_type: 'pyg:gine'
     layer_kwargs:
+      # out_dim_edges: 16
       # num_heads: 3
-      aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
-      scalers: [identity, amplification, attenuation]
+      # aggregators: [mean, max]
+      # scalers: [identity, amplification, attenuation]
 
-  post_nn: null
+  post_nn: null # Set as null to avoid a post-nn network
     #out_dim: 1
     #hidden_dims: 32
     #depth: 2
@@ -157,10 +159,10 @@ architecture:
 
 #Task-specific
 predictor:
-  metrics_on_progress_bar: 
-    SA: ["mae", "pearsonr", "f1 > 3", "precision > 3"]
-    logp: ["mae", "pearsonr", "f1 > 3", "precision > 3"]
-    score: ["mae", "pearsonr", "f1 > 3", "precision > 3"]
+  metrics_on_progress_bar:
+    SA: ["mae"]
+    logp: ["mae"]
+    score: ["mae", "pearsonr", "f1 gt 3"]
   loss_fun:
     SA: mse
     logp: mse
@@ -173,7 +175,7 @@ predictor:
     #module_type: ReduceLROnPlateau
     #factor: 0.5
     #patience: 7
-  scheduler_kwargs: null       
+  scheduler_kwargs: null
   #  monitor: &monitor loss/val
   #  mode: min
   #  frequency: 1
@@ -191,7 +193,30 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-    - name: f1 > 3
+    - name: f1 gt 0.5
+      metric: f1
+      num_classes: 2
+      average: micro
+      threshold_kwargs: &threshold_05
+        operator: greater
+        threshold: 0.5
+        th_on_preds: True
+        th_on_target: True
+        target_to_int: True
+
+    - name: precision gt 0.5
+      metric: precision
+      average: micro
+      threshold_kwargs: *threshold_05
+
+  logp:
+    - name: mae
+      metric: mae
+      threshold_kwargs: null
+    - name: pearsonr
+      metric: pearsonr
+      threshold_kwargs: null
+    - name: f1 gt 3
       metric: f1
       num_classes: 2
       average: micro
@@ -201,44 +226,18 @@ metrics:
         th_on_preds: True
         th_on_target: True
         target_to_int: True
-    - name: f1 > 5
-      metric: f1
-      num_classes: 2
-      average: micro
-      threshold_kwargs:
-        operator: greater
-        threshold: 5
-        th_on_preds: True
-        th_on_target: True
-        target_to_int: True
-    - name: precision > 3
-      metric: precision
-      average: micro
-      threshold_kwargs: *threshold_3
 
-  logp:
-    - name: mae
-      metric: mae
-      threshold_kwargs: null
-    - name: pearsonr
-      metric: pearsonr
-      threshold_kwargs: null
-    - name: f1 > 3
-      metric: f1
-      num_classes: 2
-      average: micro
-      threshold_kwargs: *threshold_3
-    - name: f1 > 5
+    - name: f1 gt 0
       metric: f1
       num_classes: 2
       average: micro
       threshold_kwargs:
         operator: greater
-        threshold: 5
+        threshold: 0
         th_on_preds: True
         th_on_target: True
         target_to_int: True
-    - name: precision > 3
+    - name: precision gt 3
       metric: precision
       average: micro
       threshold_kwargs: *threshold_3
@@ -250,22 +249,22 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-    - name: f1 > 3
+    - name: f1 gt 3
       metric: f1
       num_classes: 2
       average: micro
       threshold_kwargs: *threshold_3
-    - name: f1 > 5
+    - name: f1 gt 0
       metric: f1
       num_classes: 2
       average: micro
       threshold_kwargs:
         operator: greater
-        threshold: 5
+        threshold: 0
         th_on_preds: True
         th_on_target: True
         target_to_int: True
-    - name: precision > 3
+    - name: precision gt 3
       metric: precision
       average: micro
       threshold_kwargs: *threshold_3
@@ -286,6 +285,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 1
   trainer:
-    max_epochs: 6 #25
+    precision: 32
+    max_epochs: 25 #25
     min_epochs: 1 #5
     gpus: 1

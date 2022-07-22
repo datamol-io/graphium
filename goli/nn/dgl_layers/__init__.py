@@ -1,7 +1,13 @@
-from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
-from goli.nn.dgl_layers.gat_layer import GATLayer
-from goli.nn.dgl_layers.gcn_layer import GCNLayer
-from goli.nn.dgl_layers.gin_layer import GINLayer
-from goli.nn.dgl_layers.gated_gcn_layer import GatedGCNLayer
-from goli.nn.dgl_layers.pna_layer import PNAConvolutionalLayer, PNAMessagePassingLayer
-from goli.nn.dgl_layers.dgn_layer import DGNConvolutionalLayer, DGNMessagePassingLayer
+from .gat_dgl import GATDgl
+from .gcn_dgl import GCNDgl
+from .gin_dgl import GINDgl
+from .gated_gcn_dgl import GatedGCNDgl
+from .pna_dgl import PNAConvolutionalDgl, PNAMessagePassingDgl
+from .dgn_dgl import DGNConvolutionalDgl, DGNMessagePassingDgl
+from .pooling_dgl import S2SReadoutDgl
+from .pooling_dgl import StdPoolingDgl
+from .pooling_dgl import MinPoolingDgl
+from .pooling_dgl import DirPoolingDgl
+from .pooling_dgl import LogSumPoolingDgl
+from .pooling_dgl import parse_pooling_layer_dgl
+from .pooling_dgl import VirtualNodeDgl

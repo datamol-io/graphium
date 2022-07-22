@@ -10,7 +10,8 @@ from pytorch_lightning import Trainer
 from goli.nn.architectures import TaskHeadParams
 
 from goli.trainer.metrics import MetricWrapper
-from goli.nn import FullDGLNetwork, FullDGLSiameseNetwork, FullDGLMultiTaskNetwork, FeedForwardNN
+from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork, FeedForwardNN
+from goli.trainer.predictor import PredictorModule
 from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 
@@ -70,12 +71,12 @@ def load_architecture(
     # Select the architecture
     model_type = cfg_arch["model_type"].lower()
     if model_type == "fulldglnetwork":
-        model_class = FullDGLNetwork
+        model_class = FullGraphNetwork
     elif model_type == "fulldglsiamesenetwork":
-        model_class = FullDGLSiameseNetwork
+        model_class = FullGraphSiameseNetwork
         kwargs["dist_method"] = cfg_arch["dist_method"]
-    elif model_type == "fulldglmultitasknetwork":
-        model_class = FullDGLMultiTaskNetwork
+    elif model_type == "fullgraphmultitasknetwork":
+        model_class = FullGraphMultiTaskNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
