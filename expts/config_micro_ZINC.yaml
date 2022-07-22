@@ -78,7 +78,7 @@ architecture:
     residual_type: random
     pooling: [sum, max, dir1]
     virtual_node: 'sum'
-    layer_type: 'dgn-msgpass'
+    layer_type: 'dgl:dgn-msgpass'
     layer_kwargs:
       # num_heads: 3
       aggregators: [mean, max, dir1/dx_abs, dir1/smooth]

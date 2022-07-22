@@ -1,19 +1,24 @@
+"""
+Unit tests for the different layers of goli/nn/pyg_layers/...
+
+The layers are not thoroughly tested due to the difficulty of testing them
+"""
+
+
 import torch
 import torch.nn as nn
-from typing import Tuple, Union, Callable
-from dgl import DGLGraph
+from typing import Union, Callable
 
-from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
+from torch_geometric.nn.conv import MessagePassing
+from torch_scatter import scatter
+from torch_geometric.data import Data, Batch
+
+from goli.nn.base_graph_layer import BaseGraphStructure
+from goli.nn.base_layers import FCLayer
 from goli.utils.decorators import classproperty
 
-"""
-    ResGatedGCN: Residual Gated Graph ConvNets
-    An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and Thomas Laurent, ICLR 2018)
-    https://arxiv.org/pdf/1711.07553v2.pdf
-"""
 
-
-class GatedGCNLayer(BaseDGLLayer):
+class GatedGCNPyg(MessagePassing, BaseGraphStructure):
     def __init__(
         self,
         in_dim: int,
@@ -55,8 +60,9 @@ class GatedGCNLayer(BaseDGLLayer):
                 - `Callable`: Any callable function
 
         """
-
-        super().__init__(
+        MessagePassing.__init__(self, aggr="add", flow="source_to_target", node_dim=-2)
+        BaseGraphStructure.__init__(
+            self,
             in_dim=in_dim,
             out_dim=out_dim,
             activation=activation,
@@ -64,73 +70,78 @@ class GatedGCNLayer(BaseDGLLayer):
             normalization=normalization,
         )
 
+        self._initialize_activation_dropout_norm()
+
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)
         self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
+        self.edge_out = FCLayer(in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True)
 
-    def message_func(self, edges):
-        Bh_j = edges.src["Bh"]
-        e_ij = edges.data["Ce"] + edges.src["Dh"] + edges.dst["Eh"]  # e_ij = Ce_ij + Dhi + Ehj
-        edges.data["e"] = e_ij
-        return {"Bh_j": Bh_j, "e_ij": e_ij}
-
-    def reduce_func(self, nodes):
-        Ah_i = nodes.data["Ah"]
-        Bh_j = nodes.mailbox["Bh_j"]
-        e = nodes.mailbox["e_ij"]
-        sigma_ij = torch.sigmoid(e)  # sigma_ij = sigmoid(e_ij)
-        # h = Ah_i + torch.mean( sigma_ij * Bh_j, dim=1 ) # hi = Ahi + mean_j alpha_ij * Bhj
-        h = Ah_i + torch.sum(sigma_ij * Bh_j, dim=1) / (
-            torch.sum(sigma_ij, dim=1) + 1e-6
-        )  # hi = Ahi + sum_j eta_ij/sum_j' eta_ij' * Bhj <= dense attention
-        return {"h": h}
-
-    def forward(self, g: DGLGraph, h: torch.Tensor, e: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
-        r"""
-        Apply the graph convolutional layer, with the specified activations,
-        normalizations and dropout.
-
-        Parameters:
-
-            g:
-                graph on which the convolution is done
-
-            h: `torch.Tensor[..., N, Din]`
-                Node feature tensor, before convolution.
-                N is the number of nodes, Din is the input dimension ``self.in_dim``
-
-            e: `torch.Tensor[..., N, Din_edges]`
-                Edge feature tensor, before convolution.
-                N is the number of nodes, Din is the input edge dimension  ``self.in_dim_edges``
-
-        Returns:
-            `torch.Tensor[..., N, Dout]`:
-                Node feature tensor, after convolution.
-                N is the number of nodes, Dout is the output dimension ``self.out_dim``
-
-            `torch.Tensor[..., N, Dout]`:
-                Edge feature tensor, after convolution.
-                N is the number of nodes, Dout_edges is the output edge dimension ``self.out_dim``
+    def forward(self, batch: Union[Data, Batch]):
+        x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
 
         """
+        x               : [n_nodes, in_dim]
+        e               : [n_edges, in_dim]
+        edge_index      : [2, n_edges]
+        """
 
-        g.ndata["h"] = h
-        g.ndata["Ah"] = self.A(h)
-        g.ndata["Bh"] = self.B(h)
-        g.ndata["Dh"] = self.D(h)
-        g.ndata["Eh"] = self.E(h)
-        g.edata["e"] = e
-        g.edata["Ce"] = self.C(e)
-        g.update_all(self.message_func, self.reduce_func)
-        h = g.ndata["h"]  # result of graph convolution
-        e = g.edata["e"]  # result of graph convolution
+        Ax = self.A(x)
+        Bx = self.B(x)
+        Ce = self.C(e)
+        Dx = self.D(x)
+        Ex = self.E(x)
 
-        h = self.apply_norm_activation_dropout(h)
-        e = self.apply_norm_activation_dropout(e)
+        x, e = self.propagate(edge_index, Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce, e=e, Ax=Ax)
 
-        return h, e
+        x = self.apply_norm_activation_dropout(x)
+        e = self.edge_out(e)
+
+        batch.h = x
+        batch.edge_attr = e
+
+        return batch
+
+    def message(self, Dx_i, Ex_j, Ce):
+        """
+        {}x_i           : [n_edges, out_dim]
+        {}x_j           : [n_edges, out_dim]
+        {}e             : [n_edges, out_dim]
+        """
+        e_ij = Dx_i + Ex_j + Ce
+        sigma_ij = torch.sigmoid(e_ij)
+
+        self.e = e_ij
+        return sigma_ij
+
+    def aggregate(self, sigma_ij, index, Bx_j, Bx):
+        """
+        sigma_ij        : [n_edges, out_dim]  ; is the output from message() function
+        index           : [n_edges]
+        {}x_j           : [n_edges, out_dim]
+        """
+        dim_size = Bx.shape[0]  # or None ??   <--- Double check this
+
+        sum_sigma_x = sigma_ij * Bx_j
+        numerator_eta_xj = scatter(sum_sigma_x, index, 0, None, dim_size, reduce="sum")
+
+        sum_sigma = sigma_ij
+        denominator_eta_xj = scatter(sum_sigma, index, 0, None, dim_size, reduce="sum")
+
+        out = numerator_eta_xj / (denominator_eta_xj + 1e-6)
+        return out
+
+    def update(self, aggr_out, Ax):
+        """
+        aggr_out        : [n_nodes, out_dim] ; is the output from aggregate() function after the aggregation
+        {}x             : [n_nodes, out_dim]
+        """
+        x = Ax + aggr_out
+        e_out = self.e
+        del self.e
+        return x, e_out
 
     @classproperty
     def layer_supports_edges(cls) -> bool:

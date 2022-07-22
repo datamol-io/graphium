@@ -33,7 +33,7 @@ class PredictorModule(pl.LightningModule):
         model_class: Type[nn.Module],                                   # Leave
         model_kwargs: Dict[str, Any],                                   # Leave
         loss_fun: Dict[str, Union[str, Callable]],                      # Task-specific
-        random_seed: int = 42,                                          # Leave        
+        random_seed: int = 42,                                          # Leave
         optim_kwargs: Optional[Dict[str, Any]] = None,                  # Leave for now
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,   # Leave for now
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,        # Leave for now
@@ -55,7 +55,7 @@ class PredictorModule(pl.LightningModule):
         super().__init__()
 
         model_options = ModelOptions(
-            model_class=model_class, 
+            model_class=model_class,
             model_kwargs=model_kwargs
         )
         optim_options = OptimOptions(
@@ -94,7 +94,7 @@ class PredictorModule(pl.LightningModule):
         # Basic attributes
 ###########################################################################################################################################
         #self.loss_fun = {"micro_zinc": EvalOptions.parse_loss_fun(loss_fun["micro_zinc"])}
-        
+
         #self.loss_fun = self._eval_options.parse_loss_fun(self._eval_options.loss_fun)              # Look into this
         #self.metrics = self._eval_options.metrics if self._eval_options.metrics is not None else {}
         #self.metrics_on_progress_bar = self._eval_options.metrics_on_progress_bar
@@ -139,8 +139,8 @@ class PredictorModule(pl.LightningModule):
         #    metrics=self.metrics,
         #    metrics_on_training_set=self.metrics_on_training_set,
         #    metrics_on_progress_bar=self.metrics_on_progress_bar,
-        #    monitor=monitor, 
-        #    mode=mode, 
+        #    monitor=monitor,
+        #    mode=mode,
         #)
 
         self.task_epoch_summary = TaskSummaries(
@@ -258,7 +258,7 @@ class PredictorModule(pl.LightningModule):
         Returns:
             Tensor:
                 Resulting loss
-        """            
+        """
         #wrapped_loss_fun = MetricWrapper(metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask)
         wrapped_loss_fun_dict = {task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask) for task, loss in loss_fun.items()}
 
@@ -309,7 +309,7 @@ class PredictorModule(pl.LightningModule):
         #step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         for task in self.tasks:     # TODO: Verify consistency with Summary class
             step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
-        
+
         step_dict["task_losses"] = task_losses
         return loss, step_dict
 
@@ -403,7 +403,7 @@ class PredictorModule(pl.LightningModule):
         metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
 
 
-        step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them? 
+        step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
         step_dict["loss"] = loss                # Update loss per task or weighted loss?
         step_dict.pop("task_losses")            # The task losses are already contained in metrics_logs
 

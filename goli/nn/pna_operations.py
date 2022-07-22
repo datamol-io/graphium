@@ -67,7 +67,7 @@ def scale_attenuation(h, D, avg_d):
     return h * (avg_d["log"] / np.log(D + 1))
 
 
-PNA_AGGREGATORS = {
+PNA_DGL_AGGREGATORS = {
     "mean": aggregate_mean,
     "sum": aggregate_sum,
     "max": aggregate_max,
@@ -81,7 +81,7 @@ PNA_AGGREGATORS = {
 }
 
 
-PNA_SCALERS = {
+PNA_DGL_SCALERS = {
     "identity": scale_identity,
     "amplification": scale_amplification,
     "attenuation": scale_attenuation,

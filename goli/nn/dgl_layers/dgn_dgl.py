@@ -2,12 +2,12 @@ import torch
 from typing import Dict, List, Tuple, Union, Callable
 from functools import partial
 
-from goli.nn.dgl_layers.pna_layer import PNAConvolutionalLayer, PNAMessagePassingLayer
-from goli.nn.pna_operations import PNA_AGGREGATORS
+from goli.nn.dgl_layers.pna_dgl import PNAConvolutionalDgl, PNAMessagePassingDgl
+from goli.nn.pna_operations import PNA_DGL_AGGREGATORS
 from goli.nn.dgn_operations import DGN_AGGREGATORS
 
 
-class BaseDGNLayer:
+class BaseDGNDgl:
     def parse_aggregators(self, aggregators_name: List[str]) -> List[Callable]:
         r"""
         Parse the aggregators from a list of strings into a list of callables.
@@ -34,6 +34,8 @@ class BaseDGNLayer:
         matrices. If it is not provided, then no softmax is applied. The larger the temperature,
         the more weight is attributed to the dominant direction.
 
+        The graph. Must have the key `graph.ndata["pos_dir"]`
+
         Example:
             ```
             In:     self.parse_aggregators(["dir1/dx_abs", "dir2/smooth/0.2"])
@@ -56,8 +58,8 @@ class BaseDGNLayer:
             this_agg = None
 
             # Get the aggregator from PNA if not a directional aggregation
-            if agg_name in PNA_AGGREGATORS.keys():
-                this_agg = PNA_AGGREGATORS[agg_name]
+            if agg_name in PNA_DGL_AGGREGATORS.keys():
+                this_agg = PNA_DGL_AGGREGATORS[agg_name]
 
             # If the directional, get the right aggregator
             elif "dir" == agg_name[:3]:
@@ -81,7 +83,7 @@ class BaseDGNLayer:
         The message function to generate messages along the edges.
         """
         return {
-            "e": edges.data["e"],
+            "edge_attr": edges.data["edge_attr"],
             "source_pos": edges.data["source_pos"],
             "dest_pos": edges.data["dest_pos"],
         }
@@ -92,7 +94,7 @@ class BaseDGNLayer:
         Apply the aggregators and scalers, and concatenate the results.
         """
         h_in = nodes.data["h"]
-        h = nodes.mailbox["e"]
+        h = nodes.mailbox["edge_attr"]
         source_pos = nodes.mailbox["source_pos"]
         dest_pos = nodes.mailbox["dest_pos"]
         D = h.shape[-2]
@@ -108,7 +110,7 @@ class BaseDGNLayer:
         return {"h": h}
 
 
-class DGNConvolutionalLayer(BaseDGNLayer, PNAConvolutionalLayer):
+class DGNConvolutionalDgl(BaseDGNDgl, PNAConvolutionalDgl):
     r"""
     Implementation of the convolutional architecture of the DGN layer,
     previously known as `DGNSimpleLayer`. This layer aggregates the
@@ -116,27 +118,31 @@ class DGNConvolutionalLayer(BaseDGNLayer, PNAConvolutionalLayer):
     concatenates their results, then applies an MLP on the concatenated
     features.
 
+    The graph. Must have the key `graph.ndata["pos_dir"]`
+
     DGN: Directional Graph Networks
     Dominique Beaini, Saro Passaro, Vincent Létourneau, William L. Hamilton, Gabriele Corso, Pietro Liò
     https://arxiv.org/pdf/2010.02863.pdf
     """
 
-    def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
-        return BaseDGNLayer.parse_aggregators(self, aggregators)
+    def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
+        return BaseDGNDgl.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.message_func(self, edges)
+        return BaseDGNDgl.message_func(self, edges)
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.reduce_func(self, nodes)
+        return BaseDGNDgl.reduce_func(self, nodes)
 
     def pretrans_edges(self, edges):
-        pretrans = PNAConvolutionalLayer.pretrans_edges(self, edges)
+        pretrans = PNAConvolutionalDgl.pretrans_edges(self, edges)
+        if not ("pos_dir" in edges.src.keys()):
+            raise KeyError("`pos_dir` key missing. Positional encodings are required for the DGN layer, make sure you add them under the `dglGraph.ndata['pos_dir']` key.")
         pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
         return pretrans
 
 
-class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
+class DGNMessagePassingDgl(BaseDGNDgl, PNAMessagePassingDgl):
     r"""
     Implementation of the message passing architecture of the DGN message passing layer,
     previously known as `DGNLayerComplex`. This layer applies an MLP as
@@ -149,21 +155,25 @@ class DGNMessagePassingLayer(BaseDGNLayer, PNAMessagePassingLayer):
     concatenates their results, then applies an MLP on the concatenated
     features.
 
+    The graph. Must have the key `graph.ndata["pos_dir"]`
+
     DGN: Directional Graph Networks
     Dominique Beaini, Saro Passaro, Vincent Létourneau, William L. Hamilton, Gabriele Corso, Pietro Liò
     https://arxiv.org/pdf/2010.02863.pdf
     """
 
-    def parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
-        return BaseDGNLayer.parse_aggregators(self, aggregators)
+    def _parse_aggregators(self, aggregators: List[str]) -> List[Callable]:
+        return BaseDGNDgl.parse_aggregators(self, aggregators)
 
     def message_func(self, edges) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.message_func(self, edges)
+        return BaseDGNDgl.message_func(self, edges)
 
     def reduce_func(self, nodes) -> Dict[str, torch.Tensor]:
-        return BaseDGNLayer.reduce_func(self, nodes)
+        return BaseDGNDgl.reduce_func(self, nodes)
 
     def pretrans_edges(self, edges):
-        pretrans = PNAMessagePassingLayer.pretrans_edges(self, edges)
+        pretrans = PNAMessagePassingDgl.pretrans_edges(self, edges)
+        if not ("pos_dir" in edges.src.keys()):
+            raise KeyError("`pos_dir` key missing. Positional encodings are required for the DGN layer, make sure you add them under the `dglGraph.ndata['pos_dir']` key.")
         pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
         return pretrans

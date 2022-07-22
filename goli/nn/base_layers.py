@@ -2,12 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from typing import Union, Callable
+from typing import Union, Callable, Optional
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 
 
-def get_activation(activation: Union[type(None), str, Callable]) -> Union[type(None), Callable]:
+def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Callable]:
     r"""
     returns the activation function represented by the input string
 
@@ -42,7 +42,7 @@ class FCLayer(nn.Module):
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
-        init_fn: Union[type(None), Callable] = None,
+        init_fn: Optional[Callable] = None,
     ):
 
         r"""
@@ -108,7 +108,7 @@ class FCLayer(nn.Module):
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
-        self.init_fn = nn.init.xavier_uniform_
+        self.init_fn = init_fn if init_fn is not None else nn.init.xavier_uniform_
 
         self.reset_parameters()
 
@@ -172,6 +172,20 @@ class FCLayer(nn.Module):
             h = self.activation(h)
 
         return h
+
+    @property
+    def in_channels(self) -> int:
+        r"""
+        Get the input channel size. For compatibility with PyG.
+        """
+        return self.in_dim
+
+    @property
+    def out_channels(self) -> int:
+        r"""
+        Get the output channel size. For compatibility with PyG.
+        """
+        return self.out_dim
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.in_dim} -> {self.out_dim}, activation={self.activation})"
@@ -291,6 +305,9 @@ class MLP(nn.Module):
         for fc in self.fully_connected:
             h = fc(h)
         return h
+
+    def __getitem__(self, idx: int) -> nn.Module:
+        return self.fully_connected[idx]
 
     def __repr__(self):
         r"""

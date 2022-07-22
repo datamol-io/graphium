@@ -13,8 +13,8 @@ from goli.config._loader import load_datamodule, load_metrics, load_metrics_mtl,
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
-# CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test.yaml"
-CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks.yaml"
+CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks_dgl.yaml"
+# CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
 os.chdir(MAIN_DIR)
 
 
@@ -41,10 +41,10 @@ def main(cfg: DictConfig) -> None:
 
     trainer = load_trainer(cfg)
 
+    trainer.fit(model=predictor, datamodule=datamodule)
     # Run the model training
     print("\n------------ TRAINING STARTED ------------")
     try:
-        trainer.fit(model=predictor, datamodule=datamodule)
         print("\n------------ TRAINING COMPLETED ------------\n\n")
 
     except Exception as e:

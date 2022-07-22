@@ -1,45 +1,51 @@
 import torch
 from typing import Union, Callable
 
-from dgl.nn.pytorch import GraphConv
+from dgl.nn.pytorch import GATConv
 from dgl import DGLGraph
 
-from goli.nn.dgl_layers.base_dgl_layer import BaseDGLLayer
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.utils.decorators import classproperty
 
 """
-    GCN: Graph Convolutional Networks
-    Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
-    http://arxiv.org/abs/1609.02907
+    GAT: Graph Attention Network
+    Graph Attention Networks (Veličković et al., ICLR 2018)
+    https://arxiv.org/abs/1710.10903
 """
 
 
-class GCNLayer(BaseDGLLayer):
+class GATDgl(BaseGraphModule):
     def __init__(
         self,
         in_dim: int,
         out_dim: int,
-        activation: Union[str, Callable] = "relu",
+        num_heads: int,
+        activation="elu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
     ):
         r"""
-        Graph convolutional network (GCN) layer from
-        Thomas N. Kipf, Max Welling, Semi-Supervised Classification with Graph Convolutional Networks (ICLR 2017)
-        http://arxiv.org/abs/1609.02907
+        GAT: Graph Attention Network
+        Graph Attention Networks (Veličković et al., ICLR 2018)
+        https://arxiv.org/abs/1710.10903
+
+        The implementation is built on top of the DGL ``GATCONV`` layer
 
         Parameters:
 
-            in_dim:
+            in_dim: int
                 Input feature dimensions of the layer
 
-            out_dim:
+            out_dim: int
                 Output feature dimensions of the layer
 
-            activation:
+            num_heads: int
+                Number of heads in Multi-Head Attention
+
+            activation: str, Callable
                 activation function to use in the layer
 
-            dropout:
+            dropout: float
                 The ratio of units to dropout. Must be between 0 and 1
 
             normalization:
@@ -47,9 +53,11 @@ class GCNLayer(BaseDGLLayer):
 
                 - "none" or `None`: No normalization
                 - "batch_norm": Batch normalization
-                - "layer_norm": Layer normalization
+                - "layer_norm": Layer normalization in the hidden layers.
                 - `Callable`: Any callable function
         """
+
+        self.num_heads = num_heads
 
         super().__init__(
             in_dim=in_dim,
@@ -59,14 +67,13 @@ class GCNLayer(BaseDGLLayer):
             normalization=normalization,
         )
 
-        self.conv = GraphConv(
-            in_feats=in_dim,
-            out_feats=out_dim,
-            norm="both",
-            weight=True,
-            bias=True,
-            activation=None,
-            allow_zero_in_degree=False,
+        self.gatconv = GATConv(
+            in_feats=self.in_dim,
+            out_feats=self.out_dim,
+            num_heads=self.num_heads,
+            feat_drop=self.dropout,
+            attn_drop=self.dropout,
+            activation=None,  # Activation is applied after
         )
 
     def forward(self, g: DGLGraph, h: torch.Tensor) -> torch.Tensor:
@@ -76,7 +83,7 @@ class GCNLayer(BaseDGLLayer):
 
         Parameters:
 
-            g:
+            g: dgl.DGLGraph
                 graph on which the convolution is done
 
             h: `torch.Tensor[..., N, Din]`
@@ -91,8 +98,8 @@ class GCNLayer(BaseDGLLayer):
 
         """
 
-        h = self.conv(g, h)
-        h = self.apply_norm_activation_dropout(h)
+        h = self.gatconv(g, h).flatten(1)
+        self.apply_norm_activation_dropout(h, normalization="batch_norm", activation=True, dropout=False)
 
         return h
 
@@ -103,7 +110,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            bool
+            supports_edges: bool
                 Always ``False`` for the current class
         """
         return False
@@ -118,7 +125,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            bool:
+            uses_edges: bool
                 Always ``False`` for the current class
         """
         return False
@@ -133,7 +140,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            bool:
+            uses_edges: bool
                 Always ``False`` for the current class
         """
         return False
@@ -153,7 +160,7 @@ class GCNLayer(BaseDGLLayer):
 
         Returns:
 
-            int:
-                Always ``1`` for the current class
+            dim_factor: int
+                Always ``self.num_heads`` for the current class
         """
-        return 1
+        return self.num_heads
