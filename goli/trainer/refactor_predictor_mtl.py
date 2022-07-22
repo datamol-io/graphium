@@ -198,6 +198,12 @@ class PredictorModule(pl.LightningModule):
 
         return feats
 
+    #! this should be fine for now
+    '''
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=0.02)
+    '''
+
     def configure_optimizers(self):
         # TODO (Andy): This is where the optimizer is configured
 
@@ -385,6 +391,17 @@ class PredictorModule(pl.LightningModule):
         step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
         return loss, step_dict
 
+    #! check out the training step in the fashion mnist example below
+    # need to pass the data and labels and returns the loss
+    #? does it return the loss currently?
+    '''
+    def training_step(self, batch, _):
+        x, y = batch
+        output = self.forward(x)
+        loss = torch.nn.functional.nll_loss(output, y)
+        return loss
+    '''
+
     def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         loss = None
         step_dict = None
@@ -435,6 +452,17 @@ class PredictorModule(pl.LightningModule):
         step_dict.pop("weights")
 
         return step_dict  # Returning the metrics_logs with the loss
+
+    #! checkout the validaton step in the example
+    # need to return the metrics 
+    '''
+    def validation_step(self, batch, _):
+        x, y = batch
+        output = self.forward(x)
+        preds = torch.argmax(output, dim=1)
+        acc = torch.sum(preds==y).float() / len(y)
+        return acc
+    '''
 
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]

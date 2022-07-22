@@ -1,3 +1,5 @@
+import poptorch
+
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
@@ -248,12 +250,6 @@ class MultitaskDGLDataset(Dataset):
 
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
-        
-
-        print ("---------------debugging--------------------")
-        print (type(all_smiles))
-        print (type(smiles_to_unique_mol_ids))
-        print ("---------------debugging--------------------")
 
 
         mol_ids = []
@@ -317,6 +313,7 @@ class MultitaskDGLDataset(Dataset):
     #     print("\n\n labels")
     #     pprint(self.labels)
 
+#! need to pass IPU data module options here
 class BaseDataModule(pl.LightningDataModule):
     def __init__(
         self,
@@ -355,13 +352,39 @@ class BaseDataModule(pl.LightningDataModule):
     def setup(self):
         raise NotImplementedError()
 
+    #! need to have poptorch dataloader here
+    #need to have the IPU options here as well 
+    '''
+    def train_dataloader(self):
+        return poptorch.DataLoader(
+            dataset=self.train_data,
+            batch_size=self.batchsize,
+            options=self.options,
+            shuffle=True,
+            drop_last=True,
+            mode=poptorch.DataLoaderMode.Async,
+            num_workers=32
+        )
+    '''
     def train_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.train_ds,  # type: ignore
             batch_size=self.batch_size_train_val,
             shuffle=True,
         )
-
+    
+    #! need to have poptorch dataloader here
+    '''
+    def val_dataloader(self):
+        return poptorch.DataLoader(
+            dataset=self.validation_data,
+            batch_size=self.batchsize,
+            options=self.options,
+            drop_last=True,
+            mode=poptorch.DataLoaderMode.Async,
+            num_workers=32
+        )
+    '''
     def val_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.val_ds,  # type: ignore
@@ -442,9 +465,21 @@ class BaseDataModule(pl.LightningDataModule):
 
         # TODO (Andy): if self.on_ipu, use poptorch.DataLoader instead of torch.DataLoader
         # To change how the padding is done, check the `goli_collate_fn` or `self.collate_fn`
+        #! try to convert this to poptorch dataloader here
+        #options=self.options,
+        #mode=poptorch.DataLoaderMode.Async,
 
-        # TODO (Gabriela): Develop new dataloader to handle special batching.
-        loader = DataLoader(
+        #! manually define ipu options here for now
+        #! please remove in the future
+
+        ipu_options = poptorch.Options()
+        ipu_options.deviceIterations(16) #not sure how to set this number yet, start small
+        ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
+
+
+        loader = poptorch.DataLoader(
+            options=ipu_options,
+            mode=poptorch.DataLoaderMode.Async,
             dataset=dataset,
             num_workers=num_workers,
             collate_fn=self.collate_fn,
@@ -453,6 +488,21 @@ class BaseDataModule(pl.LightningDataModule):
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
         )
+
+
+
+
+        # TODO (Gabriela): Develop new dataloader to handle special batching.
+
+        # loader = DataLoader(
+        #     dataset=dataset,
+        #     num_workers=num_workers,
+        #     collate_fn=self.collate_fn,
+        #     pin_memory=self.pin_memory,
+        #     batch_size=batch_size,
+        #     shuffle=shuffle,
+        #     persistent_workers=self.persistent_workers,
+        # )
         return loader
 
 class DGLFromSmilesDataModule(BaseDataModule):
