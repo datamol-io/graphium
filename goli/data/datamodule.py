@@ -65,7 +65,6 @@ PCQM4Mv2_meta.update(
 )
 
 
-@staticmethod
 def smiles_to_unique_mol_ids(smiles: List[str]):
     """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
     unique_mol_ids = []
