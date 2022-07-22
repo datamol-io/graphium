@@ -1,3 +1,5 @@
+import poptorch
+
 from typing import List, Dict, Union, Any
 
 import omegaconf
@@ -5,6 +7,7 @@ from copy import deepcopy
 import torch
 from loguru import logger
 
+from pytorch_lightning.plugins import IPUPlugin
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 from goli.nn.architectures import TaskHeadParams
@@ -20,6 +23,7 @@ from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    ipu_options=None
 ):
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(**config["datamodule"]["args"])
@@ -141,7 +145,7 @@ def load_predictor(config, model_class, model_kwargs, metrics):
     return predictor
 
 
-def load_trainer(config):
+def load_trainer(config, ipu_options=None):
     cfg_trainer = deepcopy(config["trainer"])
 
     # Set the number of gpus to 0 if no GPU is available
@@ -170,11 +174,30 @@ def load_trainer(config):
 
     trainer_kwargs["callbacks"] = callbacks
 
+
+    #! need to add IPU options here
+    '''
+    trainer = pl.Trainer(
+        max_epochs=1,
+        progress_bar_refresh_rate=1,
+        log_every_n_steps=1,
+        plugins=IPUPlugin(inference_opts=options, training_opts=options)
+    )
+    '''
     trainer = Trainer(
         terminate_on_nan=True,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
-        gpus=gpus,
+        plugins=IPUPlugin(inference_opts=ipu_options, training_opts=ipu_options)
     )
+
+
+
+    # trainer = Trainer(
+    #     terminate_on_nan=True,
+    #     **cfg_trainer["trainer"],
+    #     **trainer_kwargs,
+    #     gpus=gpus,
+    # )
 
     return trainer
