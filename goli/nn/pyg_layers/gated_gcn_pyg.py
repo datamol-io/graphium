@@ -14,6 +14,7 @@ from torch_scatter import scatter
 from torch_geometric.data import Data, Batch
 
 from goli.nn.base_graph_layer import BaseGraphStructure
+from goli.nn.base_layers import FCLayer
 from goli.utils.decorators import classproperty
 
 
@@ -70,13 +71,13 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         )
 
         self._initialize_activation_dropout_norm()
-        self.norm_edges = self._parse_norm(normalization)
 
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)
         self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
+        self.edge_out = FCLayer(in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True)
 
     def forward(self, batch: Union[Data, Batch]):
         x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
@@ -96,9 +97,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         x, e = self.propagate(edge_index, Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce, e=e, Ax=Ax)
 
         x = self.apply_norm_activation_dropout(x)
-        if self.norm_edges is not None:
-            e = self.norm_edges(e)
-        e = self.apply_norm_activation_dropout(e, normalization=False)
+        e = self.edge_out(e)
 
         batch.h = x
         batch.edge_attr = e
