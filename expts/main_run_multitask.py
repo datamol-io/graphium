@@ -19,7 +19,7 @@ os.chdir(MAIN_DIR)
 
 #! adding IPU options here
 ipu_options = poptorch.Options()
-ipu_options.deviceIterations(16) #not sure how to set this number yet, start small
+ipu_options.deviceIterations(1) #not sure how to set this number yet, start small
 ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
 
 
@@ -29,7 +29,7 @@ def main(cfg: DictConfig) -> None:
     #! need to define the IPU options
     #? where is the best place to put this
     # this is required for trainer and the data module
-    # I put it in config/_loader.py first 
+    # I put it in config/_loader.py first
 
 
     cfg = deepcopy(cfg)

@@ -215,17 +215,18 @@ class MultitaskDGLDataset(Dataset):
     def __getitem__(self, idx):
         datum = {}
 
-        if self.mol_ids is not None:
-            datum["mol_ids"] = self.mol_ids[idx]
+        # if self.mol_ids is not None:
+        #     datum["mol_ids"] = self.mol_ids[idx]
 
-        if self.smiles is not None:
-            datum["smiles"] = self.smiles[idx]
+        # if self.smiles is not None:
+        #     datum["smiles"] = self.smiles[idx]
 
-        if self.labels is not None:
-            datum["labels"] = self.labels[idx]
+        # if self.labels is not None:
+        #     datum["labels"] = self.labels[idx]
 
-        if self.features is not None:
-            datum["features"] = self.features[idx]
+        # if self.features is not None:
+        #     datum["features"] = self.features[idx]
+        datum = self.features[idx]
 
         return datum
 
@@ -353,7 +354,7 @@ class BaseDataModule(pl.LightningDataModule):
         raise NotImplementedError()
 
     #! need to have poptorch dataloader here
-    #need to have the IPU options here as well 
+    #need to have the IPU options here as well
     '''
     def train_dataloader(self):
         return poptorch.DataLoader(
@@ -372,7 +373,7 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=self.batch_size_train_val,
             shuffle=True,
         )
-    
+
     #! need to have poptorch dataloader here
     '''
     def val_dataloader(self):
@@ -473,13 +474,13 @@ class BaseDataModule(pl.LightningDataModule):
         #! please remove in the future
 
         ipu_options = poptorch.Options()
-        ipu_options.deviceIterations(16) #not sure how to set this number yet, start small
+        ipu_options.deviceIterations(1) #not sure how to set this number yet, start small
         ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
 
 
         loader = poptorch.DataLoader(
             options=ipu_options,
-            mode=poptorch.DataLoaderMode.Async,
+            mode=poptorch.DataLoaderMode.Sync,
             dataset=dataset,
             num_workers=num_workers,
             collate_fn=self.collate_fn,
