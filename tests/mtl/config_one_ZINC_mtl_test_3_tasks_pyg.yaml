@@ -10,7 +10,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       SA:
         df: null
-        df_path: "goli/data/micro_ZINC/one_ZINC.csv"
+        df_path: "goli/data/micro_ZINC/micro_ZINC.csv"
         smiles_col: "SMILES"
         label_cols: ["SA"]
         split_val: 0.2
