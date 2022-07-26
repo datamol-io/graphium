@@ -135,7 +135,7 @@ def load_predictor(config, model_class, model_kwargs, metrics):
     # Defining the predictor
 
     cfg_pred = dict(deepcopy(config["predictor"]))
-    predictor = PredictorModule(
+    predictor = PredictorModuleIPU(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
@@ -188,7 +188,7 @@ def load_trainer(config, ipu_options=None):
         terminate_on_nan=True,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
-        plugins=IPUPlugin(inference_opts=ipu_options, training_opts=ipu_options)
+        plugins=IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
     )
 
 
@@ -201,3 +201,87 @@ def load_trainer(config, ipu_options=None):
     # )
 
     return trainer
+
+
+
+from pytorch_lightning.trainer.states import RunningStage
+from torch_geometric.data import Batch
+from poptorch._args_parser import ArgsParser
+import inspect
+from poptorch import _impl
+
+
+class IPUPluginGoli(IPUPlugin):
+    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):
+
+        # Arguments for the loop
+        new_args = []
+        keys_labels = {}
+        keys_batch = {}
+        all_keys = []
+        count = 0
+
+        # Loop every argument. If a dict or pyg graph is found, split into tensors
+        for arg in args:
+            if isinstance(arg, Dict):
+                for key, val in arg.items():
+                    new_args.append(val)
+                    keys_labels[key] = count
+                    all_keys.append(key)
+                    count += 1
+            elif isinstance(arg, Batch):
+                for key in arg.keys:
+                    new_args.append(arg[key])
+                    keys_batch[key] = count
+                    all_keys.append(key)
+                    count += 1
+            else:
+                new_args.append(arg)
+                all_keys.append(f"in_{count}")
+                count += 1
+
+        # Tell the module what are the labels associated to the labels and batches
+        self.model.module.keys_labels = keys_labels
+        self.model.module.keys_batch = keys_batch
+        self.poptorch_models[stage]._args_parser._varnames = all_keys
+
+        return super()._step(stage, *new_args, **kwargs)
+
+
+class PredictorModuleIPU(PredictorModule):
+
+    def training_step(self, *inputs) -> Dict[str, Any]:
+        batch = self._build_batch(*inputs)
+        return super().training_step(batch, batch_idx=0)
+
+    def validation_step(self, *inputs) -> Dict[str, Any]:
+        batch = self._build_batch(*inputs)
+        return super().validation_step(batch, batch_idx=0)
+
+    def test_step(self, *inputs) -> Dict[str, Any]:
+        batch = self._build_batch(*inputs)
+        return super().test_step(batch, batch_idx=0)
+
+    def predict_step(self, *inputs) -> Any:
+        batch = self._build_batch(*inputs)
+        return super().predict_step(batch, batch_idx=0)
+
+    def _build_batch(self, *inputs):
+
+        # Initialize the batch of pyg objects
+        pyg_batch = Batch()
+        for key, idx in self.keys_batch.items():
+            pyg_batch[key] = inputs[idx]
+
+        # Initialize the dictionary of labels
+        labels_dict = {}
+        for key, idx in self.keys_labels.items():
+            labels_dict[key] = inputs[idx]
+
+
+        batch = {
+            "features": pyg_batch,
+            "labels": labels_dict,
+            }
+
+        return batch
