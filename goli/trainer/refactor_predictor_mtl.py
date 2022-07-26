@@ -295,10 +295,10 @@ class PredictorModule(pl.LightningModule):
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)["preds"]                    # The dictionary of predictions
         #targets = batch.pop("labels").to(dtype=preds.dtype)
-        targets_dict = batch.pop("labels")
+        targets_dict = batch.get("labels")
         for task, pred in preds.items():
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
-        weights = batch.pop("weights", None)
+        weights = batch.get("weights", None)
 
         loss = self.compute_loss(
             preds=preds,
@@ -454,7 +454,7 @@ class PredictorModule(pl.LightningModule):
         return step_dict  # Returning the metrics_logs with the loss
 
     #! checkout the validaton step in the example
-    # need to return the metrics 
+    # need to return the metrics
     '''
     def validation_step(self, batch, _):
         x, y = batch

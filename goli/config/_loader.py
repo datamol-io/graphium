@@ -209,43 +209,59 @@ from torch_geometric.data import Batch
 from poptorch._args_parser import ArgsParser
 import inspect
 from poptorch import _impl
+from torch import Tensor
 
 
 class IPUPluginGoli(IPUPlugin):
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):
 
         # Arguments for the loop
-        new_args = []
-        keys_labels = {}
-        keys_batch = {}
-        all_keys = []
-        count = 0
+        new_args, all_keys = [], []
+        keys_tensor_dict, keys_batch, keys_tensor, keys_others = {}, {}, {}, {}
 
         # Loop every argument. If a dict or pyg graph is found, split into tensors
-        for arg in args:
-            if isinstance(arg, Dict):
-                for key, val in arg.items():
-                    new_args.append(val)
-                    keys_labels[key] = count
-                    all_keys.append(key)
-                    count += 1
-            elif isinstance(arg, Batch):
-                for key in arg.keys:
-                    new_args.append(arg[key])
-                    keys_batch[key] = count
-                    all_keys.append(key)
-                    count += 1
+        for data_key, data_val in args[0].items():
+            if isinstance(data_val, (Dict, Batch)):
+                for sub_key, sub_val in data_val.items():
+                    if isinstance(sub_val, Tensor):
+                        new_args.append(sub_val)
+                        all_keys.append(sub_key)
+
+                        # Append the keys for the tensors
+                        if isinstance(data_val, Dict):
+                            if data_key not in keys_tensor_dict:
+                                keys_tensor_dict[data_key] = {}
+                            keys_tensor_dict[data_key][sub_key] = len(all_keys) - 1
+
+                        # Append the keys for the pyg Batch
+                        elif isinstance(data_val, Batch):
+                            if data_key not in keys_batch:
+                                keys_batch[data_key] = {}
+                            keys_batch[data_key][sub_key] = len(all_keys) - 1
+            elif isinstance(data_val, Tensor):
+                new_args.append(data_val)
+                all_keys.append(data_key)
+                keys_tensor[data_key] = len(all_keys) - 1
             else:
-                new_args.append(arg)
-                all_keys.append(f"in_{count}")
-                count += 1
+                keys_others[data_key] = data_val
 
         # Tell the module what are the labels associated to the labels and batches
-        self.model.module.keys_labels = keys_labels
-        self.model.module.keys_batch = keys_batch
+        self.model.module._keys_tensor_dict = keys_tensor_dict
+        self.model.module._keys_tensor = keys_tensor
+        self.model.module._keys_batch = keys_batch
+        self.model.module._keys_others = keys_others
         self.poptorch_models[stage]._args_parser._varnames = all_keys
 
-        return super()._step(stage, *new_args, **kwargs)
+        # Run the step using only tuple of tensors
+        out = super()._step(stage, *new_args, **kwargs)
+
+        # Remove the keys from the module after the step is executed
+        self.model.module._keys_tensor_dict = None
+        self.model.module._keys_tensor = None
+        self.model.module._keys_batch = None
+        self.model.module._keys_others = None
+
+        return out
 
 
 class PredictorModuleIPU(PredictorModule):
@@ -256,7 +272,9 @@ class PredictorModuleIPU(PredictorModule):
 
     def validation_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
-        return super().validation_step(batch, batch_idx=0)
+        out_batch = super().validation_step(batch, batch_idx=0)
+        out_batch = self._clean_output_batch(out_batch)
+        return out_batch
 
     def test_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
@@ -266,22 +284,42 @@ class PredictorModuleIPU(PredictorModule):
         batch = self._build_batch(*inputs)
         return super().predict_step(batch, batch_idx=0)
 
+    def _clean_output_batch(self, out_batch):
+        cleaned_batch = {}
+        others = {}
+        for key, val in out_batch.items():
+            if isinstance(val, dict):
+                cleaned_batch[key] = val
+            elif isinstance(val, Tensor):
+                others[key] = val
+
+        cleaned_batch["_others"] = others
+
+        return cleaned_batch
+
     def _build_batch(self, *inputs):
 
+        batch = {}
+
         # Initialize the batch of pyg objects
-        pyg_batch = Batch()
-        for key, idx in self.keys_batch.items():
-            pyg_batch[key] = inputs[idx]
+        for key, pyg_elems in self._keys_batch.items():
+            pyg_batch = Batch()
+            for pyg_key, idx in pyg_elems.items():
+                pyg_batch[pyg_key] = inputs[idx]
+            batch[key] = pyg_batch
 
-        # Initialize the dictionary of labels
-        labels_dict = {}
-        for key, idx in self.keys_labels.items():
-            labels_dict[key] = inputs[idx]
+        # Initialize the dictionaries of tensors, such as the multitask labels
+        for key, this_dict in self._keys_tensor_dict.items():
+            tensor_dict = {}
+            for tensor_key, idx in this_dict.items():
+                tensor_dict[tensor_key] = inputs[idx]
+            batch[key] = tensor_dict
 
+        # Initialize the tensors
+        for key, idx in self._keys_tensor.items():
+            batch[key] = inputs[idx]
 
-        batch = {
-            "features": pyg_batch,
-            "labels": labels_dict,
-            }
+        # Initialize the other elements
+        batch.update(self._keys_others)
 
         return batch

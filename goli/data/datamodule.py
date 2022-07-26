@@ -215,18 +215,17 @@ class MultitaskDGLDataset(Dataset):
     def __getitem__(self, idx):
         datum = {}
 
-        # if self.mol_ids is not None:
-        #     datum["mol_ids"] = self.mol_ids[idx]
+        if self.mol_ids is not None:
+            datum["mol_ids"] = self.mol_ids[idx]
 
-        # if self.smiles is not None:
-        #     datum["smiles"] = self.smiles[idx]
+        if self.smiles is not None:
+            datum["smiles"] = self.smiles[idx]
 
-        # if self.labels is not None:
-        #     datum["labels"] = self.labels[idx]
+        if self.labels is not None:
+            datum["labels"] = self.labels[idx]
 
-        # if self.features is not None:
-        #     datum["features"] = self.features[idx]
-        datum = self.features[idx]
+        if self.features is not None:
+            datum["features"] = self.features[idx]
 
         return datum
 

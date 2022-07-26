@@ -106,8 +106,6 @@ def goli_collate_fn(
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
-#        print("The batch contains: ")
-#        pprint(batch)
         return batch
     elif isinstance(elements, Sequence) and isinstance(elem, Sequence):
         temp_elements = [{ii: sub_elem for ii, sub_elem in enumerate(elem)} for elem in elements]

@@ -497,8 +497,8 @@ class PredictorModule(pl.LightningModule):
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)["preds"]
-        targets = batch.pop("labels").to(dtype=preds.dtype)
-        weights = batch.pop("weights", None)
+        targets = batch.get("labels").to(dtype=preds.dtype)
+        weights = batch.get("weights", None)
 
         loss = self.compute_loss(
             preds=preds,
