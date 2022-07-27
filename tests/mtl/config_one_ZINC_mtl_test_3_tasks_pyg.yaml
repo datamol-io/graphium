@@ -105,7 +105,7 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: random
-    pooling: [sum, max]
+    pooling: [sum, mean]
     virtual_node: 'sum'
     layer_type: 'pyg:gine'
     layer_kwargs:

@@ -23,7 +23,6 @@ ipu_options.deviceIterations(1) #not sure how to set this number yet, start smal
 ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
 
 
-
 def main(cfg: DictConfig) -> None:
 
     #! need to define the IPU options

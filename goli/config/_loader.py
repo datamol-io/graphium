@@ -1,6 +1,8 @@
+from collections import namedtuple
+from turtle import forward
 import poptorch
 
-from typing import List, Dict, Union, Any
+from typing import List, Dict, NamedTuple, Union, Any
 
 import omegaconf
 from copy import deepcopy
@@ -186,6 +188,7 @@ def load_trainer(config, ipu_options=None):
     '''
     trainer = Trainer(
         terminate_on_nan=True,
+        num_sanity_val_steps=0,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
         plugins=IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
@@ -210,10 +213,19 @@ from poptorch._args_parser import ArgsParser
 import inspect
 from poptorch import _impl
 from torch import Tensor
+from collections import namedtuple
+
+def named_tuple_from_dict_batch(dict_or_batch, name):
+    keys, vals = zip(*dict_or_batch.items())
+    return namedtuple(name, keys)(*vals)
 
 
 class IPUPluginGoli(IPUPlugin):
+
+
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):
+
+        # TODO: Change to named_tuple?? Easier for some stuff, but harder if a dictionary contains some tensors and some non-tensors.
 
         # Arguments for the loop
         new_args, all_keys = [], []
@@ -238,6 +250,11 @@ class IPUPluginGoli(IPUPlugin):
                             if data_key not in keys_batch:
                                 keys_batch[data_key] = {}
                             keys_batch[data_key][sub_key] = len(all_keys) - 1
+                    else:
+                        if data_key not in keys_others:
+                            keys_others[data_key] = {}
+                        keys_others[data_key][sub_key] = sub_val
+
             elif isinstance(data_val, Tensor):
                 new_args.append(data_val)
                 all_keys.append(data_key)
@@ -266,9 +283,23 @@ class IPUPluginGoli(IPUPlugin):
 
 class PredictorModuleIPU(PredictorModule):
 
+    def forward(self, *inputs):
+        # Not sure if I should keep it??
+        if isinstance(inputs[0], dict):
+            out_batch = super().forward(inputs[0])
+            out_batch = torch.stack(tuple(out_batch["preds"].values()))
+        else:
+            batch = self._build_batch(*inputs)
+            out_batch = super().forward(batch)
+            out_batch = self._clean_output_batch(out_batch)
+        return out_batch
+
+
     def training_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
-        return super().training_step(batch, batch_idx=0)
+        out_batch = super().training_step(batch, batch_idx=0)
+        out_batch = self._clean_output_batch(out_batch)
+        return out_batch
 
     def validation_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
@@ -278,22 +309,62 @@ class PredictorModuleIPU(PredictorModule):
 
     def test_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
-        return super().test_step(batch, batch_idx=0)
+        out_batch = super().test_step(batch, batch_idx=0)
+        out_batch = self._clean_output_batch(out_batch)
+        return out_batch
 
     def predict_step(self, *inputs) -> Any:
         batch = self._build_batch(*inputs)
-        return super().predict_step(batch, batch_idx=0)
+        out_batch = super().predict_step(batch, batch_idx=0)
+        out_batch = self._clean_output_batch(out_batch)
+        return out_batch
+
+    def validation_epoch_end(self, outputs: Dict[str, Any]):
+        outputs = self._retrieve_output_batch(outputs)
+        return super().validation_epoch_end(outputs)
+
+    def _retrieve_output_batch(self, outputs):
+        new_outputs = []
+        for batch in outputs:
+            new_outputs.append({})
+            for ii, struct in enumerate(self._output_step_structure):
+                new_outputs[-1][struct[0]] = {}
+                for jj, key in enumerate(struct[1:]):
+                    new_outputs[-1][struct[0]][key] = batch[ii][jj]
+        return new_outputs
 
     def _clean_output_batch(self, out_batch):
-        cleaned_batch = {}
-        others = {}
+
+        # Transform Dict[Tensor] into Dict[Dict[Tensor]] by grouping them
+        cleaned_batch, others = {}, {}
         for key, val in out_batch.items():
             if isinstance(val, dict):
                 cleaned_batch[key] = val
             elif isinstance(val, Tensor):
                 others[key] = val
+        if len(others) > 0:
+            cleaned_batch["others_"] = others
 
-        cleaned_batch["_others"] = others
+        # Save the structure of the dict somewhere
+        output_step_structure = []
+        for key, val in cleaned_batch.items():
+            output_step_structure.append([key])
+            for sub_key, sub_val in val.items():
+                output_step_structure[-1].append(sub_key)
+        self._output_step_structure = output_step_structure
+
+        # # Convert Dict[Dict[Tensor]] into NamedTuple[NamedTuple[Tensor]]
+        # new_dict = {}
+        # for key, val in cleaned_batch.items():
+        #     no_slash = {k.replace("/", "_slash_"): v for k, v in val.items()}
+        #     new_dict[key] = named_tuple_from_dict_batch(no_slash, key)
+        # cleaned_batch = named_tuple_from_dict_batch(new_dict, "cleaned_batch")
+
+        # Convert Dict[Dict[Tensor]] into Tuple[Tuple[Tensor]]
+        new_dict = {}
+        for key, val in cleaned_batch.items():
+            new_dict[key] = tuple(val.values())
+        cleaned_batch = tuple(new_dict.values())
 
         return cleaned_batch
 
@@ -320,6 +391,14 @@ class PredictorModuleIPU(PredictorModule):
             batch[key] = inputs[idx]
 
         # Initialize the other elements
-        batch.update(self._keys_others)
+        for key, val in self._keys_others.items():
+            if isinstance(val, dict):
+                if key not in batch.keys():
+                    batch[key] = {}
+                # Update the dict or pyg-Batch
+                for sub_key, sub_val in val.items():
+                    batch[sub_key] = sub_val
+            else:
+                batch[key] = val
 
         return batch
