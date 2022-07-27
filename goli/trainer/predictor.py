@@ -593,7 +593,7 @@ class PredictorModule(pl.LightningModule):
         # Train normally, without using FLAG
         elif self.flag_kwargs["n_steps"] == 0:
             loss, step_dict = self._general_step(
-                batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True
+                batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=False
             )
 
         metrics_logs = self.get_metrics_logs(
@@ -615,7 +615,7 @@ class PredictorModule(pl.LightningModule):
         step_dict.pop("targets")
         step_dict.pop("weights")
 
-        return step_dict
+        return loss, step_dict
 
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
