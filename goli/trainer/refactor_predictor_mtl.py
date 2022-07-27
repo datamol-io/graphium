@@ -293,9 +293,10 @@ class PredictorModule(pl.LightningModule):
         self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        preds = self.forward(batch)["preds"]                    # The dictionary of predictions
+        preds = self.forward(batch) # ["preds"]                    # The dictionary of predictions
         #targets = batch.pop("labels").to(dtype=preds.dtype)
         targets_dict = batch.get("labels")
+        preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
@@ -445,11 +446,11 @@ class PredictorModule(pl.LightningModule):
 #################################################################################################################
 
 
-        # Predictions and targets are no longer needed after the step.
-        # Keeping them will increase memory usage significantly for large datasets.
-        step_dict.pop("preds")
-        step_dict.pop("targets")
-        step_dict.pop("weights")
+        # # Predictions and targets are no longer needed after the step.
+        # # Keeping them will increase memory usage significantly for large datasets.
+        # step_dict.pop("preds")
+        # step_dict.pop("targets")
+        # step_dict.pop("weights")
 
         return step_dict  # Returning the metrics_logs with the loss
 
@@ -482,7 +483,7 @@ class PredictorModule(pl.LightningModule):
         for task in self.tasks:
             preds[task] = torch.cat([out["preds"][task] for out in outputs], dim=0)
             targets[task] = torch.cat([out["targets"][task] for out in outputs], dim=0)
-        if outputs[0]["weights"] is not None:
+        if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None
