@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 from torch import Tensor, LongTensor
 from typing import List, Union, Callable, Tuple, Optional
+from functools import partial
 
 from torch_geometric.nn import global_add_pool, global_max_pool, global_mean_pool
 from torch_scatter import scatter
@@ -15,29 +16,7 @@ from goli.utils.tensor import ModuleListConcat, ModuleWrap
 EPS = 1e-6
 
 
-def global_min_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
-    r"""Returns batch-wise graph-level-outputs by taking the channel-wise
-    minimum across the node dimension, so that for a single graph
-    :math:`\mathcal{G}_i` its output is computed by
-
-    .. math::
-        \mathbf{r}_i = \mathrm{max}_{n=1}^{N_i} \, \mathbf{x}_n
-
-    Parameters:
-        x (Tensor): Node feature matrix
-            :math:`\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}`.
-        batch (LongTensor): Batch vector :math:`\mathbf{b} \in {\{ 0, \ldots,
-            B-1\}}^N`, which assigns each node to a specific example.
-        size (int, optional): Batch-size :math:`B`.
-            Automatically calculated if not given. (default: :obj:`None`)
-
-    :rtype: :class:`Tensor`
-    """
-    size = int(batch.max().item() + 1) if size is None else size
-    return scatter(x, batch, dim=0, dim_size=size, reduce="min")
-
-
-def global_logsum_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
+def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None):
     r"""
     Apply pooling over the nodes in the graph using a mean aggregation,
     but scaled by the log of the number of nodes. This gives the same
@@ -56,14 +35,14 @@ def global_logsum_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None)
 
     :rtype: :class:`Tensor`
     """
-    size = int(batch.max().item() + 1) if size is None else size
-    mean_pool = scatter(x, batch, dim=0, dim_size=size, reduce="mean")
+    dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
+    mean_pool = scatter(x, batch, dim=dim, dim_size=dim_size, reduce="mean")
     _, num_nodes = torch.unique(batch, return_counts=True)
     lognum = torch.log(num_nodes)
     return mean_pool * lognum.unsqueeze(-1)
 
 
-def global_std_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
+def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None):
     r"""Returns batch-wise graph-level-outputs by taking the channel-wise
     minimum across the node dimension, so that for a single graph
     :math:`\mathcal{G}_i` its output is computed by
@@ -81,16 +60,17 @@ def global_std_pool(x: Tensor, batch: LongTensor, size: Optional[int] = None):
 
     :rtype: :class:`Tensor`
     """
-    size = int(batch.max().item() + 1) if size is None else size
-    mean = scatter(x, batch, dim=0, out=None, dim_size=size, reduce="mean")
-    mean_squares = scatter(x * x, batch, dim=0, out=None, dim_size=size, reduce="mean")
+    dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
+    mean = scatter(x, batch, dim=dim, out=None, dim_size=dim_size, reduce="mean")
+    mean_squares = scatter(x * x, batch, dim=dim, out=None, dim_size=dim_size, reduce="mean")
     out = mean_squares - mean * mean
     return torch.sqrt(torch.relu(out) + 1e-5)
 
 
 class PoolingWrapperPyg(ModuleWrap):
     def forward(self, g, h, *args, **kwargs):
-        return self.func(h, g.batch, *args, **kwargs)
+        dim_size = g.num_graphs
+        return self.func(h, g.batch, dim_size=dim_size, *args, **kwargs, **self.kwargs)
 
 
 def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]]):
@@ -128,17 +108,17 @@ def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]]):
         this_pool = None if this_pool is None else this_pool.lower()
         out_pool_dim += in_dim
         if this_pool == "sum":
-            pool_layer.append(PoolingWrapperPyg(global_add_pool))
+            pool_layer.append(PoolingWrapperPyg(scatter, dim=0, reduce="add"))
         elif this_pool == "mean":
-            pool_layer.append(PoolingWrapperPyg(global_mean_pool))
+            pool_layer.append(PoolingWrapperPyg(scatter, dim=0, reduce="mean"))
         elif this_pool == "logsum":
-            pool_layer.append(PoolingWrapperPyg(global_logsum_pool))
+            pool_layer.append(PoolingWrapperPyg(scatter_logsum_pool, dim=0))
         elif this_pool == "max":
-            pool_layer.append(PoolingWrapperPyg(global_max_pool))
+            pool_layer.append(PoolingWrapperPyg(scatter, dim=0, reduce="max"))
         elif this_pool == "min":
-            pool_layer.append(PoolingWrapperPyg(global_min_pool))
+            pool_layer.append(PoolingWrapperPyg(scatter, dim=0, reduce="min"))
         elif this_pool == "std":
-            pool_layer.append(PoolingWrapperPyg(global_std_pool))
+            pool_layer.append(PoolingWrapperPyg(scatter_std_pool, dim=0))
         elif (this_pool == "none") or (this_pool is None):
             pass
         else:

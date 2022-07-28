@@ -5,8 +5,7 @@ from goli.nn.pyg_layers.pna_pyg import PNAMessagePassingPyg
 from goli.nn.pyg_layers.pooling_pyg import global_add_pool
 from goli.nn.pyg_layers.pooling_pyg import global_max_pool
 from goli.nn.pyg_layers.pooling_pyg import global_mean_pool
-from goli.nn.pyg_layers.pooling_pyg import global_min_pool
-from goli.nn.pyg_layers.pooling_pyg import global_logsum_pool
-from goli.nn.pyg_layers.pooling_pyg import global_std_pool
+from goli.nn.pyg_layers.pooling_pyg import scatter_logsum_pool
+from goli.nn.pyg_layers.pooling_pyg import scatter_std_pool
 from goli.nn.pyg_layers.pooling_pyg import parse_pooling_layer_pyg
 from goli.nn.pyg_layers.pooling_pyg import VirtualNodePyg

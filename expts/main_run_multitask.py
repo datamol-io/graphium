@@ -10,18 +10,22 @@ import poptorch
 import goli
 from goli.config._loader import load_datamodule, load_metrics, load_metrics_mtl, load_architecture, load_predictor, load_trainer
 
+import faulthandler
+
+faulthandler.enable()
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test.yaml"
-CONFIG_FILE = "tests/mtl/config_one_ZINC_mtl_test_3_tasks_pyg.yaml"
+CONFIG_FILE = "tests/mtl/config_ipu_test.yaml"
 os.chdir(MAIN_DIR)
 
 #! adding IPU options here
 ipu_options = poptorch.Options()
 ipu_options.deviceIterations(1) #not sure how to set this number yet, start small
 ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
-
+ipu_options.Jit.traceModel(False)
+ipu_options._jit._values["trace_model"] = False
 
 def main(cfg: DictConfig) -> None:
 

@@ -293,10 +293,16 @@ class PredictorModule(pl.LightningModule):
         self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        preds = self.forward(batch) # ["preds"]                    # The dictionary of predictions
-        #targets = batch.pop("labels").to(dtype=preds.dtype)
+        preds = self.forward(batch)                    # The dictionary of predictions
         targets_dict = batch.get("labels")
-        preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
+
+        # Different type of preds can be return by the forward
+        if isinstance(preds, dict) and ("preds" in preds.keys()):
+            preds = preds["preds"]
+        elif isinstance(preds, Tensor):
+            preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
+
+        # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
@@ -403,13 +409,13 @@ class PredictorModule(pl.LightningModule):
         return loss
     '''
 
-    def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
+    def training_step(self, batch: Dict[str, Tensor], batch_idx: int, to_cpu: bool=True) -> Dict[str, Any]:
         loss = None
         step_dict = None
 
         # Train using FLAG
         if self.flag_kwargs["n_steps"] > 0:
-            loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
+            loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=to_cpu)
         # Train normally, without using FLAG
         elif self.flag_kwargs["n_steps"] == 0:
             loss, step_dict = self._general_step(
@@ -465,11 +471,11 @@ class PredictorModule(pl.LightningModule):
         return acc
     '''
 
-    def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
+    def validation_step(self, batch: Dict[str, Tensor], batch_idx: int, to_cpu: bool=True) -> Dict[str, Any]:
+        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=to_cpu)[1]
 
-    def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="test", to_cpu=True)[1]
+    def test_step(self, batch: Dict[str, Tensor], batch_idx: int, to_cpu: bool=True) -> Dict[str, Any]:
+        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="test", to_cpu=to_cpu)[1]
 
     # So it's over the entire dataset
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
