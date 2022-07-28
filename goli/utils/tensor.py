@@ -297,13 +297,14 @@ class ModuleWrap(torch.nn.Module):
         func: function to wrap into a module
     """
 
-    def __init__(self, func) -> None:
+    def __init__(self, func, **kwargs) -> None:
         super().__init__()
         self.func = func
         self.__name__ = f"ModuleWrap({self.func.__name__})"
+        self.kwargs = kwargs
 
     def forward(self, *args, **kwargs):
-        return self.func(*args, **kwargs)
+        return self.func(*args, **self.kwargs, **kwargs)
 
     def __repr__(self):
         return self.__name__

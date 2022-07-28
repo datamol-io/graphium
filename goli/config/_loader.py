@@ -188,7 +188,7 @@ def load_trainer(config, ipu_options=None):
     '''
     trainer = Trainer(
         terminate_on_nan=True,
-        num_sanity_val_steps=0,
+        # num_sanity_val_steps=0,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
         plugins=IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
@@ -200,7 +200,6 @@ def load_trainer(config, ipu_options=None):
     #     terminate_on_nan=True,
     #     **cfg_trainer["trainer"],
     #     **trainer_kwargs,
-    #     gpus=gpus,
     # )
 
     return trainer
@@ -214,6 +213,8 @@ import inspect
 from poptorch import _impl
 from torch import Tensor
 from collections import namedtuple
+from inspect import _ParameterKind
+from pytorch_lightning.strategies.parallel import ParallelStrategy
 
 def named_tuple_from_dict_batch(dict_or_batch, name):
     keys, vals = zip(*dict_or_batch.items())
@@ -221,7 +222,6 @@ def named_tuple_from_dict_batch(dict_or_batch, name):
 
 
 class IPUPluginGoli(IPUPlugin):
-
 
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):
 
@@ -268,6 +268,7 @@ class IPUPluginGoli(IPUPlugin):
         self.model.module._keys_batch = keys_batch
         self.model.module._keys_others = keys_others
         self.poptorch_models[stage]._args_parser._varnames = all_keys
+        self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
 
         # Run the step using only tuple of tensors
         out = super()._step(stage, *new_args, **kwargs)
@@ -294,22 +295,29 @@ class PredictorModuleIPU(PredictorModule):
             out_batch = self._clean_output_batch(out_batch)
         return out_batch
 
+    # def _general_step(self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool) -> Dict[str, Any]:
+    #     preds = self.forward(batch) # ["preds"]                    # The dictionary of predictions
+    #     #targets = batch.pop("labels").to(dtype=preds.dtype)
+    #     preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
+
+    #     return super()._general_step(batch, batch_idx, step_name, to_cpu)
+
 
     def training_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
-        out_batch = super().training_step(batch, batch_idx=0)
+        out_batch = super().training_step(batch, batch_idx=0, to_cpu=False)
         out_batch = self._clean_output_batch(out_batch)
         return out_batch
 
     def validation_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
-        out_batch = super().validation_step(batch, batch_idx=0)
+        out_batch = super().validation_step(batch, batch_idx=0, to_cpu=False)
         out_batch = self._clean_output_batch(out_batch)
         return out_batch
 
     def test_step(self, *inputs) -> Dict[str, Any]:
         batch = self._build_batch(*inputs)
-        out_batch = super().test_step(batch, batch_idx=0)
+        out_batch = super().test_step(batch, batch_idx=0, to_cpu=False)
         out_batch = self._clean_output_batch(out_batch)
         return out_batch
 
