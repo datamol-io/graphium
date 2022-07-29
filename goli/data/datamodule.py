@@ -33,7 +33,6 @@ from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
 import datamol as dm
-from pprint import pprint
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -71,8 +70,6 @@ def smiles_to_unique_mol_ids(smiles: List[str]):
         unique_mol_ids.append(id)
     return unique_mol_ids
 
-def print_this(anything):
-    pprint(anything)
 
 class DGLDataset(Dataset): # TODO: DELETE
     def __init__(
@@ -120,8 +117,6 @@ class SingleTaskDataset(Dataset):
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
     ):
         self.labels = labels
-        print("self.labels: ", self.labels)
-        print("self.labels type is ", type(self.labels))
         self.smiles = smiles
         self.features = features
         self.indices = indices
@@ -132,13 +127,11 @@ class SingleTaskDataset(Dataset):
 
     def __getitem__(self, idx):
         datum = {}
-        print("Single task dataset idx = ", idx)
 
         if self.features is not None:
             datum["features"] = self.features[idx]
 
         if self.labels is not None:
-            print("self.labels[idx] = ", self.labels[idx])
             datum["labels"] = self.labels[idx]
 
         if self.smiles is not None:
@@ -155,7 +148,7 @@ class SingleTaskDataset(Dataset):
 class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
     """This class holds the information for the multitask dataset.
 
-    Several single-task datasets can be merged to create a multi-task dataset. After merging the dictionary of single-task datasets, 
+    Several single-task datasets can be merged to create a multi-task dataset. After merging the dictionary of single-task datasets,
     we will have a multitask dataset of the following form:
         - self.mol_ids will be a list to contain the unique molecular IDs to identify the molecules
         - self.smiles will be a list to contain the corresponding smiles for that molecular ID across all single-task datasets
@@ -198,7 +191,7 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
 
     def merge(self, datasets: Dict[str, Any]):
         r"""This function merges several single task datasets into a multitask dataset.
-        
+
             The idea: for each of the smiles, labels, features and tasks, we create a corresponding list that concatenates these items across all tasks.
             In particular, for any index, the elements in the smiles, labels, features and task lists at that index will correspond to each other (i.e. match up).
             Over this list of all smiles (which we created by concatenating the smiles across all tasks), we compute their molecular ID using functions from Datamol.
@@ -215,15 +208,8 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
         all_tasks = []
         for task, ds in datasets.items():
             # Get data from single task dataset
-            print("\n\n\n TASK NAME = ", task)
             ds_smiles = [ds[i]["smiles"] for i in range(len(ds))]
-            print("ds_smiles")
-            pprint(ds_smiles)
-            print(type(ds_smiles))
             ds_labels = [ds[i]["labels"] for i in range(len(ds))]
-            print("\nds_labels")
-            pprint(ds_labels)
-            print(type(ds_smiles))
             if "features" in ds[0]:
                 ds_features = [ds[i]["features"] for i in range(len(ds))]
             else:
@@ -270,20 +256,8 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
             label = ds[0]["labels"]       # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
             torch_label = torch.as_tensor(label)
             #torch_label = label
-            #print("\n\n\nTorch label: ", torch_label)
-            #print("Type: ", type(torch_label))
-            #print("The size: ", torch_label.size())
             task_labels_size[task] = torch_label.size()
         return task_labels_size
-
-    def print_data(self):
-        print("\n\n mol_ids")
-        pprint(self.mol_ids)
-        print("\n\n smiles")
-        pprint(self.smiles)
-        print("\n\n labels")
-        pprint(self.labels)
-
 
 
 class BaseDataModule(pl.LightningDataModule):
