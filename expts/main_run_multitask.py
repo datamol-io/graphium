@@ -4,15 +4,10 @@ from os.path import dirname, abspath
 import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
-import poptorch
 
 # Current project imports
 import goli
 from goli.config._loader import load_datamodule, load_metrics, load_metrics_mtl, load_architecture, load_predictor, load_trainer
-
-import faulthandler
-
-faulthandler.enable()
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
@@ -20,25 +15,13 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 CONFIG_FILE = "tests/mtl/config_ipu_test.yaml"
 os.chdir(MAIN_DIR)
 
-#! adding IPU options here
-ipu_options = poptorch.Options()
-ipu_options.deviceIterations(1) #not sure how to set this number yet, start small
-ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
-# ipu_options.Jit.traceModel(False)
-# ipu_options._jit._values["trace_model"] = False
 
 def main(cfg: DictConfig) -> None:
-
-    #! need to define the IPU options
-    #? where is the best place to put this
-    # this is required for trainer and the data module
-    # I put it in config/_loader.py first
-
 
     cfg = deepcopy(cfg)
 
     # Load and initialize the dataset
-    datamodule = load_datamodule(cfg, ipu_options=ipu_options )
+    datamodule = load_datamodule(cfg)
 
     # Initialize the network
     model_class, model_kwargs = load_architecture(
@@ -55,7 +38,7 @@ def main(cfg: DictConfig) -> None:
     print(predictor.model)
     print(predictor.summarize(max_depth=4))
 
-    trainer = load_trainer(cfg, ipu_options=ipu_options)
+    trainer = load_trainer(cfg)
 
     trainer.fit(model=predictor, datamodule=datamodule)
     # Run the model training

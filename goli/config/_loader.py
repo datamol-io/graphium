@@ -9,13 +9,13 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 from goli.nn.architectures import TaskHeadParams
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
-import poptorch
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
-from goli.trainer.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
+from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
+from goli.ipu.ipu_utils import get_poptorch, load_ipu_options
 
 
 def get_accelerator(
@@ -23,7 +23,7 @@ def get_accelerator(
 ) -> str:
 
     # Get the accelerator name
-    accelerator = config["trainer"]["trainer"].get("accelerator", None)
+    accelerator = config["constants"]["accelerator"].get("type", None)
     if accelerator is not None:
         accelerator = accelerator.lower()
 
@@ -44,20 +44,25 @@ def get_accelerator(
     if ipus > 0:
         assert (accelerator is None) or (accelerator == "ipu"), "Accelerator mismatch"
         accelerator = "ipu"
-    if (accelerator == "ipu") and (not poptorch.ipuHardwareIsAvailable()):
-        logger.warning(
-            f"IPUs selected, but will be ignored since no IPU are available on this device"
-        )
-        accelerator = "cpu"
+    if accelerator == "ipu":
+        poptorch = get_poptorch()
+        if not poptorch.ipuHardwareIsAvailable():
+            logger.warning(
+                f"IPUs selected, but will be ignored since no IPU are available on this device"
+            )
+            accelerator = "cpu"
 
     return accelerator
 
+
 def load_datamodule(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]],
-    ipu_options=None
+    config: Union[omegaconf.DictConfig, Dict[str, Any]]
 ):
+    if get_accelerator(config) == "ipu":
+        ipu_options = load_ipu_options(config)
+
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
-    datamodule = module_class(**config["datamodule"]["args"])
+    datamodule = module_class(ipu_options=ipu_options, **config["datamodule"]["args"])
 
     return datamodule
 
@@ -182,17 +187,18 @@ def load_predictor(config, model_class, model_kwargs, metrics):
     return predictor
 
 
-def load_trainer(config, ipu_options=None):
+def load_trainer(config):
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
     plugins = []
     accelerator = get_accelerator(config)
     if accelerator == "ipu":
+        ipu_options = load_ipu_options(config)
         plugins = IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
 
     # Set the number of gpus to 0 if no GPU is available
-    acc = cfg_trainer["trainer"].pop("accelerator", None)
+    _ = cfg_trainer["trainer"].pop("accelerator", None)
     gpus = cfg_trainer["trainer"].pop("gpus", None)
     ipus = cfg_trainer["trainer"].pop("ipus", None)
     if (accelerator == "gpu") and (gpus is None):

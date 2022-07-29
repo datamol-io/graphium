@@ -1526,5 +1526,4 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         r"""
         Returns the output dimension of the network for each task
         """
-        # TODO (Gab): check if this is right
         return {key: head.out_dim for key, head in self.task_heads.task_heads.items()}

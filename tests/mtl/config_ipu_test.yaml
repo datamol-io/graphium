@@ -3,6 +3,11 @@
 constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  accelerator:
+    type: ipu
+    options:
+      - deviceIterations(1)
+      - replicationFactor(1)
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -291,4 +296,3 @@ trainer:
     precision: 32
     max_epochs: 25
     min_epochs: 5
-    accelerator: ipu

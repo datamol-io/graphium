@@ -1,5 +1,3 @@
-import poptorch
-
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
@@ -28,6 +26,7 @@ from goli.utils import fs
 from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
+from goli.ipu.ipu_utils import get_poptorch
 
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
@@ -314,7 +313,7 @@ class MultitaskDataset(Dataset):
     #     print("\n\n labels")
     #     pprint(self.labels)
 
-#! need to pass IPU data module options here
+
 class BaseDataModule(pl.LightningDataModule):
     def __init__(
         self,
@@ -324,6 +323,7 @@ class BaseDataModule(pl.LightningDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         collate_fn: Optional[Callable] = None,
+        ipu_options: Optional["poptorch.Options"] = None,
     ):
         super().__init__()
 
@@ -347,26 +347,14 @@ class BaseDataModule(pl.LightningDataModule):
         self.test_ds = None
         self._predict_ds = None
 
+        self.ipu_options = ipu_options
+
     def prepare_data(self):
         raise NotImplementedError()
 
     def setup(self):
         raise NotImplementedError()
 
-    #! need to have poptorch dataloader here
-    #need to have the IPU options here as well
-    '''
-    def train_dataloader(self):
-        return poptorch.DataLoader(
-            dataset=self.train_data,
-            batch_size=self.batchsize,
-            options=self.options,
-            shuffle=True,
-            drop_last=True,
-            mode=poptorch.DataLoaderMode.Async,
-            num_workers=32
-        )
-    '''
     def train_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.train_ds,  # type: ignore
@@ -374,18 +362,6 @@ class BaseDataModule(pl.LightningDataModule):
             shuffle=True,
         )
 
-    #! need to have poptorch dataloader here
-    '''
-    def val_dataloader(self):
-        return poptorch.DataLoader(
-            dataset=self.validation_data,
-            batch_size=self.batchsize,
-            options=self.options,
-            drop_last=True,
-            mode=poptorch.DataLoaderMode.Async,
-            num_workers=32
-        )
-    '''
     def val_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.val_ds,  # type: ignore
@@ -464,24 +440,9 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             num_workers = self.num_workers
 
-        # TODO (Andy): if self.on_ipu, use poptorch.DataLoader instead of torch.DataLoader
-        # To change how the padding is done, check the `goli_collate_fn` or `self.collate_fn`
-        #! try to convert this to poptorch dataloader here
-        #options=self.options,
-        #mode=poptorch.DataLoaderMode.Async,
+        if self.ipu_options is None:
 
-        #! manually define ipu options here for now
-        #! please remove in the future
-
-        ipu_options = poptorch.Options()
-        ipu_options.deviceIterations(1) #not sure how to set this number yet, start small
-        ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
-        # ipu_options.Jit.traceModel(False) # Use the experimental compiler
-        # ipu_options._jit._values["trace_model"] = False
-
-        loader = poptorch.DataLoader(
-            options=ipu_options,
-            mode=poptorch.DataLoaderMode.Sync,
+            loader = DataLoader(
             dataset=dataset,
             num_workers=num_workers,
             collate_fn=self.collate_fn,
@@ -489,22 +450,23 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=batch_size,
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
-        )
+            )
+
+        else:
+            poptorch = get_poptorch()
+            loader = poptorch.DataLoader(
+                options=self.ipu_options,
+                mode=poptorch.DataLoaderMode.Sync, #! # TODO: Make this configurable
+                dataset=dataset,
+                num_workers=num_workers,
+                collate_fn=self.collate_fn,
+                pin_memory=self.pin_memory,
+                batch_size=batch_size,
+                shuffle=shuffle,
+                persistent_workers=self.persistent_workers,
+            )
 
 
-
-
-        # TODO (Gabriela): Develop new dataloader to handle special batching.
-
-        # loader = DataLoader(
-        #     dataset=dataset,
-        #     num_workers=num_workers,
-        #     collate_fn=self.collate_fn,
-        #     pin_memory=self.pin_memory,
-        #     batch_size=batch_size,
-        #     shuffle=shuffle,
-        #     persistent_workers=self.persistent_workers,
-        # )
         return loader
 
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
@@ -546,6 +508,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = DGLDataset,
+        ipu_options: Optional["poptorch.Options"] = None,
     ):
         """
 
@@ -632,6 +595,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
+            ipu_options=ipu_options,
         )
 
         self.df = df
@@ -1294,6 +1258,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
+        ipu_options: Optional["poptorch.Options"] = None,
     ):
         """
         Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
@@ -1379,6 +1344,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
+            ipu_options=ipu_options,
         )
 
         #self.task_df = task_df

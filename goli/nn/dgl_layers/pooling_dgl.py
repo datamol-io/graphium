@@ -180,7 +180,7 @@ class LogSumPoolingDgl(AvgPooling):
         return pool
 
 
-def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], n_iters: int = 2, n_layers: int = 2):
+def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], **kwargs):
     r"""
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
@@ -201,16 +201,7 @@ def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], n_iters
             - "s2s": `Set2Set`
             - "dir{int}": `DirPooling`
 
-        n_iters:
-            IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
-            The number of iterations.
-
-        n_layers:
-            IGNORED FOR ALL POOLING LAYERS, EXCEPT "s2s".
-            The number of recurrent layers.
     """
-
-    # TODO: Add configuration for the pooling layer kwargs
 
     # Create the pooling layer
     pool_layer = ModuleListConcat()
@@ -222,19 +213,19 @@ def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], n_iters
         this_pool = None if this_pool is None else this_pool.lower()
         out_pool_dim += in_dim
         if this_pool == "sum":
-            pool_layer.append(SumPooling())
+            pool_layer.append(SumPooling(**kwargs))
         elif this_pool == "mean":
-            pool_layer.append(AvgPooling())
+            pool_layer.append(AvgPooling(**kwargs))
         elif this_pool == "logsum":
-            pool_layer.append(LogSumPoolingDgl())
+            pool_layer.append(LogSumPoolingDgl(**kwargs))
         elif this_pool == "max":
-            pool_layer.append(MaxPooling())
+            pool_layer.append(MaxPooling(**kwargs))
         elif this_pool == "min":
-            pool_layer.append(MinPoolingDgl())
+            pool_layer.append(MinPoolingDgl(**kwargs))
         elif this_pool == "std":
-            pool_layer.append(StdPoolingDgl())
+            pool_layer.append(StdPoolingDgl(**kwargs))
         elif this_pool == "s2s":
-            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers))
+            pool_layer.append(Set2Set(input_dim=in_dim, **kwargs))
             out_pool_dim += in_dim
         elif isinstance(this_pool, str) and (this_pool[:3] == "dir"):
             dir_idx = int(this_pool[3:])
