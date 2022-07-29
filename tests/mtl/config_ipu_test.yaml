@@ -110,13 +110,14 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: random
-    pooling: [sum, mean]
+    pooling: [sum, mean, max]
     virtual_node: 'sum'
-    layer_type: 'pyg:gine'
+    layer_type: 'pyg:gated-gcn'
     layer_kwargs:
-      # num_heads: 3
+      # out_dim_edges: 16
       # aggregators: [mean, max]
       # scalers: [identity, amplification, attenuation]
+      # num_heads: 3
 
   post_nn: null
     #out_dim: 1
