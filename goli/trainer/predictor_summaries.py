@@ -242,8 +242,8 @@ class TaskSummaries(SummaryInterface):
             self.task_summaries[task].update_predictor_state(
                 step_name,
                 targets[task],
-                predictions[task],
-                task_losses[task],
+                predictions[task].detach(),
+                task_losses[task].detach(),
                 n_epochs,
             )
 

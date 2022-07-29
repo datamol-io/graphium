@@ -1,4 +1,4 @@
-from typing import List, Dict, Union, Any
+from typing import Dict, Mapping, Union, Any
 
 import omegaconf
 from copy import deepcopy
@@ -8,26 +8,74 @@ from loguru import logger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 from goli.nn.architectures import TaskHeadParams
+from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork, FeedForwardNN
-from goli.trainer.predictor import PredictorModule
+from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
+from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
+from goli.ipu.ipu_utils import get_poptorch, load_ipu_options
 
-from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
+
+def get_accelerator(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+) -> str:
+
+    # Get the accelerator type
+    accelerator = config["constants"].get("accelerator")
+    acc_type = None
+    if isinstance(accelerator, Mapping):
+        acc_type = accelerator.get("type", None)
+    if acc_type is not None:
+        acc_type = acc_type.lower()
+
+    # Get the GPU info
+    gpus = config["trainer"]["trainer"].get("gpus", 0)
+    if gpus > 0:
+        assert (acc_type is None) or (acc_type == "gpu"), "Accelerator mismatch"
+        acc_type = "gpu"
+
+    if (acc_type == "gpu") and (not torch.cuda.is_available()):
+        logger.warning(
+            f"GPUs selected, but will be ignored since no GPU are available on this device"
+        )
+        acc_type = "cpu"
+
+    # Get the IPU info
+    ipus = config["trainer"]["trainer"].get("ipus", 0)
+    if ipus > 0:
+        assert (acc_type is None) or (acc_type == "ipu"), "Accelerator mismatch"
+        acc_type = "ipu"
+    if acc_type == "ipu":
+        poptorch = get_poptorch()
+        if not poptorch.ipuHardwareIsAvailable():
+            logger.warning(
+                f"IPUs selected, but will be ignored since no IPU are available on this device"
+            )
+            acc_type = "cpu"
+
+    # Fall on cpu at the end
+    if acc_type is None:
+        acc_type = "cpu"
+
+    return acc_type
 
 
 def load_datamodule(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    config: Union[omegaconf.DictConfig, Dict[str, Any]]
 ):
+    ipu_options = None
+    if get_accelerator(config) == "ipu":
+        ipu_options = load_ipu_options(config)
+
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
-    datamodule = module_class(**config["datamodule"]["args"])
+    datamodule = module_class(ipu_options=ipu_options, **config["datamodule"]["args"])
 
     return datamodule
 
 
-def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]): #TODO (Gab): Remove duplicate
 
     metrics = {}
     cfg_metrics = deepcopy(config["metrics"])
@@ -130,8 +178,14 @@ def load_architecture(
 def load_predictor(config, model_class, model_kwargs, metrics):
     # Defining the predictor
 
+    accelerator = get_accelerator(config)
+    if accelerator == "ipu":
+        predictor_class = PredictorModuleIPU
+    else:
+        predictor_class = PredictorModule
+
     cfg_pred = dict(deepcopy(config["predictor"]))
-    predictor = PredictorModule(
+    predictor = predictor_class(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
@@ -144,18 +198,21 @@ def load_predictor(config, model_class, model_kwargs, metrics):
 def load_trainer(config):
     cfg_trainer = deepcopy(config["trainer"])
 
+    # Define the IPU plugin if required
+    plugins = []
+    accelerator = get_accelerator(config)
+    if accelerator == "ipu":
+        ipu_options = load_ipu_options(config)
+        plugins = IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
+
     # Set the number of gpus to 0 if no GPU is available
-    gpus = cfg_trainer["trainer"].pop("gpus", 0)
-    num_gpus = 0
-    if isinstance(gpus, int):
-        num_gpus = gpus
-    elif isinstance(gpus, (list, tuple)):
-        num_gpus = len(gpus)
-    if (num_gpus > 0) and (not torch.cuda.is_available()):
-        logger.warning(
-            f"Number of GPUs selected is `{num_gpus}`, but will be ignored since no GPU are available on this device"
-        )
-        gpus = 0
+    _ = cfg_trainer["trainer"].pop("accelerator", None)
+    gpus = cfg_trainer["trainer"].pop("gpus", None)
+    ipus = cfg_trainer["trainer"].pop("ipus", None)
+    if (accelerator == "gpu") and (gpus is None):
+        gpus = 1
+    if (accelerator == "ipu") and (ipus is None):
+        ipus = 1
 
     trainer_kwargs = {}
     callbacks = []
@@ -172,9 +229,13 @@ def load_trainer(config):
 
     trainer = Trainer(
         terminate_on_nan=True,
+        plugins=plugins,
+        accelerator=accelerator,
+        ipus = ipus,
+        gpus = gpus,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
-        gpus=gpus,
     )
 
     return trainer
+
