@@ -193,7 +193,9 @@ class PredictorModule(pl.LightningModule):
 
         return feats
 
+
     def configure_optimizers(self):
+
         # TODO: Fix scheduling with the Summary class
         # Configure the parameters for the schedulers
         # sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
@@ -221,7 +223,7 @@ class PredictorModule(pl.LightningModule):
         preds: Dict[str, Tensor],
         targets: Dict[str, Tensor],
         weights: Optional[Tensor],
-        loss_fun: Dict[str, Callable],                  # Was Callable
+        loss_fun: Dict[str, Callable],
         target_nan_mask: Union[Type, str] = "ignore",
     ) -> Tensor:
         r"""
@@ -259,31 +261,34 @@ class PredictorModule(pl.LightningModule):
             Tensor:
                 Resulting loss
         """
-        #wrapped_loss_fun = MetricWrapper(metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask)
+
         wrapped_loss_fun_dict = {task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask) for task, loss in loss_fun.items()}
 
         if weights is not None:
             raise NotImplementedError("Weights are no longer supported in the loss")
-        #loss = wrapped_loss_fun(preds=preds, target=targets)
         all_task_losses = {task: wrapped(preds=preds[task], target=targets[task]) for task, wrapped in wrapped_loss_fun_dict.items()}
-        #total_loss = torch.sum(all_task_losses.values(), dim=0)
-        total_loss = torch.zeros_like(next(iter(all_task_losses.values())), requires_grad=True)
-        for task, loss in all_task_losses.items():
-            total_loss = torch.add(total_loss, loss)
+        total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
         num_tasks = len(all_task_losses.keys())
-        weighted_loss = torch.div(total_loss, num_tasks)
-        return weighted_loss, all_task_losses            # Return all_task_losses?
+        weighted_loss = total_loss / num_tasks
+        return weighted_loss, all_task_losses
 
     def _general_step(
-        self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
+        self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        preds = self.forward(batch)["preds"]                    # The dictionary of predictions
-        #targets = batch.pop("labels").to(dtype=preds.dtype)
-        targets_dict = batch.pop("labels")
+        preds = self.forward(batch)                    # The dictionary of predictions
+        targets_dict = batch.get("labels")
+
+        # Different type of preds can be return by the forward
+        if isinstance(preds, dict) and ("preds" in preds.keys()):
+            preds = preds["preds"]
+        elif isinstance(preds, Tensor):
+            preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
+
+        # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
-        weights = batch.pop("weights", None)
+        weights = batch.get("weights", None)
 
         loss, task_losses = self.compute_loss(
             preds=preds,
@@ -310,11 +315,12 @@ class PredictorModule(pl.LightningModule):
         for task in self.tasks:     # TODO: Verify consistency with Summary class
             step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
 
+        step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses
-        return loss, step_dict
+        return step_dict
 
     def flag_step(
-        self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
+        self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool
     ) -> Dict[str, Any]:
         r"""
         Perform adversarial data agumentation during one training step using FLAG.
@@ -376,19 +382,21 @@ class PredictorModule(pl.LightningModule):
 
         step_dict = {"preds": preds, "targets": targets, "weights": weights}
         step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
-        return loss, step_dict
 
-    def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        loss = None
+        step_dict["loss"] = loss
+        return step_dict
+
+
+    def training_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
         step_dict = None
 
         # Train using FLAG
         if self.flag_kwargs["n_steps"] > 0:
-            loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
+            step_dict = self.flag_step(batch=batch, step_name="train", to_cpu=to_cpu)
         # Train normally, without using FLAG
         elif self.flag_kwargs["n_steps"] == 0:
-            loss, step_dict = self._general_step(
-                batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True
+            step_dict = self._general_step(
+                batch=batch, step_name="train", to_cpu=True
             )
 
 #################################################################################################################
@@ -396,40 +404,30 @@ class PredictorModule(pl.LightningModule):
             step_name="train",
             targets=step_dict["targets"],
             predictions=step_dict["preds"],
-            loss=loss,              # This is the weighted loss for now, but change to task-sepcific loss
+            loss=step_dict["loss"],              # This is the weighted loss for now, but change to task-sepcific loss
             task_losses=step_dict["task_losses"],
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
-
-
         step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
-        step_dict["loss"] = loss                # Update loss per task or weighted loss?
-        step_dict.pop("task_losses")            # The task losses are already contained in metrics_logs
 
         self.logger.log_metrics(metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
 #################################################################################################################
 
 
-        # Predictions and targets are no longer needed after the step.
-        # Keeping them will increase memory usage significantly for large datasets.
+        # # Predictions and targets are no longer needed after the step.
+        # # Keeping them will increase memory usage significantly for large datasets.
         step_dict.pop("preds")
         step_dict.pop("targets")
         step_dict.pop("weights")
 
         return step_dict  # Returning the metrics_logs with the loss
 
-    def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        # We don't need the task losses to be logged since it's taken care of in the summary
-        step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
-        step_dict.pop("task_losses")
-        return step_dict
+    def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
+        return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)
 
-    def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        # We don't need the task losses to be logged since it's taken care of in the summary
-        step_dict = self._general_step(batch=batch, batch_idx=batch_idx, step_name="test", to_cpu=True)[1]
-        step_dict.pop("task_losses")
-        return step_dict
+    def test_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
+        return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
 
     # So it's over the entire dataset
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
@@ -443,7 +441,7 @@ class PredictorModule(pl.LightningModule):
         for task in self.tasks:
             preds[task] = torch.cat([out["preds"][task] for out in outputs], dim=0)
             targets[task] = torch.cat([out["targets"][task] for out in outputs], dim=0)
-        if outputs[0]["weights"] is not None:
+        if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None
@@ -467,6 +465,7 @@ class PredictorModule(pl.LightningModule):
         self.task_epoch_summary.set_results(task_metrics=metrics_logs)
 ################################################################################################################
         return metrics_logs             # Consider returning concatenated dict for tensorboard
+
 
     def training_epoch_end(self, outputs: Dict):
         """

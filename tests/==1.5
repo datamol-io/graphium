@@ -1,0 +1,73 @@
+Collecting pytorch-lightning
+  Using cached pytorch_lightning-1.6.5-py3-none-any.whl (585 kB)
+Collecting tensorboard>=2.2.0
+  Using cached tensorboard-2.9.1-py3-none-any.whl (5.8 MB)
+Collecting protobuf<=3.20.1
+  Downloading protobuf-3.20.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl (1.0 MB)
+Requirement already satisfied: typing-extensions>=4.0.0 in /home/ubuntu/pyg/lib/python3.8/site-packages (from pytorch-lightning) (4.3.0)
+Requirement already satisfied: packaging>=17.0 in /home/ubuntu/pyg/lib/python3.8/site-packages (from pytorch-lightning) (21.3)
+Collecting torchmetrics>=0.4.1
+  Using cached torchmetrics-0.9.2-py3-none-any.whl (419 kB)
+Requirement already satisfied: torch>=1.8.* in /home/ubuntu/pyg/lib/python3.8/site-packages (from pytorch-lightning) (1.12.0+cpu)
+Collecting pyDeprecate>=0.3.1
+  Downloading pyDeprecate-0.3.2-py3-none-any.whl (10 kB)
+Requirement already satisfied: tqdm>=4.57.0 in /home/ubuntu/pyg/lib/python3.8/site-packages (from pytorch-lightning) (4.64.0)
+Requirement already satisfied: PyYAML>=5.4 in /home/ubuntu/pyg/lib/python3.8/site-packages (from pytorch-lightning) (6.0)
+Requirement already satisfied: numpy>=1.17.2 in /home/ubuntu/pyg/lib/python3.8/site-packages (from pytorch-lightning) (1.23.1)
+Collecting fsspec[http]!=2021.06.0,>=2021.05.0
+  Using cached fsspec-2022.5.0-py3-none-any.whl (140 kB)
+Collecting tensorboard-data-server<0.7.0,>=0.6.0
+  Using cached tensorboard_data_server-0.6.1-py3-none-manylinux2010_x86_64.whl (4.9 MB)
+Collecting grpcio>=1.24.3
+  Using cached grpcio-1.47.0-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (4.5 MB)
+Collecting markdown>=2.6.8
+  Downloading Markdown-3.4.1-py3-none-any.whl (93 kB)
+Requirement already satisfied: wheel>=0.26 in /home/ubuntu/pyg/lib/python3.8/site-packages (from tensorboard>=2.2.0->pytorch-lightning) (0.34.2)
+Collecting absl-py>=0.4
+  Downloading absl_py-1.2.0-py3-none-any.whl (123 kB)
+Requirement already satisfied: setuptools>=41.0.0 in /home/ubuntu/pyg/lib/python3.8/site-packages (from tensorboard>=2.2.0->pytorch-lightning) (44.0.0)
+Collecting werkzeug>=1.0.1
+  Using cached Werkzeug-2.1.2-py3-none-any.whl (224 kB)
+Collecting google-auth<3,>=1.6.3
+  Using cached google_auth-2.9.1-py2.py3-none-any.whl (167 kB)
+Collecting tensorboard-plugin-wit>=1.6.0
+  Using cached tensorboard_plugin_wit-1.8.1-py3-none-any.whl (781 kB)
+Requirement already satisfied: requests<3,>=2.21.0 in /home/ubuntu/pyg/lib/python3.8/site-packages (from tensorboard>=2.2.0->pytorch-lightning) (2.28.1)
+Collecting google-auth-oauthlib<0.5,>=0.4.1
+  Using cached google_auth_oauthlib-0.4.6-py2.py3-none-any.whl (18 kB)
+Requirement already satisfied: pyparsing!=3.0.5,>=2.0.2 in /home/ubuntu/pyg/lib/python3.8/site-packages (from packaging>=17.0->pytorch-lightning) (3.0.9)
+Collecting aiohttp; extra == "http"
+  Using cached aiohttp-3.8.1-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl (1.3 MB)
+Requirement already satisfied: six>=1.5.2 in /home/ubuntu/pyg/lib/python3.8/site-packages (from grpcio>=1.24.3->tensorboard>=2.2.0->pytorch-lightning) (1.16.0)
+Requirement already satisfied: importlib-metadata>=4.4; python_version < "3.10" in /home/ubuntu/pyg/lib/python3.8/site-packages (from markdown>=2.6.8->tensorboard>=2.2.0->pytorch-lightning) (4.12.0)
+Collecting rsa<5,>=3.1.4; python_version >= "3.6"
+  Downloading rsa-4.9-py3-none-any.whl (34 kB)
+Collecting cachetools<6.0,>=2.0.0
+  Using cached cachetools-5.2.0-py3-none-any.whl (9.3 kB)
+Collecting pyasn1-modules>=0.2.1
+  Using cached pyasn1_modules-0.2.8-py2.py3-none-any.whl (155 kB)
+Requirement already satisfied: idna<4,>=2.5 in /home/ubuntu/pyg/lib/python3.8/site-packages (from requests<3,>=2.21.0->tensorboard>=2.2.0->pytorch-lightning) (3.3)
+Requirement already satisfied: certifi>=2017.4.17 in /home/ubuntu/pyg/lib/python3.8/site-packages (from requests<3,>=2.21.0->tensorboard>=2.2.0->pytorch-lightning) (2022.6.15)
+Requirement already satisfied: urllib3<1.27,>=1.21.1 in /home/ubuntu/pyg/lib/python3.8/site-packages (from requests<3,>=2.21.0->tensorboard>=2.2.0->pytorch-lightning) (1.26.10)
+Requirement already satisfied: charset-normalizer<3,>=2 in /home/ubuntu/pyg/lib/python3.8/site-packages (from requests<3,>=2.21.0->tensorboard>=2.2.0->pytorch-lightning) (2.1.0)
+Collecting requests-oauthlib>=0.7.0
+  Using cached requests_oauthlib-1.3.1-py2.py3-none-any.whl (23 kB)
+Collecting aiosignal>=1.1.2
+  Using cached aiosignal-1.2.0-py3-none-any.whl (8.2 kB)
+Collecting yarl<2.0,>=1.0
+  Using cached yarl-1.7.2-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_12_x86_64.manylinux2010_x86_64.whl (308 kB)
+Collecting attrs>=17.3.0
+  Using cached attrs-21.4.0-py2.py3-none-any.whl (60 kB)
+Collecting multidict<7.0,>=4.5
+  Using cached multidict-6.0.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (121 kB)
+Collecting async-timeout<5.0,>=4.0.0a3
+  Using cached async_timeout-4.0.2-py3-none-any.whl (5.8 kB)
+Collecting frozenlist>=1.1.1
+  Using cached frozenlist-1.3.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (158 kB)
+Requirement already satisfied: zipp>=0.5 in /home/ubuntu/pyg/lib/python3.8/site-packages (from importlib-metadata>=4.4; python_version < "3.10"->markdown>=2.6.8->tensorboard>=2.2.0->pytorch-lightning) (3.8.1)
+Collecting pyasn1>=0.1.3
+  Using cached pyasn1-0.4.8-py2.py3-none-any.whl (77 kB)
+Collecting oauthlib>=3.0.0
+  Using cached oauthlib-3.2.0-py3-none-any.whl (151 kB)
+Installing collected packages: tensorboard-data-server, grpcio, markdown, absl-py, protobuf, werkzeug, pyasn1, rsa, cachetools, pyasn1-modules, google-auth, tensorboard-plugin-wit, oauthlib, requests-oauthlib, google-auth-oauthlib, tensorboard, torchmetrics, pyDeprecate, frozenlist, aiosignal, multidict, yarl, attrs, async-timeout, aiohttp, fsspec, pytorch-lightning
+Successfully installed absl-py-1.2.0 aiohttp-3.8.1 aiosignal-1.2.0 async-timeout-4.0.2 attrs-21.4.0 cachetools-5.2.0 frozenlist-1.3.0 fsspec-2022.5.0 google-auth-2.9.1 google-auth-oauthlib-0.4.6 grpcio-1.47.0 markdown-3.4.1 multidict-6.0.2 oauthlib-3.2.0 protobuf-3.20.1 pyDeprecate-0.3.2 pyasn1-0.4.8 pyasn1-modules-0.2.8 pytorch-lightning-1.6.5 requests-oauthlib-1.3.1 rsa-4.9 tensorboard-2.9.1 tensorboard-data-server-0.6.1 tensorboard-plugin-wit-1.8.1 torchmetrics-0.9.2 werkzeug-2.1.2 yarl-1.7.2

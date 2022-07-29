@@ -1,4 +1,4 @@
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 #from pprint import pprint
 import torch
 from numpy import ndarray
@@ -89,7 +89,7 @@ def goli_collate_fn(
                     pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
                     pyg_batch.append(pyg_graph)
 
-                batch[key] = Batch.from_data_list(pyg_batch)
+                batch[key] = Batch.from_data_list(pyg_batch) # TODO (Andy): Here, add the padding for constant ipu tensor size
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
@@ -106,8 +106,14 @@ def goli_collate_fn(
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
-#        print("The batch contains: ")
-#        pprint(batch)
         return batch
+    elif isinstance(elements, Sequence) and isinstance(elem, Sequence):
+        temp_elements = [{ii: sub_elem for ii, sub_elem in enumerate(elem)} for elem in elements]
+        batch = goli_collate_fn(temp_elements)
+        return list(batch.values())
+    elif isinstance(elements, Sequence) and not isinstance(elem, Sequence):
+        temp_elements = [{"temp_key": elem} for elem in elements]
+        batch = goli_collate_fn(temp_elements)
+        return batch["temp_key"]
     else:
         return default_collate(elements)

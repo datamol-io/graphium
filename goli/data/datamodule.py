@@ -26,6 +26,7 @@ from goli.utils import fs
 from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
+from goli.ipu.ipu_utils import get_poptorch
 
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
@@ -235,10 +236,6 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
 
-        #pprint(all_smiles)
-        #pprint(all_labels)
-        #pprint(all_tasks)
-
         mol_ids = []
         # Get all unique mol ids.
         all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
@@ -288,6 +285,7 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
         pprint(self.labels)
 
 
+
 class BaseDataModule(pl.LightningDataModule):
     def __init__(
         self,
@@ -297,6 +295,7 @@ class BaseDataModule(pl.LightningDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         collate_fn: Optional[Callable] = None,
+        ipu_options: Optional["poptorch.Options"] = None,
     ):
         super().__init__()
 
@@ -319,6 +318,8 @@ class BaseDataModule(pl.LightningDataModule):
         self.val_ds = None
         self.test_ds = None
         self._predict_ds = None
+
+        self.ipu_options = ipu_options
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -411,8 +412,9 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             num_workers = self.num_workers
 
-        # TODO (Gabriela): Develop new dataloader to handle special batching.
-        loader = DataLoader(
+        if self.ipu_options is None:
+
+            loader = DataLoader(
             dataset=dataset,
             num_workers=num_workers,
             collate_fn=self.collate_fn,
@@ -420,7 +422,23 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=batch_size,
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
-        )
+            )
+
+        else:
+            poptorch = get_poptorch()
+            loader = poptorch.DataLoader(
+                options=self.ipu_options,
+                mode=poptorch.DataLoaderMode.Sync, #! # TODO: Make this configurable
+                dataset=dataset,
+                num_workers=num_workers,
+                collate_fn=self.collate_fn,
+                pin_memory=self.pin_memory,
+                batch_size=batch_size,
+                shuffle=shuffle,
+                persistent_workers=self.persistent_workers,
+            )
+
+
         return loader
 
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
@@ -462,6 +480,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = DGLDataset,
+        ipu_options: Optional["poptorch.Options"] = None,
     ):
         """
 
@@ -548,6 +567,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
+            ipu_options=ipu_options,
         )
 
         self.df = df
@@ -1198,6 +1218,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
+        ipu_options: Optional["poptorch.Options"] = None,
     ):
         """
         Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
@@ -1283,6 +1304,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
+            ipu_options=ipu_options,
         )
 
         self.task_specific_args = task_specific_args
