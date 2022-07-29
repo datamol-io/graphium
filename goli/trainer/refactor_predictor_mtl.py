@@ -331,7 +331,7 @@ class PredictorModule(pl.LightningModule):
 
         step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses
-        return loss, step_dict
+        return step_dict
 
     def flag_step(
         self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool
