@@ -236,7 +236,10 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 53db5ef1843c77d17ef1729d11850c4da5f14d5b
         mol_ids = []
         # Get all unique mol ids.
         all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
