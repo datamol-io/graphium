@@ -213,6 +213,10 @@ def load_trainer(config):
         gpus = 1
     if (accelerator == "ipu") and (ipus is None):
         ipus = 1
+    if accelerator != "gpu":
+        gpus = 0
+    if accelerator != "ipu":
+        ipus = 0
 
     trainer_kwargs = {}
     callbacks = []
