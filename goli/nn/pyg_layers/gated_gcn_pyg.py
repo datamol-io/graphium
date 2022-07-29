@@ -4,16 +4,17 @@ Unit tests for the different layers of goli/nn/pyg_layers/...
 The layers are not thoroughly tested due to the difficulty of testing them
 """
 
+from typing import Union, Callable
+from functools import partial
 
 import torch
 import torch.nn as nn
-from typing import Union, Callable
 
 from torch_geometric.nn.conv import MessagePassing
 from torch_scatter import scatter
 from torch_geometric.data import Data, Batch
 
-from goli.nn.base_graph_layer import BaseGraphStructure
+from goli.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
 from goli.nn.base_layers import FCLayer
 from goli.utils.decorators import classproperty
 
@@ -24,7 +25,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         in_dim: int,
         out_dim: int,
         in_dim_edges: int,
-        out_dim_edges: int,
+        out_dim_edges: int = None,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
@@ -71,6 +72,11 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         )
 
         self._initialize_activation_dropout_norm()
+
+        # Allow int32 in the edge_index
+        self.__check_input__ = partial(check_intpus_allow_int, self)
+        if out_dim_edges is None:
+            out_dim_edges = in_dim_edges
 
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)

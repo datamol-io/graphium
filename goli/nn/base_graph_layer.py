@@ -1,7 +1,10 @@
+import abc
+from typing import Union, Callable, List, Optional
+
 import torch
 import torch.nn as nn
-import abc
-from typing import Union, Callable
+from torch import Tensor
+from torch_sparse import SparseTensor
 
 from goli.nn.base_layers import get_activation
 from goli.utils.decorators import classproperty
@@ -88,7 +91,7 @@ class BaseGraphStructure:
 
     def apply_norm_activation_dropout(
         self,
-        h: torch.Tensor,
+        h: Tensor,
         normalization: bool = True,
         activation: bool = True,
         dropout: bool = True,
@@ -252,3 +255,39 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
         )
 
         self._initialize_activation_dropout_norm()
+
+def check_intpus_allow_int(obj, edge_index, size):
+    """
+    Overwrite the __check_input__ to allow for int32 and int16
+    """
+    the_size: List[Optional[int]] = [None, None]
+
+    if isinstance(edge_index, Tensor):
+        # These 3 lines are different. They check for more int types and avoid overflow
+        assert edge_index.dtype in (torch.long, torch.int64, torch.int32, torch.int16)
+        assert edge_index.min() >= 0
+        assert edge_index.max() < torch.iinfo(edge_index.dtype).max
+
+        assert edge_index.dim() == 2
+        assert edge_index.size(0) == 2
+        if size is not None:
+            the_size[0] = size[0]
+            the_size[1] = size[1]
+        return the_size
+
+    elif isinstance(edge_index, SparseTensor):
+        if obj.flow == 'target_to_source':
+            raise ValueError(
+                ('Flow direction "target_to_source" is invalid for '
+                    'message propagation via `torch_sparse.SparseTensor`. If '
+                    'you really want to make use of a reverse message '
+                    'passing flow, pass in the transposed sparse tensor to '
+                    'the message passing module, e.g., `adj_t.t()`.'))
+        the_size[0] = edge_index.sparse_size(1)
+        the_size[1] = edge_index.sparse_size(0)
+        return the_size
+
+    raise ValueError(
+        ('`MessagePassing.propagate` only supports `torch.LongTensor` of '
+            'shape `[2, num_messages]` or `torch_sparse.SparseTensor` for '
+            'argument `edge_index`.'))

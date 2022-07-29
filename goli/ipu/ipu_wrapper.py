@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional, Callable, Union, Type
 
 from torch_geometric.data import Batch
 from torch import Tensor
@@ -74,6 +74,11 @@ class PredictorModuleIPU(PredictorModule):
     def __init__(self, *args, **kwargs):
         self.poptorch = get_poptorch()
         super().__init__(*args, **kwargs)
+
+    @staticmethod
+    def compute_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor], weights: Optional[Tensor], loss_fun: Dict[str, Callable], target_nan_mask: Union[Type, str] = "ignore") -> Tensor:
+        #! # TODO Work out how to compute the loss here
+        return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
 
     def training_step(self, *inputs) -> Dict[str, Any]:
         dict_input = self._build_dict_input(*inputs)
