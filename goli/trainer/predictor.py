@@ -514,9 +514,9 @@ class PredictorModule(pl.LightningModule):
         if weights is not None:
             weights = weights.detach().to(device=device)
 
-        step_dict = {"preds": preds, "targets": targets, "weights": weights}
+        step_dict = {"preds": preds, "targets": targets, "weights": weights, "loss": loss}
         step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
-        return loss, step_dict
+        return step_dict
 
     def flag_step(
         self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
@@ -584,38 +584,38 @@ class PredictorModule(pl.LightningModule):
         return loss, step_dict
 
     def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        loss = None
-        step_dict = None
+        # loss = None
+        # step_dict = None
 
-        # Train using FLAG
-        if self.flag_kwargs["n_steps"] > 0:
-            loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
-        # Train normally, without using FLAG
-        elif self.flag_kwargs["n_steps"] == 0:
-            loss, step_dict = self._general_step(
-                batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=False
-            )
-
-        metrics_logs = self.get_metrics_logs(
-            preds=step_dict["preds"],
-            targets=step_dict["targets"],
-            weights=step_dict["weights"],
-            step_name="train",
-            loss=loss,
+        # # Train using FLAG
+        # if self.flag_kwargs["n_steps"] > 0:
+        #     loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
+        # # Train normally, without using FLAG
+        # elif self.flag_kwargs["n_steps"] == 0:
+        step_dict = self._general_step(
+            batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=False
         )
 
-        step_dict.update(metrics_logs)
-        step_dict["loss"] = loss
+        # metrics_logs = self.get_metrics_logs(
+        #     preds=step_dict["preds"],
+        #     targets=step_dict["targets"],
+        #     weights=step_dict["weights"],
+        #     step_name="train",
+        #     loss=loss,
+        # )
 
-        self.logger.log_metrics(metrics_logs, step=self.global_step)
+        # step_dict.update(metrics_logs)
+        # step_dict["loss"] = loss
+
+        # self.logger.log_metrics(metrics_logs, step=self.global_step)
 
         # Predictions and targets are no longer needed after the step.
         # Keeping them will increase memory usage significantly for large datasets.
-        step_dict.pop("preds")
-        step_dict.pop("targets")
-        step_dict.pop("weights")
+        # step_dict.pop("preds")
+        # step_dict.pop("targets")
+        # step_dict.pop("weights")
 
-        return loss, step_dict
+        return step_dict
 
     def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
         return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]

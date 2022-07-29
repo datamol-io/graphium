@@ -284,52 +284,44 @@ class IPUPluginGoli(IPUPlugin):
 
 class PredictorModuleIPU(PredictorModule):
 
-    def forward(self, *inputs):
-        # Not sure if I should keep it??
-        if isinstance(inputs[0], dict):
-            out_batch = super().forward(inputs[0])
-            out_batch = torch.stack(tuple(out_batch["preds"].values()))
-        else:
-            batch = self._build_batch(*inputs)
-            out_batch = super().forward(batch)
-            out_batch = self._clean_output_batch(out_batch)
-        return out_batch
-
-    # def _general_step(self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool) -> Dict[str, Any]:
-    #     preds = self.forward(batch) # ["preds"]                    # The dictionary of predictions
-    #     #targets = batch.pop("labels").to(dtype=preds.dtype)
-    #     preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
-
-    #     return super()._general_step(batch, batch_idx, step_name, to_cpu)
-
-
     def training_step(self, *inputs) -> Dict[str, Any]:
-        batch = self._build_batch(*inputs)
-        out_batch = super().training_step(batch, batch_idx=0, to_cpu=False)
-        out_batch = self._clean_output_batch(out_batch)
-        return out_batch
+        dict_input = self._build_dict_input(*inputs)
+        step_dict = super().training_step(dict_input, to_cpu=False)
+        return step_dict["loss"] # TODO: Limitation that only the loss can be returned
 
     def validation_step(self, *inputs) -> Dict[str, Any]:
-        batch = self._build_batch(*inputs)
-        out_batch = super().validation_step(batch, batch_idx=0, to_cpu=False)
-        out_batch = self._clean_output_batch(out_batch)
-        return out_batch
+        dict_input = self._build_dict_input(*inputs)
+        step_dict = super().validation_step(dict_input, to_cpu=False)
+        step_dict = self._clean_output_batch(step_dict)
+        return step_dict
 
     def test_step(self, *inputs) -> Dict[str, Any]:
-        batch = self._build_batch(*inputs)
-        out_batch = super().test_step(batch, batch_idx=0, to_cpu=False)
-        out_batch = self._clean_output_batch(out_batch)
-        return out_batch
+        dict_input = self._build_dict_input(*inputs)
+        step_dict = super().test_step(dict_input, to_cpu=False)
+        step_dict = self._clean_output_batch(step_dict)
+        return step_dict
 
-    def predict_step(self, *inputs) -> Any:
-        batch = self._build_batch(*inputs)
-        out_batch = super().predict_step(batch, batch_idx=0)
-        out_batch = self._clean_output_batch(out_batch)
-        return out_batch
+    def predict_step(self, *inputs) -> Dict[str, Any]:
+        dict_input = self._build_dict_input(*inputs)
+        step_dict = super().test_step(dict_input, to_cpu=False)
+        step_dict = self._clean_output_batch(step_dict)
+        return step_dict
+
+    def training_epoch_end(self, outputs: Dict[str, Any]):
+        # Limited. Since only the loss can be returned in `training_step`
+        return
 
     def validation_epoch_end(self, outputs: Dict[str, Any]):
-        outputs = self._retrieve_output_batch(outputs)
-        return super().validation_epoch_end(outputs)
+        retrieved_outputs = self._retrieve_output_batch(outputs)
+        return super().validation_epoch_end(retrieved_outputs)
+
+    def test_epoch_end(self, outputs: Dict[str, Any]):
+        retrieved_outputs = self._retrieve_output_batch(outputs)
+        return super().test_epoch_end(retrieved_outputs)
+
+    def predict_epoch_end(self, outputs: Dict[str, Any]):
+        retrieved_outputs = self._retrieve_output_batch(outputs)
+        return super().test_epoch_end(retrieved_outputs)
 
     def _retrieve_output_batch(self, outputs):
         new_outputs = []
@@ -339,6 +331,8 @@ class PredictorModuleIPU(PredictorModule):
                 new_outputs[-1][struct[0]] = {}
                 for jj, key in enumerate(struct[1:]):
                     new_outputs[-1][struct[0]][key] = batch[ii][jj]
+            others = new_outputs[-1].pop("_others", {})
+            new_outputs[-1].update(others)
         return new_outputs
 
     def _clean_output_batch(self, out_batch):
@@ -351,7 +345,7 @@ class PredictorModuleIPU(PredictorModule):
             elif isinstance(val, Tensor):
                 others[key] = val
         if len(others) > 0:
-            cleaned_batch["others_"] = others
+            cleaned_batch["_others"] = others
 
         # Save the structure of the dict somewhere
         output_step_structure = []
@@ -361,13 +355,6 @@ class PredictorModuleIPU(PredictorModule):
                 output_step_structure[-1].append(sub_key)
         self._output_step_structure = output_step_structure
 
-        # # Convert Dict[Dict[Tensor]] into NamedTuple[NamedTuple[Tensor]]
-        # new_dict = {}
-        # for key, val in cleaned_batch.items():
-        #     no_slash = {k.replace("/", "_slash_"): v for k, v in val.items()}
-        #     new_dict[key] = named_tuple_from_dict_batch(no_slash, key)
-        # cleaned_batch = named_tuple_from_dict_batch(new_dict, "cleaned_batch")
-
         # Convert Dict[Dict[Tensor]] into Tuple[Tuple[Tensor]]
         new_dict = {}
         for key, val in cleaned_batch.items():
@@ -376,7 +363,7 @@ class PredictorModuleIPU(PredictorModule):
 
         return cleaned_batch
 
-    def _build_batch(self, *inputs):
+    def _build_dict_input(self, *inputs):
 
         batch = {}
 
