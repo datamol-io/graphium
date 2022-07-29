@@ -287,7 +287,8 @@ class PredictorModuleIPU(PredictorModule):
     def training_step(self, *inputs) -> Dict[str, Any]:
         dict_input = self._build_dict_input(*inputs)
         step_dict = super().training_step(dict_input, to_cpu=False)
-        return step_dict["loss"] # TODO: Limitation that only the loss can be returned
+        loss = poptorch.identity_loss(step_dict["loss"], reduction="mean")
+        return loss # TODO: Limitation that only the loss can be returned
 
     def validation_step(self, *inputs) -> Dict[str, Any]:
         dict_input = self._build_dict_input(*inputs)
