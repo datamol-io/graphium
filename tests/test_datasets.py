@@ -16,14 +16,12 @@ from goli.data.utils import load_tiny_zinc
 
 class Test_Multitask_Dataset(ut.TestCase):
 
-    # TODO: We technically only need to load tinyzinc once. 
+    # TODO: Only need to load zinc once. 
     # Then we can choose different rows and columns for the tests as we see fit.
-    # Remember tests are supposed to be FAST.
+    # Remember tests are supposed to be FAST, and reading from the file system multiple times slows things down.
     
-    # TODO: Make sure that the inputs to single task datasets are always lists!!!
-    # Do not pass a data frame itself, but turn it into a list to satisfy the typing system. That's the whole point of typing, remember?
-
-
+    # Make sure that the inputs to single task datasets are always lists!
+    # Do not pass a data frame itself, but turn it into a list to satisfy the type required.
 
     def test_multitask_dataset_case_1(self):
         """Case: different tasks, all with the same smiles set.
@@ -83,44 +81,6 @@ class Test_Multitask_Dataset(ut.TestCase):
             self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]['SA'])
             self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]['logp'])
             self.assertEqual(label_score, multitask_microzinc.labels[found_idx]['score'])
-
-    # def test_merge_case_2(self):
-    #     """Case: Different tasks, but with no intersection in the smiles (each task has a unique set of smiles)
-    #         - Check that the total dataset has as much smiles as all tasks together
-    #         - Check that, for each task, only the smiles related to that task have values, and ensure the value is what's expected from the initial DF
-    #     """
-    #     df = load_tiny_zinc()
-
-    #     # Choose non-overlapping smiles by choosing specific rows from the original dataframe.
-    #     df_rows_SA = df.iloc[0:5]         # 200 data points
-    #     df_rows_logp = df.iloc[5:8]     # 200 data points
-    #     df_rows_score = df.iloc[8:15]    # 350 data points
-    #     total_data_points = 15
-
-    #     # Here we split the data according to the task we care about
-    #     df_micro_zinc_SA = df_rows_SA[['SMILES', 'SA']]
-    #     df_micro_zinc_logp = df_rows_logp[['SMILES', 'logp']]
-    #     df_micro_zinc_score = df_rows_score[['SMILES', 'score']]
-
-    #     # We need to turn these dataframes into single-task datasets.
-    #     # We don't need to do featurization yet.
-    #     ds_micro_zinc_SA = SingleTaskDataset(
-    #         smiles=df_micro_zinc_SA.loc[:,'SMILES'].tolist(),
-    #         labels=df_micro_zinc_SA.loc[:,'SA'].tolist()
-    #         )
-    #     ds_micro_zinc_logp = SingleTaskDataset(
-    #         smiles=df_micro_zinc_logp.loc[:,'SMILES'].tolist(),
-    #         labels=df_micro_zinc_logp.loc[:,'logp'].tolist()
-    #         )
-    #     ds_micro_zinc_score = SingleTaskDataset(
-    #         smiles=df_micro_zinc_score.loc[:,'SMILES'].tolist(),
-    #         labels=df_micro_zinc_score.loc[:,'score'].tolist()
-    #         )           
-
-    #     # Create the multitask dataset
-    #     datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
-    #     multitask_microzinc = MultitaskDataset(datasets_dict) # Can optionally have features
-
 
     
     def test_multitask_dataset_case_2(self):
@@ -197,7 +157,6 @@ class Test_Multitask_Dataset(ut.TestCase):
                 self.assertFalse('SA' in multitask_microzinc.labels[found_idx].keys())
                 self.assertFalse('logp' in multitask_microzinc.labels[found_idx].keys())
 
-    # TODO (Gabriela): Fix this test case.
     def test_multitask_dataset_case_3(self):
         """Case: Different tasks, but with semi-intersection (some smiles unique per task, some intersect)
             - Check that the total dataset has as much smiles as the unique number of smiles.
@@ -208,10 +167,10 @@ class Test_Multitask_Dataset(ut.TestCase):
 
 
         # Choose OVERLAPPING smiles by choosing specific rows from the original dataframe. The tasks will not necessarily have unique smiles.
-        df_rows_SA = df.iloc[0:3]         # 200 data points in 'SA' task, but 170-199 overlap with 'logp' task
-        df_rows_logp = df.iloc[1:4]     # 200 data points in 'logp' task, but 170-199 overlap with 'SA' task, and 370-399 overlap with 'score' task
-        df_rows_score = df.iloc[3:5]    # 350 data points in 'score' task, but 370-399 overlap with 'logp'
-        total_data_points = 5             # There are 750 rows, but 60 smiles overlap, giving 690 unique molecules
+        df_rows_SA = df.iloc[0:3]
+        df_rows_logp = df.iloc[1:4]
+        df_rows_score = df.iloc[3:5]
+        total_data_points = 5
 
         # Here we split the data according to the task we care about.
         df_micro_zinc_SA = df_rows_SA[['SMILES', 'SA']]
@@ -242,11 +201,9 @@ class Test_Multitask_Dataset(ut.TestCase):
         datasets_dict = {'SA': ds_micro_zinc_SA, 'logp': ds_micro_zinc_logp, 'score': ds_micro_zinc_score}
         multitask_microzinc = MultitaskDataset(datasets_dict) # Can optionally have features
 
-        # multitask_microzinc.print_data()
-        # pprint(df)
-
-        # # The multitask dataset has as many molecules as there are unique smiles across the single task datasets.
+        # The multitask dataset has as many molecules as there are unique smiles across the single task datasets.
         self.assertEqual(total_data_points, multitask_microzinc.__len__())
+
 
     # # TODO (Gabriela): After fixing case 3, implement case with bad smiles.
     # def test_multitask_dataset_case_4(self):
