@@ -475,8 +475,8 @@ class BaseDataModule(pl.LightningDataModule):
         ipu_options = poptorch.Options()
         ipu_options.deviceIterations(1) #not sure how to set this number yet, start small
         ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
-        ipu_options.Jit.traceModel(False) # Use the experimental compiler
-        ipu_options._jit._values["trace_model"] = False
+        # ipu_options.Jit.traceModel(False) # Use the experimental compiler
+        # ipu_options._jit._values["trace_model"] = False
 
         loader = poptorch.DataLoader(
             options=ipu_options,

@@ -24,8 +24,8 @@ os.chdir(MAIN_DIR)
 ipu_options = poptorch.Options()
 ipu_options.deviceIterations(1) #not sure how to set this number yet, start small
 ipu_options.replicationFactor(1)  #use 1 IPU for now in testing
-ipu_options.Jit.traceModel(False)
-ipu_options._jit._values["trace_model"] = False
+# ipu_options.Jit.traceModel(False)
+# ipu_options._jit._values["trace_model"] = False
 
 def main(cfg: DictConfig) -> None:
 
