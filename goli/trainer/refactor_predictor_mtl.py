@@ -273,14 +273,11 @@ class PredictorModule(pl.LightningModule):
         """
         # TODO (Andy): This is where the loss functions are being computed. `loss_fun` is a dictionary of one loss function per task.
 
-        #wrapped_loss_fun = MetricWrapper(metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask)
         wrapped_loss_fun_dict = {task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask) for task, loss in loss_fun.items()}
 
         if weights is not None:
             raise NotImplementedError("Weights are no longer supported in the loss")
-        #loss = wrapped_loss_fun(preds=preds, target=targets)
         all_task_losses = {task: wrapped(preds=preds[task], target=targets[task]) for task, wrapped in wrapped_loss_fun_dict.items()}
-        #total_loss = torch.sum(all_task_losses.values(), dim=0)
         total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
         num_tasks = len(all_task_losses.keys())
         weighted_loss = total_loss / num_tasks

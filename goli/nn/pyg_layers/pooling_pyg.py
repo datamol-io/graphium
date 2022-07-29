@@ -1,11 +1,8 @@
-from turtle import forward
 import torch
 import torch.nn as nn
 from torch import Tensor, LongTensor
 from typing import List, Union, Callable, Tuple, Optional
-from functools import partial
 
-from torch_geometric.nn import global_add_pool, global_max_pool, global_mean_pool
 from torch_scatter import scatter
 from torch_geometric.data import Data, Batch
 
