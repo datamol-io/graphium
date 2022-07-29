@@ -4,6 +4,7 @@ from typing import Tuple, Union, Callable
 from dgl import DGLGraph
 
 from goli.nn.base_graph_layer import BaseGraphModule
+from goli.nn.base_layers import FCLayer
 from goli.utils.decorators import classproperty
 
 """
@@ -64,11 +65,13 @@ class GatedGCNDgl(BaseGraphModule):
             normalization=normalization,
         )
 
+        self.out_dim_edges = out_dim_edges
         self.A = nn.Linear(in_dim, out_dim, bias=True)
         self.B = nn.Linear(in_dim, out_dim, bias=True)
         self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
+        self.edge_out = FCLayer(in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True)
 
     def message_func(self, edges):
         Bh_j = edges.src["Bh"]
@@ -128,7 +131,7 @@ class GatedGCNDgl(BaseGraphModule):
         e = g.edata["edge_attr"]  # result of graph convolution
 
         h = self.apply_norm_activation_dropout(h)
-        e = self.apply_norm_activation_dropout(e)
+        e = self.edge_out(e)
 
         return h, e
 

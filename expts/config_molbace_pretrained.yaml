@@ -3,7 +3,7 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  module_type: "DGLOGBDataModule"
+  module_type: "GraphOGBDataModule"
   args:
     cache_data_path: null
     dataset_name: "ogbg-molbace"

@@ -57,10 +57,10 @@ def main(cfg: DictConfig) -> None:
 
     trainer = load_trainer(cfg, ipu_options=ipu_options)
 
+    trainer.fit(model=predictor, datamodule=datamodule)
     # Run the model training
     print("\n------------ TRAINING STARTED ------------")
     try:
-        trainer.fit(model=predictor, datamodule=datamodule)
         print("\n------------ TRAINING COMPLETED ------------\n\n")
 
     except Exception as e:
