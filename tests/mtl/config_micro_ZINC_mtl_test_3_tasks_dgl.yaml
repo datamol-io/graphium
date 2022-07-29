@@ -5,7 +5,7 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  module_type: "MultitaskDGLFromSmilesDataModule"
+  module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       SA:
@@ -49,7 +49,7 @@ datamodule:
         weights_type: null                # This may not always be provided
 
     # Featurization
-    prepare_dict_or_graph: pyg:graph
+    prepare_dict_or_graph: dgl:graph
     featurization_n_jobs: -1
     featurization_progress: True
     featurization:
@@ -107,7 +107,7 @@ architecture:
     residual_type: random
     pooling: [sum, max]
     virtual_node: 'sum'
-    layer_type: 'pyg:pna-msgpass'
+    layer_type: 'dgl:pna-msgpass'
     layer_kwargs:
       # num_heads: 3
       aggregators: [mean, max]

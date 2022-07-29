@@ -3,7 +3,7 @@ constants:
   raise_train_error: false   # Whether the code should raise an error if it crashes during training
 
 datamodule:
-  module_type: "DGLOGBDataModule"
+  module_type: "GraphOGBDataModule"
   args:
     dataset_name: "ogbg-molpcba"
     cache_data_path: null # goli/data/cache/ogb-molpcba/full-morefeatures.cache

@@ -533,8 +533,12 @@ class FeedForwardGraphBase(FeedForwardNN):
             if self.layer_class.layer_supports_edges and self.in_dim_edges > 0:
                 this_edge_kwargs["in_dim_edges"] = this_in_dim_edges
                 if "out_dim_edges" in inspect.signature(self.layer_class.__init__).parameters.keys():
-                    layer_out_dims_edges.append(self.full_dims_edges[ii + 1])
-                    this_edge_kwargs["out_dim_edges"] = layer_out_dims_edges[-1]
+                    if self.full_dims_edges is not None:
+                        this_out_dim_edges = self.full_dims_edges[ii + 1]
+                        this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
+                    else:
+                        this_out_dim_edges = self.layer_kwargs.get('out_dim_edges')
+                    layer_out_dims_edges.append(this_out_dim_edges)
 
             # Create the GNN layer
             self.layers.append(
@@ -1091,7 +1095,9 @@ class FullGraphNetwork(nn.Module):
             h = torch.cat((h, pos_enc_feats_no_flip), dim=-1)
 
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
-        g = self.gnn._set_edge_feats(g, e.to(self.dtype), key="edge_attr")
+        if e is not None:
+            e = e.to(self.dtype)
+        g = self.gnn._set_edge_feats(g, e, key="edge_attr")
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
@@ -1516,11 +1522,9 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         return self.task_heads(h)
 
     @property
-    def out_dim(self):
+    def out_dim(self) -> Dict[str, int]:
         r"""
-        Returns the output dimension of the network
+        Returns the output dimension of the network for each task
         """
-        if self.pre_nn is not None:
-            return self.post_nn.out_dim
-        else:
-            return self.gnn.out_dim
+        # TODO (Gab): check if this is right
+        return {key: head.out_dim for key, head in self.task_heads.task_heads.items()}
