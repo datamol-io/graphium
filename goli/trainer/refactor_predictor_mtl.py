@@ -282,11 +282,9 @@ class PredictorModule(pl.LightningModule):
         #loss = wrapped_loss_fun(preds=preds, target=targets)
         all_task_losses = {task: wrapped(preds=preds[task], target=targets[task]) for task, wrapped in wrapped_loss_fun_dict.items()}
         #total_loss = torch.sum(all_task_losses.values(), dim=0)
-        total_loss = torch.zeros_like(next(iter(all_task_losses.values())), requires_grad=True)
-        for task, loss in all_task_losses.items():
-            total_loss = torch.add(total_loss, loss)
+        total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
         num_tasks = len(all_task_losses.keys())
-        weighted_loss = torch.div(total_loss, num_tasks)
+        weighted_loss = total_loss / num_tasks
         return weighted_loss            # Return all_task_losses?
 
     def _general_step(
