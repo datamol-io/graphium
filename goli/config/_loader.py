@@ -1,27 +1,56 @@
-from collections import namedtuple
-from turtle import forward
-import poptorch
-
-from typing import List, Dict, NamedTuple, Union, Any
+from typing import Dict, Union, Any
 
 import omegaconf
 from copy import deepcopy
 import torch
 from loguru import logger
 
-from pytorch_lightning.plugins import IPUPlugin
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 from goli.nn.architectures import TaskHeadParams
+from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
+import poptorch
 
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork, FeedForwardNN
-# from goli.trainer.predictor import PredictorModule
+from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
+from goli.trainer.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 
-from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
+def get_accelerator(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+) -> str:
+
+    # Get the accelerator name
+    accelerator = config["trainer"]["trainer"].get("accelerator", None)
+    if accelerator is not None:
+        accelerator = accelerator.lower()
+
+    # Get the GPU info
+    gpus = config["trainer"].get("gpus", 0)
+    if gpus > 0:
+        assert (accelerator is None) or (accelerator == "gpu"), "Accelerator mismatch"
+        accelerator = "gpu"
+
+    if (accelerator == "gpu") and (not torch.cuda.is_available()):
+        logger.warning(
+            f"GPUs selected, but will be ignored since no GPU are available on this device"
+        )
+        accelerator = "cpu"
+
+    # Get the IPU info
+    ipus = config["trainer"].get("ipus", 0)
+    if ipus > 0:
+        assert (accelerator is None) or (accelerator == "ipu"), "Accelerator mismatch"
+        accelerator = "ipu"
+    if (accelerator == "ipu") and (not poptorch.ipuHardwareIsAvailable()):
+        logger.warning(
+            f"IPUs selected, but will be ignored since no IPU are available on this device"
+        )
+        accelerator = "cpu"
+
+    return accelerator
 
 def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
@@ -136,8 +165,14 @@ def load_architecture(
 def load_predictor(config, model_class, model_kwargs, metrics):
     # Defining the predictor
 
+    accelerator = get_accelerator(config)
+    if accelerator == "ipu":
+        predictor_class = PredictorModuleIPU
+    else:
+        predictor_class = PredictorModule
+
     cfg_pred = dict(deepcopy(config["predictor"]))
-    predictor = PredictorModuleIPU(
+    predictor = predictor_class(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
@@ -150,18 +185,20 @@ def load_predictor(config, model_class, model_kwargs, metrics):
 def load_trainer(config, ipu_options=None):
     cfg_trainer = deepcopy(config["trainer"])
 
+    # Define the IPU plugin if required
+    plugins = []
+    accelerator = get_accelerator(config)
+    if accelerator == "ipu":
+        plugins = IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
+
     # Set the number of gpus to 0 if no GPU is available
-    gpus = cfg_trainer["trainer"].pop("gpus", 0)
-    num_gpus = 0
-    if isinstance(gpus, int):
-        num_gpus = gpus
-    elif isinstance(gpus, (list, tuple)):
-        num_gpus = len(gpus)
-    if (num_gpus > 0) and (not torch.cuda.is_available()):
-        logger.warning(
-            f"Number of GPUs selected is `{num_gpus}`, but will be ignored since no GPU are available on this device"
-        )
-        gpus = 0
+    acc = cfg_trainer["trainer"].pop("accelerator", None)
+    gpus = cfg_trainer["trainer"].pop("gpus", None)
+    ipus = cfg_trainer["trainer"].pop("ipus", None)
+    if (accelerator == "gpu") and (gpus is None):
+        gpus = 1
+    if (accelerator == "ipu") and (ipus is None):
+        ipus = 1
 
     trainer_kwargs = {}
     callbacks = []
@@ -176,225 +213,15 @@ def load_trainer(config, ipu_options=None):
 
     trainer_kwargs["callbacks"] = callbacks
 
-
-    #! need to add IPU options here
-    '''
-    trainer = pl.Trainer(
-        max_epochs=1,
-        progress_bar_refresh_rate=1,
-        log_every_n_steps=1,
-        plugins=IPUPlugin(inference_opts=options, training_opts=options)
-    )
-    '''
     trainer = Trainer(
         terminate_on_nan=True,
-        # num_sanity_val_steps=0,
+        plugins=plugins,
+        accelerator=accelerator,
+        ipus = ipus,
+        gpus = gpus,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
-        plugins=IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
     )
-
-
-
-    # trainer = Trainer(
-    #     terminate_on_nan=True,
-    #     **cfg_trainer["trainer"],
-    #     **trainer_kwargs,
-    # )
 
     return trainer
 
-
-
-from pytorch_lightning.trainer.states import RunningStage
-from torch_geometric.data import Batch
-from poptorch._args_parser import ArgsParser
-import inspect
-from poptorch import _impl
-from torch import Tensor
-from collections import namedtuple
-from inspect import _ParameterKind
-from pytorch_lightning.strategies.parallel import ParallelStrategy
-
-def named_tuple_from_dict_batch(dict_or_batch, name):
-    keys, vals = zip(*dict_or_batch.items())
-    return namedtuple(name, keys)(*vals)
-
-
-class IPUPluginGoli(IPUPlugin):
-
-    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):
-
-        # TODO: Change to named_tuple?? Easier for some stuff, but harder if a dictionary contains some tensors and some non-tensors.
-
-        # Arguments for the loop
-        new_args, all_keys = [], []
-        keys_tensor_dict, keys_batch, keys_tensor, keys_others = {}, {}, {}, {}
-
-        # Loop every argument. If a dict or pyg graph is found, split into tensors
-        for data_key, data_val in args[0].items():
-            if isinstance(data_val, (Dict, Batch)):
-                for sub_key, sub_val in data_val.items():
-                    if isinstance(sub_val, Tensor):
-                        new_args.append(sub_val)
-                        all_keys.append(sub_key)
-
-                        # Append the keys for the tensors
-                        if isinstance(data_val, Dict):
-                            if data_key not in keys_tensor_dict:
-                                keys_tensor_dict[data_key] = {}
-                            keys_tensor_dict[data_key][sub_key] = len(all_keys) - 1
-
-                        # Append the keys for the pyg Batch
-                        elif isinstance(data_val, Batch):
-                            if data_key not in keys_batch:
-                                keys_batch[data_key] = {}
-                            keys_batch[data_key][sub_key] = len(all_keys) - 1
-                    else:
-                        if data_key not in keys_others:
-                            keys_others[data_key] = {}
-                        keys_others[data_key][sub_key] = sub_val
-
-            elif isinstance(data_val, Tensor):
-                new_args.append(data_val)
-                all_keys.append(data_key)
-                keys_tensor[data_key] = len(all_keys) - 1
-            else:
-                keys_others[data_key] = data_val
-
-        # Tell the module what are the labels associated to the labels and batches
-        self.model.module._keys_tensor_dict = keys_tensor_dict
-        self.model.module._keys_tensor = keys_tensor
-        self.model.module._keys_batch = keys_batch
-        self.model.module._keys_others = keys_others
-        self.poptorch_models[stage]._args_parser._varnames = all_keys
-        self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
-
-        # Run the step using only tuple of tensors
-        out = super()._step(stage, *new_args, **kwargs)
-
-        # Remove the keys from the module after the step is executed
-        self.model.module._keys_tensor_dict = None
-        self.model.module._keys_tensor = None
-        self.model.module._keys_batch = None
-        self.model.module._keys_others = None
-
-        return out
-
-
-class PredictorModuleIPU(PredictorModule):
-
-    def training_step(self, *inputs) -> Dict[str, Any]:
-        dict_input = self._build_dict_input(*inputs)
-        step_dict = super().training_step(dict_input, to_cpu=False)
-        loss = poptorch.identity_loss(step_dict["loss"], reduction="mean")
-        return loss # TODO: Limitation that only the loss can be returned
-
-    def validation_step(self, *inputs) -> Dict[str, Any]:
-        dict_input = self._build_dict_input(*inputs)
-        step_dict = super().validation_step(dict_input, to_cpu=False)
-        step_dict = self._clean_output_batch(step_dict)
-        return step_dict
-
-    def test_step(self, *inputs) -> Dict[str, Any]:
-        dict_input = self._build_dict_input(*inputs)
-        step_dict = super().test_step(dict_input, to_cpu=False)
-        step_dict = self._clean_output_batch(step_dict)
-        return step_dict
-
-    def predict_step(self, *inputs) -> Dict[str, Any]:
-        dict_input = self._build_dict_input(*inputs)
-        step_dict = super().test_step(dict_input, to_cpu=False)
-        step_dict = self._clean_output_batch(step_dict)
-        return step_dict
-
-    def training_epoch_end(self, outputs: Dict[str, Any]):
-        # Limited. Since only the loss can be returned in `training_step`
-        return
-
-    def validation_epoch_end(self, outputs: Dict[str, Any]):
-        retrieved_outputs = self._retrieve_output_batch(outputs)
-        return super().validation_epoch_end(retrieved_outputs)
-
-    def test_epoch_end(self, outputs: Dict[str, Any]):
-        retrieved_outputs = self._retrieve_output_batch(outputs)
-        return super().test_epoch_end(retrieved_outputs)
-
-    def predict_epoch_end(self, outputs: Dict[str, Any]):
-        retrieved_outputs = self._retrieve_output_batch(outputs)
-        return super().test_epoch_end(retrieved_outputs)
-
-    def _retrieve_output_batch(self, outputs):
-        new_outputs = []
-        for batch in outputs:
-            new_outputs.append({})
-            for ii, struct in enumerate(self._output_step_structure):
-                new_outputs[-1][struct[0]] = {}
-                for jj, key in enumerate(struct[1:]):
-                    new_outputs[-1][struct[0]][key] = batch[ii][jj]
-            others = new_outputs[-1].pop("_others", {})
-            new_outputs[-1].update(others)
-        return new_outputs
-
-    def _clean_output_batch(self, out_batch):
-
-        # Transform Dict[Tensor] into Dict[Dict[Tensor]] by grouping them
-        cleaned_batch, others = {}, {}
-        for key, val in out_batch.items():
-            if isinstance(val, dict):
-                cleaned_batch[key] = val
-            elif isinstance(val, Tensor):
-                others[key] = val
-        if len(others) > 0:
-            cleaned_batch["_others"] = others
-
-        # Save the structure of the dict somewhere
-        output_step_structure = []
-        for key, val in cleaned_batch.items():
-            output_step_structure.append([key])
-            for sub_key, sub_val in val.items():
-                output_step_structure[-1].append(sub_key)
-        self._output_step_structure = output_step_structure
-
-        # Convert Dict[Dict[Tensor]] into Tuple[Tuple[Tensor]]
-        new_dict = {}
-        for key, val in cleaned_batch.items():
-            new_dict[key] = tuple(val.values())
-        cleaned_batch = tuple(new_dict.values())
-
-        return cleaned_batch
-
-    def _build_dict_input(self, *inputs):
-
-        batch = {}
-
-        # Initialize the batch of pyg objects
-        for key, pyg_elems in self._keys_batch.items():
-            pyg_batch = Batch()
-            for pyg_key, idx in pyg_elems.items():
-                pyg_batch[pyg_key] = inputs[idx]
-            batch[key] = pyg_batch
-
-        # Initialize the dictionaries of tensors, such as the multitask labels
-        for key, this_dict in self._keys_tensor_dict.items():
-            tensor_dict = {}
-            for tensor_key, idx in this_dict.items():
-                tensor_dict[tensor_key] = inputs[idx]
-            batch[key] = tensor_dict
-
-        # Initialize the tensors
-        for key, idx in self._keys_tensor.items():
-            batch[key] = inputs[idx]
-
-        # Initialize the other elements
-        for key, val in self._keys_others.items():
-            if isinstance(val, dict):
-                if key not in batch.keys():
-                    batch[key] = {}
-                # Update the dict or pyg-Batch
-                for sub_key, sub_val in val.items():
-                    batch[sub_key] = sub_val
-            else:
-                batch[key] = val
-
-        return batch

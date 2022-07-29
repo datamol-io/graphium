@@ -291,5 +291,4 @@ trainer:
     precision: 32
     max_epochs: 25
     min_epochs: 5
-    accelerator: cpu
-
+    accelerator: ipu
