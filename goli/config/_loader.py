@@ -75,7 +75,7 @@ def load_datamodule(
     return datamodule
 
 
-def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]): #TODO (Gab): Remove duplicate
 
     metrics = {}
     cfg_metrics = deepcopy(config["metrics"])
