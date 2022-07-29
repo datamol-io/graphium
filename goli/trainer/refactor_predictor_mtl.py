@@ -177,10 +177,6 @@ class PredictorModule(pl.LightningModule):
         else:
             out_dict = {"preds": out}
 
-        # TODO (Andy): Maybe here you add the loss and backward???
-        # Maybe simply inherit from that class, and change the forward. And call it PredictorIPUTrain???
-        # Maybe simply check the Lightning implementation of IPUs?
-
         return out_dict
 
     def _convert_features_dtype(self, feats):
@@ -197,14 +193,8 @@ class PredictorModule(pl.LightningModule):
 
         return feats
 
-    #! this should be fine for now
-    '''
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.02)
-    '''
 
     def configure_optimizers(self):
-        # TODO (Andy): This is where the optimizer is configured
 
         # TODO: Fix scheduling with the Summary class
         # Configure the parameters for the schedulers
@@ -233,7 +223,7 @@ class PredictorModule(pl.LightningModule):
         preds: Dict[str, Tensor],
         targets: Dict[str, Tensor],
         weights: Optional[Tensor],
-        loss_fun: Dict[str, Callable],                  # Was Callable
+        loss_fun: Dict[str, Callable],
         target_nan_mask: Union[Type, str] = "ignore",
     ) -> Tensor:
         r"""
@@ -271,7 +261,6 @@ class PredictorModule(pl.LightningModule):
             Tensor:
                 Resulting loss
         """
-        # TODO (Andy): This is where the loss functions are being computed. `loss_fun` is a dictionary of one loss function per task.
 
         wrapped_loss_fun_dict = {task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask) for task, loss in loss_fun.items()}
 
@@ -397,16 +386,6 @@ class PredictorModule(pl.LightningModule):
         step_dict["loss"] = loss
         return step_dict
 
-    #! check out the training step in the fashion mnist example below
-    # need to pass the data and labels and returns the loss
-    #? does it return the loss currently?
-    '''
-    def training_step(self, batch, _):
-        x, y = batch
-        output = self.forward(x)
-        loss = torch.nn.functional.nll_loss(output, y)
-        return loss
-    '''
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
         step_dict = None
@@ -487,23 +466,6 @@ class PredictorModule(pl.LightningModule):
 ################################################################################################################
         return metrics_logs             # Consider returning concatenated dict for tensorboard
 
-    def on_train_epoch_start(self) -> None:
-        # TODO (Andy): Reload the model WITH the loss???
-        # Check first if loss is already there
-        # Maybe simply check the Lightning implementation of IPUs?
-        return super().on_train_epoch_start()
-
-    def on_validation_epoch_start(self) -> None:
-        # TODO (Andy): Reload the model WITHOUT the loss???
-        # Check first if loss is already missing
-        # Maybe simply check the Lightning implementation of IPUs?
-        return super().on_validation_epoch_start()
-
-    def on_test_epoch_start(self) -> None:
-        # TODO (Andy): Reload the model WITHOUT the loss???
-        # Check first if loss is already missing
-        # Maybe simply check the Lightning implementation of IPUs?
-        return super().on_test_epoch_start()
 
     def training_epoch_end(self, outputs: Dict):
         """

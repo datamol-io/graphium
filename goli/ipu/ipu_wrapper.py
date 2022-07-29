@@ -1,20 +1,18 @@
 from typing import Dict, Any
 
-from pytorch_lightning.trainer.states import RunningStage
 from torch_geometric.data import Batch
 from torch import Tensor
 from inspect import _ParameterKind
 from pytorch_lightning.plugins import IPUPlugin
-import poptorch
+from pytorch_lightning.trainer.states import RunningStage
 
 from goli.trainer.refactor_predictor_mtl import PredictorModule
+from goli.ipu.ipu_utils import get_poptorch
 
 
 class IPUPluginGoli(IPUPlugin):
 
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):
-
-        # TODO: Change to named_tuple?? Easier for some stuff, but harder if a dictionary contains some tensors and some non-tensors.
 
         # Arguments for the loop
         new_args, all_keys = [], []
@@ -73,11 +71,15 @@ class IPUPluginGoli(IPUPlugin):
 
 class PredictorModuleIPU(PredictorModule):
 
+    def __init__(self, *args, **kwargs):
+        self.poptorch = get_poptorch()
+        super().__init__(*args, **kwargs)
+
     def training_step(self, *inputs) -> Dict[str, Any]:
         dict_input = self._build_dict_input(*inputs)
         step_dict = super().training_step(dict_input, to_cpu=False)
-        loss = poptorch.identity_loss(step_dict["loss"], reduction="mean")
-        return loss # TODO: Limitation that only the loss can be returned
+        loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
+        return loss # Limitation that only the loss can be returned
 
     def validation_step(self, *inputs) -> Dict[str, Any]:
         dict_input = self._build_dict_input(*inputs)
