@@ -1,11 +1,11 @@
-# Testing the multitask pipeline with the micro ZINC dataset, by splitting it up into three tasks: homo, alpha and cv.
+# Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 
 constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
     type: ipu
-    options:
+    options: # This is not really used at the moment.
       - deviceIterations(1)
       - replicationFactor(1)
 
@@ -207,15 +207,10 @@ metrics:
     #     th_on_preds: True
     #     th_on_target: True
     #     target_to_int: True
-    - name: precision gt 0.5
-      metric: precision
-      average: micro
-      threshold_kwargs: &threshold_05
-        operator: greater
-        threshold: 0.5
-        th_on_preds: True
-        th_on_target: True
-        target_to_int: True
+    # - name: precision gt 0.5
+    #   metric: precision
+    #   average: micro
+    #   threshold_kwargs: *threshold_05
 
   alpha:
     - name: mae
