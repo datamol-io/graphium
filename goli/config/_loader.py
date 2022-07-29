@@ -1,4 +1,4 @@
-from typing import Dict, Union, Any
+from typing import Dict, Mapping, Union, Any
 
 import omegaconf
 from copy import deepcopy
@@ -22,42 +22,50 @@ def get_accelerator(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
 ) -> str:
 
-    # Get the accelerator name
-    accelerator = config["constants"]["accelerator"].get("type", None)
-    if accelerator is not None:
-        accelerator = accelerator.lower()
+    # Get the accelerator type
+    accelerator = config["constants"].get("accelerator")
+    acc_type = None
+    if isinstance(accelerator, Mapping):
+        acc_type = accelerator.get("type", None)
+    if acc_type is not None:
+        acc_type = acc_type.lower()
 
     # Get the GPU info
-    gpus = config["trainer"].get("gpus", 0)
+    gpus = config["trainer"]["trainer"].get("gpus", 0)
     if gpus > 0:
-        assert (accelerator is None) or (accelerator == "gpu"), "Accelerator mismatch"
-        accelerator = "gpu"
+        assert (acc_type is None) or (acc_type == "gpu"), "Accelerator mismatch"
+        acc_type = "gpu"
 
-    if (accelerator == "gpu") and (not torch.cuda.is_available()):
+    if (acc_type == "gpu") and (not torch.cuda.is_available()):
         logger.warning(
             f"GPUs selected, but will be ignored since no GPU are available on this device"
         )
-        accelerator = "cpu"
+        acc_type = "cpu"
 
     # Get the IPU info
-    ipus = config["trainer"].get("ipus", 0)
+    ipus = config["trainer"]["trainer"].get("ipus", 0)
     if ipus > 0:
-        assert (accelerator is None) or (accelerator == "ipu"), "Accelerator mismatch"
-        accelerator = "ipu"
-    if accelerator == "ipu":
+        assert (acc_type is None) or (acc_type == "ipu"), "Accelerator mismatch"
+        acc_type = "ipu"
+    if acc_type == "ipu":
         poptorch = get_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
             logger.warning(
                 f"IPUs selected, but will be ignored since no IPU are available on this device"
             )
-            accelerator = "cpu"
+            acc_type = "cpu"
 
-    return accelerator
+    # Fall on cpu at the end
+    if acc_type is None:
+        acc_type = "cpu"
+
+    return acc_type
 
 
 def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]]
 ):
+    ipu_options = None
     if get_accelerator(config) == "ipu":
         ipu_options = load_ipu_options(config)
 
