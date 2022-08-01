@@ -26,7 +26,7 @@ from goli.utils import fs
 from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
-from goli.ipu.ipu_utils import get_poptorch
+from goli.ipu.ipu_utils import import_poptorch
 
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
@@ -399,7 +399,7 @@ class BaseDataModule(pl.LightningDataModule):
             )
 
         else:
-            poptorch = get_poptorch()
+            poptorch = import_poptorch()
             loader = poptorch.DataLoader(
                 options=self.ipu_options,
                 mode=poptorch.DataLoaderMode.Sync, #! # TODO: Make this configurable
