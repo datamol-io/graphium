@@ -15,7 +15,7 @@ from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, Ful
 from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
-from goli.ipu.ipu_utils import get_poptorch, load_ipu_options
+from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
 
 
 def get_accelerator(
@@ -48,7 +48,7 @@ def get_accelerator(
         assert (acc_type is None) or (acc_type == "ipu"), "Accelerator mismatch"
         acc_type = "ipu"
     if acc_type == "ipu":
-        poptorch = get_poptorch()
+        poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
             logger.warning(
                 f"IPUs selected, but will be ignored since no IPU are available on this device"
