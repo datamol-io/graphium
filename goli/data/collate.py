@@ -88,7 +88,8 @@ def goli_collate_fn(
                     pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
                     pyg_batch.append(pyg_graph)
 
-                batch[key] = Batch.from_data_list(pyg_batch) # TODO (Andy): Here, add the padding for constant ipu tensor size
+                #batch[key] = Batch.from_data_list(pyg_batch) # TODO (Andy): Here, add the padding for constant ipu tensor size
+                batch[key] = pyg_batch
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
@@ -116,3 +117,39 @@ def goli_collate_fn(
         return batch["temp_key"]
     else:
         return default_collate(elements)
+
+
+# # * written by Andy for IPU adaptation
+# # adapt the collate function to pad graphs to fit the same batch size requirement
+# # output batches of pyg graphs to use with provided graphcore dataloader
+# # only supports pyg graphs
+
+# def ipu_collate_fn(
+#     elements,
+#     labels_size_dict: Optional[Dict[str, Any]] = None,
+#     mask_nan: Union[str, float, Type[None]] = "raise",
+#     do_not_collate_keys: List[str] = [],
+# ):
+#     elem = elements[0]
+
+#     if isinstance(elem, Mapping):
+#         batch = {}
+#         for key in elem:
+#             # If a PyG Graph is provided, use the PyG batching
+#             # Convert all numpy types to torch
+#             # Convert edge indices to int32
+#             if isinstance(elem[key], Data):
+#                 pyg_batch = []
+#                 for this_elem in elements:
+#                     pyg_graph = this_elem[key]
+#                     for pyg_key in pyg_graph.keys:
+#                         tensor = pyg_graph[pyg_key]
+#                         # Convert numpy/scipy to Pytorch
+#                         if isinstance(tensor, (ndarray, spmatrix)):
+#                             pyg_graph[pyg_key] = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+#                     pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
+#                     pyg_batch.append(pyg_graph)
+#                 return pyg_batch
+#             else: 
+#                 raise Exception("only pyg graphs are accepted")
+

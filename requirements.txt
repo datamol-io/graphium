@@ -38,6 +38,6 @@ loguru
 appdirs
 matplotlib
 tk
-pytorch-lightning
+pytorch-lightning==1.6
 datamol
 PyYAML
