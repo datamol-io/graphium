@@ -71,6 +71,7 @@ def smiles_to_unique_mol_ids(smiles: List[str]):
     return unique_mol_ids
 
 
+
 class DGLDataset(Dataset): # TODO: DELETE
     def __init__(
         self,
@@ -400,19 +401,41 @@ class BaseDataModule(pl.LightningDataModule):
 
         else:
             poptorch = import_poptorch()
-            loader = poptorch.DataLoader(
-                options=self.ipu_options,
-                mode=poptorch.DataLoaderMode.Sync, #! # TODO: Make this configurable
-                dataset=dataset,
-                num_workers=num_workers,
-                collate_fn=self.collate_fn,
-                pin_memory=self.pin_memory,
-                batch_size=batch_size,
-                shuffle=shuffle,
-                persistent_workers=self.persistent_workers,
-            )
+            #! TODO (Andy), find in poptorch how is the batch size used to stop sampling and modify that usage
+            #? # Stop loading new graphs when it reaches capacity of #nodes, #graphs or #edges, instead of just batch_size
+            #! # TODO: wrap around the collate_fn to pad the pyg.Data.Batch.
+            #! # TODO: Make poptorch.DataLoaderMode.Sync configurable and work with ASync
+            # loader = poptorch.DataLoader( # Stop loading new graphs when it reaches capacity of #nodes, #graphs or #edges, instead of just batch_size
+            #     options=self.ipu_options,
+            #     mode=poptorch.DataLoaderMode.Sync, 
+            #     dataset=dataset,
+            #     num_workers=num_workers,
+            #     collate_fn=ipu_collate_fn, 
+            #     pin_memory=self.pin_memory,
+            #     batch_size=batch_size,
+            #     shuffle=shuffle,
+            #     persistent_workers=self.persistent_workers,
+            # )
 
+            from goli.data.ipu_dataloader import create_dataloader
 
+            loader = create_dataloader(dataset=dataset,
+                    ipu_opts=self.ipu_options,
+                    batch_size=100,
+                    collate_fn=self.collate_fn
+                    )
+            
+            # ipu_DataLoader(
+            #     options=self.ipu_options,
+            #     mode=poptorch.DataLoaderMode.Sync, 
+            #     dataset=dataset,
+            #     num_workers=num_workers,
+            #     collate_fn=ipu_collate_fn, 
+            #     pin_memory=self.pin_memory,
+            #     batch_size=batch_size,
+            #     shuffle=shuffle,
+            #     persistent_workers=self.persistent_workers,
+            # )
         return loader
 
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE

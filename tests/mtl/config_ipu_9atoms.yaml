@@ -4,9 +4,10 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
     type: ipu
-    options: # This is not really used at the moment.
+    options: # This is not really used at the moment. #! see ipu_utils.py for explanation of IPU arguments
       - deviceIterations(1)
       - replicationFactor(1)
+      - gradientAccumulation(1)
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -16,7 +17,7 @@ datamodule:
         df: null
         df_path: "goli/data/QM9/micro_qm9_9atoms_9bonds.csv"
         smiles_col: "smiles"
-        label_cols: ["homo"]
+        label_cols: ["homo", "lumo"]
         split_val: 0.2
         split_test: 0.2
         split_seed: *seed
@@ -131,7 +132,7 @@ architecture:
 
   task_heads:
     - task_name: "homo"
-      out_dim: 1
+      out_dim: 2
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
