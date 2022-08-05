@@ -165,7 +165,7 @@ architecture:
 #Task-specific
 predictor:
   metrics_on_progress_bar:
-    homo: ["mae"]
+    homo: ["mae", "pearsonr"]
     alpha: ["mae"]
     cv: ["mae", "pearsonr"]
   loss_fun:

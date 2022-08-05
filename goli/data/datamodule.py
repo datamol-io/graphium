@@ -388,7 +388,6 @@ class BaseDataModule(pl.LightningDataModule):
             num_workers = self.num_workers
 
         if self.ipu_options is None:
-
             loader = DataLoader(
             dataset=dataset,
             num_workers=num_workers,
@@ -421,21 +420,13 @@ class BaseDataModule(pl.LightningDataModule):
 
             loader = create_dataloader(dataset=dataset,
                     ipu_opts=self.ipu_options,
-                    batch_size=100,
-                    collate_fn=self.collate_fn
+                    batch_size=batch_size,
+                    collate_fn=self.collate_fn,
+                    num_workers=num_workers,
+                    pin_memory=self.pin_memory,
+                    shuffle=shuffle,
+                    persistent_workers=self.persistent_workers
                     )
-            
-            # ipu_DataLoader(
-            #     options=self.ipu_options,
-            #     mode=poptorch.DataLoaderMode.Sync, 
-            #     dataset=dataset,
-            #     num_workers=num_workers,
-            #     collate_fn=ipu_collate_fn, 
-            #     pin_memory=self.pin_memory,
-            #     batch_size=batch_size,
-            #     shuffle=shuffle,
-            #     persistent_workers=self.persistent_workers,
-            # )
         return loader
 
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE

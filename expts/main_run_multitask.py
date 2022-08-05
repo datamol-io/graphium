@@ -56,6 +56,9 @@ def main(cfg: DictConfig) -> None:
     print("\n------------ TESTING STARTED ------------")
     try:
         ckpt_path = trainer.checkpoint_callbacks[0].best_model_path
+        #ckpt_path = "models_checkpoints/micro_ZINC_mtl/model-v3.ckpt"
+        #error here
+        #TypeError: iteration over a 0-d tensor
         trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)
         print("\n------------ TESTING COMPLETED ------------\n\n")
 

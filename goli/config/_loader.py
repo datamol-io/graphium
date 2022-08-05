@@ -58,7 +58,6 @@ def get_accelerator(
     # Fall on cpu at the end
     if acc_type is None:
         acc_type = "cpu"
-
     return acc_type
 
 
@@ -178,8 +177,7 @@ def load_architecture(
 def load_predictor(config, model_class, model_kwargs, metrics):
     # Defining the predictor
 
-    accelerator = get_accelerator(config)
-    if accelerator == "ipu":
+    if get_accelerator(config) == "ipu":
         predictor_class = PredictorModuleIPU
     else:
         predictor_class = PredictorModule
