@@ -513,7 +513,7 @@ class PredictorModule(pl.LightningModule):
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)
         hparams_log["n_params"] = self.n_params
-        #self.logger.log_hyperparams(hparams_log, self.epoch_summary.get_results("val").metrics)        # Log hyperparameters
+        self.logger.log_hyperparams(hparams_log)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = {}
