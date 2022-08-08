@@ -78,7 +78,7 @@ class Pad(BaseTransform):
             g.node_is_true = torch.full([g.num_nodes], 1)
             g.edge_is_true = torch.full([g.num_edges], 1)
 
-        
+
         #create fake graph with the needed # of nodes and edges
         fake = Data()
         fake.num_nodes = num_pad_nodes
@@ -104,7 +104,7 @@ class Pad(BaseTransform):
                 pad_shape[dim] = num_pad_edges
                 if key == "edge_index":
                     # Padding edges are self-loops on the first padding node
-                    pad_value = num_nodes
+                    pad_value = 0
                 else:
                     pad_value = self.edge_value
             else:
@@ -117,7 +117,7 @@ class Pad(BaseTransform):
 
         if 'num_nodes' in new_data:
             new_data.num_nodes = self.max_num_nodes
-        
+
         return new_data
 
 
