@@ -11,7 +11,7 @@ from copy import deepcopy
 
 import goli
 from goli.config._loader import load_architecture
-from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork, TaskHead, TaskHeadParams
+from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork, TaskHead
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -49,18 +49,28 @@ task_3_kwargs = {
 }
 
 # The params to create the task head MLPs.
-task_1_params = TaskHeadParams(
-    **task_1_kwargs,
-    **kwargs,
-)
-task_2_params = TaskHeadParams(
-    **task_2_kwargs,
-    **kwargs,
-)
-task_3_params = TaskHeadParams(
-    **task_3_kwargs,
-    **kwargs,
-)
+# task_1_params = TaskHeadParams(
+#     **task_1_kwargs,
+#     **kwargs,
+# )
+# task_2_params = TaskHeadParams(
+#     **task_2_kwargs,
+#     **kwargs,
+# )
+# task_3_params = TaskHeadParams(
+#     **task_3_kwargs,
+#     **kwargs,
+# )
+
+task_1_params = {}
+task_1_params.update(task_1_kwargs)
+task_1_params.update(kwargs)
+task_2_params = {}
+task_2_params.update(task_2_kwargs)
+task_2_params.update(kwargs)
+task_3_params = {}
+task_3_params.update(task_3_kwargs)
+task_3_params.update(kwargs)
 
 class test_TaskHeads(ut.TestCase):
     def test_task_head_forward(self):
@@ -119,7 +129,7 @@ class test_TaskHeads(ut.TestCase):
         task_heads_params = [task_1_params, task_2_params, task_3_params]
 
         # Create the "multitask" network. Really it's just an input going to various FFNNs since there's nothing shared.
-        multi_head_nn = TaskHeads(in_dim=in_dim, task_heads_params=task_heads_params)
+        multi_head_nn = TaskHeads(in_dim=in_dim, task_heads_kwargs_list=task_heads_params)
 
         # Test the sizes of the MLPs for each head
         # Head for task_1
@@ -181,9 +191,9 @@ class test_Multitask_NN(ut.TestCase):
     g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
     g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
     g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    g1.edata["feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
+    g1.edata["edge_feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
     g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    g2.edata["feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    g2.edata["edge_feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
     batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
     batch = [dgl.add_self_loop(g) for g in batch]
     bg = dgl.batch(batch)
@@ -193,13 +203,13 @@ class test_Multitask_NN(ut.TestCase):
     pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
 
     gnn_layers_kwargs = {
-        "gcn": {},
-        "gin": {},
-        "gat": {"layer_kwargs": {"num_heads": 3}},
-        "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "pna-conv": {"layer_kwargs": pna_kwargs},
-        "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+        "dgl:gcn": {},
+        "dgl:gin": {},
+        "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
+        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
+        "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
     def test_fulldgl_multitask_forward(self):
@@ -235,7 +245,7 @@ class test_Multitask_NN(ut.TestCase):
                             )
 
                             multitask_fulldgl_nn = FullGraphMultiTaskNetwork(
-                                task_heads_kwargs=task_heads_params,
+                                task_heads_kwargs_list=task_heads_params,
                                 gnn_kwargs=gnn_kwargs,
                                 pre_nn_kwargs=pre_nn_kwargs,
                                 post_nn_kwargs=post_nn_kwargs,
@@ -260,9 +270,9 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
     g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
     g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
     g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim_nodes, dtype=torch.float32)
-    g1.edata["feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
+    g1.edata["edge_feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
     g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim_nodes, dtype=torch.float32)
-    g2.edata["feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    g2.edata["edge_feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
     batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
     batch = [dgl.add_self_loop(g) for g in batch]
     bg = dgl.batch(batch)

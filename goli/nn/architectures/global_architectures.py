@@ -1257,49 +1257,6 @@ class FullGraphSiameseNetwork(FullGraphNetwork):
 
         return out
 
-
-class TaskHeadParams():
-    def __init__(
-        self,
-        task_name: str,
-        #in_dim: int,                           # We don't need to specify the input dimension since the TaskHeads class will know which dimension to use.
-        out_dim: int,
-        hidden_dims: Union[List[int], int],     # Should this only be List? See FeedForwardNN vs. FeedForwardDGL
-        depth: Optional[int] = None,
-        activation: Union[str, Callable] = "relu",
-        last_activation: Union[str, Callable] = "none",
-        dropout: float = 0.0,
-        last_dropout: float = 0.0,
-        normalization: Union[str, Callable] = "none",
-        last_normalization: Union[str, Callable] = "none",
-        residual_type: str = "none",
-        residual_skip_steps: int = 1,
-        name: str = "LNN",
-        layer_type: Union[str, nn.Module] = "fc",
-        layer_kwargs: Optional[Dict] = None,
-    ):
-        r"""
-        This class holds all the information to instatiate a TaskHead.
-        """
-
-        self.task_name = task_name
-        #self.in_dim = in_dim
-        self.nn_params = {}
-        self.nn_params["out_dim"] = out_dim
-        self.nn_params["hidden_dims"] = hidden_dims
-        self.nn_params["depth"] = depth
-        self.nn_params["activation"] = activation
-        self.nn_params["last_activation"] = last_activation
-        self.nn_params["dropout"] = dropout
-        self.nn_params["last_dropout"] = last_dropout
-        self.nn_params["normalization"] = normalization
-        self.nn_params["last_normalization"] = last_normalization
-        self.nn_params["residual_type"] = residual_type
-        self.nn_params["residual_skip_steps"] = residual_skip_steps
-        self.nn_params["name"] = name
-        self.nn_params["layer_type"] = layer_type
-        self.nn_params["layer_kwargs"] = layer_kwargs
-
 class TaskHead(FeedForwardNN):
     def __init__(
         self,
@@ -1405,15 +1362,15 @@ class TaskHeads(nn.Module):
     def __init__(
         self,
         in_dim: int,
-        task_heads_kwargs: List[Type[TaskHeadParams]],
+        task_heads_kwargs_list: List[Dict[str, Any]],
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
         Parameters:
             in_dim:
                 Input feature dimensions of the layer
-            task_heads_params:
-                This argument is of type List[TaskHeadParams]. Each argument is used to
+            task_heads_kwargs_list:
+                This argument is a list of dictionaries corresponding to the arguments for a TaskHead. Each dict of arguments is used to
                 initialize a task-specific MLP.
         """
 
@@ -1422,11 +1379,10 @@ class TaskHeads(nn.Module):
         self.in_dim = in_dim
 
         self.task_heads = nn.ModuleDict()
-        for head_params in task_heads_kwargs:
-            self.task_heads[head_params.task_name] = TaskHead(
-                task_name=head_params.task_name,
+        for head_kwargs in task_heads_kwargs_list:
+            self.task_heads[head_kwargs["task_name"]] = TaskHead(
                 in_dim=self.in_dim,
-                **head_params.nn_params
+                **head_kwargs
             )
 
     # Return a dictionary: Dict[task_name, Tensor]
@@ -1437,6 +1393,18 @@ class TaskHeads(nn.Module):
             task_head_outputs[task] = head.forward(h)
 
         return task_head_outputs
+
+    def __repr__(self):
+        task_repr = []
+        for head in self.task_heads:
+            task_repr.append(head.__repr__())
+
+    @property
+    def out_dim(self) -> Dict[str, int]:
+        r"""
+        Returns the output dimension of each task head
+        """
+        return {task_name: head.out_dim for task_name, head in self.task_heads.items()}
 
 class FullGraphMultiTaskNetwork(FullGraphNetwork):
     """
@@ -1450,7 +1418,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
     def __init__(
         self,
-        task_heads_kwargs: List[TaskHeadParams],
+        task_heads_kwargs_list: List[Dict[str, Any]],
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
@@ -1467,8 +1435,8 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
         Parameters:
 
-            task_heads_kwargs:
-                This argument is of type List[TaskHeadParams]. Each argument is used to
+            task_heads_kwargs_list:
+                This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
                 initialize a task-specific MLP.
 
             gnn_kwargs:
@@ -1514,7 +1482,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             name=name,
         )
 
-        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs=task_heads_kwargs)
+        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs_list=task_heads_kwargs_list)
 
 
     def forward(self, g: Union[DGLGraph, Data]):
@@ -1526,4 +1494,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         r"""
         Returns the output dimension of the network for each task
         """
-        return {key: head.out_dim for key, head in self.task_heads.task_heads.items()}
+        return self.task_heads.out_dim
+
+    def __repr__(self):
+        return super().__repr__()
