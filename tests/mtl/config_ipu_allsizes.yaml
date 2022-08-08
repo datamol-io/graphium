@@ -4,10 +4,7 @@ constants:
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
     type: ipu
-    options: # This is not really used at the moment. #! see ipu_utils.py for explanation of IPU arguments
-      - deviceIterations(1)
-      - replicationFactor(1)
-      - gradientAccumulation(1)
+
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -85,7 +82,7 @@ architecture:
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    normalization: &normalization "batch_norm"
+    normalization: &normalization "none"
     last_normalization: *normalization
     residual_type: none
 

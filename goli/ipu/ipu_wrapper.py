@@ -10,6 +10,18 @@ from goli.trainer.refactor_predictor_mtl import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
 
 
+'''
+helper function to remove the fake graph loss
+always reduce the last loss since it is the fake graph
+'''
+def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
+    for task in targets.keys():
+        if (targets[task].shape == preds[task].shape):
+            continue 
+        else:
+            preds[task] = preds[task][:-1]
+    return preds
+
 class IPUPluginGoli(IPUPlugin):
     """
     `IPUPluginGoli` modifies the `IPUPlugin` for compatibility with the Goli and Pytorch-Lightning training pipeline.
@@ -101,6 +113,9 @@ class PredictorModuleIPU(PredictorModule):
     @staticmethod
     def compute_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor], weights: Optional[Tensor], loss_fun: Dict[str, Callable], target_nan_mask: Union[Type, str] = "ignore") -> Tensor:
         #! # TODO Work out how to compute the loss with the padding here
+        # * Andy: simply get rid of the last graph in each batch
+        preds = remove_pad_loss(preds, targets)
+
         return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
 
 
