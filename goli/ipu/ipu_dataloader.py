@@ -102,15 +102,29 @@ class CombinedBatchingCollator:
 
     
     def __call__(self, batch):
+        '''
+        padding option 1: pad all graphs to same size 
+        '''
+        # if (self.collate_fn != None):
+        #     batch = self.collate_fn(batch)
+        # graphs = batch['features']
+
+        # transform = Pad(max_num_nodes=self.max_num_nodes, max_num_edges=self.max_num_edges)
+        # for i in range(len(graphs)):
+        #     graphs[i] = transform(graphs[i])
+
+        # batch['features'] = Batch.from_data_list(graphs)
+
+        '''
+        padding option 2 pad each batch to be same size
+        '''
         if (self.collate_fn != None):
             batch = self.collate_fn(batch)
-        graphs = batch['features']
+        graphs = Batch.from_data_list(batch['features'])
 
-        transform = Pad(max_num_nodes=self.max_num_nodes, max_num_edges=self.max_num_edges)
-        for i in range(len(graphs)):
-            graphs[i] = transform(graphs[i])
+        transform = Pad(max_num_nodes=self.mini_batch_size*20, max_num_edges=self.mini_batch_size*40)
 
-        batch['features'] = Batch.from_data_list(graphs)
+        batch['features'] = transform(graphs)
         return batch
 
 
@@ -150,9 +164,12 @@ def create_dataloader(dataset: Dataset,
     #     "Cannot set collate_fn with poppyg.create_dataloader. "\
     #     "Use poptorch.DataLoader directly if you need this functionality."
 
+    # collater = CombinedBatchingCollator(batch_size, include_keys, 
+    #                                 collate_fn=collate_fn, max_num_nodes=max_num_nodes,
+    #                                 max_num_edges=max_num_edges)
+
     collater = CombinedBatchingCollator(batch_size, include_keys, 
-                                    collate_fn=collate_fn, max_num_nodes=max_num_nodes,
-                                    max_num_edges=max_num_edges)
+                                    collate_fn=collate_fn)
 
     return poptorch.DataLoader(ipu_opts,
                                dataset=dataset,
