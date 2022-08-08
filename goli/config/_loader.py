@@ -12,7 +12,7 @@ from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
-from goli.trainer.refactor_predictor_mtl import PredictorModule
+from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 from goli.ipu.ipu_utils import get_poptorch, load_ipu_options
