@@ -7,7 +7,6 @@ from loguru import logger
 
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from goli.nn.architectures import TaskHeadParams
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 
 from goli.trainer.metrics import MetricWrapper
@@ -133,8 +132,6 @@ def load_architecture(
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
     post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
-    #if "task_heads" in cfg_arch: print("THE TASK HEADS: ", cfg_arch["task_heads"])
-    #else: print("NO TASK HEADS")
     task_heads_kwargs = cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None     # This is of type ListConfig containing TaskHeadParams
 
     # Set the input dimensions
@@ -162,14 +159,14 @@ def load_architecture(
         task_head_params_list = []
         for params in omegaconf.OmegaConf.to_object(task_heads_kwargs): # This turns the ListConfig into List[TaskHeadParams]
             params_dict = dict(params)
-            task_head_params_list.append(TaskHeadParams(**params_dict))
+            task_head_params_list.append(params_dict)
 
         model_kwargs = dict(
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,
             pre_nn_edges_kwargs=pre_nn_edges_kwargs,
             post_nn_kwargs=post_nn_kwargs,
-            task_heads_kwargs=task_head_params_list,
+            task_heads_kwargs_list=task_head_params_list,
         )
 
     return model_class, model_kwargs
