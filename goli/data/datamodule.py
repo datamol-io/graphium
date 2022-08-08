@@ -1480,7 +1480,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             self.task_val_indices[task] = val_indices
             self.task_test_indices[task] = test_indices
 
-            #train_singletask_datasets[task] = Subset()
             self.train_singletask_datasets[task] = Subset(self.single_task_datasets[task], train_indices)
             self.val_singletask_datasets[task] = Subset(self.single_task_datasets[task], val_indices)
             self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], test_indices)
@@ -1492,19 +1491,24 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
 
         # Produce the label sizes to update the collate function
-        label_sizes = {}
+        labels_size = {}
 
         if stage == "fit" or stage is None:
             self.train_ds = MultitaskDataset(self.train_singletask_datasets)  # type: ignore
             self.val_ds = MultitaskDataset(self.val_singletask_datasets)  # type: ignore
 
-            label_sizes.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
-            label_sizes.update(self.val_ds.labels_size)
+            labels_size.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
+            labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
             self.test_ds = MultitaskDataset(self.test_singletask_datasets)  # type: ignore
 
-            #label_sizes.update(self.test_ds.labels_size)
+            labels_size.update(self.test_ds.labels_size)
+
+        default_labels_size_dict = self.collate_fn.keywords.get("labels_size_dict", None)
+
+        if default_labels_size_dict is None:
+            self.collate_fn.keywords["labels_size_dict"] = labels_size
 
         # Produce the label sizes
         #label_sizes.update(self.train_ds.labels_size)
