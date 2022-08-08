@@ -418,9 +418,6 @@ class BaseDataModule(pl.LightningDataModule):
 
             from goli.ipu.ipu_dataloader import create_dataloader
 
-            max_num_nodes = 100
-            max_num_edges = 300
-
             loader = create_dataloader(dataset=dataset,
                     ipu_opts=self.ipu_options,
                     batch_size=batch_size,
@@ -428,10 +425,7 @@ class BaseDataModule(pl.LightningDataModule):
                     num_workers=num_workers,
                     pin_memory=self.pin_memory,
                     shuffle=shuffle,
-                    persistent_workers=self.persistent_workers,
-                    max_num_nodes=max_num_nodes,
-                    max_num_edges=max_num_edges,
-                    )
+                    persistent_workers=self.persistent_workers)
         return loader
 
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
