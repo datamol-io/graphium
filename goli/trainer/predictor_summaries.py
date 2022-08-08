@@ -3,6 +3,7 @@ r"""Classes to store information about resulting evaluation metrics when using a
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 from mordred import Result
+from loguru import logger
 
 import numpy as np
 import torch
@@ -56,6 +57,7 @@ class Summary(SummaryInterface):
         self.n_epochs: int = None
 
         self.task_name = task_name
+        self.logged_metrics_exceptions = [] # Track which metric exceptions have been logged
 
     def update_predictor_state(self, step_name, targets, predictions, loss, n_epochs):
         self.step_name = step_name
@@ -160,6 +162,10 @@ class Summary(SummaryInterface):
                 metric_logs[metric_name] = metric(self.predictions, targets)
             except Exception as e:
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
+                # Warn only if it's the first warning for that metric
+                if metric_name not in self.logged_metrics_exceptions:
+                    self.logged_metrics_exceptions.append(metric_name)
+                    logger.warning(f"Error for metric {metric_name}. NaN is returned. Exception: {e}")
 
         # Convert all metrics to CPU, except for the loss
         #metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
@@ -267,10 +273,12 @@ class TaskSummaries(SummaryInterface):
             results[task] = self.task_summaries[task].get_best_results(step_name)
         return results
 
+    # Combine the dictionaries. Instead of having keys as task names, we merge all the task-specific dictionaries.
     def get_results_on_progress_bar(self, step_name):
         task_results_prog = {}
         for task in self.tasks:
-            task_results_prog[task] = self.task_summaries[task].get_results_on_progress_bar(step_name)
+            #task_results_prog[task] = self.task_summaries[task].get_results_on_progress_bar(step_name)
+            task_results_prog.update(self.task_summaries[task].get_results_on_progress_bar(step_name))
         return task_results_prog
 
     def get_dict_summary(self):
@@ -288,6 +296,14 @@ class TaskSummaries(SummaryInterface):
         task_metrics_logs["_global"] = {}
         task_metrics_logs["_global"][f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
         return task_metrics_logs
+
+    # TODO (Gabriela): This works to fix the logging on TB, but make it more efficient
+    def concatenate_metrics_logs(self, metrics_logs):
+        concatenated_metrics_logs = {}
+        for task in self.tasks:
+            concatenated_metrics_logs.update(metrics_logs[task])
+        concatenated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
+        return concatenated_metrics_logs
 
     def metric_log_name(self, task_name, metric_name, step_name):
         if task_name is None:

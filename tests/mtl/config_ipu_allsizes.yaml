@@ -195,6 +195,7 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
+      target_nan_mask: ignore-mean-label
     # - name: f1 gt 0.5
     #   metric: f1
     #   num_classes: 2
@@ -287,5 +288,5 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 2
-    min_epochs: 1
+    max_epochs: 20
+    min_epochs: 5
