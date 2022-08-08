@@ -294,6 +294,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.test_ds = None
         self._predict_ds = None
 
+        self._data_is_prepared = False
         self.ipu_options = ipu_options
 
     def prepare_data(self):
@@ -406,10 +407,10 @@ class BaseDataModule(pl.LightningDataModule):
             #! # TODO: Make poptorch.DataLoaderMode.Sync configurable and work with ASync
             # loader = poptorch.DataLoader( # Stop loading new graphs when it reaches capacity of #nodes, #graphs or #edges, instead of just batch_size
             #     options=self.ipu_options,
-            #     mode=poptorch.DataLoaderMode.Sync, 
+            #     mode=poptorch.DataLoaderMode.Sync,
             #     dataset=dataset,
             #     num_workers=num_workers,
-            #     collate_fn=ipu_collate_fn, 
+            #     collate_fn=ipu_collate_fn,
             #     pin_memory=self.pin_memory,
             #     batch_size=batch_size,
             #     shuffle=shuffle,
@@ -1346,6 +1347,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
         # TODO (Gabriela): Implement the ability to load from cache.
 
+        if self._data_is_prepared:
+            return
+
         """Load all single-task dataframes."""
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
@@ -1484,7 +1488,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             self.val_singletask_datasets[task] = Subset(self.single_task_datasets[task], val_indices)
             self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], test_indices)
 
-
+        self._data_is_prepared = True
         # TODO (Gabriela): Implement the ability to save to cache.
 
     def setup(self, stage: str = None): # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test

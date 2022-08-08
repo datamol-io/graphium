@@ -66,7 +66,7 @@ def load_datamodule(
     ipu_options = None
     ipu_file = "tests/mtl/ipu.config"
     if get_accelerator(config) == "ipu":
-        ipu_options = load_ipu_options(ipu_file=ipu_file)
+        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(ipu_options=ipu_options, **config["datamodule"]["args"])
 
@@ -198,7 +198,7 @@ def load_trainer(config):
     accelerator = get_accelerator(config)
     ipu_file = "tests/mtl/ipu.config"
     if accelerator == "ipu":
-        ipu_options = load_ipu_options(ipu_file=ipu_file)
+        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
         plugins = IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
 
     # Set the number of gpus to 0 if no GPU is available

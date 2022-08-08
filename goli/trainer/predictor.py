@@ -26,18 +26,6 @@ GOLI_PRETRAINED_MODELS = {
 }
 
 
-class NewPredictorModule(pl.LightningModule):
-    def __init__(
-        self,
-        model_options: ModelOptions,
-        optim_options: OptimOptions,
-        eval_options: EvalOptions,
-        flag_options: FlagOptions,
-        random_seed: int = 42,
-        target_nan_mask: Optional[Union[int, float, str]] = None,
-    ):
-        pass
-
 class PredictorModule(pl.LightningModule):
     def __init__(
         self,
@@ -65,19 +53,23 @@ class PredictorModule(pl.LightningModule):
 
         super().__init__()
 
-        # Setting the model options
-        self._model_options = ModelOptions(
+        model_options = ModelOptions(
             model_class=model_class,
             model_kwargs=model_kwargs
         )
-        # Setting the optimizer options
-        self._optim_options = OptimOptions(
+        optim_options = OptimOptions(
             optim_kwargs=optim_kwargs,
             lr_reduce_on_plateau_kwargs=lr_reduce_on_plateau_kwargs,
             torch_scheduler_kwargs=torch_scheduler_kwargs,
             scheduler_kwargs=scheduler_kwargs,
         )
-        # Setting the evaluation options
+        #eval_options = EvalOptions(
+        #    loss_fun=loss_fun,
+        #    metrics=metrics,
+        #    metrics_on_progress_bar=metrics_on_progress_bar,
+        #    metrics_on_training_set=metrics_on_training_set
+        #)
+        # Assume task-specific eval options
         eval_options = {}
         for task in loss_fun:
             eval_options[task] = EvalOptions(
@@ -86,14 +78,14 @@ class PredictorModule(pl.LightningModule):
                 metrics_on_progress_bar=metrics_on_progress_bar[task],
                 metrics_on_training_set=metrics_on_training_set[task] if metrics_on_training_set is not None else None
             )
-        self._eval_options_dict: Dict[str, EvalOptions] = eval_options
-        # Setting the flag options
-        self._flag_options = FlagOptions(
+        flag_options = FlagOptions(
             flag_kwargs=flag_kwargs
         )
 
-        self.model = self._model_options.model_class(**self._model_options.model_kwargs)
-        self.tasks = list(loss_fun.keys())
+        self._model_options = model_options
+        self._optim_options = optim_options
+        self._eval_options_dict: Dict[str, EvalOptions] = eval_options
+        self._flag_options = flag_options
 
 ###########################################################################################################################################
         # Task-specific evalutation attributes
@@ -128,7 +120,7 @@ class PredictorModule(pl.LightningModule):
         # Initialize the epoch summary
         monitor = "micro_zinc/MSELoss/val" #self.scheduler_kwargs["monitor"].split("/")[0] TODO: Fix the scheduler with the Summary class
         mode = "min" #self.scheduler_kwargs["mode"]
-        
+
         self.task_epoch_summary = TaskSummaries(
             task_loss_fun=self.loss_fun,
             task_metrics=self.metrics,
@@ -155,7 +147,22 @@ class PredictorModule(pl.LightningModule):
         """
         # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
+        #*check for nan in model output
         out = self.model.forward(feats)
+
+        #! TODO (Andy): fix the loss from here
+        # * https://github.com/graphcore/poppyg/blob/main/examples/schnet_qm9.ipynb
+        # check qm9 example above, the forward function has been modified to zero out hidden representation of fake nodes
+        # a better option might be to have the better dataloader
+
+
+        # for key in out.keys():
+        #     tsor = out[key]
+        #     if (torch.isnan(tsor).sum() != 0):
+        #         print ("found NaN in this tensor")
+        #         print (key)
+        #         print (out[key])
+        #         quit()
 
         # Convert the output of the model to a dictionary
         if isinstance(out, dict) and ("preds" in out.keys()):
@@ -263,6 +270,8 @@ class PredictorModule(pl.LightningModule):
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)                    # The dictionary of predictions
+
+        # * check for nan in model output
         targets_dict = batch.get("labels")
 
         # Different type of preds can be return by the forward
@@ -300,6 +309,7 @@ class PredictorModule(pl.LightningModule):
             step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
 
         step_dict["loss"] = loss
+        print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
         return step_dict
 
@@ -416,6 +426,7 @@ class PredictorModule(pl.LightningModule):
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
+        # epoch_end returns a list of all the output from the _step
         # Transform the list of dict of dict, into a dict of list of dict
         preds = {}
         targets = {}

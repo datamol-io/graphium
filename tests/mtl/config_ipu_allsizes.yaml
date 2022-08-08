@@ -288,5 +288,5 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 20
-    min_epochs: 5
+    max_epochs: 2
+    min_epochs: 1
