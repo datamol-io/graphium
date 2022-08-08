@@ -122,7 +122,7 @@ class CombinedBatchingCollator:
             batch = self.collate_fn(batch)
         graphs = Batch.from_data_list(batch['features'])
 
-        transform = Pad(max_num_nodes=self.mini_batch_size*20, max_num_edges=self.mini_batch_size*40)
+        transform = Pad(max_num_nodes=self.mini_batch_size*20, max_num_edges=self.mini_batch_size*40, include_keys=['batch'])
 
         batch['features'] = transform(graphs)
         return batch
