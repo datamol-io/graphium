@@ -292,6 +292,13 @@ class PredictorModule(pl.LightningModule):
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)                    # The dictionary of predictions
+        #! andy: printing out graph level predictions
+        print ("___________________________output tensor shape____________________________________")
+        #print (preds['preds']['homo'])
+        print (preds['preds']['homo'].shape)
+        print ("___________________________output tensor shape____________________________________")
+
+
         # * check for nan in model output
         targets_dict = batch.get("labels")
 

@@ -285,7 +285,8 @@ class TaskSummaries(SummaryInterface):
             task_metrics_logs[task] = self.task_summaries[task].get_metrics_logs()
 
         # Include global (weighted loss)
-        task_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
+        task_metrics_logs["_global"] = {}
+        task_metrics_logs["_global"][f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
         return task_metrics_logs
 
     def metric_log_name(self, task_name, metric_name, step_name):
