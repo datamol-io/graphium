@@ -291,6 +291,7 @@ class PredictorModule(pl.LightningModule):
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)                    # The dictionary of predictions
+
         # * check for nan in model output
         targets_dict = batch.get("labels")
 
