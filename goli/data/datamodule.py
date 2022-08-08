@@ -416,7 +416,7 @@ class BaseDataModule(pl.LightningDataModule):
             #     persistent_workers=self.persistent_workers,
             # )
 
-            from goli.data.ipu_dataloader import create_dataloader
+            from goli.ipu.ipu_dataloader import create_dataloader
 
             loader = create_dataloader(dataset=dataset,
                     ipu_opts=self.ipu_options,
@@ -425,8 +425,7 @@ class BaseDataModule(pl.LightningDataModule):
                     num_workers=num_workers,
                     pin_memory=self.pin_memory,
                     shuffle=shuffle,
-                    persistent_workers=self.persistent_workers
-                    )
+                    persistent_workers=self.persistent_workers)
         return loader
 
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE

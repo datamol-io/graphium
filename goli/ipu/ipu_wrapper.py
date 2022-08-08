@@ -110,6 +110,10 @@ class PredictorModuleIPU(PredictorModule):
         step_dict = super().training_step(dict_input, to_cpu=False)
 
         # Since many loss functions are used, specify which one to track on the IPU
+        #! andy: trying different reduction options
+        #? self.poptorch.identity_loss(step_dict["loss"], reduction="none") results in highest loss
+        #? self.poptorch.identity_loss(step_dict["loss"], reduction="sum") results in higher loss
+        #? self.poptorch.identity_loss(step_dict["loss"], reduction="mean") has lowest loss
         loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
         return loss # Limitation that only the loss can be returned
 
