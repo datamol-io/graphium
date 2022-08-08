@@ -273,10 +273,12 @@ class TaskSummaries(SummaryInterface):
             results[task] = self.task_summaries[task].get_best_results(step_name)
         return results
 
+    # Combine the dictionaries. Instead of having keys as task names, we merge all the task-specific dictionaries.
     def get_results_on_progress_bar(self, step_name):
         task_results_prog = {}
         for task in self.tasks:
-            task_results_prog[task] = self.task_summaries[task].get_results_on_progress_bar(step_name)
+            #task_results_prog[task] = self.task_summaries[task].get_results_on_progress_bar(step_name)
+            task_results_prog.update(self.task_summaries[task].get_results_on_progress_bar(step_name))
         return task_results_prog
 
     def get_dict_summary(self):
@@ -294,6 +296,14 @@ class TaskSummaries(SummaryInterface):
         task_metrics_logs["_global"] = {}
         task_metrics_logs["_global"][f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
         return task_metrics_logs
+
+    # TODO (Gabriela): This works to fix the logging on TB, but make it more efficient
+    def concatenate_metrics_logs(self, metrics_logs):
+        concatenated_metrics_logs = {}
+        for task in self.tasks:
+            concatenated_metrics_logs.update(metrics_logs[task])
+        concatenated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
+        return concatenated_metrics_logs
 
     def metric_log_name(self, task_name, metric_name, step_name):
         if task_name is None:
