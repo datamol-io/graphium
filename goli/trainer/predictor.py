@@ -53,23 +53,19 @@ class PredictorModule(pl.LightningModule):
 
         super().__init__()
 
-        model_options = ModelOptions(
+        # Setting the model options
+        self._model_options = ModelOptions(
             model_class=model_class,
             model_kwargs=model_kwargs
         )
-        optim_options = OptimOptions(
+        # Setting the optimizer options
+        self._optim_options = OptimOptions(
             optim_kwargs=optim_kwargs,
             lr_reduce_on_plateau_kwargs=lr_reduce_on_plateau_kwargs,
             torch_scheduler_kwargs=torch_scheduler_kwargs,
             scheduler_kwargs=scheduler_kwargs,
         )
-        #eval_options = EvalOptions(
-        #    loss_fun=loss_fun,
-        #    metrics=metrics,
-        #    metrics_on_progress_bar=metrics_on_progress_bar,
-        #    metrics_on_training_set=metrics_on_training_set
-        #)
-        # Assume task-specific eval options
+        # Setting the evaluation options
         eval_options = {}
         for task in loss_fun:
             eval_options[task] = EvalOptions(
@@ -78,14 +74,14 @@ class PredictorModule(pl.LightningModule):
                 metrics_on_progress_bar=metrics_on_progress_bar[task],
                 metrics_on_training_set=metrics_on_training_set[task] if metrics_on_training_set is not None else None
             )
-        flag_options = FlagOptions(
+        self._eval_options_dict: Dict[str, EvalOptions] = eval_options
+        # Setting the flag options
+        self._flag_options = FlagOptions(
             flag_kwargs=flag_kwargs
         )
 
-        self._model_options = model_options
-        self._optim_options = optim_options
-        self._eval_options_dict: Dict[str, EvalOptions] = eval_options
-        self._flag_options = flag_options
+        self.model = self._model_options.model_class(**self._model_options.model_kwargs)
+        self.tasks = list(loss_fun.keys())
 
 ###########################################################################################################################################
         # Task-specific evalutation attributes
@@ -426,7 +422,6 @@ class PredictorModule(pl.LightningModule):
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
-        # epoch_end returns a list of all the output from the _step
         # Transform the list of dict of dict, into a dict of list of dict
         preds = {}
         targets = {}
