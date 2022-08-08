@@ -16,6 +16,25 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 CONFIG_FILE = "tests/mtl/config_ipu_allsizes.yaml"
 os.chdir(MAIN_DIR)
 
+# '''
+# Andy's helper function
+# check if there is any missing values in a csv
+# '''
+# def nan_checker(fname):
+#     with open(fname) as f:
+#         lines = f.readlines()
+#         prevsize = 0
+#         for line in lines:
+#             txts = line.split(",")
+#             if (len(txts) > prevsize):
+#                 prevsize = len(txts)            
+#             if (len(txts) < prevsize):
+#                 print ("missing entry")
+#                 print (line)
+
+#             if (len(txts) != 21):
+#                 print ("missing entry")
+
 
 def main(cfg: DictConfig) -> None:
 
@@ -70,6 +89,7 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
+    #nan_checker("goli/data/QM9/micro_qm9.csv") #can be deleted 
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
     main(cfg)
