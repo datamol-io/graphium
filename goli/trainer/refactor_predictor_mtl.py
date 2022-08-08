@@ -169,7 +169,22 @@ class PredictorModule(pl.LightningModule):
         """
         # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
+        #*check for nan in model output
         out = self.model.forward(feats)
+
+        #! TODO (Andy): fix the loss from here
+        # * https://github.com/graphcore/poppyg/blob/main/examples/schnet_qm9.ipynb
+        # check qm9 example above, the forward function has been modified to zero out hidden representation of fake nodes
+        # a better option might be to have the better dataloader
+
+
+        # for key in out.keys():
+        #     tsor = out[key]
+        #     if (torch.isnan(tsor).sum() != 0):
+        #         print ("found NaN in this tensor")
+        #         print (key)
+        #         print (out[key])
+        #         quit()
 
         # Convert the output of the model to a dictionary
         if isinstance(out, dict) and ("preds" in out.keys()):
@@ -277,6 +292,7 @@ class PredictorModule(pl.LightningModule):
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)                    # The dictionary of predictions
+        # * check for nan in model output
         targets_dict = batch.get("labels")
 
         # Different type of preds can be return by the forward

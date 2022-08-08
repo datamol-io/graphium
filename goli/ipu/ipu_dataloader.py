@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple, Union
 import poptorch
 import torch
 from torch_geometric.data import Batch, Dataset
-from goli.data.ipu_pad import Pad
+from goli.ipu.ipu_pad import Pad
 
 class TupleCollator(object):
     """
@@ -52,7 +52,7 @@ class CombinedBatchingCollator:
     This is intended to be used in combination with the poptorch.DataLoader
     """
 
-    def __init__(self, mini_batch_size, include_keys=None, collate_fn=None):
+    def __init__(self, mini_batch_size, include_keys=None, collate_fn=None, max_num_nodes=100, max_num_edges=300):
         """
         :param mini_batch_size (int): mini batch size used by the SchNet model
         :param include_keys (optional): Keys to include from the batch in the
@@ -64,6 +64,8 @@ class CombinedBatchingCollator:
         self.mini_batch_size = mini_batch_size
         self.batch_to_tuple = TupleCollator(include_keys=include_keys)
         self.collate_fn = collate_fn
+        self.max_num_nodes = max_num_nodes
+        self.max_num_edges = max_num_edges
 
     # def __call__(self, batch):
     #     if (self.collate_fn != None):
@@ -104,7 +106,7 @@ class CombinedBatchingCollator:
             batch = self.collate_fn(batch)
         graphs = batch['features']
 
-        transform = Pad(max_num_nodes=200, max_num_edges=800)
+        transform = Pad(max_num_nodes=self.max_num_nodes, max_num_edges=self.max_num_edges)
         for i in range(len(graphs)):
             graphs[i] = transform(graphs[i])
 
@@ -118,6 +120,8 @@ def create_dataloader(dataset: Dataset,
                       include_keys: Optional[Union[List[str],
                                                    Tuple[str]]] = None,
                       collate_fn=None,
+                      max_num_nodes=100, 
+                      max_num_edges=300,
                       **kwargs):
     """
     Creates a poptorch.DataLoader for graph datasets
@@ -146,7 +150,9 @@ def create_dataloader(dataset: Dataset,
     #     "Cannot set collate_fn with poppyg.create_dataloader. "\
     #     "Use poptorch.DataLoader directly if you need this functionality."
 
-    collater = CombinedBatchingCollator(batch_size, include_keys, collate_fn=collate_fn)
+    collater = CombinedBatchingCollator(batch_size, include_keys, 
+                                    collate_fn=collate_fn, max_num_nodes=max_num_nodes,
+                                    max_num_edges=max_num_edges)
 
     return poptorch.DataLoader(ipu_opts,
                                dataset=dataset,
