@@ -7,7 +7,6 @@ import yaml
 import dgl
 from loguru import logger
 from inspect import signature
-from pprint import pprint
 
 import torch
 from torch import nn, Tensor
@@ -427,7 +426,8 @@ class PredictorModule(pl.LightningModule):
         metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
         step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
 
-        self.logger.log_metrics(metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
+        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
 #################################################################################################################
 
 
@@ -445,7 +445,6 @@ class PredictorModule(pl.LightningModule):
     def test_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
 
-    # So it's over the entire dataset
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
         # epoch_end returns a list of all the output from the _step
@@ -494,57 +493,50 @@ class PredictorModule(pl.LightningModule):
     def validation_epoch_end(self, outputs: Dict[str, Any]):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
+        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
         lr = self.optimizers().param_groups[0]["lr"]
         metrics_logs["lr"] = lr
         metrics_logs["n_epochs"] = self.current_epoch
-        self.log_dict(metrics_logs)
+        self.log_dict(concatenated_metrics_logs)
 
-        # TODO: Save to YAML
-        # Save yaml file with the metrics summaries
-        #full_dict = {}
-        #full_dict.update(self.epoch_summary.get_dict_summary())
-        #tb_path = self.logger.log_dir
+        # Save yaml file with the per-task metrics summaries
+        full_dict = {}
+        full_dict.update(self.task_epoch_summary.get_dict_summary())
+        tb_path = self.logger.log_dir
 
-        # Write the YAML file with the metrics
-        #if self.current_epoch >= 0:
-        #    mkdir(tb_path)
-        #    with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
-        #        yaml.dump(full_dict, file)
+        # Write the YAML file with the per-task metrics
+        if self.current_epoch >= 0:
+            mkdir(tb_path)
+            with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
+                yaml.dump(full_dict, file)
 
     def test_epoch_end(self, outputs: Dict[str, Any]):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
-        self.log_dict(metrics_logs)
+        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
-        # TODO: Save to YAML
-        # Save yaml file with the metrics summaries
-        #full_dict = {}
-        #full_dict.update(self.epoch_summary.get_dict_summary())
-        #tb_path = self.logger.log_dir
-        #os.makedirs(tb_path, exist_ok=True)
-        #with open(f"{tb_path}/metrics.yaml", "w") as file:
-        #    yaml.dump(full_dict, file)
+        self.log_dict(concatenated_metrics_logs)
+
+        # Save yaml file with the per-task metrics summaries
+        full_dict = {}
+        full_dict.update(self.task_epoch_summary.get_dict_summary())
+        tb_path = self.logger.log_dir
+        os.makedirs(tb_path, exist_ok=True)
+        with open(f"{tb_path}/metrics.yaml", "w") as file:
+            yaml.dump(full_dict, file)
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)
         hparams_log["n_params"] = self.n_params
-        #self.logger.log_hyperparams(hparams_log, self.epoch_summary.get_results("val").metrics)
+        #self.logger.log_hyperparams(hparams_log, self.epoch_summary.get_results("val").metrics)        # Log hyperparameters
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
-#####################################################################################################################
-        #prog_dict = super().get_progress_bar_dict()
-        #results_on_progress_bar = self.epoch_summary.get_results_on_progress_bar("val")
-        #prog_dict["loss/val"] = self.epoch_summary.summaries["val"].loss
-        #prog_dict.update(results_on_progress_bar)
-
-        # TODO: Make sure the keys match up.
-        prog_dict = {task: {} for task in self.tasks}
+        prog_dict = {}
         results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
         for task in self.tasks:
-            prog_dict[task][self.task_epoch_summary.metric_log_name(task, "loss", "val")] = self.task_epoch_summary.task_summaries[task].summaries["val"].loss
+            prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = self.task_epoch_summary.task_summaries[task].summaries["val"].loss
             prog_dict.update(results_on_progress_bar)
-#####################################################################################################################
         return prog_dict
 
     def __repr__(self) -> str:
