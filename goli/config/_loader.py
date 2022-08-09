@@ -57,7 +57,6 @@ def get_accelerator(
     # Fall on cpu at the end
     if acc_type is None:
         acc_type = "cpu"
-
     return acc_type
 
 
@@ -65,29 +64,16 @@ def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]]
 ):
     ipu_options = None
+    ipu_file = "tests/mtl/ipu.config"
     if get_accelerator(config) == "ipu":
-        ipu_options = load_ipu_options(config)
-
+        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(ipu_options=ipu_options, **config["datamodule"]["args"])
 
     return datamodule
 
 
-def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]): #TODO (Gab): Remove duplicate
-
-    metrics = {}
-    cfg_metrics = deepcopy(config["metrics"])
-    if cfg_metrics is None:
-        return metrics
-
-    for this_metric in cfg_metrics:
-        name = this_metric.pop("name")
-        metrics[name] = MetricWrapper(**this_metric)
-
-    return metrics
-
-def load_metrics_mtl(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
     task_metrics = {}
     cfg_metrics = deepcopy(config["metrics"])
@@ -175,8 +161,7 @@ def load_architecture(
 def load_predictor(config, model_class, model_kwargs, metrics):
     # Defining the predictor
 
-    accelerator = get_accelerator(config)
-    if accelerator == "ipu":
+    if get_accelerator(config) == "ipu":
         predictor_class = PredictorModuleIPU
     else:
         predictor_class = PredictorModule
@@ -198,8 +183,9 @@ def load_trainer(config):
     # Define the IPU plugin if required
     plugins = []
     accelerator = get_accelerator(config)
+    ipu_file = "tests/mtl/ipu.config"
     if accelerator == "ipu":
-        ipu_options = load_ipu_options(config)
+        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
         plugins = IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
 
     # Set the number of gpus to 0 if no GPU is available

@@ -26,18 +26,6 @@ GOLI_PRETRAINED_MODELS = {
 }
 
 
-class NewPredictorModule(pl.LightningModule):
-    def __init__(
-        self,
-        model_options: ModelOptions,
-        optim_options: OptimOptions,
-        eval_options: EvalOptions,
-        flag_options: FlagOptions,
-        random_seed: int = 42,
-        target_nan_mask: Optional[Union[int, float, str]] = None,
-    ):
-        pass
-
 class PredictorModule(pl.LightningModule):
     def __init__(
         self,
@@ -128,7 +116,7 @@ class PredictorModule(pl.LightningModule):
         # Initialize the epoch summary
         monitor = "micro_zinc/MSELoss/val" #self.scheduler_kwargs["monitor"].split("/")[0] TODO: Fix the scheduler with the Summary class
         mode = "min" #self.scheduler_kwargs["mode"]
-        
+
         self.task_epoch_summary = TaskSummaries(
             task_loss_fun=self.loss_fun,
             task_metrics=self.metrics,
@@ -155,7 +143,22 @@ class PredictorModule(pl.LightningModule):
         """
         # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
+        #*check for nan in model output
         out = self.model.forward(feats)
+
+        #! TODO (Andy): fix the loss from here
+        # * https://github.com/graphcore/poppyg/blob/main/examples/schnet_qm9.ipynb
+        # check qm9 example above, the forward function has been modified to zero out hidden representation of fake nodes
+        # a better option might be to have the better dataloader
+
+
+        # for key in out.keys():
+        #     tsor = out[key]
+        #     if (torch.isnan(tsor).sum() != 0):
+        #         print ("found NaN in this tensor")
+        #         print (key)
+        #         print (out[key])
+        #         quit()
 
         # Convert the output of the model to a dictionary
         if isinstance(out, dict) and ("preds" in out.keys()):
@@ -263,6 +266,8 @@ class PredictorModule(pl.LightningModule):
     ) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
         preds = self.forward(batch)                    # The dictionary of predictions
+
+        # * check for nan in model output
         targets_dict = batch.get("labels")
 
         # Different type of preds can be return by the forward
@@ -300,6 +305,7 @@ class PredictorModule(pl.LightningModule):
             step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
 
         step_dict["loss"] = loss
+        # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
         return step_dict
 
@@ -399,6 +405,8 @@ class PredictorModule(pl.LightningModule):
         self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
 #################################################################################################################
 
+        step_dict["grad_norm"] = self.get_gradient_norm()
+        # print("grad_norm", step_dict["grad_norm"]) # TODO: Remove grad_norm
 
         # # Predictions and targets are no longer needed after the step.
         # # Keeping them will increase memory usage significantly for large datasets.
@@ -407,6 +415,17 @@ class PredictorModule(pl.LightningModule):
         step_dict.pop("weights")
 
         return step_dict  # Returning the metrics_logs with the loss
+
+    def get_gradient_norm(self):
+        # compute the norm
+        total_norm = torch.tensor(0.)
+        for p in self.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.detach().data.norm(2)
+                total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+        return total_norm
+
 
     def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)

@@ -3,6 +3,7 @@ r"""Classes to store information about resulting evaluation metrics when using a
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 from mordred import Result
+from loguru import logger
 
 import numpy as np
 import torch
@@ -56,6 +57,7 @@ class Summary(SummaryInterface):
         self.n_epochs: int = None
 
         self.task_name = task_name
+        self.logged_metrics_exceptions = [] # Track which metric exceptions have been logged
 
     def update_predictor_state(self, step_name, targets, predictions, loss, n_epochs):
         self.step_name = step_name
@@ -160,6 +162,10 @@ class Summary(SummaryInterface):
                 metric_logs[metric_name] = metric(self.predictions, targets)
             except Exception as e:
                 metric_logs[metric_name] = torch.as_tensor(float("nan"))
+                # Warn only if it's the first warning for that metric
+                if metric_name not in self.logged_metrics_exceptions:
+                    self.logged_metrics_exceptions.append(metric_name)
+                    logger.warning(f"Error for metric {metric_name}. NaN is returned. Exception: {e}")
 
         # Convert all metrics to CPU, except for the loss
         #metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
@@ -287,7 +293,8 @@ class TaskSummaries(SummaryInterface):
             task_metrics_logs[task] = self.task_summaries[task].get_metrics_logs()
 
         # Include global (weighted loss)
-        task_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
+        task_metrics_logs["_global"] = {}
+        task_metrics_logs["_global"][f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
         return task_metrics_logs
 
     # TODO (Gabriela): This works to fix the logging on TB, but make it more efficient
