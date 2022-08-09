@@ -499,7 +499,14 @@ def get_mol_edge_features(
             # Mask the NaNs
             prop_dict[prop] = _mask_nans_inf(mask_nan, property_array, "edge property")
         else:
-            prop_dict[prop] = np.array([])
+            # Add an empty vector with the right shape
+            arr_len = 1
+            if prop in ["bond-type-onehot"]:
+                arr_len = len(nmp.BOND_TYPES) + 1
+            elif prop in ["stereo"]:
+                arr_len = len(nmp.BOND_STEREO) + 1
+
+            prop_dict[prop] = np.zeros((0, arr_len))
 
     return prop_dict
 
