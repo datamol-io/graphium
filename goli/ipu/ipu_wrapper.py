@@ -9,7 +9,7 @@ from pytorch_lightning.trainer.states import RunningStage
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
 
-
+from poptorch import ipu_print_tensor # TODO: Remove line
 '''
 helper function to remove the fake graph loss
 always reduce the last loss since it is the fake graph
@@ -129,7 +129,11 @@ class PredictorModuleIPU(PredictorModule):
         #? self.poptorch.identity_loss(step_dict["loss"], reduction="none") results in highest loss
         #? self.poptorch.identity_loss(step_dict["loss"], reduction="sum") results in higher loss
         #? self.poptorch.identity_loss(step_dict["loss"], reduction="mean") has lowest loss
-        loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
+
+        loss = step_dict["loss"]
+        # loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
+        ipu_print_tensor(loss, "\nloss " + str(self.global_step) + str(self.current_epoch))
+        # ipu_print_tensor(step_dict["grad_norm"], "grad_norm ")
         return loss # Limitation that only the loss can be returned
 
 

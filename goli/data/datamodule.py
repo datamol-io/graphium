@@ -60,14 +60,14 @@ PCQM4Mv2_meta.update(
     }
 )
 
+def smiles_to_unique_mol_id(smiles: str):
+    mol = dm.to_mol(mol=smiles)
+    mol_id = dm.unique_id(mol)
+    return mol_id
 
-def smiles_to_unique_mol_ids(smiles: List[str]):
+def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1):
     """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
-    unique_mol_ids = []
-    for smile in smiles:
-        mol = dm.to_mol(mol=smile)
-        id = dm.unique_id(mol)
-        unique_mol_ids.append(id)
+    unique_mol_ids = dm.parallelized(smiles_to_unique_mol_id, smiles, progress=True, n_jobs=n_jobs, tqdm_kwargs={"desc": "mols to ids"})
     return unique_mol_ids
 
 
@@ -159,9 +159,10 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
         - self.features will be a list of featurized graphs corresponding to that particular unique molecule.
             However, for testing purposes we may not require features so that we can make sure that this merge function works.
     """
-    def __init__(self, datasets: Dict[str, SingleTaskDataset]):
+    def __init__(self, datasets: Dict[str, SingleTaskDataset], n_jobs=-1):
         super().__init__()
         self.datasets = datasets
+        self.n_jobs = n_jobs
 
         task = next(iter(self.datasets))
         if "features" in datasets[task][0]:
@@ -225,7 +226,7 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
 
         mol_ids = []
         # Get all unique mol ids.
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
+        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.n_jobs)
         unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         mol_ids = unique_mol_ids
 
@@ -397,6 +398,7 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=batch_size,
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
+            drop_last=True, # TODO: Remove when done with IPU
             )
 
         else:
@@ -419,7 +421,8 @@ class BaseDataModule(pl.LightningDataModule):
 
             from goli.ipu.ipu_dataloader import create_dataloader
 
-            loader = create_dataloader(dataset=dataset,
+            loader = create_dataloader(
+                    dataset=dataset,
                     ipu_opts=self.ipu_options,
                     batch_size=batch_size,
                     collate_fn=self.collate_fn,
@@ -712,12 +715,10 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         """
 
         # Loop all the smiles and compute the features
-        if self.featurization_n_jobs == 0:
-            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
-        else:
-            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
-                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
-            )
+        features = dm.parallelized(
+            self.smiles_transformer, smiles, progress=True, n_jobs=self.featurization_n_jobs,
+            tqdm_kwargs={"desc": "featurizing_smiles"}
+        )
 
         # Warn about None molecules
         if sample_idx is None:
@@ -1406,16 +1407,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                 all_tasks.append(task)
         # Get all unique mol ids
         all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
-        unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
-        mol_ids = unique_mol_ids
-        # Get smiles to be used for featurization with those mol ids.
-        smiles_to_featurize = []
-        for id in range(len(mol_ids)):
-            for all_idx, unique_idx in enumerate(inv):
-                if unique_idx == id:  # If we found this unique mol id
-                    smiles_to_featurize.append(all_smiles[all_idx])
-                    break # No need to check if another smiles matches
-        assert len(mol_ids) == len(smiles_to_featurize)
+        unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
+        smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
         features, idx_none = self._featurize_molecules(smiles_to_featurize) # sample_idx is removed ... might need to add it again later in another way
@@ -1498,14 +1491,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets)  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets)  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs)  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs)  # type: ignore
 
             labels_size.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets)  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs)  # type: ignore
 
             labels_size.update(self.test_ds.labels_size)
 
@@ -1543,12 +1536,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
 
         # Loop all the smiles and compute the features
-        if self.featurization_n_jobs == 0:
-            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
-        else:
-            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
-                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
-            )
+        features = dm.parallelized(
+            self.smiles_transformer, smiles, progress=True, n_jobs=self.featurization_n_jobs,
+            tqdm_kwargs={"desc": "featurizing_smiles"}
+        )
 
         # Warn about None molecules
         idx_none = [ii for ii, feat in enumerate(features) if feat is None]
