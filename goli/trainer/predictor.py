@@ -405,6 +405,8 @@ class PredictorModule(pl.LightningModule):
         self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
 #################################################################################################################
 
+        step_dict["grad_norm"] = self.get_gradient_norm()
+        print("grad_norm", step_dict["grad_norm"]) # TODO: Remove grad_norm
 
         # # Predictions and targets are no longer needed after the step.
         # # Keeping them will increase memory usage significantly for large datasets.
@@ -413,6 +415,17 @@ class PredictorModule(pl.LightningModule):
         step_dict.pop("weights")
 
         return step_dict  # Returning the metrics_logs with the loss
+
+    def get_gradient_norm(self):
+        # compute the norm
+        total_norm = torch.tensor(0.)
+        for p in self.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.detach().data.norm(2)
+                total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+        return total_norm
+
 
     def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)
