@@ -1694,16 +1694,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
         Low memory footprint method to get the first datapoint DGL graph.
         The first 10 rows of the data are read in case the first one has a featurization
-        error. If all 10 first element, then `None` is returned, otherwise the first
+        error. If all 20 first element, then `None` is returned, otherwise the first
         graph to not fail is returned.
         """
         keys = list(self.task_dataset_processing_params.keys())
         task = keys[0]
         args = self.task_dataset_processing_params[task]
         if args.df is None:
-            df = self._read_csv(args.df_path, nrows=10)
+            df = self._read_csv(args.df_path, nrows=20)
         else:
-            df = args.df.iloc[0:10, :]
+            df = args.df.iloc[0:20, :]
 
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
@@ -1717,7 +1717,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         graph = None
         for s in smiles:
             graph = self.smiles_transformer(s, mask_nan=0.0)
-            if graph is not None:
+            if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+                num_nodes = graph.num_nodes()
+                num_edges = graph.num_edges()
+            elif isinstance(graph, (Data, Batch)):
+                num_nodes = graph.num_nodes
+                num_edges = graph.num_edges
+            if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
                 break
 
         return graph
