@@ -87,15 +87,6 @@ def goli_collate_fn(
                         if isinstance(tensor, (ndarray, spmatrix)):
                             tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
 
-                        # In case no edges
-                        if isinstance(pyg_key, str) and (pyg_key.startswith("edge_")) and (tensor.numel() == 0):
-                            if pyg_key == "edge_index":
-                                tensor = torch.tensor([[0], [0]], dtype=tensor.dtype, device=tensor.device)
-                            elif tensor.ndim == 1:
-                                tensor = torch.tensor([0], dtype=tensor.dtype, device=tensor.device)
-                            else:
-                                tensor = torch.zeros([1]*(tensor.ndim - 1) + [tensor.shape[-1]], dtype=tensor.dtype, device=tensor.device)
-
                         pyg_graph[pyg_key] = tensor
 
                     # Convert edge index to int32
