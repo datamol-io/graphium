@@ -27,7 +27,7 @@ os.chdir(MAIN_DIR)
 #         for line in lines:
 #             txts = line.split(",")
 #             if (len(txts) > prevsize):
-#                 prevsize = len(txts)            
+#                 prevsize = len(txts)
 #             if (len(txts) < prevsize):
 #                 print ("missing entry")
 #                 print (line)
@@ -60,6 +60,7 @@ def main(cfg: DictConfig) -> None:
 
     trainer = load_trainer(cfg)
 
+    datamodule.prepare_data()
     trainer.fit(model=predictor, datamodule=datamodule)
     # Run the model training
     print("\n------------ TRAINING STARTED ------------")
@@ -78,7 +79,7 @@ def main(cfg: DictConfig) -> None:
         #ckpt_path = "models_checkpoints/micro_ZINC_mtl/model-v3.ckpt"
         #error here
         #TypeError: iteration over a 0-d tensor
-        trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)
+        trainer.test(model=predictor, datamodule=datamodule) #, ckpt_path=ckpt_path)
         print("\n------------ TESTING COMPLETED ------------\n\n")
 
     except Exception as e:
@@ -89,7 +90,7 @@ def main(cfg: DictConfig) -> None:
 
 
 if __name__ == "__main__":
-    #nan_checker("goli/data/QM9/micro_qm9.csv") #can be deleted 
+    #nan_checker("goli/data/QM9/micro_qm9.csv") #can be deleted
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
     main(cfg)

@@ -1,13 +1,4 @@
-import pathlib
-import tempfile
-
 import unittest as ut
-import numpy as np
-from omegaconf import OmegaConf
-import torch
-import pandas as pd
-from pprint import pprint
-
 
 import goli
 from goli.data import load_micro_zinc, SingleTaskDataset, MultitaskDataset
@@ -16,10 +7,10 @@ from goli.data.utils import load_tiny_zinc
 
 class Test_Multitask_Dataset(ut.TestCase):
 
-    # TODO: Only need to load zinc once. 
+    # TODO: Only need to load zinc once.
     # Then we can choose different rows and columns for the tests as we see fit.
     # Remember tests are supposed to be FAST, and reading from the file system multiple times slows things down.
-    
+
     # Make sure that the inputs to single task datasets are always lists!
     # Do not pass a data frame itself, but turn it into a list to satisfy the type required.
 
@@ -46,7 +37,7 @@ class Test_Multitask_Dataset(ut.TestCase):
             )
 
         ds_micro_zinc_logp = SingleTaskDataset(
-            smiles=df_micro_zinc_logp.loc[:, "SMILES"].tolist(), 
+            smiles=df_micro_zinc_logp.loc[:, "SMILES"].tolist(),
             labels=df_micro_zinc_logp.loc[:, "logp"].tolist()
         )
         ds_micro_zinc_score = SingleTaskDataset(
@@ -82,7 +73,7 @@ class Test_Multitask_Dataset(ut.TestCase):
             self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]['logp'])
             self.assertEqual(label_score, multitask_microzinc.labels[found_idx]['score'])
 
-    
+
     def test_multitask_dataset_case_2(self):
         """Case: Different tasks, but with no intersection in the smiles (each task has a unique set of smiles)
             - Check that the total dataset has as much smiles as all tasks together
@@ -176,10 +167,6 @@ class Test_Multitask_Dataset(ut.TestCase):
         df_micro_zinc_SA = df_rows_SA[['SMILES', 'SA']]
         df_micro_zinc_logp = df_rows_logp[['SMILES', 'logp']]
         df_micro_zinc_score = df_rows_score[['SMILES', 'score']]
-
-        goli.data.datamodule.print_this(df_micro_zinc_SA)
-        goli.data.datamodule.print_this(df_micro_zinc_logp)
-        goli.data.datamodule.print_this(df_micro_zinc_score)
 
 
         # We need to turn these dataframes into single-task datasets.

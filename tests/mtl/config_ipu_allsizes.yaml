@@ -12,7 +12,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: "goli/data/QM9/micro_qm9.csv"
+        df_path: "goli/data/QM9/qm9.csv"
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -25,7 +25,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       alpha:
         df: null
-        df_path: "goli/data/QM9/micro_qm9.csv"
+        df_path: "goli/data/QM9/qm9.csv"
         smiles_col: "smiles"
         label_cols: ["alpha"]
         split_val: 0.2
@@ -38,7 +38,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       cv:
         df: null
-        df_path: "goli/data/QM9/micro_qm9.csv"
+        df_path: "goli/data/QM9/qm9.csv"
         smiles_col: "smiles"
         label_cols: ["cv"]
         split_val: 0.2
@@ -52,7 +52,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
+    featurization_n_jobs: 32
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -100,7 +100,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
     hidden_dims: 64
-    depth: 2
+    depth: 4
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -108,8 +108,8 @@ architecture:
     last_normalization: *normalization
     residual_type: random
     pooling: [sum, mean, max]
-    virtual_node: 'sum'
-    layer_type: 'pyg:gated-gcn'
+    virtual_node: 'none'
+    layer_type: 'pyg:gine'
     layer_kwargs:
       # out_dim_edges: 16
       # aggregators: [mean, max]
@@ -171,8 +171,8 @@ predictor:
     cv: mse
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-2
-    weight_decay: 1.e-7
+    lr: 1.e-3
+    # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     #module_type: ReduceLROnPlateau
     #factor: 0.5
@@ -273,14 +273,14 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/micro_ZINC_mtl
+    save_dir: logs/QM9
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/micro_ZINC_mtl/
+    dirpath: models_checkpoints/QM9/
     filename: "model"
     #monitor: *monitor
     #mode: *mode
