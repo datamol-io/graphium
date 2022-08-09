@@ -12,7 +12,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: "goli/data/QM9/qm9.csv"
+        df_path: &df_path "goli/data/QM9/qm9.csv"
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -25,7 +25,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       alpha:
         df: null
-        df_path: "goli/data/QM9/qm9.csv"
+        df_path: *df_path
         smiles_col: "smiles"
         label_cols: ["alpha"]
         split_val: 0.2
@@ -38,7 +38,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       cv:
         df: null
-        df_path: "goli/data/QM9/qm9.csv"
+        df_path: *df_path
         smiles_col: "smiles"
         label_cols: ["cv"]
         split_val: 0.2

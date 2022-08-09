@@ -285,12 +285,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.pin_memory = pin_memory
         self.persistent_workers = persistent_workers
 
-        if collate_fn is None:
-            # Some values become `inf` when changing data type. `mask_nan` deals with that
-            self.collate_fn = partial(goli_collate_fn, mask_nan=0)
-            self.collate_fn.__name__ = goli_collate_fn.__name__
-        else:
-            self.collate_fn = collate_fn
+        self.collate_fn = self.get_collate_fn(collate_fn)
 
         self.dataset = None
         self.train_ds = None
@@ -336,6 +331,15 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=self.batch_size_test,
             shuffle=False,
         )
+
+    @staticmethod
+    def get_collate_fn(collate_fn):
+        if collate_fn is None:
+            # Some values become `inf` when changing data type. `mask_nan` deals with that
+            collate_fn = partial(goli_collate_fn, mask_nan=0)
+            collate_fn.__name__ = goli_collate_fn.__name__
+
+        return collate_fn
 
     @property
     def is_prepared(self):
@@ -1500,6 +1504,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         #label_sizes.update(self.train_ds.labels_size)
         #label_sizes.update(self.val_ds.labels_size)
         #label_sizes.update(self.test_ds.labels_size)
+
+    @staticmethod
+    def get_collate_fn(collate_fn):
+        if collate_fn is None:
+            # Some values become `inf` when changing data type. `mask_nan` deals with that
+            collate_fn = partial(goli_collate_fn, mask_nan=0, do_not_collate_keys=["smiles", "mol_ids"])
+            collate_fn.__name__ = goli_collate_fn.__name__
+        return collate_fn
 
     # Cannot be used as is for the multitask version, because sample_idx does not apply.
     def _featurize_molecules(self, smiles: Iterable[str]) -> Tuple[List, List]:
