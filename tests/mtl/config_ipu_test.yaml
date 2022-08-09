@@ -1,5 +1,4 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
-
 constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
@@ -15,7 +14,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: "goli/data/micro_ZINC/micro_qm9_9_9.csv"
+        df_path: "goli/data/QM9/micro_qm9_9atoms_9bonds.csv"
         smiles_col: "smiles"
         label_cols: ["homo"]
         split_val: 0.2
@@ -28,7 +27,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       alpha:
         df: null
-        df_path: "goli/data/micro_ZINC/micro_qm9_9_9.csv"
+        df_path: "goli/data/QM9/micro_qm9_9atoms_9bonds.csv"
         smiles_col: "smiles"
         label_cols: ["alpha"]
         split_val: 0.2
@@ -41,7 +40,7 @@ datamodule:
         weights_type: null                # This may not always be provided
       cv:
         df: null
-        df_path: "goli/data/micro_ZINC/micro_qm9_9_9.csv"
+        df_path: "goli/data/QM9/micro_qm9_9atoms_9bonds.csv"
         smiles_col: "smiles"
         label_cols: ["cv"]
         split_val: 0.2
@@ -110,13 +109,14 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: random
-    pooling: [sum, mean]
+    pooling: [sum, mean, max]
     virtual_node: 'sum'
-    layer_type: 'pyg:gine'
+    layer_type: 'pyg:gated-gcn'
     layer_kwargs:
-      # num_heads: 3
+      # out_dim_edges: 16
       # aggregators: [mean, max]
       # scalers: [identity, amplification, attenuation]
+      # num_heads: 3
 
   post_nn: null
     #out_dim: 1

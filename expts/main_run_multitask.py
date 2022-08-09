@@ -11,8 +11,8 @@ from goli.config._loader import load_datamodule, load_metrics, load_metrics_mtl,
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
-CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
-# CONFIG_FILE = "tests/mtl/config_ipu_test.yaml"
+# CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
+CONFIG_FILE = "tests/mtl/config_ipu_test.yaml"
 os.chdir(MAIN_DIR)
 
 
