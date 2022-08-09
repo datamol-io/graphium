@@ -1,3 +1,4 @@
+from copy import deepcopy
 import torch
 import torch.nn as nn
 from typing import List, Union, Callable, Tuple
@@ -213,19 +214,22 @@ def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], **kwarg
         this_pool = None if this_pool is None else this_pool.lower()
         out_pool_dim += in_dim
         if this_pool == "sum":
-            pool_layer.append(SumPooling(**kwargs))
+            pool_layer.append(SumPooling())
         elif this_pool == "mean":
             pool_layer.append(AvgPooling(**kwargs))
         elif this_pool == "logsum":
-            pool_layer.append(LogSumPoolingDgl(**kwargs))
+            pool_layer.append(LogSumPoolingDgl())
         elif this_pool == "max":
-            pool_layer.append(MaxPooling(**kwargs))
+            pool_layer.append(MaxPooling())
         elif this_pool == "min":
-            pool_layer.append(MinPoolingDgl(**kwargs))
+            pool_layer.append(MinPoolingDgl())
         elif this_pool == "std":
-            pool_layer.append(StdPoolingDgl(**kwargs))
+            pool_layer.append(StdPoolingDgl())
         elif this_pool == "s2s":
-            pool_layer.append(Set2Set(input_dim=in_dim, **kwargs))
+            this_kwargs = deepcopy(kwargs)
+            n_iters = this_kwargs.pop("n_iters", 2)
+            n_layers = this_kwargs.pop("n_layers", 2)
+            pool_layer.append(Set2Set(input_dim=in_dim, n_iters=n_iters, n_layers=n_layers, **this_kwargs))
             out_pool_dim += in_dim
         elif isinstance(this_pool, str) and (this_pool[:3] == "dir"):
             dir_idx = int(this_pool[3:])

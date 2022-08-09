@@ -60,14 +60,15 @@ PCQM4Mv2_meta.update(
     }
 )
 
+def smiles_to_unique_mol_id(smiles: str):
+    mol = dm.to_mol(mol=smiles)
+    mol_id = dm.unique_id(mol)
+    return mol_id
 
-def smiles_to_unique_mol_ids(smiles: List[str]):
+def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1, backend="loky", progress=True):
     """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
-    unique_mol_ids = []
-    for smile in smiles:
-        mol = dm.to_mol(mol=smile)
-        id = dm.unique_id(mol)
-        unique_mol_ids.append(id)
+    if backend == "loky": backend = None
+    unique_mol_ids = dm.parallelized(smiles_to_unique_mol_id, smiles, progress=progress, n_jobs=n_jobs, scheduler=backend, tqdm_kwargs={"desc": "mols to ids"})
     return unique_mol_ids
 
 
@@ -159,9 +160,12 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
         - self.features will be a list of featurized graphs corresponding to that particular unique molecule.
             However, for testing purposes we may not require features so that we can make sure that this merge function works.
     """
-    def __init__(self, datasets: Dict[str, SingleTaskDataset]):
+    def __init__(self, datasets: Dict[str, SingleTaskDataset], n_jobs=-1, backend="loky", progress=True):
         super().__init__()
         self.datasets = datasets
+        self.n_jobs = n_jobs
+        self.backend = backend
+        self.progress = progress
 
         task = next(iter(self.datasets))
         if "features" in datasets[task][0]:
@@ -225,7 +229,7 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
 
         mol_ids = []
         # Get all unique mol ids.
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
+        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.n_jobs, backend=self.backend, progress=self.progress)
         unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         mol_ids = unique_mol_ids
 
@@ -294,6 +298,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.test_ds = None
         self._predict_ds = None
 
+        self._data_is_prepared = False
         self.ipu_options = ipu_options
 
     def prepare_data(self):
@@ -396,29 +401,17 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=batch_size,
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
+            drop_last=False,
             )
 
         else:
-            poptorch = import_poptorch()
-            #! TODO (Andy), find in poptorch how is the batch size used to stop sampling and modify that usage
-            #? # Stop loading new graphs when it reaches capacity of #nodes, #graphs or #edges, instead of just batch_size
             #! # TODO: wrap around the collate_fn to pad the pyg.Data.Batch.
             #! # TODO: Make poptorch.DataLoaderMode.Sync configurable and work with ASync
-            # loader = poptorch.DataLoader( # Stop loading new graphs when it reaches capacity of #nodes, #graphs or #edges, instead of just batch_size
-            #     options=self.ipu_options,
-            #     mode=poptorch.DataLoaderMode.Sync, 
-            #     dataset=dataset,
-            #     num_workers=num_workers,
-            #     collate_fn=ipu_collate_fn, 
-            #     pin_memory=self.pin_memory,
-            #     batch_size=batch_size,
-            #     shuffle=shuffle,
-            #     persistent_workers=self.persistent_workers,
-            # )
 
-            from goli.ipu.ipu_dataloader import create_dataloader
+            from goli.ipu.ipu_dataloader import create_ipu_dataloader
 
-            loader = create_dataloader(dataset=dataset,
+            loader = create_ipu_dataloader(
+                    dataset=dataset,
                     ipu_opts=self.ipu_options,
                     batch_size=batch_size,
                     collate_fn=self.collate_fn,
@@ -711,12 +704,10 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         """
 
         # Loop all the smiles and compute the features
-        if self.featurization_n_jobs == 0:
-            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
-        else:
-            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
-                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
-            )
+        features = dm.parallelized(
+            self.smiles_transformer, smiles, progress=True, n_jobs=self.featurization_n_jobs,
+            tqdm_kwargs={"desc": "featurizing_smiles"}
+        )
 
         # Warn about None molecules
         if sample_idx is None:
@@ -1346,6 +1337,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
         # TODO (Gabriela): Implement the ability to load from cache.
 
+        if self._data_is_prepared:
+            return
+
         """Load all single-task dataframes."""
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
@@ -1402,16 +1396,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                 all_tasks.append(task)
         # Get all unique mol ids
         all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
-        unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
-        mol_ids = unique_mol_ids
-        # Get smiles to be used for featurization with those mol ids.
-        smiles_to_featurize = []
-        for id in range(len(mol_ids)):
-            for all_idx, unique_idx in enumerate(inv):
-                if unique_idx == id:  # If we found this unique mol id
-                    smiles_to_featurize.append(all_smiles[all_idx])
-                    break # No need to check if another smiles matches
-        assert len(mol_ids) == len(smiles_to_featurize)
+        unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
+        smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
         features, idx_none = self._featurize_molecules(smiles_to_featurize) # sample_idx is removed ... might need to add it again later in another way
@@ -1480,31 +1466,35 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             self.task_val_indices[task] = val_indices
             self.task_test_indices[task] = test_indices
 
-            #train_singletask_datasets[task] = Subset()
             self.train_singletask_datasets[task] = Subset(self.single_task_datasets[task], train_indices)
             self.val_singletask_datasets[task] = Subset(self.single_task_datasets[task], val_indices)
             self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], test_indices)
 
-
+        self._data_is_prepared = True
         # TODO (Gabriela): Implement the ability to save to cache.
 
     def setup(self, stage: str = None): # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
 
         # Produce the label sizes to update the collate function
-        label_sizes = {}
+        labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets)  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets)  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
 
-            label_sizes.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
-            label_sizes.update(self.val_ds.labels_size)
+            labels_size.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
+            labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets)  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
 
-            #label_sizes.update(self.test_ds.labels_size)
+            labels_size.update(self.test_ds.labels_size)
+
+        default_labels_size_dict = self.collate_fn.keywords.get("labels_size_dict", None)
+
+        if default_labels_size_dict is None:
+            self.collate_fn.keywords["labels_size_dict"] = labels_size
 
         # Produce the label sizes
         #label_sizes.update(self.train_ds.labels_size)
@@ -1535,12 +1525,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
 
         # Loop all the smiles and compute the features
-        if self.featurization_n_jobs == 0:
-            features = [self.smiles_transformer(s) for s in tqdm(smiles)]
-        else:
-            features = Parallel(n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)(
-                delayed(self.smiles_transformer)(s) for s in tqdm(smiles)
-            )
+        features = dm.parallelized(
+            self.smiles_transformer, smiles, progress=True, n_jobs=self.featurization_n_jobs,
+            tqdm_kwargs={"desc": "featurizing_smiles"}
+        )
 
         # Warn about None molecules
         idx_none = [ii for ii, feat in enumerate(features) if feat is None]
@@ -1695,16 +1683,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
         Low memory footprint method to get the first datapoint DGL graph.
         The first 10 rows of the data are read in case the first one has a featurization
-        error. If all 10 first element, then `None` is returned, otherwise the first
+        error. If all 20 first element, then `None` is returned, otherwise the first
         graph to not fail is returned.
         """
         keys = list(self.task_dataset_processing_params.keys())
         task = keys[0]
         args = self.task_dataset_processing_params[task]
         if args.df is None:
-            df = self._read_csv(args.df_path, nrows=10)
+            df = self._read_csv(args.df_path, nrows=20)
         else:
-            df = args.df.iloc[0:10, :]
+            df = args.df.iloc[0:20, :]
 
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
@@ -1718,7 +1706,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         graph = None
         for s in smiles:
             graph = self.smiles_transformer(s, mask_nan=0.0)
-            if graph is not None:
+            if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+                num_nodes = graph.num_nodes()
+                num_edges = graph.num_edges()
+            elif isinstance(graph, (Data, Batch)):
+                num_nodes = graph.num_nodes
+                num_edges = graph.num_edges
+            if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
                 break
 
         return graph
