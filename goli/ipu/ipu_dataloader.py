@@ -7,40 +7,6 @@ import torch
 from torch_geometric.data import Batch, Dataset
 from goli.ipu.ipu_pad import Pad
 
-class TupleCollator(object):
-    """
-    Collate a PyG Batch as a tuple of tensors
-    """
-
-    def __init__(self,
-                 include_keys: Optional[Union[List[str], Tuple[str]]] = None):
-        """
-        :param include_keys (optional): Keys to include from the batch in the
-            output tuple specified as either a list or tuple of strings. The
-            ordering of the keys is preserved in the output tuple. The keys can
-            be inferred through the Batch.keys property when not provided.
-        """
-        super().__init__()
-        self.include_keys = include_keys
-        channel = poptorch.profiling.Channel(self.__class__.__name__)
-        channel.instrument(self, "__call__")
-
-    def __call__(self, data_list):
-        with poptorch.profiling.Channel("Batch").tracepoint("from_data_list"):
-            batch = Batch.from_data_list(data_list)
-
-        if self.include_keys is None:
-            # Check the keys property for tensors and cache the result
-            keys = filter(lambda k: torch.is_tensor(getattr(batch, k)),
-                          batch.keys)
-            self.include_keys = tuple(keys)
-
-        assert all([hasattr(batch, k) for k in self.include_keys]), \
-            "Batch is missing a required key: " \
-            f"include_keys='{self.include_keys}'"
-
-        return tuple(getattr(batch, k) for k in self.include_keys)
-
 
 class CombinedBatchingCollator:
     """
@@ -52,89 +18,56 @@ class CombinedBatchingCollator:
     This is intended to be used in combination with the poptorch.DataLoader
     """
 
-    def __init__(self, mini_batch_size, include_keys=None, collate_fn=None, max_num_nodes=100, max_num_edges=300):
+    def __init__(self, mini_batch_size, collate_fn=None, max_num_nodes_per_graph=25, max_num_edges_per_graph=50, max_num_nodes=None, max_num_edges=None):
         """
         :param mini_batch_size (int): mini batch size used by the SchNet model
-        :param include_keys (optional): Keys to include from the batch in the
-            output tuple specified as either a list or tuple of strings. The
-            ordering of the keys is preserved in the output tuple. The keys can
-            be inferred through the Batch.to_dict method when not provided.
         """
         super().__init__()
         self.mini_batch_size = mini_batch_size
-        self.batch_to_tuple = TupleCollator(include_keys=include_keys)
         self.collate_fn = collate_fn
-        self.max_num_nodes = max_num_nodes
-        self.max_num_edges = max_num_edges
 
-    # def __call__(self, batch):
-    #     if (self.collate_fn != None):
-    #         batch = self.collate_fn(batch)
-    #     graphs = batch['features']
-    #     num_items = len(graphs)
-    #     assert num_items % self.mini_batch_size == 0, "Invalid batch size. " \
-    #         f"Got {num_items} graphs and" \
-    #         f"mini_batch_size={self.mini_batch_size}."
+        # Get the maximum number of nodes
+        if max_num_nodes is not None:
+            assert max_num_nodes_per_graph is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
+            self.max_num_nodes = max_num_nodes
+        elif max_num_nodes_per_graph is not None:
+            assert max_num_nodes is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
+            self.max_num_nodes = max_num_nodes_per_graph * mini_batch_size
+        else:
+            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
 
-    #     num_mini_batches = num_items // self.mini_batch_size
-    #     batches = [None] * num_mini_batches
-    #     start = 0
-    #     stride = self.mini_batch_size
-
-    #     for i in range(num_mini_batches):
-    #         slices = graphs[start:start + stride]
-    #         batches[i] = self.batch_to_tuple(slices)
-    #         start += stride
-
-    #     num_outputs = len(batches[0])
-    #     outputs = [None] * num_outputs
-
-    #     for i in range(num_outputs):
-    #         outputs[i] = torch.stack(tuple(item[i] for item in batches))
-
-    #     '''
-    #     convert tuple of torch tensors into pyg batch
-    #     '''
-
-    #     outputs = tuple(outputs)
-    #     #batch['features'] = tuple(outputs)
-    #     return outputs
+        # Get the maximum number of edges
+        if max_num_edges is not None:
+            assert max_num_edges_per_graph is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
+            self.max_num_edges = max_num_edges
+        elif max_num_edges_per_graph is not None:
+            assert max_num_edges is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
+            self.max_num_edges = max_num_edges_per_graph * mini_batch_size
+        else:
+            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
 
 
     def __call__(self, batch):
-        '''
-        padding option 1: pad all graphs to same size
-        '''
-        # if (self.collate_fn != None):
-        #     batch = self.collate_fn(batch)
-        # graphs = batch['features']
-
-        # transform = Pad(max_num_nodes=self.max_num_nodes, max_num_edges=self.max_num_edges)
-        # for i in range(len(graphs)):
-        #     graphs[i] = transform(graphs[i])
-
-        # batch['features'] = Batch.from_data_list(graphs)
-
         '''
         padding option 2 pad each batch to be same size
         '''
         if (self.collate_fn != None):
             batch = self.collate_fn(batch)
 
-        transform = Pad(max_num_nodes=self.mini_batch_size*12, max_num_edges=self.mini_batch_size*24, include_keys=['batch'])
+        transform = Pad(max_num_nodes=self.max_num_nodes, max_num_edges=self.max_num_edges, include_keys=['batch'])
 
         batch['features'] = transform(batch['features'])
         return batch
 
 
-def create_dataloader(dataset: Dataset,
+def create_ipu_dataloader(dataset: Dataset,
                       ipu_opts: Optional[poptorch.Options] = None,
                       batch_size: Optional[int] = 1,
-                      include_keys: Optional[Union[List[str],
-                                                   Tuple[str]]] = None,
                       collate_fn=None,
-                      max_num_nodes=100,
-                      max_num_edges=300,
+                      max_num_nodes_per_graph=25,
+                      max_num_edges_per_graph=50,
+                      max_num_nodes=None,
+                      max_num_edges=None,
                       **kwargs):
     """
     Creates a poptorch.DataLoader for graph datasets
@@ -148,10 +81,6 @@ def create_dataloader(dataset: Dataset,
         poptorch.DataLoader. Will use the default options if not provided.
     :param batch_size (optional): How many graph examples to load in each batch
         (default: 1).
-    :param include_keys (optional): Keys to include from the batch in the
-        output tuple specified as either a list or tuple of strings. The
-        ordering of the keys is preserved in the output tuple. The keys can
-        be inferred through the Batch.to_dict method when not provided.
     :param **kwargs (optional): Additional arguments of
         :class:`poptorch.DataLoader`.
     """
@@ -159,16 +88,11 @@ def create_dataloader(dataset: Dataset,
         # Create IPU default options
         ipu_opts = poptorch.Options()
 
-    # assert 'collate_fn' not in kwargs, \
-    #     "Cannot set collate_fn with poppyg.create_dataloader. "\
-    #     "Use poptorch.DataLoader directly if you need this functionality."
-
-    # collater = CombinedBatchingCollator(batch_size, include_keys,
-    #                                 collate_fn=collate_fn, max_num_nodes=max_num_nodes,
-    #                                 max_num_edges=max_num_edges)
-
-    collater = CombinedBatchingCollator(batch_size, include_keys,
-                                    collate_fn=collate_fn)
+    collater = CombinedBatchingCollator(batch_size, collate_fn=collate_fn,
+                                max_num_nodes_per_graph=max_num_nodes_per_graph,
+                                max_num_edges_per_graph=max_num_edges_per_graph,
+                                max_num_nodes=max_num_nodes,
+                                max_num_edges=max_num_edges,)
 
     return poptorch.DataLoader(ipu_opts,
                                dataset=dataset,
