@@ -1341,8 +1341,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
         # TODO (Gabriela): Implement the ability to load from cache.
 
-        if self._data_is_prepared:
-            return
+        # if self._data_is_prepared:
+        #     return
 
         """Load all single-task dataframes."""
         task_df = {}
