@@ -4,7 +4,6 @@ import torch
 from numpy import ndarray
 from scipy.sparse import spmatrix
 from torch.utils.data.dataloader import default_collate
-from inspect import signature, _empty
 from typing import Union, List, Optional, Dict, Type, Any
 import dgl
 from torch_geometric.data import Data, Batch
@@ -76,7 +75,7 @@ def goli_collate_fn(
 
             # If a PyG Graph is provided, use the PyG batching
             # Convert all numpy types to torch
-            # Convert edge indices to long
+            # Convert edge indices to int32
             elif isinstance(elem[key], Data):
                 pyg_batch = []
                 for this_elem in elements:

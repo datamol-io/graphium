@@ -1,4 +1,5 @@
 from typing import Dict, List, Optional, Union, Callable
+from functools import partial
 
 import torch
 from torch import Tensor
@@ -12,7 +13,7 @@ from torch_geometric.data import Data, Batch
 
 from goli.utils.decorators import classproperty
 from goli.nn.base_layers import MLP, get_activation
-from goli.nn.base_graph_layer import BaseGraphStructure
+from goli.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
 
 
 class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
@@ -110,6 +111,9 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
             dropout=dropout,
             normalization=normalization,
         )
+
+        # Allow int32 as edge index
+        self.__check_input__ = partial(check_intpus_allow_int, self)
 
         self.aggregators = aggregators
         self.scalers = scalers

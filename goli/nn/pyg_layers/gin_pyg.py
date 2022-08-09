@@ -1,9 +1,10 @@
-import torch_geometric.nn as pyg_nn
 from typing import Callable, Union, Optional
+from functools import partial
 
+import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Data, Batch
 
-from goli.nn.base_graph_layer import BaseGraphModule
+from goli.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
@@ -85,6 +86,7 @@ class GINConvPyg(BaseGraphModule):
         )
 
         self.model = pyg_nn.GINConv(gin_nn)
+        self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
     def forward(self, batch: Union[Data, Batch]):
 
@@ -224,6 +226,7 @@ class GINEConvPyg(BaseGraphModule):
         )
 
         self.model = pyg_nn.GINEConv(gin_nn, edge_dim=in_dim_edges)  # , node_dim=-1)
+        self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
     def forward(self, batch):
 
