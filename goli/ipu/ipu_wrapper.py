@@ -130,8 +130,8 @@ class PredictorModuleIPU(PredictorModule):
         #? self.poptorch.identity_loss(step_dict["loss"], reduction="sum") results in higher loss
         #? self.poptorch.identity_loss(step_dict["loss"], reduction="mean") has lowest loss
 
-        loss = step_dict["loss"]
-        # loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
+        # loss = step_dict["loss"]
+        loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
         ipu_print_tensor(loss, "\nloss " + str(self.global_step) + str(self.current_epoch))
         # ipu_print_tensor(step_dict["grad_norm"], "grad_norm ")
         return loss # Limitation that only the loss can be returned

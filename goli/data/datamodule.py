@@ -398,30 +398,16 @@ class BaseDataModule(pl.LightningDataModule):
             batch_size=batch_size,
             shuffle=shuffle,
             persistent_workers=self.persistent_workers,
-            drop_last=True, # TODO: Remove when done with IPU
+            drop_last=False,
             )
 
         else:
-            poptorch = import_poptorch()
-            #! TODO (Andy), find in poptorch how is the batch size used to stop sampling and modify that usage
-            #? # Stop loading new graphs when it reaches capacity of #nodes, #graphs or #edges, instead of just batch_size
             #! # TODO: wrap around the collate_fn to pad the pyg.Data.Batch.
             #! # TODO: Make poptorch.DataLoaderMode.Sync configurable and work with ASync
-            # loader = poptorch.DataLoader( # Stop loading new graphs when it reaches capacity of #nodes, #graphs or #edges, instead of just batch_size
-            #     options=self.ipu_options,
-            #     mode=poptorch.DataLoaderMode.Sync,
-            #     dataset=dataset,
-            #     num_workers=num_workers,
-            #     collate_fn=ipu_collate_fn,
-            #     pin_memory=self.pin_memory,
-            #     batch_size=batch_size,
-            #     shuffle=shuffle,
-            #     persistent_workers=self.persistent_workers,
-            # )
 
-            from goli.ipu.ipu_dataloader import create_dataloader
+            from goli.ipu.ipu_dataloader import create_ipu_dataloader
 
-            loader = create_dataloader(
+            loader = create_ipu_dataloader(
                     dataset=dataset,
                     ipu_opts=self.ipu_options,
                     batch_size=batch_size,

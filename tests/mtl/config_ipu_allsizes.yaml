@@ -3,7 +3,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu
+    type: cpu
 
 
 datamodule:
@@ -52,7 +52,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
+    featurization_n_jobs: 16
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -100,7 +100,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
     hidden_dims: 64
-    depth: 2
+    depth: 4
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -171,7 +171,7 @@ predictor:
     cv: mse
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-2
+    lr: 1.e-3
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     #module_type: ReduceLROnPlateau
@@ -273,14 +273,14 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/micro_ZINC_mtl
+    save_dir: logs/QM9
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/micro_ZINC_mtl/
+    dirpath: models_checkpoints/QM9/
     filename: "model"
     #monitor: *monitor
     #mode: *mode

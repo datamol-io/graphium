@@ -3,7 +3,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu
+    type: ipu
 
 
 datamodule:
@@ -12,7 +12,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       alpha:
         df: null
-        df_path: "goli/data/QM9/qm9.csv"
+        df_path: "goli/data/QM9/micro_qm9.csv"
         smiles_col: "smiles"
         label_cols: ["alpha"]
         split_val: 0.2
@@ -121,7 +121,7 @@ predictor:
     alpha: mse
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-2
+    lr: 1.e-3
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     #module_type: ReduceLROnPlateau
