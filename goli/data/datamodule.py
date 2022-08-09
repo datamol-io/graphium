@@ -65,9 +65,10 @@ def smiles_to_unique_mol_id(smiles: str):
     mol_id = dm.unique_id(mol)
     return mol_id
 
-def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1):
+def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1, backend="loky", progress=True):
     """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
-    unique_mol_ids = dm.parallelized(smiles_to_unique_mol_id, smiles, progress=True, n_jobs=n_jobs, tqdm_kwargs={"desc": "mols to ids"})
+    if backend == "loky": backend = None
+    unique_mol_ids = dm.parallelized(smiles_to_unique_mol_id, smiles, progress=progress, n_jobs=n_jobs, scheduler=backend, tqdm_kwargs={"desc": "mols to ids"})
     return unique_mol_ids
 
 
@@ -159,10 +160,12 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
         - self.features will be a list of featurized graphs corresponding to that particular unique molecule.
             However, for testing purposes we may not require features so that we can make sure that this merge function works.
     """
-    def __init__(self, datasets: Dict[str, SingleTaskDataset], n_jobs=-1):
+    def __init__(self, datasets: Dict[str, SingleTaskDataset], n_jobs=-1, backend="loky", progress=True):
         super().__init__()
         self.datasets = datasets
         self.n_jobs = n_jobs
+        self.backend = backend
+        self.progress = progress
 
         task = next(iter(self.datasets))
         if "features" in datasets[task][0]:
@@ -226,7 +229,7 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
 
         mol_ids = []
         # Get all unique mol ids.
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.n_jobs)
+        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.n_jobs, backend=self.backend, progress=self.progress)
         unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         mol_ids = unique_mol_ids
 
@@ -1477,14 +1480,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs)  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs)  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
 
             labels_size.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs)  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
 
             labels_size.update(self.test_ds.labels_size)
 
