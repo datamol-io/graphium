@@ -15,6 +15,7 @@ from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
+from goli.trainer.loggers import TensorBoardLoggerGoli
 
 
 def get_accelerator(
@@ -210,7 +211,7 @@ def load_trainer(config):
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     if "logger" in cfg_trainer.keys():
-        trainer_kwargs["logger"] = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
+        trainer_kwargs["logger"] = TensorBoardLoggerGoli(**cfg_trainer["logger"], default_hp_metric=False, full_configs=config)
 
     trainer_kwargs["callbacks"] = callbacks
 
