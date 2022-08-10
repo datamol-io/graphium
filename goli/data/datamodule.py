@@ -26,7 +26,6 @@ from goli.utils import fs
 from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
-from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
@@ -274,9 +273,6 @@ class BaseDataModule(pl.LightningDataModule):
         pin_memory: bool = True,
         persistent_workers: bool = False,
         collate_fn: Optional[Callable] = None,
-        ipu_options: Optional["poptorch.Options"] = None,
-        ipu_dataloader_opts_train_val: Optional[IPUDataloaderOptions] = None,
-        ipu_dataloader_opts_test: Optional[IPUDataloaderOptions] = None,
     ):
         super().__init__()
 
@@ -295,10 +291,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.test_ds = None
         self._predict_ds = None
 
-        self._data_is_prepared = False
-        self.ipu_options = ipu_options
-        self.ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val
-        self.ipu_dataloader_opts_test=ipu_dataloader_opts_test
+        self._data_is_prepared = False # TODO: Variable unused. Remove if stay unused
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -309,35 +302,31 @@ class BaseDataModule(pl.LightningDataModule):
     def train_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.train_ds,  # type: ignore
-            batch_size=self.batch_size_train_val,
             shuffle=True,
-            ipu_dataloader_options=self.ipu_dataloader_opts_train_val,
+            stage="train",
         )
 
     def val_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.val_ds,  # type: ignore
-            batch_size=self.batch_size_train_val,
             shuffle=False,
-            ipu_dataloader_options=self.ipu_dataloader_opts_train_val,
+            stage="val",
         )
 
     def test_dataloader(self, **kwargs):
 
         return self._dataloader(
             dataset=self.test_ds,  # type: ignore
-            batch_size=self.batch_size_test,
             shuffle=False,
-            ipu_dataloader_options=self.ipu_dataloader_opts_test,
+            stage="test",
         )
 
     def predict_dataloader(self, **kwargs):
 
         return self._dataloader(
             dataset=self.predict_ds,  # type: ignore
-            batch_size=self.batch_size_test,
             shuffle=False,
-            ipu_dataloader_options=self.ipu_dataloader_opts_test,
+            stage="predict",
         )
 
     @staticmethod
@@ -373,6 +362,15 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             return self._predict_ds
 
+    @property
+    def get_num_workers(self):
+        if self.num_workers == -1:
+            num_workers = os.cpu_count()
+            num_workers = num_workers if num_workers is not None else 0
+        else:
+            num_workers = self.num_workers
+        return num_workers
+
     @predict_ds.setter
     def predict_ds(self, value):
         """Set the dataset for the prediction"""
@@ -395,43 +393,28 @@ class BaseDataModule(pl.LightningDataModule):
         df = pd.read_csv(path, **kwargs)
         return df
 
-    def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool, ipu_dataloader_options=None):
+    def _dataloader(self, dataset: Dataset, shuffle: bool, stage: str):
         """Get a dataloader for a given dataset"""
 
-        if self.num_workers == -1:
-            num_workers = os.cpu_count()
-            num_workers = num_workers if num_workers is not None else 0
+        # Get batch size
+        if stage in ["train", "val"]:
+            batch_size = self.batch_size_train_val
+        elif stage in ["test", "predict"]:
+            batch_size = self.batch_size_test
         else:
-            num_workers = self.num_workers
+            raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
 
-        if self.ipu_options is None:
-            loader = DataLoader(
-            dataset=dataset,
-            num_workers=num_workers,
-            collate_fn=self.collate_fn,
-            pin_memory=self.pin_memory,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            persistent_workers=self.persistent_workers,
-            drop_last=False,
-            )
+        loader = DataLoader(
+        dataset=dataset,
+        num_workers=self.get_num_workers,
+        collate_fn=self.collate_fn,
+        pin_memory=self.pin_memory,
+        batch_size=batch_size,
+        shuffle=shuffle,
+        persistent_workers=self.persistent_workers,
+        drop_last=False,
+        )
 
-        else:
-            #! # TODO: wrap around the collate_fn to pad the pyg.Data.Batch.
-            #! # TODO: Make poptorch.DataLoaderMode.Sync configurable and work with ASync
-
-            from goli.ipu.ipu_dataloader import create_ipu_dataloader
-
-            loader = create_ipu_dataloader(
-                    dataset=dataset,
-                    ipu_dataloader_options=ipu_dataloader_options,
-                    ipu_opts=self.ipu_options,
-                    batch_size=batch_size,
-                    collate_fn=self.collate_fn,
-                    num_workers=num_workers,
-                    pin_memory=self.pin_memory,
-                    shuffle=shuffle,
-                    persistent_workers=self.persistent_workers)
         return loader
 
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
@@ -1192,6 +1175,8 @@ class DatasetProcessingParams():
        self.split_test = split_test
        self.split_seed = split_seed
        self.splits_path = splits_path
+
+
 class MultitaskFromSmilesDataModule(BaseDataModule):
     def __init__(
         self,
@@ -1209,9 +1194,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
-        ipu_options: Optional["poptorch.Options"] = None,
-        ipu_dataloader_opts_train_val: Optional[IPUDataloaderOptions] = None,
-        ipu_dataloader_opts_test: Optional[IPUDataloaderOptions] = None,
     ):
         """
         Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
@@ -1289,9 +1271,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                   `num_workers`, and less likely to cause memory issues with the parallelization.
                 - "pyg:graph": Process molecules as `pyg.data.Data`.
             dataset_class: The class used to create the dataset from which to sample.
-            ipu_options: Options for the IPU. Ignore if not using IPUs
-            ipu_dataloader_opts_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
-            ipu_dataloader_opts_test: Options for the dataloader for the IPU. Ignore if not using IPUs
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -1300,9 +1279,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
-            ipu_options=ipu_options,
-            ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val,
-            ipu_dataloader_opts_test=ipu_dataloader_opts_test,
         )
 
         self.task_specific_args = task_specific_args
@@ -2114,3 +2090,133 @@ class GraphOGBDataModule(GraphFromSmilesDataModule):
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
 
         return ogb_metadata
+
+
+class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
+    def __init__(
+                self,
+                ipu_options: Optional["poptorch.Options"] = None,
+                ipu_dataloader_opts_train_val: Optional["IPUDataloaderOptions"] = None,
+                ipu_dataloader_opts_test: Optional["IPUDataloaderOptions"] = None,
+                *args,
+                **kwargs
+                ) -> None:
+        """
+        Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
+        and the value is specified below.
+            task_df: (value) a dataframe
+            task_df_path: (value) a path to a dataframe to load (CSV file). `df` takes precedence over
+                `df_path`.
+            task_smiles_col: (value) Name of the SMILES column. If set to `None`, it will look for
+                a column with the word "smile" (case insensitive) in it.
+                If no such column is found, an error will be raised.
+            task_label_cols: (value) Name of the columns to use as labels, with different options.
+
+                - `list`: A list of all column names to use
+                - `None`: All the columns are used except the SMILES one.
+                - `str`: The name of the single column to use
+                - `*str`: A string starting by a `*` means all columns whose name
+                  ends with the specified `str`
+                - `str*`: A string ending by a `*` means all columns whose name
+                  starts with the specified `str`
+
+            task_weights_col: (value) Name of the column to use as sample weights. If `None`, no
+                weights are used. This parameter cannot be used together with `weights_type`.
+            task_weights_type: (value) The type of weights to use. This parameter cannot be used together with `weights_col`.
+                **It only supports multi-label binary classification.**
+
+                Supported types:
+
+                - `None`: No weights are used.
+                - `"sample_balanced"`: A weight is assigned to each sample inversely
+                    proportional to the number of positive value. If there are multiple
+                    labels, the product of the weights is used.
+                - `"sample_label_balanced"`: Similar to the `"sample_balanced"` weights,
+                    but the weights are applied to each element individually, without
+                    computing the product of the weights for a given sample.
+
+            task_idx_col: (value) Name of the columns to use as indices. Unused if set to None.
+            task_sample_size: (value)
+
+                - `int`: The maximum number of elements to take from the dataset.
+                - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
+                - `None`: all elements are considered.
+            task_split_val: (value) Ratio for the validation split.
+            task_split_test: (value) Ratio for the test split.
+            task_split_seed: (value) Seed to use for the random split. More complex splitting strategy
+                should be implemented.
+            task_splits_path: (value) A path a CSV file containing indices for the splits. The file must contains
+                3 columns "train", "val" and "test". It takes precedence over `split_val` and `split_test`.
+
+            cache_data_path: path where to save or reload the cached data. The path can be
+                remote (S3, GS, etc).
+            featurization: args to apply to the SMILES to Graph featurizer.
+            batch_size_train_val: batch size for training and val dataset.
+            batch_size_test: batch size for test dataset.
+            num_workers: Number of workers for the dataloader. Use -1 to use all available
+                cores.
+            pin_memory: Whether to pin on paginated CPU memory for the dataloader.
+            featurization_n_jobs: Number of cores to use for the featurization.
+            featurization_progress: whether to show a progress bar during featurization.
+            featurization_backend: The backend to use for the molecular featurization.
+
+                - "multiprocessing": Found to cause less memory issues.
+                - "loky": joblib's Default. Found to cause memory leaks.
+                - "threading": Found to be slow.
+
+            collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs, DGL dict or PyG graphs.
+                Possible options:
+
+                - "dgl:graph": Process molecules as `dgl.DGLGraph`. It's slower during pre-processing
+                  and requires more RAM. It is faster during training with `num_workers=0`, but
+                  slower with larger `num_workers`.
+                - "dgl:dict": Process molecules as a `dict`. It's faster and requires less RAM during
+                  pre-processing. It is slower during training with with `num_workers=0` since
+                  DGLGraphs will be created during data-loading, but faster with large
+                  `num_workers`, and less likely to cause memory issues with the parallelization.
+                - "pyg:graph": Process molecules as `pyg.data.Data`.
+            dataset_class: The class used to create the dataset from which to sample.
+            ipu_options: Options for the IPU. Ignore if not using IPUs
+            ipu_dataloader_opts_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
+            ipu_dataloader_opts_test: Options for the dataloader for the IPU. Ignore if not using IPUs
+        """
+        super().__init__(*args, **kwargs)
+
+        self.ipu_options = ipu_options
+        self.ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val
+        self.ipu_dataloader_opts_test=ipu_dataloader_opts_test
+
+
+    def _dataloader(self, dataset: Dataset, shuffle: bool, stage: str):
+        """Get a dataloader for a given dataset"""
+
+        # Get batch size
+        if stage in ["train", "val"]:
+            batch_size = self.batch_size_train_val
+            ipu_dataloader_options = self.ipu_dataloader_opts_train_val
+        elif stage in ["test", "predict"]:
+            batch_size = self.batch_size_test
+            ipu_dataloader_options = self.ipu_dataloader_opts_test
+        else:
+            raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
+
+        # Use regular Dataloader if no IPUs
+        if self.ipu_options is None:
+            logger.warning("No IPU options. Using regular dataloader.")
+            return super()._dataloader(dataset, shuffle, stage)
+
+        from goli.ipu.ipu_dataloader import create_ipu_dataloader
+
+        loader = create_ipu_dataloader(
+                dataset=dataset,
+                ipu_dataloader_options=ipu_dataloader_options,
+                ipu_opts=self.ipu_options,
+                batch_size=batch_size,
+                collate_fn=self.collate_fn,
+                num_workers=self.get_num_workers,
+                pin_memory=self.pin_memory,
+                shuffle=shuffle,
+                persistent_workers=self.persistent_workers)
+
+        return loader

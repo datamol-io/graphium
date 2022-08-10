@@ -68,21 +68,20 @@ def load_datamodule(
     cfg_data = config["datamodule"]["args"]
     ipu_options = None
     ipu_file = "tests/mtl/ipu.config"
-    ipu_dataloader_opts_train_val = None
-    ipu_dataloader_opts_test = None
+    ipu_dataloader_opts_train_val = cfg_data.pop("ipu_dataloader_train_val", None)
+    ipu_dataloader_opts_test = cfg_data.pop("ipu_dataloader_test", None)
 
     if get_accelerator(config) == "ipu":
         ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
 
         bz_train = cfg_data["batch_size_train_val"]
-        ipu_dataloader_opts_train_val = cfg_data.pop("ipu_dataloader_train_val", {})
         ipu_dataloader_opts_train_val = IPUDataloaderOptions(batch_size=bz_train, **ipu_dataloader_opts_train_val)
         ipu_dataloader_opts_train_val.set_kwargs()
 
         bz_test = cfg_data["batch_size_test"]
-        ipu_dataloader_opts_test = cfg_data.pop("ipu_dataloader_test", {})
         ipu_dataloader_opts_test = IPUDataloaderOptions(batch_size=bz_test, **ipu_dataloader_opts_test)
         ipu_dataloader_opts_test.set_kwargs()
+
 
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(
