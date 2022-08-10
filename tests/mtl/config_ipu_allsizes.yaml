@@ -1,6 +1,6 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name qm9_model
+  name: &name qm9_norm2
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -13,7 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path "goli/data/QM9/mini_qm9.csv"
+        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
