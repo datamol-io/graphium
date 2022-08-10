@@ -300,7 +300,7 @@ class TaskSummaries(SummaryInterface):
     # TODO (Gabriela): This works to fix the logging on TB, but make it more efficient
     def concatenate_metrics_logs(self, metrics_logs):
         concatenated_metrics_logs = {}
-        for task in self.tasks:
+        for task in list(self.tasks) + ["_global"]:
             concatenated_metrics_logs.update(metrics_logs[task])
         concatenated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
         return concatenated_metrics_logs
