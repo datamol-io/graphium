@@ -8,6 +8,7 @@ from loguru import logger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
+from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
@@ -15,6 +16,7 @@ from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
+from goli.trainer.loggers import TensorBoardLoggerGoli
 
 
 def get_accelerator(
@@ -63,30 +65,36 @@ def get_accelerator(
 def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]]
 ):
+    cfg_data = config["datamodule"]["args"]
     ipu_options = None
     ipu_file = "tests/mtl/ipu.config"
+    ipu_dataloader_opts_train_val = None
+    ipu_dataloader_opts_test = None
+
     if get_accelerator(config) == "ipu":
         ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+
+        bz_train = cfg_data["batch_size_train_val"]
+        ipu_dataloader_opts_train_val = cfg_data.pop("ipu_dataloader_train_val", {})
+        ipu_dataloader_opts_train_val = IPUDataloaderOptions(batch_size=bz_train, **ipu_dataloader_opts_train_val)
+        ipu_dataloader_opts_train_val.set_kwargs()
+
+        bz_test = cfg_data["batch_size_test"]
+        ipu_dataloader_opts_test = cfg_data.pop("ipu_dataloader_test", {})
+        ipu_dataloader_opts_test = IPUDataloaderOptions(batch_size=bz_test, **ipu_dataloader_opts_test)
+        ipu_dataloader_opts_test.set_kwargs()
+
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
-    datamodule = module_class(ipu_options=ipu_options, **config["datamodule"]["args"])
+    datamodule = module_class(
+                ipu_options=ipu_options,
+                ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val,
+                ipu_dataloader_opts_test=ipu_dataloader_opts_test,
+                **config["datamodule"]["args"])
 
     return datamodule
 
 
-def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]): #TODO (Gab): Remove duplicate
-
-    metrics = {}
-    cfg_metrics = deepcopy(config["metrics"])
-    if cfg_metrics is None:
-        return metrics
-
-    for this_metric in cfg_metrics:
-        name = this_metric.pop("name")
-        metrics[name] = MetricWrapper(**this_metric)
-
-    return metrics
-
-def load_metrics_mtl(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
     task_metrics = {}
     cfg_metrics = deepcopy(config["metrics"])
@@ -223,7 +231,7 @@ def load_trainer(config):
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     if "logger" in cfg_trainer.keys():
-        trainer_kwargs["logger"] = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
+        trainer_kwargs["logger"] = TensorBoardLoggerGoli(**cfg_trainer["logger"], default_hp_metric=False, full_configs=config)
 
     trainer_kwargs["callbacks"] = callbacks
 

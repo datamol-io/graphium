@@ -82,13 +82,18 @@ def goli_collate_fn(
                     pyg_graph = this_elem[key]
                     for pyg_key in pyg_graph.keys:
                         tensor = pyg_graph[pyg_key]
+
                         # Convert numpy/scipy to Pytorch
                         if isinstance(tensor, (ndarray, spmatrix)):
-                            pyg_graph[pyg_key] = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+                            tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+
+                        pyg_graph[pyg_key] = tensor
+
+                    # Convert edge index to int32
                     pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
                     pyg_batch.append(pyg_graph)
 
-                batch[key] = Batch.from_data_list(pyg_batch) 
+                batch[key] = Batch.from_data_list(pyg_batch)
                 #batch[key] = pyg_batch
 
             # Ignore the collate for specific keys
@@ -101,7 +106,7 @@ def goli_collate_fn(
                     for datum in elements:
                         empty_task_labels = set(labels_size_dict.keys()) - set(datum["labels"].keys())
                         for task in empty_task_labels:
-                            datum['labels'][task] = torch.full((len(elements), labels_size_dict[task]), torch.nan)
+                            datum['labels'][task] = torch.full((len(elements), *labels_size_dict[task]), torch.nan)
                 batch[key] = default_collate([datum[key] for datum in elements])
             # Otherwise, use the default torch batching
             else:
@@ -150,6 +155,6 @@ def goli_collate_fn(
 #                     pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
 #                     pyg_batch.append(pyg_graph)
 #                 return pyg_batch
-#             else: 
+#             else:
 #                 raise Exception("only pyg graphs are accepted")
 
