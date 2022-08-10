@@ -7,7 +7,7 @@ from omegaconf import DictConfig
 
 # Current project imports
 import goli
-from goli.config._loader import load_datamodule, load_metrics, load_metrics_mtl, load_architecture, load_predictor, load_trainer
+from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
@@ -50,7 +50,7 @@ def main(cfg: DictConfig) -> None:
         in_dim_edges=datamodule.num_edge_feats,
     )
 
-    metrics = load_metrics_mtl(cfg)
+    metrics = load_metrics(cfg)
     print(metrics)
 
     predictor = load_predictor(cfg, model_class, model_kwargs, metrics)

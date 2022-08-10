@@ -305,7 +305,7 @@ class PredictorModule(pl.LightningModule):
             step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
 
         step_dict["loss"] = loss
-        print("loss ", self.global_step, self.current_epoch, loss)
+        # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
         return step_dict
 
@@ -406,7 +406,7 @@ class PredictorModule(pl.LightningModule):
 #################################################################################################################
 
         step_dict["grad_norm"] = self.get_gradient_norm()
-        print("grad_norm", step_dict["grad_norm"]) # TODO: Remove grad_norm
+        # print("grad_norm", step_dict["grad_norm"]) # TODO: Remove grad_norm
 
         # # Predictions and targets are no longer needed after the step.
         # # Keeping them will increase memory usage significantly for large datasets.
