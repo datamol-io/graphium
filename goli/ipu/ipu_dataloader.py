@@ -2,6 +2,7 @@
 
 from typing import List, Optional, Tuple, Union
 from copy import deepcopy
+from dataclasses import dataclass
 
 import poptorch
 import torch
@@ -9,44 +10,65 @@ from torch_geometric.data import Data, Batch, Dataset
 from torch_geometric.transforms import BaseTransform
 
 
+@dataclass
+class IPUDataloaderOptions:
+    r"""
+    This data class stores the arguments necessary to instantiate a model for the Predictor.
+
+        Parameters:
+            model_class:
+                pytorch module used to create a model
+
+            model_kwargs:
+                Key-word arguments used to initialize the model from `model_class`.
+    """
+
+    batch_size: int
+    max_num_nodes: Optional[int] = None
+    max_num_nodes_per_graph: Optional[int] = None
+    max_num_edges: Optional[int] = None
+    max_num_edges_per_graph: Optional[int] = None
+
+    def set_kwargs(self):
+
+        # Get the maximum number of nodes
+        if self.max_num_nodes is not None:
+            assert self.max_num_nodes_per_graph is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
+        elif self.max_num_nodes_per_graph is not None:
+            assert self.max_num_nodes is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
+            self.max_num_nodes = self.max_num_nodes_per_graph * self.batch_size
+        else:
+            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
+
+        # Get the maximum number of edges
+        if self.max_num_edges is not None:
+            assert self.max_num_edges_per_graph is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
+        elif self.max_num_edges_per_graph is not None:
+            assert self.max_num_edges is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
+            self.max_num_edges = self.max_num_edges_per_graph * self.batch_size
+        else:
+            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
+
+
 class CombinedBatchingCollator:
     """
     Collator object that manages the combined batch size defined as:
 
-        combined_batch_size = mini_batch_size * device_iterations
+        combined_batch_size = batch_size * device_iterations
                              * replication_factor * gradient_accumulation
 
     This is intended to be used in combination with the poptorch.DataLoader
     """
 
-    def __init__(self, mini_batch_size, collate_fn=None, max_num_nodes_per_graph=25, max_num_edges_per_graph=50, max_num_nodes=None, max_num_edges=None):
+    def __init__(self, batch_size, max_num_nodes, max_num_edges, collate_fn=None):
         """
-        :param mini_batch_size (int): mini batch size used by the SchNet model
+        :param batch_size (int): mini batch size used by the SchNet model
         """
         super().__init__()
-        self.mini_batch_size = mini_batch_size
+        self.batch_size = batch_size
         self.collate_fn = collate_fn
-
-        # Get the maximum number of nodes
-        if max_num_nodes is not None:
-            assert max_num_nodes_per_graph is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
-            self.max_num_nodes = max_num_nodes
-        elif max_num_nodes_per_graph is not None:
-            assert max_num_nodes is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
-            self.max_num_nodes = max_num_nodes_per_graph * mini_batch_size
-        else:
-            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
-
-        # Get the maximum number of edges
-        if max_num_edges is not None:
-            assert max_num_edges_per_graph is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
-            self.max_num_edges = max_num_edges
-        elif max_num_edges_per_graph is not None:
-            assert max_num_edges is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
-            self.max_num_edges = max_num_edges_per_graph * mini_batch_size
-        else:
-            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
-
+        self.max_num_nodes = max_num_nodes
+        self.max_num_edges = max_num_edges
 
     def __call__(self, batch):
         '''
@@ -62,13 +84,10 @@ class CombinedBatchingCollator:
 
 
 def create_ipu_dataloader(dataset: Dataset,
+                      ipu_dataloader_options: IPUDataloaderOptions,
                       ipu_opts: Optional[poptorch.Options] = None,
                       batch_size: Optional[int] = 1,
                       collate_fn=None,
-                      max_num_nodes_per_graph=25,
-                      max_num_edges_per_graph=50,
-                      max_num_nodes=None,
-                      max_num_edges=None,
                       **kwargs):
     """
     Creates a poptorch.DataLoader for graph datasets
@@ -90,10 +109,8 @@ def create_ipu_dataloader(dataset: Dataset,
         ipu_opts = poptorch.Options()
 
     collater = CombinedBatchingCollator(batch_size, collate_fn=collate_fn,
-                                max_num_nodes_per_graph=max_num_nodes_per_graph,
-                                max_num_edges_per_graph=max_num_edges_per_graph,
-                                max_num_nodes=max_num_nodes,
-                                max_num_edges=max_num_edges,)
+                                max_num_nodes=ipu_dataloader_options.max_num_nodes,
+                                max_num_edges=ipu_dataloader_options.max_num_edges,)
 
     return poptorch.DataLoader(ipu_opts,
                                dataset=dataset,

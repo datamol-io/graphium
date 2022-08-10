@@ -26,7 +26,7 @@ from goli.utils import fs
 from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
@@ -275,6 +275,8 @@ class BaseDataModule(pl.LightningDataModule):
         persistent_workers: bool = False,
         collate_fn: Optional[Callable] = None,
         ipu_options: Optional["poptorch.Options"] = None,
+        ipu_dataloader_opts_train_val: Optional[IPUDataloaderOptions] = None,
+        ipu_dataloader_opts_test: Optional[IPUDataloaderOptions] = None,
     ):
         super().__init__()
 
@@ -295,6 +297,8 @@ class BaseDataModule(pl.LightningDataModule):
 
         self._data_is_prepared = False
         self.ipu_options = ipu_options
+        self.ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val
+        self.ipu_dataloader_opts_test=ipu_dataloader_opts_test
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -307,6 +311,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.train_ds,  # type: ignore
             batch_size=self.batch_size_train_val,
             shuffle=True,
+            ipu_dataloader_options=self.ipu_dataloader_opts_train_val,
         )
 
     def val_dataloader(self, **kwargs):
@@ -314,6 +319,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.val_ds,  # type: ignore
             batch_size=self.batch_size_train_val,
             shuffle=False,
+            ipu_dataloader_options=self.ipu_dataloader_opts_train_val,
         )
 
     def test_dataloader(self, **kwargs):
@@ -322,6 +328,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.test_ds,  # type: ignore
             batch_size=self.batch_size_test,
             shuffle=False,
+            ipu_dataloader_options=self.ipu_dataloader_opts_test,
         )
 
     def predict_dataloader(self, **kwargs):
@@ -330,6 +337,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.predict_ds,  # type: ignore
             batch_size=self.batch_size_test,
             shuffle=False,
+            ipu_dataloader_options=self.ipu_dataloader_opts_test,
         )
 
     @staticmethod
@@ -387,7 +395,7 @@ class BaseDataModule(pl.LightningDataModule):
         df = pd.read_csv(path, **kwargs)
         return df
 
-    def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool):
+    def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool, ipu_dataloader_options=None):
         """Get a dataloader for a given dataset"""
 
         if self.num_workers == -1:
@@ -416,6 +424,7 @@ class BaseDataModule(pl.LightningDataModule):
 
             loader = create_ipu_dataloader(
                     dataset=dataset,
+                    ipu_dataloader_options=ipu_dataloader_options,
                     ipu_opts=self.ipu_options,
                     batch_size=batch_size,
                     collate_fn=self.collate_fn,
@@ -1201,6 +1210,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
         ipu_options: Optional["poptorch.Options"] = None,
+        ipu_dataloader_opts_train_val: Optional[IPUDataloaderOptions] = None,
+        ipu_dataloader_opts_test: Optional[IPUDataloaderOptions] = None,
     ):
         """
         Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
@@ -1278,6 +1289,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                   `num_workers`, and less likely to cause memory issues with the parallelization.
                 - "pyg:graph": Process molecules as `pyg.data.Data`.
             dataset_class: The class used to create the dataset from which to sample.
+            ipu_options: Options for the IPU. Ignore if not using IPUs
+            ipu_dataloader_opts_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
+            ipu_dataloader_opts_test: Options for the dataloader for the IPU. Ignore if not using IPUs
         """
         super().__init__(
             batch_size_train_val=batch_size_train_val,
@@ -1287,6 +1301,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
             ipu_options=ipu_options,
+            ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val,
+            ipu_dataloader_opts_test=ipu_dataloader_opts_test,
         )
 
         self.task_specific_args = task_specific_args
