@@ -84,6 +84,8 @@ class IPUPluginGoli(IPUPlugin):
         self.model.module._keys_tensor = keys_tensor
         self.model.module._keys_batch = keys_batch
         self.model.module._keys_others = keys_others
+
+        #! andy: check how to get the poptorch model! for anchoring
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
 
@@ -118,11 +120,40 @@ class PredictorModuleIPU(PredictorModule):
 
         return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
 
+    '''
+    self.task_epoch_summary = TaskSummaries(
+        task_loss_fun=self.loss_fun,
+        task_metrics=self.metrics,
+        task_metrics_on_training_set=self.metrics_on_training_set,
+        task_metrics_on_progress_bar=self.metrics_on_progress_bar,
+        monitor=monitor,
+        mode=mode,
+        )
+
+    logging training loss
+    
+    '''    
+    def on_train_batch_end(self,outputs, batch, batch_idx, dataloader_idx):
+        print (outputs)
+        self._concatenated_metrics_logs["loss"] = outputs
+        outputs = self._concatenated_metrics_logs
+        super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
+
+        # metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
+        # step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
+
+        # concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        # self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)
+
+
 
     def training_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
-        step_dict = super().training_step(dict_input, to_cpu=False)
+        concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
+        loss = concatenated_metrics_logs.pop("loss")
+        self._concatenated_metrics_logs = concatenated_metrics_logs
+
 
         # Since many loss functions are used, specify which one to track on the IPU
         #! andy: trying different reduction options
@@ -131,7 +162,7 @@ class PredictorModuleIPU(PredictorModule):
         #? self.poptorch.identity_loss(step_dict["loss"], reduction="mean") has lowest loss
 
         # loss = step_dict["loss"]
-        loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
+        loss = self.poptorch.identity_loss(loss, reduction="mean")
         # ipu_print_tensor(loss, "\nloss " + str(self.global_step) + str(self.current_epoch))
         # ipu_print_tensor(step_dict["grad_norm"], "grad_norm ")
         return loss # Limitation that only the loss can be returned

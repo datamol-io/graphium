@@ -150,16 +150,6 @@ class PredictorModule(pl.LightningModule):
         # * https://github.com/graphcore/poppyg/blob/main/examples/schnet_qm9.ipynb
         # check qm9 example above, the forward function has been modified to zero out hidden representation of fake nodes
         # a better option might be to have the better dataloader
-
-
-        # for key in out.keys():
-        #     tsor = out[key]
-        #     if (torch.isnan(tsor).sum() != 0):
-        #         print ("found NaN in this tensor")
-        #         print (key)
-        #         print (out[key])
-        #         quit()
-
         # Convert the output of the model to a dictionary
         if isinstance(out, dict) and ("preds" in out.keys()):
             out_dict = out
@@ -377,6 +367,11 @@ class PredictorModule(pl.LightningModule):
         return step_dict
 
 
+    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
+        concatenated_metrics_logs = outputs
+        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
+
+
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
         step_dict = None
 
@@ -399,13 +394,13 @@ class PredictorModule(pl.LightningModule):
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
+        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
 
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
+        concatenated_metrics_logs["loss"] = step_dict["loss"]
 #################################################################################################################
 
-        step_dict["grad_norm"] = self.get_gradient_norm()
         # print("grad_norm", step_dict["grad_norm"]) # TODO: Remove grad_norm
 
         # # Predictions and targets are no longer needed after the step.
@@ -414,7 +409,7 @@ class PredictorModule(pl.LightningModule):
         step_dict.pop("targets")
         step_dict.pop("weights")
 
-        return step_dict  # Returning the metrics_logs with the loss
+        return concatenated_metrics_logs  # Returning the metrics_logs with the loss
 
     def get_gradient_norm(self):
         # compute the norm

@@ -57,6 +57,7 @@ def load_ipu_options(ipu_file: str, seed=None) -> "poptorch.Options":
 
     ipu_options = poptorch.Options()
     ipu_options.loadFromFile(ipu_file)
+    ipu_options.outputMode(poptorch.OutputMode.All)
     if seed is not None:
         ipu_options.randomSeed(seed)
 
