@@ -144,6 +144,7 @@ rever/
 
 goli/data/ZINC_bench_gnn/
 goli/data/BindingDB/
+goli/data/mega-pubchem/
 goli/data/cache/
 predictions/
 expts_untracked/
