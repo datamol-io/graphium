@@ -3,7 +3,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu
+    type: ipu
 
 
 datamodule:
@@ -20,7 +20,7 @@ datamodule:
         split_test: 0.
         split_seed: *seed
         splits_path: null                 # This may not always be provided
-        sample_size: 20000                 # This may not always be provided
+        sample_size: 40000                 # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
@@ -50,11 +50,11 @@ datamodule:
 
     ipu_dataloader_train_val:
       max_num_nodes_per_graph: 30
-      max_num_edges_per_graph: 34
+      max_num_edges_per_graph: 60
 
     ipu_dataloader_test:
       max_num_nodes_per_graph: 30
-      max_num_edges_per_graph: 34
+      max_num_edges_per_graph: 60
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -119,7 +119,7 @@ architecture:
       hidden_dims: *out_mlp_dim
       depth: 1                          # Not needed if we have hidden_dims
       activation: relu
-      last_activation: none
+      last_activation: sigmoid
       dropout: *dropout_mlp
       normalization: *normalization
       last_normalization: "none"
