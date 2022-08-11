@@ -60,8 +60,11 @@ PCQM4Mv2_meta.update(
 )
 
 def smiles_to_unique_mol_id(smiles: str):
-    mol = dm.to_mol(mol=smiles)
-    mol_id = dm.unique_id(mol)
+    try:
+        mol = dm.to_mol(mol=smiles)
+        mol_id = dm.unique_id(mol)
+    except:
+        mol_id = ""
     return mol_id
 
 def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1, backend="loky", progress=True):
@@ -1339,9 +1342,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """Load all single-task dataframes."""
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
+            logger.info(f"Reading data for task '{task}'")
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
-                label_cols = check_arg_iterator(args.label_cols, enforce_type=list)
+                label_cols = self._parse_label_cols(df=None, df_path=args.df_path, label_cols=args.label_cols, smiles_col=args.smiles_col)
                 usecols = (
                     check_arg_iterator(args.smiles_col, enforce_type=list)
                     + label_cols
@@ -1352,7 +1356,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
 
                 task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
             else:
+                label_cols = self._parse_label_cols(df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col)
                 task_df[task] = args.df
+            args.label_cols = label_cols
+
+        logger.info("Done reading datasets")
 
         """Subsample the data frames and extract the necessary data to create SingleTaskDatasets for each task (smiles, labels, extras)."""
         task_dataset_args = {}
@@ -1598,8 +1606,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
     def _parse_label_cols(
         self,
         df: pd.DataFrame,
-        df_path: str,
-        str: Optional[Union[str, os.PathLike]],
+        df_path: Optional[Union[str, os.PathLike]],
         label_cols: Union[Type[None], str, List[str]],
         smiles_col: str
         ) -> List[str]:
@@ -1698,10 +1705,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         else:
             df = args.df.iloc[0:20, :]
 
+        label_cols = self._parse_label_cols(df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col)
+
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
             smiles_col=args.smiles_col,
-            label_cols=args.label_cols,
+            label_cols=label_cols,
             idx_col=args.idx_col,
             weights_col=args.weights_col,
             weights_type=args.weights_type,
@@ -1856,14 +1865,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
     def _sub_sample_df(self, df, sample_size):
         # Sub-sample the dataframe
         if isinstance(sample_size, int):
-            n = min(self.sample_size, df.shape[0])
+            n = min(sample_size, df.shape[0])
             df = df.sample(n=n)
         elif isinstance(sample_size, float):
             df = df.sample(f=sample_size)
         elif sample_size is None:
             pass
         else:
-            raise ValueError(f"Wrong value for `self.sample_size`: {self.sample_size}") # Maybe specify which task it was for?
+            raise ValueError(f"Wrong value for `sample_size`: {sample_size}") # Maybe specify which task it was for?
 
         return df
 
