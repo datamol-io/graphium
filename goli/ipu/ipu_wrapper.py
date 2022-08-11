@@ -88,6 +88,7 @@ class IPUPluginGoli(IPUPlugin):
         #! andy: check how to get the poptorch model! for anchoring
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
+        print (self.poptorch_models[stage].getTensorNames())
 
         # Run the step using only tuple of tensors
         out = super()._step(stage, *new_args, **kwargs)
@@ -134,7 +135,6 @@ class PredictorModuleIPU(PredictorModule):
     
     '''    
     def on_train_batch_end(self,outputs, batch, batch_idx, dataloader_idx):
-        print (outputs)
         self._concatenated_metrics_logs["loss"] = outputs
         outputs = self._concatenated_metrics_logs
         super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
