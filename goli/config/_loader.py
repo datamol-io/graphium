@@ -102,6 +102,8 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
     for task in cfg_metrics:
         task_metrics[task] = {}
+        if cfg_metrics[task] is None:
+            cfg_metrics[task] = []
         for this_metric in cfg_metrics[task]:
             name = this_metric.pop("name")
             task_metrics[task][name] = MetricWrapper(**this_metric)
