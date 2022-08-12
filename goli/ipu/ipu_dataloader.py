@@ -162,7 +162,7 @@ class Pad(BaseTransform):
 
         assert num_nodes <= self.max_num_nodes, \
             f"Too many nodes. Graph has {num_nodes} nodes "\
-            f"and max_num_edges is {self.max_num_edges}."
+            f"and max_num_edges is {self.max_num_nodes}."
 
         assert num_edges <= self.max_num_edges, \
             f"Too many edges. Graph has {num_edges} edges defined "\
