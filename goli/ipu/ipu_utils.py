@@ -61,6 +61,9 @@ def load_ipu_options(ipu_file: str, seed=None) -> "poptorch.Options":
     if seed is not None:
         ipu_options.randomSeed(seed)
 
+    #ipu_options.anchorTensor("grad_input", "Gradient___input")
+    ipu_options.anchorTensor("input", "input")
+
     # ipu_options.Jit.traceModel(False) # Use the experimental compiler
     # ipu_options._jit._values["trace_model"] = False
 

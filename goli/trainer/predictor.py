@@ -145,12 +145,6 @@ class PredictorModule(pl.LightningModule):
         feats = self._convert_features_dtype(inputs["features"])
         #*check for nan in model output
         out = self.model.forward(feats)
-
-        #! TODO (Andy): fix the loss from here
-        # * https://github.com/graphcore/poppyg/blob/main/examples/schnet_qm9.ipynb
-        # check qm9 example above, the forward function has been modified to zero out hidden representation of fake nodes
-        # a better option might be to have the better dataloader
-        # Convert the output of the model to a dictionary
         if isinstance(out, dict) and ("preds" in out.keys()):
             out_dict = out
         else:
@@ -353,7 +347,6 @@ class PredictorModule(pl.LightningModule):
                 )
                 / n_steps
             )
-
         device = "cpu" if to_cpu else None
         preds = preds.detach().to(device=device)
         targets = targets.detach().to(device=device)

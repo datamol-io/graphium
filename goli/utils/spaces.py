@@ -18,7 +18,7 @@ from goli.nn.dgl_layers import (
     DGNMessagePassingDgl,
 )
 
-from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg
+from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg, GPSLayerPyg
 
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -50,6 +50,7 @@ PYG_LAYERS_DICT = {
     "pyg:gine": GINEConvPyg,
     "pyg:gated-gcn": GatedGCNPyg,
     "pyg:pna-msgpass": PNAMessagePassingPyg,
+    "pyg:gps": GPSLayerPyg,
 }
 
 LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
