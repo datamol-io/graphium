@@ -175,9 +175,9 @@ predictor:
     alpha: ["mae"]
     cv: ["mae", "pearsonr"]
   loss_fun:
-    homo: mse
-    alpha: mse
-    cv: mse
+    homo: mse_ipu
+    alpha: mse_ipu
+    cv: _ipu
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-3
@@ -190,7 +190,7 @@ predictor:
   #  monitor: &monitor loss/val
   #  mode: min
   #  frequency: 1
-  target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
   flag_kwargs:
     n_steps: 0 #1
     alpha: 0.0 #0.01

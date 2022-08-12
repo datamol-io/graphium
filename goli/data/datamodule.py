@@ -65,6 +65,8 @@ def smiles_to_unique_mol_id(smiles: str):
         mol_id = dm.unique_id(mol)
     except:
         mol_id = ""
+    if mol_id is None:
+        mol_id = ""
     return mol_id
 
 def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1, backend="loky", progress=True):
@@ -413,9 +415,9 @@ class BaseDataModule(pl.LightningDataModule):
         collate_fn=self.collate_fn,
         pin_memory=self.pin_memory,
         batch_size=batch_size,
-        shuffle=shuffle,
+        shuffle=False,
         persistent_workers=self.persistent_workers,
-        drop_last=False,
+        drop_last=True,
         )
 
         return loader
