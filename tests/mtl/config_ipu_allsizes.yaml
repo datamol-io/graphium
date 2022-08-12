@@ -115,11 +115,18 @@ architecture:
     dropout: *dropout
     normalization: *normalization
     last_normalization: *normalization
-    residual_type: random
+    residual_type: simple
     pooling: [sum, mean, max]
     virtual_node: 'none'
-    layer_type: 'pyg:gine'
-    layer_kwargs:
+    layer_type: 'pyg:gps' # pyg:gated-gcn, pyg:gps
+    layer_kwargs: # Parameters for the model itself. You could define dropout_attn: 0.1
+      mpnn_type: 'pyg:gine'
+      mpnn_kwargs: null
+        #out_dim_edges: 10
+      attn_type: "full-attention" # CHANGE 
+      attn_kwargs: null
+
+
       # out_dim_edges: 16
       # aggregators: [mean, max]
       # scalers: [identity, amplification, attenuation]

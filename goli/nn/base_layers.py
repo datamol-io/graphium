@@ -170,7 +170,6 @@ class FCLayer(nn.Module):
             h = self.dropout(h)
         if self.activation is not None:
             h = self.activation(h)
-
         return h
 
     @property

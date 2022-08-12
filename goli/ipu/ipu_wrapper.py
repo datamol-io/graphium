@@ -9,7 +9,7 @@ from pytorch_lightning.trainer.states import RunningStage
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
 
-from poptorch import ipu_print_tensor # TODO: Remove line
+#from poptorch import ipu_print_tensor # TODO: Remove line
 '''
 helper function to remove the fake graph loss
 always reduce the last loss since it is the fake graph
@@ -88,16 +88,29 @@ class IPUPluginGoli(IPUPlugin):
         #! andy: check how to get the poptorch model! for anchoring
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
-        print (self.poptorch_models[stage].getTensorNames())
+
+        #print (self.poptorch_models.keys())
+        #dict_keys([<RunningStage.TRAINING: 'train'>, <RunningStage.VALIDATING: 'validate'>])
 
         # Run the step using only tuple of tensors
         out = super()._step(stage, *new_args, **kwargs)
+        #anchor_tensor = self.poptorch_models[stage].getAnchoredTensor("grad_input")
+
+        if (stage == "train"):
+            #print(self.poptorch_models['train'].getTensorNames())
+            anchor_tensor = self.poptorch_models[stage].getAnchoredTensor("input")
+
+        # if (stage == "train"):
+        #     print(self.poptorch_models['train'].getTensorNames())
+
 
         # Remove the keys from the module after the step is executed
         self.model.module._keys_tensor_dict = None
         self.model.module._keys_tensor = None
         self.model.module._keys_batch = None
         self.model.module._keys_others = None
+        
+
 
         return out
 
@@ -121,19 +134,6 @@ class PredictorModuleIPU(PredictorModule):
 
         return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
 
-    '''
-    self.task_epoch_summary = TaskSummaries(
-        task_loss_fun=self.loss_fun,
-        task_metrics=self.metrics,
-        task_metrics_on_training_set=self.metrics_on_training_set,
-        task_metrics_on_progress_bar=self.metrics_on_progress_bar,
-        monitor=monitor,
-        mode=mode,
-        )
-
-    logging training loss
-    
-    '''    
     def on_train_batch_end(self,outputs, batch, batch_idx, dataloader_idx):
         self._concatenated_metrics_logs["loss"] = outputs
         outputs = self._concatenated_metrics_logs
@@ -151,6 +151,20 @@ class PredictorModuleIPU(PredictorModule):
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
         concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
+
+        #! TODO (Andy): fix the loss from here
+        #? loop through the tensors in the metrics and use poptorch.ipu_print_tensor
+        #print (concatenated_metrics_logs.keys())
+        #concatenated_metrics_logs['homo/mae/train'] = self.poptorch.ipu_print_tensor(concatenated_metrics_logs['homo/mae/train'])
+        #concatenated_metrics_logs['homo/median_pred/train'] = self.poptorch.ipu_print_tensor(concatenated_metrics_logs['homo/median_pred/train'])
+        #concatenated_metrics_logs['alpha/mae/train'] = self.poptorch.ipu_print_tensor(concatenated_metrics_logs['alpha/mae/train'])
+        #concatenated_metrics_logs['cv/mae/train'] = self.poptorch.ipu_print_tensor(concatenated_metrics_logs['cv/mae/train'])
+
+        #concatenated_metrics_logs['grad_norm'] = self.poptorch.ipu_print_tensor(concatenated_metrics_logs['grad_norm'])
+        # for key in concatenated_metrics_logs.keys():
+        #     concatenated_metrics_logs[key] = self.poptorch.ipu_print_tensor(concatenated_metrics_logs[key])
+
+
         loss = concatenated_metrics_logs.pop("loss")
         self._concatenated_metrics_logs = concatenated_metrics_logs
 

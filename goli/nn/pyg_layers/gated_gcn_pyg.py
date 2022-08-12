@@ -86,7 +86,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.edge_out = FCLayer(in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True)
 
     def forward(self, batch: Union[Data, Batch]):
-        x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
+        x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index #! Andy: Get features from the batch
 
         """
         x               : [n_nodes, in_dim]
@@ -105,6 +105,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         x = self.apply_norm_activation_dropout(x)
         e = self.edge_out(e)
 
+        #! Andy: Add updated features to the batch
         batch.h = x
         batch.edge_attr = e
 
