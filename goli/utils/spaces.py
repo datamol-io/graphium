@@ -5,6 +5,7 @@ import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
 from goli.data.datamodule import GraphFromSmilesDataModule, GraphOGBDataModule, MultitaskFromSmilesDataModule, MultitaskIPUFromSmilesDataModule, MultitaskIPUFromSmilesDataModule
+from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU
 
 from goli.nn.dgl_layers import (
     GATDgl,
@@ -70,7 +71,12 @@ LOSS_DICT = {
     "bce": torch.nn.BCELoss(),
     "l1": torch.nn.L1Loss(),
     "mae": torch.nn.L1Loss(),
+    "bce_ipu": BCELossIPU(),
+    "mse_ipu": MSELossIPU(),
+    "mae_ipu": L1LossIPU(),
+    "l1_ipu": L1LossIPU(),
 }
+
 
 SCHEDULER_DICT = {
     "CosineAnnealingLR": sc.CosineAnnealingLR,
