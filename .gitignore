@@ -132,6 +132,8 @@ dmypy.json
 *.code-workspace
 *.out
 *.cache
+*.pop
+*.a
 lightning_logs/
 logs/
 .vscode/

@@ -3,7 +3,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu
+    type: ipu
 
 
 datamodule:
@@ -20,7 +20,7 @@ datamodule:
         split_test: 0.
         split_seed: *seed
         splits_path: null                 # This may not always be provided
-        sample_size: 80000                 # This may not always be provided
+        sample_size: 715232 # 715233                 # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
@@ -44,8 +44,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc
 
     # Data handling-related
-    batch_size_train_val: 1000
-    batch_size_test: 1000
+    batch_size_train_val: 100
+    batch_size_test: 100
     # cache_data_path: null
 
     ipu_dataloader_train_val:
@@ -152,19 +152,19 @@ predictor:
 
 metrics:
   pc-assays:
-    # - name: mae
-    #   metric: mae
-    #   threshold_kwargs: null
-    #   target_nan_mask: null
+    - name: mae
+      metric: mae
+      threshold_kwargs: null
+      target_nan_mask: ignore-flatten
 
-    # - name: averageprecision
-    #   metric: averageprecision
-    #   target_nan_mask: ignore-mean-label
-    #   threshold_kwargs:
-    #     threshold: null
-    #     th_on_preds: False
-    #     th_on_target: False
-    #     target_to_int: True
+    - name: averageprecision
+      metric: averageprecision
+      target_nan_mask: ignore-mean-label
+      threshold_kwargs:
+        threshold: null
+        th_on_preds: False
+        th_on_target: False
+        target_to_int: True
 
     - name: auroc
       metric: auroc
