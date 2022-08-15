@@ -14,6 +14,7 @@ from goli.nn.pyg_layers import (
     GINEConvPyg,
     GatedGCNPyg,
     PNAMessagePassingPyg,
+    GPSLayerPyg,
 )
 
 
@@ -41,6 +42,28 @@ class test_Pyg_Layers(ut.TestCase):
         "dropout": 0.1,
         "normalization": "batch_norm",
     }
+
+    def test_gpslayer(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        layer = GPSLayerPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
+
+        # Check the re-implementation of abstract methods
+        self.assertTrue(layer.layer_supports_edges)
+        self.assertTrue(layer.layer_inputs_edges)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
+
+        # Apply layer. Should crash due to different dim for nodes vs edges
+        with self.assertRaises(ValueError):
+            bg = layer.forward(bg)
+
+        # Create new edge attributes with same dim and check that it works
+        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim), dtype=torch.float32)
+        bg = layer.forward(bg)
+        self.assertEqual(bg.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
+
 
     def test_ginlayer(self):
 

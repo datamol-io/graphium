@@ -51,7 +51,7 @@ class GPSLayerPyg(BaseGraphModule):
         normalization: Union[str, Callable] = "none",
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs = None,
-        attn_type: str = "Transformer",
+        attn_type: str = "full-attention",
         attn_kwargs = None,
     ):
         r"""
@@ -100,11 +100,11 @@ class GPSLayerPyg(BaseGraphModule):
             normalization=normalization,
         )
 
+        # TODO: The rest
         mpnn_default_values = {
             "in_dim": in_dim,
             "out_dim": out_dim,
             "in_dim_edges": in_dim_edges
-            # TODO: The rest
         }
 
         #mpnn_kwargs.setdefault(default_values)
@@ -128,15 +128,64 @@ class GPSLayerPyg(BaseGraphModule):
         self.attn_layer = attn_class(**attn_kwargs)
 
     #! Andy, check for reshaping on the fake graph
+    # TODO: Use self.mpnn and self.attn_layer
+
+
+    '''
+    ['__call__', '__cat_dim__', '__class__', '__contains__', '__copy__', '__deepcopy__', '__delattr__', '__delitem__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattr__', '__getattribute__', '__getitem__', '__getstate__', '__gt__', '__hash__', '__inc__', '__init__', '__init_subclass__', '__iter__', '__le__', '__len__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setitem__', '__setstate__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_store', 'apply', 'apply_', 'batch', 'clone', 'coalesce', 'contains_isolated_nodes', 'contains_self_loops', 'contiguous', 'cpu', 'cuda', 'debug', 'detach', 'detach_', 'edge_attr', 'edge_index', 'edge_stores', 'edge_weight', 'from_data_list', 'from_dict', 'get_example', 'has_isolated_nodes', 'has_self_loops', 'index_select', 'is_coalesced', 'is_cuda', 'is_directed', 'is_edge_attr', 'is_node_attr', 'is_undirected', 'keys', 'node_stores', 'num_edge_features', 'num_edges', 'num_faces', 'num_features', 'num_graphs', 'num_node_features', 'num_nodes', 'pin_memory', 'pos', 'record_stream', 'requires_grad_', 'share_memory_', 'size', 'stores', 'stores_as', 'subgraph', 'to', 'to_data_list', 'to_dict', 'to_heterogeneous', 'to_namedtuple', 'x', 'y']
+    '''
     def forward(self, batch):
-        #x, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
+        h, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
+        print (batch.pos)
+        print (batch.pos.shape)
+        quit()
 
         batch = self.mpnn(batch)
-        #batch.h = self.apply_norm_activation_dropout(batch.h)
 
-        # TODO: Use sekf.mpnn and self.attn_layer
+        # h_in1 = h  # for first residual connection
+
+        # h_out_list = []
+        # # Local MPNN with edge attributes.
+        # if self.local_model is not None:
+        #     self.local_model: pygnn.conv.MessagePassing  # Typing hint.
+        #     if self.local_gnn_type == 'CustomGatedGCN':
+        #         es_data = None
+        #         if self.equivstable_pe:
+        #             es_data = batch.pe_EquivStableLapPE
+        #         local_out = self.local_model(Batch(batch=batch,
+        #                                            x=h,
+        #                                            edge_index=batch.edge_index,
+        #                                            edge_attr=batch.edge_attr,
+        #                                            pe_EquivStableLapPE=es_data))
+        #         # GatedGCN does residual connection and dropout internally.
+        #         h_local = local_out.x
+        #         batch.edge_attr = local_out.edge_attr
+        #     else:
+        #         if self.equivstable_pe:
+        #             h_local = self.local_model(h, batch.edge_index, batch.edge_attr,
+        #                                        batch.pe_EquivStableLapPE)
+        #         else:
+        #             h_local = self.local_model(h, batch.edge_index, batch.edge_attr)
+        #         h_local = self.dropout_local(h_local)
+        #         h_local = h_in1 + h_local  # Residual connection.
+
+        #     if self.layer_norm:
+        #         h_local = self.norm1_local(h_local, batch.batch)
+        #     if self.batch_norm:
+        #         h_local = self.norm1_local(h_local)
+        #     h_out_list.append(h_local)
+
+
 
         return batch
+
+    # # forward function that doesn't do anything
+    # def forward(self, batch):
+    #     #x, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
+
+    #     batch = self.mpnn(batch)
+    #     #batch.h = self.apply_norm_activation_dropout(batch.h)
+    #     return batch
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
@@ -163,7 +212,7 @@ class GPSLayerPyg(BaseGraphModule):
             bool:
                 Always ``True`` for the current class
         """
-        return self.mnpp.inputs_edges
+        return True
 
     @property
     def layer_outputs_edges(self) -> bool:
