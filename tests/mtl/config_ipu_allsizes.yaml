@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu
+    type: cpu  #ipu
 
 
 datamodule:
@@ -13,7 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
+        df_path: &df_path goli/data/QM9/micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -70,8 +70,8 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Data handling-related
-    batch_size_train_val: 256
-    batch_size_test: 256
+    batch_size_train_val: 50 #256
+    batch_size_test: 50  #256
     # cache_data_path: null
 
     ipu_dataloader_train_val:
