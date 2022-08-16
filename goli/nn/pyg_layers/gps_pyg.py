@@ -100,10 +100,22 @@ class GPSLayerPyg(BaseGraphModule):
             normalization=normalization,
         )
 
+        self.dropout_local = self.dropout_layer
+        self.dropout_attn = self.dropout_layer
+        self.ff_dropout1 = self.dropout_layer
+        self.ff_dropout2 = self.dropout_layer
+        self.ff_linear1 = nn.Linear(in_dim, in_dim * 2)
+        self.ff_linear2 = nn.Linear(in_dim * 2, in_dim)
+        self.ff_out = nn.Linear(in_dim, out_dim)
+
+        self.normalization = self.norm_layer
+
+        self.activation = self.activation_layer
+
         # TODO: The rest
         mpnn_default_values = {
             "in_dim": in_dim,
-            "out_dim": out_dim,
+            "out_dim": in_dim,
             "in_dim_edges": in_dim_edges
         }
 
@@ -115,7 +127,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
         attn_default_values = {
-            "embed_dim": out_dim,  
+            "embed_dim": in_dim,  
             "num_heads": 1, 
             "dropout": dropout,
             "batch_first": True,
@@ -131,53 +143,69 @@ class GPSLayerPyg(BaseGraphModule):
     # TODO: Use self.mpnn and self.attn_layer
 
 
-    '''
-    ['__call__', '__cat_dim__', '__class__', '__contains__', '__copy__', '__deepcopy__', '__delattr__', '__delitem__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattr__', '__getattribute__', '__getitem__', '__getstate__', '__gt__', '__hash__', '__inc__', '__init__', '__init_subclass__', '__iter__', '__le__', '__len__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setitem__', '__setstate__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_store', 'apply', 'apply_', 'batch', 'clone', 'coalesce', 'contains_isolated_nodes', 'contains_self_loops', 'contiguous', 'cpu', 'cuda', 'debug', 'detach', 'detach_', 'edge_attr', 'edge_index', 'edge_stores', 'edge_weight', 'from_data_list', 'from_dict', 'get_example', 'has_isolated_nodes', 'has_self_loops', 'index_select', 'is_coalesced', 'is_cuda', 'is_directed', 'is_edge_attr', 'is_node_attr', 'is_undirected', 'keys', 'node_stores', 'num_edge_features', 'num_edges', 'num_faces', 'num_features', 'num_graphs', 'num_node_features', 'num_nodes', 'pin_memory', 'pos', 'record_stream', 'requires_grad_', 'share_memory_', 'size', 'stores', 'stores_as', 'subgraph', 'to', 'to_data_list', 'to_dict', 'to_heterogeneous', 'to_namedtuple', 'x', 'y']
-    '''
+
     def forward(self, batch):
-        h, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
-        print (batch.pos)
-        print (batch.pos.shape)
-        quit()
+        # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
+        h = batch.h
 
-        batch = self.mpnn(batch)
+        h_in1 = h  # for first residual connection
+        h_out_list = []
+        # Local MPNN with edge attributes.
+        h_local = (self.mpnn(batch.clone())).h
+        h_local = self.dropout_local(h_local)
+        h_local = h_in1 + h_local  # Residual connection.
+        if (self.normalization):
+            h_local = self.normalization(h_local)
+            h_out_list.append(h_local)
 
-        # h_in1 = h  # for first residual connection
+        '''
+        check where positional encoding should be added
+        check how to use torch.nn.MultiheadAttention
+        '''
 
-        # h_out_list = []
-        # # Local MPNN with edge attributes.
-        # if self.local_model is not None:
-        #     self.local_model: pygnn.conv.MessagePassing  # Typing hint.
-        #     if self.local_gnn_type == 'CustomGatedGCN':
-        #         es_data = None
-        #         if self.equivstable_pe:
-        #             es_data = batch.pe_EquivStableLapPE
-        #         local_out = self.local_model(Batch(batch=batch,
-        #                                            x=h,
-        #                                            edge_index=batch.edge_index,
-        #                                            edge_attr=batch.edge_attr,
-        #                                            pe_EquivStableLapPE=es_data))
-        #         # GatedGCN does residual connection and dropout internally.
-        #         h_local = local_out.x
-        #         batch.edge_attr = local_out.edge_attr
-        #     else:
-        #         if self.equivstable_pe:
-        #             h_local = self.local_model(h, batch.edge_index, batch.edge_attr,
-        #                                        batch.pe_EquivStableLapPE)
-        #         else:
-        #             h_local = self.local_model(h, batch.edge_index, batch.edge_attr)
-        #         h_local = self.dropout_local(h_local)
-        #         h_local = h_in1 + h_local  # Residual connection.
+        # Multi-head attention.
+        #* batch.batch is the indicator vector for nodes of which graph it belongs to
+        #* h_dense 
+        if self.attn_layer is not None:
+            h_dense, mask = to_dense_batch(h, batch.batch)
+            h_attn = self._sa_block(h_dense, None, ~mask)[mask]
+            h_attn = self.dropout_attn(h_attn)
+            h_attn = h_in1 + h_attn  # Residual connection.
+            if self.normalization:
+                h_attn = self.normalization(h_attn)
+            h_out_list.append(h_attn)
 
-        #     if self.layer_norm:
-        #         h_local = self.norm1_local(h_local, batch.batch)
-        #     if self.batch_norm:
-        #         h_local = self.norm1_local(h_local)
-        #     h_out_list.append(h_local)
+        # Combine local and global outputs.
+        h = sum(h_out_list)
 
-
-
+        # Feed Forward block.
+        h = h + self._ff_block(h)
+        h = self.ff_out(h)
+        if self.normalization:
+            h = self.normalization(h)
+        
+        batch.h = h
         return batch
+
+    def _ff_block(self, x):
+        """Feed Forward block.
+        """
+        if (self.activation is None):
+            x = self.ff_dropout1(self.ff_linear1(x))
+        else:
+            x = self.ff_dropout1(self.activation(self.ff_linear1(x)))
+        return self.ff_dropout2(self.ff_linear2(x))
+
+
+    def _sa_block(self, x, attn_mask, key_padding_mask):
+        """Self-attention block.
+        """
+        x = self.attn_layer(x, x, x,
+                           attn_mask=attn_mask,
+                           key_padding_mask=key_padding_mask,
+                           need_weights=False)[0]
+        return x
+
 
     # # forward function that doesn't do anything
     # def forward(self, batch):
@@ -368,73 +396,73 @@ class GPSLayerPyg(BaseGraphModule):
     
 #     '''
 
-#     def forward(self, batch):
-#         h = batch.x
-#         h_in1 = h  # for first residual connection
+    # def forward(self, batch):
+    #     h = batch.x
+    #     h_in1 = h  # for first residual connection
 
-#         h_out_list = []
-#         # Local MPNN with edge attributes.
-#         if self.local_model is not None:
-#             self.local_model: pygnn.conv.MessagePassing  # Typing hint.
-#             if self.local_gnn_type == 'CustomGatedGCN':
-#                 es_data = None
-#                 if self.equivstable_pe:
-#                     es_data = batch.pe_EquivStableLapPE
-#                 local_out = self.local_model(Batch(batch=batch,
-#                                                    x=h,
-#                                                    edge_index=batch.edge_index,
-#                                                    edge_attr=batch.edge_attr,
-#                                                    pe_EquivStableLapPE=es_data))
-#                 # GatedGCN does residual connection and dropout internally.
-#                 h_local = local_out.x
-#                 batch.edge_attr = local_out.edge_attr
-#             else:
-#                 if self.equivstable_pe:
-#                     h_local = self.local_model(h, batch.edge_index, batch.edge_attr,
-#                                                batch.pe_EquivStableLapPE)
-#                 else:
-#                     h_local = self.local_model(h, batch.edge_index, batch.edge_attr)
-#                 h_local = self.dropout_local(h_local)
-#                 h_local = h_in1 + h_local  # Residual connection.
+    #     h_out_list = []
+    #     # Local MPNN with edge attributes.
+    #     if self.local_model is not None:
+    #         self.local_model: pygnn.conv.MessagePassing  # Typing hint.
+    #         if self.local_gnn_type == 'CustomGatedGCN':
+    #             es_data = None
+    #             if self.equivstable_pe:
+    #                 es_data = batch.pe_EquivStableLapPE
+    #             local_out = self.local_model(Batch(batch=batch,
+    #                                                x=h,
+    #                                                edge_index=batch.edge_index,
+    #                                                edge_attr=batch.edge_attr,
+    #                                                pe_EquivStableLapPE=es_data))
+    #             # GatedGCN does residual connection and dropout internally.
+    #             h_local = local_out.x
+    #             batch.edge_attr = local_out.edge_attr
+    #         else:
+    #             if self.equivstable_pe:
+    #                 h_local = self.local_model(h, batch.edge_index, batch.edge_attr,
+    #                                            batch.pe_EquivStableLapPE)
+    #             else:
+    #                 h_local = self.local_model(h, batch.edge_index, batch.edge_attr)
+    #             h_local = self.dropout_local(h_local)
+    #             h_local = h_in1 + h_local  # Residual connection.
 
-#             if self.layer_norm:
-#                 h_local = self.norm1_local(h_local, batch.batch)
-#             if self.batch_norm:
-#                 h_local = self.norm1_local(h_local)
-#             h_out_list.append(h_local)
+    #         if self.layer_norm:
+    #             h_local = self.norm1_local(h_local, batch.batch)
+    #         if self.batch_norm:
+    #             h_local = self.norm1_local(h_local)
+    #         h_out_list.append(h_local)
 
-#         # Multi-head attention.
-#         if self.self_attn is not None:
-#             h_dense, mask = to_dense_batch(h, batch.batch)
-#             if self.global_model_type == 'Transformer':
-#                 h_attn = self._sa_block(h_dense, None, ~mask)[mask]
-#             elif self.global_model_type == 'Performer':
-#                 h_attn = self.self_attn(h_dense, mask=mask)[mask]
-#             elif self.global_model_type == 'BigBird':
-#                 h_attn = self.self_attn(h_dense, attention_mask=mask)
-#             else:
-#                 raise RuntimeError(f"Unexpected {self.global_model_type}")
+    #     # Multi-head attention.
+    #     if self.self_attn is not None:
+    #         h_dense, mask = to_dense_batch(h, batch.batch)
+    #         if self.global_model_type == 'Transformer':
+    #             h_attn = self._sa_block(h_dense, None, ~mask)[mask]
+    #         elif self.global_model_type == 'Performer':
+    #             h_attn = self.self_attn(h_dense, mask=mask)[mask]
+    #         elif self.global_model_type == 'BigBird':
+    #             h_attn = self.self_attn(h_dense, attention_mask=mask)
+    #         else:
+    #             raise RuntimeError(f"Unexpected {self.global_model_type}")
 
-#             h_attn = self.dropout_attn(h_attn)
-#             h_attn = h_in1 + h_attn  # Residual connection.
-#             if self.layer_norm:
-#                 h_attn = self.norm1_attn(h_attn, batch.batch)
-#             if self.batch_norm:
-#                 h_attn = self.norm1_attn(h_attn)
-#             h_out_list.append(h_attn)
+    #         h_attn = self.dropout_attn(h_attn)
+    #         h_attn = h_in1 + h_attn  # Residual connection.
+    #         if self.layer_norm:
+    #             h_attn = self.norm1_attn(h_attn, batch.batch)
+    #         if self.batch_norm:
+    #             h_attn = self.norm1_attn(h_attn)
+    #         h_out_list.append(h_attn)
 
-#         # Combine local and global outputs.
-#         # h = torch.cat(h_out_list, dim=-1)
-#         h = sum(h_out_list)
+    #     # Combine local and global outputs.
+    #     # h = torch.cat(h_out_list, dim=-1)
+    #     h = sum(h_out_list)
 
-#         # Feed Forward block.
-#         h = h + self._ff_block(h)
-#         if self.layer_norm:
-#             h = self.norm2(h, batch.batch)
-#         if self.batch_norm:
-#             h = self.norm2(h)
-#         batch.x = h
-#         return batch
+    #     # Feed Forward block.
+    #     h = h + self._ff_block(h)
+    #     if self.layer_norm:
+    #         h = self.norm2(h, batch.batch)
+    #     if self.batch_norm:
+    #         h = self.norm2(h)
+    #     batch.x = h
+    #     return batch
 
 #     def _sa_block(self, x, attn_mask, key_padding_mask):
 #         """Self-attention block.

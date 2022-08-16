@@ -51,6 +51,7 @@ def main(cfg: DictConfig) -> None:
         in_dim_edges=datamodule.num_edge_feats,
     )
 
+
     metrics = load_metrics(cfg)
     print(metrics)
 
