@@ -180,6 +180,7 @@ class Pad(BaseTransform):
 
 
         real_graphs = new_data.to_data_list()
+
         for g in real_graphs:
             g.graph_is_true = torch.tensor([1])
             g.node_is_true = torch.full([g.num_nodes], 1)

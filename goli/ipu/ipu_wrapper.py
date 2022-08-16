@@ -89,9 +89,6 @@ class IPUPluginGoli(IPUPlugin):
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
 
-        #print (self.poptorch_models.keys())
-        #dict_keys([<RunningStage.TRAINING: 'train'>, <RunningStage.VALIDATING: 'validate'>])
-
         # Run the step using only tuple of tensors
         out = super()._step(stage, *new_args, **kwargs)
         #anchor_tensor = self.poptorch_models[stage].getAnchoredTensor("grad_input")

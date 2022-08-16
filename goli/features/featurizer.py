@@ -1143,7 +1143,6 @@ def mol_to_pyggraph(
             There are also additional entries for the positional encodings.
 
     """
-
     graph_dict = mol_to_graph_dict(
         mol=mol,
         atom_property_list_onehot=atom_property_list_onehot,
