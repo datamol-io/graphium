@@ -1,6 +1,6 @@
 **Added:**
 
-* <news item>
+* (Oleksandr) 08/17/2022 - Added Optuna integration with sample h-param search
 
 **Changed:**
 

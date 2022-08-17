@@ -43,7 +43,9 @@ def main(cfg: DictConfig, trial) -> None:
 
     cfg = deepcopy(cfg)
 
-    # Example of adding hyper parameter search with Optuna
+    # * Example of adding hyper parameter search with Optuna:
+    # * https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html
+    cfg["architecture"]["gnn"]["hidden_dims"] = trial.suggest_int("hidden_dims", 16, 124, 16)
     cfg["architecture"]["gnn"]["depth"] = trial.suggest_int("depth", 1, 5)
 
     # Load and initialize the dataset
@@ -106,7 +108,7 @@ if __name__ == "__main__":
         return accu
     
     study = optuna.create_study()
-    study.optimize(objective, n_trials=3, timeout=600)
+    study.optimize(objective, n_trials=10, timeout=600)
 
     complete_trials = study.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
 
