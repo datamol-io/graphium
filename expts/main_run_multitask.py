@@ -9,6 +9,9 @@ from omegaconf import DictConfig
 import goli
 from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
 
+import optuna
+from optuna.trial import TrialState
+
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
@@ -36,9 +39,12 @@ os.chdir(MAIN_DIR)
 #                 print ("missing entry")
 
 
-def main(cfg: DictConfig) -> None:
+def main(cfg: DictConfig, trial) -> None:
 
     cfg = deepcopy(cfg)
+
+    # Example of adding hyper parameter search with Optuna
+    cfg["architecture"]["gnn"]["depth"] = trial.suggest_int("depth", 1, 5)
 
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)
@@ -88,9 +94,31 @@ def main(cfg: DictConfig) -> None:
         else:
             raise e
 
+    return trainer.callback_metrics["cv/mae/test"].cpu().item()
 
 if __name__ == "__main__":
     #nan_checker("goli/data/QM9/micro_qm9.csv") #can be deleted
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
-    main(cfg)
+
+    def objective(trial):
+        accu = main(cfg, trial)
+        return accu
+    
+    study = optuna.create_study()
+    study.optimize(objective, n_trials=3, timeout=600)
+
+    complete_trials = study.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
+
+    print("Study statistics: ")
+    print("  Number of finished trials: ", len(study.trials))
+    print("  Number of complete trials: ", len(complete_trials))
+
+    print("Best trial:")
+    trial = study.best_trial
+
+    print("  Value: ", trial.value)
+
+    print("  Params: ")
+    for key, value in trial.params.items():
+        print("    {}: {}".format(key, value))
