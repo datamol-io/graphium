@@ -14,7 +14,7 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
 #CONFIG_FILE = "tests/mtl/config_ipu_9atoms.yaml"
 CONFIG_FILE = "tests/mtl/config_ipu_allsizes.yaml"
-# CONFIG_FILE = "tests/mtl/config_ipu_reproduce.yaml"
+#CONFIG_FILE = "tests/mtl/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
 
 # '''
@@ -79,8 +79,6 @@ def main(cfg: DictConfig) -> None:
     try:
         ckpt_path = trainer.checkpoint_callbacks[0].best_model_path
         #ckpt_path = "models_checkpoints/micro_ZINC_mtl/model-v3.ckpt"
-        #error here
-        #TypeError: iteration over a 0-d tensor
         trainer.test(model=predictor, datamodule=datamodule) #, ckpt_path=ckpt_path)
         print("\n------------ TESTING COMPLETED ------------\n\n")
 
