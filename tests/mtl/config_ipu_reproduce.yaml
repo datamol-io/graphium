@@ -11,7 +11,7 @@ datamodule:
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       pc-assays:
-        df_path: goli/data/mega-pubchem/mini.csv.gz
+        df_path:  goli/data/mega-pubchem/mini.csv.gz
         # df_path: goli/data/mega-pubchem/mega-pubchem-L1000-VCAP.csv.gz
         # df_path: gs://goli-private/datasets/goli-pubchem-L1000/mega-pubchem-L1000-VCAP.csv.gz
         smiles_col: "SMILES"

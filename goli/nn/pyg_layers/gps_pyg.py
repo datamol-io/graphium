@@ -140,9 +140,6 @@ class GPSLayerPyg(BaseGraphModule):
         self.attn_layer = attn_class(**attn_kwargs)
 
     #! Andy, check for reshaping on the fake graph
-    # TODO: Use self.mpnn and self.attn_layer
-
-
 
     def forward(self, batch):
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
@@ -150,6 +147,9 @@ class GPSLayerPyg(BaseGraphModule):
 
         h_in1 = h  # for first residual connection
         h_out_list = []
+
+        #! implement GINE with positional encodin GINEConvESLapPE(gin_nn)
+
         # Local MPNN with edge attributes.
         h_local = (self.mpnn(batch.clone())).h
         h_local = self.dropout_local(h_local)
@@ -161,14 +161,43 @@ class GPSLayerPyg(BaseGraphModule):
         '''
         check where positional encoding should be added
         check how to use torch.nn.MultiheadAttention
+
+        check graphcore implementation here
+        https://github.com/graphcore/poppyg/blob/64bb4d4cf9ed2a303cd7c155371c58eae74996dd/poppyg/gps_layer_ipu.py#L15
+
+        #! how to do masking correctly on ipu here
+        #*
+        if self.global_model_type == 'Transformer':
+                # All the values in mask are true
+                # for the padded input
+                # Size after self attention block [bs, N, Embe]
+                # Size after applying mask [bs*N, Embe]
+                # h_attn = self._sa_block(h_dense, None, ~mask)[mask]
+                # This is a quick workround to applying boolean mask
+                # Will do this properly in a separate ticket
+                h_attn = self._sa_block(h_dense, None, ~mask)
+                h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
         '''
+
 
         # Multi-head attention.
         #* batch.batch is the indicator vector for nodes of which graph it belongs to
         #* h_dense 
         if self.attn_layer is not None:
+            num_h = h.shape[0]
             h_dense, mask = to_dense_batch(h, batch.batch)
-            h_attn = self._sa_block(h_dense, None, ~mask)[mask]
+            h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
+            h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
+            h_attn = h_attn[:num_h]
+            #h_ = h.clone()
+            #h_.scatter_(h_attn[mask])
+            # print (h.shape)
+            # h_dense, mask = to_dense_batch(h, batch.batch)
+            # h_attn = self._sa_block(h_dense, None, ~mask)
+            # print (h_attn.shape)
+            # h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
+
+
             h_attn = self.dropout_attn(h_attn)
             h_attn = h_in1 + h_attn  # Residual connection.
             if self.normalization:
@@ -185,6 +214,8 @@ class GPSLayerPyg(BaseGraphModule):
             h = self.normalization(h)
         
         batch.h = h
+        print ("planning to return")
+        print (batch)
         return batch
 
     def _ff_block(self, x):
