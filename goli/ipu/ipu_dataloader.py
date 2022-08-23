@@ -171,7 +171,6 @@ class Pad(BaseTransform):
         return num_nodes, num_edges
 
     def __call__(self, data):
-        #! andy: add is_true_graph, is_true_node, is_true_edge
         num_nodes, num_edges = self.validate(data)
         num_pad_nodes = self.max_num_nodes - num_nodes
         num_pad_edges = self.max_num_edges - num_edges
