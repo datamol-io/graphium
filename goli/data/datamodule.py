@@ -663,6 +663,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
             smiles=smiles,
             features=features,
             labels=labels,
+            n_jobs=self.featurization_n_jobs,
             **extras,
         )
 
@@ -1399,7 +1400,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles)
+        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.featurization_n_jobs)
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
