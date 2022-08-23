@@ -13,7 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path goli/data/QM9/micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
+        df_path: &df_path goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -53,7 +53,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 32
+    featurization_n_jobs: 0
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -70,16 +70,16 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Data handling-related
-    batch_size_train_val: 50 #256
-    batch_size_test: 50  #256
+    batch_size_train_val: 20 #256
+    batch_size_test: 20  #256
     # cache_data_path: null
 
     ipu_dataloader_train_val:
-      max_num_nodes_per_graph: 10
+      max_num_nodes_per_graph: 12
       max_num_edges_per_graph: 24
 
     ipu_dataloader_test:
-      max_num_nodes_per_graph: 10
+      max_num_nodes_per_graph: 12
       max_num_edges_per_graph: 24
 
 architecture:
@@ -123,7 +123,7 @@ architecture:
       mpnn_type: 'pyg:gine'
       mpnn_kwargs: null
         #out_dim_edges: 10
-      attn_type: "full-attention" # CHANGE 
+      attn_type: "full-attention" # CHANGE
       attn_kwargs: null
 
 

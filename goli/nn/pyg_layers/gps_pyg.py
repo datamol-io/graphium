@@ -3,31 +3,22 @@
 adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
 '''
 
-import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch_geometric.nn as pygnn
-from torch_geometric.data import Batch
-from torch_geometric.nn import Linear as Linear_pyg
-from torch_geometric.utils import to_dense_batch
+from torch_scatter import scatter
 from typing import Callable, Union, Optional
 
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
 from goli.utils.decorators import classproperty
+from goli.ipu.to_dense_batch import to_dense_batch
 
 
 
 #from graphgps.layer.gatedgcn_layer import GatedGCNLayer
 #from graphgps.layer.gine_conv_layer import GINEConvESLapPE
 
-'''
-#! Andy to do
-1. inherent from basegraphlayer instead of nn.Module
-2. 
-'''
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -84,12 +75,6 @@ class GPSLayerPyg(BaseGraphModule):
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
 
-            init_eps :
-                Initial :math:`\epsilon` value, default: ``0``.
-
-            learn_eps :
-                If True, :math:`\epsilon` will be a learnable parameter.
-
         """
 
         super().__init__(
@@ -100,132 +85,127 @@ class GPSLayerPyg(BaseGraphModule):
             normalization=normalization,
         )
 
+        # Dropout layers
         self.dropout_local = self.dropout_layer
-        self.dropout_attn = self.dropout_layer
-        self.ff_dropout1 = self.dropout_layer
-        self.ff_dropout2 = self.dropout_layer
+        self.dropout_attn = self._parse_dropout(dropout=self.dropout)
+        self.ff_dropout1 = self._parse_dropout(dropout=self.dropout)
+        self.ff_dropout2 = self._parse_dropout(dropout=self.dropout)
+
+        # Linear layers
         self.ff_linear1 = nn.Linear(in_dim, in_dim * 2)
         self.ff_linear2 = nn.Linear(in_dim * 2, in_dim)
         self.ff_out = nn.Linear(in_dim, out_dim)
 
-        self.normalization = self.norm_layer
+        # Normalization layers
+        self.norm_layer_local = self.norm_layer
+        self.norm_layer_attn = self._parse_norm(normalization=self.normalization)
+        self.norm_layer_ff = self._parse_norm(normalization=self.normalization)
 
-        self.activation = self.activation_layer
-
-        # TODO: The rest
-        mpnn_default_values = {
-            "in_dim": in_dim,
-            "out_dim": in_dim,
-            "in_dim_edges": in_dim_edges
-        }
-
-        #mpnn_kwargs.setdefault(default_values)
+        # Set the default values for the MPNN layer
         if (mpnn_kwargs is None):
-            mpnn_kwargs = mpnn_default_values
+            mpnn_kwargs = {}
+        mpnn_kwargs.setdefault("in_dim", in_dim)
+        mpnn_kwargs.setdefault("out_dim", in_dim)
+        mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
+        # TODO: The rest of default values
 
+        # Initialize the MPNN layer
         mpnn_class = PYG_LAYERS_DICT[mpnn_type]
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
-        attn_default_values = {
-            "embed_dim": in_dim,  
-            "num_heads": 1, 
-            "dropout": dropout,
-            "batch_first": True,
-        }
-
+        # Set the default values for the Attention layer
         if attn_kwargs is None:
-            attn_kwargs = attn_default_values
-        #attn_kwargs.setdefault(default_values)
+            attn_kwargs = {}
+        attn_kwargs.setdefault("embed_dim", in_dim)
+        attn_kwargs.setdefault("num_heads", 1)
+        attn_kwargs.setdefault("dropout", dropout)
+        attn_kwargs.setdefault("batch_first", True)
+
+        # Initialize the Attention layer
         attn_class = ATTENTION_LAYERS_DICT[attn_type]
         self.attn_layer = attn_class(**attn_kwargs)
 
-    #! Andy, check for reshaping on the fake graph
 
     def forward(self, batch):
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
 
-        h_in1 = h  # for first residual connection
-        h_out_list = []
-
-        #! implement GINE with positional encodin GINEConvESLapPE(gin_nn)
+        h_in = h  # for first residual connection
 
         # Local MPNN with edge attributes.
-        h_local = (self.mpnn(batch.clone())).h
+        batch_out = (self.mpnn(batch.clone()))
+        h_local = batch_out.h
         h_local = self.dropout_local(h_local)
-        h_local = h_in1 + h_local  # Residual connection.
-        if (self.normalization):
-            h_local = self.normalization(h_local)
-            h_out_list.append(h_local)
-
-        '''
-        check where positional encoding should be added
-        check how to use torch.nn.MultiheadAttention
-
-        check graphcore implementation here
-        https://github.com/graphcore/poppyg/blob/64bb4d4cf9ed2a303cd7c155371c58eae74996dd/poppyg/gps_layer_ipu.py#L15
-
-        #! how to do masking correctly on ipu here
-        #*
-        if self.global_model_type == 'Transformer':
-                # All the values in mask are true
-                # for the padded input
-                # Size after self attention block [bs, N, Embe]
-                # Size after applying mask [bs*N, Embe]
-                # h_attn = self._sa_block(h_dense, None, ~mask)[mask]
-                # This is a quick workround to applying boolean mask
-                # Will do this properly in a separate ticket
-                h_attn = self._sa_block(h_dense, None, ~mask)
-                h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
-        '''
-
+        h_local = h_in + h_local  # Residual connection.
+        if (self.norm_layer_local):
+            h_local = self.norm_layer_local(h_local)
 
         # Multi-head attention.
         #* batch.batch is the indicator vector for nodes of which graph it belongs to
-        #* h_dense 
+        #* h_dense
         if self.attn_layer is not None:
-            num_h = h.shape[0]
-            h_dense, mask = to_dense_batch(h, batch.batch)
-            h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
-            h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
-            h_attn = h_attn[:num_h]
-            #h_ = h.clone()
-            #h_.scatter_(h_attn[mask])
-            # print (h.shape)
-            # h_dense, mask = to_dense_batch(h, batch.batch)
-            # h_attn = self._sa_block(h_dense, None, ~mask)
-            # print (h_attn.shape)
-            # h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
 
+            # TODO: Better way to determine if on IPU? Here we're checking for padding
+            on_ipu = ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
+
+            h_dense, mask = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=10, drop_nodes_last_graph=on_ipu)
+            h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
+            h_attn = self._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=h.shape, on_ipu=on_ipu)
 
             h_attn = self.dropout_attn(h_attn)
-            h_attn = h_in1 + h_attn  # Residual connection.
-            if self.normalization:
-                h_attn = self.normalization(h_attn)
-            h_out_list.append(h_attn)
+            h_attn = h_in + h_attn  # Residual connection.
+            if self.norm_layer_attn:
+                h_attn = self.norm_layer_attn(h_attn)
 
         # Combine local and global outputs.
-        h = sum(h_out_list)
+        h = h_local + h_attn
 
         # Feed Forward block.
-        h = h + self._ff_block(h)
-        h = self.ff_out(h)
-        if self.normalization:
-            h = self.normalization(h)
-        
-        batch.h = h
-        print ("planning to return")
-        print (batch)
-        return batch
+        h = self._ff_block(h)
 
-    def _ff_block(self, x):
+        batch_out.h = h
+
+        return batch_out
+
+    @staticmethod
+    def _to_sparse_batch(h_dense, mask, sparse_shape, on_ipu):
+        # TODO: Unit-Test this function
+        if on_ipu:
+            # Indexing not available on IPU. The 'hack' belows allows to index using the `scatter` function
+            # by scattering all true nodes individually, and fake nodes into the same element.
+            mask_expand = mask.unsqueeze(-1).expand(h_dense.shape).flatten()
+            mask_idx = torch.cumsum(mask_expand, dim=0)
+            mask_idx[~mask_expand] = 0
+            h_sparse = scatter(h_dense.flatten(), mask_idx, reduce="sum", dim_size=torch.prod(torch.as_tensor(sparse_shape))+1)
+            h_sparse = h_sparse[1:].reshape(sparse_shape)
+        else:
+            # Simply index the tensor.
+            h_sparse = h_dense[mask]
+
+        return h_sparse
+
+
+    def _ff_block(self, h):
         """Feed Forward block.
         """
+        h_in = h
+        # First linear layer + activation + dropout
         if (self.activation is None):
-            x = self.ff_dropout1(self.ff_linear1(x))
+            h = self.ff_dropout1(self.ff_linear1(h))
         else:
-            x = self.ff_dropout1(self.activation(self.ff_linear1(x)))
-        return self.ff_dropout2(self.ff_linear2(x))
+            h = self.ff_dropout1(self.activation(self.ff_linear1(h)))
+
+        # Second linear layer + dropout
+        h = self.ff_dropout2(self.ff_linear2(h))
+
+        # Residual
+        h = h + h_in
+
+        # Third linear layer + norm
+        h = self.ff_out(h)
+        if self.norm_layer_ff:
+            h = self.norm_layer_ff(h)
+        return h
 
 
     def _sa_block(self, x, attn_mask, key_padding_mask):
@@ -420,11 +400,11 @@ class GPSLayerPyg(BaseGraphModule):
 
 
 #     '''
-#     #? Andy's notes 
+#     #? Andy's notes
 #     gps layer forward function work as follows:
 #     1. specify a local MPNN model which can handle edge attributes like GINE
 #     2. specify a self attention scheme
-    
+
 #     '''
 
     # def forward(self, batch):

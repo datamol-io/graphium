@@ -294,7 +294,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.test_ds = None
         self._predict_ds = None
 
-        self._data_is_prepared = False # TODO: Variable unused. Remove if stay unused
+        self._data_is_prepared = False
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -1337,8 +1337,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
         # TODO (Gabriela): Implement the ability to load from cache.
 
-        # if self._data_is_prepared:
-        #     return
+        if self._data_is_prepared:
+            return
 
         """Load all single-task dataframes."""
         task_df = {}
@@ -1400,7 +1400,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.featurization_n_jobs)
+        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
