@@ -148,7 +148,7 @@ class GPSLayerPyg(BaseGraphModule):
             # TODO: Better way to determine if on IPU? Here we're checking for padding
             on_ipu = ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
 
-            h_dense, mask = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=10, drop_nodes_last_graph=on_ipu)
+            h_dense, mask = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=batch.dataset_max_nodes_per_graph[0].item(), drop_nodes_last_graph=on_ipu)
             h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
             h_attn = self._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=h.shape, on_ipu=on_ipu)
 
