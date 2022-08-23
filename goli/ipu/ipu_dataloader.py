@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union, Any
 from copy import deepcopy
 from dataclasses import dataclass
 
@@ -60,7 +60,8 @@ class CombinedBatchingCollator:
     This is intended to be used in combination with the poptorch.DataLoader
     """
 
-    def __init__(self, batch_size, max_num_nodes, max_num_edges, collate_fn=None):
+    def __init__(self, batch_size, max_num_nodes, max_num_edges, dataset_max_nodes_per_graph,
+                        dataset_max_edges_per_graph, collate_fn=None):
         """
         :param batch_size (int): mini batch size used by the SchNet model
         """
@@ -69,6 +70,8 @@ class CombinedBatchingCollator:
         self.collate_fn = collate_fn
         self.max_num_nodes = max_num_nodes
         self.max_num_edges = max_num_edges
+        self.dataset_max_nodes_per_graph = dataset_max_nodes_per_graph
+        self.dataset_max_edges_per_graph = dataset_max_edges_per_graph
 
     def __call__(self, batch):
         '''
@@ -77,7 +80,11 @@ class CombinedBatchingCollator:
         if (self.collate_fn != None):
             batch = self.collate_fn(batch)
 
-        transform = Pad(max_num_nodes=self.max_num_nodes, max_num_edges=self.max_num_edges, include_keys=['batch'])
+        transform = Pad(max_num_nodes=self.max_num_nodes,
+                        max_num_edges=self.max_num_edges,
+                        dataset_max_nodes_per_graph=self.dataset_max_nodes_per_graph,
+                        dataset_max_edges_per_graph=self.dataset_max_edges_per_graph,
+                        include_keys=['batch'])
 
         batch['features'] = transform(batch['features'])
         return batch
@@ -108,15 +115,22 @@ def create_ipu_dataloader(dataset: Dataset,
         # Create IPU default options
         ipu_opts = poptorch.Options()
 
-    collater = CombinedBatchingCollator(batch_size, collate_fn=collate_fn,
+    collater = CombinedBatchingCollator(
+                                batch_size,
+                                collate_fn=collate_fn,
                                 max_num_nodes=ipu_dataloader_options.max_num_nodes,
-                                max_num_edges=ipu_dataloader_options.max_num_edges,)
+                                max_num_edges=ipu_dataloader_options.max_num_edges,
+                                dataset_max_nodes_per_graph = dataset.max_num_nodes_per_graph,
+                                dataset_max_edges_per_graph = dataset.max_num_edges_per_graph,
+                                )
 
-    return poptorch.DataLoader(ipu_opts,
-                               dataset=dataset,
-                               batch_size=batch_size,
-                               collate_fn=collater,
-                               **kwargs)
+    return poptorch.DataLoader(
+                                ipu_opts,
+                                dataset=dataset,
+                                batch_size=batch_size,
+                                collate_fn=collater,
+                                **kwargs
+                                )
 
 
 
@@ -127,6 +141,8 @@ class Pad(BaseTransform):
 
     def __init__(self,
                  max_num_nodes: int,
+                 dataset_max_nodes_per_graph,
+                 dataset_max_edges_per_graph,
                  max_num_edges: Optional[int] = None,
                  node_value: Optional[float] = None,
                  edge_value: Optional[float] = None,
@@ -137,6 +153,8 @@ class Pad(BaseTransform):
         """
         super().__init__()
         self.max_num_nodes = max_num_nodes
+        self.dataset_max_nodes_per_graph = dataset_max_nodes_per_graph
+        self.dataset_max_edges_per_graph = dataset_max_edges_per_graph
 
         if max_num_edges:
             self.max_num_edges = max_num_edges
@@ -224,6 +242,9 @@ class Pad(BaseTransform):
 
         if 'num_nodes' in new_data:
             new_data.num_nodes = self.max_num_nodes
+
+        new_data.dataset_max_nodes_per_graph = torch.as_tensor([self.dataset_max_nodes_per_graph], dtype=torch.int32)
+        new_data.dataset_max_edges_per_graph = torch.as_tensor([self.dataset_max_edges_per_graph], dtype=torch.int32)
 
         return new_data
 
