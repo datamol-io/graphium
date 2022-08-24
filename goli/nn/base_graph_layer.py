@@ -78,16 +78,18 @@ class BaseGraphStructure:
             return nn.Dropout(p=dropout)
         return
 
-    def _parse_norm(self, normalization):
+    def _parse_norm(self, normalization, dim=None):
 
+        if dim is None:
+            dim = self.out_dim * self.out_dim_factor
         if normalization is None or normalization == "none":
             parsed_norm = None
         elif callable(normalization):
             parsed_norm = deepcopy(normalization)
         elif normalization == "batch_norm":
-            parsed_norm = nn.BatchNorm1d(self.out_dim * self.out_dim_factor)
+            parsed_norm = nn.BatchNorm1d(dim)
         elif normalization == "layer_norm":
-            parsed_norm = nn.LayerNorm(self.out_dim * self.out_dim_factor)
+            parsed_norm = nn.LayerNorm(dim)
         else:
             raise ValueError(
                 f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"

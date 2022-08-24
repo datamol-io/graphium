@@ -4,11 +4,14 @@ Unit tests for the different layers of goli/nn/dgl_layers/...
 The layers are not thoroughly tested due to the difficulty of testing them
 """
 
+from ast import Assert
+import numpy as np
 import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
 
+from goli.ipu.to_dense_batch import to_dense_batch
 from goli.nn.pyg_layers import (
     GINConvPyg,
     GINEConvPyg,
@@ -63,6 +66,33 @@ class test_Pyg_Layers(ut.TestCase):
         bg = layer.forward(bg)
         self.assertEqual(bg.h.shape[0], h_in.shape[0])
         self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
+
+    def test_gps_ipu_mask(self):
+
+        # max_num_nodes=10
+        bg = deepcopy(self.bg)
+        h_dense, mask = to_dense_batch(bg.h, bg.batch, max_num_nodes_per_graph=10, drop_nodes_last_graph=False)
+        h1 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=True)
+        h2 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=False)
+        h3 = h_dense[mask]
+        np.testing.assert_array_equal(h1.numpy(), h2.numpy())
+        np.testing.assert_array_equal(h1.numpy(), h3.numpy())
+
+        # max_num_nodes=None
+        bg = deepcopy(self.bg)
+        h_dense, mask = to_dense_batch(bg.h, bg.batch, max_num_nodes_per_graph=None, drop_nodes_last_graph=False)
+        h1 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=True)
+        h2 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=False)
+        h3 = h_dense[mask]
+        np.testing.assert_array_equal(h1.numpy(), h2.numpy())
+        np.testing.assert_array_equal(h1.numpy(), h3.numpy())
+
+        # max_num_nodes=2
+        bg = deepcopy(self.bg)
+        with self.assertRaises(AssertionError):
+            h_dense, mask = to_dense_batch(bg.h, bg.batch, max_num_nodes_per_graph=2, drop_nodes_last_graph=False)
+
+
 
 
     def test_ginlayer(self):
