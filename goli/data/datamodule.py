@@ -420,6 +420,8 @@ class BaseDataModule(pl.LightningDataModule):
 
         return loader
 
+<<<<<<< HEAD
+=======
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
     """
     NOTE(hadim): let's make only one class for the moment and refactor with a parent class
@@ -1149,6 +1151,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         """Controls how the class is printed"""
         return omegaconf.OmegaConf.to_yaml(self.to_dict())
 
+>>>>>>> origin/ipu
 class DatasetProcessingParams():
    def __init__(
        self,
