@@ -20,15 +20,6 @@ from goli.utils.decorators import classproperty
 
 
 
-#from graphgps.layer.gatedgcn_layer import GatedGCNLayer
-#from graphgps.layer.gine_conv_layer import GINEConvESLapPE
-
-'''
-#! Andy to do
-1. inherent from basegraphlayer instead of nn.Module
-2. 
-'''
-
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
     "pyg:gine": GINEConvPyg,
@@ -189,14 +180,6 @@ class GPSLayerPyg(BaseGraphModule):
             h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
             h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
             h_attn = h_attn[:num_h]
-            #h_ = h.clone()
-            #h_.scatter_(h_attn[mask])
-            # print (h.shape)
-            # h_dense, mask = to_dense_batch(h, batch.batch)
-            # h_attn = self._sa_block(h_dense, None, ~mask)
-            # print (h_attn.shape)
-            # h_attn = torch.reshape(h_attn, (-1, h_attn.size()[-1]))
-
 
             h_attn = self.dropout_attn(h_attn)
             h_attn = h_in1 + h_attn  # Residual connection.
@@ -214,8 +197,6 @@ class GPSLayerPyg(BaseGraphModule):
             h = self.normalization(h)
         
         batch.h = h
-        print ("planning to return")
-        print (batch)
         return batch
 
     def _ff_block(self, x):
