@@ -4,6 +4,7 @@ from os.path import dirname, abspath
 import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
+import timeit
 
 # Current project imports
 import goli
@@ -93,4 +94,9 @@ if __name__ == "__main__":
     #nan_checker("goli/data/QM9/micro_qm9.csv") #can be deleted
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
+
+    st = timeit.default_timer()
     main(cfg)
+    print ("--------------------------------------------")
+    print("computation used", timeit.default_timer() - st)
+    print ("--------------------------------------------")

@@ -162,12 +162,13 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
         - self.features will be a list of featurized graphs corresponding to that particular unique molecule.
             However, for testing purposes we may not require features so that we can make sure that this merge function works.
     """
-    def __init__(self, datasets: Dict[str, SingleTaskDataset], n_jobs=-1, backend="loky", progress=True):
+    def __init__(self, datasets: Dict[str, SingleTaskDataset], n_jobs=-1, backend:str="loky", progress:bool=True, about:str=""):
         super().__init__()
         self.datasets = datasets
         self.n_jobs = n_jobs
         self.backend = backend
         self.progress = progress
+        self.about = about
 
         task = next(iter(self.datasets))
         if "features" in datasets[task][0]:
@@ -178,6 +179,61 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
 
     def __len__(self):
         return len(self.mol_ids)
+
+    @property
+    def num_graphs_total(self):
+        return len(self)
+
+    @property
+    def num_nodes_total(self):
+        """Total number of nodes for all graphs"""
+        return sum([get_num_nodes(data) for data in self.features])
+
+    @property
+    def max_num_nodes_per_graph(self):
+        """Maximum number of nodes per graph"""
+        return max([get_num_nodes(data) for data in self.features])
+
+    @property
+    def std_num_nodes_per_graph(self):
+        """Standard deviation of number of nodes per graph"""
+        return np.std([get_num_nodes(data) for data in self.features])
+
+    @property
+    def min_num_nodes_per_graph(self):
+        """Minimum number of nodes per graph"""
+        return min([get_num_nodes(data) for data in self.features])
+
+    @property
+    def mean_num_nodes_per_graph(self):
+        """Average number of nodes per graph"""
+        return self.num_nodes_total / self.num_graphs_total
+
+    @property
+    def num_edges_total(self):
+        """Total number of edges for all graphs"""
+        return sum([get_num_edges(data) for data in self.features])
+
+    @property
+    def max_num_edges_per_graph(self):
+        """Maximum number of edges per graph"""
+        return max([get_num_edges(data) for data in self.features])
+
+    @property
+    def min_num_edges_per_graph(self):
+        """Minimum number of edges per graph"""
+        return min([get_num_edges(data) for data in self.features])
+
+    @property
+    def std_num_edges_per_graph(self):
+        """Standard deviation of number of nodes per graph"""
+        return np.std([get_num_edges(data) for data in self.features])
+
+    @property
+    def mean_num_edges_per_graph(self):
+        """Average number of edges per graph"""
+        return self.num_edges_total / self.num_graphs_total
+
 
     def __getitem__(self, idx):
         datum = {}
@@ -266,6 +322,23 @@ class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
             task_labels_size[task] = torch_label.size()
         return task_labels_size
 
+    def __repr__(self) -> str:
+        out_str = f"-------------------\n{self.__class__.__name__}\n" + \
+            f"\tabout = {self.about}\n" + \
+            f"\tnum_graphs_total = {self.num_graphs_total}\n" + \
+            f"\tnum_nodes_total = {self.num_nodes_total}\n" + \
+            f"\tmax_num_nodes_per_graph = {self.max_num_nodes_per_graph}\n" + \
+            f"\tmin_num_nodes_per_graph = {self.min_num_nodes_per_graph}\n" + \
+            f"\tstd_num_nodes_per_graph = {self.std_num_nodes_per_graph}\n" + \
+            f"\tmean_num_nodes_per_graph = {self.mean_num_nodes_per_graph}\n" + \
+            f"\tnum_edges_total = {self.num_edges_total}\n" + \
+            f"\tmax_num_edges_per_graph = {self.max_num_edges_per_graph}\n" + \
+            f"\tmin_num_edges_per_graph = {self.min_num_edges_per_graph}\n" + \
+            f"\tstd_num_edges_per_graph = {self.std_num_edges_per_graph}\n" + \
+            f"\tmean_num_edges_per_graph = {self.mean_num_edges_per_graph}\n" + \
+            f"-------------------\n"
+        return out_str
+
 
 class BaseDataModule(pl.LightningDataModule):
     def __init__(
@@ -294,7 +367,7 @@ class BaseDataModule(pl.LightningDataModule):
         self.test_ds = None
         self._predict_ds = None
 
-        self._data_is_prepared = False # TODO: Variable unused. Remove if stay unused
+        self._data_is_prepared = False
 
     def prepare_data(self):
         raise NotImplementedError()
@@ -1337,8 +1410,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         """
         # TODO (Gabriela): Implement the ability to load from cache.
 
-        # if self._data_is_prepared:
-        #     return
+        if self._data_is_prepared:
+            return
 
         """Load all single-task dataframes."""
         task_df = {}
@@ -1400,7 +1473,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.featurization_n_jobs)
+        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
@@ -1485,14 +1558,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="training set")  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="validation set")  # type: ignore
+            print(self.train_ds)
+            print(self.val_ds)
 
             labels_size.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress)  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="test set")  # type: ignore
+            print(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
 
@@ -1720,12 +1796,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         graph = None
         for s in smiles:
             graph = self.smiles_transformer(s, mask_nan=0.0)
-            if isinstance(graph, (dgl.DGLGraph, GraphDict)):
-                num_nodes = graph.num_nodes()
-                num_edges = graph.num_edges()
-            elif isinstance(graph, (Data, Batch)):
-                num_nodes = graph.num_nodes
-                num_edges = graph.num_edges
+            num_nodes = get_num_nodes(graph)
+            num_edges = get_num_edges(graph)
             if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
                 break
 
@@ -2230,3 +2302,15 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
                 persistent_workers=self.persistent_workers)
 
         return loader
+
+def get_num_nodes(graph):
+    if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+        return graph.num_nodes()
+    elif isinstance(graph, (Data, Batch)):
+        return graph.num_nodes
+
+def get_num_edges(graph):
+    if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+        return graph.num_edges()
+    elif isinstance(graph, (Data, Batch)):
+        return graph.num_edges
