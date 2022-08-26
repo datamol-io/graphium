@@ -70,8 +70,8 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Data handling-related
-    batch_size_train_val: 20 #256 #100  #20, 50
-    batch_size_test: 20 #256 #100 #20, 50
+    batch_size_train_val: 50 #256 #100  #20, 50
+    batch_size_test: 50 #256 #100 #20, 50
     # cache_data_path: null
 
     ipu_dataloader_train_val:
