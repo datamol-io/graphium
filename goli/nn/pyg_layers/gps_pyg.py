@@ -150,7 +150,7 @@ class GPSLayerPyg(BaseGraphModule):
 
             h_dense, mask, idx = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu)
             h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
-            h_attn = self._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=h.shape, idx=idx, on_ipu=on_ipu)
+            h_attn = torch.index_select(h_dense.reshape(-1, h_dense.shape[-1]), 0, idx)
 
             h_attn = self.dropout_attn(h_attn)
             h_attn = h_in + h_attn  # Residual connection.
@@ -166,24 +166,6 @@ class GPSLayerPyg(BaseGraphModule):
         batch_out.h = h
 
         return batch_out
-
-    @staticmethod
-    def _to_sparse_batch(h_dense, mask, sparse_shape, idx, on_ipu):
-        # TODO: Unit-Test this function
-        if on_ipu:
-            h_sparse = torch.index_select(h_dense.reshape(-1, h_dense.shape[-1]), 0, idx)
-            # # Indexing not available on IPU. The 'hack' belows allows to index using the `scatter` function
-            # # by scattering all true nodes individually, and fake nodes into the same element.
-            # mask_expand = mask.unsqueeze(-1).expand(h_dense.shape).flatten()
-            # mask_idx = torch.cumsum(mask_expand, dim=0)
-            # mask_idx[~mask_expand] = 0
-            # h_sparse = scatter(h_dense.flatten(), mask_idx, reduce="sum", dim_size=torch.prod(torch.as_tensor(sparse_shape))+1) #might be the source of memory overflow
-            # h_sparse = h_sparse[1:].reshape(sparse_shape)
-        else:
-            # Simply index the tensor.
-            h_sparse = h_dense[mask]
-
-        return h_sparse
 
     def _ff_block(self, h):
         """Feed Forward block.

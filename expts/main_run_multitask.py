@@ -18,26 +18,6 @@ CONFIG_FILE = "tests/mtl/config_ipu_allsizes.yaml"
 #CONFIG_FILE = "tests/mtl/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
 
-# '''
-# Andy's helper function
-# check if there is any missing values in a csv
-# '''
-# def nan_checker(fname):
-#     with open(fname) as f:
-#         lines = f.readlines()
-#         prevsize = 0
-#         for line in lines:
-#             txts = line.split(",")
-#             if (len(txts) > prevsize):
-#                 prevsize = len(txts)
-#             if (len(txts) < prevsize):
-#                 print ("missing entry")
-#                 print (line)
-
-#             if (len(txts) != 21):
-#                 print ("missing entry")
-
-
 def main(cfg: DictConfig) -> None:
 
     cfg = deepcopy(cfg)
