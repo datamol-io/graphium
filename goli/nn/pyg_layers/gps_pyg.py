@@ -147,7 +147,6 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph = batch.dataset_max_nodes_per_graph[0].item()
             else:
                 max_num_nodes_per_graph = None
-
             h_dense, mask, idx = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu)
             h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
             h_attn = torch.index_select(h_dense.reshape(-1, h_dense.shape[-1]), 0, idx)
