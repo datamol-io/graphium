@@ -1,6 +1,6 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name qm9_norm2 #qm9_full
+  name: &name qm9_norm3 #qm9_full
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -307,5 +307,5 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 5 #50
+    max_epochs: 30 #50
     min_epochs: 2 #5
