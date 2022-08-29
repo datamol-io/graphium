@@ -70,8 +70,8 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Data handling-related
-    batch_size_train_val: 50 #256 #100  #20, 50
-    batch_size_test: 50 #256 #100 #20, 50
+    batch_size_train_val: 30 #256 #100  #20, 50, 2048
+    batch_size_test: 30 #256 #100 #20, 50, 2048
     # cache_data_path: null
 
     ipu_dataloader_train_val:
@@ -118,9 +118,9 @@ architecture:
     residual_type: simple
     pooling: [sum, mean, max]
     virtual_node: 'none'
-    layer_type: 'pyg:gps' #'pyg:gine' #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    #layer_kwargs: null
-    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    # layer_type: 'pyg:gine' #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    # layer_kwargs: null
+    layer_type: 'pyg:gps'
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
       mpnn_type: 'pyg:gine'
       mpnn_kwargs: null

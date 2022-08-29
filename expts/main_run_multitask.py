@@ -98,5 +98,5 @@ if __name__ == "__main__":
     st = timeit.default_timer()
     main(cfg)
     print ("--------------------------------------------")
-    print("computation used", timeit.default_timer() - st)
+    print("totoal computation used", timeit.default_timer() - st)
     print ("--------------------------------------------")
