@@ -1082,6 +1082,8 @@ class FullGraphNetwork(nn.Module):
 
         """
 
+        # ANDY: When in test mode, this averages the output of many runs. Check `_forward` instead.
+
         if self.training:
             return self._forward(g, flip_pos_enc="random")
         else:
@@ -1100,6 +1102,8 @@ class FullGraphNetwork(nn.Module):
         h = self.gnn._get_node_feats(g, key="feat")
         e = self.gnn._get_edge_feats(g, key="edge_feat")
 
+        ### ANDY: Start change. Try to deal with all positional encodings and all `encoder` types from goli.nn.encoders.
+        ### Use the `encoder.on_keys` to determine the positional encoding associated to each encoder.
         # Get the node features and positional embedding
         pos_enc_feats_sign_flip = self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip")
         if pos_enc_feats_sign_flip is not None:
@@ -1116,6 +1120,8 @@ class FullGraphNetwork(nn.Module):
         pos_enc_feats_no_flip = self.gnn._get_node_feats(g, "pos_enc_feats_no_flip")
         if pos_enc_feats_no_flip is not None:
             h = torch.cat((h, pos_enc_feats_no_flip), dim=-1)
+
+        ### ANDY: End change
 
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
         if e is not None:
@@ -1524,4 +1530,3 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
 
 
-    

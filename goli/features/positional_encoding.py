@@ -5,7 +5,6 @@ import torch
 
 from goli.features.spectral import compute_laplacian_positional_eigvecs
 
-
 def get_all_positional_encoding(
     adj: Union[np.ndarray, spmatrix],
     pos_encoding_as_features: Optional[Dict] = None,
@@ -25,6 +24,8 @@ def get_all_positional_encoding(
     pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = None, None, None
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
     pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
+
+    # ANDY: Change this function to match the dict output of `graph_positional_encoder`
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
@@ -73,6 +74,9 @@ def graph_positional_encoder(
             - laplacian_eigvec_eigval
 
     """
+
+    # ANDY: Add more positional encodings! Replace output by a dict.
+    # The keys of the output dict should match the `on_keys` of the encoders.
 
     pos_type = pos_type.lower()
     pos_enc_sign_flip, pos_enc_no_flip = None, None
