@@ -173,6 +173,9 @@ def get_mol_atomic_features_float(
             - "hybridization"
             - "aromatic"
             - "ring", "in-ring"
+            - "min-ring"
+            - "max-ring"
+            - "num-ring"
             - "degree"
             - "radical-electron"
             - "formal-charge"
@@ -254,6 +257,19 @@ def get_mol_atomic_features_float(
                 elif prop in ["ring", "in-ring"]:
                     prop_name = "in-ring"
                     val = atom.IsInRing()
+                elif prop in ["min-ring"]:
+                    ring_info = mol.GetRingInfo()
+                    val = ring_info.MinAtomRingSize(atom.GetIdx())
+                elif prop in ["max-ring"]:
+                    rings = mol.GetRingInfo().AtomRings()
+                    val = 0
+                    for ring in rings:
+                        if atom.GetIdx() in ring:
+                            if len(ring) > val:
+                                val = len(ring)
+                elif prop in ["num-ring"]:
+                    ring_info = mol.GetRingInfo()
+                    val = ring_info.NumAtomRings(atom.GetIdx())
                 elif prop in ["degree"]:
                     val = atom.GetTotalDegree() - (offC * 2)
                 elif prop in ["radical-electron"]:
