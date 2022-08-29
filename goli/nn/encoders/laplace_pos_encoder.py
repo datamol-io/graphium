@@ -5,6 +5,7 @@ import torch.nn as nn
 
 from goli.nn.base_layers import MLP, get_norm
 
+# ANDY: Here
 class LapPENodeEncoder(torch.nn.Module):
     """Laplace Positional Embedding node encoder.
 

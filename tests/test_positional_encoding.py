@@ -15,6 +15,8 @@ from goli.features.featurizer import (
 from goli.features.positional_encoding import graph_positional_encoder
 
 
+# ANDY: Add tests here to check your PE / SE
+
 class test_positional_encoder(ut.TestCase):
 
     smiles = [
