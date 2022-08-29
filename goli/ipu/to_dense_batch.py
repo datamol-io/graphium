@@ -79,4 +79,4 @@ def to_dense_batch(x: Tensor, batch: Optional[Tensor] = None,
     mask[idx] = 1
     mask = mask.view(batch_size, max_num_nodes_per_graph)
 
-    return out, mask
+    return out, mask, idx

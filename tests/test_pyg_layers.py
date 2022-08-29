@@ -67,33 +67,6 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg.h.shape[0], h_in.shape[0])
         self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
 
-    def test_gps_ipu_mask(self):
-
-        # max_num_nodes=10
-        bg = deepcopy(self.bg)
-        h_dense, mask = to_dense_batch(bg.h, bg.batch, max_num_nodes_per_graph=10, drop_nodes_last_graph=False)
-        h1 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=True)
-        h2 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=False)
-        h3 = h_dense[mask]
-        np.testing.assert_array_equal(h1.numpy(), h2.numpy())
-        np.testing.assert_array_equal(h1.numpy(), h3.numpy())
-
-        # max_num_nodes=None
-        bg = deepcopy(self.bg)
-        h_dense, mask = to_dense_batch(bg.h, bg.batch, max_num_nodes_per_graph=None, drop_nodes_last_graph=False)
-        h1 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=True)
-        h2 = GPSLayerPyg._to_sparse_batch(h_dense=h_dense, mask=mask, sparse_shape=bg.h.shape, on_ipu=False)
-        h3 = h_dense[mask]
-        np.testing.assert_array_equal(h1.numpy(), h2.numpy())
-        np.testing.assert_array_equal(h1.numpy(), h3.numpy())
-
-        # max_num_nodes=2
-        bg = deepcopy(self.bg)
-        with self.assertRaises(AssertionError):
-            h_dense, mask = to_dense_batch(bg.h, bg.batch, max_num_nodes_per_graph=2, drop_nodes_last_graph=False)
-
-
-
 
     def test_ginlayer(self):
 
