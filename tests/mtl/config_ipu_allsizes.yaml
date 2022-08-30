@@ -14,6 +14,7 @@ datamodule:
       homo:
         df: null
         df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
+        # df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -118,14 +119,12 @@ architecture:
     residual_type: simple
     pooling: [sum, mean, max]
     virtual_node: 'none'
-    layer_type: 'pyg:gps' #'pyg:gine' #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    #layer_kwargs: null
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
       mpnn_type: 'pyg:gine'
       mpnn_kwargs: null
         #out_dim_edges: 10
-      attn_type: "full-attention" # CHANGE
+      attn_type: "none" # "full-attention"
       attn_kwargs: null
 
 
@@ -307,5 +306,5 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 30 #50
+    max_epochs: 5 #50
     min_epochs: 2 #5
