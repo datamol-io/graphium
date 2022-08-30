@@ -23,7 +23,8 @@ PYG_LAYERS_DICT = {
 }
 
 ATTENTION_LAYERS_DICT = {
-    "full-attention": torch.nn.MultiheadAttention
+    "full-attention": torch.nn.MultiheadAttention,
+    "none": None,
 }
 
 class GPSLayerPyg(BaseGraphModule):
@@ -117,8 +118,7 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("batch_first", True)
 
         # Initialize the Attention layer
-        attn_class = ATTENTION_LAYERS_DICT[attn_type]
-        self.attn_layer = attn_class(**attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
 
 
     def forward(self, batch):
@@ -134,6 +134,7 @@ class GPSLayerPyg(BaseGraphModule):
         h_local = h_in + h_local  # Residual connection.
         if (self.norm_layer_local):
             h_local = self.norm_layer_local(h_local)
+        h = h_local
 
         # Multi-head attention.
         #* batch.batch is the indicator vector for nodes of which graph it belongs to
@@ -156,8 +157,8 @@ class GPSLayerPyg(BaseGraphModule):
             if self.norm_layer_attn:
                 h_attn = self.norm_layer_attn(h_attn)
 
-        # Combine local and global outputs.
-        h = h_local + h_attn
+            # Combine local and global outputs.
+            h = h + h_attn
 
         # Feed Forward block.
         h = self._ff_block(h)
@@ -165,6 +166,14 @@ class GPSLayerPyg(BaseGraphModule):
         batch_out.h = h
 
         return batch_out
+
+    def _parse_attn_layer(self, attn_type, **attn_kwargs):
+        attn_layer, attn_class = None, None
+        if attn_type is not None:
+            attn_class = ATTENTION_LAYERS_DICT[attn_type]
+        if attn_class is not None:
+            attn_layer = attn_class(**attn_kwargs)
+        return attn_layer
 
     def _ff_block(self, h):
         """Feed Forward block.

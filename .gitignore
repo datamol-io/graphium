@@ -132,7 +132,7 @@ dmypy.json
 *.code-workspace
 *.out
 *.cache
-*.pop
+*.pop*
 *.a
 lightning_logs/
 logs/
