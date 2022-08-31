@@ -13,7 +13,7 @@ from goli.features.featurizer import (
     mol_to_graph_dict,
 )
 from goli.features.positional_encoding import graph_positional_encoder
-
+from goli.nn.encoders import laplace_pos_encoder,mlp_encoder,signnet_pos_encoder
 
 # ANDY: Add tests here to check your PE / SE
 

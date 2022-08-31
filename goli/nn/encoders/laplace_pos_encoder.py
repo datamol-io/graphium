@@ -31,6 +31,7 @@ class LapPENodeEncoder(torch.nn.Module):
 
         # Parse the `on_keys`.
         self.on_keys = self.parse_on_keys(on_keys)
+        print (self.on_keys)
 
         if model_type not in ['Transformer', 'DeepSet']:
             raise ValueError(f"Unexpected PE model {model_type}")
