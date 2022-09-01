@@ -7,6 +7,7 @@ import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
+import torch
 
 from goli.features.featurizer import (
     mol_to_adj_and_features,
@@ -124,19 +125,54 @@ class test_positional_encoder(ut.TestCase):
                 self.assertEqual(list(rwse_embed.shape), [num_nodes, ksteps], msg=err_msg)
 
 
+    #Andy: work in progress 
+
+    '''
+    continue debugging here, see how to adapt the laplace_pos_encoder
+    also can try to trim laplace_pos_encoder if needed 
+    '''
 
     def test_laplacian_eigvec_with_encoder(self):
+
         for ii, adj in enumerate(deepcopy(self.adjs)):
-            for num_pos in [1, 2, 4]:  # Can't test too much eigs because of multiplicities
+            for num_pos in [2, 4, 8]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
                     #Andy: now returns a dictionary of computed pe 
-                    pos_encoding_as_features = {"pos_type": "laplacian_eigvec", "num_pos": num_pos, "disconnected_comp": disconnected_comp}
+                    pos_encoding_as_features = {"pos_type": "laplacian_eigvec_eigval", "num_pos": num_pos, "disconnected_comp": disconnected_comp}
                     num_nodes = adj.shape[0]
                     pe_dict = graph_positional_encoder(
                         adj, num_nodes, pos_encoding_as_features
                     )
+
+                    on_keys={"eigvals":1, "eigvecs":1}
+                    in_dim = num_pos
+                    hidden_dim = 64
+                    out_dim = 64
+                    model_type = 'Transformer'
+                    num_layers = 1
+
+                    pos_enc_sign_flip = torch.from_numpy(pe_dict["pos_enc_feats_sign_flip"])
+
+                    pos_enc_no_flip = torch.from_numpy(pe_dict["pos_enc_feats_no_flip"])
+
+                    print (pos_enc_sign_flip.shape)
+                    print (pos_enc_no_flip.shape)
+
+                    encoder = laplace_pos_encoder.LapPENodeEncoder(on_keys,
+                            in_dim, # Size of Laplace PE embedding
+                            hidden_dim,
+                            out_dim,
+                            model_type, # 'Transformer' or 'DeepSet'
+                            num_layers,
+                            num_layers_post=0, # Num. layers to apply after pooling
+                            dropout=0.1,
+                            first_normalization=None)
+
+                    hidden_embed = encoder(pos_enc_no_flip, pos_enc_sign_flip)
+                    print (hidden_embed)
+
 
 
     

@@ -31,7 +31,6 @@ class LapPENodeEncoder(torch.nn.Module):
 
         # Parse the `on_keys`.
         self.on_keys = self.parse_on_keys(on_keys)
-        print (self.on_keys)
 
         if model_type not in ['Transformer', 'DeepSet']:
             raise ValueError(f"Unexpected PE model {model_type}")
@@ -45,10 +44,13 @@ class LapPENodeEncoder(torch.nn.Module):
         self.linear_A = nn.Linear(2, in_dim)
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
+
+        #! Andy: check if these are desired architecture, a lot of new hyperparameters here for the encoder
         if model_type == 'Transformer':
             # Transformer model for LapPE
             encoder_layer = nn.TransformerEncoderLayer(
                     d_model=in_dim,
+                    nhead=1,
                     batch_first=True,
                     dropout=dropout,
                     **model_kwargs)
@@ -76,7 +78,6 @@ class LapPENodeEncoder(torch.nn.Module):
                     dropout=dropout,
                     **model_kwargs)
 
-    #! Andy: currently this is hard coded to have eigvals and eigvecs
     def parse_on_keys(self, on_keys):
         if len(on_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
