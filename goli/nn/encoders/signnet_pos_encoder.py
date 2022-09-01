@@ -124,7 +124,7 @@ class SignNetNodeEncoder(torch.nn.Module):
     """
 
     def __init__(self,
-                on_keys: Dict[str],
+                on_keys: Dict,
                 in_dim, # Size of PE embedding
                 hidden_dim,
                 out_dim,

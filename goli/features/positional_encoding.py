@@ -22,7 +22,8 @@ def get_all_positional_encoding(
             to generate positional encoding for directional features.
     """
 
-    pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = None, None, None
+    #pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = None, None, None
+    pos_enc_dir = None
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
     pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
 
@@ -30,29 +31,28 @@ def get_all_positional_encoding(
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
-
-        #pos_enc_feats_sign_flip, pos_enc_feats_no_flip
-        # pe_dict = graph_positional_encoder(
-        #     adj, **pos_encoding_as_features
-        # )
         pe_dict = graph_positional_encoder(
             adj, num_nodes, pos_encoding_as_features
         )
 
     # Get the positional encoding for the directions
+    #! I don't really understand what this part is doing
+    # seem to be quite hard coded, I just replaced the entries with dictionary entries
     if len(pos_encoding_as_directions) > 0:
         if pos_encoding_as_directions == pos_encoding_as_features:
 
             # Concatenate the sign-flip and non-sign-flip positional encodings
-            if pos_enc_feats_sign_flip is None:
-                pos_enc_dir = pos_enc_feats_no_flip
-            elif pos_enc_feats_no_flip is None:
-                pos_enc_dir = pos_enc_feats_sign_flip
+            if pe_dict["pos_enc_feats_sign_flip"] is None:
+                pos_enc_dir = pe_dict["pos_enc_feats_no_flip"]
+            elif pe_dict["pos_enc_feats_no_flip"] is None:
+                pos_enc_dir = pe_dict["pos_enc_feats_sign_flip"]
             else:
-                pos_enc_dir = np.concatenate((pos_enc_feats_sign_flip, pos_enc_feats_no_flip), axis=1)
+                pos_enc_dir = np.concatenate((pe_dict["pos_enc_feats_no_flip"], pe_dict["pos_enc_feats_sign_flip"]), axis=1)
 
         else:
-            pos_enc_dir1, pos_enc_dir2 = graph_positional_encoder(adj, **pos_encoding_as_directions)
+            pe_dict = graph_positional_encoder(adj, **pos_encoding_as_directions)
+            pos_enc_dir1 = pe_dict["pos_enc_feats_sign_flip"]
+            pos_enc_dir2 = pe_dict["pos_enc_feats_no_flip"]
             # Concatenate both positional encodings
             if pos_enc_dir1 is None:
                 pos_enc_dir = pos_enc_dir2
@@ -64,10 +64,6 @@ def get_all_positional_encoding(
     return pe_dict, pos_enc_dir
 
 #!Andy: change the signature here to take in any pe arguments, not just laplace eigen_vec
-# def graph_positional_encoder(
-#     adj: Union[np.ndarray, spmatrix], 
-#     pos_type: str, num_pos: int, disconnected_comp: bool = True, **kwargs
-# ) -> np.ndarray:
 def graph_positional_encoder(
     adj: Union[np.ndarray, spmatrix], 
     num_nodes: int,
@@ -87,6 +83,7 @@ def graph_positional_encoder(
     """
 
     # ANDY: Add more positional encodings! Replace output by a dict.
+    #! reorder the arguments to be pos_type dependent
     # The keys of the output dict should match the `on_keys` of the encoders.
     #* Andy: changed the output to be a positional encoding dictionary now
     pos_type = pos_arg["pos_type"]
@@ -95,7 +92,6 @@ def graph_positional_encoder(
 
     pos_type = pos_type.lower()
     pe_dict = {}
-    #pos_enc_sign_flip, pos_enc_no_flip = None, None
 
     if pos_type == "laplacian_eigvec":
         _, eigvecs = compute_laplacian_positional_eigvecs(
@@ -124,14 +120,5 @@ def graph_positional_encoder(
 
     else:
         raise ValueError(f"Unknown `pos_type`: {pos_type}")
-
-    #! reorder the arguments to be pos_type dependent
-    # if pos_enc_sign_flip is not None:
-    #     pos_enc_sign_flip = np.real(pos_enc_sign_flip).astype(np.float32)
-
-    # if pos_enc_no_flip is not None:
-    #     pos_enc_no_flip = np.real(pos_enc_no_flip).astype(np.float32)
-    # pe_dict["pos_enc_feats_sign_flip"] = pos_enc_sign_flip
-    # pe_dict["pos_enc_feats_no_flip"] = pos_enc_no_flip
 
     return pe_dict

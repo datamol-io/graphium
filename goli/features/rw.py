@@ -1,5 +1,6 @@
 from typing import Tuple, Union
 
+from scipy import sparse
 from scipy.sparse.linalg import eigs
 from scipy.linalg import eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix
@@ -30,6 +31,9 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix],
         return rw_landing
 
     ksteps = range(1,ksteps+1)
+    if (type(adj) is np.ndarray):
+        adj = sparse.csr_matrix(adj)
+
     edge_index, _ = from_scipy_sparse_matrix(adj)
     rw_landing = get_rw_landing_probs(ksteps=ksteps,
                                     edge_index=edge_index,

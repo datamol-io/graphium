@@ -17,10 +17,10 @@ class LapPENodeEncoder(torch.nn.Module):
     """
 
     def __init__(self,
-                on_keys: Dict[str],
-                in_dim, # Size of Laplace PE embedding
-                hidden_dim,
-                out_dim,
+                on_keys: Dict,
+                in_dim: int, # Size of Laplace PE embedding
+                hidden_dim: int,
+                out_dim: int,
                 model_type, # 'Transformer' or 'DeepSet'
                 num_layers,
                 num_layers_post=0, # Num. layers to apply after pooling
@@ -76,6 +76,7 @@ class LapPENodeEncoder(torch.nn.Module):
                     dropout=dropout,
                     **model_kwargs)
 
+    #! Andy: currently this is hard coded to have eigvals and eigvecs
     def parse_on_keys(self, on_keys):
         if len(on_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
