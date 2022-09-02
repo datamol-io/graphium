@@ -434,6 +434,19 @@ class BaseDataModule(pl.LightningDataModule):
         df = pd.read_csv(path, **kwargs)
         return df
 
+    @staticmethod
+    def _read_parquet(path, **kwargs):
+        df = pd.read_parquet(path)
+        return df
+
+    @staticmethod
+    def _read_table(self, path, **kwargs):
+        if str(path).endswith((".parquet")):
+            return self._read_parquet(path)
+        else:
+            return self._read_csv(path)
+
+
     def _dataloader(self, dataset: Dataset, shuffle: bool, stage: str):
         """Get a dataloader for a given dataset"""
 
