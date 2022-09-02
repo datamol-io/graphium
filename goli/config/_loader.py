@@ -70,8 +70,8 @@ def load_datamodule(
     cfg_data = config["datamodule"]["args"]
     ipu_inference_opts, ipu_training_opts = None, None
     ipu_file = "tests/mtl/ipu.config"
-    ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", None)
-    ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", None)
+    ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
+    ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
 
     if get_accelerator(config) == "ipu":
         ipu_inference_opts, ipu_training_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
@@ -236,7 +236,7 @@ def load_trainer(config, run_name):
 
     if "logger" in cfg_trainer.keys():
         # WandB logger (decomment to log runs)
-        wandb_logger = WandbLoggerGoli(name=run_name, project="multitask-gnn")
+        wandb_logger = WandbLoggerGoli(name=run_name, project="multitask-gnn", full_configs=config)
         trainer_kwargs["logger"] = wandb_logger
 
     trainer_kwargs["callbacks"] = callbacks

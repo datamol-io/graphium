@@ -14,7 +14,7 @@ class TensorBoardLoggerGoli(TensorBoardLogger):
     @rank_zero_only
     def log_hyperparams(self, *args, **kwargs) -> None:
 
-        with open(os.path.join(self.log_dir, "configs.yaml"), 'w') as file:
+        with open(os.path.join(self.log_dir, "full_configs.yaml"), 'w') as file:
             yaml.dump(self.full_configs, file)
 
         return super().log_hyperparams(*args, **kwargs)
@@ -28,7 +28,8 @@ class WandbLoggerGoli(WandbLogger):
     @rank_zero_only
     def log_hyperparams(self, *args, **kwargs) -> None:
 
-        with open(os.path.join(self.log_dir, "configs.yaml"), 'w') as file:
+        # Save the full configs as well
+        with open(os.path.join(self.experiment.dir, "full_configs.yaml"), 'w') as file:
             yaml.dump(self.full_configs, file)
 
         return super().log_hyperparams(*args, **kwargs)

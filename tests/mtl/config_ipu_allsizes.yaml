@@ -1,6 +1,6 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name qm9_norm3 #qm9_full
+  name: &name dom_test_ipu #qm9_full
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -54,7 +54,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 64
+    featurization_n_jobs: 0
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -89,9 +89,9 @@ datamodule:
 architecture:
   model_type: FullGraphMultiTaskNetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 256
-    hidden_dims: 256
-    depth: 3
+    out_dim: 32
+    hidden_dims: 32
+    depth: 1
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
@@ -100,9 +100,9 @@ architecture:
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 128
-    hidden_dims: 128
-    depth: 3
+    out_dim: 16
+    hidden_dims: 16
+    depth: 1
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -111,9 +111,9 @@ architecture:
     residual_type: none
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 64
-    hidden_dims: 256
-    depth: 16
+    out_dim: 32
+    hidden_dims: 64
+    depth: 4
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -122,12 +122,10 @@ architecture:
     residual_type: simple
     pooling: [sum, mean, max]
     virtual_node: 'none'
-    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' #'pyg:pna-msgpass' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
-      mpnn_type: 'pyg:pna-msgpass'
-      mpnn_kwargs:
-        aggregators: ["sum"]
-        scalers: ["identity"]
+      mpnn_type: 'pyg:gine'
+      mpnn_kwargs: null
         #out_dim_edges: 10
       attn_type: "full-attention" #"none"
       attn_kwargs: null
@@ -138,21 +136,21 @@ architecture:
       # scalers: [identity, amplification, attenuation]
       # num_heads: 3
 
-  post_nn:
-    out_dim: 64
-    hidden_dims: 64
-    depth: 2
-    activation: relu
-    last_activation: none
-    dropout: *dropout
-    normalization: *normalization
-    last_normalization: "none"
-    residual_type: none
+  post_nn: null
+    #out_dim: 1
+    #hidden_dims: 32
+    #depth: 2
+    #activation: relu
+    #last_activation: none
+    #dropout: *dropout
+    #normalization: *normalization
+    #last_normalization: "none"
+    #residual_type: none
 
   task_heads:
     - task_name: "homo"
       out_dim: 2
-      hidden_dims: 64
+      hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
@@ -162,7 +160,7 @@ architecture:
       residual_type: none
     - task_name: "alpha"
       out_dim: 1
-      hidden_dims: 64
+      hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
@@ -172,7 +170,7 @@ architecture:
       residual_type: none
     - task_name: "cv"
       out_dim: 1
-      hidden_dims: 64
+      hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
