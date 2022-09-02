@@ -401,31 +401,7 @@ class BaseDataModule(pl.LightningDataModule):
         if self._predict_ds is None:
             return self.test_ds
         else:
-<<<<<<< HEAD
             return self._predict_ds
-=======
-            # Split from an indices file
-            with fsspec.open(str(splits_path)) as f:
-                splits = self._read_table(splits_path)
->>>>>>> origin/olek
-
-    @property
-    def get_num_workers(self):
-        if self.num_workers == -1:
-            num_workers = os.cpu_count()
-            num_workers = num_workers if num_workers is not None else 0
-        else:
-            num_workers = self.num_workers
-        return num_workers
-
-    @property
-    def get_num_workers(self):
-        if self.num_workers == -1:
-            num_workers = os.cpu_count()
-            num_workers = num_workers if num_workers is not None else 0
-        else:
-            num_workers = self.num_workers
-        return num_workers
 
     @property
     def get_num_workers(self):
@@ -689,7 +665,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                 )
                 label_dtype = {col: np.float16 for col in label_cols}
 
-                task_df[task] = self._read_table(args.df_path, usecols=usecols, dtype=label_dtype)
+                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
             else:
                 label_cols = self._parse_label_cols(df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col)
                 task_df[task] = args.df
@@ -956,7 +932,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            data_frame = self._read_table(df_path, nrows=0)
+            data_frame = self._read_csv(df_path, nrows=0)
         else:
             data_frame = df
         cols = list(data_frame.columns)
@@ -1039,7 +1015,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         task = keys[0]
         args = self.task_dataset_processing_params[task]
         if args.df is None:
-            df = self._read_table(args.df_path, nrows=20)
+            df = self._read_csv(args.df_path, nrows=20)
         else:
             df = args.df.iloc[0:20, :]
 
@@ -1179,7 +1155,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = self._read_table(splits_path)
+                splits = self._read_csv(splits_path)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -1216,7 +1192,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
             if args.df is None:
-                df = self._read_table(args.df_path, usecols=args.smiles_col)
+                df = self._read_csv(args.df_path, usecols=args.smiles_col)
                 num_elements += len(df)
             else:
                 num_elements += len(args.df)
