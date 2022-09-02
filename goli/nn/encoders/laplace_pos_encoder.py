@@ -87,13 +87,15 @@ class LapPENodeEncoder(torch.nn.Module):
 
     def forward(self, eigvals, eigvecs):
 
+
         if self.training:
             sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device)
             sign_flip[sign_flip >= 0.5] = 1.0
             sign_flip[sign_flip < 0.5] = -1.0
             eigvecs = eigvecs * sign_flip.unsqueeze(0)
 
-        pos_enc = torch.cat((eigvecs.unsqueeze(2), eigvals), dim=2) # (Num nodes) x (Num Eigenvectors) x 2
+
+        pos_enc = torch.cat((eigvecs.unsqueeze(2), eigvals.unsqueeze(2)), dim=2) # (Num nodes) x (Num Eigenvectors) x 2
         empty_mask = torch.isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
 
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 2

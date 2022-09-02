@@ -129,7 +129,7 @@ class test_positional_encoder(ut.TestCase):
 
     '''
     continue debugging here, see how to adapt the laplace_pos_encoder
-    also can try to trim laplace_pos_encoder if needed 
+    code running now, question is where to add the laplace_pos_encoder
     '''
 
     def test_laplacian_eigvec_with_encoder(self):
@@ -157,8 +157,9 @@ class test_positional_encoder(ut.TestCase):
 
                     pos_enc_no_flip = torch.from_numpy(pe_dict["pos_enc_feats_no_flip"])
 
-                    print (pos_enc_sign_flip.shape)
-                    print (pos_enc_no_flip.shape)
+
+                    eigvecs = pos_enc_sign_flip
+                    eigvals = pos_enc_no_flip
 
                     encoder = laplace_pos_encoder.LapPENodeEncoder(on_keys,
                             in_dim, # Size of Laplace PE embedding
@@ -170,16 +171,7 @@ class test_positional_encoder(ut.TestCase):
                             dropout=0.1,
                             first_normalization=None)
 
-                    hidden_embed = encoder(pos_enc_no_flip, pos_enc_sign_flip)
-                    print (hidden_embed)
-
-
-
-    
-
-
-
-
+                    hidden_embed = encoder(eigvals, eigvecs)
 
 if __name__ == "__main__":
     ut.main()
