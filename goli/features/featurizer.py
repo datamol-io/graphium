@@ -539,7 +539,7 @@ def mol_to_adj_and_features(
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
-) -> Union[coo_matrix, Union[np.ndarray, None], Union[np.ndarray, None], Dict[np.array], Union[np.ndarray, None]]:
+) -> Union[coo_matrix, Union[np.ndarray, None], Union[np.ndarray, None], Dict[str, np.ndarray], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
