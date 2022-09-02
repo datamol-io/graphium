@@ -28,6 +28,7 @@ def get_all_positional_encoding(
     pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
 
     # ANDY: Change this function to match the dict output of `graph_positional_encoder`
+    pe_dict = {}
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
@@ -36,7 +37,6 @@ def get_all_positional_encoding(
         )
 
     # Get the positional encoding for the directions
-    #! I don't really understand what this part is doing
     # seem to be quite hard coded, I just replaced the entries with dictionary entries
     if len(pos_encoding_as_directions) > 0:
         if pos_encoding_as_directions == pos_encoding_as_features:
@@ -60,7 +60,6 @@ def get_all_positional_encoding(
                 pos_enc_dir = pos_enc_dir1
             else:
                 pos_enc_dir = np.concatenate((pos_enc_dir1, pos_enc_dir2), axis=1)
-
     return pe_dict, pos_enc_dir
 
 #!Andy: change the signature here to take in any pe arguments, not just laplace eigen_vec
