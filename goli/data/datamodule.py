@@ -114,7 +114,7 @@ class SingleTaskDataset(Dataset):
 
         return datum
 
-class MultitaskDataset(Dataset):    # TODO: Move the datasets to a new class
+class MultitaskDataset(Dataset):
     """This class holds the information for the multitask dataset.
 
     Several single-task datasets can be merged to create a multi-task dataset. After merging the dictionary of single-task datasets,

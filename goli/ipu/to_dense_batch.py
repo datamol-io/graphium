@@ -4,6 +4,12 @@ import torch
 from torch import Tensor
 from torch_scatter import scatter_add
 
+def to_sparse_batch(x: Tensor, mask_idx: Tensor):
+    """
+    Reverse function of `to_dense_batch`
+    """
+    return torch.index_select(x.reshape(-1, x.shape[-1]), 0, mask_idx)
+
 
 def to_dense_batch(x: Tensor, batch: Optional[Tensor] = None,
                    fill_value: float = 0., max_num_nodes_per_graph: Optional[int] = None,

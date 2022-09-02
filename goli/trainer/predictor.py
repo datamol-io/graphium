@@ -169,7 +169,7 @@ class PredictorModule(pl.LightningModule):
 
     def configure_optimizers(self):
 
-        # TODO: Fix scheduling with the Summary class
+        # TODO (Gabriela): Fix scheduling with the Summary class
         # Configure the parameters for the schedulers
         # sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
         # scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
@@ -394,10 +394,8 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs["loss"] = step_dict["loss"]
 #################################################################################################################
 
-        # print("grad_norm", step_dict["grad_norm"]) # TODO: Remove grad_norm
-
-        # # Predictions and targets are no longer needed after the step.
-        # # Keeping them will increase memory usage significantly for large datasets.
+        # Predictions and targets are no longer needed after the step.
+        # Keeping them will increase memory usage significantly for large datasets.
         step_dict.pop("preds")
         step_dict.pop("targets")
         step_dict.pop("weights")

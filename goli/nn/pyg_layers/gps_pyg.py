@@ -12,7 +12,7 @@ from typing import Callable, Union, Optional
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
 from goli.utils.decorators import classproperty
-from goli.ipu.to_dense_batch import to_dense_batch
+from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
 
 PYG_LAYERS_DICT = {
@@ -141,19 +141,21 @@ class GPSLayerPyg(BaseGraphModule):
         #* h_dense
         if self.attn_layer is not None:
 
-            # TODO: Better way to determine if on IPU? Here we're checking for padding
+            # If there's padding, then we are on IPU
             on_ipu = ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
-
             if on_ipu:
                 max_num_nodes_per_graph = batch.dataset_max_nodes_per_graph[0].item()
             else:
                 max_num_nodes_per_graph = None
-            h_dense, mask, idx = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu)
-            h_attn = self._sa_block(h_dense, None, ~mask) #[mask]
-            h_attn = torch.index_select(h_dense.reshape(-1, h_dense.shape[-1]), 0, idx)
 
+            # Convert the tensor to a dense batch, then back to a sparse batch
+            h_dense, mask, idx = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu)
+            h_attn = self._sa_block(h_dense, None, ~mask)
+            h_attn = to_sparse_batch(h_dense, idx)
+
+            # Dropout, residual, norm
             h_attn = self.dropout_attn(h_attn)
-            h_attn = h_in + h_attn  # Residual connection.
+            h_attn = h_in + h_attn
             if self.norm_layer_attn:
                 h_attn = self.norm_layer_attn(h_attn)
 
