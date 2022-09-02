@@ -1802,7 +1802,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             num_edges = get_num_edges(graph)
             if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
                 break
-
         return graph
 
     ########################## Private methods ######################################

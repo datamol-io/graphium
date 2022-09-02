@@ -17,10 +17,10 @@ class LapPENodeEncoder(torch.nn.Module):
     """
 
     def __init__(self,
-                on_keys: Dict[str],
-                in_dim, # Size of Laplace PE embedding
-                hidden_dim,
-                out_dim,
+                on_keys: Dict,
+                in_dim: int, # Size of Laplace PE embedding
+                hidden_dim: int,
+                out_dim: int,
                 model_type, # 'Transformer' or 'DeepSet'
                 num_layers,
                 num_layers_post=0, # Num. layers to apply after pooling
@@ -44,10 +44,13 @@ class LapPENodeEncoder(torch.nn.Module):
         self.linear_A = nn.Linear(2, in_dim)
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
+
+        #! Andy: check if these are desired architecture, a lot of new hyperparameters here for the encoder
         if model_type == 'Transformer':
             # Transformer model for LapPE
             encoder_layer = nn.TransformerEncoderLayer(
                     d_model=in_dim,
+                    nhead=1,
                     batch_first=True,
                     dropout=dropout,
                     **model_kwargs)
@@ -90,7 +93,8 @@ class LapPENodeEncoder(torch.nn.Module):
             sign_flip[sign_flip < 0.5] = -1.0
             eigvecs = eigvecs * sign_flip.unsqueeze(0)
 
-        pos_enc = torch.cat((eigvecs.unsqueeze(2), eigvals), dim=2) # (Num nodes) x (Num Eigenvectors) x 2
+
+        pos_enc = torch.cat((eigvecs.unsqueeze(2), eigvals.unsqueeze(2)), dim=2) # (Num nodes) x (Num Eigenvectors) x 2
         empty_mask = torch.isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
 
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 2

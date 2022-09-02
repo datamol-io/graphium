@@ -24,7 +24,7 @@ class MLPEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        on_keys: Dict[str],
+        on_keys: Dict,
         out_level: str,
         in_dim: int,
         hidden_dim: int,
@@ -57,7 +57,6 @@ class MLPEncoder(torch.nn.Module):
             first_normalization=first_normalization,
             normalization=normalization,
             last_normalization=normalization,
-            dropout=dropout,
             last_dropout=dropout,
         )
 
