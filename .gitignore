@@ -151,6 +151,7 @@ predictions/
 expts_untracked/
 debug/
 saved_models/
+wandb/
 change_commits.sh
 pro_vision/
 
