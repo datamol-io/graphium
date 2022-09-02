@@ -49,12 +49,12 @@ datamodule:
     # cache_data_path: null
 
     ipu_dataloader_train_val:
-      max_num_nodes_per_graph: 36
-      max_num_edges_per_graph: 72
+      max_num_nodes_per_graph: 41
+      max_num_edges_per_graph: 82
 
     ipu_dataloader_test:
-      max_num_nodes_per_graph: 36
-      max_num_edges_per_graph: 72
+      max_num_nodes_per_graph: 41
+      max_num_edges_per_graph: 82
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
