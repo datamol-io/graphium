@@ -30,7 +30,6 @@ class test_positional_encoder(ut.TestCase):
     mols = [dm.to_mol(s) for s in smiles]
     adjs = [Chem.rdmolops.GetAdjacencyMatrix(mol) for mol in mols]
 
-    #! Andy: need to update the tester now graph_positional_encoder returns a dictionary
     def test_laplacian_eigvec(self):
 
         for ii, adj in enumerate(deepcopy(self.adjs)):

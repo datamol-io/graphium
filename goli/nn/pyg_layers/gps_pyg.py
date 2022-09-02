@@ -1,5 +1,4 @@
 '''
-#!Andy
 adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
 '''
 

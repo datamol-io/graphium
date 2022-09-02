@@ -2,6 +2,8 @@
 Unit tests for the different layers of goli/nn/pyg_layers/...
 
 The layers are not thoroughly tested due to the difficulty of testing them
+
+adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
 """
 
 from typing import Union, Callable
@@ -86,7 +88,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.edge_out = FCLayer(in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True)
 
     def forward(self, batch: Union[Data, Batch]):
-        x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index #! Andy: Get features from the batch
+        x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
 
         """
         x               : [n_nodes, in_dim]
@@ -94,18 +96,19 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         edge_index      : [2, n_edges]
         """
 
+        # Apply the linear layers
         Ax = self.A(x)
         Bx = self.B(x)
         Ce = self.C(e)
         Dx = self.D(x)
         Ex = self.E(x)
 
+        # Propagate, and apply norm, activation, dropout
         x, e = self.propagate(edge_index, Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce, e=e, Ax=Ax)
-
         x = self.apply_norm_activation_dropout(x)
         e = self.edge_out(e)
 
-        #! Andy: Add updated features to the batch
+        # Output
         batch.h = x
         batch.edge_attr = e
 

@@ -539,7 +539,7 @@ def mol_to_adj_and_features(
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
-) -> Union[coo_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
+) -> Union[coo_matrix, Union[np.ndarray, None], Union[np.ndarray, None], Dict[np.array], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
@@ -609,14 +609,21 @@ def mol_to_adj_and_features(
             `edge_property_list`.
             If no properties are given, it returns `None`
 
-        pos_enc_feats_sign_flip:
-            Node positional encoding that requires augmentation via sign-flip.
-            For example, eigenvectors of the Laplacian are ambiguous to the
-            sign and are returned here.
+        pe_dict:
+            Dictionary of all positional encodings. Current supported keys:
 
-        pos_enc_feats_no_flip:
-            Node positional encoding that requires does not use sign-flip.
-            For example, distance from centroid are returned here.
+            - "pos_enc_feats_sign_flip":
+                Node positional encoding that requires augmentation via sign-flip.
+                For example, eigenvectors of the Laplacian are ambiguous to the
+                sign and are returned here.
+
+            - "pos_enc_feats_no_flip":
+                Node positional encoding that requires does not use sign-flip.
+                For example, distance from centroid are returned here.
+
+            - "rwse":
+                Node structural encoding corresponding to the diagonal of the random
+                walk matrix
 
         pos_enc_dir:
             Node positional encoding used to define directions. This can thus
@@ -665,32 +672,16 @@ def mol_to_adj_and_features(
     else:
         edata = None
 
-    #! here the positional encodings are computed
-    # Andy: now should return a dictionary of positional encodings
-
-    '''
-    currently supported pe in pe_dict
-    "pos_enc_feats_sign_flip"
-    "pos_enc_feats_no_flip"
-    "rwse"
-    '''
+    # Get all positional encodings
     pe_dict, pos_enc_dir = get_all_positional_encoding(
         adj, num_nodes, pos_encoding_as_features, pos_encoding_as_directions
     )
 
-
-
     # Mask the NaNs
-    '''
-    replaced
-    pos_enc_feats_sign_flip = _mask_nans_inf(mask_nan, pos_enc_feats_sign_flip, "pos_enc_feats_sign_flip")
-    pos_enc_feats_no_flip = _mask_nans_inf(mask_nan, pos_enc_feats_no_flip, "pos_enc_feats_no_flip")
-    '''
     for pe_key in pe_dict.keys():
         pe_dict[pe_key] = _mask_nans_inf(mask_nan, pe_dict[pe_key], pe_key)
     pos_enc_dir = _mask_nans_inf(mask_nan, pos_enc_dir, "pos_enc_dir")
 
-    #return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
     return adj, ndata, edata, pe_dict, pos_enc_dir
 
 

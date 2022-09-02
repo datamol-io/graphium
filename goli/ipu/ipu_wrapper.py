@@ -84,29 +84,18 @@ class IPUPluginGoli(IPUPlugin):
         self.model.module._keys_batch = keys_batch
         self.model.module._keys_others = keys_others
 
-        #! andy: check how to get the poptorch model! for anchoring
+        # Walk-around to set the variable names for the poptorch model
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
 
         # Run the step using only tuple of tensors
         out = super()._step(stage, *new_args, **kwargs)
-        #anchor_tensor = self.poptorch_models[stage].getAnchoredTensor("grad_input")
-
-        if (stage == "train"):
-            #print(self.poptorch_models['train'].getTensorNames())
-            anchor_tensor = self.poptorch_models[stage].getAnchoredTensor("input")
-
-        # if (stage == "train"):
-        #     print(self.poptorch_models['train'].getTensorNames())
-
 
         # Remove the keys from the module after the step is executed
         self.model.module._keys_tensor_dict = None
         self.model.module._keys_tensor = None
         self.model.module._keys_batch = None
         self.model.module._keys_others = None
-
-
 
         return out
 
