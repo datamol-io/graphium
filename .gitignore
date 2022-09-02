@@ -132,6 +132,8 @@ dmypy.json
 *.code-workspace
 *.out
 *.cache
+*.pop*
+*.a
 lightning_logs/
 logs/
 .vscode/
@@ -144,11 +146,11 @@ rever/
 
 goli/data/ZINC_bench_gnn/
 goli/data/BindingDB/
+goli/data/mega-pubchem/
 goli/data/cache/
 predictions/
 expts_untracked/
 debug/
 saved_models/
-
-# Weights & Biases
 wandb/
+pro_vision/
