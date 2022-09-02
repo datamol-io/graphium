@@ -16,6 +16,9 @@ from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
 
+# Weights and Biases
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning import Trainer
 
 def get_accelerator(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
@@ -177,7 +180,7 @@ def load_predictor(config, model_class, model_kwargs, metrics):
     return predictor
 
 
-def load_trainer(config):
+def load_trainer(config, run_name):
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
@@ -210,7 +213,11 @@ def load_trainer(config):
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     if "logger" in cfg_trainer.keys():
-        trainer_kwargs["logger"] = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
+        # trainer_kwargs["logger"] = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
+
+        # WandB logger (decomment to log runs)
+        wandb_logger = WandbLogger(name=run_name, project="multitask-gnn")
+        trainer_kwargs["logger"] = wandb_logger
 
     trainer_kwargs["callbacks"] = callbacks
 

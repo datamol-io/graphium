@@ -402,6 +402,7 @@ class PredictorModule(pl.LightningModule):
         step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
 
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        # TODO add wandb metric tracking here (check in concatenated_metrics_logs)
         self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
 #################################################################################################################
 
@@ -488,13 +489,13 @@ class PredictorModule(pl.LightningModule):
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
-        tb_path = self.logger.log_dir
+        # tb_path = self.logger.log_dir
 
-        # Write the YAML file with the per-task metrics
-        if self.current_epoch >= 0:
-            mkdir(tb_path)
-            with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
-                yaml.dump(full_dict, file)
+        # # Write the YAML file with the per-task metrics
+        # if self.current_epoch >= 0:
+        #     mkdir(tb_path)
+        #     with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
+        #         yaml.dump(full_dict, file)
 
     def test_epoch_end(self, outputs: Dict[str, Any]):
 
@@ -506,10 +507,10 @@ class PredictorModule(pl.LightningModule):
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
-        tb_path = self.logger.log_dir
-        os.makedirs(tb_path, exist_ok=True)
-        with open(f"{tb_path}/metrics.yaml", "w") as file:
-            yaml.dump(full_dict, file)
+        # tb_path = self.logger.log_dir
+        # os.makedirs(tb_path, exist_ok=True)
+        # with open(f"{tb_path}/metrics.yaml", "w") as file:
+        #     yaml.dump(full_dict, file)
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)

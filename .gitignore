@@ -149,3 +149,6 @@ predictions/
 expts_untracked/
 debug/
 saved_models/
+
+# Weights & Biases
+wandb/
