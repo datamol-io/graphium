@@ -1270,6 +1270,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 - `None`: all elements are considered.
         """
 
+        # TODO: Fix the GraphOGBDataModule
+        raise NotImplementedError("`GraphOGBDataModule` does not work with Multi-task. Need to fix it")
+
         self.dataset_name = dataset_name
 
         # Get OGB metadata
