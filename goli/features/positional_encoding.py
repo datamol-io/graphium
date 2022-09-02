@@ -62,7 +62,6 @@ def get_all_positional_encoding(
                 pos_enc_dir = np.concatenate((pos_enc_dir1, pos_enc_dir2), axis=1)
     return pe_dict, pos_enc_dir
 
-#!Andy: change the signature here to take in any pe arguments, not just laplace eigen_vec
 def graph_positional_encoder(
     adj: Union[np.ndarray, spmatrix],
     num_nodes: int,
@@ -81,10 +80,6 @@ def graph_positional_encoder(
 
     """
 
-    # ANDY: Add more positional encodings! Replace output by a dict.
-    #! reorder the arguments to be pos_type dependent
-    # The keys of the output dict should match the `on_keys` of the encoders.
-    #* Andy: changed the output to be a positional encoding dictionary now
     pos_type = pos_arg["pos_type"]
 
 
