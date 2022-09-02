@@ -302,7 +302,7 @@ class MLP(nn.Module):
                     dropout=last_dropout,
                 )
             )
-            self.fully_connected = nn.Sequential(*self.fully_connected)
+        self.fully_connected = nn.Sequential(*self.fully_connected)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""

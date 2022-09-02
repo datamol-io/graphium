@@ -2179,9 +2179,10 @@ class GraphOGBDataModule(GraphFromSmilesDataModule):
 class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
     def __init__(
                 self,
-                ipu_options: Optional["poptorch.Options"] = None,
-                ipu_dataloader_opts_train_val: Optional["IPUDataloaderOptions"] = None,
-                ipu_dataloader_opts_test: Optional["IPUDataloaderOptions"] = None,
+                ipu_inference_opts: Optional["poptorch.Options"] = None,
+                ipu_training_opts: Optional["poptorch.Options"] = None,
+                ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
+                ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
                 *args,
                 **kwargs
                 ) -> None:
@@ -2261,33 +2262,37 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
                   `num_workers`, and less likely to cause memory issues with the parallelization.
                 - "pyg:graph": Process molecules as `pyg.data.Data`.
             dataset_class: The class used to create the dataset from which to sample.
-            ipu_options: Options for the IPU. Ignore if not using IPUs
+            ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
+            ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
             ipu_dataloader_opts_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
             ipu_dataloader_opts_test: Options for the dataloader for the IPU. Ignore if not using IPUs
         """
         super().__init__(*args, **kwargs)
 
-        self.ipu_options = ipu_options
-        self.ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val
-        self.ipu_dataloader_opts_test=ipu_dataloader_opts_test
+        self.ipu_inference_opts = ipu_inference_opts
+        self.ipu_training_opts = ipu_training_opts
+        self.ipu_dataloader_training_opts=ipu_dataloader_training_opts
+        self.ipu_dataloader_inference_opts=ipu_dataloader_inference_opts
 
 
     def _dataloader(self, dataset: Dataset, shuffle: bool, stage: str):
         """Get a dataloader for a given dataset"""
 
         # Get batch size
-        if stage in ["train", "val"]:
+        if stage in ["train"]:
             batch_size = self.batch_size_train_val
-            ipu_dataloader_options = self.ipu_dataloader_opts_train_val
-        elif stage in ["test", "predict"]:
+            ipu_dataloader_options = self.ipu_dataloader_training_opts
+            ipu_options = self.ipu_training_opts
+        elif stage in ["val", "test", "predict"]:
             batch_size = self.batch_size_test
-            ipu_dataloader_options = self.ipu_dataloader_opts_test
+            ipu_dataloader_options = self.ipu_dataloader_inference_opts
+            ipu_options = self.ipu_inference_opts
         else:
             raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
 
         # Use regular Dataloader if no IPUs
-        if self.ipu_options is None:
-            logger.warning("No IPU options. Using regular dataloader.")
+        if ipu_options is None:
+            logger.warning(f"No IPU options for stage {stage}. Using regular dataloader.")
             return super()._dataloader(dataset, shuffle, stage)
 
         from goli.ipu.ipu_dataloader import create_ipu_dataloader
@@ -2295,7 +2300,7 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
         loader = create_ipu_dataloader(
                 dataset=dataset,
                 ipu_dataloader_options=ipu_dataloader_options,
-                ipu_opts=self.ipu_options,
+                ipu_options=ipu_options,
                 batch_size=batch_size,
                 collate_fn=self.collate_fn,
                 num_workers=self.get_num_workers,
