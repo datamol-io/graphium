@@ -387,6 +387,19 @@ class BaseDataModule(pl.LightningDataModule):
         df = pd.read_csv(path, **kwargs)
         return df
 
+    @staticmethod
+    def _read_parquet(path, **kwargs):
+        df = pd.read_parquet(path)
+        return df
+
+    @staticmethod
+    def _read_table(self, path, **kwargs):
+        if str(path).endswith((".parquet")):
+            return self._read_parquet(path)
+        else:
+            return self._read_csv(path)
+
+
     def _dataloader(self, dataset: Dataset, batch_size: int, shuffle: bool):
         """Get a dataloader for a given dataset"""
 
@@ -425,8 +438,6 @@ class BaseDataModule(pl.LightningDataModule):
                     persistent_workers=self.persistent_workers)
         return loader
 
-<<<<<<< HEAD
-=======
 class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
     """
     NOTE(hadim): let's make only one class for the moment and refactor with a parent class
@@ -629,7 +640,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
             )
             label_dtype = {col: np.float16 for col in label_cols}
 
-            df = self._read_csv(self.df_path, usecols=usecols, dtype=label_dtype)
+            df = self._read_table(self.df_path, usecols=usecols, dtype=label_dtype)
         else:
             df = self.df
 
@@ -787,7 +798,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         if self.df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            df = self._read_csv(self.df_path, nrows=0)
+            df = self._read_table(self.df_path, nrows=0)
         else:
             df = self.df
         cols = list(df.columns)
@@ -881,7 +892,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         graph to not fail is returned.
         """
         if self.df is None:
-            df = self._read_csv(self.df_path, nrows=10)
+            df = self._read_table(self.df_path, nrows=10)
         else:
             df = self.df.iloc[0:10, :]
 
@@ -1093,7 +1104,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = self._read_csv(splits_path)
+                splits = self._read_table(splits_path)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -1128,7 +1139,7 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         Returns the number of elements of the current DataModule
         """
         if self.df is None:
-            df = self._read_csv(self.df_path, usecols=[self.smiles_col])
+            df = self._read_table(self.df_path, usecols=[self.smiles_col])
         else:
             df = self.df
 
@@ -1155,7 +1166,6 @@ class GraphFromSmilesDataModule(BaseDataModule): #TODO: DELETE
         """Controls how the class is printed"""
         return omegaconf.OmegaConf.to_yaml(self.to_dict())
 
->>>>>>> origin/ipu
 class DatasetProcessingParams():
    def __init__(
        self,
@@ -1361,7 +1371,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                 )
                 label_dtype = {col: np.float16 for col in label_cols}
 
-                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
+                task_df[task] = self._read_table(args.df_path, usecols=usecols, dtype=label_dtype)
             else:
                 task_df[task] = args.df
 
@@ -1622,7 +1632,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            data_frame = self._read_csv(df_path, nrows=0)
+            data_frame = self._read_table(df_path, nrows=0)
         else:
             data_frame = df
         cols = list(data_frame.columns)
@@ -1705,7 +1715,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         task = keys[0]
         args = self.task_dataset_processing_params[task]
         if args.df is None:
-            df = self._read_csv(args.df_path, nrows=20)
+            df = self._read_table(args.df_path, nrows=20)
         else:
             df = args.df.iloc[0:20, :]
 
@@ -1848,7 +1858,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = self._read_csv(splits_path)
+                splits = self._read_table(splits_path)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -1885,7 +1895,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
             if args.df is None:
-                df = self._read_csv(args.df_path, usecols=args.smiles_col)
+                df = self._read_table(args.df_path, usecols=args.smiles_col)
                 num_elements += len(df)
             else:
                 num_elements += len(args.df)
