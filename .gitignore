@@ -3,7 +3,6 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.txt
-pro_vision/
 # C extensions
 *.so
 # Distribution / packaging
@@ -153,3 +152,5 @@ expts_untracked/
 debug/
 saved_models/
 change_commits.sh
+pro_vision/
+
