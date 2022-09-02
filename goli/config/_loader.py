@@ -7,7 +7,6 @@ from loguru import logger
 
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
 from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 
 from goli.trainer.metrics import MetricWrapper
@@ -66,28 +65,29 @@ def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]]
 ):
     cfg_data = config["datamodule"]["args"]
-    ipu_options = None
+    ipu_inference_opts, ipu_training_opts = None, None
     ipu_file = "tests/mtl/ipu.config"
-    ipu_dataloader_opts_train_val = cfg_data.pop("ipu_dataloader_train_val", None)
-    ipu_dataloader_opts_test = cfg_data.pop("ipu_dataloader_test", None)
+    ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", None)
+    ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", None)
 
     if get_accelerator(config) == "ipu":
-        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+        ipu_inference_opts, ipu_training_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
 
         bz_train = cfg_data["batch_size_train_val"]
-        ipu_dataloader_opts_train_val = IPUDataloaderOptions(batch_size=bz_train, **ipu_dataloader_opts_train_val)
-        ipu_dataloader_opts_train_val.set_kwargs()
+        ipu_dataloader_training_opts = IPUDataloaderOptions(batch_size=bz_train, **ipu_dataloader_training_opts)
+        ipu_dataloader_training_opts.set_kwargs()
 
         bz_test = cfg_data["batch_size_test"]
-        ipu_dataloader_opts_test = IPUDataloaderOptions(batch_size=bz_test, **ipu_dataloader_opts_test)
-        ipu_dataloader_opts_test.set_kwargs()
+        ipu_dataloader_inference_opts = IPUDataloaderOptions(batch_size=bz_test, **ipu_dataloader_inference_opts)
+        ipu_dataloader_inference_opts.set_kwargs()
 
 
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(
-                ipu_options=ipu_options,
-                ipu_dataloader_opts_train_val=ipu_dataloader_opts_train_val,
-                ipu_dataloader_opts_test=ipu_dataloader_opts_test,
+                ipu_inference_opts = ipu_inference_opts,
+                ipu_training_opts = ipu_training_opts,
+                ipu_dataloader_training_opts=ipu_dataloader_training_opts,
+                ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
                 **config["datamodule"]["args"])
 
     return datamodule
@@ -207,8 +207,8 @@ def load_trainer(config):
     accelerator = get_accelerator(config)
     ipu_file = "tests/mtl/ipu.config"
     if accelerator == "ipu":
-        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
-        plugins = IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
+        training_opts, inference_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available
     _ = cfg_trainer["trainer"].pop("accelerator", None)

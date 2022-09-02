@@ -60,7 +60,7 @@ class CombinedBatchingCollator:
     This is intended to be used in combination with the poptorch.DataLoader
     """
 
-    def __init__(self, batch_size, max_num_nodes, max_num_edges, dataset_max_nodes_per_graph,
+    def __init__(self, batch_size, max_num_nodes, max_num_edges, grad_accum, dataset_max_nodes_per_graph,
                         dataset_max_edges_per_graph, collate_fn=None):
         """
         :param batch_size (int): mini batch size used by the SchNet model
@@ -91,41 +91,47 @@ class CombinedBatchingCollator:
 
 
 def create_ipu_dataloader(dataset: Dataset,
-                      ipu_dataloader_options: IPUDataloaderOptions,
-                      ipu_opts: Optional[poptorch.Options] = None,
-                      batch_size: Optional[int] = 1,
-                      collate_fn=None,
-                      **kwargs):
+                    ipu_dataloader_options: IPUDataloaderOptions,
+                    ipu_options: Optional[poptorch.Options] = None,
+                    batch_size: Optional[int] = 1,
+                    collate_fn=None,
+                    **kwargs):
     """
     Creates a poptorch.DataLoader for graph datasets
     Applies the mini-batching method of concatenating multiple graphs into a
     single graph with multiple disconnected subgraphs. See:
     https://pytorch-geometric.readthedocs.io/en/2.0.2/notes/batching.html
 
-    :param dataset: The torch_geometric.data.Dataset instance from which to
-        load the graph examples for the IPU.
-    :param ipu_opts (optional): The poptorch.Options used by the
-        poptorch.DataLoader. Will use the default options if not provided.
-    :param batch_size (optional): How many graph examples to load in each batch
-        (default: 1).
-    :param **kwargs (optional): Additional arguments of
-        :class:`poptorch.DataLoader`.
-    """
-    if ipu_opts is None:
-        # Create IPU default options
-        ipu_opts = poptorch.Options()
+    Parameters:
 
+        dataset: The torch_geometric.data.Dataset instance from which to
+            load the graph examples for the IPU.
+        stage: "train", "val", "test", or "predict"
+        ipu_opts: The poptorch.Options used by the
+            poptorch.DataLoader. Will use the default options if not provided.
+        batch_size: How many graph examples to load in each batch
+            (default: 1).
+        collate_fn: The function used to collate batches
+        **kwargs (optional): Additional arguments of
+            :class:`poptorch.DataLoader`.
+    """
+    if ipu_options is None:
+        # Create IPU default options
+        ipu_options = poptorch.Options()
+
+    grad_accum = ipu_options.Training.gradient_accumulation
     collater = CombinedBatchingCollator(
                                 batch_size,
                                 collate_fn=collate_fn,
                                 max_num_nodes=ipu_dataloader_options.max_num_nodes,
                                 max_num_edges=ipu_dataloader_options.max_num_edges,
+                                grad_accum=grad_accum,
                                 dataset_max_nodes_per_graph = dataset.max_num_nodes_per_graph,
                                 dataset_max_edges_per_graph = dataset.max_num_edges_per_graph,
                                 )
 
     return poptorch.DataLoader(
-                                ipu_opts,
+                                options=deepcopy(ipu_options),
                                 dataset=dataset,
                                 batch_size=batch_size,
                                 collate_fn=collater,

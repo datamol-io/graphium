@@ -20,7 +20,7 @@ datamodule:
         split_test: 0.
         split_seed: *seed
         splits_path: null                 # This may not always be provided
-        sample_size: 715232 # 715233                 # This may not always be provided
+        sample_size: 40000 # 715233       # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
@@ -44,22 +44,22 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc
 
     # Data handling-related
-    batch_size_train_val: 100
-    batch_size_test: 100
+    batch_size_train_val: 8
+    batch_size_test: 8
     # cache_data_path: null
 
-    ipu_dataloader_train_val:
+    ipu_dataloader_training_opts:
       max_num_nodes_per_graph: 41
       max_num_edges_per_graph: 82
 
-    ipu_dataloader_test:
+    ipu_dataloader_inference_opts:
       max_num_nodes_per_graph: 41
       max_num_edges_per_graph: 82
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 100 # 672
+    out_dim: &hidden_dim 672
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
@@ -83,7 +83,7 @@ architecture:
     residual_type: simple
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: &out_mlp_dim 100 # 1400
+    out_dim: &out_mlp_dim 1300
     hidden_dims: *hidden_dim
     depth: 8
     activation: relu
@@ -93,13 +93,13 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: simple
-    # pooling: ['logsum', 'max', 'mean']
-    pooling: ['mean']
+    pooling: ['logsum', 'max', 'mean']
+    # pooling: ['mean']
     virtual_node: 'none'
-    layer_type: 'pyg:gine'
-    # layer_kwargs:
-    #   aggregators: [mean, max, sum]
-    #   scalers: [identity]
+    layer_type: "pyg:pna-msgpass" # 'pyg:gine'
+    layer_kwargs:
+      aggregators: [mean, max, sum]
+      scalers: [identity]
 
   post_nn:
     out_dim: *out_mlp_dim
@@ -155,11 +155,11 @@ metrics:
     - name: mae
       metric: mae
       threshold_kwargs: null
-      target_nan_mask: ignore-flatten
+      target_nan_mask: 0
 
     - name: averageprecision
       metric: averageprecision
-      target_nan_mask: ignore-mean-label
+      target_nan_mask: 0
       threshold_kwargs:
         threshold: null
         th_on_preds: False
@@ -168,7 +168,7 @@ metrics:
 
     - name: auroc
       metric: auroc
-      target_nan_mask: ignore-mean-label
+      target_nan_mask: 0
       threshold_kwargs:
         threshold: null
         th_on_preds: False
@@ -258,6 +258,6 @@ trainer:
     save_top_k: 1
     every_n_epochs: 1
   trainer:
-    precision: 32
+    precision: 16
     max_epochs: 1000
     min_epochs: 100
