@@ -4,7 +4,6 @@ from typing import Union, Callable, List, Dict
 
 from goli.nn.base_layers import MLP
 
-# ANDY: Here
 class MLPEncoder(torch.nn.Module):
     """Configurable kernel-based Positional Encoding node encoder.
 

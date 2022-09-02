@@ -27,7 +27,6 @@ def get_all_positional_encoding(
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
     pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
 
-    # ANDY: Change this function to match the dict output of `graph_positional_encoder`
     pe_dict = {}
 
     # Get the positional encoding for the features

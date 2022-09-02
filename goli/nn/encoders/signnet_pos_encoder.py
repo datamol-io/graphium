@@ -12,7 +12,6 @@ from torch_scatter import scatter
 from goli.nn.base_layers import MLP
 
 
-# ANDY: Here
 class SimpleGIN(nn.Module):
     def __init__(self, in_dim, hidden_dim, out_dim, num_layers,
                  normalization="none", dropout=0.5, activation='relu'):
