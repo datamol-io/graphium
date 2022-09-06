@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 def import_poptorch():
     """
     Import poptorch and returns it.
@@ -57,10 +59,17 @@ def load_ipu_options(ipu_file: str, seed=None) -> "poptorch.Options":
 
     ipu_options = poptorch.Options()
     ipu_options.loadFromFile(ipu_file)
+    ipu_options.outputMode(poptorch.OutputMode.All)
     if seed is not None:
         ipu_options.randomSeed(seed)
 
-    # ipu_options.Jit.traceModel(False) # Use the experimental compiler
-    # ipu_options._jit._values["trace_model"] = False
+    #ipu_options.anchorTensor("grad_input", "Gradient___input")
+    ipu_options.anchorTensor("input", "input")
 
-    return ipu_options
+    training_opts = ipu_options
+
+    # Change the inference options to remove gradient accumulation
+    inference_opts = deepcopy(ipu_options)
+    inference_opts.Training.gradientAccumulation(1)
+
+    return training_opts, inference_opts

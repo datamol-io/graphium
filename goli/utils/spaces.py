@@ -4,7 +4,8 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
-from goli.data.datamodule import GraphFromSmilesDataModule, GraphOGBDataModule, MultitaskFromSmilesDataModule
+from goli.data.datamodule import GraphOGBDataModule, MultitaskFromSmilesDataModule, MultitaskIPUFromSmilesDataModule, MultitaskIPUFromSmilesDataModule
+from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU
 
 from goli.nn.dgl_layers import (
     GATDgl,
@@ -17,7 +18,7 @@ from goli.nn.dgl_layers import (
     DGNMessagePassingDgl,
 )
 
-from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg
+from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg, GPSLayerPyg
 
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -49,6 +50,7 @@ PYG_LAYERS_DICT = {
     "pyg:gine": GINEConvPyg,
     "pyg:gated-gcn": GatedGCNPyg,
     "pyg:pna-msgpass": PNAMessagePassingPyg,
+    "pyg:gps": GPSLayerPyg,
 }
 
 LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
@@ -70,7 +72,12 @@ LOSS_DICT = {
     "bce": torch.nn.BCELoss(),
     "l1": torch.nn.L1Loss(),
     "mae": torch.nn.L1Loss(),
+    "bce_ipu": BCELossIPU(),
+    "mse_ipu": MSELossIPU(),
+    "mae_ipu": L1LossIPU(),
+    "l1_ipu": L1LossIPU(),
 }
+
 
 SCHEDULER_DICT = {
     "CosineAnnealingLR": sc.CosineAnnealingLR,
@@ -112,7 +119,7 @@ METRICS_DICT.update(METRICS_REGRESSION)
 
 
 DATAMODULE_DICT = {
-    "DGLFromSmilesDataModule": GraphFromSmilesDataModule,
     "GraphOGBDataModule": GraphOGBDataModule,
-    "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule
+    "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule,
+    "MultitaskIPUFromSmilesDataModule": MultitaskIPUFromSmilesDataModule,
 }

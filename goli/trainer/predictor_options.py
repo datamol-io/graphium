@@ -2,11 +2,11 @@ r"""Data classes to group together related arguments for the creation of a Predi
 
 
 """
-TODO (Gabriela): Replace the usage of **kwargs by adding checks to make sure that everything is type-safe.
+Replace the usage of **kwargs by adding checks to make sure that everything is type-safe.
     Stricter typing is important because:
         - It makes finding bugs easier since incorrect types will cause an obvious error.
         - Static analysis becomes easier, and the IDE can give hints about errors in the code before runtime.
-TODO (Gabriela): Add the post-init function to do the checks immediately.
+Add the post-init function to do the checks immediately.
 """
 
 from dataclasses import dataclass, field
@@ -27,7 +27,7 @@ class ModelOptions:
                 pytorch module used to create a model
 
             model_kwargs:
-                Key-word arguments used to initialize the model from `model_class`.      
+                Key-word arguments used to initialize the model from `model_class`.
     """
     model_class: Type[nn.Module]
     model_kwargs: Dict[str, Any]
@@ -72,7 +72,7 @@ class OptimOptions:
                 - strict `bool`: if set to True will enforce that value specified in monitor is available
                   while trying to call scheduler.step(), and stop training if not found. If False will
                   only give a warning and continue training (without calling the scheduler). (Default=`True`)
-                - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)    
+                - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
     """
     optim_kwargs: Optional[Dict[str, Any]] = None
     lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None
@@ -145,7 +145,7 @@ class EvalOptions:
             metrics_on_training_set:
                 The metrics names from `metrics` to be computed on the training set for each iteration.
                 If `None`, all the metrics are computed. Using less metrics can significantly improve
-                performance, depending on the number of readouts.      
+                performance, depending on the number of readouts.
     """
     loss_fun: Union[str, Callable]
     metrics: Dict[str, Callable] = None
@@ -174,7 +174,7 @@ class EvalOptions:
         elif not callable(loss_fun):
             raise ValueError(f"`loss_fun` must be `str` or `callable`. Provided: {type(loss_fun)}")
 
-        return loss_fun     
+        return loss_fun
 
 @dataclass
 class FlagOptions:
@@ -190,7 +190,7 @@ class FlagOptions:
                   Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
                   many iterations.
 
-                - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01     
+                - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01
     """
     flag_kwargs: Dict[str, Any] = None
 #    flag_kwargs_set: Dict[str, Any] = field(init=False, repr=True)

@@ -83,7 +83,6 @@ class PredictorModule(pl.LightningModule):
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
         self.tasks = list(loss_fun.keys())
 
-###########################################################################################################################################
         # Task-specific evalutation attributes
         self.loss_fun = {}
         self.metrics = {}
@@ -96,7 +95,6 @@ class PredictorModule(pl.LightningModule):
             self.metrics_on_training_set[task] = (
                 list(self.metrics[task].keys()) if self._eval_options_dict[task].metrics_on_training_set is None else self._eval_options_dict[task].metrics_on_training_set
             )
-###########################################################################################################################################
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
         # Set the parameters and default values for the FLAG adversarial augmentation, and check values
@@ -112,7 +110,6 @@ class PredictorModule(pl.LightningModule):
         # Set the pytorch scheduler arguments
         self.torch_scheduler_kwargs = self._optim_options.torch_scheduler_kwargs
 
-###########################################################################################################################################
         # Initialize the epoch summary
         monitor = "micro_zinc/MSELoss/val" #self.scheduler_kwargs["monitor"].split("/")[0] TODO: Fix the scheduler with the Summary class
         mode = "min" #self.scheduler_kwargs["mode"]
@@ -125,7 +122,6 @@ class PredictorModule(pl.LightningModule):
             monitor=monitor,
             mode=mode,
         )
-###########################################################################################################################################
 
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
@@ -145,22 +141,6 @@ class PredictorModule(pl.LightningModule):
         feats = self._convert_features_dtype(inputs["features"])
         #*check for nan in model output
         out = self.model.forward(feats)
-
-        #! TODO (Andy): fix the loss from here
-        # * https://github.com/graphcore/poppyg/blob/main/examples/schnet_qm9.ipynb
-        # check qm9 example above, the forward function has been modified to zero out hidden representation of fake nodes
-        # a better option might be to have the better dataloader
-
-
-        # for key in out.keys():
-        #     tsor = out[key]
-        #     if (torch.isnan(tsor).sum() != 0):
-        #         print ("found NaN in this tensor")
-        #         print (key)
-        #         print (out[key])
-        #         quit()
-
-        # Convert the output of the model to a dictionary
         if isinstance(out, dict) and ("preds" in out.keys()):
             out_dict = out
         else:
@@ -185,7 +165,7 @@ class PredictorModule(pl.LightningModule):
 
     def configure_optimizers(self):
 
-        # TODO: Fix scheduling with the Summary class
+        # TODO (Gabriela): Fix scheduling with the Summary class
         # Configure the parameters for the schedulers
         # sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
         # scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
@@ -363,7 +343,6 @@ class PredictorModule(pl.LightningModule):
                 )
                 / n_steps
             )
-
         device = "cpu" if to_cpu else None
         preds = preds.detach().to(device=device)
         targets = targets.detach().to(device=device)
@@ -375,6 +354,11 @@ class PredictorModule(pl.LightningModule):
 
         step_dict["loss"] = loss
         return step_dict
+
+
+    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
+        concatenated_metrics_logs = outputs
+        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
 
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
@@ -389,7 +373,6 @@ class PredictorModule(pl.LightningModule):
                 batch=batch, step_name="train", to_cpu=True
             )
 
-#################################################################################################################
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
             targets=step_dict["targets"],
@@ -399,22 +382,24 @@ class PredictorModule(pl.LightningModule):
             n_epochs=self.current_epoch,
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
+        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
 
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
-#################################################################################################################
-
+        concatenated_metrics_logs["loss"] = step_dict["loss"]
         step_dict["grad_norm"] = self.get_gradient_norm()
-        # print("grad_norm", step_dict["grad_norm"]) # TODO: Remove grad_norm
+        concatenated_metrics_logs["train/grad_norm"] = step_dict["grad_norm"]
 
-        # # Predictions and targets are no longer needed after the step.
-        # # Keeping them will increase memory usage significantly for large datasets.
+        # Wandb metric tracking here
+        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)
+
+        # Predictions and targets are no longer needed after the step.
+        # Keeping them will increase memory usage significantly for large datasets.
         step_dict.pop("preds")
         step_dict.pop("targets")
         step_dict.pop("weights")
 
-        return step_dict  # Returning the metrics_logs with the loss
+        return concatenated_metrics_logs  # Returning the metrics_logs with the loss
 
     def get_gradient_norm(self):
         # compute the norm
@@ -452,7 +437,7 @@ class PredictorModule(pl.LightningModule):
             target_nan_mask=self.target_nan_mask,
             loss_fun=self.loss_fun,
         )
-################################################################################################################
+
         self.task_epoch_summary.update_predictor_state(
             step_name=step_name,
             predictions=preds,
@@ -463,7 +448,7 @@ class PredictorModule(pl.LightningModule):
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()
         self.task_epoch_summary.set_results(task_metrics=metrics_logs)
-################################################################################################################
+
         return metrics_logs             # Consider returning concatenated dict for tensorboard
 
 
@@ -488,13 +473,6 @@ class PredictorModule(pl.LightningModule):
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
-        tb_path = self.logger.log_dir
-
-        # Write the YAML file with the per-task metrics
-        if self.current_epoch >= 0:
-            mkdir(tb_path)
-            with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
-                yaml.dump(full_dict, file)
 
     def test_epoch_end(self, outputs: Dict[str, Any]):
 
@@ -506,10 +484,6 @@ class PredictorModule(pl.LightningModule):
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
-        tb_path = self.logger.log_dir
-        os.makedirs(tb_path, exist_ok=True)
-        with open(f"{tb_path}/metrics.yaml", "w") as file:
-            yaml.dump(full_dict, file)
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)

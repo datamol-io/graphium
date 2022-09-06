@@ -6,7 +6,7 @@ import inspect
 from dgl import DGLGraph
 from torch_geometric.data import Data
 
-from goli.nn.base_layers import FCLayer, get_activation
+from goli.nn.base_layers import FCLayer, get_activation, get_norm
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
@@ -27,6 +27,7 @@ class FeedForwardNN(nn.Module):
         dropout: float = 0.0,
         last_dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        first_normalization: Union[str, Callable] = "none",
         last_normalization: Union[str, Callable] = "none",
         residual_type: str = "none",
         residual_skip_steps: int = 1,
@@ -78,6 +79,9 @@ class FeedForwardNN(nn.Module):
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
 
+            first_normalization:
+                Whether to use batch normalization **before** the first layer
+
             last_normalization:
                 Whether to use batch normalization in the last layer
 
@@ -128,6 +132,7 @@ class FeedForwardNN(nn.Module):
         self.dropout = dropout
         self.last_dropout = last_dropout
         self.normalization = normalization
+        self.first_normalization =  get_norm(first_normalization, dim=in_dim)
         self.last_normalization = last_normalization
         self.residual_type = None if residual_type is None else residual_type.lower()
         self.residual_skip_steps = residual_skip_steps
@@ -256,6 +261,12 @@ class FeedForwardNN(nn.Module):
 
         """
         h_prev = None
+
+        # Apply a normalization before the first layer
+        if self.first_normalization is not None:
+            h = self.first_normalization(h)
+
+        # Apply all neural network layers
         for ii, layer in enumerate(self.layers):
             h = layer.forward(h)
             if ii < len(self.layers) - 1:
@@ -286,6 +297,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         dropout: float = 0.0,
         last_dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        first_normalization: Union[str, Callable] = "none",
         last_normalization: Union[str, Callable] = "none",
         residual_type: str = "none",
         residual_skip_steps: int = 1,
@@ -351,6 +363,9 @@ class FeedForwardGraphBase(FeedForwardNN):
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
+
+            first_normalization:
+                Whether to use batch normalization **before** the first layer
 
             last_normalization:
                 Whether to use batch normalization in the last layer
@@ -448,6 +463,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.pooling = pooling
 
         self.virtual_node_class = self._parse_virtual_node_class()
+        self.first_normalization_edges = get_norm(first_normalization, dim=in_dim_edges)
 
         # Initialize the parent `FeedForwardNN`
         super().__init__(
@@ -458,6 +474,7 @@ class FeedForwardGraphBase(FeedForwardNN):
             activation=activation,
             last_activation=last_activation,
             normalization=normalization,
+            first_normalization=first_normalization,
             last_normalization=last_normalization,
             residual_type=residual_type,
             residual_skip_steps=residual_skip_steps,
@@ -798,6 +815,12 @@ class FeedForwardGraphBase(FeedForwardNN):
         h = self._get_node_feats(g, key="h")
         e = self._get_edge_feats(g, key="edge_attr")
 
+        # Apply the normalization before the first network layers
+        if self.first_normalization is not None:
+            h = self.first_normalization(h)
+        if self.first_normalization_edges is not None:
+            e = self.first_normalization_edges(e)
+
         # Apply the forward loop of the layers, residuals and virtual nodes
         for ii, layer in enumerate(self.layers):
             h, e, h_prev, e_prev = self._graph_layer_forward(
@@ -1059,6 +1082,8 @@ class FullGraphNetwork(nn.Module):
 
         """
 
+        # ANDY: When in test mode, this averages the output of many runs. Check `_forward` instead.
+
         if self.training:
             return self._forward(g, flip_pos_enc="random")
         else:
@@ -1077,6 +1102,8 @@ class FullGraphNetwork(nn.Module):
         h = self.gnn._get_node_feats(g, key="feat")
         e = self.gnn._get_edge_feats(g, key="edge_feat")
 
+        ### ANDY: Start change. Try to deal with all positional encodings and all `encoder` types from goli.nn.encoders.
+        ### Use the `encoder.on_keys` to determine the positional encoding associated to each encoder.
         # Get the node features and positional embedding
         pos_enc_feats_sign_flip = self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip")
         if pos_enc_feats_sign_flip is not None:
@@ -1093,6 +1120,8 @@ class FullGraphNetwork(nn.Module):
         pos_enc_feats_no_flip = self.gnn._get_node_feats(g, "pos_enc_feats_no_flip")
         if pos_enc_feats_no_flip is not None:
             h = torch.cat((h, pos_enc_feats_no_flip), dim=-1)
+
+        ### ANDY: End change
 
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
         if e is not None:
@@ -1498,3 +1527,6 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
     def __repr__(self):
         return super().__repr__()
+
+
+

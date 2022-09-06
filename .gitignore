@@ -5,7 +5,6 @@ __pycache__/
 *.txt
 # C extensions
 *.so
-
 # Distribution / packaging
 .Python
 build/
@@ -132,6 +131,8 @@ dmypy.json
 *.code-workspace
 *.out
 *.cache
+*.pop*
+*.a
 lightning_logs/
 logs/
 .vscode/
@@ -144,8 +145,13 @@ rever/
 
 goli/data/ZINC_bench_gnn/
 goli/data/BindingDB/
+goli/data/mega-pubchem/
 goli/data/cache/
 predictions/
 expts_untracked/
 debug/
 saved_models/
+wandb/
+change_commits.sh
+pro_vision/
+

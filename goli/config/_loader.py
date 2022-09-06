@@ -7,7 +7,7 @@ from loguru import logger
 
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers.tensorboard import TensorBoardLogger
+from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 
 from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
@@ -15,7 +15,11 @@ from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
+from goli.trainer.loggers import WandbLoggerGoli
 
+# Weights and Biases
+from pytorch_lightning.loggers import WandbLogger
+from pytorch_lightning import Trainer
 
 def get_accelerator(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
@@ -63,12 +67,31 @@ def get_accelerator(
 def load_datamodule(
     config: Union[omegaconf.DictConfig, Dict[str, Any]]
 ):
-    ipu_options = None
+    cfg_data = config["datamodule"]["args"]
+    ipu_inference_opts, ipu_training_opts = None, None
     ipu_file = "tests/mtl/ipu.config"
+    ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
+    ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
+
     if get_accelerator(config) == "ipu":
-        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+        ipu_inference_opts, ipu_training_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+
+        bz_train = cfg_data["batch_size_train_val"]
+        ipu_dataloader_training_opts = IPUDataloaderOptions(batch_size=bz_train, **ipu_dataloader_training_opts)
+        ipu_dataloader_training_opts.set_kwargs()
+
+        bz_test = cfg_data["batch_size_test"]
+        ipu_dataloader_inference_opts = IPUDataloaderOptions(batch_size=bz_test, **ipu_dataloader_inference_opts)
+        ipu_dataloader_inference_opts.set_kwargs()
+
+
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
-    datamodule = module_class(ipu_options=ipu_options, **config["datamodule"]["args"])
+    datamodule = module_class(
+                ipu_inference_opts = ipu_inference_opts,
+                ipu_training_opts = ipu_training_opts,
+                ipu_dataloader_training_opts=ipu_dataloader_training_opts,
+                ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
+                **config["datamodule"]["args"])
 
     return datamodule
 
@@ -82,6 +105,8 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
     for task in cfg_metrics:
         task_metrics[task] = {}
+        if cfg_metrics[task] is None:
+            cfg_metrics[task] = []
         for this_metric in cfg_metrics[task]:
             name = this_metric.pop("name")
             task_metrics[task][name] = MetricWrapper(**this_metric)
@@ -177,7 +202,7 @@ def load_predictor(config, model_class, model_kwargs, metrics):
     return predictor
 
 
-def load_trainer(config):
+def load_trainer(config, run_name):
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
@@ -185,8 +210,8 @@ def load_trainer(config):
     accelerator = get_accelerator(config)
     ipu_file = "tests/mtl/ipu.config"
     if accelerator == "ipu":
-        ipu_options = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
-        plugins = IPUPluginGoli(inference_opts=ipu_options, training_opts=ipu_options)
+        training_opts, inference_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available
     _ = cfg_trainer["trainer"].pop("accelerator", None)
@@ -210,7 +235,9 @@ def load_trainer(config):
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     if "logger" in cfg_trainer.keys():
-        trainer_kwargs["logger"] = TensorBoardLogger(**cfg_trainer["logger"], default_hp_metric=False)
+        # WandB logger (decomment to log runs)
+        wandb_logger = WandbLoggerGoli(name=run_name, project="multitask-gnn", full_configs=config)
+        trainer_kwargs["logger"] = wandb_logger
 
     trainer_kwargs["callbacks"] = callbacks
 

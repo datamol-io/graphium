@@ -1,8 +1,9 @@
+from copy import deepcopy
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from typing import Union, Callable, Optional
+from typing import Union, Callable, Optional, Type
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 
@@ -31,6 +32,34 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
     activation = activation[0]
 
     return vars(torch.nn.modules.activation)[activation]()
+
+
+def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]=None):
+    r"""
+    returns the normalization function represented by the input string
+
+    Parameters:
+        normalization: Callable, `None`, or string with value:
+            "none", "batch_norm", "layer_norm"
+        dim: Dimension where to apply the norm. Mandatory for 'batch_norm' and 'layer_norm'
+
+    Returns:
+        Callable or None: The normalization function
+    """
+    parsed_norm = None
+    if normalization is None or normalization == "none":
+        pass
+    elif callable(normalization):
+        parsed_norm = normalization
+    elif normalization == "batch_norm":
+        parsed_norm = nn.BatchNorm1d(dim)
+    elif normalization == "layer_norm":
+        parsed_norm = nn.LayerNorm(dim)
+    else:
+        raise ValueError(
+            f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"
+        )
+    return deepcopy(parsed_norm)
 
 
 class FCLayer(nn.Module):
@@ -103,7 +132,7 @@ class FCLayer(nn.Module):
         self.bias = bias
         self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         self.dropout = None
-        self.normalization = self._parse_norm(normalization)
+        self.normalization = get_norm(normalization, dim=out_dim)
 
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
@@ -111,23 +140,6 @@ class FCLayer(nn.Module):
         self.init_fn = init_fn if init_fn is not None else nn.init.xavier_uniform_
 
         self.reset_parameters()
-
-    def _parse_norm(self, normalization):
-
-        parsed_norm = None
-        if normalization is None or normalization == "none":
-            pass
-        elif callable(normalization):
-            parsed_norm = normalization
-        elif normalization == "batch_norm":
-            parsed_norm = nn.BatchNorm1d(self.out_dim)
-        elif normalization == "layer_norm":
-            parsed_norm = nn.LayerNorm(self.out_dim)
-        else:
-            raise ValueError(
-                f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"
-            )
-        return parsed_norm
 
     def reset_parameters(self, init_fn=None):
         init_fn = init_fn or self.init_fn
@@ -170,7 +182,6 @@ class FCLayer(nn.Module):
             h = self.dropout(h)
         if self.activation is not None:
             h = self.activation(h)
-
         return h
 
     @property
@@ -203,6 +214,8 @@ class MLP(nn.Module):
         dropout=0.0,
         normalization="none",
         last_normalization="none",
+        first_normalization="none",
+        last_dropout=0.0,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -234,7 +247,11 @@ class MLP(nn.Module):
 
                 if `layers==1`, this parameter is ignored
             last_normalization:
-                Whether to use batch normalization in the last layer
+                Norrmalization to use **after the last layer**. Same options as `normalization`.
+            first_normalization:
+                Norrmalization to use in **before the first layer**. Same options as `normalization`.
+            last_dropout:
+                The ratio of units to dropout at the last layer.
 
         """
 
@@ -243,8 +260,9 @@ class MLP(nn.Module):
         self.in_dim = in_dim
         self.hidden_dim = hidden_dim
         self.out_dim = out_dim
+        self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
-        self.fully_connected = nn.ModuleList()
+        self.fully_connected = []
         if layers <= 1:
             self.fully_connected.append(
                 FCLayer(
@@ -252,7 +270,7 @@ class MLP(nn.Module):
                     out_dim,
                     activation=last_activation,
                     normalization=last_normalization,
-                    dropout=dropout,
+                    dropout=last_dropout,
                 )
             )
         else:
@@ -281,9 +299,10 @@ class MLP(nn.Module):
                     out_dim,
                     activation=last_activation,
                     normalization=last_normalization,
-                    dropout=dropout,
+                    dropout=last_dropout,
                 )
             )
+        self.fully_connected = nn.Sequential(*self.fully_connected)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
@@ -302,8 +321,9 @@ class MLP(nn.Module):
                 `Dout` is the number of output features
 
         """
-        for fc in self.fully_connected:
-            h = fc(h)
+        if self.first_normalization is not None:
+            h = self.first_normalization(h)
+        h = self.fully_connected(h)
         return h
 
     def __getitem__(self, idx: int) -> nn.Module:

@@ -1,18 +1,20 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
+  name: &name dom_test_ipu #qm9_full
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu
+    type: ipu  #cpu or ipu
 
 
 datamodule:
-  module_type: "MultitaskFromSmilesDataModule"
+  module_type: "MultitaskIPUFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path "goli/data/QM9/qm9.csv"
+        df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
+        # df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -52,7 +54,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 32
+    featurization_n_jobs: 0
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -61,17 +63,28 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
+      # pos_encoding_as_features: &pos_enc
+      #   pos_type: laplacian_eigvec
+      #   num_pos: 3
+      #   normalization: "none"
+      #   disconnected_comp: True
+      # pos_encoding_as_directions: *pos_enc
       pos_encoding_as_features: &pos_enc
-        pos_type: laplacian_eigvec
-        num_pos: 3
-        normalization: "none"
-        disconnected_comp: True
-      pos_encoding_as_directions: *pos_enc
+        pos_type: rwse
+        ksteps: 16
 
     # Data handling-related
-    batch_size_train_val: 32
-    batch_size_test: 32
+    batch_size_train_val: 60 #90 #128 #30 #256 #100  #20, 50, 2048
+    batch_size_test: 60 #90 #128 #30 #256 #100 #20, 50, 2048
     # cache_data_path: null
+
+    ipu_dataloader_training_opts:
+      max_num_nodes_per_graph: 12
+      max_num_edges_per_graph: 24
+
+    ipu_dataloader_inference_opts:
+      max_num_nodes_per_graph: 12
+      max_num_edges_per_graph: 24
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -106,11 +119,18 @@ architecture:
     dropout: *dropout
     normalization: *normalization
     last_normalization: *normalization
-    residual_type: random
+    residual_type: simple
     pooling: [sum, mean, max]
     virtual_node: 'none'
-    layer_type: 'pyg:gine'
-    layer_kwargs:
+    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      mpnn_type: 'pyg:gine'
+      mpnn_kwargs: null
+        #out_dim_edges: 10
+      attn_type: "full-attention" #"none"
+      attn_kwargs: null
+
+
       # out_dim_edges: 16
       # aggregators: [mean, max]
       # scalers: [identity, amplification, attenuation]
@@ -166,9 +186,9 @@ predictor:
     alpha: ["mae"]
     cv: ["mae", "pearsonr"]
   loss_fun:
-    homo: mse
-    alpha: mse
-    cv: mse
+    homo: mse_ipu
+    alpha: mse_ipu
+    cv: mse_ipu
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-3
@@ -181,7 +201,7 @@ predictor:
   #  monitor: &monitor loss/val
   #  mode: min
   #  frequency: 1
-  target_nan_mask: 0 # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
   flag_kwargs:
     n_steps: 0 #1
     alpha: 0.0 #0.01
@@ -274,6 +294,7 @@ metrics:
 trainer:
   logger:
     save_dir: logs/QM9
+    name: *name
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0
@@ -281,12 +302,12 @@ trainer:
   #  mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/QM9/
-    filename: "model"
+    filename: *name
     #monitor: *monitor
     #mode: *mode
     save_top_k: 1
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 20
-    min_epochs: 5
+    max_epochs: 50 #50
+    min_epochs: 5 #5

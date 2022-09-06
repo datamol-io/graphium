@@ -4,10 +4,7 @@ from .utils import load_tiny_zinc
 from .collate import goli_collate_fn
 
 from .datamodule import GraphOGBDataModule
-from .datamodule import GraphFromSmilesDataModule
-from .datamodule import GraphOGBDataModule
 from .datamodule import MultitaskFromSmilesDataModule
 
-from .datamodule import DGLDataset
 from .datamodule import SingleTaskDataset
 from .datamodule import MultitaskDataset

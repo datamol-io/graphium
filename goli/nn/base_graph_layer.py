@@ -1,5 +1,6 @@
 import abc
 from typing import Union, Callable, List, Optional
+from copy import deepcopy
 
 import torch
 import torch.nn as nn
@@ -66,23 +67,29 @@ class BaseGraphStructure:
 
         # Build the layers
         self.activation_layer = get_activation(self.activation)
-
-        self.dropout_layer = None
-        if self.dropout > 0:
-            self.dropout_layer = nn.Dropout(p=self.dropout)
+        self.dropout_layer = self._parse_dropout(self.dropout)
 
         self.norm_layer = self._parse_norm(self.normalization)
 
-    def _parse_norm(self, normalization):
+    def _parse_dropout(self, dropout):
+        if callable(dropout):
+            return deepcopy(dropout)
+        elif dropout > 0:
+            return nn.Dropout(p=dropout)
+        return
 
+    def _parse_norm(self, normalization, dim=None):
+
+        if dim is None:
+            dim = self.out_dim * self.out_dim_factor
         if normalization is None or normalization == "none":
             parsed_norm = None
         elif callable(normalization):
-            parsed_norm = normalization
+            parsed_norm = deepcopy(normalization)
         elif normalization == "batch_norm":
-            parsed_norm = nn.BatchNorm1d(self.out_dim * self.out_dim_factor)
+            parsed_norm = nn.BatchNorm1d(dim)
         elif normalization == "layer_norm":
-            parsed_norm = nn.LayerNorm(self.out_dim * self.out_dim_factor)
+            parsed_norm = nn.LayerNorm(dim)
         else:
             raise ValueError(
                 f"Undefined normalization `{normalization}`, must be `None`, `Callable`, 'batch_norm', 'layer_norm', 'none'"

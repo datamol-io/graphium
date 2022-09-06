@@ -9,12 +9,11 @@ from pytorch_lightning.trainer.states import RunningStage
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
 
-from poptorch import ipu_print_tensor # TODO: Remove line
-'''
-helper function to remove the fake graph loss
-always reduce the last loss since it is the fake graph
-'''
 def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
+    """
+    helper function to remove the fake graph loss
+    always reduce the last loss since it is the fake graph
+    """
     for task in targets.keys():
         if (targets[task].shape == preds[task].shape):
             continue
@@ -84,6 +83,8 @@ class IPUPluginGoli(IPUPlugin):
         self.model.module._keys_tensor = keys_tensor
         self.model.module._keys_batch = keys_batch
         self.model.module._keys_others = keys_others
+
+        # Walk-around to set the variable names for the poptorch model
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
 
@@ -112,28 +113,23 @@ class PredictorModuleIPU(PredictorModule):
 
     @staticmethod
     def compute_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor], weights: Optional[Tensor], loss_fun: Dict[str, Callable], target_nan_mask: Union[Type, str] = "ignore") -> Tensor:
-        #! # TODO Work out how to compute the loss with the padding here
-        # * Andy: simply get rid of the last graph in each batch
         preds = remove_pad_loss(preds, targets)
 
         return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
+
+    def on_train_batch_end(self,outputs, batch, batch_idx, dataloader_idx):
+        self._concatenated_metrics_logs["loss"] = outputs
+        outputs = self._concatenated_metrics_logs
+        super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
 
     def training_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
-        step_dict = super().training_step(dict_input, to_cpu=False)
-
-        # Since many loss functions are used, specify which one to track on the IPU
-        #! andy: trying different reduction options
-        #? self.poptorch.identity_loss(step_dict["loss"], reduction="none") results in highest loss
-        #? self.poptorch.identity_loss(step_dict["loss"], reduction="sum") results in higher loss
-        #? self.poptorch.identity_loss(step_dict["loss"], reduction="mean") has lowest loss
-
-        # loss = step_dict["loss"]
-        loss = self.poptorch.identity_loss(step_dict["loss"], reduction="mean")
-        # ipu_print_tensor(loss, "\nloss " + str(self.global_step) + str(self.current_epoch))
-        # ipu_print_tensor(step_dict["grad_norm"], "grad_norm ")
+        concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
+        loss = concatenated_metrics_logs.pop("loss")
+        self._concatenated_metrics_logs = concatenated_metrics_logs
+        loss = self.poptorch.identity_loss(loss, reduction="mean")
         return loss # Limitation that only the loss can be returned
 
 

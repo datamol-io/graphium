@@ -4,16 +4,20 @@ Unit tests for the different layers of goli/nn/dgl_layers/...
 The layers are not thoroughly tested due to the difficulty of testing them
 """
 
+from ast import Assert
+import numpy as np
 import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
 
+from goli.ipu.to_dense_batch import to_dense_batch
 from goli.nn.pyg_layers import (
     GINConvPyg,
     GINEConvPyg,
     GatedGCNPyg,
     PNAMessagePassingPyg,
+    GPSLayerPyg,
 )
 
 
@@ -26,10 +30,10 @@ class test_Pyg_Layers(ut.TestCase):
 
     edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
     edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
-    x1 = torch.zeros(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
-    e1 = torch.ones(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
-    x2 = torch.ones(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
-    e2 = torch.zeros(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
+    x1 = torch.randn(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
+    e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
+    x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
+    e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
     # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
     # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
     g1 = Data(h=x1, edge_index=edge_idx1, edge_attr=e1)
@@ -41,6 +45,28 @@ class test_Pyg_Layers(ut.TestCase):
         "dropout": 0.1,
         "normalization": "batch_norm",
     }
+
+    def test_gpslayer(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        layer = GPSLayerPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
+
+        # Check the re-implementation of abstract methods
+        self.assertTrue(layer.layer_supports_edges)
+        self.assertTrue(layer.layer_inputs_edges)
+        self.assertFalse(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
+
+        # Apply layer. Should crash due to different dim for nodes vs edges
+        with self.assertRaises(ValueError):
+            bg = layer.forward(bg)
+
+        # Create new edge attributes with same dim and check that it works
+        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim), dtype=torch.float32)
+        bg = layer.forward(bg)
+        self.assertEqual(bg.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
+
 
     def test_ginlayer(self):
 

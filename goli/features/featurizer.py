@@ -173,6 +173,9 @@ def get_mol_atomic_features_float(
             - "hybridization"
             - "aromatic"
             - "ring", "in-ring"
+            - "min-ring"
+            - "max-ring"
+            - "num-ring"
             - "degree"
             - "radical-electron"
             - "formal-charge"
@@ -254,6 +257,19 @@ def get_mol_atomic_features_float(
                 elif prop in ["ring", "in-ring"]:
                     prop_name = "in-ring"
                     val = atom.IsInRing()
+                elif prop in ["min-ring"]:
+                    ring_info = mol.GetRingInfo()
+                    val = ring_info.MinAtomRingSize(atom.GetIdx())
+                elif prop in ["max-ring"]:
+                    rings = mol.GetRingInfo().AtomRings()
+                    val = 0
+                    for ring in rings:
+                        if atom.GetIdx() in ring:
+                            if len(ring) > val:
+                                val = len(ring)
+                elif prop in ["num-ring"]:
+                    ring_info = mol.GetRingInfo()
+                    val = ring_info.NumAtomRings(atom.GetIdx())
                 elif prop in ["degree"]:
                     val = atom.GetTotalDegree() - (offC * 2)
                 elif prop in ["radical-electron"]:
@@ -523,7 +539,7 @@ def mol_to_adj_and_features(
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
-) -> Union[coo_matrix, Union[np.ndarray, None], Union[np.ndarray, None]]:
+) -> Union[coo_matrix, Union[np.ndarray, None], Union[np.ndarray, None], Dict[str, np.ndarray], Union[np.ndarray, None]]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
@@ -593,14 +609,21 @@ def mol_to_adj_and_features(
             `edge_property_list`.
             If no properties are given, it returns `None`
 
-        pos_enc_feats_sign_flip:
-            Node positional encoding that requires augmentation via sign-flip.
-            For example, eigenvectors of the Laplacian are ambiguous to the
-            sign and are returned here.
+        pe_dict:
+            Dictionary of all positional encodings. Current supported keys:
 
-        pos_enc_feats_no_flip:
-            Node positional encoding that requires does not use sign-flip.
-            For example, distance from centroid are returned here.
+            - "pos_enc_feats_sign_flip":
+                Node positional encoding that requires augmentation via sign-flip.
+                For example, eigenvectors of the Laplacian are ambiguous to the
+                sign and are returned here.
+
+            - "pos_enc_feats_no_flip":
+                Node positional encoding that requires does not use sign-flip.
+                For example, distance from centroid are returned here.
+
+            - "rwse":
+                Node structural encoding corresponding to the diagonal of the random
+                walk matrix
 
         pos_enc_dir:
             Node positional encoding used to define directions. This can thus
@@ -619,8 +642,10 @@ def mol_to_adj_and_features(
     else:
         mol = Chem.RemoveHs(mol)
 
+
     # Get the adjacency matrix
     adj = GetAdjacencyMatrix(mol, useBO=use_bonds_weights, force=True)
+    num_nodes = adj.shape[0]
     if add_self_loop:
         adj = adj + np.eye(adj.shape[0], dtype=np.int8)
     adj = coo_matrix(adj, dtype=np.int8)
@@ -647,16 +672,17 @@ def mol_to_adj_and_features(
     else:
         edata = None
 
-    pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = get_all_positional_encoding(
-        adj, pos_encoding_as_features, pos_encoding_as_directions
+    # Get all positional encodings
+    pe_dict, pos_enc_dir = get_all_positional_encoding(
+        adj, num_nodes, pos_encoding_as_features, pos_encoding_as_directions
     )
 
     # Mask the NaNs
-    pos_enc_feats_sign_flip = _mask_nans_inf(mask_nan, pos_enc_feats_sign_flip, "pos_enc_feats_sign_flip")
-    pos_enc_feats_no_flip = _mask_nans_inf(mask_nan, pos_enc_feats_no_flip, "pos_enc_feats_no_flip")
+    for pe_key in pe_dict.keys():
+        pe_dict[pe_key] = _mask_nans_inf(mask_nan, pe_dict[pe_key], pe_key)
     pos_enc_dir = _mask_nans_inf(mask_nan, pos_enc_dir, "pos_enc_dir")
 
-    return adj, ndata, edata, pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir
+    return adj, ndata, edata, pe_dict, pos_enc_dir
 
 
 class GraphDict(dict):
@@ -864,9 +890,7 @@ def mol_to_graph_dict(
     """
 
     input_mol = mol
-
     try:
-
         if isinstance(mol, str):
             mol = dm.to_mol(mol)
         if explicit_H:
@@ -874,13 +898,11 @@ def mol_to_graph_dict(
         else:
             mol = Chem.RemoveHs(mol)
 
-        # Get the adjacency, node features and edge features
         (
             adj,
             ndata,
             edata,
-            pos_enc_feats_sign_flip,
-            pos_enc_feats_no_flip,
+            pe_dict,
             pos_enc_dir,
         ) = mol_to_adj_and_features(
             mol=mol,
@@ -895,6 +917,7 @@ def mol_to_graph_dict(
             mask_nan=mask_nan,
         )
     except Exception as e:
+        print (e)
         if on_error.lower() == "raise":
             raise e
         elif on_error.lower() == "warn":
@@ -931,12 +954,16 @@ def mol_to_graph_dict(
         dgl_dict["edata"]["edge_feat"] = coo_matrix(hetero_edata)
 
     # Add sign-flip positional encoding
-    if pos_enc_feats_sign_flip is not None:
-        dgl_dict["ndata"]["pos_enc_feats_sign_flip"] = pos_enc_feats_sign_flip
+    if "pos_enc_feats_sign_flip" in pe_dict:
+        dgl_dict["ndata"]["pos_enc_feats_sign_flip"] = pe_dict["pos_enc_feats_sign_flip"]
 
     # Add non-sign-flip positional encoding
-    if pos_enc_feats_no_flip is not None:
-        dgl_dict["ndata"]["pos_enc_feats_no_flip"] = pos_enc_feats_no_flip
+    if "pos_enc_feats_sign_flip" in pe_dict:
+        dgl_dict["ndata"]["pos_enc_feats_no_flip"] = pe_dict["pos_enc_feats_sign_flip"]
+
+    # Add rwse positional encoding
+    if "rwse" in pe_dict:
+        dgl_dict["ndata"]["pos_rwse"] = pe_dict["rwse"]
 
     # Add positional encoding for directional use
     if pos_enc_dir is not None:
@@ -1143,7 +1170,6 @@ def mol_to_pyggraph(
             There are also additional entries for the positional encodings.
 
     """
-
     graph_dict = mol_to_graph_dict(
         mol=mol,
         atom_property_list_onehot=atom_property_list_onehot,
