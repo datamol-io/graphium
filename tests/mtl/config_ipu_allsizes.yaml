@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  #cpu or ipu
+    type: ipu  #cpu or ipu
 
 
 datamodule:
@@ -14,7 +14,7 @@ datamodule:
       homo:
         df: null
         df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
-        # df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv
+        #df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -63,16 +63,18 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
-      # pos_encoding_as_features: &pos_enc
-      #   pos_type: laplacian_eigvec
-      #   num_pos: 3
-      #   normalization: "none"
-      #   disconnected_comp: True
-      # pos_encoding_as_directions: *pos_enc
-      pos_encoding_as_features: &pos_enc
-        pos_type: rwse
-        ksteps: 16
-
+      pos_encoding_as_features: # Andy: now get a dict of potential pe instead of just 1
+        pos_types:
+          la_pos: &pos_enc  #use same name as pe_encoder 
+            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+            num_pos: 3
+            normalization: "none"
+            disconnected_comp: True
+          rw_pos: #use same name as pe_encoder 
+            pos_type: rwse
+            ksteps: 16
+      pos_encoding_as_directions: *pos_enc
+      
     # Data handling-related
     batch_size_train_val: 60 #90 #128 #30 #256 #100  #20, 50, 2048
     batch_size_test: 60 #90 #128 #30 #256 #100 #20, 50, 2048
@@ -109,6 +111,28 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: none
+
+  #! Andy: example config for pe_encoders
+  #* name of pe could be used by the encoder
+  pe_encoders:
+    out_dim: 64
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    encoders: #la_pos |  rw_pos
+      la_pos:  # Set as null to avoid a pre-nn network
+        hidden_dim: 64
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 1 
+        num_layers_post: 0 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_norm: "none" #"batch_norm" or "layer_norm"
+      rw_pos:
+        hidden_dim: 64 
+        num_layers: 1
+        dropout: 0.1
+        normalization: "none" #"batch_norm" or "layer_norm"
+        first_norm: "none" #"batch_norm" or "layer_norm"
+
 
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
@@ -309,5 +333,5 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 5 #50
-    min_epochs: 2 #5
+    max_epochs: 50 #50
+    min_epochs: 5 #5

@@ -43,8 +43,6 @@ class LapPENodeEncoder(torch.nn.Module):
         self.linear_A = nn.Linear(2, in_dim)
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
-
-        #! Andy: check if these are desired architecture, a lot of new hyperparameters here for the encoder
         if model_type == 'Transformer':
             # Transformer model for LapPE
             encoder_layer = nn.TransformerEncoderLayer(
@@ -59,9 +57,9 @@ class LapPENodeEncoder(torch.nn.Module):
         else:
             # DeepSet model for LapPE
             self.pe_encoder = MLP(
-                    in_dim=2,
+                    in_dim=in_dim,
                     hidden_dim=hidden_dim,
-                    out_dim=in_dim,
+                    out_dim=out_dim,
                     layers=num_layers,
                     dropout=dropout,
                     **model_kwargs)
@@ -80,8 +78,10 @@ class LapPENodeEncoder(torch.nn.Module):
     def parse_on_keys(self, on_keys):
         if len(on_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
-        if ("eigvals" not in on_keys.keys()) and ("eigvecs" not in on_keys.keys()):
-            raise ValueError(f"`on_keys` must contain the keys 'eigvals' and eigvecs. Provided {on_keys}")
+        if ('pos_enc_feats_no_flip' not in on_keys.keys()) and ('pos_enc_feats_sign_flip' not in on_keys.keys()):
+            raise ValueError(f"`on_keys` must contain the keys 'pos_enc_feats_no_flip' and 'pos_enc_feats_sign_flip' Provided {on_keys}")
+        # if ("eigvals" not in on_keys.keys()) and ("eigvecs" not in on_keys.keys()):
+        #     raise ValueError(f"`on_keys` must contain the keys 'eigvals' and eigvecs. Provided {on_keys}")
         return on_keys
 
     def forward(self, eigvals, eigvecs):
@@ -92,10 +92,13 @@ class LapPENodeEncoder(torch.nn.Module):
             sign_flip[sign_flip < 0.5] = -1.0
             eigvecs = eigvecs * sign_flip.unsqueeze(0)
 
-
         pos_enc = torch.cat((eigvecs.unsqueeze(2), eigvals.unsqueeze(2)), dim=2) # (Num nodes) x (Num Eigenvectors) x 2
         empty_mask = torch.isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
 
+
+
+        #! TODO Dom: check why IPU crash here 
+        #? error message: RuntimeError: Cannot insert a Tensor that requires grad as a constant. Consider making it a parameter or input, or detaching the gradient
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 2
         if self.first_normalization:
             pos_enc = self.first_normalization(pos_enc)

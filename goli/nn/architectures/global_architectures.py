@@ -14,6 +14,13 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
+from goli.nn.encoders import laplace_pos_encoder,mlp_encoder,signnet_pos_encoder
+PE_ENCODERS_DICT = {
+    "la_pos": laplace_pos_encoder.LapPENodeEncoder,
+    "mlp": mlp_encoder.MLPEncoder,
+    "signnet": signnet_pos_encoder.SignNetNodeEncoder,
+}
+
 
 class FeedForwardNN(nn.Module):
     def __init__(
@@ -889,13 +896,13 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         return class_str + layer_str + pool_str + out_str
 
-
 class FullGraphNetwork(nn.Module):
     def __init__(
         self,
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
+        pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         name: str = "DGL_GNN",
@@ -913,6 +920,10 @@ class FullGraphNetwork(nn.Module):
 
                 - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
                 - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
+
+            pe_encoders_kwargs:
+                key-word arguments to use for the initialization of all positional encoding encoders
+                can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)
 
             pre_nn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
@@ -944,6 +955,66 @@ class FullGraphNetwork(nn.Module):
         self.name = name
         self.num_inference_to_average = num_inference_to_average
         self._concat_last_layers = None
+
+
+
+        #! TODO Dom: crash if keys from pe_encoder different from data module
+
+        #! Andy: we can add initialize the LapPENodeEncoder here, currently not used 
+        # might want to sum the pe encoding from the encoders, discard what is not important and what is important
+        # out_dim for all pe_encoders should be in_dim of pre_nn, linear layer followed by sum of all pe
+        #* could have a bunch of pe_encoders here, iterate through them and initialize each one
+        self.pe_encoders = {}
+        self.pe_pool = "mean"
+
+        #* might hard code the name for now, need a way to link the names with pe
+
+        if (pe_encoders_kwargs is not None):
+
+            # Andy specify pooling options here for pe encoders
+            self.pe_pool = pe_encoders_kwargs["pool"]
+
+            in_dim_dict = pe_encoders_kwargs["in_dims"] 
+            #{'pos_rwse': 16, 'pos_dir': 6, 'pos_enc_feats_no_flip': 3, 'pos_enc_feats_sign_flip': 3}
+
+            #* first assert the input dimension for each encoder is set properly
+            for encoder in pe_encoders_kwargs['encoders']:
+                encoder_kwargs = pe_encoders_kwargs['encoders'][encoder] 
+                name = encoder
+                if (name == "la_pos"):
+                    #! Andy: on_keys not used correctly here
+                    on_keys={"pos_enc_feats_no_flip":1, "pos_enc_feats_sign_flip":1}
+                    in_dim = 0
+                    in_dim += in_dim_dict["pos_enc_feats_no_flip"]
+                    #in_dim += in_dim_dict["pos_enc_feats_sign_flip"]
+                    
+                    self.pe_encoders[name] =  PE_ENCODERS_DICT["la_pos"](
+                            on_keys = on_keys,
+                            in_dim = in_dim, # Size of Laplace PE embedding
+                            hidden_dim = encoder_kwargs["hidden_dim"],
+                            out_dim = pe_encoders_kwargs["out_dim"], #unify the output dim
+                            model_type = encoder_kwargs["model_type"], # 'Transformer' or 'DeepSet'
+                            num_layers = encoder_kwargs["num_layers"],
+                            num_layers_post=encoder_kwargs["num_layers_post"], # Num. layers to apply after pooling
+                            dropout=encoder_kwargs["dropout"],
+                            first_normalization=encoder_kwargs["first_norm"])
+                if (name == "rw_pos"):
+                    on_keys = {"pos_rwse": 1}
+                    in_dim = 0
+                    in_dim += in_dim_dict["pos_rwse"]
+
+                    self.pe_encoders[name] =  PE_ENCODERS_DICT["mlp"](
+                        on_keys = on_keys,
+                        out_level = "node",
+                        in_dim = in_dim,
+                        hidden_dim = encoder_kwargs["hidden_dim"],
+                        out_dim = pe_encoders_kwargs["out_dim"], #unify the output dim
+                        num_layers = encoder_kwargs["num_layers"],
+                        dropout=encoder_kwargs["dropout"],
+                        normalization=encoder_kwargs["normalization"],
+                        first_normalization=encoder_kwargs["first_norm"],
+                    )
+
 
         # Initialize the networks
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
@@ -1082,46 +1153,39 @@ class FullGraphNetwork(nn.Module):
 
         """
 
-        # ANDY: When in test mode, this averages the output of many runs. Check `_forward` instead.
+        #! Andy: no random flipping
+        return self._forward(g)
 
-        if self.training:
-            return self._forward(g, flip_pos_enc="random")
-        else:
-            # If in test mode, try different sign flips according to `self.num_inference_to_average` and average them together
-            h = [self._forward(g, flip_pos_enc="no-flip")]
 
-            if (
-                self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip") is not None
-            ) and self.num_inference_to_average > 1:
-                h.append(self._forward(g, flip_pos_enc="sign-flip"))
-                for _ in range(2, self.num_inference_to_average):
-                    h.append(self._forward(g, flip_pos_enc="random"))
-            return torch.mean(torch.stack(h, dim=-1), dim=-1)
-
-    def _forward(self, g: Any, flip_pos_enc: str) -> Tensor:
+    def _forward(self, g: Any) -> Tensor:
         h = self.gnn._get_node_feats(g, key="feat")
         e = self.gnn._get_edge_feats(g, key="edge_feat")
+        encoder_outs = []
+        
 
-        ### ANDY: Start change. Try to deal with all positional encodings and all `encoder` types from goli.nn.encoders.
-        ### Use the `encoder.on_keys` to determine the positional encoding associated to each encoder.
-        # Get the node features and positional embedding
-        pos_enc_feats_sign_flip = self.gnn._get_node_feats(g, "pos_enc_feats_sign_flip")
-        if pos_enc_feats_sign_flip is not None:
-            pos_enc = pos_enc_feats_sign_flip
-            if flip_pos_enc == "random":
-                rand_sign_shape = ([1] * (pos_enc.ndim - 1)) + [pos_enc.shape[-1]]
-                rand_sign = torch.sign(torch.randn(rand_sign_shape, dtype=h.dtype, device=h.device))
-                pos_enc = pos_enc * rand_sign
-            elif flip_pos_enc == "no-flip":
-                pass
-            elif flip_pos_enc == "sign-flip":
-                pos_enc = -pos_enc
-            h = torch.cat((h, pos_enc), dim=-1)
-        pos_enc_feats_no_flip = self.gnn._get_node_feats(g, "pos_enc_feats_no_flip")
-        if pos_enc_feats_no_flip is not None:
-            h = torch.cat((h, pos_enc_feats_no_flip), dim=-1)
+        #! TODO Dom: match dictionary keys for pe names
+        for name in self.pe_encoders:
+            encoder = self.pe_encoders[name]
+            if (name == "la_pos"):
+                eigvecs = self.gnn._get_node_feats(g, key="pos_enc_feats_sign_flip").to(self.dtype)
+                eigvals = self.gnn._get_node_feats(g, key="pos_enc_feats_no_flip").to(self.dtype)
+                encoder_outs.append(encoder(eigvals, eigvecs)['node'])
+            if (name == "rw_pos"):
+                rwse = self.gnn._get_node_feats(g, key="pos_rwse").to(self.dtype)
+                encoder_outs.append(encoder(rwse)['node'])
 
-        ### ANDY: End change
+        pe_outs = torch.stack(encoder_outs, dim=-1)
+        if (self.pe_pool == "sum"):
+            pe_pooled = torch.sum(pe_outs, dim=-1)
+        elif (self.pe_pool == "mean"):
+            pe_pooled = torch.mean(pe_outs, dim=-1)
+        elif (self.pe_pool == "max"):
+            pe_pooled = torch.max(pe_outs, dim=-1)
+        else: 
+            raise Exception("the positional encoding pooling method is not defined")
+        
+        h = torch.cat((h, pe_pooled), dim=-1)
+
 
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
         if e is not None:
@@ -1450,6 +1514,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         task_heads_kwargs_list: List[Dict[str, Any]],
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
+        pe_encoders_kwargs: Optional[Dict[str, Any]] = None, 
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
@@ -1506,6 +1571,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,
             pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+            pe_encoders_kwargs=pe_encoders_kwargs,
             post_nn_kwargs=post_nn_kwargs,
             num_inference_to_average=num_inference_to_average,
             name=name,

@@ -29,6 +29,14 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
+#* Andy adding positional encoder names here
+from goli.nn.encoders import laplace_pos_encoder,mlp_encoder,signnet_pos_encoder
+PE_ENCODERS_DICT = {
+    "la_pos": laplace_pos_encoder.LapPENodeEncoder,
+    "mlp": mlp_encoder.MLPEncoder,
+    "signnet": signnet_pos_encoder.SignNetNodeEncoder,
+}
+
 
 FC_LAYERS_DICT = {
     "fc": FCLayer,

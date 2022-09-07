@@ -170,6 +170,7 @@ class test_positional_encoder(ut.TestCase):
                             first_normalization=None)
 
                     hidden_embed = encoder(eigvals, eigvecs)
+                    print (hidden_embed)
 
 if __name__ == "__main__":
     ut.main()
