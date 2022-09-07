@@ -3,6 +3,7 @@ Unit tests for the metrics and wrappers of goli/utils/...
 """
 
 from goli.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median
+from goli.utils.safe_run import SafeRun
 import torch
 import numpy as np
 import scipy as sp
@@ -128,6 +129,23 @@ class test_nan_statistics(ut.TestCase):
                 numpy_mad = sp.stats.median_abs_deviation(tensor.numpy(), **numpy_kwargs)
                 np.testing.assert_almost_equal(torch_mad.numpy(), numpy_mad, decimal=4, err_msg=err_msg)
 
+
+
+class test_SafeRun(ut.TestCase):
+    def test_safe_run(self):
+
+        with SafeRun(name="bob", raise_error=False, verbose=0):
+            raise ValueError("This is an error")
+
+        with self.assertRaises(ValueError):
+            with SafeRun(name="bob", raise_error=True, verbose=0):
+                raise ValueError("This is an error")
+
+        with SafeRun(name="bob", raise_error=True, verbose=0):
+            print("This is not an error")
+
+        with SafeRun(name="bob", raise_error=False, verbose=0):
+            print("This is not an error")
 
 if __name__ == "__main__":
     ut.main()

@@ -7,10 +7,12 @@ from omegaconf import DictConfig
 from functools import partial
 from datetime import date
 import timeit
+from loguru import logger
 
 # Current project imports
 import goli
 from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
+from goli.utils.safe_run import SafeRun
 
 # Optuna
 import optuna
@@ -44,44 +46,26 @@ def main(cfg: DictConfig, trial, run_name="main") -> None:
 
 
     metrics = load_metrics(cfg)
-    print(metrics)
+    logger.info(metrics)
 
     predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
 
-    print(predictor.model)
-    print(predictor.summarize(max_depth=4))
+    logger.info(predictor.model)
+    logger.info(predictor.summarize(max_depth=4))
 
     trainer = load_trainer(cfg, run_name)
 
     datamodule.prepare_data()
-    trainer.fit(model=predictor, datamodule=datamodule)
     # Run the model training
-    print("\n------------ TRAINING STARTED ------------")
-    try:
-        print("\n------------ TRAINING COMPLETED ------------\n\n")
+    with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
+        trainer.fit(model=predictor, datamodule=datamodule)
 
-    except Exception as e:
-        if not cfg["constants"]["raise_train_error"]:
-            print("\n------------ TRAINING ERROR: ------------\n\n", e)
-        else:
-            raise e
-
-    print("\n------------ TESTING STARTED ------------")
-    try:
-        ckpt_path = trainer.checkpoint_callbacks[0].best_model_path
-        #ckpt_path = "models_checkpoints/micro_ZINC_mtl/model-v3.ckpt"
+    with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.test(model=predictor, datamodule=datamodule) #, ckpt_path=ckpt_path)
-        print("\n------------ TESTING COMPLETED ------------\n\n")
 
-    except Exception as e:
-        if not cfg["constants"]["raise_train_error"]:
-            print("\n------------ TESTING ERROR: ------------\n\n", e)
-        else:
-            raise e
-
-    print ("--------------------------------------------")
-    print("totoal computation used", timeit.default_timer() - st)
-    print ("--------------------------------------------")
+    logger.info ("--------------------------------------------")
+    logger.info("totoal computation used", timeit.default_timer() - st)
+    logger.info ("--------------------------------------------")
 
     return trainer.callback_metrics["cv/mae/test"].cpu().item()
 
@@ -116,15 +100,16 @@ if __name__ == "__main__":
 
     complete_trials = study.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
 
-    print("Study statistics: ")
-    print("  Number of finished trials: ", len(study.trials))
-    print("  Number of complete trials: ", len(complete_trials))
+    logger.info("Study statistics: ")
+    logger.info("  Number of finished trials: ", len(study.trials))
+    logger.info("  Number of complete trials: ", len(complete_trials))
 
-    print("Best trial:")
+    logger.info("Best trial:")
     trial = study.best_trial
 
-    print("  Value: ", trial.value)
+    logger.info("  Value: ", trial.value)
 
-    print("  Params: ")
+    params_str = "  Params: "
     for key, value in trial.params.items():
-        print("    {}: {}".format(key, value))
+        params_str += ("\n    {}: {}".format(key, value))
+    logger.info(params_str)
