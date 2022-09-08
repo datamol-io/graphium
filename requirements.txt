@@ -41,5 +41,5 @@ tk
 pytorch-lightning==1.6
 datamol
 PyYAML
-optuna
 wandb
+optuna

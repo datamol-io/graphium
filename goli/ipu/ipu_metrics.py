@@ -4,8 +4,12 @@ from torch.nn import BCELoss, MSELoss, L1Loss
 from torch._C import _infer_size
 
 
-
 class BCELossIPU(BCELoss):
+    """
+    A modified version of the `torch.nn.BCELoss` that can ignore NaNs
+    by giving them a weight of `0`. This allows it to work with compilation
+    and IPUs since it doesn't modify the tensor's shape.
+    """
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         prev_weight = None
@@ -41,6 +45,12 @@ class BCELossIPU(BCELoss):
 
 
 class MSELossIPU(MSELoss):
+    """
+    A modified version of the `torch.nn.MSELoss` that can ignore NaNs
+    by giving them the same value for both `input` and `target`.
+    This allows it to work with compilation
+    and IPUs since it doesn't modify the tensor's shape.
+    """
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
 
         target = target.clone()
@@ -59,6 +69,12 @@ class MSELossIPU(MSELoss):
 
 
 class L1LossIPU(L1Loss):
+    """
+    A modified version of the `torch.nn.L1Loss` that can ignore NaNs
+    by giving them the same value for both `input` and `target`.
+    This allows it to work with compilation
+    and IPUs since it doesn't modify the tensor's shape.
+    """
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
 
         target = target.clone()

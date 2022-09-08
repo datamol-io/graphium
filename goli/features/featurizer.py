@@ -1105,7 +1105,7 @@ def mol_to_pyggraph(
     and a set of atom and bond features.
 
     Then, the adjacency matrix and node/edge features are used to build a
-    `DGLGraph` with pytorch Tensors.
+    `pyg.data.Data` with pytorch Tensors.
 
     Parameters:
 

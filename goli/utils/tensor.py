@@ -291,20 +291,24 @@ def nan_mad(input: Tensor, normal: bool = True, **kwargs) -> Tensor:
 
 class ModuleWrap(torch.nn.Module):
     r"""
-    Wrap a function into a `torch.nn.Module`.
+    Wrap a function into a `torch.nn.Module`, with possible `*args` and `**kwargs`
 
     Parameters:
         func: function to wrap into a module
     """
 
-    def __init__(self, func, **kwargs) -> None:
+    def __init__(self, func, *args, **kwargs) -> None:
         super().__init__()
         self.func = func
         self.__name__ = f"ModuleWrap({self.func.__name__})"
+        self.args = args
         self.kwargs = kwargs
 
     def forward(self, *args, **kwargs):
-        return self.func(*args, **self.kwargs, **kwargs)
+        """
+        Calls the function `self.func` with the arguments `self.func(*self.args, *args, **self.kwargs, **kwargs)`
+        """
+        return self.func(*self.args, *args, **self.kwargs, **kwargs)
 
     def __repr__(self):
         return self.__name__

@@ -23,10 +23,9 @@ import wandb
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
-# CONFIG_FILE = "tests/mtl/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
-#CONFIG_FILE = "tests/mtl/config_ipu_9atoms.yaml"
-CONFIG_FILE = "tests/mtl/config_ipu_allsizes.yaml"
-# CONFIG_FILE = "tests/mtl/config_ipu_reproduce.yaml"
+# CONFIG_FILE = "expts/configs/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
+CONFIG_FILE = "expts/configs/config_ipu_allsizes.yaml"
+# CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
 
 def main(cfg: DictConfig, trial, run_name="main") -> None:

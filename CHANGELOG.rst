@@ -4,6 +4,37 @@ goli Change Log
 
 .. current developments
 
+v1.0.0
+====================
+
+**Authors:**
+
+* Dom
+* Dominique
+* Oleksandr
+* Gabriela
+* Andy
+
+**Added:**
+
+* (Oleksandr) 08/17/2022 - Added Optuna integration with sample h-param search
+* (Oleksandr) 09/02/2022 - Added parquet reader to the data loader
+* (Oleksandr) 09/02/2022 - Added WandB integration
+* (Gabriela) - Implemented Multi-task Predictor and DataModule
+* (Dominique/Andy) - Implemented support and wrappers for IPUs
+* (Dominique) - Implemented support for PyG
+* (Andy) - Implemented GraphGPS and positional / structural encodings
+
+**Changed:**
+
+* (Gabriela) - Improved kwargs processing via `Options` classes
+
+**Deprecated:**
+
+* No longer backward compatible!! Many deprecated things.
+
+
+
 v0.3.1
 ====================
 

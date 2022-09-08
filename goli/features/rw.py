@@ -1,28 +1,26 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 from scipy import sparse
-from scipy.sparse.linalg import eigs
-from scipy.linalg import eig
-from scipy.sparse import csr_matrix, diags, issparse, spmatrix
+from scipy.sparse import spmatrix
 import numpy as np
 import torch
-import networkx as nx
-
-from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 from torch_geometric.utils import to_dense_adj, from_scipy_sparse_matrix
 from torch_scatter import scatter_add
 from torch_geometric.utils.num_nodes import maybe_num_nodes
 
 
-'''
-Returns:
-        2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs
-'''
 def compute_rwse(adj: Union[np.ndarray, spmatrix],
     ksteps: int,
     num_nodes: int
 ) -> np.ndarray:
+    """
+    Parameters:
+        ksteps: Number of steps for the random walk
+        num_nodes: Number of nodes in the graph
+    Returns:
+        2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs
+    """
 
     #* Andy: manually handles edge case of 1 atom molecules here
     if (num_nodes == 1):
@@ -38,15 +36,20 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix],
     rw_landing = get_rw_landing_probs(ksteps=ksteps,
                                     edge_index=edge_index,
                                     num_nodes=num_nodes)
-    rw_landing = rw_landing.numpy()    
+    rw_landing = rw_landing.numpy()
     return rw_landing
 
 
 
-def get_rw_landing_probs(ksteps, edge_index, edge_weight=None,
-                         num_nodes=None, space_dim=0):
+def get_rw_landing_probs(
+    ksteps: int,
+    edge_index: Tuple[torch.Tensor, torch.Tensor],
+    edge_weight: Optional[torch.Tensor]=None,
+    num_nodes: Optional[int]=None,
+    space_dim: float=0.,
+    ):
     """Compute Random Walk landing probabilities for given list of K steps.
-    Args:
+    Parameters:
         ksteps: List of k-steps for which to compute the RW landings
         edge_index: PyG sparse representation of the graph
         edge_weight: (optional) Edge weights
@@ -88,29 +91,4 @@ def get_rw_landing_probs(ksteps, edge_index, edge_weight=None,
     rw_landing = torch.cat(rws, dim=0).transpose(0, 1)  # (Num nodes) x (K steps)
 
     return rw_landing
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

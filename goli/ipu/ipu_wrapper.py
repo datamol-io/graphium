@@ -24,6 +24,7 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
 class IPUPluginGoli(IPUPlugin):
     """
     `IPUPluginGoli` modifies the `IPUPlugin` for compatibility with the Goli and Pytorch-Lightning training pipeline.
+    Modifies the `.self` method to make it compatible with the rest of Goli.
     """
 
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):

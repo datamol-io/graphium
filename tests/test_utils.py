@@ -134,16 +134,29 @@ class test_nan_statistics(ut.TestCase):
 class test_SafeRun(ut.TestCase):
     def test_safe_run(self):
 
+        # Error is caught
         with SafeRun(name="bob", raise_error=False, verbose=0):
             raise ValueError("This is an error")
 
+        # Error is caught
+        with SafeRun(name="bob", raise_error=False, verbose=0):
+            2 + None
+
+        # Error is not caught
         with self.assertRaises(ValueError):
             with SafeRun(name="bob", raise_error=True, verbose=0):
                 raise ValueError("This is an error")
 
+        # Error is not caught
+        with self.assertRaises(TypeError):
+            with SafeRun(name="bob", raise_error=True, verbose=0):
+                2 + None
+
+        # No error. Runs correctly
         with SafeRun(name="bob", raise_error=True, verbose=0):
             print("This is not an error")
 
+        # No error. Runs correctly
         with SafeRun(name="bob", raise_error=False, verbose=0):
             print("This is not an error")
 
