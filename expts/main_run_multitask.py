@@ -8,6 +8,7 @@ from functools import partial
 from datetime import date
 import timeit
 from loguru import logger
+from pydoc import importfile
 
 # Current project imports
 import goli
@@ -26,6 +27,7 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/configs/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
 CONFIG_FILE = "expts/configs/config_ipu_allsizes.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
+OPTUNA_CONFIG_FILE = "expts/optuna/optuna_base_config.py"
 os.chdir(MAIN_DIR)
 
 def main(cfg: DictConfig, trial, run_name="main") -> None:
@@ -75,15 +77,9 @@ if __name__ == "__main__":
 
     def objective(trial, cfg):
         cfg = deepcopy(cfg)
-
-        # * Example of adding hyper parameter search with Optuna:
-        # * https://optuna.readthedocs.io/en/stable/reference/generated/optuna.trial.Trial.html
-        cfg["architecture"]["gnn"]["hidden_dims"] = trial.suggest_int("gnn.hid", 16, 124, 16)
-        cfg["architecture"]["gnn"]["depth"] = trial.suggest_int("gnn.depth", 1, 5)
-        # normalization = trial.suggest_categorical("batch_norm", ["none", "batch_norm", "layer_norm"])
-        # cfg["architecture"]["gnn"]["normalization"] = normalization
-        # cfg["architecture"]["pre_nn"]["normalization"] = normalization
-        # cfg["architecture"]["post_nn"]["normalization"] = normalization
+    
+        optuna_config = importfile(os.path.join(MAIN_DIR, OPTUNA_CONFIG_FILE))
+        cfg = optuna_config.update_configuration(trial, cfg)
 
         run_name = 'no_name_' if not "name" in cfg["constants"] else cfg["constants"]["name"] + "_"
         run_name = run_name + date.today().strftime("%d/%m/%Y") + "_"
@@ -91,11 +87,17 @@ if __name__ == "__main__":
             run_name = run_name + str(key) + "=" + str(value) + "_"
 
         accu = main(cfg, trial, run_name=run_name[:len(run_name) - 1])
+        wandb.log(data={"cv/mae/test": accu})
         wandb.finish()
         return accu
 
     study = optuna.create_study()
-    study.optimize(partial(objective, cfg=cfg), n_trials=1, timeout=600)
+    study.optimize(partial(objective, cfg=cfg), n_trials=5, timeout=600)
+
+    # TODO - plt.save() to export to WandB (optional)
+    # optuna.visualization.plot_optimization_history(study)
+    # optuna.visualization.plot_slice(study)
+    # optuna.visualization.plot_contour(study, params=['gnn.hid', 'gnn.depth'])
 
     complete_trials = study.get_trials(deepcopy=False, states=[TrialState.COMPLETE])
 

@@ -43,3 +43,4 @@ datamol
 PyYAML
 wandb
 optuna
+google-cloud-storage
