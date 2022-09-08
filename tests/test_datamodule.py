@@ -10,7 +10,6 @@ import goli
 
 
 class Test_DataModule(ut.TestCase):
-
     def test_ogb_datamodule(self):
 
         # other datasets are too large to be tested

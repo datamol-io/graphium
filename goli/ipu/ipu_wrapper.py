@@ -9,17 +9,19 @@ from pytorch_lightning.trainer.states import RunningStage
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
 
+
 def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
     """
     helper function to remove the fake graph loss
     always reduce the last loss since it is the fake graph
     """
     for task in targets.keys():
-        if (targets[task].shape == preds[task].shape):
+        if targets[task].shape == preds[task].shape:
             continue
         else:
             preds[task] = preds[task][:-1]
     return preds
+
 
 class IPUPluginGoli(IPUPlugin):
     """
@@ -111,18 +113,22 @@ class PredictorModuleIPU(PredictorModule):
         self.poptorch = import_poptorch()
         super().__init__(*args, **kwargs)
 
-
     @staticmethod
-    def compute_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor], weights: Optional[Tensor], loss_fun: Dict[str, Callable], target_nan_mask: Union[Type, str] = "ignore") -> Tensor:
+    def compute_loss(
+        preds: Dict[str, Tensor],
+        targets: Dict[str, Tensor],
+        weights: Optional[Tensor],
+        loss_fun: Dict[str, Callable],
+        target_nan_mask: Union[Type, str] = "ignore",
+    ) -> Tensor:
         preds = remove_pad_loss(preds, targets)
 
         return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
 
-    def on_train_batch_end(self,outputs, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
         self._concatenated_metrics_logs["loss"] = outputs
         outputs = self._concatenated_metrics_logs
         super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
-
 
     def training_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
@@ -131,8 +137,7 @@ class PredictorModuleIPU(PredictorModule):
         loss = concatenated_metrics_logs.pop("loss")
         self._concatenated_metrics_logs = concatenated_metrics_logs
         loss = self.poptorch.identity_loss(loss, reduction="mean")
-        return loss # Limitation that only the loss can be returned
-
+        return loss  # Limitation that only the loss can be returned
 
     def validation_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
@@ -143,7 +148,6 @@ class PredictorModuleIPU(PredictorModule):
         step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
-
     def test_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
@@ -152,7 +156,6 @@ class PredictorModuleIPU(PredictorModule):
         # The output dict must be converted to a tuple
         step_dict = self._clean_output_batch(step_dict)
         return step_dict
-
 
     def predict_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
@@ -163,29 +166,24 @@ class PredictorModuleIPU(PredictorModule):
         step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
-
     def training_epoch_end(self, outputs: Dict[str, Any]):
         # Limited. Since only the loss can be returned in `training_step`
         return
-
 
     def validation_epoch_end(self, outputs: Dict[str, Any]):
         # Retrieve the dict structure of the output batch from the tuple
         retrieved_outputs = self._retrieve_output_batch(outputs)
         return super().validation_epoch_end(retrieved_outputs)
 
-
     def test_epoch_end(self, outputs: Dict[str, Any]):
         # Retrieve the dict structure of the output batch from the tuple
         retrieved_outputs = self._retrieve_output_batch(outputs)
         return super().test_epoch_end(retrieved_outputs)
 
-
     def predict_epoch_end(self, outputs: Dict[str, Any]):
         # Retrieve the dict structure of the output batch from the tuple
         retrieved_outputs = self._retrieve_output_batch(outputs)
         return super().test_epoch_end(retrieved_outputs)
-
 
     def _retrieve_output_batch(self, outputs):
         """
@@ -214,7 +212,6 @@ class PredictorModuleIPU(PredictorModule):
             others = new_outputs[-1].pop("_others", {})
             new_outputs[-1].update(others)
         return new_outputs
-
 
     def _clean_output_batch(self, out_batch):
         """
@@ -253,7 +250,6 @@ class PredictorModuleIPU(PredictorModule):
         cleaned_batch = tuple(new_dict.values())
 
         return cleaned_batch
-
 
     def _build_dict_input(self, *inputs):
         """

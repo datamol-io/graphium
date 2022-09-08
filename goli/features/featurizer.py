@@ -539,7 +539,13 @@ def mol_to_adj_and_features(
     pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
-) -> Union[coo_matrix, Union[np.ndarray, None], Union[np.ndarray, None], Dict[str, np.ndarray], Union[np.ndarray, None]]:
+) -> Union[
+    coo_matrix,
+    Union[np.ndarray, None],
+    Union[np.ndarray, None],
+    Dict[str, np.ndarray],
+    Union[np.ndarray, None],
+]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
@@ -641,7 +647,6 @@ def mol_to_adj_and_features(
         mol = Chem.AddHs(mol)
     else:
         mol = Chem.RemoveHs(mol)
-
 
     # Get the adjacency matrix
     adj = GetAdjacencyMatrix(mol, useBO=use_bonds_weights, force=True)
@@ -898,13 +903,7 @@ def mol_to_graph_dict(
         else:
             mol = Chem.RemoveHs(mol)
 
-        (
-            adj,
-            ndata,
-            edata,
-            pe_dict,
-            pos_enc_dir,
-        ) = mol_to_adj_and_features(
+        (adj, ndata, edata, pe_dict, pos_enc_dir,) = mol_to_adj_and_features(
             mol=mol,
             atom_property_list_onehot=atom_property_list_onehot,
             atom_property_list_float=atom_property_list_float,
@@ -917,7 +916,7 @@ def mol_to_graph_dict(
             mask_nan=mask_nan,
         )
     except Exception as e:
-        print (e)
+        print(e)
         if on_error.lower() == "raise":
             raise e
         elif on_error.lower() == "warn":

@@ -119,16 +119,15 @@ class test_nan_statistics(ut.TestCase):
                 # Prepare the arguments for numpy vs torch
                 if dim is not None:
                     torch_kwargs = {"dim": dim, "keepdim": False, "normal": normal}
-                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1/1.4826 if normal else 1.0}
+                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1 / 1.4826 if normal else 1.0}
                 else:
                     torch_kwargs = {"normal": normal}
-                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1/1.4826 if normal else 1.0}
+                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1 / 1.4826 if normal else 1.0}
 
                 # Compare the nan-median
                 torch_mad = nan_mad(tensor, **torch_kwargs)
                 numpy_mad = sp.stats.median_abs_deviation(tensor.numpy(), **numpy_kwargs)
                 np.testing.assert_almost_equal(torch_mad.numpy(), numpy_mad, decimal=4, err_msg=err_msg)
-
 
 
 class test_SafeRun(ut.TestCase):
@@ -159,6 +158,7 @@ class test_SafeRun(ut.TestCase):
         # No error. Runs correctly
         with SafeRun(name="bob", raise_error=False, verbose=0):
             print("This is not an error")
+
 
 if __name__ == "__main__":
     ut.main()

@@ -132,7 +132,7 @@ class FeedForwardNN(nn.Module):
         self.dropout = dropout
         self.last_dropout = last_dropout
         self.normalization = normalization
-        self.first_normalization =  get_norm(first_normalization, dim=in_dim)
+        self.first_normalization = get_norm(first_normalization, dim=in_dim)
         self.last_normalization = last_normalization
         self.residual_type = None if residual_type is None else residual_type.lower()
         self.residual_skip_steps = residual_skip_steps
@@ -554,7 +554,7 @@ class FeedForwardGraphBase(FeedForwardNN):
                         this_out_dim_edges = self.full_dims_edges[ii + 1]
                         this_edge_kwargs["out_dim_edges"] = this_out_dim_edges
                     else:
-                        this_out_dim_edges = self.layer_kwargs.get('out_dim_edges')
+                        this_out_dim_edges = self.layer_kwargs.get("out_dim_edges")
                     layer_out_dims_edges.append(this_out_dim_edges)
 
             # Create the GNN layer
@@ -1286,13 +1286,14 @@ class FullGraphSiameseNetwork(FullGraphNetwork):
 
         return out
 
+
 class TaskHead(FeedForwardNN):
     def __init__(
         self,
-        task_name: str,                         # The name matters for per-task analysis
+        task_name: str,  # The name matters for per-task analysis
         in_dim: int,
         out_dim: int,
-        hidden_dims: Union[List[int], int],     # Should this only be List? See FeedForwardNN vs. FeedForwardDGL
+        hidden_dims: Union[List[int], int],  # Should this only be List? See FeedForwardNN vs. FeedForwardDGL
         depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
@@ -1387,6 +1388,7 @@ class TaskHead(FeedForwardNN):
             layer_kwargs=layer_kwargs,
         )
 
+
 class TaskHeads(nn.Module):
     def __init__(
         self,
@@ -1409,10 +1411,7 @@ class TaskHeads(nn.Module):
 
         self.task_heads = nn.ModuleDict()
         for head_kwargs in task_heads_kwargs_list:
-            self.task_heads[head_kwargs["task_name"]] = TaskHead(
-                in_dim=self.in_dim,
-                **head_kwargs
-            )
+            self.task_heads[head_kwargs["task_name"]] = TaskHead(in_dim=self.in_dim, **head_kwargs)
 
     # Return a dictionary: Dict[task_name, Tensor]
     def forward(self, h: torch.Tensor):
@@ -1434,6 +1433,7 @@ class TaskHeads(nn.Module):
         Returns the output dimension of each task head
         """
         return {task_name: head.out_dim for task_name, head in self.task_heads.items()}
+
 
 class FullGraphMultiTaskNetwork(FullGraphNetwork):
     """
@@ -1513,7 +1513,6 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
         self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs_list=task_heads_kwargs_list)
 
-
     def forward(self, g: Union[DGLGraph, Data]):
         h = super().forward(g)
         return self.task_heads(h)
@@ -1527,6 +1526,3 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
     def __repr__(self):
         return super().__repr__()
-
-
-

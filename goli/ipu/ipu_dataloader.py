@@ -33,18 +33,26 @@ class IPUDataloaderOptions:
 
         # Get the maximum number of nodes
         if self.max_num_nodes is not None:
-            assert self.max_num_nodes_per_graph is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
+            assert (
+                self.max_num_nodes_per_graph is None
+            ), "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
         elif self.max_num_nodes_per_graph is not None:
-            assert self.max_num_nodes is None, "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
+            assert (
+                self.max_num_nodes is None
+            ), "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
             self.max_num_nodes = self.max_num_nodes_per_graph * self.batch_size
         else:
             raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
 
         # Get the maximum number of edges
         if self.max_num_edges is not None:
-            assert self.max_num_edges_per_graph is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
+            assert (
+                self.max_num_edges_per_graph is None
+            ), "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
         elif self.max_num_edges_per_graph is not None:
-            assert self.max_num_edges is None, "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
+            assert (
+                self.max_num_edges is None
+            ), "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
             self.max_num_edges = self.max_num_edges_per_graph * self.batch_size
         else:
             raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
@@ -67,7 +75,8 @@ class CombinedBatchingCollator:
         max_num_edges: int,
         dataset_max_nodes_per_graph: int,
         dataset_max_edges_per_graph: int,
-        collate_fn: Optional[Callable]=None):
+        collate_fn: Optional[Callable] = None,
+    ):
         """
         Parameters:
             batch_size: mini batch size used by the model
@@ -95,25 +104,28 @@ class CombinedBatchingCollator:
         Returns:
             batch: The padded batch
         """
-        if (self.collate_fn != None):
+        if self.collate_fn != None:
             batch = self.collate_fn(batch)
 
-        transform = Pad(max_num_nodes=self.max_num_nodes,
-                        max_num_edges=self.max_num_edges,
-                        dataset_max_nodes_per_graph=self.dataset_max_nodes_per_graph,
-                        dataset_max_edges_per_graph=self.dataset_max_edges_per_graph,
-                        )
+        transform = Pad(
+            max_num_nodes=self.max_num_nodes,
+            max_num_edges=self.max_num_edges,
+            dataset_max_nodes_per_graph=self.dataset_max_nodes_per_graph,
+            dataset_max_edges_per_graph=self.dataset_max_edges_per_graph,
+        )
 
-        batch['features'] = transform(batch['features'])
+        batch["features"] = transform(batch["features"])
         return batch
 
 
-def create_ipu_dataloader(dataset: Dataset,
-                    ipu_dataloader_options: IPUDataloaderOptions,
-                    ipu_options: Optional[poptorch.Options] = None,
-                    batch_size: Optional[int] = 1,
-                    collate_fn=None,
-                    **kwargs):
+def create_ipu_dataloader(
+    dataset: Dataset,
+    ipu_dataloader_options: IPUDataloaderOptions,
+    ipu_options: Optional[poptorch.Options] = None,
+    batch_size: Optional[int] = 1,
+    collate_fn=None,
+    **kwargs,
+):
     """
     Creates a poptorch.DataLoader for graph datasets
     Applies the mini-batching method of concatenating multiple graphs into a
@@ -138,22 +150,17 @@ def create_ipu_dataloader(dataset: Dataset,
 
     grad_accum = ipu_options.Training.gradient_accumulation
     collater = CombinedBatchingCollator(
-                                batch_size,
-                                collate_fn=collate_fn,
-                                max_num_nodes=ipu_dataloader_options.max_num_nodes,
-                                max_num_edges=ipu_dataloader_options.max_num_edges,
-                                dataset_max_nodes_per_graph = dataset.max_num_nodes_per_graph,
-                                dataset_max_edges_per_graph = dataset.max_num_edges_per_graph,
-                                )
+        batch_size,
+        collate_fn=collate_fn,
+        max_num_nodes=ipu_dataloader_options.max_num_nodes,
+        max_num_edges=ipu_dataloader_options.max_num_edges,
+        dataset_max_nodes_per_graph=dataset.max_num_nodes_per_graph,
+        dataset_max_edges_per_graph=dataset.max_num_edges_per_graph,
+    )
 
     return poptorch.DataLoader(
-                                options=deepcopy(ipu_options),
-                                dataset=dataset,
-                                batch_size=batch_size,
-                                collate_fn=collater,
-                                **kwargs
-                                )
-
+        options=deepcopy(ipu_options), dataset=dataset, batch_size=batch_size, collate_fn=collater, **kwargs
+    )
 
 
 class Pad(BaseTransform):
@@ -161,14 +168,15 @@ class Pad(BaseTransform):
     Data transform that applies padding to enforce consistent tensor shapes.
     """
 
-    def __init__(self,
-                 max_num_nodes: int,
-                 dataset_max_nodes_per_graph,
-                 dataset_max_edges_per_graph,
-                 max_num_edges: Optional[int] = None,
-                 node_value: float = 0,
-                 edge_value: float = 0,
-                 ):
+    def __init__(
+        self,
+        max_num_nodes: int,
+        dataset_max_nodes_per_graph,
+        dataset_max_edges_per_graph,
+        max_num_edges: Optional[int] = None,
+        node_value: float = 0,
+        edge_value: float = 0,
+    ):
         """
         Parameters:
             max_num_nodes: The maximum number of nodes for the total padded graph
@@ -205,13 +213,14 @@ class Pad(BaseTransform):
         num_nodes = data.num_nodes
         num_edges = data.num_edges
 
-        assert num_nodes <= self.max_num_nodes, \
-            f"Too many nodes. Graph has {num_nodes} nodes "\
-            f"and max_num_edges is {self.max_num_nodes}."
+        assert num_nodes <= self.max_num_nodes, (
+            f"Too many nodes. Graph has {num_nodes} nodes " f"and max_num_edges is {self.max_num_nodes}."
+        )
 
-        assert num_edges <= self.max_num_edges, \
-            f"Too many edges. Graph has {num_edges} edges defined "\
+        assert num_edges <= self.max_num_edges, (
+            f"Too many edges. Graph has {num_edges} edges defined "
             f"and max_num_edges is {self.max_num_edges}."
+        )
 
         return num_nodes, num_edges
 
@@ -233,8 +242,7 @@ class Pad(BaseTransform):
             g.node_is_true = torch.full([g.num_nodes], 1)
             g.edge_is_true = torch.full([g.num_edges], 1)
 
-
-        #create fake graph with the needed # of nodes and edges
+        # create fake graph with the needed # of nodes and edges
         fake = Data()
         fake.num_nodes = num_pad_nodes
         fake.num_edges = num_pad_edges
@@ -246,7 +254,7 @@ class Pad(BaseTransform):
             if not torch.is_tensor(value):
                 continue
 
-            if (key == "graph_is_true" or key == "node_is_true" or key == "edge_is_true"):
+            if key == "graph_is_true" or key == "node_is_true" or key == "edge_is_true":
                 continue
 
             dim = real_graphs[0].__cat_dim__(key, value)
@@ -270,11 +278,15 @@ class Pad(BaseTransform):
         real_graphs.append(fake)
         new_batch = Batch.from_data_list(real_graphs)
 
-        if 'num_nodes' in new_batch:
+        if "num_nodes" in new_batch:
             new_batch.num_nodes = self.max_num_nodes
 
-        new_batch.dataset_max_nodes_per_graph = torch.as_tensor([self.dataset_max_nodes_per_graph], dtype=torch.int32)
-        new_batch.dataset_max_edges_per_graph = torch.as_tensor([self.dataset_max_edges_per_graph], dtype=torch.int32)
+        new_batch.dataset_max_nodes_per_graph = torch.as_tensor(
+            [self.dataset_max_nodes_per_graph], dtype=torch.int32
+        )
+        new_batch.dataset_max_edges_per_graph = torch.as_tensor(
+            [self.dataset_max_edges_per_graph], dtype=torch.int32
+        )
 
         return new_batch
 
@@ -285,4 +297,3 @@ class Pad(BaseTransform):
         s += f"node_value={self.node_value}, "
         s += f"edge_value={self.edge_value})"
         return s
-

@@ -4,7 +4,12 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
-from goli.data.datamodule import GraphOGBDataModule, MultitaskFromSmilesDataModule, MultitaskIPUFromSmilesDataModule, MultitaskIPUFromSmilesDataModule
+from goli.data.datamodule import (
+    GraphOGBDataModule,
+    MultitaskFromSmilesDataModule,
+    MultitaskIPUFromSmilesDataModule,
+    MultitaskIPUFromSmilesDataModule,
+)
 from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU
 
 from goli.nn.dgl_layers import (

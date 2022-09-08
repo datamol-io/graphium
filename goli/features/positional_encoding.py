@@ -4,6 +4,8 @@ from scipy.sparse import spmatrix
 
 from goli.features.spectral import compute_laplacian_positional_eigvecs
 from goli.features.rw import compute_rwse
+
+
 def get_all_positional_encoding(
     adj: Union[np.ndarray, spmatrix],
     num_nodes: int,
@@ -29,9 +31,7 @@ def get_all_positional_encoding(
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
-        pe_dict = graph_positional_encoder(
-            adj, num_nodes, pos_encoding_as_features
-        )
+        pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
 
     # Get the positional encoding for the directions
     # seem to be quite hard coded, I just replaced the entries with dictionary entries
@@ -44,7 +44,9 @@ def get_all_positional_encoding(
             elif pe_dict["pos_enc_feats_no_flip"] is None:
                 pos_enc_dir = pe_dict["pos_enc_feats_sign_flip"]
             else:
-                pos_enc_dir = np.concatenate((pe_dict["pos_enc_feats_no_flip"], pe_dict["pos_enc_feats_sign_flip"]), axis=1)
+                pos_enc_dir = np.concatenate(
+                    (pe_dict["pos_enc_feats_no_flip"], pe_dict["pos_enc_feats_sign_flip"]), axis=1
+                )
 
         else:
             pe_dict = graph_positional_encoder(adj, **pos_encoding_as_directions)
@@ -59,10 +61,8 @@ def get_all_positional_encoding(
                 pos_enc_dir = np.concatenate((pos_enc_dir1, pos_enc_dir2), axis=1)
     return pe_dict, pos_enc_dir
 
-def graph_positional_encoder(
-    adj: Union[np.ndarray, spmatrix],
-    num_nodes: int,
-    pos_arg: Dict) -> np.ndarray:
+
+def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict) -> np.ndarray:
     r"""
     Get a positional encoding that depends on the parameters.
 
@@ -78,8 +78,6 @@ def graph_positional_encoder(
     """
 
     pos_type = pos_arg["pos_type"]
-
-
 
     pos_type = pos_type.lower()
     pe_dict = {}
