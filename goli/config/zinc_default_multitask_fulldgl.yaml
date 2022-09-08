@@ -94,7 +94,7 @@ architecture:     # The parameters for the full graph network are taken from `co
     residual_type: random
     pooling: [sum, max]
     virtual_node: 'sum'
-    layer_type: 'pna-msgpass'
+    layer_type: 'dgl:pna-msgpass'
     layer_kwargs:
       # num_heads: 3
       aggregators: [mean, max]
