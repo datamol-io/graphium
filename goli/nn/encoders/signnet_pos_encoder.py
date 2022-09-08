@@ -13,26 +13,51 @@ from goli.nn.base_layers import MLP
 
 
 class SimpleGIN(nn.Module):
-    def __init__(self, in_dim, hidden_dim, out_dim, num_layers,
-                 normalization="none", dropout=0.5, activation='relu'):
+    def __init__(
+        self, in_dim, hidden_dim, out_dim, num_layers, normalization="none", dropout=0.5, activation="relu"
+    ):
         super().__init__()
         self.layers = nn.ModuleList()
         self.normalization = normalization
         # input layer
-        update_net = MLP(in_dim, hidden_dim, hidden_dim, 2,
-                         normalization=normalization, dropout=dropout, activation=activation,
-                         last_normalization=normalization, last_dropout=dropout)
+        update_net = MLP(
+            in_dim,
+            hidden_dim,
+            hidden_dim,
+            2,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+            last_normalization=normalization,
+            last_dropout=dropout,
+        )
         self.layers.append(GINConv(update_net))
         # hidden layers
         for i in range(num_layers - 2):
-            update_net = MLP(hidden_dim, hidden_dim, hidden_dim,
-                             2, normalization=normalization, dropout=dropout,
-                             activation=activation, last_normalization=normalization, last_dropout=dropout)
+            update_net = MLP(
+                hidden_dim,
+                hidden_dim,
+                hidden_dim,
+                2,
+                normalization=normalization,
+                dropout=dropout,
+                activation=activation,
+                last_normalization=normalization,
+                last_dropout=dropout,
+            )
             self.layers.append(GINConv(update_net))
         # output layer
-        update_net = MLP(hidden_dim, hidden_dim, out_dim, 2,
-                         normalization=normalization, dropout=dropout, activation=activation,
-                         last_normalization=normalization, last_dropout=dropout)
+        update_net = MLP(
+            hidden_dim,
+            hidden_dim,
+            out_dim,
+            2,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+            last_normalization=normalization,
+            last_dropout=dropout,
+        )
         self.layers.append(GINConv(update_net))
         self.dropout = nn.Dropout(p=dropout)
 
@@ -43,23 +68,47 @@ class SimpleGIN(nn.Module):
 
 
 class GINDeepSigns(nn.Module):
-    """ Sign invariant neural network with MLP aggregation.
-        f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))
+    """Sign invariant neural network with MLP aggregation.
+    f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))
     """
 
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 k, dim_pe, rho_num_layers, normalization="none",
-                 dropout=0.5, activation='relu'):
+    def __init__(
+        self,
+        in_channels,
+        hidden_channels,
+        out_channels,
+        num_layers,
+        k,
+        dim_pe,
+        rho_num_layers,
+        normalization="none",
+        dropout=0.5,
+        activation="relu",
+    ):
         super().__init__()
-        self.enc = SimpleGIN(in_channels, hidden_channels, out_channels, num_layers,
-                       normalization=normalization, dropout=dropout, activation=activation)
+        self.enc = SimpleGIN(
+            in_channels,
+            hidden_channels,
+            out_channels,
+            num_layers,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+        )
         rho_dim = out_channels * k
-        self.rho = MLP(rho_dim, hidden_channels, dim_pe, rho_num_layers,
-                       normalization=normalization, dropout=dropout, activation=activation)
+        self.rho = MLP(
+            rho_dim,
+            hidden_channels,
+            dim_pe,
+            rho_num_layers,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+        )
 
     def forward(self, x, edge_index, batch_index):
         N = x.shape[0]  # Total number of nodes in the batch.
-        x = x.transpose(0, 1) # N x K x In -> K x N x In
+        x = x.transpose(0, 1)  # N x K x In -> K x N x In
         x = self.enc(x, edge_index) + self.enc(-x, edge_index)
         x = x.transpose(0, 1).reshape(N, -1)  # K x N x Out -> N x (K * Out)
         x = self.rho(x)  # N x dim_pe (Note: in the original codebase dim_pe is always K)
@@ -67,24 +116,48 @@ class GINDeepSigns(nn.Module):
 
 
 class MaskedGINDeepSigns(nn.Module):
-    """ Sign invariant neural network with sum pooling and DeepSet.
-        f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))
+    """Sign invariant neural network with sum pooling and DeepSet.
+    f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))
     """
 
-    def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
-                 dim_pe, rho_num_layers, normalization="none",
-                 dropout=0.5, activation='relu'):
+    def __init__(
+        self,
+        in_channels,
+        hidden_channels,
+        out_channels,
+        num_layers,
+        dim_pe,
+        rho_num_layers,
+        normalization="none",
+        dropout=0.5,
+        activation="relu",
+    ):
         super().__init__()
-        self.enc = SimpleGIN(in_channels, hidden_channels, out_channels, num_layers,
-                       normalization=normalization, dropout=dropout, activation=activation)
-        self.rho = MLP(out_channels, hidden_channels, dim_pe, rho_num_layers,
-                       normalization=normalization, dropout=dropout, activation=activation)
+        self.enc = SimpleGIN(
+            in_channels,
+            hidden_channels,
+            out_channels,
+            num_layers,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+        )
+        self.rho = MLP(
+            out_channels,
+            hidden_channels,
+            dim_pe,
+            rho_num_layers,
+            normalization=normalization,
+            dropout=dropout,
+            activation=activation,
+        )
 
     def batched_n_nodes(self, batch_index):
         batch_size = batch_index.max().item() + 1
         one = batch_index.new_ones(batch_index.size(0))
-        n_nodes = scatter(one, batch_index, dim=0, dim_size=batch_size,
-                          reduce='add')  # Number of nodes in each graph.
+        n_nodes = scatter(
+            one, batch_index, dim=0, dim_size=batch_size, reduce="add"
+        )  # Number of nodes in each graph.
         n_nodes = n_nodes.unsqueeze(1)
         return torch.cat([size * n_nodes.new_ones(size) for size in n_nodes])
 
@@ -122,25 +195,26 @@ class SignNetNodeEncoder(torch.nn.Module):
         dim_emb: Size of final node embedding
     """
 
-    def __init__(self,
-                on_keys: Dict,
-                in_dim, # Size of PE embedding
-                hidden_dim,
-                out_dim,
-                model_type, # 'MLP' or 'DeepSet'
-                num_layers, # Num. layers in \phi GNN part
-                max_freqs, # Num. eigenvectors (frequencies)
-                num_layers_post=0, # Num. layers in \rho MLP/DeepSet
-                activation="relu",
-                dropout=0.,
-                normalization="none",
-                ):
+    def __init__(
+        self,
+        on_keys: Dict,
+        in_dim,  # Size of PE embedding
+        hidden_dim,
+        out_dim,
+        model_type,  # 'MLP' or 'DeepSet'
+        num_layers,  # Num. layers in \phi GNN part
+        max_freqs,  # Num. eigenvectors (frequencies)
+        num_layers_post=0,  # Num. layers in \rho MLP/DeepSet
+        activation="relu",
+        dropout=0.0,
+        normalization="none",
+    ):
         super().__init__()
 
         # Parse the `on_keys`.
         self.on_keys = self.parse_on_keys(on_keys)
 
-        if model_type not in ['MLP', 'DeepSet']:
+        if model_type not in ["MLP", "DeepSet"]:
             raise ValueError(f"Unexpected SignNet model {model_type}")
         self.model_type = model_type
 
@@ -148,11 +222,12 @@ class SignNetNodeEncoder(torch.nn.Module):
             raise ValueError(f"Num layers in rho model has to be positive.")
 
         if out_dim - in_dim < 1:
-            raise ValueError(f"SignNet PE size {in_dim} is too large for "
-                             f"desired embedding size of {out_dim}.")
+            raise ValueError(
+                f"SignNet PE size {in_dim} is too large for " f"desired embedding size of {out_dim}."
+            )
 
         # Sign invariant neural network.
-        if self.model_type == 'MLP':
+        if self.model_type == "MLP":
             self.sign_inv_net = GINDeepSigns(
                 in_channels=1,
                 hidden_channels=hidden_dim,
@@ -165,7 +240,7 @@ class SignNetNodeEncoder(torch.nn.Module):
                 dropout=dropout,
                 activation=activation,
             )
-        elif self.model_type == 'DeepSet':
+        elif self.model_type == "DeepSet":
             self.sign_inv_net = MaskedGINDeepSigns(
                 in_channels=1,
                 hidden_channels=hidden_dim,
@@ -191,7 +266,6 @@ class SignNetNodeEncoder(torch.nn.Module):
 
         return on_keys
 
-
     def forward(self, eigvecs, edge_index, batch_index):
 
         pos_enc = eigvecs.unsqueeze(-1)  # (Num nodes) x (Num Eigenvectors) x 1
@@ -205,5 +279,3 @@ class SignNetNodeEncoder(torch.nn.Module):
         output = {"node": pos_enc}
 
         return output
-
-

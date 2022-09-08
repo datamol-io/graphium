@@ -17,6 +17,7 @@ from torch import nn
 
 from goli.utils.spaces import LOSS_DICT
 
+
 @dataclass
 class ModelOptions:
     r"""
@@ -31,6 +32,7 @@ class ModelOptions:
     """
     model_class: Type[nn.Module]
     model_kwargs: Dict[str, Any]
+
 
 @dataclass
 class OptimOptions:
@@ -81,7 +83,9 @@ class OptimOptions:
 
     def set_kwargs(self):
         # Set the parameters and default value for the optimizer, and check values
-        optim_kwargs = self.optim_kwargs                        # Save kwargs that were initially given. But does this mess with the fact that the class attribute is also called optim_kwargs?
+        optim_kwargs = (
+            self.optim_kwargs
+        )  # Save kwargs that were initially given. But does this mess with the fact that the class attribute is also called optim_kwargs?
         self.optim_kwargs = {"lr": 1e-3, "weight_decay": 0.0}
         if optim_kwargs is not None:
             self.optim_kwargs.update(optim_kwargs)
@@ -123,6 +127,7 @@ class OptimOptions:
         # else:
         #     self.torch_scheduler_kwargs = torch_scheduler_kwargs
         # self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
+
 
 @dataclass
 class EvalOptions:
@@ -176,6 +181,7 @@ class EvalOptions:
 
         return loss_fun
 
+
 @dataclass
 class FlagOptions:
     r"""
@@ -193,14 +199,14 @@ class FlagOptions:
                 - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01
     """
     flag_kwargs: Dict[str, Any] = None
-#    flag_kwargs_set: Dict[str, Any] = field(init=False, repr=True)
+    #    flag_kwargs_set: Dict[str, Any] = field(init=False, repr=True)
 
-#    def __post_init__(self):
-#        self.flag_kwargs_set = {"alpha": 0.01, "n_steps": 0}
-#        if self.flag_kwargs is not None:
-#            self.flag_kwargs_set.update(self.flag_kwargs)
-#        assert isinstance(self.flag_kwargs_set["n_steps"], int) and (self.flag_kwargs_set["n_steps"] >= 0)
-#        assert self.flag_kwargs_set["alpha"] > 0
+    #    def __post_init__(self):
+    #        self.flag_kwargs_set = {"alpha": 0.01, "n_steps": 0}
+    #        if self.flag_kwargs is not None:
+    #            self.flag_kwargs_set.update(self.flag_kwargs)
+    #        assert isinstance(self.flag_kwargs_set["n_steps"], int) and (self.flag_kwargs_set["n_steps"] >= 0)
+    #        assert self.flag_kwargs_set["alpha"] > 0
 
     # Set the parameters and default values for the FLAG adversarial augmentation, and check values
     def set_kwargs(self):

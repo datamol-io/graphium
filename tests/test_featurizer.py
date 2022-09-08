@@ -258,8 +258,6 @@ class test_featurizer(ut.TestCase):
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
                         self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
 
-
-
     def test_mol_to_pyggraph(self):
 
         np.random.seed(42)
@@ -299,7 +297,6 @@ class test_featurizer(ut.TestCase):
                         self.assertEqual(edata.shape[0], 2 * this_mol.GetNumBonds(), msg=err_msg2)
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
                         self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
-
 
 
 if __name__ == "__main__":

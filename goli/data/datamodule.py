@@ -26,7 +26,13 @@ from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
 from goli.utils import fs
-from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
+from goli.features import (
+    mol_to_graph_dict,
+    mol_to_graph_signature,
+    mol_to_dglgraph,
+    GraphDict,
+    mol_to_pyggraph,
+)
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
 
@@ -35,7 +41,7 @@ PCQM4M_meta = {
     "num tasks": 1,
     "eval metric": "mae",
     "download_name": "pcqm4m_kddcup2021",
-    "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m_kddcup2021.zip", # TODO: Allow PyG
+    "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m_kddcup2021.zip",  # TODO: Allow PyG
     "data type": "mol",
     "has_node_attr": True,
     "has_edge_attr": True,
@@ -52,10 +58,11 @@ PCQM4Mv2_meta = deepcopy(PCQM4M_meta)
 PCQM4Mv2_meta.update(
     {
         "download_name": "pcqm4m-v2",
-        "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip", # TODO: Allow PyG
+        "url": "https://dgl-data.s3-accelerate.amazonaws.com/dataset/OGB-LSC/pcqm4m-v2.zip",  # TODO: Allow PyG
         "version": 2,
     }
 )
+
 
 def smiles_to_unique_mol_id(smiles: str):
     try:
@@ -67,10 +74,19 @@ def smiles_to_unique_mol_id(smiles: str):
         mol_id = ""
     return mol_id
 
+
 def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1, backend="loky", progress=True):
     """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
-    if backend == "loky": backend = None
-    unique_mol_ids = dm.parallelized(smiles_to_unique_mol_id, smiles, progress=progress, n_jobs=n_jobs, scheduler=backend, tqdm_kwargs={"desc": "mols to ids"})
+    if backend == "loky":
+        backend = None
+    unique_mol_ids = dm.parallelized(
+        smiles_to_unique_mol_id,
+        smiles,
+        progress=progress,
+        n_jobs=n_jobs,
+        scheduler=backend,
+        tqdm_kwargs={"desc": "mols to ids"},
+    )
     return unique_mol_ids
 
 
@@ -112,6 +128,7 @@ class SingleTaskDataset(Dataset):
 
         return datum
 
+
 class MultitaskDataset(Dataset):
     """This class holds the information for the multitask dataset.
 
@@ -125,7 +142,15 @@ class MultitaskDataset(Dataset):
         - self.features will be a list of featurized graphs corresponding to that particular unique molecule.
             However, for testing purposes we may not require features so that we can make sure that this merge function works.
     """
-    def __init__(self, datasets: Dict[str, SingleTaskDataset], n_jobs=-1, backend:str="loky", progress:bool=True, about:str=""):
+
+    def __init__(
+        self,
+        datasets: Dict[str, SingleTaskDataset],
+        n_jobs=-1,
+        backend: str = "loky",
+        progress: bool = True,
+        about: str = "",
+    ):
         super().__init__()
         self.datasets = datasets
         self.n_jobs = n_jobs
@@ -197,7 +222,6 @@ class MultitaskDataset(Dataset):
         """Average number of edges per graph"""
         return self.num_edges_total / self.num_graphs_total
 
-
     def __getitem__(self, idx):
         datum = {}
 
@@ -218,14 +242,14 @@ class MultitaskDataset(Dataset):
     def merge(self, datasets: Dict[str, Any]):
         r"""This function merges several single task datasets into a multitask dataset.
 
-            The idea: for each of the smiles, labels, features and tasks, we create a corresponding list that concatenates these items across all tasks.
-            In particular, for any index, the elements in the smiles, labels, features and task lists at that index will correspond to each other (i.e. match up).
-            Over this list of all smiles (which we created by concatenating the smiles across all tasks), we compute their molecular ID using functions from Datamol.
-            Once again, we will have a list of molecular IDs which is the same size as the list of smiles, labels, features and tasks.
-            We then use numpy's `unique` function to find the exact list of unique molecular IDs as these will identify the molecules in our dataset. We also get the
-            inverse from numpy's `unique`, which will allow us to index in addition to the list of all molecular IDs, the list of all smiles, labels, features and tasks.
-            Finally, we use this inverse to construct the list of list of smiles, list of label dictionaries (indexed by task) and the list of features such that
-            the indices match up. This is what is needed for the `get_item` function to work.
+        The idea: for each of the smiles, labels, features and tasks, we create a corresponding list that concatenates these items across all tasks.
+        In particular, for any index, the elements in the smiles, labels, features and task lists at that index will correspond to each other (i.e. match up).
+        Over this list of all smiles (which we created by concatenating the smiles across all tasks), we compute their molecular ID using functions from Datamol.
+        Once again, we will have a list of molecular IDs which is the same size as the list of smiles, labels, features and tasks.
+        We then use numpy's `unique` function to find the exact list of unique molecular IDs as these will identify the molecules in our dataset. We also get the
+        inverse from numpy's `unique`, which will allow us to index in addition to the list of all molecular IDs, the list of all smiles, labels, features and tasks.
+        Finally, we use this inverse to construct the list of list of smiles, list of label dictionaries (indexed by task) and the list of features such that
+        the indices match up. This is what is needed for the `get_item` function to work.
         """
         all_smiles = []
         all_features = []
@@ -243,14 +267,17 @@ class MultitaskDataset(Dataset):
 
             all_smiles.extend(ds_smiles)
             all_labels.extend(ds_labels)
-            if ds_features is not None: all_features.extend(ds_features)
+            if ds_features is not None:
+                all_features.extend(ds_features)
 
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
 
         mol_ids = []
         # Get all unique mol ids.
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.n_jobs, backend=self.backend, progress=self.progress)
+        all_mol_ids = smiles_to_unique_mol_ids(
+            all_smiles, n_jobs=self.n_jobs, backend=self.backend, progress=self.progress
+        )
         unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         mol_ids = unique_mol_ids
 
@@ -279,27 +306,31 @@ class MultitaskDataset(Dataset):
         # This gives the number of labels to predict for a given task.
         task_labels_size = {}
         for task, ds in self.datasets.items():
-            label = ds[0]["labels"]       # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
+            label = ds[0][
+                "labels"
+            ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
             torch_label = torch.as_tensor(label)
-            #torch_label = label
+            # torch_label = label
             task_labels_size[task] = torch_label.size()
         return task_labels_size
 
     def __repr__(self) -> str:
-        out_str = f"-------------------\n{self.__class__.__name__}\n" + \
-            f"\tabout = {self.about}\n" + \
-            f"\tnum_graphs_total = {self.num_graphs_total}\n" + \
-            f"\tnum_nodes_total = {self.num_nodes_total}\n" + \
-            f"\tmax_num_nodes_per_graph = {self.max_num_nodes_per_graph}\n" + \
-            f"\tmin_num_nodes_per_graph = {self.min_num_nodes_per_graph}\n" + \
-            f"\tstd_num_nodes_per_graph = {self.std_num_nodes_per_graph}\n" + \
-            f"\tmean_num_nodes_per_graph = {self.mean_num_nodes_per_graph}\n" + \
-            f"\tnum_edges_total = {self.num_edges_total}\n" + \
-            f"\tmax_num_edges_per_graph = {self.max_num_edges_per_graph}\n" + \
-            f"\tmin_num_edges_per_graph = {self.min_num_edges_per_graph}\n" + \
-            f"\tstd_num_edges_per_graph = {self.std_num_edges_per_graph}\n" + \
-            f"\tmean_num_edges_per_graph = {self.mean_num_edges_per_graph}\n" + \
-            f"-------------------\n"
+        out_str = (
+            f"-------------------\n{self.__class__.__name__}\n"
+            + f"\tabout = {self.about}\n"
+            + f"\tnum_graphs_total = {self.num_graphs_total}\n"
+            + f"\tnum_nodes_total = {self.num_nodes_total}\n"
+            + f"\tmax_num_nodes_per_graph = {self.max_num_nodes_per_graph}\n"
+            + f"\tmin_num_nodes_per_graph = {self.min_num_nodes_per_graph}\n"
+            + f"\tstd_num_nodes_per_graph = {self.std_num_nodes_per_graph}\n"
+            + f"\tmean_num_nodes_per_graph = {self.mean_num_nodes_per_graph}\n"
+            + f"\tnum_edges_total = {self.num_edges_total}\n"
+            + f"\tmax_num_edges_per_graph = {self.max_num_edges_per_graph}\n"
+            + f"\tmin_num_edges_per_graph = {self.min_num_edges_per_graph}\n"
+            + f"\tstd_num_edges_per_graph = {self.std_num_edges_per_graph}\n"
+            + f"\tmean_num_edges_per_graph = {self.mean_num_edges_per_graph}\n"
+            + f"-------------------\n"
+        )
         return out_str
 
 
@@ -444,7 +475,6 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             return self._read_csv(path)
 
-
     def _dataloader(self, dataset: Dataset, shuffle: bool, stage: RunningStage):
         """Get a dataloader for a given dataset"""
 
@@ -457,55 +487,55 @@ class BaseDataModule(pl.LightningDataModule):
             raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
 
         loader = DataLoader(
-        dataset=dataset,
-        num_workers=self.get_num_workers,
-        collate_fn=self.collate_fn,
-        pin_memory=self.pin_memory,
-        batch_size=batch_size,
-        shuffle=False,
-        persistent_workers=self.persistent_workers,
-        drop_last=True,
+            dataset=dataset,
+            num_workers=self.get_num_workers,
+            collate_fn=self.collate_fn,
+            pin_memory=self.pin_memory,
+            batch_size=batch_size,
+            shuffle=False,
+            persistent_workers=self.persistent_workers,
+            drop_last=True,
         )
 
         return loader
 
 
-class DatasetProcessingParams():
-   def __init__(
-       self,
-       #task_name: str,
-       df: pd.DataFrame = None,
-       df_path: Optional[Union[str, os.PathLike]] = None,
-       smiles_col: str = None,
-       label_cols: List[str] = None,
-       weights_col: str = None,                                     # Not needed
-       weights_type: str = None,                                    # Not needed
-       idx_col: str = None,
-       sample_size: Union[int, float, Type[None]] = None,
-       split_val: float = 0.2,
-       split_test: float = 0.2,
-       split_seed: int = None,
-       splits_path: Optional[Union[str, os.PathLike]] = None,
-   ):
-       #self.task_name = task_name
-       self.df = df
-       self.df_path = df_path
-       self.smiles_col = smiles_col
-       self.label_cols = label_cols
-       self.weights_col = weights_col
-       self.weights_type = weights_type
-       self.idx_col = idx_col
-       self.sample_size = sample_size
-       self.split_val = split_val
-       self.split_test = split_test
-       self.split_seed = split_seed
-       self.splits_path = splits_path
+class DatasetProcessingParams:
+    def __init__(
+        self,
+        # task_name: str,
+        df: pd.DataFrame = None,
+        df_path: Optional[Union[str, os.PathLike]] = None,
+        smiles_col: str = None,
+        label_cols: List[str] = None,
+        weights_col: str = None,  # Not needed
+        weights_type: str = None,  # Not needed
+        idx_col: str = None,
+        sample_size: Union[int, float, Type[None]] = None,
+        split_val: float = 0.2,
+        split_test: float = 0.2,
+        split_seed: int = None,
+        splits_path: Optional[Union[str, os.PathLike]] = None,
+    ):
+        # self.task_name = task_name
+        self.df = df
+        self.df_path = df_path
+        self.smiles_col = smiles_col
+        self.label_cols = label_cols
+        self.weights_col = weights_col
+        self.weights_type = weights_type
+        self.idx_col = idx_col
+        self.sample_size = sample_size
+        self.split_val = split_val
+        self.split_test = split_test
+        self.split_seed = split_seed
+        self.splits_path = splits_path
 
 
 class MultitaskFromSmilesDataModule(BaseDataModule):
     def __init__(
         self,
-        task_specific_args: Dict[str, Any],                             # TODO: Replace this with DatasetParams
+        task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_train_val: int = 16,
@@ -608,7 +638,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
 
         self.task_specific_args = task_specific_args
         # TODO: Have the input argument to the Data Module be of type DatasetParams
-        self.task_dataset_processing_params = {task: DatasetProcessingParams(**ds_args) for task, ds_args in task_specific_args.items()}
+        self.task_dataset_processing_params = {
+            task: DatasetProcessingParams(**ds_args) for task, ds_args in task_specific_args.items()
+        }
 
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
@@ -667,7 +699,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             logger.info(f"Reading data for task '{task}'")
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
-                label_cols = self._parse_label_cols(df=None, df_path=args.df_path, label_cols=args.label_cols, smiles_col=args.smiles_col)
+                label_cols = self._parse_label_cols(
+                    df=None, df_path=args.df_path, label_cols=args.label_cols, smiles_col=args.smiles_col
+                )
                 usecols = (
                     check_arg_iterator(args.smiles_col, enforce_type=list)
                     + label_cols
@@ -678,7 +712,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
 
                 task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
             else:
-                label_cols = self._parse_label_cols(df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col)
+                label_cols = self._parse_label_cols(
+                    df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
+                )
                 task_df[task] = args.df
             args.label_cols = label_cols
 
@@ -721,12 +757,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(all_smiles, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend)
+        all_mol_ids = smiles_to_unique_mol_ids(
+            all_smiles, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend
+        )
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
-        features, idx_none = self._featurize_molecules(smiles_to_featurize) # sample_idx is removed ... might need to add it again later in another way
+        features, idx_none = self._featurize_molecules(
+            smiles_to_featurize
+        )  # sample_idx is removed ... might need to add it again later in another way
 
         # Store the features (including Nones, which will be filtered in the next step)
         for task in task_dataset_args.keys():
@@ -741,7 +781,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         # Update idx_none per task for later filtering
         for task, args in task_dataset_args.items():
             for idx, feat in enumerate(args["features"]):
-                if feat == None: args["idx_none"].append(idx)
+                if feat == None:
+                    args["idx_none"].append(idx)
 
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
@@ -753,7 +794,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                 args["smiles"],
                 args["labels"],
                 args["sample_idx"],
-                args["extras"]
+                args["extras"],
             )
 
             # Update the data
@@ -799,7 +840,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         self._data_is_prepared = True
         # TODO (Gabriela): Implement the ability to save to cache.
 
-    def setup(self, stage: str = None): # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
+    def setup(
+        self, stage: str = None
+    ):  # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
 
         # Produce the label sizes to update the collate function
@@ -811,7 +854,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             print(self.train_ds)
             print(self.val_ds)
 
-            labels_size.update(self.train_ds.labels_size)     # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
+            labels_size.update(
+                self.train_ds.labels_size
+            )  # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
@@ -826,9 +871,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             self.collate_fn.keywords["labels_size_dict"] = labels_size
 
         # Produce the label sizes
-        #label_sizes.update(self.train_ds.labels_size)
-        #label_sizes.update(self.val_ds.labels_size)
-        #label_sizes.update(self.test_ds.labels_size)
+        # label_sizes.update(self.train_ds.labels_size)
+        # label_sizes.update(self.val_ds.labels_size)
+        # label_sizes.update(self.test_ds.labels_size)
 
     @staticmethod
     def get_collate_fn(collate_fn):
@@ -863,8 +908,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
 
         # Loop all the smiles and compute the features
         features = dm.parallelized(
-            self.smiles_transformer, smiles, progress=True, n_jobs=self.featurization_n_jobs,
-            tqdm_kwargs={"desc": "featurizing_smiles"}
+            self.smiles_transformer,
+            smiles,
+            progress=True,
+            n_jobs=self.featurization_n_jobs,
+            tqdm_kwargs={"desc": "featurizing_smiles"},
         )
 
         # Warn about None molecules
@@ -919,7 +967,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             elif isinstance(arg, dict):
                 new = {}
                 for key, val in arg.items():
-                    new[key] = MultitaskFromSmilesDataModule._filter_none_molecules(idx_none, val)    # Careful
+                    new[key] = MultitaskFromSmilesDataModule._filter_none_molecules(idx_none, val)  # Careful
             else:
                 new = arg
             out.append(new)
@@ -933,8 +981,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         df: pd.DataFrame,
         df_path: Optional[Union[str, os.PathLike]],
         label_cols: Union[Type[None], str, List[str]],
-        smiles_col: str
-        ) -> List[str]:
+        smiles_col: str,
+    ) -> List[str]:
         r"""
         Parse the choice of label columns depending on the type of input.
         The input parameters `label_cols` and `smiles_col` are described in
@@ -983,9 +1031,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         num_feats = graph.feat.shape[1]
         return num_feats
 
-
     # #! Andy: update this so that the dimension matches with pe final output dim
-    # #! we no longer need this as pe_dim will be specified in the config file 
+    # #! we no longer need this as pe_dim will be specified in the config file
     # @property
     # def num_node_feats_with_positional_encoding(self):
     #     """Return the number of node features in the first graph
@@ -1003,7 +1050,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
 
     #     return num_feats
 
-    #! Andy: here we want to know the input dimension for every single positional embedding 
+    #! Andy: here we want to know the input dimension for every single positional embedding
     @property
     def pe_in_dims(self):
         """Return the raw positional encoding dimensions including eigval, eigvec, rwse and more"""
@@ -1013,11 +1060,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         if isinstance(graph, (dgl.DGLGraph, GraphDict)):
             graph = graph.ndata
 
-        #* get list of all keys corresponding to positional encoding
+        # * get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
         g_keys = graph.keys
         empty = torch.Tensor([])
-        num_feats  = graph.get("feat", empty).shape[-1]
+        num_feats = graph.get("feat", empty).shape[-1]
         # ignore the normal keys for node feat and edge feat etc.
         for key in g_keys:
             if key not in ["feat", "edge_feat", "num_nodes", "edge_weight", "edge_index"]:
@@ -1052,7 +1099,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         else:
             df = args.df.iloc[0:20, :]
 
-        label_cols = self._parse_label_cols(df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col)
+        label_cols = self._parse_label_cols(
+            df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
+        )
 
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
@@ -1094,7 +1143,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         of string while labels are returned as a 2D numpy array.
         """
 
-        if smiles_col is None:      # Should we specify which dataset has caused the potential issue?
+        if smiles_col is None:  # Should we specify which dataset has caused the potential issue?
             smiles_col_all = [col for col in df.columns if "smile" in str(col).lower()]
             if len(smiles_col_all) == 0:
                 raise ValueError(f"No SMILES column found in dataframe. Columns are {df.columns}")
@@ -1117,7 +1166,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         else:
             labels = np.zeros([len(smiles), 0])
 
-        indices = None                      # What are indices for?
+        indices = None  # What are indices for?
         if idx_col is not None:
             indices = df[idx_col].values
 
@@ -1214,7 +1263,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         elif sample_size is None:
             pass
         else:
-            raise ValueError(f"Wrong value for `sample_size`: {sample_size}") # Maybe specify which task it was for?
+            raise ValueError(
+                f"Wrong value for `sample_size`: {sample_size}"
+            )  # Maybe specify which task it was for?
 
         return df
 
@@ -1252,6 +1303,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
     def __repr__(self):
         """Controls how the class is printed"""
         return omegaconf.OmegaConf.to_yaml(self.to_dict())
+
 
 class GraphOGBDataModule(MultitaskFromSmilesDataModule):
     """Load an OGB GraphProp dataset."""
@@ -1448,14 +1500,14 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
 class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
     def __init__(
-                self,
-                ipu_inference_opts: Optional["poptorch.Options"] = None,
-                ipu_training_opts: Optional["poptorch.Options"] = None,
-                ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
-                ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
-                *args,
-                **kwargs
-                ) -> None:
+        self,
+        ipu_inference_opts: Optional["poptorch.Options"] = None,
+        ipu_training_opts: Optional["poptorch.Options"] = None,
+        ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
+        ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
+        *args,
+        **kwargs,
+    ) -> None:
         """
         Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
         and the value is specified below.
@@ -1541,9 +1593,8 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
 
         self.ipu_inference_opts = ipu_inference_opts
         self.ipu_training_opts = ipu_training_opts
-        self.ipu_dataloader_training_opts=ipu_dataloader_training_opts
-        self.ipu_dataloader_inference_opts=ipu_dataloader_inference_opts
-
+        self.ipu_dataloader_training_opts = ipu_dataloader_training_opts
+        self.ipu_dataloader_inference_opts = ipu_dataloader_inference_opts
 
     def _dataloader(self, dataset: Dataset, shuffle: bool, stage: str):
         """Get a dataloader for a given dataset"""
@@ -1568,23 +1619,26 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
         from goli.ipu.ipu_dataloader import create_ipu_dataloader
 
         loader = create_ipu_dataloader(
-                dataset=dataset,
-                ipu_dataloader_options=ipu_dataloader_options,
-                ipu_options=ipu_options,
-                batch_size=batch_size,
-                collate_fn=self.collate_fn,
-                num_workers=self.get_num_workers,
-                pin_memory=self.pin_memory,
-                shuffle=shuffle,
-                persistent_workers=self.persistent_workers)
+            dataset=dataset,
+            ipu_dataloader_options=ipu_dataloader_options,
+            ipu_options=ipu_options,
+            batch_size=batch_size,
+            collate_fn=self.collate_fn,
+            num_workers=self.get_num_workers,
+            pin_memory=self.pin_memory,
+            shuffle=shuffle,
+            persistent_workers=self.persistent_workers,
+        )
 
         return loader
+
 
 def get_num_nodes(graph):
     if isinstance(graph, (dgl.DGLGraph, GraphDict)):
         return graph.num_nodes()
     elif isinstance(graph, (Data, Batch)):
         return graph.num_nodes
+
 
 def get_num_edges(graph):
     if isinstance(graph, (dgl.DGLGraph, GraphDict)):

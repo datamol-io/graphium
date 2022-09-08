@@ -263,6 +263,7 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
 
         self._initialize_activation_dropout_norm()
 
+
 def check_intpus_allow_int(obj, edge_index, size):
     """
     Overwrite the __check_input__ to allow for int32 and int16
@@ -284,18 +285,24 @@ def check_intpus_allow_int(obj, edge_index, size):
         return the_size
 
     elif isinstance(edge_index, SparseTensor):
-        if obj.flow == 'target_to_source':
+        if obj.flow == "target_to_source":
             raise ValueError(
-                ('Flow direction "target_to_source" is invalid for '
-                    'message propagation via `torch_sparse.SparseTensor`. If '
-                    'you really want to make use of a reverse message '
-                    'passing flow, pass in the transposed sparse tensor to '
-                    'the message passing module, e.g., `adj_t.t()`.'))
+                (
+                    'Flow direction "target_to_source" is invalid for '
+                    "message propagation via `torch_sparse.SparseTensor`. If "
+                    "you really want to make use of a reverse message "
+                    "passing flow, pass in the transposed sparse tensor to "
+                    "the message passing module, e.g., `adj_t.t()`."
+                )
+            )
         the_size[0] = edge_index.sparse_size(1)
         the_size[1] = edge_index.sparse_size(0)
         return the_size
 
     raise ValueError(
-        ('`MessagePassing.propagate` only supports `torch.LongTensor` of '
-            'shape `[2, num_messages]` or `torch_sparse.SparseTensor` for '
-            'argument `edge_index`.'))
+        (
+            "`MessagePassing.propagate` only supports `torch.LongTensor` of "
+            "shape `[2, num_messages]` or `torch_sparse.SparseTensor` for "
+            "argument `edge_index`."
+        )
+    )

@@ -1,5 +1,6 @@
 from collections.abc import Mapping, Sequence
-#from pprint import pprint
+
+# from pprint import pprint
 import torch
 from numpy import ndarray
 from scipy.sparse import spmatrix
@@ -94,19 +95,21 @@ def goli_collate_fn(
                     pyg_batch.append(pyg_graph)
 
                 batch[key] = Batch.from_data_list(pyg_batch)
-                #batch[key] = pyg_batch
+                # batch[key] = pyg_batch
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
                 batch[key] = [d[key] for d in elements]
 
             # Multitask setting: We have to pad the missing labels
-            elif key == 'labels':
+            elif key == "labels":
                 if labels_size_dict is not None:
                     for datum in elements:
                         empty_task_labels = set(labels_size_dict.keys()) - set(datum["labels"].keys())
                         for task in empty_task_labels:
-                            datum['labels'][task] = torch.full((len(elements), *labels_size_dict[task]), torch.nan)
+                            datum["labels"][task] = torch.full(
+                                (len(elements), *labels_size_dict[task]), torch.nan
+                            )
                 batch[key] = default_collate([datum[key] for datum in elements])
             # Otherwise, use the default torch batching
             else:
@@ -122,4 +125,3 @@ def goli_collate_fn(
         return batch["temp_key"]
     else:
         return default_collate(elements)
-

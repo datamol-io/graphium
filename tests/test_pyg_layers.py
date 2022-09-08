@@ -67,7 +67,6 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg.h.shape[0], h_in.shape[0])
         self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
 
-
     def test_ginlayer(self):
 
         bg = deepcopy(self.bg)

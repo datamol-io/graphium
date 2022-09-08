@@ -137,7 +137,9 @@ class DGNConvolutionalDgl(BaseDGNDgl, PNAConvolutionalDgl):
     def pretrans_edges(self, edges):
         pretrans = PNAConvolutionalDgl.pretrans_edges(self, edges)
         if not ("pos_dir" in edges.src.keys()):
-            raise KeyError("`pos_dir` key missing. Positional encodings are required for the DGN layer, make sure you add them under the `dglGraph.ndata['pos_dir']` key.")
+            raise KeyError(
+                "`pos_dir` key missing. Positional encodings are required for the DGN layer, make sure you add them under the `dglGraph.ndata['pos_dir']` key."
+            )
         pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
         return pretrans
 
@@ -174,6 +176,8 @@ class DGNMessagePassingDgl(BaseDGNDgl, PNAMessagePassingDgl):
     def pretrans_edges(self, edges):
         pretrans = PNAMessagePassingDgl.pretrans_edges(self, edges)
         if not ("pos_dir" in edges.src.keys()):
-            raise KeyError("`pos_dir` key missing. Positional encodings are required for the DGN layer, make sure you add them under the `dglGraph.ndata['pos_dir']` key.")
+            raise KeyError(
+                "`pos_dir` key missing. Positional encodings are required for the DGN layer, make sure you add them under the `dglGraph.ndata['pos_dir']` key."
+            )
         pretrans.update({"source_pos": edges.src["pos_dir"], "dest_pos": edges.dst["pos_dir"]})
         return pretrans

@@ -2,6 +2,7 @@ from copy import deepcopy
 from types import ModuleType
 from typing import Optional, Tuple
 
+
 def import_poptorch() -> ModuleType:
     """
     Import poptorch and returns it.
@@ -14,12 +15,17 @@ def import_poptorch() -> ModuleType:
     """
     try:
         import poptorch
+
         return poptorch
     except ImportError:
-        raise ImportError("You must install poptorch and have IPU hardware. Check the GraphCore support https://www.graphcore.ai/support")
+        raise ImportError(
+            "You must install poptorch and have IPU hardware. Check the GraphCore support https://www.graphcore.ai/support"
+        )
 
 
-def load_ipu_options(ipu_file: str, seed: Optional[int]=None) -> Tuple["poptorch.Options", "poptorch.Options"]:
+def load_ipu_options(
+    ipu_file: str, seed: Optional[int] = None
+) -> Tuple["poptorch.Options", "poptorch.Options"]:
     """
     Load the IPU options from the config file.
 
@@ -71,7 +77,7 @@ def load_ipu_options(ipu_file: str, seed: Optional[int]=None) -> Tuple["poptorch
     if seed is not None:
         ipu_options.randomSeed(seed)
 
-    #ipu_options.anchorTensor("grad_input", "Gradient___input")
+    # ipu_options.anchorTensor("grad_input", "Gradient___input")
     ipu_options.anchorTensor("input", "input")
 
     training_opts = ipu_options

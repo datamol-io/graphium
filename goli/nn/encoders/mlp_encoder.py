@@ -4,6 +4,7 @@ from typing import Union, Callable, List, Dict
 
 from goli.nn.base_layers import MLP
 
+
 class MLPEncoder(torch.nn.Module):
     """Configurable kernel-based Positional Encoding node encoder.
 
@@ -67,7 +68,6 @@ class MLPEncoder(torch.nn.Module):
         #     raise ValueError(f"`on_keys` must contain the key 'encoding'")
         return on_keys
 
-
     def forward(self, encoding):
         # Run the MLP
         encoding = self.pe_encoder(encoding)  # (Num nodes) x dim_pe
@@ -76,4 +76,3 @@ class MLPEncoder(torch.nn.Module):
         output = {self.out_level: encoding}
 
         return output
-

@@ -28,6 +28,7 @@ CONFIG_FILE = "expts/configs/config_ipu_allsizes.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
 
+
 def main(cfg: DictConfig, trial, run_name="main") -> None:
     st = timeit.default_timer()
 
@@ -35,7 +36,6 @@ def main(cfg: DictConfig, trial, run_name="main") -> None:
 
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)
-
 
     #! Andy: we might want a dict of in_dim for pe encoders from datamodule
     # Initialize the network
@@ -45,7 +45,6 @@ def main(cfg: DictConfig, trial, run_name="main") -> None:
         in_dim_edges=datamodule.num_edge_feats,
         pe_in_dims=datamodule.pe_in_dims,
     )
-
 
     metrics = load_metrics(cfg)
     logger.info(metrics)
@@ -63,16 +62,17 @@ def main(cfg: DictConfig, trial, run_name="main") -> None:
         trainer.fit(model=predictor, datamodule=datamodule)
 
     with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-        trainer.test(model=predictor, datamodule=datamodule) #, ckpt_path=ckpt_path)
+        trainer.test(model=predictor, datamodule=datamodule)  # , ckpt_path=ckpt_path)
 
-    logger.info ("--------------------------------------------")
+    logger.info("--------------------------------------------")
     logger.info("totoal computation used", timeit.default_timer() - st)
-    logger.info ("--------------------------------------------")
+    logger.info("--------------------------------------------")
 
     return trainer.callback_metrics["cv/mae/test"].cpu().item()
 
+
 if __name__ == "__main__":
-    #nan_checker("goli/data/QM9/micro_qm9.csv") #can be deleted
+    # nan_checker("goli/data/QM9/micro_qm9.csv") #can be deleted
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
 
@@ -88,12 +88,12 @@ if __name__ == "__main__":
         # cfg["architecture"]["pre_nn"]["normalization"] = normalization
         # cfg["architecture"]["post_nn"]["normalization"] = normalization
 
-        run_name = 'no_name_' if not "name" in cfg["constants"] else cfg["constants"]["name"] + "_"
+        run_name = "no_name_" if not "name" in cfg["constants"] else cfg["constants"]["name"] + "_"
         run_name = run_name + date.today().strftime("%d/%m/%Y") + "_"
         for key, value in trial.params.items():
             run_name = run_name + str(key) + "=" + str(value) + "_"
 
-        accu = main(cfg, trial, run_name=run_name[:len(run_name) - 1])
+        accu = main(cfg, trial, run_name=run_name[: len(run_name) - 1])
         wandb.finish()
         return accu
 
@@ -113,5 +113,5 @@ if __name__ == "__main__":
 
     params_str = "  Params: "
     for key, value in trial.params.items():
-        params_str += ("\n    {}: {}".format(key, value))
+        params_str += "\n    {}: {}".format(key, value)
     logger.info(params_str)

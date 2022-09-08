@@ -4,7 +4,12 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
-from goli.data.datamodule import GraphOGBDataModule, MultitaskFromSmilesDataModule, MultitaskIPUFromSmilesDataModule, MultitaskIPUFromSmilesDataModule
+from goli.data.datamodule import (
+    GraphOGBDataModule,
+    MultitaskFromSmilesDataModule,
+    MultitaskIPUFromSmilesDataModule,
+    MultitaskIPUFromSmilesDataModule,
+)
 from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU
 
 from goli.nn.dgl_layers import (
@@ -29,8 +34,9 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
-#* Andy adding positional encoder names here
-from goli.nn.encoders import laplace_pos_encoder,mlp_encoder,signnet_pos_encoder
+# * Andy adding positional encoder names here
+from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
+
 PE_ENCODERS_DICT = {
     "la_pos": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
