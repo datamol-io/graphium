@@ -326,6 +326,10 @@ class MLP(nn.Module):
         h = self.fully_connected(h)
         return h
 
+    @property
+    def in_features(self):
+        return self.in_dim
+
     def __getitem__(self, idx: int) -> nn.Module:
         return self.fully_connected[idx]
 
