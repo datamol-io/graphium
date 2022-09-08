@@ -19,7 +19,7 @@ def get_prop_or_none(prop, n, *args, **kwargs):
         return [None] * n
 
 
-def get_props_from_mol(mol: Union[Chem.rdchem.Mol, str], properties: Union[List[str], str] = "autocorr3d"):
+def get_props_from_mol(mol: Union[dm.Mol, str], properties: Union[List[str], str] = "autocorr3d"):
     r"""
     Function to get a given set of desired properties from a molecule,
     and output a property list.

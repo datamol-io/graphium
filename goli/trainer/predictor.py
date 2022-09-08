@@ -1,119 +1,22 @@
 from goli.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
-import os
 import numpy as np
 from copy import deepcopy
-import yaml
 import dgl
-from loguru import logger
-from inspect import signature
 
 import torch
 from torch import nn, Tensor
 
 import pytorch_lightning as pl
-from pytorch_lightning import _logger as log
-from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.config.config_convert import recursive_config_reformating
-from goli.utils.tensor import nan_mean, nan_std, nan_median
-from goli.utils.fs import mkdir
-from goli.utils.spaces import LOSS_DICT, SCHEDULER_DICT
+from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
+from goli.trainer.predictor_summaries import Summary, TaskSummaries
+from goli.utils.spaces import SCHEDULER_DICT
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
 }
-
-
-class EpochSummary:
-    r"""Container for collecting epoch-wise results"""
-
-    def __init__(self, monitor="loss", mode: str = "min", metrics_on_progress_bar=[]):
-        self.monitor = monitor
-        self.mode = mode
-        self.metrics_on_progress_bar = metrics_on_progress_bar
-        self.summaries = {}
-        self.best_summaries = {}
-
-    class Results:
-        def __init__(
-            self,
-            targets: Tensor,
-            predictions: Tensor,
-            loss: float,
-            metrics: dict,
-            monitored_metric: str,
-            n_epochs: int,
-        ):
-            self.targets = targets.detach().cpu()
-            self.predictions = predictions.detach().cpu()
-            self.loss = loss.item() if isinstance(loss, Tensor) else loss
-            self.monitored_metric = monitored_metric
-            if monitored_metric in metrics.keys():
-                self.monitored = metrics[monitored_metric].detach().cpu()
-            self.metrics = {
-                key: value.tolist() if isinstance(value, (Tensor, np.ndarray)) else value
-                for key, value in metrics.items()
-            }
-            self.n_epochs = n_epochs
-
-    def set_results(self, name, targets, predictions, loss, metrics, n_epochs) -> float:
-        metrics[f"loss/{name}"] = loss
-        self.summaries[name] = EpochSummary.Results(
-            targets=targets,
-            predictions=predictions,
-            loss=loss,
-            metrics=metrics,
-            monitored_metric=f"{self.monitor}/{name}",
-            n_epochs=n_epochs,
-        )
-        if self.is_best_epoch(name, loss, metrics):
-            self.best_summaries[name] = self.summaries[name]
-
-    def is_best_epoch(self, name, loss, metrics):
-        if not (name in self.best_summaries.keys()):
-            return True
-
-        metrics[f"loss/{name}"] = loss
-        monitor_name = f"{self.monitor}/{name}"
-        if not monitor_name in self.best_summaries.keys():
-            return True
-
-        if self.mode == "max":
-            return metrics[monitor_name] > self.best_summaries[name].monitored
-        elif self.mode == "min":
-            return metrics[monitor_name] < self.best_summaries[name].monitored
-        else:
-            ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
-
-    def get_results(self, name):
-        return self.summaries[name]
-
-    def get_best_results(self, name):
-        return self.best_summaries[name]
-
-    def get_results_on_progress_bar(self, name):
-        results = self.summaries[name]
-        results_prog = {
-            f"{kk}/{name}": results.metrics[f"{kk}/{name}"] for kk in self.metrics_on_progress_bar
-        }
-        return results_prog
-
-    def get_dict_summary(self):
-        full_dict = {}
-        # Get metric summaries
-        full_dict["metric_summaries"] = {}
-        for key, val in self.summaries.items():
-            full_dict["metric_summaries"][key] = {k: v for k, v in val.metrics.items()}
-            full_dict["metric_summaries"][key]["n_epochs"] = val.n_epochs
-
-        # Get metric summaries at best epoch
-        full_dict["best_epoch_metric_summaries"] = {}
-        for key, val in self.best_summaries.items():
-            full_dict["best_epoch_metric_summaries"][key] = val.metrics
-            full_dict["best_epoch_metric_summaries"][key]["n_epochs"] = val.n_epochs
-
-        return full_dict
 
 
 class PredictorModule(pl.LightningModule):
@@ -121,208 +24,122 @@ class PredictorModule(pl.LightningModule):
         self,
         model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
-        loss_fun: Union[str, Callable],
-        random_seed: int = 42,
-        optim_kwargs: Optional[Dict[str, Any]] = None,
-        lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,
-        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
-        scheduler_kwargs: Optional[Dict[str, Any]] = None,
+        loss_fun: Dict[str, Union[str, Callable]],  # Task-specific
+        random_seed: int = 42,  # Leave
+        optim_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
+        lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
+        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
+        scheduler_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
         target_nan_mask: Optional[Union[int, float, str]] = None,
-        metrics: Dict[str, Callable] = None,
-        metrics_on_progress_bar: List[str] = [],
-        metrics_on_training_set: Optional[List[str]] = None,
+        metrics: Dict[str, Callable] = None,  # Task-specific
+        metrics_on_progress_bar: Dict[str, List[str]] = [],
+        metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
     ):
-        r"""
-        A class that allows to use regression or classification models easily
-        with Pytorch-Lightning.
+        """
+        The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
+        It works in a multi-task setting, with different losses and metrics per class
 
         Parameters:
-            model_class:
-                pytorch module used to create a model
-
-            model_kwargs:
-                Key-word arguments used to initialize the model from `model_class`.
-
-            loss_fun:
-                Loss function used during training.
-                Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
-                Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
-
-            random_seed:
-                The random seed used by Pytorch to initialize random tensors.
-
-            optim_kwargs:
-                Dictionnary used to initialize the optimizer, with possible keys below.
-
-                - lr `float`: Learning rate (Default=`1e-3`)
-                - weight_decay `float`: Weight decay used to regularize the optimizer (Default=`0.`)
-
-            lr_reduce_on_plateau_kwargs:
-                DEPRECIATED. USE `torch_scheduler_kwargs` instead.
-                Dictionnary for the reduction of learning rate when reaching plateau, with possible keys below.
-
-                - factor `float`: Factor by which to reduce the learning rate (Default=`0.5`)
-                - patience `int`: Number of epochs without improvement to wait before reducing
-                  the learning rate (Default=`10`)
-                - mode `str`: One of min, max. In min mode, lr will be reduced when the quantity
-                  monitored has stopped decreasing; in max mode it will be reduced when the quantity
-                  monitored has stopped increasing. (Default=`"min"`).
-                - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate
-                  of all param groups or each group respectively (Default=`1e-4`)
-
-            torch_scheduler_kwargs:
-                Dictionnary for the scheduling of learning rate, with possible keys below.
-
-                - type `str`: Type of the learning rate to use from pytorch. Examples are
-                  `'ReduceLROnPlateau'` (default), `'CosineAnnealingWarmRestarts'`, `'StepLR'`, etc.
-                - **kwargs: Any other argument for the learning rate scheduler
-
-            scheduler_kwargs:
-                Dictionnary for the scheduling of the learning rate modification used by pytorch-lightning
-
-                - monitor `str`: metric to track (Default=`"loss/val"`)
-                - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
-                - strict `bool`: if set to True will enforce that value specified in monitor is available
-                  while trying to call scheduler.step(), and stop training if not found. If False will
-                  only give a warning and continue training (without calling the scheduler). (Default=`True`)
-                - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
-
-            target_nan_mask:
-
-                - None: Do not change behaviour if there are NaNs
-
-                - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
-                  all NaNs will be replaced by zeros
-
-                - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
-
-                - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
-                  has a different number of NaNs, so the metric will be computed separately
-                  on each column, and the metric result will be averaged over all columns.
-                  *This option might slowdown the computation if there are too many labels*
-
-            metrics:
-                A dictionnary of metrics to compute on the prediction, other than the loss function.
-                These metrics will be logged into TensorBoard.
-
-            metrics_on_progress_bar:
-                The metrics names from `metrics` to display also on the progress bar of the training
-
-            metrics_on_training_set:
-                The metrics names from `metrics` to be computed on the training set for each iteration.
-                If `None`, all the metrics are computed. Using less metrics can significantly improve
-                performance, depending on the number of readouts.
-
-            flag_kwargs:
-                Keyword arguments used for FLAG, and adversarial data augmentation for graph networks.
-                See: https://arxiv.org/abs/2010.09891
-
-                - n_steps: An integer that specifies the number of ascent steps when running FLAG during training.
-                  Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
-                  many iterations.
-
-                - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01
+            model_class: The torch Module containing the main forward function
+            model_kwargs: The arguments to initialize the model from `model_class`
+            loss_fun: A `dict[str, fun]`, where `str` is the task name and `fun` the loss function
+            random_seed: The seed for random initialization
+            optim_kwargs: The optimization arguments.
+            lr_reduce_on_plateau_kwargs: TODO: Re-do the scheduling
+            torch_scheduler_kwargs: TODO: Re-do the scheduling
+            scheduler_kwargs: TODO: Re-do the scheduling
+            target_nan_mask: How to handle the NaNs. See `MetricsWrapper` for options
+            metrics: A `dict[str, fun]`, where `str` is the task name and `fun` the metric function
+            metrics_on_progress_bar: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the progress bar
+            metrics_on_training_set: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the training set
+            flag_kwargs: Arguments related to using the FLAG adversarial augmentation
         """
-
         self.save_hyperparameters()
 
-        torch.random.manual_seed(random_seed)
-        np.random.seed(random_seed)
+        self.random_seed = random_seed
+        torch.random.manual_seed(self.random_seed)
+        np.random.seed(self.random_seed)
+
+        self.target_nan_mask = target_nan_mask
 
         super().__init__()
-        self.model = model_class(**model_kwargs)
 
-        # Basic attributes
-        self.loss_fun = self.parse_loss_fun(loss_fun)
-        self.random_seed = random_seed
-        self.target_nan_mask = target_nan_mask
-        self.metrics = metrics if metrics is not None else {}
-        self.metrics_on_progress_bar = metrics_on_progress_bar
-        self.metrics_on_training_set = (
-            list(self.metrics.keys()) if metrics_on_training_set is None else metrics_on_training_set
+        # Setting the model options
+        self._model_options = ModelOptions(model_class=model_class, model_kwargs=model_kwargs)
+        # Setting the optimizer options
+        self._optim_options = OptimOptions(
+            optim_kwargs=optim_kwargs,
+            lr_reduce_on_plateau_kwargs=lr_reduce_on_plateau_kwargs,
+            torch_scheduler_kwargs=torch_scheduler_kwargs,
+            scheduler_kwargs=scheduler_kwargs,
         )
+        # Setting the evaluation options
+        eval_options = {}
+        for task in loss_fun:
+            eval_options[task] = EvalOptions(
+                loss_fun=loss_fun[task],
+                metrics=metrics[task],
+                metrics_on_progress_bar=metrics_on_progress_bar[task],
+                metrics_on_training_set=metrics_on_training_set[task]
+                if metrics_on_training_set is not None
+                else None,
+            )
+        self._eval_options_dict: Dict[str, EvalOptions] = eval_options
+        # Setting the flag options
+        self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
+
+        self.model = self._model_options.model_class(**self._model_options.model_kwargs)
+        self.tasks = list(loss_fun.keys())
+
+        # Task-specific evalutation attributes
+        self.loss_fun = {}
+        self.metrics = {}
+        self.metrics_on_progress_bar = {}
+        self.metrics_on_training_set = {}
+        for task in self.tasks:
+            self.loss_fun[task] = EvalOptions.parse_loss_fun(loss_fun[task])
+            self.metrics[task] = (
+                self._eval_options_dict[task].metrics
+                if self._eval_options_dict[task].metrics is not None
+                else {}
+            )
+            self.metrics_on_progress_bar[task] = self._eval_options_dict[task].metrics_on_progress_bar
+            self.metrics_on_training_set[task] = (
+                list(self.metrics[task].keys())
+                if self._eval_options_dict[task].metrics_on_training_set is None
+                else self._eval_options_dict[task].metrics_on_training_set
+            )
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
         # Set the parameters and default values for the FLAG adversarial augmentation, and check values
-        self.flag_kwargs = {"alpha": 0.01, "n_steps": 0}
-        if flag_kwargs is not None:
-            self.flag_kwargs.update(flag_kwargs)
-        assert isinstance(self.flag_kwargs["n_steps"], int) and (self.flag_kwargs["n_steps"] >= 0)
-        assert self.flag_kwargs["alpha"] > 0
+        self._flag_options.set_kwargs()
+        self.flag_kwargs = self._flag_options.flag_kwargs
 
+        # Set the parameters for optimizer options
+        self._optim_options.set_kwargs()
         # Set the parameters and default value for the optimizer, and check values
-        self.optim_kwargs = {"lr": 1e-3, "weight_decay": 0.0}
-        if optim_kwargs is not None:
-            self.optim_kwargs.update(optim_kwargs)
-        assert self.optim_kwargs["lr"] > 0
-        assert self.optim_kwargs["weight_decay"] >= 0
-
+        self.optim_kwargs = self._optim_options.optim_kwargs
         # Set the lightning scheduler
-        self.scheduler_kwargs = {
-            "interval": "epoch",
-            "monitor": "loss/val",
-            "mode": "min",
-            "frequency": 1,
-            "strict": True,
-        }
-        if scheduler_kwargs is not None:
-            self.scheduler_kwargs.update(scheduler_kwargs)
-
-        # Set the depreciated arguments, if provided
-        if lr_reduce_on_plateau_kwargs is not None:
-            logger.warning(
-                "`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead."
-            )
-            if torch_scheduler_kwargs is not None:
-                raise ValueError(
-                    "Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided"
-                )
-            torch_scheduler_kwargs = {
-                "module_type": "ReduceLROnPlateau",
-                **lr_reduce_on_plateau_kwargs,
-            }
-
+        self.scheduler_kwargs = self._optim_options.scheduler_kwargs
         # Set the pytorch scheduler arguments
-        if torch_scheduler_kwargs is None:
-            self.torch_scheduler_kwargs = {}
-        else:
-            self.torch_scheduler_kwargs = torch_scheduler_kwargs
-        self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
+        self.torch_scheduler_kwargs = self._optim_options.torch_scheduler_kwargs
 
         # Initialize the epoch summary
-        monitor = self.scheduler_kwargs["monitor"].split("/")[0]
-        mode = self.scheduler_kwargs["mode"]
-        self.epoch_summary = EpochSummary(
-            monitor, mode=mode, metrics_on_progress_bar=self.metrics_on_progress_bar
+        monitor = "micro_zinc/MSELoss/val"  # self.scheduler_kwargs["monitor"].split("/")[0] TODO: Fix the scheduler with the Summary class
+        mode = "min"  # self.scheduler_kwargs["mode"]
+
+        self.task_epoch_summary = TaskSummaries(
+            task_loss_fun=self.loss_fun,
+            task_metrics=self.metrics,
+            task_metrics_on_training_set=self.metrics_on_training_set,
+            task_metrics_on_progress_bar=self.metrics_on_progress_bar,
+            monitor=monitor,
+            mode=mode,
         )
 
-        # This helps avoid a bug when saving hparams to yaml with different
-        # dict or str formats
+        # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
-
-    @staticmethod
-    def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
-        r"""
-        Parse the loss function from a string
-
-        Parameters:
-            loss_fun:
-                A callable corresponding to the loss function or a string
-                specifying the loss function from `LOSS_DICT`. Accepted strings are:
-                "mse", "bce", "l1", "mae", "cosine".
-
-        Returns:
-            Callable:
-                Function or callable to compute the loss, takes `preds` and `targets` as inputs.
-        """
-
-        if isinstance(loss_fun, str):
-            loss_fun = LOSS_DICT[loss_fun]
-        elif not callable(loss_fun):
-            raise ValueError(f"`loss_fun` must be `str` or `callable`. Provided: {type(loss_fun)}")
-
-        return loss_fun
 
     def forward(self, inputs: Dict) -> Dict[str, Union[torch.Tensor, Any]]:
         r"""
@@ -337,9 +154,8 @@ class PredictorModule(pl.LightningModule):
         """
         # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
+        # *check for nan in model output
         out = self.model.forward(feats)
-
-        # Convert the output of the model to a dictionary
         if isinstance(out, dict) and ("preds" in out.keys()):
             out_dict = out
         else:
@@ -362,31 +178,35 @@ class PredictorModule(pl.LightningModule):
         return feats
 
     def configure_optimizers(self):
+
+        # TODO (Gabriela): Fix scheduling with the Summary class
         # Configure the parameters for the schedulers
-        sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
-        scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
-        sig = signature(scheduler_class.__init__)
-        key_args = [p.name for p in sig.parameters.values()]
-        if "monitor" in key_args:
-            sc_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
-        if "mode" in key_args:
-            sc_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
+        # sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
+        # scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
+        # sig = signature(scheduler_class.__init__)
+        # key_args = [p.name for p in sig.parameters.values()]
+        # if "monitor" in key_args:
+        #     sc_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
+        # if "mode" in key_args:
+        #     sc_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
 
         # Define the optimizer and schedulers
         optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
-        torch_scheduler = scheduler_class(optimizer=optimiser, **sc_kwargs)
-        scheduler = {
-            "scheduler": torch_scheduler,
-            **self.scheduler_kwargs,
-        }
-        return [optimiser], [scheduler]
+        # torch_scheduler = scheduler_class(optimizer=optimiser, **sc_kwargs)
+        # scheduler = {
+        #     "scheduler": torch_scheduler,
+        #     **self.scheduler_kwargs,
+        # }
+        # scheduler = None
+        # return [optimiser], [scheduler]
+        return [optimiser]
 
     @staticmethod
     def compute_loss(
-        preds: Tensor,
-        targets: Tensor,
+        preds: Dict[str, Tensor],
+        targets: Dict[str, Tensor],
         weights: Optional[Tensor],
-        loss_fun: Callable,
+        loss_fun: Dict[str, Callable],
         target_nan_mask: Union[Type, str] = "ignore",
     ) -> Tensor:
         r"""
@@ -425,102 +245,71 @@ class PredictorModule(pl.LightningModule):
                 Resulting loss
         """
 
-        wrapped_loss_fun = MetricWrapper(
-            metric=loss_fun, threshold_kwargs=None, target_nan_mask=target_nan_mask
-        )
+        wrapped_loss_fun_dict = {
+            task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask)
+            for task, loss in loss_fun.items()
+        }
+
         if weights is not None:
             raise NotImplementedError("Weights are no longer supported in the loss")
-        loss = wrapped_loss_fun(preds=preds, target=targets)
+        all_task_losses = {
+            task: wrapped(preds=preds[task], target=targets[task])
+            for task, wrapped in wrapped_loss_fun_dict.items()
+        }
+        total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
+        num_tasks = len(all_task_losses.keys())
+        weighted_loss = total_loss / num_tasks
+        return weighted_loss, all_task_losses
 
-        return loss
-
-    def get_metrics_logs(
-        self, preds: Tensor, targets: Tensor, weights: Optional[Tensor], step_name: str, loss: Tensor
-    ) -> Dict[str, Any]:
-        r"""
-        Get the logs for the loss and the different metrics, in a format compatible with
-        Pytorch-Lightning.
-
-        Parameters:
-            preds:
-                Predicted values
-
-            targets:
-                Target values
-
-            step_name:
-                A string to mention whether the metric is computed on the training,
-                validation or test set.
-
-                - "train": On the training set
-                - "val": On the validation set
-                - "test": On the test set
-
-        """
-
-        targets = targets.to(dtype=preds.dtype, device=preds.device)
-
-        # Compute the metrics always used in regression tasks
-        metric_logs = {}
-        metric_logs[f"mean_pred/{step_name}"] = nan_mean(preds)
-        metric_logs[f"std_pred/{step_name}"] = nan_std(preds)
-        metric_logs[f"median_pred/{step_name}"] = nan_median(preds)
-        metric_logs[f"mean_target/{step_name}"] = nan_mean(targets)
-        metric_logs[f"std_target/{step_name}"] = nan_std(targets)
-        metric_logs[f"median_target/{step_name}"] = nan_median(targets)
-        if torch.cuda.is_available():
-            metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2**30))
-
-        # Specify which metrics to use
-        metrics_to_use = self.metrics
-        if step_name == "train":
-            metrics_to_use = {
-                key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set
-            }
-
-        # Compute the additional metrics
-        for key, metric in metrics_to_use.items():
-            metric_name = f"{key}/{step_name}"
-            try:
-                metric_logs[metric_name] = metric(preds, targets)
-            except Exception as e:
-                metric_logs[metric_name] = torch.as_tensor(float("nan"))
-
-        # Convert all metrics to CPU, except for the loss
-        metric_logs[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
-        metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
-
-        return metric_logs
-
-    def _general_step(
-        self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
-    ) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        preds = self.forward(batch)["preds"]
-        targets = batch.pop("labels").to(dtype=preds.dtype)
-        weights = batch.pop("weights", None)
+        preds = self.forward(batch)  # The dictionary of predictions
 
-        loss = self.compute_loss(
+        # * check for nan in model output
+        targets_dict = batch.get("labels")
+
+        # Different type of preds can be return by the forward
+        if isinstance(preds, dict) and ("preds" in preds.keys()):
+            preds = preds["preds"]
+        elif isinstance(preds, Tensor):
+            preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
+
+        # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
+        for task, pred in preds.items():
+            targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
+        weights = batch.get("weights", None)
+
+        loss, task_losses = self.compute_loss(
             preds=preds,
-            targets=targets,
+            targets=targets_dict,
             weights=weights,
             target_nan_mask=self.target_nan_mask,
-            loss_fun=self.loss_fun,
+            loss_fun=self.loss_fun,  # This is a dictionary
         )
 
         device = "cpu" if to_cpu else None
-        preds = preds.detach().to(device=device)
-        targets = targets.detach().to(device=device)
+        for task in preds:
+            preds[task] = preds[task].detach().to(device=device)
+            targets_dict[task] = targets_dict[task].detach().to(device=device)
         if weights is not None:
             weights = weights.detach().to(device=device)
 
-        step_dict = {"preds": preds, "targets": targets, "weights": weights}
-        step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
-        return loss, step_dict
+        step_dict = {"preds": preds, "targets": targets_dict, "weights": weights}
+        # step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()            original
 
-    def flag_step(
-        self, batch: Dict[str, Tensor], batch_idx: int, step_name: str, to_cpu: bool
-    ) -> Dict[str, Any]:
+        # step_dict[f"weighted_loss/{step_name}"] = loss.detach().cpu()
+        # step_dict[f"loss/{step_name}"] = loss.detach().cpu()
+        for task in self.tasks:  # TODO: Verify consistency with Summary class
+            step_dict[
+                self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)
+            ] = loss.detach().cpu()
+
+        step_dict["loss"] = loss
+        # print("loss ", self.global_step, self.current_epoch, loss)
+        step_dict["task_losses"] = task_losses
+        return step_dict
+
+    def flag_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""
         Perform adversarial data agumentation during one training step using FLAG.
         Paper: https://arxiv.org/abs/2010.09891
@@ -572,7 +361,6 @@ class PredictorModule(pl.LightningModule):
                 )
                 / n_steps
             )
-
         device = "cpu" if to_cpu else None
         preds = preds.detach().to(device=device)
         targets = targets.detach().to(device=device)
@@ -581,33 +369,45 @@ class PredictorModule(pl.LightningModule):
 
         step_dict = {"preds": preds, "targets": targets, "weights": weights}
         step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
-        return loss, step_dict
 
-    def training_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        loss = None
+        step_dict["loss"] = loss
+        return step_dict
+
+    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
+        concatenated_metrics_logs = outputs
+        self.logger.log_metrics(
+            concatenated_metrics_logs, step=self.global_step
+        )  # This is a pytorch lightning function call
+
+    def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         step_dict = None
 
         # Train using FLAG
         if self.flag_kwargs["n_steps"] > 0:
-            loss, step_dict = self.flag_step(batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True)
+            step_dict = self.flag_step(batch=batch, step_name="train", to_cpu=to_cpu)
         # Train normally, without using FLAG
         elif self.flag_kwargs["n_steps"] == 0:
-            loss, step_dict = self._general_step(
-                batch=batch, batch_idx=batch_idx, step_name="train", to_cpu=True
-            )
+            step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
 
-        metrics_logs = self.get_metrics_logs(
-            preds=step_dict["preds"],
-            targets=step_dict["targets"],
-            weights=step_dict["weights"],
+        self.task_epoch_summary.update_predictor_state(
             step_name="train",
-            loss=loss,
+            targets=step_dict["targets"],
+            predictions=step_dict["preds"],
+            loss=step_dict["loss"],  # This is the weighted loss for now, but change to task-sepcific loss
+            task_losses=step_dict["task_losses"],
+            n_epochs=self.current_epoch,
         )
+        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
+        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
+        step_dict.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
 
-        step_dict.update(metrics_logs)
-        step_dict["loss"] = loss
+        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        concatenated_metrics_logs["loss"] = step_dict["loss"]
+        step_dict["grad_norm"] = self.get_gradient_norm()
+        concatenated_metrics_logs["train/grad_norm"] = step_dict["grad_norm"]
 
-        self.logger.log_metrics(metrics_logs, step=self.global_step)
+        # Wandb metric tracking here
+        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)
 
         # Predictions and targets are no longer needed after the step.
         # Keeping them will increase memory usage significantly for large datasets.
@@ -615,45 +415,56 @@ class PredictorModule(pl.LightningModule):
         step_dict.pop("targets")
         step_dict.pop("weights")
 
-        return step_dict
+        return concatenated_metrics_logs  # Returning the metrics_logs with the loss
 
-    def validation_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="val", to_cpu=True)[1]
+    def get_gradient_norm(self):
+        # compute the norm
+        total_norm = torch.tensor(0.0)
+        for p in self.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.detach().data.norm(2)
+                total_norm += param_norm.item() ** 2
+        total_norm = total_norm**0.5
+        return total_norm
 
-    def test_step(self, batch: Dict[str, Tensor], batch_idx: int) -> Dict[str, Any]:
-        return self._general_step(batch=batch, batch_idx=batch_idx, step_name="test", to_cpu=True)[1]
+    def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
+        return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)
+
+    def test_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
+        return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
-
         # Transform the list of dict of dict, into a dict of list of dict
-        preds = torch.cat([out["preds"] for out in outputs], dim=0)
-        targets = torch.cat([out["targets"] for out in outputs], dim=0)
-        if outputs[0]["weights"] is not None:
+        preds = {}
+        targets = {}
+        for task in self.tasks:
+            preds[task] = torch.cat([out["preds"][task] for out in outputs], dim=0)
+            targets[task] = torch.cat([out["targets"][task] for out in outputs], dim=0)
+        if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
             weights = None
-        loss = self.compute_loss(
+        loss, task_losses = self.compute_loss(
             preds=preds,
             targets=targets,
             weights=weights,
             target_nan_mask=self.target_nan_mask,
             loss_fun=self.loss_fun,
         )
-        metrics_logs = self.get_metrics_logs(
-            preds=preds, targets=targets, weights=weights, step_name=step_name, loss=loss
-        )
 
-        self.epoch_summary.set_results(
-            name=step_name,
+        self.task_epoch_summary.update_predictor_state(
+            step_name=step_name,
             predictions=preds,
             targets=targets,
             loss=loss,
-            metrics=metrics_logs,
+            task_losses=task_losses,
             n_epochs=self.current_epoch,
         )
+        metrics_logs = self.task_epoch_summary.get_metrics_logs()
+        self.task_epoch_summary.set_results(task_metrics=metrics_logs)
 
-        return metrics_logs
+        return metrics_logs  # Consider returning concatenated dict for tensorboard
 
     def training_epoch_end(self, outputs: Dict):
         """
@@ -666,46 +477,41 @@ class PredictorModule(pl.LightningModule):
     def validation_epoch_end(self, outputs: Dict[str, Any]):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
+        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
         lr = self.optimizers().param_groups[0]["lr"]
         metrics_logs["lr"] = lr
         metrics_logs["n_epochs"] = self.current_epoch
-        self.log_dict(metrics_logs)
+        self.log_dict(concatenated_metrics_logs)
 
-        # Save yaml file with the metrics summaries
+        # Save yaml file with the per-task metrics summaries
         full_dict = {}
-        full_dict.update(self.epoch_summary.get_dict_summary())
-        tb_path = self.logger.log_dir
-
-        # Write the YAML file with the metrics
-        if self.current_epoch >= 0:
-            mkdir(tb_path)
-            with open(os.path.join(tb_path, "metrics.yaml"), "w") as file:
-                yaml.dump(full_dict, file)
+        full_dict.update(self.task_epoch_summary.get_dict_summary())
 
     def test_epoch_end(self, outputs: Dict[str, Any]):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
-        self.log_dict(metrics_logs)
+        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
-        # Save yaml file with the metrics summaries
+        self.log_dict(concatenated_metrics_logs)
+
+        # Save yaml file with the per-task metrics summaries
         full_dict = {}
-        full_dict.update(self.epoch_summary.get_dict_summary())
-        tb_path = self.logger.log_dir
-        os.makedirs(tb_path, exist_ok=True)
-        with open(f"{tb_path}/metrics.yaml", "w") as file:
-            yaml.dump(full_dict, file)
+        full_dict.update(self.task_epoch_summary.get_dict_summary())
 
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)
         hparams_log["n_params"] = self.n_params
-        self.logger.log_hyperparams(hparams_log, self.epoch_summary.get_results("val").metrics)
+        self.logger.log_hyperparams(hparams_log)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
-        prog_dict = super().get_progress_bar_dict()
-        results_on_progress_bar = self.epoch_summary.get_results_on_progress_bar("val")
-        prog_dict["loss/val"] = self.epoch_summary.summaries["val"].loss
-        prog_dict.update(results_on_progress_bar)
+        prog_dict = {}
+        results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
+        for task in self.tasks:
+            prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = (
+                self.task_epoch_summary.task_summaries[task].summaries["val"].loss
+            )
+            prog_dict.update(results_on_progress_bar)
         return prog_dict
 
     def __repr__(self) -> str:

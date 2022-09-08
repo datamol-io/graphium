@@ -1,14 +1,15 @@
 import os
-import torch
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from typing import Iterable, List, Union, Any
+from typing import Iterable, List, Union, Any, Callable
 from inspect import getfullargspec
 from copy import copy, deepcopy
 from loguru import logger
 
 from rdkit.Chem import AllChem
+
+import torch
 from torch import Tensor
 
 
@@ -288,12 +289,50 @@ def nan_mad(input: Tensor, normal: bool = True, **kwargs) -> Tensor:
     return mad
 
 
+class ModuleWrap(torch.nn.Module):
+    r"""
+    Wrap a function into a `torch.nn.Module`, with possible `*args` and `**kwargs`
+
+    Parameters:
+        func: function to wrap into a module
+    """
+
+    def __init__(self, func, *args, **kwargs) -> None:
+        super().__init__()
+        self.func = func
+        self.__name__ = f"ModuleWrap({self.func.__name__})"
+        self.args = args
+        self.kwargs = kwargs
+
+    def forward(self, *args, **kwargs):
+        """
+        Calls the function `self.func` with the arguments `self.func(*self.args, *args, **self.kwargs, **kwargs)`
+        """
+        return self.func(*self.args, *args, **self.kwargs, **kwargs)
+
+    def __repr__(self):
+        return self.__name__
+
+
 class ModuleListConcat(torch.nn.ModuleList):
+    r"""
+    A list of neural modules similar to `torch.nn.ModuleList`,
+    but where the modules are applied on the same input and
+    concatenated together, instead of being applied sequentially.
+
+    Parameters:
+        dim: The dimension for the concatenation
+    """
+
     def __init__(self, dim: int = -1):
         super().__init__()
         self.dim = dim
 
     def forward(self, *args, **kwargs) -> Tensor:
+        r"""
+        Apply all layers on the `args` and `kwargs`, and concatenate
+        their output alongside the dimension `self.dim`.
+        """
         h = []
         for module in self:
             h.append(module.forward(*args, **kwargs))

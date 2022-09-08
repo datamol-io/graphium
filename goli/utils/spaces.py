@@ -4,18 +4,26 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
-from goli.data.datamodule import DGLFromSmilesDataModule, DGLOGBDataModule
+from goli.data.datamodule import (
+    GraphOGBDataModule,
+    MultitaskFromSmilesDataModule,
+    MultitaskIPUFromSmilesDataModule,
+    MultitaskIPUFromSmilesDataModule,
+)
+from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU
 
 from goli.nn.dgl_layers import (
-    GATLayer,
-    GCNLayer,
-    GINLayer,
-    GatedGCNLayer,
-    PNAConvolutionalLayer,
-    PNAMessagePassingLayer,
-    DGNConvolutionalLayer,
-    DGNMessagePassingLayer,
+    GATDgl,
+    GCNDgl,
+    GINDgl,
+    GatedGCNDgl,
+    PNAConvolutionalDgl,
+    PNAMessagePassingDgl,
+    DGNConvolutionalDgl,
+    DGNMessagePassingDgl,
 )
+
+from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg, GPSLayerPyg
 
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -32,18 +40,27 @@ FC_LAYERS_DICT = {
 }
 
 DGL_LAYERS_DICT = {
-    "gcn": GCNLayer,
-    "gin": GINLayer,
-    "gat": GATLayer,
-    "gated-gcn": GatedGCNLayer,
-    "pna-conv": PNAConvolutionalLayer,
-    "pna-msgpass": PNAMessagePassingLayer,
-    "dgn-conv": DGNConvolutionalLayer,
-    "dgn-msgpass": DGNMessagePassingLayer,
+    "dgl:gcn": GCNDgl,
+    "dgl:gin": GINDgl,
+    "dgl:gat": GATDgl,
+    "dgl:gated-gcn": GatedGCNDgl,
+    "dgl:pna-conv": PNAConvolutionalDgl,
+    "dgl:pna-msgpass": PNAMessagePassingDgl,
+    "dgl:dgn-conv": DGNConvolutionalDgl,
+    "dgl:dgn-msgpass": DGNMessagePassingDgl,
+}
+
+PYG_LAYERS_DICT = {
+    "pyg:gin": GINConvPyg,
+    "pyg:gine": GINEConvPyg,
+    "pyg:gated-gcn": GatedGCNPyg,
+    "pyg:pna-msgpass": PNAMessagePassingPyg,
+    "pyg:gps": GPSLayerPyg,
 }
 
 LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
 LAYERS_DICT.update(deepcopy(FC_LAYERS_DICT))
+LAYERS_DICT.update(deepcopy(PYG_LAYERS_DICT))
 
 
 RESIDUALS_DICT = {
@@ -60,7 +77,12 @@ LOSS_DICT = {
     "bce": torch.nn.BCELoss(),
     "l1": torch.nn.L1Loss(),
     "mae": torch.nn.L1Loss(),
+    "bce_ipu": BCELossIPU(),
+    "mse_ipu": MSELossIPU(),
+    "mae_ipu": L1LossIPU(),
+    "l1_ipu": L1LossIPU(),
 }
+
 
 SCHEDULER_DICT = {
     "CosineAnnealingLR": sc.CosineAnnealingLR,
@@ -102,6 +124,7 @@ METRICS_DICT.update(METRICS_REGRESSION)
 
 
 DATAMODULE_DICT = {
-    "DGLFromSmilesDataModule": DGLFromSmilesDataModule,
-    "DGLOGBDataModule": DGLOGBDataModule,
+    "GraphOGBDataModule": GraphOGBDataModule,
+    "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule,
+    "MultitaskIPUFromSmilesDataModule": MultitaskIPUFromSmilesDataModule,
 }

@@ -9,7 +9,8 @@ import unittest as ut
 import dgl
 from copy import deepcopy
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardDGL, FullDGLNetwork, FullDGLSiameseNetwork
+from goli.nn.architectures import FeedForwardNN, FeedForwardDGL, FeedForwardPyg, FullGraphNetwork
+from goli.nn.architectures.global_architectures import FeedForwardGraphBase
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -18,6 +19,9 @@ from goli.nn.residual_connections import (
     ResidualConnectionSimple,
     ResidualConnectionWeighted,
 )
+from torch_geometric.data import Data, Batch
+
+from goli.utils.spaces import LAYERS_DICT
 
 
 class test_FeedForwardNN(ut.TestCase):
@@ -316,7 +320,7 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
 
 
-class test_FeedForwardDGL(ut.TestCase):
+class test_FeedForwardGraph(ut.TestCase):
 
     kwargs = {
         "activation": "relu",
@@ -330,41 +334,67 @@ class test_FeedForwardDGL(ut.TestCase):
     in_dim_edges = 13
     hidden_dims = [6, 6, 6, 6, 6]
 
-    g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
-    g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
-    g1.ndata["h"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    g1.edata["e"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    g2.ndata["h"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    g2.edata["e"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    edge_idx1 = (torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3]))
+    edge_idx2 = (torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0]))
+    g1 = dgl.graph(edge_idx1)
+    g2 = dgl.graph(edge_idx2)
+    h1 = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
+    e1 = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
+    h2 = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
+    e2 = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    g1.ndata["h"] = h1
+    g1.edata["edge_attr"] = e1
+    g2.ndata["h"] = h2
+    g2.edata["edge_attr"] = e2
     batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
     batch = [dgl.add_self_loop(g) for g in batch]
-    bg = dgl.batch(batch)
+    batch_dgl = dgl.batch(batch)
+
+    num_nodes = batch_dgl.num_nodes()
+    batch_size = batch_dgl.batch_size
+
+    g1 = Data(h=h1, edge_index=torch.stack(edge_idx1), edge_attr=e1)
+    g2 = Data(h=h2, edge_index=torch.stack(edge_idx2), edge_attr=e2)
+    batch_pyg = Batch.from_data_list([g1, g2, deepcopy(g1), deepcopy(g2)])
 
     virtual_nodes = ["none", "mean", "sum"]
-    norms = ["none", None, "batch_norm", "layer_norm"]
+    norms = ["none", "batch_norm", "layer_norm"]
     pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
 
     layers_kwargs = {
-        "gcn": {},
-        "gin": {},
-        "gat": {"layer_kwargs": {"num_heads": 3}},
-        "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "pna-conv": {"layer_kwargs": pna_kwargs},
-        "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+        "pyg:gin": {},
+        "pyg:gine": {"in_dim_edges": in_dim_edges},
+        "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "pyg:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "pyg:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+        "dgl:gcn": {},
+        "dgl:gin": {},
+        "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
+        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
+        "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
-    def test_dgl_forward_no_residual(self):
+    def test_forward_no_residual(self):
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
+        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
+            for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
                     for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            gnn = FeedForwardDGL(
+                            # PYG or DGL
+                            if layer_type.startswith("dgl:"):
+                                layer_class = FeedForwardDGL
+                                bg = deepcopy(self.batch_dgl)
+                            elif layer_type.startswith("pyg:"):
+                                layer_class = FeedForwardPyg
+                                bg = deepcopy(self.batch_pyg)
+
+                            gnn = layer_class(
                                 in_dim=self.in_dim,
                                 out_dim=self.out_dim,
                                 hidden_dims=self.hidden_dims,
@@ -376,7 +406,7 @@ class test_FeedForwardDGL(ut.TestCase):
                                 **this_kwargs,
                                 **self.kwargs,
                             )
-                            gnn.to(torch.float32)
+                            # gnn.to(torch.float32)
 
                             self.assertIsInstance(gnn.residual_layer, ResidualConnectionNone)
                             self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
@@ -395,23 +425,30 @@ class test_FeedForwardDGL(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            bg = deepcopy(self.bg)
                             h_out = gnn.forward(bg)
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
+                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
-    def test_dgl_forward_simple_residual(self):
+    def test_forward_simple_residual(self):
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
+        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
+            for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
                     for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            gnn = FeedForwardDGL(
+                            # PYG or DGL
+                            if layer_type.startswith("dgl:"):
+                                layer_class = FeedForwardDGL
+                                bg = deepcopy(self.batch_dgl)
+                            elif layer_type.startswith("pyg:"):
+                                layer_class = FeedForwardPyg
+                                bg = deepcopy(self.batch_pyg)
+
+                            gnn = layer_class(
                                 in_dim=self.in_dim,
                                 out_dim=self.out_dim,
                                 hidden_dims=self.hidden_dims,
@@ -422,7 +459,7 @@ class test_FeedForwardDGL(ut.TestCase):
                                 **this_kwargs,
                                 **self.kwargs,
                             )
-                            gnn.to(torch.float32)
+                            # gnn.to(torch.float32)
 
                             self.assertIsInstance(gnn.residual_layer, ResidualConnectionSimple)
                             self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
@@ -441,23 +478,30 @@ class test_FeedForwardDGL(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            bg = deepcopy(self.bg)
                             h_out = gnn.forward(bg)
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
+                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
-    def test_dgl_forward_weighted_residual(self):
+    def test_forward_weighted_residual(self):
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
+        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
+            for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
                     for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            gnn = FeedForwardDGL(
+                            # PYG or DGL
+                            if layer_type.startswith("dgl:"):
+                                layer_class = FeedForwardDGL
+                                bg = deepcopy(self.batch_dgl)
+                            elif layer_type.startswith("pyg:"):
+                                layer_class = FeedForwardPyg
+                                bg = deepcopy(self.batch_pyg)
+
+                            gnn = layer_class(
                                 in_dim=self.in_dim,
                                 out_dim=self.out_dim,
                                 hidden_dims=self.hidden_dims,
@@ -468,7 +512,7 @@ class test_FeedForwardDGL(ut.TestCase):
                                 **this_kwargs,
                                 **self.kwargs,
                             )
-                            gnn.to(torch.float32)
+                            # gnn.to(torch.float32)
 
                             self.assertIsInstance(gnn.residual_layer, ResidualConnectionWeighted)
                             self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
@@ -487,23 +531,30 @@ class test_FeedForwardDGL(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            bg = deepcopy(self.bg)
                             h_out = gnn.forward(bg)
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
+                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
-    def test_dgl_forward_concat_residual(self):
+    def test_forward_concat_residual(self):
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
+        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
+            for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
                     for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            gnn = FeedForwardDGL(
+                            # PYG or DGL
+                            if layer_type.startswith("dgl:"):
+                                layer_class = FeedForwardDGL
+                                bg = deepcopy(self.batch_dgl)
+                            elif layer_type.startswith("pyg:"):
+                                layer_class = FeedForwardPyg
+                                bg = deepcopy(self.batch_pyg)
+
+                            gnn = layer_class(
                                 in_dim=self.in_dim,
                                 out_dim=self.out_dim,
                                 hidden_dims=self.hidden_dims,
@@ -514,7 +565,7 @@ class test_FeedForwardDGL(ut.TestCase):
                                 **this_kwargs,
                                 **self.kwargs,
                             )
-                            gnn.to(torch.float32)
+                            # gnn.to(torch.float32)
 
                             self.assertIsInstance(gnn.residual_layer, ResidualConnectionConcat)
                             self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
@@ -537,23 +588,30 @@ class test_FeedForwardDGL(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
 
-                            bg = deepcopy(self.bg)
                             h_out = gnn.forward(bg)
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
+                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
-    def test_dgl_forward_densenet_residual(self):
+    def test_forward_densenet_residual(self):
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
+        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
+            for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
                     for normalization in self.norms:
                         for layer_name, this_kwargs in self.layers_kwargs.items():
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            gnn = FeedForwardDGL(
+                            # PYG or DGL
+                            if layer_type.startswith("dgl:"):
+                                layer_class = FeedForwardDGL
+                                bg = deepcopy(self.batch_dgl)
+                            elif layer_type.startswith("pyg:"):
+                                layer_class = FeedForwardPyg
+                                bg = deepcopy(self.batch_pyg)
+
+                            gnn = layer_class(
                                 in_dim=self.in_dim,
                                 out_dim=self.out_dim,
                                 hidden_dims=self.hidden_dims,
@@ -564,7 +622,7 @@ class test_FeedForwardDGL(ut.TestCase):
                                 **this_kwargs,
                                 **self.kwargs,
                             )
-                            gnn.to(torch.float32)
+                            # gnn.to(torch.float32)
 
                             self.assertIsInstance(gnn.residual_layer, ResidualConnectionDenseNet)
                             self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
@@ -589,14 +647,13 @@ class test_FeedForwardDGL(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
 
-                            bg = deepcopy(self.bg)
                             h_out = gnn.forward(bg)
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
+                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
 
-class test_FullDGLNetwork(ut.TestCase):
+class test_FullGraphNetwork(ut.TestCase):
 
     kwargs = {
         "activation": "relu",
@@ -611,69 +668,122 @@ class test_FullDGLNetwork(ut.TestCase):
     in_dim_edges = 13
     hidden_dims = [6, 6, 6, 6, 6]
 
-    g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
-    g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
-    g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    g1.edata["feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    g2.edata["feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    edge_idx1 = (torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3]))
+    edge_idx2 = (torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0]))
+    g1 = dgl.graph(edge_idx1)
+    g2 = dgl.graph(edge_idx2)
+    h1 = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
+    e1 = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
+    h2 = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
+    e2 = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
+    g1.ndata["feat"] = h1
+    g1.edata["edge_feat"] = e1
+    g2.ndata["feat"] = h2
+    g2.edata["edge_feat"] = e2
     batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
     batch = [dgl.add_self_loop(g) for g in batch]
-    bg = dgl.batch(batch)
+    batch_dgl = dgl.batch(batch)
 
-    virtual_nodes = ["none", "mean", "sum"]
-    norms = ["none", None, "batch_norm", "layer_norm"]
+    num_nodes = batch_dgl.num_nodes()
+    batch_size = batch_dgl.batch_size
+
+    g1 = Data(feat=h1, edge_index=torch.stack(edge_idx1), edge_feat=e1)
+    g2 = Data(feat=h2, edge_index=torch.stack(edge_idx2), edge_feat=e2)
+    batch_pyg = Batch.from_data_list([g1, g2, deepcopy(g1), deepcopy(g2)])
+
+    virtual_nodes = ["none", "mean"]
+    norms = ["none", "batch_norm", "layer_norm"]
     pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
 
     gnn_layers_kwargs = {
-        "gcn": {},
-        "gin": {},
-        "gat": {"layer_kwargs": {"num_heads": 3}},
-        "gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "pna-conv": {"layer_kwargs": pna_kwargs},
-        "pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+        "pyg:gin": {},
+        "pyg:gine": {"in_dim_edges": in_dim_edges},
+        "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "pyg:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "pyg:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+        "dgl:gcn": {},
+        "dgl:gin": {},
+        "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
+        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
+        "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
+        "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
     def test_full_network_densenet(self):
 
         temp_dim_1 = 5
         temp_dim_2 = 17
+        temp_dim_edges = 21
 
-        pre_nn_kwargs = dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4, 4, 4, 4])
+        pre_nn_kwargs_all = [None, dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4])]
+        pre_nn_edges_kwargs_all = [
+            None,
+            dict(in_dim=self.in_dim_edges, out_dim=temp_dim_edges, hidden_dims=[4, 4]),
+        ]
 
         post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.out_dim, hidden_dims=[3, 3, 3, 3])
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
+        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
+            for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
                     for normalization in self.norms:
                         for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
+                            for pre_nn_kwargs in pre_nn_kwargs_all:
+                                for pre_nn_edges_kwargs in pre_nn_edges_kwargs_all:
 
-                            gnn_kwargs = dict(
-                                in_dim=temp_dim_1,
-                                out_dim=temp_dim_2,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="densenet",
-                                residual_skip_steps=residual_skip_steps,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                **this_kwargs,
-                                **self.kwargs,
-                            )
+                                    # PYG or DGL
+                                    if layer_type.startswith("dgl:"):
+                                        bg = deepcopy(self.batch_dgl)
+                                    elif layer_type.startswith("pyg:"):
+                                        bg = deepcopy(self.batch_pyg)
 
-                            net = FullDGLNetwork(
-                                pre_nn_kwargs=pre_nn_kwargs,
-                                gnn_kwargs=gnn_kwargs,
-                                post_nn_kwargs=post_nn_kwargs,
-                            )
-                            bg = deepcopy(self.bg)
-                            h_out = net.forward(bg)
+                                    this_kwargs2 = deepcopy(this_kwargs)
+                                    if pre_nn_edges_kwargs is not None:
+                                        this_kwargs2["in_dim_edges"] = temp_dim_edges
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
-                            self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                                    gnn_kwargs = dict(
+                                        in_dim=self.in_dim if pre_nn_kwargs is None else temp_dim_1,
+                                        out_dim=temp_dim_2,
+                                        hidden_dims=self.hidden_dims,
+                                        residual_type="densenet",
+                                        residual_skip_steps=residual_skip_steps,
+                                        layer_type=layer_type,
+                                        pooling=pooling,
+                                        **this_kwargs2,
+                                        **self.kwargs,
+                                    )
+
+                                    if (not LAYERS_DICT[layer_type].layer_supports_edges) and (
+                                        pre_nn_edges_kwargs is not None
+                                    ):
+                                        with self.assertRaises(ValueError):
+                                            net = FullGraphNetwork(
+                                                pre_nn_kwargs=pre_nn_kwargs,
+                                                pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+                                                gnn_kwargs=gnn_kwargs,
+                                                post_nn_kwargs=post_nn_kwargs,
+                                            )
+                                        continue
+
+                                    net = FullGraphNetwork(
+                                        pre_nn_kwargs=pre_nn_kwargs,
+                                        pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+                                        gnn_kwargs=gnn_kwargs,
+                                        post_nn_kwargs=post_nn_kwargs,
+                                    )
+
+                                    try:
+                                        h_out = net.forward(bg)
+                                    except Exception as e:
+                                        self.fail(msg=err_msg + "\n" + e.__str__())
+
+                                    dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
+                                    self.assertListEqual(
+                                        list(h_out.shape), [dim_1, self.out_dim], msg=err_msg
+                                    )
 
 
 if __name__ == "__main__":
