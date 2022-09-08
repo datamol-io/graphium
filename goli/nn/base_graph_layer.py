@@ -266,6 +266,7 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
 def check_intpus_allow_int(obj, edge_index, size):
     """
     Overwrite the __check_input__ to allow for int32 and int16
+    TODO: Remove when PyG and pytorch supports int32.
     """
     the_size: List[Optional[int]] = [None, None]
 

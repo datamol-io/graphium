@@ -25,17 +25,19 @@ def to_dense_batch(x: Tensor, batch: Optional[Tensor] = None,
     N_{\max}}` is returned, holding information about the existence of
     fake-nodes in the dense representation.
 
-    Args:
-        x (Tensor): Node feature matrix
+    Parameters:
+        x: Node feature matrix
             :math:`\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}`.
-        batch (LongTensor, optional): Batch vector
+        batch: Batch vector
             :math:`\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N`, which assigns each
             node to a specific example. Must be ordered. (default: :obj:`None`)
-        fill_value (float, optional): The value for invalid entries in the
+        fill_value: The value for invalid entries in the
             resulting dense output tensor. (default: :obj:`0`)
-        max_num_nodes (int, optional): The size of the output node dimension.
+        max_num_nodes_per_graph: The size of the output node dimension.
             (default: :obj:`None`)
-        batch_size (int, optional) The batch size. (default: :obj:`None`)
+        batch_size: The batch size. (default: :obj:`None`)
+        drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
+            the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
 
     :rtype: (:class:`Tensor`, :class:`BoolTensor`)
     """
@@ -65,7 +67,7 @@ def to_dense_batch(x: Tensor, batch: Optional[Tensor] = None,
 
     # `torch.new_full` not supported by poptorch
     out = torch.full(size, fill_value, dtype=x.dtype, device=x.device)
-    # out = x.new_full(size, fill_value)
+    # out = x.new_full(size, fill_value)    # TODO: Uncomment this line with the new SDK
 
     # In case the last graph represents padding. Drop the overflowing nodes.
     if drop_nodes_last_graph:

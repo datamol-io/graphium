@@ -1,7 +1,6 @@
 from typing import Tuple, Optional, Dict, Union
 import numpy as np
 from scipy.sparse import spmatrix
-import torch
 
 from goli.features.spectral import compute_laplacian_positional_eigvecs
 from goli.features.rw import compute_rwse
@@ -22,7 +21,6 @@ def get_all_positional_encoding(
             to generate positional encoding for directional features.
     """
 
-    #pos_enc_feats_sign_flip, pos_enc_feats_no_flip, pos_enc_dir = None, None, None
     pos_enc_dir = None
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
     pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions

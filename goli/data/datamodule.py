@@ -9,29 +9,27 @@ from copy import deepcopy
 from loguru import logger
 import fsspec
 import omegaconf
-from tqdm import tqdm
-from joblib import Parallel, delayed
-import tempfile
 
 import pandas as pd
 import numpy as np
+import datamol as dm
 
 from sklearn.model_selection import train_test_split
 
 import dgl
 from torch_geometric.data import Data, Batch
 import pytorch_lightning as pl
+from pytorch_lightning.trainer.states import RunningStage
+
+import torch
+from torch.utils.data.dataloader import DataLoader, Dataset
+from torch.utils.data import Subset
 
 from goli.utils import fs
 from goli.features import mol_to_graph_dict, mol_to_graph_signature, mol_to_dglgraph, GraphDict, mol_to_pyggraph
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
 
-import torch
-from torch.utils.data.dataloader import DataLoader, Dataset
-from torch.utils.data import Subset
-
-import datamol as dm
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -344,14 +342,14 @@ class BaseDataModule(pl.LightningDataModule):
         return self._dataloader(
             dataset=self.train_ds,  # type: ignore
             shuffle=True,
-            stage="train",
+            stage=RunningStage.TRAINING,
         )
 
     def val_dataloader(self, **kwargs):
         return self._dataloader(
             dataset=self.val_ds,  # type: ignore
             shuffle=False,
-            stage="val",
+            stage=RunningStage.VALIDATING,
         )
 
     def test_dataloader(self, **kwargs):
@@ -359,7 +357,7 @@ class BaseDataModule(pl.LightningDataModule):
         return self._dataloader(
             dataset=self.test_ds,  # type: ignore
             shuffle=False,
-            stage="test",
+            stage=RunningStage.TESTING,
         )
 
     def predict_dataloader(self, **kwargs):
@@ -367,7 +365,7 @@ class BaseDataModule(pl.LightningDataModule):
         return self._dataloader(
             dataset=self.predict_ds,  # type: ignore
             shuffle=False,
-            stage="predict",
+            stage=RunningStage.PREDICTING,
         )
 
     @staticmethod
@@ -447,13 +445,13 @@ class BaseDataModule(pl.LightningDataModule):
             return self._read_csv(path)
 
 
-    def _dataloader(self, dataset: Dataset, shuffle: bool, stage: str):
+    def _dataloader(self, dataset: Dataset, shuffle: bool, stage: RunningStage):
         """Get a dataloader for a given dataset"""
 
         # Get batch size
-        if stage in ["train", "val"]:
+        if stage in [RunningStage.TRAINING]:
             batch_size = self.batch_size_train_val
-        elif stage in ["test", "predict"]:
+        elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
             batch_size = self.batch_size_test
         else:
             raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
@@ -1529,11 +1527,11 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
         """Get a dataloader for a given dataset"""
 
         # Get batch size
-        if stage in ["train"]:
+        if stage in [RunningStage.TRAINING]:
             batch_size = self.batch_size_train_val
             ipu_dataloader_options = self.ipu_dataloader_training_opts
             ipu_options = self.ipu_training_opts
-        elif stage in ["val", "test", "predict"]:
+        elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
             batch_size = self.batch_size_test
             ipu_dataloader_options = self.ipu_dataloader_inference_opts
             ipu_options = self.ipu_inference_opts

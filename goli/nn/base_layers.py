@@ -262,9 +262,9 @@ class MLP(nn.Module):
         self.out_dim = out_dim
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
-        self.fully_connected = []
+        fully_connected = []
         if layers <= 1:
-            self.fully_connected.append(
+            fully_connected.append(
                 FCLayer(
                     in_dim,
                     out_dim,
@@ -274,7 +274,7 @@ class MLP(nn.Module):
                 )
             )
         else:
-            self.fully_connected.append(
+            fully_connected.append(
                 FCLayer(
                     in_dim,
                     hidden_dim,
@@ -284,7 +284,7 @@ class MLP(nn.Module):
                 )
             )
             for _ in range(layers - 2):
-                self.fully_connected.append(
+                fully_connected.append(
                     FCLayer(
                         hidden_dim,
                         hidden_dim,
@@ -293,7 +293,7 @@ class MLP(nn.Module):
                         dropout=dropout,
                     )
                 )
-            self.fully_connected.append(
+            fully_connected.append(
                 FCLayer(
                     hidden_dim,
                     out_dim,
@@ -302,7 +302,7 @@ class MLP(nn.Module):
                     dropout=last_dropout,
                 )
             )
-        self.fully_connected = nn.Sequential(*self.fully_connected)
+        self.fully_connected = nn.Sequential(*fully_connected)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
