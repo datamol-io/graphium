@@ -69,7 +69,7 @@ def load_datamodule(
 ):
     cfg_data = config["datamodule"]["args"]
     ipu_inference_opts, ipu_training_opts = None, None
-    ipu_file = "tests/mtl/ipu.config"
+    ipu_file = "expts/configs/ipu.config"
     ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
     ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
 
@@ -200,7 +200,7 @@ def load_trainer(config, run_name):
     # Define the IPU plugin if required
     plugins = []
     accelerator = get_accelerator(config)
-    ipu_file = "tests/mtl/ipu.config"
+    ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
         training_opts, inference_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
         plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)

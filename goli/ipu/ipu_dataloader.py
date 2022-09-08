@@ -142,7 +142,6 @@ def create_ipu_dataloader(dataset: Dataset,
                                 collate_fn=collate_fn,
                                 max_num_nodes=ipu_dataloader_options.max_num_nodes,
                                 max_num_edges=ipu_dataloader_options.max_num_edges,
-                                grad_accum=grad_accum,
                                 dataset_max_nodes_per_graph = dataset.max_num_nodes_per_graph,
                                 dataset_max_edges_per_graph = dataset.max_num_edges_per_graph,
                                 )

@@ -26,7 +26,7 @@ class TensorBoardLoggerGoli(TensorBoardLogger):
 
 class WandbLoggerGoli(WandbLogger):
     """
-    Override the regular `TensorBoardLogger` to save the complete configuration as a YAML file
+    Override the regular `WandbLogger` to save the complete configuration as a YAML file
     """
     def __init__(self, full_configs=None, *args, **kwargs):
         self.full_configs = deepcopy(full_configs)
