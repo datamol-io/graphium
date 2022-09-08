@@ -9,7 +9,7 @@ class SafeRun():
         Example:
             In the example below, the `2+None`, an error will be caught and printed.
             ```
-            with SafeRun("Addition that fails", raise_error=False):
+            with SafeRun(name="Addition that fails", raise_error=False):
                 2 + None
             ```
 
@@ -26,11 +26,19 @@ class SafeRun():
         self.verbose = verbose
 
     def __enter__(self):
+        """
+        Print that the with-statement started, if `self.verbose >= 2`
+        """
         if self.verbose >= 2:
             logger.info(f"\n------------ {self.name} STARTED ------------")
 
 
     def __exit__(self, type, value, traceback):
+        """
+        Handle the error. Raise it if `self.raise_error==True`, otherwise ignore it
+        and print it if `self.verbose >= 1`. Also print that the with-statement is
+        completed if `self.verbose >= 2`.
+        """
         if traceback is not None:
             if self.raise_error:
                 if self.verbose >=1:

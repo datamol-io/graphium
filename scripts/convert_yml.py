@@ -1,3 +1,7 @@
+"""
+Convert the dependencies from conda's `env.yml` to pip `requirements.txt`
+"""
+
 import ruamel.yaml
 
 yaml = ruamel.yaml.YAML()

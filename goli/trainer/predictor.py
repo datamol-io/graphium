@@ -1,24 +1,17 @@
 from goli.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
-import os
 import numpy as np
 from copy import deepcopy
-import yaml
 import dgl
-from loguru import logger
-from inspect import signature
 
 import torch
 from torch import nn, Tensor
 
 import pytorch_lightning as pl
-from pytorch_lightning import _logger as log
-from pytorch_lightning.utilities.exceptions import MisconfigurationException
 
 from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
 from goli.trainer.predictor_summaries import Summary, TaskSummaries
-from goli.utils.fs import mkdir
 from goli.utils.spaces import SCHEDULER_DICT
 
 GOLI_PRETRAINED_MODELS = {
@@ -29,20 +22,39 @@ GOLI_PRETRAINED_MODELS = {
 class PredictorModule(pl.LightningModule):
     def __init__(
         self,
-        model_class: Type[nn.Module],                                   # Leave
-        model_kwargs: Dict[str, Any],                                   # Leave
+        model_class: Type[nn.Module],
+        model_kwargs: Dict[str, Any],
         loss_fun: Dict[str, Union[str, Callable]],                      # Task-specific
         random_seed: int = 42,                                          # Leave
         optim_kwargs: Optional[Dict[str, Any]] = None,                  # Leave for now
         lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,   # Leave for now
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,        # Leave for now
         scheduler_kwargs: Optional[Dict[str, Any]] = None,              # Leave for now
-        target_nan_mask: Optional[Union[int, float, str]] = None,       # Leave
+        target_nan_mask: Optional[Union[int, float, str]] = None,
         metrics: Dict[str, Callable] = None,                            # Task-specific
-        metrics_on_progress_bar: List[str] = [],                        # Task-specific
-        metrics_on_training_set: Optional[List[str]] = None,            # Task-specific
+        metrics_on_progress_bar: Dict[str, List[str]] = [],
+        metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
     ):
+        """
+        The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
+        It works in a multi-task setting, with different losses and metrics per class
+
+        Parameters:
+            model_class: The torch Module containing the main forward function
+            model_kwargs: The arguments to initialize the model from `model_class`
+            loss_fun: A `dict[str, fun]`, where `str` is the task name and `fun` the loss function
+            random_seed: The seed for random initialization
+            optim_kwargs: The optimization arguments.
+            lr_reduce_on_plateau_kwargs: TODO: Re-do the scheduling
+            torch_scheduler_kwargs: TODO: Re-do the scheduling
+            scheduler_kwargs: TODO: Re-do the scheduling
+            target_nan_mask: How to handle the NaNs. See `MetricsWrapper` for options
+            metrics: A `dict[str, fun]`, where `str` is the task name and `fun` the metric function
+            metrics_on_progress_bar: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the progress bar
+            metrics_on_training_set: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the training set
+            flag_kwargs: Arguments related to using the FLAG adversarial augmentation
+        """
         self.save_hyperparameters()
 
         self.random_seed = random_seed

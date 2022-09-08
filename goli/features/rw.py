@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Tuple, Union, Optional
 
 from scipy import sparse
 from scipy.sparse import spmatrix
@@ -15,8 +15,11 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix],
     num_nodes: int
 ) -> np.ndarray:
     """
+    Parameters:
+        ksteps: Number of steps for the random walk
+        num_nodes: Number of nodes in the graph
     Returns:
-            2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs
+        2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs
     """
 
     #* Andy: manually handles edge case of 1 atom molecules here
@@ -38,8 +41,13 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix],
 
 
 
-def get_rw_landing_probs(ksteps, edge_index, edge_weight=None,
-                         num_nodes=None, space_dim=0):
+def get_rw_landing_probs(
+    ksteps: int,
+    edge_index: Tuple[torch.Tensor, torch.Tensor],
+    edge_weight: Optional[torch.Tensor]=None,
+    num_nodes: Optional[int]=None,
+    space_dim: float=0.,
+    ):
     """Compute Random Walk landing probabilities for given list of K steps.
     Parameters:
         ksteps: List of k-steps for which to compute the RW landings
