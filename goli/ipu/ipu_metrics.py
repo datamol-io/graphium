@@ -30,9 +30,9 @@ class BCELossIPU(BCELoss):
         nan_targets = target.isnan()
         nan_targets_0 = (input < 0.5) & nan_targets
         nan_targets_1 = (input >= 0.5) & nan_targets
-        target[nan_targets_0] = 0.
-        target[nan_targets_1] = 1.
-        weight[nan_targets] = 0.
+        target[nan_targets_0] = 0.0
+        target[nan_targets_1] = 1.0
+        weight[nan_targets] = 0.0
 
         # Compute the loss, and rescale by the number of nan elements
         self.weight = weight
@@ -51,6 +51,7 @@ class MSELossIPU(MSELoss):
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
+
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
 
         target = target.clone()
@@ -58,8 +59,8 @@ class MSELossIPU(MSELoss):
 
         # Replace the nan-targets in the input/target tensors by 0
         nan_targets = target.isnan()
-        input[nan_targets] = 0.
-        target[nan_targets] = 0.
+        input[nan_targets] = 0.0
+        target[nan_targets] = 0.0
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
@@ -75,6 +76,7 @@ class L1LossIPU(L1Loss):
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
+
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
 
         target = target.clone()
@@ -82,12 +84,11 @@ class L1LossIPU(L1Loss):
 
         # Replace the nan-targets in the input/target tensors by 0
         nan_targets = target.isnan()
-        input[nan_targets] = 0.
-        target[nan_targets] = 0.
+        input[nan_targets] = 0.0
+        target[nan_targets] = 0.0
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
         loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         return loss
-

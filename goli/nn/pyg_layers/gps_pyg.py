@@ -1,6 +1,6 @@
-'''
+"""
 adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
-'''
+"""
 
 import torch
 import torch.nn as nn
@@ -26,6 +26,7 @@ ATTENTION_LAYERS_DICT = {
     "none": None,
 }
 
+
 class GPSLayerPyg(BaseGraphModule):
     def __init__(
         self,
@@ -36,9 +37,9 @@ class GPSLayerPyg(BaseGraphModule):
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
         mpnn_type: str = "pyg:gine",
-        mpnn_kwargs = None,
+        mpnn_kwargs=None,
         attn_type: str = "full-attention",
-        attn_kwargs = None,
+        attn_kwargs=None,
     ):
         r"""
         GINE: Graph Isomorphism Networks with Edges
@@ -97,7 +98,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_ff = self.norm_layer
 
         # Set the default values for the MPNN layer
-        if (mpnn_kwargs is None):
+        if mpnn_kwargs is None:
             mpnn_kwargs = {}
         mpnn_kwargs.setdefault("in_dim", in_dim)
         mpnn_kwargs.setdefault("out_dim", in_dim)
@@ -119,7 +120,6 @@ class GPSLayerPyg(BaseGraphModule):
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
 
-
     def forward(self, batch):
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
@@ -127,17 +127,17 @@ class GPSLayerPyg(BaseGraphModule):
         h_in = h  # for first residual connection
 
         # Local MPNN with edge attributes.
-        batch_out = (self.mpnn(batch.clone()))
+        batch_out = self.mpnn(batch.clone())
         h_local = batch_out.h
         h_local = self.dropout_local(h_local)
         h_local = h_in + h_local  # Residual connection.
-        if (self.norm_layer_local):
+        if self.norm_layer_local:
             h_local = self.norm_layer_local(h_local)
         h = h_local
 
         # Multi-head attention.
-        #* batch.batch is the indicator vector for nodes of which graph it belongs to
-        #* h_dense
+        # * batch.batch is the indicator vector for nodes of which graph it belongs to
+        # * h_dense
         if self.attn_layer is not None:
 
             # If there's padding, then we are on IPU
@@ -148,7 +148,9 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph = None
 
             # Convert the tensor to a dense batch, then back to a sparse batch
-            h_dense, mask, idx = to_dense_batch(h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu)
+            h_dense, mask, idx = to_dense_batch(
+                h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu
+            )
             h_attn = self._sa_block(h_dense, None, ~mask)
             h_attn = to_sparse_batch(h_dense, idx)
 
@@ -177,11 +179,10 @@ class GPSLayerPyg(BaseGraphModule):
         return attn_layer
 
     def _ff_block(self, h):
-        """Feed Forward block.
-        """
+        """Feed Forward block."""
         h_in = h
         # First linear layer + activation + dropout
-        if (self.activation_layer is None):
+        if self.activation_layer is None:
             h = self.ff_dropout1(self.ff_linear1(h))
         else:
             h = self.ff_dropout1(self.activation_layer(self.ff_linear1(h)))
@@ -199,14 +200,11 @@ class GPSLayerPyg(BaseGraphModule):
         return h
 
     def _sa_block(self, x, attn_mask, key_padding_mask):
-        """Self-attention block.
-        """
-        x = self.attn_layer(x, x, x,
-                           attn_mask=attn_mask,
-                           key_padding_mask=key_padding_mask,
-                           need_weights=False)[0]
+        """Self-attention block."""
+        x = self.attn_layer(
+            x, x, x, attn_mask=attn_mask, key_padding_mask=key_padding_mask, need_weights=False
+        )[0]
         return x
-
 
     # # forward function that doesn't do anything
     # def forward(self, batch):
@@ -277,4 +275,3 @@ class GPSLayerPyg(BaseGraphModule):
                 Always ``1`` for the current class
         """
         return 1
-

@@ -24,14 +24,14 @@ class PredictorModule(pl.LightningModule):
         self,
         model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
-        loss_fun: Dict[str, Union[str, Callable]],                      # Task-specific
-        random_seed: int = 42,                                          # Leave
-        optim_kwargs: Optional[Dict[str, Any]] = None,                  # Leave for now
-        lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,   # Leave for now
-        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,        # Leave for now
-        scheduler_kwargs: Optional[Dict[str, Any]] = None,              # Leave for now
+        loss_fun: Dict[str, Union[str, Callable]],  # Task-specific
+        random_seed: int = 42,  # Leave
+        optim_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
+        lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
+        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
+        scheduler_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
         target_nan_mask: Optional[Union[int, float, str]] = None,
-        metrics: Dict[str, Callable] = None,                            # Task-specific
+        metrics: Dict[str, Callable] = None,  # Task-specific
         metrics_on_progress_bar: Dict[str, List[str]] = [],
         metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
@@ -66,10 +66,7 @@ class PredictorModule(pl.LightningModule):
         super().__init__()
 
         # Setting the model options
-        self._model_options = ModelOptions(
-            model_class=model_class,
-            model_kwargs=model_kwargs
-        )
+        self._model_options = ModelOptions(model_class=model_class, model_kwargs=model_kwargs)
         # Setting the optimizer options
         self._optim_options = OptimOptions(
             optim_kwargs=optim_kwargs,
@@ -84,13 +81,13 @@ class PredictorModule(pl.LightningModule):
                 loss_fun=loss_fun[task],
                 metrics=metrics[task],
                 metrics_on_progress_bar=metrics_on_progress_bar[task],
-                metrics_on_training_set=metrics_on_training_set[task] if metrics_on_training_set is not None else None
+                metrics_on_training_set=metrics_on_training_set[task]
+                if metrics_on_training_set is not None
+                else None,
             )
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         # Setting the flag options
-        self._flag_options = FlagOptions(
-            flag_kwargs=flag_kwargs
-        )
+        self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
 
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
         self.tasks = list(loss_fun.keys())
@@ -102,10 +99,16 @@ class PredictorModule(pl.LightningModule):
         self.metrics_on_training_set = {}
         for task in self.tasks:
             self.loss_fun[task] = EvalOptions.parse_loss_fun(loss_fun[task])
-            self.metrics[task] = self._eval_options_dict[task].metrics if self._eval_options_dict[task].metrics is not None else {}
+            self.metrics[task] = (
+                self._eval_options_dict[task].metrics
+                if self._eval_options_dict[task].metrics is not None
+                else {}
+            )
             self.metrics_on_progress_bar[task] = self._eval_options_dict[task].metrics_on_progress_bar
             self.metrics_on_training_set[task] = (
-                list(self.metrics[task].keys()) if self._eval_options_dict[task].metrics_on_training_set is None else self._eval_options_dict[task].metrics_on_training_set
+                list(self.metrics[task].keys())
+                if self._eval_options_dict[task].metrics_on_training_set is None
+                else self._eval_options_dict[task].metrics_on_training_set
             )
         self.n_params = sum(p.numel() for p in self.parameters() if p.requires_grad)
 
@@ -123,8 +126,8 @@ class PredictorModule(pl.LightningModule):
         self.torch_scheduler_kwargs = self._optim_options.torch_scheduler_kwargs
 
         # Initialize the epoch summary
-        monitor = "micro_zinc/MSELoss/val" #self.scheduler_kwargs["monitor"].split("/")[0] TODO: Fix the scheduler with the Summary class
-        mode = "min" #self.scheduler_kwargs["mode"]
+        monitor = "micro_zinc/MSELoss/val"  # self.scheduler_kwargs["monitor"].split("/")[0] TODO: Fix the scheduler with the Summary class
+        mode = "min"  # self.scheduler_kwargs["mode"]
 
         self.task_epoch_summary = TaskSummaries(
             task_loss_fun=self.loss_fun,
@@ -151,7 +154,7 @@ class PredictorModule(pl.LightningModule):
         """
         # Convert to the right dtype and run the model
         feats = self._convert_features_dtype(inputs["features"])
-        #*check for nan in model output
+        # *check for nan in model output
         out = self.model.forward(feats)
         if isinstance(out, dict) and ("preds" in out.keys()):
             out_dict = out
@@ -174,7 +177,6 @@ class PredictorModule(pl.LightningModule):
 
         return feats
 
-
     def configure_optimizers(self):
 
         # TODO (Gabriela): Fix scheduling with the Summary class
@@ -195,8 +197,8 @@ class PredictorModule(pl.LightningModule):
         #     "scheduler": torch_scheduler,
         #     **self.scheduler_kwargs,
         # }
-        #scheduler = None
-        #return [optimiser], [scheduler]
+        # scheduler = None
+        # return [optimiser], [scheduler]
         return [optimiser]
 
     @staticmethod
@@ -243,21 +245,25 @@ class PredictorModule(pl.LightningModule):
                 Resulting loss
         """
 
-        wrapped_loss_fun_dict = {task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask) for task, loss in loss_fun.items()}
+        wrapped_loss_fun_dict = {
+            task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask)
+            for task, loss in loss_fun.items()
+        }
 
         if weights is not None:
             raise NotImplementedError("Weights are no longer supported in the loss")
-        all_task_losses = {task: wrapped(preds=preds[task], target=targets[task]) for task, wrapped in wrapped_loss_fun_dict.items()}
+        all_task_losses = {
+            task: wrapped(preds=preds[task], target=targets[task])
+            for task, wrapped in wrapped_loss_fun_dict.items()
+        }
         total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
         num_tasks = len(all_task_losses.keys())
         weighted_loss = total_loss / num_tasks
         return weighted_loss, all_task_losses
 
-    def _general_step(
-        self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool
-    ) -> Dict[str, Any]:
+    def _general_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
-        preds = self.forward(batch)                    # The dictionary of predictions
+        preds = self.forward(batch)  # The dictionary of predictions
 
         # * check for nan in model output
         targets_dict = batch.get("labels")
@@ -278,7 +284,7 @@ class PredictorModule(pl.LightningModule):
             targets=targets_dict,
             weights=weights,
             target_nan_mask=self.target_nan_mask,
-            loss_fun=self.loss_fun,                         # This is a dictionary
+            loss_fun=self.loss_fun,  # This is a dictionary
         )
 
         device = "cpu" if to_cpu else None
@@ -289,21 +295,21 @@ class PredictorModule(pl.LightningModule):
             weights = weights.detach().to(device=device)
 
         step_dict = {"preds": preds, "targets": targets_dict, "weights": weights}
-        #step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()            original
+        # step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()            original
 
-        #step_dict[f"weighted_loss/{step_name}"] = loss.detach().cpu()
-        #step_dict[f"loss/{step_name}"] = loss.detach().cpu()
-        for task in self.tasks:     # TODO: Verify consistency with Summary class
-            step_dict[self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)] = loss.detach().cpu()
+        # step_dict[f"weighted_loss/{step_name}"] = loss.detach().cpu()
+        # step_dict[f"loss/{step_name}"] = loss.detach().cpu()
+        for task in self.tasks:  # TODO: Verify consistency with Summary class
+            step_dict[
+                self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)
+            ] = loss.detach().cpu()
 
         step_dict["loss"] = loss
         # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
         return step_dict
 
-    def flag_step(
-        self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool
-    ) -> Dict[str, Any]:
+    def flag_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""
         Perform adversarial data agumentation during one training step using FLAG.
         Paper: https://arxiv.org/abs/2010.09891
@@ -367,13 +373,13 @@ class PredictorModule(pl.LightningModule):
         step_dict["loss"] = loss
         return step_dict
 
-
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
         concatenated_metrics_logs = outputs
-        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)            # This is a pytorch lightning function call
+        self.logger.log_metrics(
+            concatenated_metrics_logs, step=self.global_step
+        )  # This is a pytorch lightning function call
 
-
-    def training_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
+    def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         step_dict = None
 
         # Train using FLAG
@@ -381,21 +387,19 @@ class PredictorModule(pl.LightningModule):
             step_dict = self.flag_step(batch=batch, step_name="train", to_cpu=to_cpu)
         # Train normally, without using FLAG
         elif self.flag_kwargs["n_steps"] == 0:
-            step_dict = self._general_step(
-                batch=batch, step_name="train", to_cpu=True
-            )
+            step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
 
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
             targets=step_dict["targets"],
             predictions=step_dict["preds"],
-            loss=step_dict["loss"],              # This is the weighted loss for now, but change to task-sepcific loss
+            loss=step_dict["loss"],  # This is the weighted loss for now, but change to task-sepcific loss
             task_losses=step_dict["task_losses"],
             n_epochs=self.current_epoch,
         )
-        metrics_logs = self.task_epoch_summary.get_metrics_logs()       # Dict[task, metric_logs]
+        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
-        step_dict.update(metrics_logs)          # Dict[task, metric_logs]. Concatenate them?
+        step_dict.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
 
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["loss"] = step_dict["loss"]
@@ -415,19 +419,18 @@ class PredictorModule(pl.LightningModule):
 
     def get_gradient_norm(self):
         # compute the norm
-        total_norm = torch.tensor(0.)
+        total_norm = torch.tensor(0.0)
         for p in self.parameters():
             if p.grad is not None:
                 param_norm = p.grad.detach().data.norm(2)
                 total_norm += param_norm.item() ** 2
-        total_norm = total_norm ** 0.5
+        total_norm = total_norm**0.5
         return total_norm
 
-
-    def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
+    def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)
 
-    def test_step(self, batch: Dict[str, Tensor], to_cpu: bool=True) -> Dict[str, Any]:
+    def test_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
@@ -461,8 +464,7 @@ class PredictorModule(pl.LightningModule):
         metrics_logs = self.task_epoch_summary.get_metrics_logs()
         self.task_epoch_summary.set_results(task_metrics=metrics_logs)
 
-        return metrics_logs             # Consider returning concatenated dict for tensorboard
-
+        return metrics_logs  # Consider returning concatenated dict for tensorboard
 
     def training_epoch_end(self, outputs: Dict):
         """
@@ -506,7 +508,9 @@ class PredictorModule(pl.LightningModule):
         prog_dict = {}
         results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
         for task in self.tasks:
-            prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = self.task_epoch_summary.task_summaries[task].summaries["val"].loss
+            prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = (
+                self.task_epoch_summary.task_summaries[task].summaries["val"].loss
+            )
             prog_dict.update(results_on_progress_bar)
         return prog_dict
 

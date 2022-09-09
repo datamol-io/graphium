@@ -72,6 +72,7 @@ task_3_params = {}
 task_3_params.update(task_3_kwargs)
 task_3_params.update(kwargs)
 
+
 class test_TaskHeads(ut.TestCase):
     def test_task_head_forward(self):
         """Task heads are FeedForwardNNs, with the addition of a 'task_name' attribute.
@@ -116,14 +117,14 @@ class test_TaskHeads(ut.TestCase):
         self.assertEqual(task_head.layers[3].in_dim, hidden_dims[2])
 
         h = torch.FloatTensor(batch, in_dim)
-        h_out = task_head.forward(h)                # For now just inherits the forward() of FFNN
+        h_out = task_head.forward(h)  # For now just inherits the forward() of FFNN
 
         # Check that the output has the correct dimensions
         self.assertListEqual(list(h_out.shape), [batch, out_dim])
 
     def test_task_heads_forward(self):
 
-        in_dim = 4      # Dimension of the incoming data
+        in_dim = 4  # Dimension of the incoming data
         batch = 2
 
         task_heads_params = [task_1_params, task_2_params, task_3_params]
@@ -255,11 +256,23 @@ class test_Multitask_NN(ut.TestCase):
                             h_out = multitask_fulldgl_nn.forward(bg)
 
                             dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
-                            #self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                            # self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
-                            self.assertListEqual(list(h_out[task_1_kwargs["task_name"]].shape), [dim_1, task_1_kwargs["out_dim"]], msg=err_msg)
-                            self.assertListEqual(list(h_out[task_2_kwargs["task_name"]].shape), [dim_1, task_2_kwargs["out_dim"]], msg=err_msg)
-                            self.assertListEqual(list(h_out[task_3_kwargs["task_name"]].shape), [dim_1, task_3_kwargs["out_dim"]], msg=err_msg)
+                            self.assertListEqual(
+                                list(h_out[task_1_kwargs["task_name"]].shape),
+                                [dim_1, task_1_kwargs["out_dim"]],
+                                msg=err_msg,
+                            )
+                            self.assertListEqual(
+                                list(h_out[task_2_kwargs["task_name"]].shape),
+                                [dim_1, task_2_kwargs["out_dim"]],
+                                msg=err_msg,
+                            )
+                            self.assertListEqual(
+                                list(h_out[task_3_kwargs["task_name"]].shape),
+                                [dim_1, task_3_kwargs["out_dim"]],
+                                msg=err_msg,
+                            )
 
 
 class test_FullGraphMultiTaskNetwork(ut.TestCase):

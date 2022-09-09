@@ -4,6 +4,7 @@ import torch
 from torch import Tensor
 from torch_scatter import scatter_add
 
+
 def to_sparse_batch(x: Tensor, mask_idx: Tensor):
     """
     Reverse function of `to_dense_batch`
@@ -11,10 +12,14 @@ def to_sparse_batch(x: Tensor, mask_idx: Tensor):
     return torch.index_select(x.reshape(-1, x.shape[-1]), 0, mask_idx)
 
 
-def to_dense_batch(x: Tensor, batch: Optional[Tensor] = None,
-                   fill_value: float = 0., max_num_nodes_per_graph: Optional[int] = None,
-                   batch_size: Optional[int] = None,
-                   drop_nodes_last_graph=False) -> Tuple[Tensor, Tensor]:
+def to_dense_batch(
+    x: Tensor,
+    batch: Optional[Tensor] = None,
+    fill_value: float = 0.0,
+    max_num_nodes_per_graph: Optional[int] = None,
+    batch_size: Optional[int] = None,
+    drop_nodes_last_graph=False,
+) -> Tuple[Tensor, Tensor]:
     r"""Given a sparse batch of node features
     :math:`\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}` (with
     :math:`N_i` indicating the number of nodes in graph :math:`i`), creates a
@@ -51,8 +56,7 @@ def to_dense_batch(x: Tensor, batch: Optional[Tensor] = None,
     if batch_size is None:
         batch_size = int(batch.max()) + 1
 
-    num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0,
-                            dim_size=batch_size)
+    num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
 
     if max_num_nodes_per_graph is None:
@@ -75,16 +79,17 @@ def to_dense_batch(x: Tensor, batch: Optional[Tensor] = None,
         idx[idx >= size[0]] = size[0] - 1
 
     # Raise error if num_nodes > max_num_nodes
-    assert (num_nodes <= max_num_nodes_per_graph).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {max_num_nodes_per_graph}`"
+    assert (
+        num_nodes <= max_num_nodes_per_graph
+    ).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {max_num_nodes_per_graph}`"
 
     ##### END CHANGES FROM PYG #####
 
     out[idx] = x
     out = out.view([batch_size, max_num_nodes_per_graph] + list(x.size())[1:])
 
-    mask = torch.zeros(batch_size * max_num_nodes_per_graph, dtype=torch.bool,
-                       device=x.device)
+    mask = torch.zeros(batch_size * max_num_nodes_per_graph, dtype=torch.bool, device=x.device)
     mask[idx] = 1
     mask = mask.view(batch_size, max_num_nodes_per_graph)
 
-    return out, mask, idx # Added `idx` as a return
+    return out, mask, idx  # Added `idx` as a return

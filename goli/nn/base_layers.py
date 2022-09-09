@@ -34,7 +34,7 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
     return vars(torch.nn.modules.activation)[activation]()
 
 
-def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]=None):
+def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int] = None):
     r"""
     returns the normalization function represented by the input string
 

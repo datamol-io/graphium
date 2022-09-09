@@ -4,6 +4,8 @@ from scipy.sparse import spmatrix
 
 from goli.features.spectral import compute_laplacian_positional_eigvecs
 from goli.features.rw import compute_rwse
+
+
 def get_all_positional_encoding(
     adj: Union[np.ndarray, spmatrix],
     num_nodes: int,
@@ -31,13 +33,10 @@ def get_all_positional_encoding(
     #! Andy: should be able to handle multiple types of pe_encoding
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
-        for pos in pos_encoding_as_features['pos_types']:
-            pos_args = pos_encoding_as_features['pos_types'][pos]
+        for pos in pos_encoding_as_features["pos_types"]:
+            pos_args = pos_encoding_as_features["pos_types"][pos]
             pos_types.append(pos_args["pos_type"])
-            pe_dict.update(graph_positional_encoder(
-                adj, num_nodes, pos_args
-                ))
-
+            pe_dict.update(graph_positional_encoder(adj, num_nodes, pos_args))
 
     if len(pos_encoding_as_directions) > 0:
         if pos_encoding_as_directions["pos_type"] in pos_types:
@@ -47,7 +46,9 @@ def get_all_positional_encoding(
             elif pe_dict["pos_enc_feats_no_flip"] is None:
                 pos_enc_dir = pe_dict["pos_enc_feats_sign_flip"]
             else:
-                pos_enc_dir = np.concatenate((pe_dict["pos_enc_feats_no_flip"], pe_dict["pos_enc_feats_sign_flip"]), axis=1)
+                pos_enc_dir = np.concatenate(
+                    (pe_dict["pos_enc_feats_no_flip"], pe_dict["pos_enc_feats_sign_flip"]), axis=1
+                )
 
         else:
             pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_directions)
@@ -63,10 +64,8 @@ def get_all_positional_encoding(
 
     return pe_dict, pos_enc_dir
 
-def graph_positional_encoder(
-    adj: Union[np.ndarray, spmatrix],
-    num_nodes: int,
-    pos_arg: Dict) -> np.ndarray:
+
+def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict) -> np.ndarray:
     r"""
     Get a positional encoding that depends on the parameters.
 

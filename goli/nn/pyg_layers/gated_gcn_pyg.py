@@ -85,7 +85,9 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
         self.D = nn.Linear(in_dim, out_dim, bias=True)
         self.E = nn.Linear(in_dim, out_dim, bias=True)
-        self.edge_out = FCLayer(in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True)
+        self.edge_out = FCLayer(
+            in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True
+        )
 
     def forward(self, batch: Union[Data, Batch]):
         x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index

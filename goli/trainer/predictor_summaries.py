@@ -11,8 +11,10 @@ from torch import Tensor
 
 from goli.utils.tensor import nan_mean, nan_std, nan_median
 
+
 class SummaryInterface(object):
     r"""An interface to define the functions implemented by summary classes that implement SummaryInterface."""
+
     def set_results(self, **kwargs):
         raise NotImplementedError()
 
@@ -25,9 +27,10 @@ class SummaryInterface(object):
     def get_metrics_logs(self, **kwargs):
         raise NotImplementedError()
 
+
 class Summary(SummaryInterface):
     r"""A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided."""
-    #TODO (Gabriela): Default argument cannot be []
+    # TODO (Gabriela): Default argument cannot be []
     def __init__(
         self,
         loss_fun,
@@ -49,15 +52,15 @@ class Summary(SummaryInterface):
         self.best_summaries = {}
 
         # Current predictor state
-        #self.predictor_outputs = None
+        # self.predictor_outputs = None
         self.step_name: str = None
         self.targets: Tensor = None
         self.predictions: Tensor = None
-        self.loss = None                            # What type?
+        self.loss = None  # What type?
         self.n_epochs: int = None
 
         self.task_name = task_name
-        self.logged_metrics_exceptions = [] # Track which metric exceptions have been logged
+        self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
     def update_predictor_state(self, step_name, targets, predictions, loss, n_epochs):
         self.step_name = step_name
@@ -75,9 +78,9 @@ class Summary(SummaryInterface):
             targets=self.targets,
             predictions=self.predictions,
             loss=self.loss,
-            metrics=metrics,                                                    # Should include task name from get_metrics_logs()
-            monitored_metric=f"{self.monitor}/{self.step_name}",                # Include task name?
-            n_epochs=self.n_epochs
+            metrics=metrics,  # Should include task name from get_metrics_logs()
+            monitored_metric=f"{self.monitor}/{self.step_name}",  # Include task name?
+            n_epochs=self.n_epochs,
         )
         if self.is_best_epoch(self.step_name, self.loss, metrics):
             self.best_summaries[self.step_name] = self.summaries[self.step_name]
@@ -89,8 +92,10 @@ class Summary(SummaryInterface):
 
         # Include the task_name in the loss for tensorboard, and similarly for other metrics
         metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = loss
-        monitor_name = f"{self.monitor}/{step_name}"            # Include task_name?
-        if not monitor_name in self.best_summaries.keys():      # Feels like there's a bug here. What is this trying to do???
+        monitor_name = f"{self.monitor}/{step_name}"  # Include task_name?
+        if (
+            not monitor_name in self.best_summaries.keys()
+        ):  # Feels like there's a bug here. What is this trying to do???
             return True
 
         if self.mode == "max":
@@ -109,8 +114,11 @@ class Summary(SummaryInterface):
     def get_results_on_progress_bar(self, step_name):
         results = self.summaries[step_name]
         results_prog = {
-            #f"{kk}/{step_name}": results.metrics[f"{kk}/{step_name}"] for kk in self.metrics_on_progress_bar
-            self.metric_log_name(self.task_name, kk, step_name): results.metrics[self.metric_log_name(self.task_name, kk, step_name)] for kk in self.metrics_on_progress_bar
+            # f"{kk}/{step_name}": results.metrics[f"{kk}/{step_name}"] for kk in self.metrics_on_progress_bar
+            self.metric_log_name(self.task_name, kk, step_name): results.metrics[
+                self.metric_log_name(self.task_name, kk, step_name)
+            ]
+            for kk in self.metrics_on_progress_bar
         }
         return results_prog
 
@@ -139,12 +147,20 @@ class Summary(SummaryInterface):
 
         # Compute the metrics always used in regression tasks
         metric_logs = {}
-        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(self.predictions)
-        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(self.predictions)
-        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(self.predictions)
+        metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(
+            self.predictions
+        )
+        metric_logs[self.metric_log_name(self.task_name, "std_pred", self.step_name)] = nan_std(
+            self.predictions
+        )
+        metric_logs[self.metric_log_name(self.task_name, "median_pred", self.step_name)] = nan_median(
+            self.predictions
+        )
         metric_logs[self.metric_log_name(self.task_name, "mean_target", self.step_name)] = nan_mean(targets)
         metric_logs[self.metric_log_name(self.task_name, "std_target", self.step_name)] = nan_std(targets)
-        metric_logs[self.metric_log_name(self.task_name, "median_target", self.step_name)] = nan_median(targets)
+        metric_logs[self.metric_log_name(self.task_name, "median_target", self.step_name)] = nan_median(
+            targets
+        )
         if torch.cuda.is_available():
             metric_logs[f"gpu_allocated_GB"] = torch.tensor(torch.cuda.memory_allocated() / (2**30))
 
@@ -157,7 +173,9 @@ class Summary(SummaryInterface):
 
         # Compute the additional metrics
         for key, metric in metrics_to_use.items():
-            metric_name = self.metric_log_name(self.task_name, key, self.step_name)   #f"{key}/{self.step_name}"
+            metric_name = self.metric_log_name(
+                self.task_name, key, self.step_name
+            )  # f"{key}/{self.step_name}"
             try:
                 metric_logs[metric_name] = metric(self.predictions, targets)
             except Exception as e:
@@ -168,9 +186,11 @@ class Summary(SummaryInterface):
                     logger.warning(f"Error for metric {metric_name}. NaN is returned. Exception: {e}")
 
         # Convert all metrics to CPU, except for the loss
-        #metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
-        metric_logs[self.metric_log_name(self.task_name, self.loss_fun._get_name(), self.step_name)] = self.loss.detach().cpu()
-        #print("Metrics logs keys: ", metric_logs.keys())
+        # metric_logs[f"{self.loss_fun._get_name()}/{self.step_name}"] = self.loss.detach().cpu()
+        metric_logs[
+            self.metric_log_name(self.task_name, self.loss_fun._get_name(), self.step_name)
+        ] = self.loss.detach().cpu()
+        # print("Metrics logs keys: ", metric_logs.keys())
         metric_logs = {key: metric.detach().cpu() for key, metric in metric_logs.items()}
 
         return metric_logs
@@ -186,7 +206,7 @@ class Summary(SummaryInterface):
             self,
             targets: Tensor = None,
             predictions: Tensor = None,
-            loss: float = None,                 # Is this supposed to be a Tensor or float?
+            loss: float = None,  # Is this supposed to be a Tensor or float?
             metrics: dict = None,
             monitored_metric: str = None,
             n_epochs: int = None,
@@ -213,7 +233,7 @@ class TaskSummaries(SummaryInterface):
         task_metrics_on_training_set,
         task_metrics_on_progress_bar,
         monitor="loss",
-        mode: str = "min"
+        mode: str = "min",
     ):
         self.task_loss_fun = task_loss_fun
         self.task_metrics = task_metrics
@@ -259,7 +279,9 @@ class TaskSummaries(SummaryInterface):
             step_name = self.task_summaries[task].step_name
             loss = self.task_summaries[task].loss
             if self.task_summaries[task].is_best_epoch(step_name, loss, task_metrics[task]):
-                self.task_summaries[task].best_summaries[step_name] = self.task_summaries[task].summaries[step_name]
+                self.task_summaries[task].best_summaries[step_name] = self.task_summaries[task].summaries[
+                    step_name
+                ]
 
     def get_results(self, step_name):
         results = {}
@@ -277,7 +299,7 @@ class TaskSummaries(SummaryInterface):
     def get_results_on_progress_bar(self, step_name):
         task_results_prog = {}
         for task in self.tasks:
-            #task_results_prog[task] = self.task_summaries[task].get_results_on_progress_bar(step_name)
+            # task_results_prog[task] = self.task_summaries[task].get_results_on_progress_bar(step_name)
             task_results_prog.update(self.task_summaries[task].get_results_on_progress_bar(step_name))
         return task_results_prog
 

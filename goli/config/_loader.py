@@ -21,6 +21,7 @@ from goli.trainer.loggers import WandbLoggerGoli
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
 
+
 def get_accelerator(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
 ) -> str:
@@ -40,9 +41,7 @@ def get_accelerator(
         acc_type = "gpu"
 
     if (acc_type == "gpu") and (not torch.cuda.is_available()):
-        logger.warning(
-            f"GPUs selected, but will be ignored since no GPU are available on this device"
-        )
+        logger.warning(f"GPUs selected, but will be ignored since no GPU are available on this device")
         acc_type = "cpu"
 
     # Get the IPU info
@@ -53,9 +52,7 @@ def get_accelerator(
     if acc_type == "ipu":
         poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
-            logger.warning(
-                f"IPUs selected, but will be ignored since no IPU are available on this device"
-            )
+            logger.warning(f"IPUs selected, but will be ignored since no IPU are available on this device")
             acc_type = "cpu"
 
     # Fall on cpu at the end
@@ -64,9 +61,7 @@ def get_accelerator(
     return acc_type
 
 
-def load_datamodule(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]]
-):
+def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
     cfg_data = config["datamodule"]["args"]
     ipu_inference_opts, ipu_training_opts = None, None
     ipu_file = "expts/configs/ipu.config"
@@ -74,24 +69,30 @@ def load_datamodule(
     ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
 
     if get_accelerator(config) == "ipu":
-        ipu_inference_opts, ipu_training_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+        ipu_inference_opts, ipu_training_opts = load_ipu_options(
+            ipu_file=ipu_file, seed=config["constants"]["seed"]
+        )
 
         bz_train = cfg_data["batch_size_train_val"]
-        ipu_dataloader_training_opts = IPUDataloaderOptions(batch_size=bz_train, **ipu_dataloader_training_opts)
+        ipu_dataloader_training_opts = IPUDataloaderOptions(
+            batch_size=bz_train, **ipu_dataloader_training_opts
+        )
         ipu_dataloader_training_opts.set_kwargs()
 
         bz_test = cfg_data["batch_size_test"]
-        ipu_dataloader_inference_opts = IPUDataloaderOptions(batch_size=bz_test, **ipu_dataloader_inference_opts)
+        ipu_dataloader_inference_opts = IPUDataloaderOptions(
+            batch_size=bz_test, **ipu_dataloader_inference_opts
+        )
         ipu_dataloader_inference_opts.set_kwargs()
-
 
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(
-                ipu_inference_opts = ipu_inference_opts,
-                ipu_training_opts = ipu_training_opts,
-                ipu_dataloader_training_opts=ipu_dataloader_training_opts,
-                ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
-                **config["datamodule"]["args"])
+        ipu_inference_opts=ipu_inference_opts,
+        ipu_training_opts=ipu_training_opts,
+        ipu_dataloader_training_opts=ipu_dataloader_training_opts,
+        ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
+        **config["datamodule"]["args"],
+    )
 
     return datamodule
 
@@ -142,33 +143,36 @@ def load_architecture(
     # Prepare the various kwargs
     #! Andy: maybe also prepare the pe_encoder_kwargs here
     pe_encoders_kwargs = dict(cfg_arch["pe_encoders"]) if cfg_arch["pe_encoders"] is not None else None
-    
+
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
     post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
-    task_heads_kwargs = cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None     # This is of type ListConfig containing TaskHeadParams
-
+    task_heads_kwargs = (
+        cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None
+    )  # This is of type ListConfig containing TaskHeadParams
 
     #! Andy we want to initialize the pe_encoder dimension here, many things to change
     #! Andy: set the correct input dimension for node_features of the GNN
     #! Andy: we might also want to set the on_keys here
 
-    #* want to infer the input dimension from the datamodule from the featurization part
+    # * want to infer the input dimension from the datamodule from the featurization part
     # Set the input dimensions
-    #* see below for the schema of pe_encoder dimensions
-    '''
+    # * see below for the schema of pe_encoder dimensions
+    """
     pe_1_raw, pe_2_raw, ...
     pe_encoder_1(pe_1_raw): pe_1_raw ---> pe_encoders_kwargs["out_dim"]
     pe_encoder_2(pe_2_raw): pe_2_raw ---> pe_encoders_kwargs["out_dim"]
     pool (pe_encoder_1_out, pe_encoder_2_out)
     ---> pe_encoders_kwargs["out_dim"]  
-    '''
+    """
     if pe_encoders_kwargs is not None:
         pe_encoders_kwargs = dict(pe_encoders_kwargs)
-        for encoder in pe_encoders_kwargs['encoders']:
-            pe_encoders_kwargs['encoders'][encoder] = dict(pe_encoders_kwargs['encoders'][encoder])
-        pe_encoders_kwargs.setdefault("in_dims", pe_in_dims)  #set the input dimensions of all pe with info from the data module
+        for encoder in pe_encoders_kwargs["encoders"]:
+            pe_encoders_kwargs["encoders"][encoder] = dict(pe_encoders_kwargs["encoders"][encoder])
+        pe_encoders_kwargs.setdefault(
+            "in_dims", pe_in_dims
+        )  # set the input dimensions of all pe with info from the data module
 
     if pre_nn_kwargs is not None:
         pre_nn_kwargs = dict(pre_nn_kwargs)
@@ -184,11 +188,13 @@ def load_architecture(
 
     # Set the parameters for the full network
     task_head_params_list = []
-    for params in omegaconf.OmegaConf.to_object(task_heads_kwargs): # This turns the ListConfig into List[TaskHeadParams]
+    for params in omegaconf.OmegaConf.to_object(
+        task_heads_kwargs
+    ):  # This turns the ListConfig into List[TaskHeadParams]
         params_dict = dict(params)
         task_head_params_list.append(params_dict)
 
-    #*Andy: set the pe_encoders_kwargs here, only adding it for mtl for now
+    # *Andy: set the pe_encoders_kwargs here, only adding it for mtl for now
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
         pre_nn_kwargs=pre_nn_kwargs,
@@ -263,11 +269,10 @@ def load_trainer(config, run_name):
         terminate_on_nan=True,
         plugins=plugins,
         accelerator=accelerator,
-        ipus = ipus,
-        gpus = gpus,
+        ipus=ipus,
+        gpus=gpus,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
 
     return trainer
-

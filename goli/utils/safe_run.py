@@ -1,7 +1,8 @@
 from loguru import logger
 import traceback as tb
 
-class SafeRun():
+
+class SafeRun:
     def __init__(self, name: str, raise_error: bool = True, verbose: int = 2) -> None:
         """
         Run some code with error handling and some printing, using the with statment.
@@ -32,7 +33,6 @@ class SafeRun():
         if self.verbose >= 2:
             logger.info(f"\n------------ {self.name} STARTED ------------")
 
-
     def __exit__(self, type, value, traceback):
         """
         Handle the error. Raise it if `self.raise_error==True`, otherwise ignore it
@@ -41,15 +41,15 @@ class SafeRun():
         """
         if traceback is not None:
             if self.raise_error:
-                if self.verbose >=1:
+                if self.verbose >= 1:
                     logger.error(f"------------ {self.name} ERROR: ------------")
                 return False
             else:
-                if self.verbose >=1:
+                if self.verbose >= 1:
                     logger.error(f"------------ {self.name} ERROR: ------------\nERROR skipped. Traceback:\n")
-                    logger.trace(print(''.join(tb.format_exception(None, value, traceback))))
+                    logger.trace(print("".join(tb.format_exception(None, value, traceback))))
                 return True
         else:
-            if self.verbose >=2:
+            if self.verbose >= 2:
                 logger.info("\n------------ {self.name} COMPLETED ------------\n\n")
             return True

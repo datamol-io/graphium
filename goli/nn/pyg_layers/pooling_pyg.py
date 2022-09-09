@@ -34,7 +34,13 @@ def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Op
     """
     dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
     mean_pool = scatter(x, batch, dim=dim, dim_size=dim_size, reduce="mean")
-    num_nodes = scatter(torch.ones(x.shape[:-1], dtype=x.dtype, device=x.device), batch, dim=dim, dim_size=dim_size, reduce="sum")
+    num_nodes = scatter(
+        torch.ones(x.shape[:-1], dtype=x.dtype, device=x.device),
+        batch,
+        dim=dim,
+        dim_size=dim_size,
+        reduce="sum",
+    )
     lognum = torch.log(num_nodes)
     return mean_pool * lognum.unsqueeze(-1)
 
