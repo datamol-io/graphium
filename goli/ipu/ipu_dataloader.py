@@ -4,10 +4,11 @@ from typing import Callable, Optional
 from copy import deepcopy
 from dataclasses import dataclass
 
-import poptorch
 import torch
 from torch_geometric.data import Data, Batch, Dataset
 from torch_geometric.transforms import BaseTransform
+
+from goli.ipu.ipu_utils import import_poptorch
 
 
 @dataclass
@@ -121,7 +122,7 @@ class CombinedBatchingCollator:
 def create_ipu_dataloader(
     dataset: Dataset,
     ipu_dataloader_options: IPUDataloaderOptions,
-    ipu_options: Optional[poptorch.Options] = None,
+    ipu_options: Optional["poptorch.Options"] = None,
     batch_size: Optional[int] = 1,
     collate_fn=None,
     **kwargs,
@@ -144,6 +145,8 @@ def create_ipu_dataloader(
         collate_fn: The function used to collate batches
         **kwargs (optional): Additional arguments of :class:`poptorch.DataLoader`.
     """
+    poptorch = import_poptorch()
+
     if ipu_options is None:
         # Create IPU default options
         ipu_options = poptorch.Options()
