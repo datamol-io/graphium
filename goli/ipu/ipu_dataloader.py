@@ -9,6 +9,8 @@ import torch
 from torch_geometric.data import Data, Batch, Dataset
 from torch_geometric.transforms import BaseTransform
 
+from goli.ipu.ipu_utils import import_poptorch
+
 
 @dataclass
 class IPUDataloaderOptions:
@@ -28,6 +30,7 @@ class IPUDataloaderOptions:
     max_num_nodes_per_graph: Optional[int] = None
     max_num_edges: Optional[int] = None
     max_num_edges_per_graph: Optional[int] = None
+    mode: "poptorch.DataLoaderMode" = "Sync"
 
     def set_kwargs(self):
 
@@ -56,6 +59,18 @@ class IPUDataloaderOptions:
             self.max_num_edges = self.max_num_edges_per_graph * self.batch_size
         else:
             raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
+
+        # poptorch mode
+        poptorch = import_poptorch()
+        if isinstance(self.mode, str):
+            if self.mode.lower() == "sync":
+                self.mode = poptorch.DataLoaderMode.Sync
+            elif self.mode.lower() == "async":
+                self.mode = poptorch.DataLoaderMode.Async
+            elif self.mode.lower() == "asyncrebatched":
+                self.mode = poptorch.DataLoaderMode.AsyncRebatched
+            else:
+                raise ValueError(f"`{self.mode}` not a valid parameter.")
 
 
 class CombinedBatchingCollator:
@@ -159,7 +174,12 @@ def create_ipu_dataloader(
     )
 
     return poptorch.DataLoader(
-        options=deepcopy(ipu_options), dataset=dataset, batch_size=batch_size, collate_fn=collater, **kwargs
+        options=deepcopy(ipu_options),
+        dataset=dataset,
+        batch_size=batch_size,
+        collate_fn=collater,
+        async_options={"early_preload": True},  # TODO: keep?
+        **kwargs,
     )
 
 
