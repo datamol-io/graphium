@@ -32,11 +32,13 @@ def main(cfg: DictConfig, run_name="main") -> None:
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)
 
+    #! Andy: we might want a dict of in_dim for pe encoders from datamodule
     # Initialize the network
     model_class, model_kwargs = load_architecture(
         cfg,
-        in_dim_nodes=datamodule.num_node_feats_with_positional_encoding,
+        in_dim_nodes=datamodule.num_node_feats,
         in_dim_edges=datamodule.num_edge_feats,
+        pe_in_dims=datamodule.pe_in_dims,
     )
 
     metrics = load_metrics(cfg)

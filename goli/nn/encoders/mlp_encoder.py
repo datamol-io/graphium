@@ -64,8 +64,8 @@ class MLPEncoder(torch.nn.Module):
         # Parse the `on_keys`.
         if len(on_keys) != 1:
             raise ValueError(f"`{self.__class__}` only supports one key")
-        if list(on_keys.keys())[0] != "encoding":
-            raise ValueError(f"`on_keys` must contain the key 'encoding'")
+        # if list(on_keys.keys())[0] != "encoding":
+        #     raise ValueError(f"`on_keys` must contain the key 'encoding'")
         return on_keys
 
     def forward(self, encoding):

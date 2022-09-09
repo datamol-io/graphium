@@ -28,16 +28,18 @@ def get_all_positional_encoding(
     pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
 
     pe_dict = {}
+    pos_types = []
 
+    #! Andy: should be able to handle multiple types of pe_encoding
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
-        pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
+        for pos in pos_encoding_as_features["pos_types"]:
+            pos_args = pos_encoding_as_features["pos_types"][pos]
+            pos_types.append(pos_args["pos_type"])
+            pe_dict.update(graph_positional_encoder(adj, num_nodes, pos_args))
 
-    # Get the positional encoding for the directions
-    # seem to be quite hard coded, I just replaced the entries with dictionary entries
     if len(pos_encoding_as_directions) > 0:
-        if pos_encoding_as_directions == pos_encoding_as_features:
-
+        if pos_encoding_as_directions["pos_type"] in pos_types:
             # Concatenate the sign-flip and non-sign-flip positional encodings
             if pe_dict["pos_enc_feats_sign_flip"] is None:
                 pos_enc_dir = pe_dict["pos_enc_feats_no_flip"]
@@ -49,7 +51,7 @@ def get_all_positional_encoding(
                 )
 
         else:
-            pe_dict = graph_positional_encoder(adj, **pos_encoding_as_directions)
+            pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_directions)
             pos_enc_dir1 = pe_dict["pos_enc_feats_sign_flip"]
             pos_enc_dir2 = pe_dict["pos_enc_feats_no_flip"]
             # Concatenate both positional encodings
@@ -59,6 +61,7 @@ def get_all_positional_encoding(
                 pos_enc_dir = pos_enc_dir1
             else:
                 pos_enc_dir = np.concatenate((pos_enc_dir1, pos_enc_dir2), axis=1)
+
     return pe_dict, pos_enc_dir
 
 
@@ -76,7 +79,6 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
             - laplacian_eigvec_eigval
 
     """
-
     pos_type = pos_arg["pos_type"]
 
     pos_type = pos_type.lower()

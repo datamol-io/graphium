@@ -112,6 +112,28 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
+  #! Andy: example config for pe_encoders
+  #* name of pe could be used by the encoder
+  pe_encoders:
+    out_dim: 64
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    encoders: #la_pos |  rw_pos
+      la_pos:  # Set as null to avoid a pre-nn network
+        hidden_dim: 64
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 1
+        num_layers_post: 0 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_norm: "none" #"batch_norm" or "layer_norm"
+      rw_pos:
+        hidden_dim: 64
+        num_layers: 1
+        dropout: 0.1
+        normalization: "none" #"batch_norm" or "layer_norm"
+        first_norm: "none" #"batch_norm" or "layer_norm"
+
+
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
     hidden_dims: 64

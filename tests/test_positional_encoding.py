@@ -174,6 +174,8 @@ class test_positional_encoder(ut.TestCase):
                     )
 
                     hidden_embed = encoder(eigvals, eigvecs)
+                    print(hidden_embed)
+
 
 
 if __name__ == "__main__":
