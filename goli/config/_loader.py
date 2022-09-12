@@ -117,9 +117,7 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
 def load_architecture(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
-    in_dim_nodes: int,
-    in_dim_edges: int,
-    pe_in_dims: Dict,
+    in_dims: Dict,
 ):
 
     if isinstance(config, dict):
@@ -141,7 +139,6 @@ def load_architecture(
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
     # Prepare the various kwargs
-    #! Andy: maybe also prepare the pe_encoder_kwargs here
     pe_encoders_kwargs = dict(cfg_arch["pe_encoders"]) if cfg_arch["pe_encoders"] is not None else None
 
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
@@ -152,39 +149,33 @@ def load_architecture(
         cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None
     )  # This is of type ListConfig containing TaskHeadParams
 
-    #! Andy we want to initialize the pe_encoder dimension here, many things to change
-    #! Andy: set the correct input dimension for node_features of the GNN
-    #! Andy: we might also want to set the on_keys here
 
-    # * want to infer the input dimension from the datamodule from the featurization part
-    # Set the input dimensions
-    # * see below for the schema of pe_encoder dimensions
     """
     pe_1_raw, pe_2_raw, ...
     pe_encoder_1(pe_1_raw): pe_1_raw ---> pe_encoders_kwargs["out_dim"]
     pe_encoder_2(pe_2_raw): pe_2_raw ---> pe_encoders_kwargs["out_dim"]
     pool (pe_encoder_1_out, pe_encoder_2_out)
-    ---> pe_encoders_kwargs["out_dim"]  
+    ---> pe_encoders_kwargs["out_dim"]
     """
     if pe_encoders_kwargs is not None:
         pe_encoders_kwargs = dict(pe_encoders_kwargs)
         for encoder in pe_encoders_kwargs["encoders"]:
             pe_encoders_kwargs["encoders"][encoder] = dict(pe_encoders_kwargs["encoders"][encoder])
         pe_encoders_kwargs.setdefault(
-            "in_dims", pe_in_dims
+            "in_dims", in_dims
         )  # set the input dimensions of all pe with info from the data module
 
     if pre_nn_kwargs is not None:
         pre_nn_kwargs = dict(pre_nn_kwargs)
-        pre_nn_kwargs.setdefault("in_dim", in_dim_nodes + pe_encoders_kwargs["out_dim"])
+        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
     else:
-        gnn_kwargs.setdefault("in_dim", in_dim_nodes + pe_encoders_kwargs["out_dim"])
+        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
 
     if pre_nn_edges_kwargs is not None:
         pre_nn_edges_kwargs = dict(pre_nn_edges_kwargs)
-        pre_nn_edges_kwargs.setdefault("in_dim", in_dim_edges)
+        pre_nn_edges_kwargs.setdefault("in_dim", in_dims["edge_feat"])
     else:
-        gnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
+        gnn_kwargs.setdefault("in_dim_edges", in_dims["edge_feat"])
 
     # Set the parameters for the full network
     task_head_params_list = []

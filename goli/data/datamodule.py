@@ -1031,44 +1031,24 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         num_feats = graph.feat.shape[1]
         return num_feats
 
-    # #! Andy: update this so that the dimension matches with pe final output dim
-    # #! we no longer need this as pe_dim will be specified in the config file
-    # @property
-    # def num_node_feats_with_positional_encoding(self):
-    #     """Return the number of node features in the first graph
-    #     including positional encoding features."""
-
-    #     graph = self.get_first_graph()
-    #     num_feats = 0
-    #     if isinstance(graph, (dgl.DGLGraph, GraphDict)):
-    #         graph = graph.ndata
-
-    #     empty = torch.Tensor([])
-    #     num_feats  = graph.get("feat", empty).shape[-1]
-    #     num_feats += graph.get("pos_enc_feats_sign_flip", empty).shape[-1]
-    #     num_feats += graph.get("pos_enc_feats_no_flip", empty).shape[-1]
-
-    #     return num_feats
-
     #! Andy: here we want to know the input dimension for every single positional embedding
     @property
-    def pe_in_dims(self):
+    def in_dims(self):
         """Return the raw positional encoding dimensions including eigval, eigvec, rwse and more"""
 
         graph = self.get_first_graph()
-        num_feats = 0
         if isinstance(graph, (dgl.DGLGraph, GraphDict)):
             graph = graph.ndata
 
         # * get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
         g_keys = graph.keys
-        empty = torch.Tensor([])
-        num_feats = graph.get("feat", empty).shape[-1]
+
         # ignore the normal keys for node feat and edge feat etc.
         for key in g_keys:
-            if key not in ["feat", "edge_feat", "num_nodes", "edge_weight", "edge_index"]:
-                pe_dim_dict[key] = graph.get(key, empty).shape[-1]
+            prop = graph.get(key, None)
+            if hasattr(prop, "shape"):
+                pe_dim_dict[key] = prop.shape[-1]
         return pe_dim_dict
 
     @property

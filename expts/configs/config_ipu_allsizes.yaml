@@ -63,15 +63,17 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
-      # pos_encoding_as_features: &pos_enc
-      #   pos_type: laplacian_eigvec
-      #   num_pos: 3
-      #   normalization: "none"
-      #   disconnected_comp: True
-      # pos_encoding_as_directions: *pos_enc
-      pos_encoding_as_features: &pos_enc
-        pos_type: rwse
-        ksteps: 16
+      pos_encoding_as_features:
+        pos_types:
+          la_pos: &pos_enc  #use same name as pe_encoder
+            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+            num_pos: 3
+            normalization: "none"
+            disconnected_comp: True
+          rw_pos: #use same name as pe_encoder
+            pos_type: rwse
+            ksteps: 16
+      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
     batch_size_train_val: 60 #90 #128 #30 #256 #100  #20, 50, 2048
@@ -112,26 +114,29 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
-  #! Andy: example config for pe_encoders
-  #* name of pe could be used by the encoder
   pe_encoders:
     out_dim: 64
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
+        encoder_type: "laplacian_pe"
+        on_keys: ["eigvecs", "eigvals"]
         hidden_dim: 64
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
         num_layers_post: 0 # Num. layers to apply after pooling
         dropout: 0.1
-        first_norm: "none" #"batch_norm" or "layer_norm"
+        first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
+        encoder_type: "mlp"
+        on_keys: ["rwse"]
+        out_level: "node"
         hidden_dim: 64
         num_layers: 1
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
-        first_norm: "none" #"batch_norm" or "layer_norm"
+        first_normalization: "none" #"batch_norm" or "layer_norm"
 
 
   gnn:  # Set as null to avoid a post-nn network

@@ -18,12 +18,12 @@ class LapPENodeEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        on_keys: Dict,
+        on_keys: List[str],
         in_dim: int,  # Size of Laplace PE embedding
         hidden_dim: int,
         out_dim: int,
-        model_type,  # 'Transformer' or 'DeepSet'
-        num_layers,
+        num_layers: int,
+        model_type: str = "DeepSet",  # 'Transformer' or 'DeepSet'
         num_layers_post=0,  # Num. layers to apply after pooling
         dropout=0.0,
         first_normalization=None,
@@ -77,18 +77,12 @@ class LapPENodeEncoder(torch.nn.Module):
     def parse_on_keys(self, on_keys):
         if len(on_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
-        if ("pos_enc_feats_no_flip" not in on_keys.keys()) and (
-            "pos_enc_feats_sign_flip" not in on_keys.keys()
-        ):
-            raise ValueError(
-                f"`on_keys` must contain the keys 'pos_enc_feats_no_flip' and 'pos_enc_feats_sign_flip' Provided {on_keys}"
-            )
-        # if ("eigvals" not in on_keys.keys()) and ("eigvecs" not in on_keys.keys()):
-        #     raise ValueError(f"`on_keys` must contain the keys 'eigvals' and eigvecs. Provided {on_keys}")
+
         return on_keys
 
     def forward(self, eigvals, eigvecs):
 
+        # TODO Dom: add random flipping to the Laplacian encoder
         if self.training:
             sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device)
             sign_flip[sign_flip >= 0.5] = 1.0

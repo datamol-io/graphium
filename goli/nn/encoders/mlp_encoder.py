@@ -24,7 +24,7 @@ class MLPEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        on_keys: Dict,
+        on_keys: List[str],
         out_level: str,
         in_dim: int,
         hidden_dim: int,
@@ -68,7 +68,8 @@ class MLPEncoder(torch.nn.Module):
         #     raise ValueError(f"`on_keys` must contain the key 'encoding'")
         return on_keys
 
-    def forward(self, encoding):
+    def forward(self, **encoding):
+        encoding = encoding[self.on_keys[0]]
         # Run the MLP
         encoding = self.pe_encoder(encoding)  # (Num nodes) x dim_pe
 

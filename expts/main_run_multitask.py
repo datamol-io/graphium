@@ -36,9 +36,7 @@ def main(cfg: DictConfig, run_name="main") -> None:
     # Initialize the network
     model_class, model_kwargs = load_architecture(
         cfg,
-        in_dim_nodes=datamodule.num_node_feats,
-        in_dim_edges=datamodule.num_edge_feats,
-        pe_in_dims=datamodule.pe_in_dims,
+        in_dims=datamodule.in_dims,
     )
 
     metrics = load_metrics(cfg)
