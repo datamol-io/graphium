@@ -1023,7 +1023,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             return False
         return (getattr(self, "train_ds") is not None) or (getattr(self, "test_ds") is not None)
 
-    #! Andy: updated this to work with pyg graphs instead
     @property
     def num_node_feats(self):
         """Return the number of node features in the first graph"""
@@ -1031,16 +1030,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         num_feats = graph.feat.shape[1]
         return num_feats
 
-    #! Andy: here we want to know the input dimension for every single positional embedding
     @property
     def in_dims(self):
-        """Return the raw positional encoding dimensions including eigval, eigvec, rwse and more"""
+        """
+        Return all input dimensions for the set of graphs.
+        Including node/edge features, and
+        raw positional encoding dimensions such eigval, eigvec, rwse and more
+        """
 
         graph = self.get_first_graph()
         if isinstance(graph, (dgl.DGLGraph, GraphDict)):
             graph = graph.ndata
 
-        # * get list of all keys corresponding to positional encoding
+        # get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
         g_keys = graph.keys
 

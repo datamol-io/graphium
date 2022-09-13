@@ -35,7 +35,6 @@ def get_all_positional_encoding(
 
     pe_dict, pe_dir_dict = OrderedDict(), OrderedDict()
 
-    #! Andy: should be able to handle multiple types of pe_encoding
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
         for pos in pos_encoding_as_features["pos_types"]:
@@ -44,6 +43,7 @@ def get_all_positional_encoding(
             this_pe = {f"{pos}/{key}": val for key, val in this_pe.items()}
             pe_dict.update(this_pe)
 
+    # Get the positional encoding for the directions (useful for directional GNNs and asymetric pooling)
     if len(pos_encoding_as_directions) > 0:
         for pos in pos_encoding_as_directions["pos_types"]:
             pos_args = pos_encoding_as_directions["pos_types"][pos]

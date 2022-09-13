@@ -9,12 +9,10 @@ from rdkit import Chem
 import datamol as dm
 import torch
 
-from goli.features.featurizer import (
-    mol_to_adj_and_features,
-    mol_to_graph_dict,
-)
 from goli.features.positional_encoding import graph_positional_encoder
 from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
+
+# TODO: Test the MLP_encoder and signnet_pos_encoder
 
 
 class test_positional_encoder(ut.TestCase):
@@ -37,7 +35,7 @@ class test_positional_encoder(ut.TestCase):
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
-                    # Andy: now returns a dictionary of computed pe
+                    # returns a dictionary of computed pe
                     pos_encoding_as_features = {
                         "pos_type": "laplacian_eigvec",
                         "num_pos": num_pos,
@@ -78,7 +76,7 @@ class test_positional_encoder(ut.TestCase):
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
-                    # Andy: now returns a dictionary of computed pe
+                    # returns a dictionary of computed pe
                     pos_encoding_as_features = {
                         "pos_type": "laplacian_eigvec_eigval",
                         "num_pos": num_pos,
@@ -124,7 +122,7 @@ class test_positional_encoder(ut.TestCase):
                 rwse_embed = pe_dict["rwse"]
                 self.assertEqual(list(rwse_embed.shape), [num_nodes, ksteps], msg=err_msg)
 
-    # Andy: work in progress
+    # TODO: work in progress
 
     """
     continue debugging here, see how to adapt the laplace_pos_encoder
@@ -138,7 +136,7 @@ class test_positional_encoder(ut.TestCase):
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
-                    # Andy: now returns a dictionary of computed pe
+                    # returns a dictionary of computed pe
                     pos_encoding_as_features = {
                         "pos_type": "laplacian_eigvec_eigval",
                         "num_pos": num_pos,
@@ -175,7 +173,6 @@ class test_positional_encoder(ut.TestCase):
 
                     hidden_embed = encoder(eigvals, eigvecs)
                     print(hidden_embed)
-
 
 
 if __name__ == "__main__":

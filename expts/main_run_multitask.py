@@ -32,7 +32,6 @@ def main(cfg: DictConfig, run_name="main") -> None:
     # Load and initialize the dataset
     datamodule = load_datamodule(cfg)
 
-    #! Andy: we might want a dict of in_dim for pe encoders from datamodule
     # Initialize the network
     model_class, model_kwargs = load_architecture(
         cfg,

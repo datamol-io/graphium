@@ -34,7 +34,6 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
-# * Andy adding positional encoder names here
 from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
 
 PE_ENCODERS_DICT = {
