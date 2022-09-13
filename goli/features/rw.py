@@ -13,25 +13,30 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 def compute_rwse(adj: Union[np.ndarray, spmatrix], ksteps: int, num_nodes: int) -> np.ndarray:
     """
     Parameters:
+        adj: Adjacency matrix
         ksteps: Number of steps for the random walk
         num_nodes: Number of nodes in the graph
     Returns:
-        2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs
+        2D array with shape (num_nodes, len(ksteps)) with Random-Walk landing probs
     """
 
-    # * Andy: manually handles edge case of 1 atom molecules here
+    # Manually handles edge case of 1 atom molecules here
     if num_nodes == 1:
-        rw_landing = torch.ones(1, ksteps)
-        rw_landing = rw_landing.numpy()
+        rw_landing = np.ones((1, ksteps))
         return rw_landing
 
-    ksteps = range(1, ksteps + 1)
+    # Get the edge indices from the adjacency matrix
     if type(adj) is np.ndarray:
         adj = sparse.csr_matrix(adj)
+    edge_index, edge_weight = from_scipy_sparse_matrix(adj)
 
-    edge_index, _ = from_scipy_sparse_matrix(adj)
-    rw_landing = get_rw_landing_probs(ksteps=ksteps, edge_index=edge_index, num_nodes=num_nodes)
+    # Compute the random-walk landing probability
+    ksteps_range = range(1, ksteps + 1)
+    rw_landing = get_rw_landing_probs(
+        ksteps=ksteps_range, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes
+    )
     rw_landing = rw_landing.numpy()
+
     return rw_landing
 
 
@@ -42,13 +47,15 @@ def get_rw_landing_probs(
     num_nodes: Optional[int] = None,
     space_dim: float = 0.0,
 ):
-    """Compute Random Walk landing probabilities for given list of K steps.
+    """
+    Compute Random Walk landing probabilities for given list of K steps.
+
     Parameters:
         ksteps: List of k-steps for which to compute the RW landings
         edge_index: PyG sparse representation of the graph
-        edge_weight: (optional) Edge weights
-        num_nodes: (optional) Number of nodes in the graph
-        space_dim: (optional) Estimated dimensionality of the space. Used to
+        edge_weight: Edge weights
+        num_nodes: Number of nodes in the graph
+        space_dim: Estimated dimensionality of the space. Used to
             correct the random-walk diagonal by a factor `k^(space_dim/2)`.
             In euclidean space, this correction means that the height of
             the gaussian distribution stays almost constant across the number of

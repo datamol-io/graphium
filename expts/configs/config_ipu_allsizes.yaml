@@ -54,7 +54,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
+    featurization_n_jobs: 64
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -63,20 +63,24 @@ datamodule:
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
-      # pos_encoding_as_features: &pos_enc
-      #   pos_type: laplacian_eigvec
-      #   num_pos: 3
-      #   normalization: "none"
-      #   disconnected_comp: True
-      # pos_encoding_as_directions: *pos_enc
-      pos_encoding_as_features: &pos_enc
-        pos_type: rwse
-        ksteps: 16
+      pos_encoding_as_features:
+        pos_types:
+          la_pos: &pos_enc  #use same name as pe_encoder
+            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+            num_pos: 3
+            normalization: "none"
+            disconnected_comp: True
+          rw_pos: #use same name as pe_encoder
+            pos_type: rwse
+            ksteps: 16
+      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
     batch_size_train_val: 60 #90 #128 #30 #256 #100  #20, 50, 2048
     batch_size_test: 60 #90 #128 #30 #256 #100 #20, 50, 2048
     # cache_data_path: null
+
+    num_workers: -1
 
     ipu_dataloader_training_opts:
       max_num_nodes_per_graph: 12
@@ -110,9 +114,34 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
+  pe_encoders:
+    out_dim: 64
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    encoders: #la_pos |  rw_pos
+      la_pos:  # Set as null to avoid a pre-nn network
+        encoder_type: "laplacian_pe"
+        on_keys: ["eigvecs", "eigvals"]
+        hidden_dim: 64
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 1
+        num_layers_post: 0 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_normalization: "none" #"batch_norm" or "layer_norm"
+      rw_pos:
+        encoder_type: "mlp"
+        on_keys: ["rwse"]
+        out_level: "node"
+        hidden_dim: 64
+        num_layers: 1
+        dropout: 0.1
+        normalization: "none" #"batch_norm" or "layer_norm"
+        first_normalization: "none" #"batch_norm" or "layer_norm"
+
+
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
-    hidden_dims: 64
+    hidden_dims: 900
     depth: 4
     activation: relu
     last_activation: none

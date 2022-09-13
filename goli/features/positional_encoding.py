@@ -1,6 +1,7 @@
 from typing import Tuple, Optional, Dict, Union
 import numpy as np
 from scipy.sparse import spmatrix
+from collections import OrderedDict
 
 from goli.features.spectral import compute_laplacian_positional_eigvecs
 from goli.features.rw import compute_rwse
@@ -11,7 +12,7 @@ def get_all_positional_encoding(
     num_nodes: int,
     pos_encoding_as_features: Optional[Dict] = None,
     pos_encoding_as_directions: Optional[Dict] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple["OrderedDict[str, np.ndarray]", "OrderedDict[str, np.ndarray]"]:
     r"""
     Get features positional encoding and direction positional encoding.
 
@@ -20,46 +21,37 @@ def get_all_positional_encoding(
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
         pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
+            to generate positional encoding for directional features,
+            for exemple, with the DGN model (Directional Graph Networks)
+
+    Returns:
+        pe_dict: Dictionary of positional and structural encodings
+        pe_dir_dict: Dictionary of positional and structural encodings to be used for directional
+            features, for exemple, with the DGN model (Directional Graph Networks)
     """
 
-    pos_enc_dir = None
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
     pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
 
-    pe_dict = {}
+    pe_dict, pe_dir_dict = OrderedDict(), OrderedDict()
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
-        pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
+        for pos in pos_encoding_as_features["pos_types"]:
+            pos_args = pos_encoding_as_features["pos_types"][pos]
+            this_pe = graph_positional_encoder(adj, num_nodes, pos_args)
+            this_pe = {f"{pos}/{key}": val for key, val in this_pe.items()}
+            pe_dict.update(this_pe)
 
-    # Get the positional encoding for the directions
-    # seem to be quite hard coded, I just replaced the entries with dictionary entries
+    # Get the positional encoding for the directions (useful for directional GNNs and asymetric pooling)
     if len(pos_encoding_as_directions) > 0:
-        if pos_encoding_as_directions == pos_encoding_as_features:
+        for pos in pos_encoding_as_directions["pos_types"]:
+            pos_args = pos_encoding_as_directions["pos_types"][pos]
+            this_pe = graph_positional_encoder(adj, num_nodes, pos_args)
+            this_pe = {f"{pos}/{key}": val for key, val in this_pe.items()}
+            pe_dir_dict.update(this_pe)
 
-            # Concatenate the sign-flip and non-sign-flip positional encodings
-            if pe_dict["pos_enc_feats_sign_flip"] is None:
-                pos_enc_dir = pe_dict["pos_enc_feats_no_flip"]
-            elif pe_dict["pos_enc_feats_no_flip"] is None:
-                pos_enc_dir = pe_dict["pos_enc_feats_sign_flip"]
-            else:
-                pos_enc_dir = np.concatenate(
-                    (pe_dict["pos_enc_feats_no_flip"], pe_dict["pos_enc_feats_sign_flip"]), axis=1
-                )
-
-        else:
-            pe_dict = graph_positional_encoder(adj, **pos_encoding_as_directions)
-            pos_enc_dir1 = pe_dict["pos_enc_feats_sign_flip"]
-            pos_enc_dir2 = pe_dict["pos_enc_feats_no_flip"]
-            # Concatenate both positional encodings
-            if pos_enc_dir1 is None:
-                pos_enc_dir = pos_enc_dir2
-            elif pos_enc_dir2 is None:
-                pos_enc_dir = pos_enc_dir1
-            else:
-                pos_enc_dir = np.concatenate((pos_enc_dir1, pos_enc_dir2), axis=1)
-    return pe_dict, pos_enc_dir
+    return pe_dict, pe_dir_dict
 
 
 def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict) -> np.ndarray:
@@ -76,7 +68,6 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
             - laplacian_eigvec_eigval
 
     """
-
     pos_type = pos_arg["pos_type"]
 
     pos_type = pos_type.lower()
@@ -86,21 +77,18 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
         _, eigvecs = compute_laplacian_positional_eigvecs(
             adj=adj, num_pos=pos_arg["num_pos"], disconnected_comp=pos_arg["disconnected_comp"]
         )
-        pos_enc_sign_flip = eigvecs
-        pos_enc_sign_flip = np.real(pos_enc_sign_flip).astype(np.float32)
-        pe_dict["pos_enc_feats_sign_flip"] = pos_enc_sign_flip
-        pe_dict["pos_enc_feats_no_flip"] = None
+        eigvecs = np.real(eigvecs).astype(np.float32)
+        pe_dict["eigvecs"] = eigvecs
+        pe_dict["eigvals"] = None
 
     elif pos_type == "laplacian_eigvec_eigval":
         eigvals_tile, eigvecs = compute_laplacian_positional_eigvecs(
             adj=adj, num_pos=pos_arg["num_pos"], disconnected_comp=pos_arg["disconnected_comp"]
         )
-        pos_enc_sign_flip = eigvecs
-        pos_enc_no_flip = eigvals_tile
-        pos_enc_sign_flip = np.real(pos_enc_sign_flip).astype(np.float32)
-        pos_enc_no_flip = np.real(pos_enc_no_flip).astype(np.float32)
-        pe_dict["pos_enc_feats_sign_flip"] = pos_enc_sign_flip
-        pe_dict["pos_enc_feats_no_flip"] = pos_enc_no_flip
+        eigvecs = np.real(eigvecs).astype(np.float32)
+        eigvals_tile = np.real(eigvals_tile).astype(np.float32)
+        pe_dict["eigvecs"] = eigvecs
+        pe_dict["eigvals"] = eigvals_tile
 
     elif pos_type == "rwse":
         rwse_pe = compute_rwse(adj=adj, ksteps=pos_arg["ksteps"], num_nodes=num_nodes)

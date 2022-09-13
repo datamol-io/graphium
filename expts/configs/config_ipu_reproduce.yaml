@@ -20,7 +20,7 @@ datamodule:
         split_test: 0.
         split_seed: *seed
         splits_path: null                 # This may not always be provided
-        sample_size: 715233 # 715233       # This may not always be provided
+        sample_size: 40000 # 715233       # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
@@ -48,11 +48,16 @@ datamodule:
     batch_size_test: 7
     # cache_data_path: null
 
+    num_workers: -1
+    persistent_workers: False
+
     ipu_dataloader_training_opts:
+      mode: async
       max_num_nodes_per_graph: 45
       max_num_edges_per_graph: 90
 
     ipu_dataloader_inference_opts:
+      mode: async
       max_num_nodes_per_graph: 45
       max_num_edges_per_graph: 90
 
@@ -129,6 +134,8 @@ architecture:
 #Task-specific
 predictor:
   metrics_on_progress_bar:
+    pc-assays: [] # ["mae", "averageprecision", "auroc"]
+  metrics_on_training_set:
     pc-assays: [] # ["mae", "averageprecision", "auroc"]
   loss_fun:
     pc-assays: bce_ipu

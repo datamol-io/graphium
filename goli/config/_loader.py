@@ -117,8 +117,7 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
 def load_architecture(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
-    in_dim_nodes: int,
-    in_dim_edges: int,
+    in_dims: Dict,
 ):
 
     if isinstance(config, dict):
@@ -140,6 +139,8 @@ def load_architecture(
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
     # Prepare the various kwargs
+    pe_encoders_kwargs = dict(cfg_arch["pe_encoders"]) if cfg_arch["pe_encoders"] is not None else None
+
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
@@ -148,18 +149,28 @@ def load_architecture(
         cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None
     )  # This is of type ListConfig containing TaskHeadParams
 
-    # Set the input dimensions
+    # Initialize the input dimension for the positional encoders
+    if pe_encoders_kwargs is not None:
+        pe_encoders_kwargs = dict(pe_encoders_kwargs)
+        for encoder in pe_encoders_kwargs["encoders"]:
+            pe_encoders_kwargs["encoders"][encoder] = dict(pe_encoders_kwargs["encoders"][encoder])
+        pe_encoders_kwargs.setdefault(
+            "in_dims", in_dims
+        )  # set the input dimensions of all pe with info from the data-module
+
+    # Set the default `node` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_kwargs is not None:
         pre_nn_kwargs = dict(pre_nn_kwargs)
-        pre_nn_kwargs.setdefault("in_dim", in_dim_nodes)
+        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
     else:
-        gnn_kwargs.setdefault("in_dim", in_dim_nodes)
+        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
 
+    # Set the default `edge` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_edges_kwargs is not None:
         pre_nn_edges_kwargs = dict(pre_nn_edges_kwargs)
-        pre_nn_edges_kwargs.setdefault("in_dim", in_dim_edges)
+        pre_nn_edges_kwargs.setdefault("in_dim", in_dims["edge_feat"])
     else:
-        gnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
+        gnn_kwargs.setdefault("in_dim_edges", in_dims["edge_feat"])
 
     # Set the parameters for the full network
     task_head_params_list = []
@@ -169,10 +180,12 @@ def load_architecture(
         params_dict = dict(params)
         task_head_params_list.append(params_dict)
 
+    # Set all the input arguments for the model
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
         pre_nn_kwargs=pre_nn_kwargs,
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+        pe_encoders_kwargs=pe_encoders_kwargs,
         post_nn_kwargs=post_nn_kwargs,
         task_heads_kwargs_list=task_head_params_list,
     )

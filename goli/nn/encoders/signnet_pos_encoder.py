@@ -16,6 +16,7 @@ class SimpleGIN(nn.Module):
     def __init__(
         self, in_dim, hidden_dim, out_dim, num_layers, normalization="none", dropout=0.5, activation="relu"
     ):
+        # TODO: Not sure this works? Needs updating.
         super().__init__()
         self.layers = nn.ModuleList()
         self.normalization = normalization
@@ -85,6 +86,7 @@ class GINDeepSigns(nn.Module):
         dropout=0.5,
         activation="relu",
     ):
+        # TODO: Not sure this works? Needs updating.
         super().__init__()
         self.enc = SimpleGIN(
             in_channels,
@@ -132,6 +134,7 @@ class MaskedGINDeepSigns(nn.Module):
         dropout=0.5,
         activation="relu",
     ):
+        # TODO: Not sure this works? Needs updating.
         super().__init__()
         self.enc = SimpleGIN(
             in_channels,
@@ -209,6 +212,7 @@ class SignNetNodeEncoder(torch.nn.Module):
         dropout=0.0,
         normalization="none",
     ):
+        # TODO: Not sure this works? Needs updating.
         super().__init__()
 
         # Parse the `on_keys`.

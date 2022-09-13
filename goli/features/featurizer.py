@@ -631,8 +631,9 @@ def mol_to_adj_and_features(
                 Node structural encoding corresponding to the diagonal of the random
                 walk matrix
 
-        pos_enc_dir:
-            Node positional encoding used to define directions. This can thus
+        pe_dir_dict:
+            Similar to `pe_dict`
+            Dictionary of all positional encodings used to define directions. This can thus
             be used for relative position inference.
             This is used, for example, by `DGNConvolutionalLayer` to define
             the direction of the messages.
@@ -678,16 +679,17 @@ def mol_to_adj_and_features(
         edata = None
 
     # Get all positional encodings
-    pe_dict, pos_enc_dir = get_all_positional_encoding(
+    pe_dict, pe_dir_dict = get_all_positional_encoding(
         adj, num_nodes, pos_encoding_as_features, pos_encoding_as_directions
     )
 
     # Mask the NaNs
     for pe_key in pe_dict.keys():
         pe_dict[pe_key] = _mask_nans_inf(mask_nan, pe_dict[pe_key], pe_key)
-    pos_enc_dir = _mask_nans_inf(mask_nan, pos_enc_dir, "pos_enc_dir")
+    for pe_key in pe_dir_dict.keys():
+        pe_dir_dict[pe_key] = _mask_nans_inf(mask_nan, pe_dir_dict[pe_key], pe_key)
 
-    return adj, ndata, edata, pe_dict, pos_enc_dir
+    return adj, ndata, edata, pe_dict, pe_dir_dict
 
 
 class GraphDict(dict):
@@ -903,7 +905,7 @@ def mol_to_graph_dict(
         else:
             mol = Chem.RemoveHs(mol)
 
-        (adj, ndata, edata, pe_dict, pos_enc_dir,) = mol_to_adj_and_features(
+        (adj, ndata, edata, pe_dict, pe_dir_dict,) = mol_to_adj_and_features(
             mol=mol,
             atom_property_list_onehot=atom_property_list_onehot,
             atom_property_list_float=atom_property_list_float,
@@ -916,14 +918,12 @@ def mol_to_graph_dict(
             mask_nan=mask_nan,
         )
     except Exception as e:
-        print(e)
         if on_error.lower() == "raise":
             raise e
         elif on_error.lower() == "warn":
             smiles = input_mol
             if isinstance(smiles, dm.Mol):
                 smiles = Chem.MolToSmiles(input_mol)
-
             msg = str(e) + "\nIgnoring following molecule:" + smiles
             logger.warning(msg)
             return None
@@ -952,24 +952,17 @@ def mol_to_graph_dict(
 
         dgl_dict["edata"]["edge_feat"] = coo_matrix(hetero_edata)
 
-    # Add sign-flip positional encoding
-    if "pos_enc_feats_sign_flip" in pe_dict:
-        dgl_dict["ndata"]["pos_enc_feats_sign_flip"] = pe_dict["pos_enc_feats_sign_flip"]
-
-    # Add non-sign-flip positional encoding
-    if "pos_enc_feats_sign_flip" in pe_dict:
-        dgl_dict["ndata"]["pos_enc_feats_no_flip"] = pe_dict["pos_enc_feats_sign_flip"]
-
-    # Add rwse positional encoding
-    if "rwse" in pe_dict:
-        dgl_dict["ndata"]["pos_rwse"] = pe_dict["rwse"]
+    # Put the positional encodings as node features
+    # TODO: add support for PE on edges
+    for key, pe in pe_dict.items():
+        dgl_dict["ndata"][key] = pe
 
     # Add positional encoding for directional use
-    if pos_enc_dir is not None:
-        dgl_dict["ndata"]["pos_dir"] = pos_enc_dir
+    if (pe_dir_dict is not None) and (len(pe_dir_dict) > 0):
+        pos_dir = np.concatenate(pe_dir_dict.values(), dim=-1)
+        dgl_dict["ndata"]["pos_dir"] = pos_dir
 
     dgl_dict = GraphDict(dgl_dict)
-
     return dgl_dict
 
 
@@ -1075,6 +1068,8 @@ def mol_to_dglgraph(
         on_error=on_error,
         mask_nan=mask_nan,
     )
+
+    print(dgl_dict)
 
     if dgl_dict is not None:
         return dgl_dict.make_dgl_graph()

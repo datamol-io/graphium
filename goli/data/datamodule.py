@@ -1026,29 +1026,32 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
     @property
     def num_node_feats(self):
         """Return the number of node features in the first graph"""
-
         graph = self.get_first_graph()
-        num_feats = 0
-        if "feat" in graph.ndata.keys():
-            num_feats += graph.ndata["feat"].shape[1]
+        num_feats = graph.feat.shape[1]
         return num_feats
 
     @property
-    def num_node_feats_with_positional_encoding(self):
-        """Return the number of node features in the first graph
-        including positional encoding features."""
+    def in_dims(self):
+        """
+        Return all input dimensions for the set of graphs.
+        Including node/edge features, and
+        raw positional encoding dimensions such eigval, eigvec, rwse and more
+        """
 
         graph = self.get_first_graph()
-        num_feats = 0
         if isinstance(graph, (dgl.DGLGraph, GraphDict)):
             graph = graph.ndata
 
-        empty = torch.Tensor([])
-        num_feats = graph.get("feat", empty).shape[-1]
-        num_feats += graph.get("pos_enc_feats_sign_flip", empty).shape[-1]
-        num_feats += graph.get("pos_enc_feats_no_flip", empty).shape[-1]
+        # get list of all keys corresponding to positional encoding
+        pe_dim_dict = {}
+        g_keys = graph.keys
 
-        return num_feats
+        # ignore the normal keys for node feat and edge feat etc.
+        for key in g_keys:
+            prop = graph.get(key, None)
+            if hasattr(prop, "shape"):
+                pe_dim_dict[key] = prop.shape[-1]
+        return pe_dim_dict
 
     @property
     def num_edge_feats(self):

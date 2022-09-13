@@ -67,11 +67,9 @@ def to_dense_batch(
 
     size = [batch_size * max_num_nodes_per_graph] + list(x.size())[1:]
 
-    ##### CHANGES FROM PYG #####
+    out = x.new_full(size, fill_value)
 
-    # `torch.new_full` not supported by poptorch
-    out = torch.full(size, fill_value, dtype=x.dtype, device=x.device)
-    # out = x.new_full(size, fill_value)    # TODO: Uncomment this line with the new SDK
+    ##### CHANGES FROM PYG #####
 
     # In case the last graph represents padding. Drop the overflowing nodes.
     if drop_nodes_last_graph:

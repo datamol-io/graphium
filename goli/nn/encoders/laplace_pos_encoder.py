@@ -18,12 +18,12 @@ class LapPENodeEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        on_keys: Dict,
+        on_keys: List[str],
         in_dim: int,  # Size of Laplace PE embedding
         hidden_dim: int,
         out_dim: int,
-        model_type,  # 'Transformer' or 'DeepSet'
-        num_layers,
+        num_layers: int,
+        model_type: str = "DeepSet",  # 'Transformer' or 'DeepSet'
         num_layers_post=0,  # Num. layers to apply after pooling
         dropout=0.0,
         first_normalization=None,
@@ -45,7 +45,6 @@ class LapPENodeEncoder(torch.nn.Module):
         self.linear_A = nn.Linear(2, in_dim)
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
-        #! Andy: check if these are desired architecture, a lot of new hyperparameters here for the encoder
         if model_type == "Transformer":
             # Transformer model for LapPE
             encoder_layer = nn.TransformerEncoderLayer(
@@ -55,9 +54,9 @@ class LapPENodeEncoder(torch.nn.Module):
         else:
             # DeepSet model for LapPE
             self.pe_encoder = MLP(
-                in_dim=2,
+                in_dim=in_dim,
                 hidden_dim=hidden_dim,
-                out_dim=in_dim,
+                out_dim=out_dim,
                 layers=num_layers,
                 dropout=dropout,
                 **model_kwargs,
@@ -78,12 +77,12 @@ class LapPENodeEncoder(torch.nn.Module):
     def parse_on_keys(self, on_keys):
         if len(on_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
-        if ("eigvals" not in on_keys.keys()) and ("eigvecs" not in on_keys.keys()):
-            raise ValueError(f"`on_keys` must contain the keys 'eigvals' and eigvecs. Provided {on_keys}")
+
         return on_keys
 
     def forward(self, eigvals, eigvecs):
 
+        # TODO Dom: add random flipping to the Laplacian encoder
         if self.training:
             sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device)
             sign_flip[sign_flip >= 0.5] = 1.0
@@ -95,6 +94,8 @@ class LapPENodeEncoder(torch.nn.Module):
         )  # (Num nodes) x (Num Eigenvectors) x 2
         empty_mask = torch.isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
 
+        #! TODO Dom: check why IPU crash here
+        # ? error message: RuntimeError: Cannot insert a Tensor that requires grad as a constant. Consider making it a parameter or input, or detaching the gradient
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 2
         if self.first_normalization:
             pos_enc = self.first_normalization(pos_enc)

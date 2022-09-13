@@ -34,6 +34,14 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
+from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
+
+PE_ENCODERS_DICT = {
+    "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
+    "mlp": mlp_encoder.MLPEncoder,
+    "signnet": signnet_pos_encoder.SignNetNodeEncoder,
+}
+
 
 FC_LAYERS_DICT = {
     "fc": FCLayer,
