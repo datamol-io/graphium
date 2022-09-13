@@ -141,7 +141,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
-    hidden_dims: 64
+    hidden_dims: 900
     depth: 4
     activation: relu
     last_activation: none

@@ -918,10 +918,6 @@ def mol_to_graph_dict(
             mask_nan=mask_nan,
         )
     except Exception as e:
-        print("-------------------------------")
-        print("exception raised")
-        print(e)
-        print("-------------------------------")
         if on_error.lower() == "raise":
             raise e
         elif on_error.lower() == "warn":
