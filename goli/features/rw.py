@@ -22,7 +22,7 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix], ksteps: int, num_nodes: int) 
 
     # Manually handles edge case of 1 atom molecules here
     if num_nodes == 1:
-        rw_landing = np.ones(1, ksteps)
+        rw_landing = np.ones((1, ksteps))
         return rw_landing
 
     # Get the edge indices from the adjacency matrix

@@ -43,8 +43,8 @@ class test_positional_encoder(ut.TestCase):
                     }
                     num_nodes = adj.shape[0]
                     pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
-                    pos_enc_sign_flip = pe_dict["pos_enc_feats_sign_flip"]
-                    pos_enc_no_flip = pe_dict["pos_enc_feats_no_flip"]
+                    pos_enc_sign_flip = pe_dict["eigvecs"]
+                    pos_enc_no_flip = pe_dict["eigvals"]
 
                     self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
                     self.assertIsNone(pos_enc_no_flip)
@@ -84,8 +84,8 @@ class test_positional_encoder(ut.TestCase):
                     }
                     num_nodes = adj.shape[0]
                     pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
-                    pos_enc_sign_flip = pe_dict["pos_enc_feats_sign_flip"]
-                    pos_enc_no_flip = pe_dict["pos_enc_feats_no_flip"]
+                    pos_enc_sign_flip = pe_dict["eigvecs"]
+                    pos_enc_no_flip = pe_dict["eigvals"]
 
                     self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
                     self.assertEqual(list(pos_enc_no_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
@@ -152,20 +152,20 @@ class test_positional_encoder(ut.TestCase):
                     model_type = "Transformer"
                     num_layers = 1
 
-                    pos_enc_sign_flip = torch.from_numpy(pe_dict["pos_enc_feats_sign_flip"])
+                    pos_enc_sign_flip = torch.from_numpy(pe_dict["eigvecs"])
 
-                    pos_enc_no_flip = torch.from_numpy(pe_dict["pos_enc_feats_no_flip"])
+                    pos_enc_no_flip = torch.from_numpy(pe_dict["eigvals"])
 
                     eigvecs = pos_enc_sign_flip
                     eigvals = pos_enc_no_flip
 
                     encoder = laplace_pos_encoder.LapPENodeEncoder(
-                        on_keys,
-                        in_dim,  # Size of Laplace PE embedding
-                        hidden_dim,
-                        out_dim,
-                        model_type,  # 'Transformer' or 'DeepSet'
-                        num_layers,
+                        on_keys=on_keys,
+                        in_dim=in_dim,  # Size of Laplace PE embedding
+                        hidden_dim=hidden_dim,
+                        out_dim=out_dim,
+                        model_type=model_type,  # 'Transformer' or 'DeepSet'
+                        num_layers=num_layers,
                         num_layers_post=0,  # Num. layers to apply after pooling
                         dropout=0.1,
                         first_normalization=None,

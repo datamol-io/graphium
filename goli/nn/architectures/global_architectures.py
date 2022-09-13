@@ -1212,14 +1212,25 @@ class FullGraphNetwork(nn.Module):
 
         return h
 
-    def forward_node_positional_encoding(self, g):
+    def forward_node_positional_encoding(self, g: Any) -> Optional[Tensor]:
         """
         Forward pass for the positional encodings (PE) on the nodes,
         with each PE having it's own encoder defined in `self.pe_encoders`.
+
+        Parameters:
+            g: graph containing the node positional encodings
+
+        Returns:
+            pe_node_pooled: The positional / structural encodings go through
+            encoders, then are pooled together
+
         """
 
-        encoder_outs = []
+        # Return None if no positional encoders
+        if (self.pe_encoders is None) or len(self.pe_encoders == 0):
+            return None
 
+        encoder_outs = []
         # Run every node positional-encoder
         for name, encoder in self.pe_encoders.items():
             keys = encoder.on_keys
@@ -1231,11 +1242,8 @@ class FullGraphNetwork(nn.Module):
             )  # TODO: Avoid repeated call to encoder when using edges
 
         # Pool the node positional encodings
-        if len(encoder_outs) > 0:
-            pe_outs = torch.stack(encoder_outs, dim=-1)
-            pe_node_pooled = self.forward_simple_pooling(pe_outs, pooling=self.pe_pool, dim=-1)
-        else:
-            pe_node_pooled = None
+        pe_outs = torch.stack(encoder_outs, dim=-1)
+        pe_node_pooled = self.forward_simple_pooling(pe_outs, pooling=self.pe_pool, dim=-1)
 
         return pe_node_pooled
 
