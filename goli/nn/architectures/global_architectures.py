@@ -1227,7 +1227,7 @@ class FullGraphNetwork(nn.Module):
         """
 
         # Return None if no positional encoders
-        if (self.pe_encoders is None) or len(self.pe_encoders == 0):
+        if (self.pe_encoders is None) or len(self.pe_encoders) == 0:
             return None
 
         encoder_outs = []

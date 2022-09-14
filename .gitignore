@@ -1,3 +1,41 @@
+############ Goli Custom GitIgnore ##############
+
+# Workspace
+*.code-workspace
+.vscode/
+.idea/
+
+# Training logs and models
+*.out
+*.cache
+lightning_logs/
+logs/
+models_checkpoints/
+outputs/
+saved_models/
+wandb/
+
+# Data and predictions
+goli/data/ZINC_bench_gnn/
+goli/data/BindingDB/
+goli/data/mega-pubchem/
+goli/data/cache/
+predictions/
+
+# Others
+expts_untracked/
+debug/
+change_commits.sh
+
+# IPU related ignores
+pro_vision/
+system_profile/
+*.pop*
+*.a
+
+############ END Goli Custom GitIgnore ##############
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -126,32 +164,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-
-# Custom GitIgnore
-*.code-workspace
-*.out
-*.cache
-*.pop*
-*.a
-lightning_logs/
-logs/
-.vscode/
-.idea/
-models_checkpoints/
-multirun/
-outputs/
-aws_multirun/
-rever/
-
-goli/data/ZINC_bench_gnn/
-goli/data/BindingDB/
-goli/data/mega-pubchem/
-goli/data/cache/
-predictions/
-expts_untracked/
-debug/
-saved_models/
-wandb/
-change_commits.sh
-pro_vision/
-

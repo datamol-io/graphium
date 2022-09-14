@@ -252,7 +252,7 @@ def load_trainer(config, run_name):
     trainer_kwargs["callbacks"] = callbacks
 
     trainer = Trainer(
-        terminate_on_nan=True,
+        detect_anomaly=True,
         plugins=plugins,
         accelerator=accelerator,
         ipus=ipus,

@@ -10,6 +10,8 @@ from torch_geometric.transforms import BaseTransform
 
 from goli.ipu.ipu_utils import import_poptorch
 
+import libpvti as pvti # TODO: Remove when ready to merge
+channel = pvti.createTraceChannel("MyChannel")
 
 @dataclass
 class IPUDataloaderOptions:
@@ -118,6 +120,7 @@ class CombinedBatchingCollator:
         Returns:
             batch: The padded batch
         """
+        pvti.Tracepoint.begin(channel, "Dom: CombinedBatchingCollator")
         if self.collate_fn != None:
             batch = self.collate_fn(batch)
 
@@ -129,6 +132,7 @@ class CombinedBatchingCollator:
         )
 
         batch["features"] = transform(batch["features"])
+        pvti.Tracepoint.end(channel, "Dom: CombinedBatchingCollator")
         return batch
 
 
