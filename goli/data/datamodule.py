@@ -1598,8 +1598,8 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
             logger.warning(f"No IPU options for stage {stage}. Using regular dataloader.")
             return super()._dataloader(dataset, shuffle, stage)
 
+        # Initialize the IPU dataloader
         from goli.ipu.ipu_dataloader import create_ipu_dataloader
-
         loader = create_ipu_dataloader(
             dataset=dataset,
             ipu_dataloader_options=ipu_dataloader_options,

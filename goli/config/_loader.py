@@ -139,7 +139,7 @@ def load_architecture(
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
     # Prepare the various kwargs
-    pe_encoders_kwargs = dict(cfg_arch["pe_encoders"]) if cfg_arch["pe_encoders"] is not None else None
+    pe_encoders_kwargs = dict(cfg_arch["pe_encoders"]) if cfg_arch.get("pe_encoders", None) is not None else None
 
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
@@ -157,13 +157,15 @@ def load_architecture(
         pe_encoders_kwargs.setdefault(
             "in_dims", in_dims
         )  # set the input dimensions of all pe with info from the data-module
+    pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs["out_dim"]
+
 
     # Set the default `node` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_kwargs is not None:
         pre_nn_kwargs = dict(pre_nn_kwargs)
-        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
+        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
     else:
-        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
+        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
 
     # Set the default `edge` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_edges_kwargs is not None:
