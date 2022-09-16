@@ -6,6 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 import fsspec
+from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
@@ -35,7 +36,7 @@ def main() -> None:
     predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
 
     print(predictor.model)
-    print(predictor.summarize(max_depth=4))
+    print(ModelSummary(predictor, max_depth=4))
 
     for data_name in DATA_NAME_ALL:
         DATA_CONFIG = f"{MAIN_DIR}/expts/config_{data_name}_pretrained.yaml"

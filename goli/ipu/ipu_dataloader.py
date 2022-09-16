@@ -121,19 +121,43 @@ class CombinedBatchingCollator:
             batch: The padded batch
         """
         pvti.Tracepoint.begin(channel, "Dom: CombinedBatchingCollator")
-        if self.collate_fn != None:
-            batch = self.collate_fn(batch)
 
-        transform = Pad(
-            max_num_nodes=self.max_num_nodes,
-            max_num_edges=self.max_num_edges,
-            dataset_max_nodes_per_graph=self.dataset_max_nodes_per_graph,
-            dataset_max_edges_per_graph=self.dataset_max_edges_per_graph,
-        )
+        all_batches = []
+        for idx in range(0, len(batch), self.batch_size):
+            if self.collate_fn != None:
+                local_batch = self.collate_fn(batch[idx:idx+self.batch_size])
 
-        batch["features"] = transform(batch["features"])
+            transform = Pad(
+                max_num_nodes=self.max_num_nodes,
+                max_num_edges=self.max_num_edges,
+                dataset_max_nodes_per_graph=self.dataset_max_nodes_per_graph,
+                dataset_max_edges_per_graph=self.dataset_max_edges_per_graph,
+            )
+
+            local_batch["features"], local_batch["_types_conversion"] = transform(local_batch["features"])
+            all_batches.append(local_batch)
+
+        out_batch = {}
+
+        # Stack tensors in the first dimension to allow IPUs to differentiate between local and global graph
+        out_batch["labels"] = {key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0) for key in all_batches[0]["labels"].keys()}
+        out_graphs = [this_batch["features"] for this_batch in all_batches]
+        stacked_features = deepcopy(out_graphs[0])
+        for key, val in out_graphs[0].items():
+            if isinstance(val, torch.Tensor):
+                stacked_features[key] = torch.stack([this_graph[key] for this_graph in out_graphs], dim=0)
+
+        # TODO: Make this more robust, instead of hard-coding the keys
+        out_batch["features"] = stacked_features
+        out_batch["_types_conversion"] = [this_batch["_types_conversion"] for this_batch in all_batches]
+        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int64)
+        for key in all_batches[0].keys():
+            if key not in ("features", "labels", "_types_conversion"):
+                out_batch[key] = [this_batch[key] for this_batch in all_batches]
+
         pvti.Tracepoint.end(channel, "Dom: CombinedBatchingCollator")
-        return batch
+
+        return out_batch
 
 
 def create_ipu_dataloader(
@@ -239,7 +263,7 @@ class Pad(BaseTransform):
         num_edges = data.num_edges
 
         assert num_nodes <= self.max_num_nodes, (
-            f"Too many nodes. Graph has {num_nodes} nodes " f"and max_num_edges is {self.max_num_nodes}."
+            f"Too many nodes. Graph has {num_nodes} nodes " f"and max_num_nodes is {self.max_num_nodes}."
         )
 
         assert num_edges <= self.max_num_edges, (
@@ -263,17 +287,17 @@ class Pad(BaseTransform):
         real_graphs = new_batch.to_data_list()
 
         for g in real_graphs:
-            g.graph_is_true = torch.tensor([1])
-            g.node_is_true = torch.full([g.num_nodes], 1)
-            g.edge_is_true = torch.full([g.num_edges], 1)
+            g.graph_is_true = torch.tensor([1], dtype=bool)
+            g.node_is_true = torch.full([g.num_nodes], True, dtype=bool)
+            g.edge_is_true = torch.full([g.num_edges], True, dtype=bool)
 
         # create fake graph with the needed # of nodes and edges
         fake = Data()
         fake.num_nodes = num_pad_nodes
         fake.num_edges = num_pad_edges
-        fake.graph_is_true = torch.tensor([0])
-        fake.node_is_true = torch.full([num_pad_nodes], 0)
-        fake.edge_is_true = torch.full([num_pad_edges], 0)
+        fake.graph_is_true = torch.tensor([False], dtype=bool)
+        fake.node_is_true = torch.full([num_pad_nodes], False, dtype=bool)
+        fake.edge_is_true = torch.full([num_pad_edges], False, dtype=bool)
 
         for key, value in real_graphs[0]:
             if not torch.is_tensor(value):
@@ -313,7 +337,24 @@ class Pad(BaseTransform):
             [self.dataset_max_edges_per_graph], dtype=torch.int32
         )
 
-        return new_batch
+        # Convert integer types to smaller integers for faster transfer of data to IPUs
+        _types_conversion = {}
+        int_types = [torch.uint8, torch.int16, torch.int32, torch.int64]
+        for key, val in new_batch.items():
+            if isinstance(val, torch.Tensor) and (val.dtype in int_types[1:]):
+                for this_int_type in int_types:
+                    if (val.max() <= torch.iinfo(this_int_type).max) and (val.min() >= torch.iinfo(this_int_type).min):
+                        _types_conversion[key] = val.dtype
+                        new_batch[key] = val.to(this_int_type)
+                        break
+
+        # Convert float types to smaller floats for faster transfer of data to IPUs
+        float_types = [torch.float16, torch.float32, torch.float64]
+        for key, val in new_batch.items():
+            if isinstance(val, torch.Tensor) and (val.dtype in float_types[1:]):
+                new_batch[key] = val.to(torch.float16)
+
+        return new_batch, _types_conversion
 
     def __repr__(self) -> str:
         s = f"{self.__class__.__name__}("

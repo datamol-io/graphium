@@ -6,6 +6,7 @@ from copy import deepcopy
 from omegaconf import DictConfig
 import timeit
 from loguru import logger
+from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
@@ -44,7 +45,7 @@ def main(cfg: DictConfig, run_name="main") -> None:
     predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
 
     logger.info(predictor.model)
-    logger.info(predictor.summarize(max_depth=4))
+    logger.info(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg, run_name)
 
