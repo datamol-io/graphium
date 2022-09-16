@@ -10,8 +10,10 @@ from poptorch import ipu_print_tensor
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
 
-import libpvti as pvti # TODO: Remove when ready to merge
+import libpvti as pvti  # TODO: Remove when ready to merge
+
 channel = pvti.createTraceChannel("MyChannel")
+
 
 def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
     """
@@ -316,7 +318,9 @@ class PredictorModuleIPU(PredictorModule):
         # Get the current index for non-tensor elements
         batch_idx = batch.pop("_batch_idx").item()
 
-        non_tensor_keys = set(self._keys_others.keys()) - (set(self._keys_batch.keys()) | set(self._keys_tensor.keys()) | set(self._keys_tensor_dict.keys()))
+        non_tensor_keys = set(self._keys_others.keys()) - (
+            set(self._keys_batch.keys()) | set(self._keys_tensor.keys()) | set(self._keys_tensor_dict.keys())
+        )
         for key in non_tensor_keys:
             batch[key] = batch[key][batch_idx]
 

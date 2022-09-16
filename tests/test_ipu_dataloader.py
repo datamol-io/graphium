@@ -11,9 +11,8 @@ def random_packing(num_atoms, batch_size):
     indices = np.reshape(indices, (ipu_batch_size, batch_size)).tolist()
     return indices
 
+
 class test_SmartPacking(ut.TestCase):
-
-
     def test_smart_packing(self):
 
         np.random.seed(42)
@@ -48,8 +47,13 @@ class test_SmartPacking(ut.TestCase):
                 self.assertEqual(sum(rand_pack_num_atoms), sum(num_atoms), msg=err_msg)
 
                 # Assert that all index are there
-                self.assertListEqual(np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_atoms)).tolist())
-                self.assertListEqual(np.sort(np.asarray(rand_packed_indices).flatten()).tolist(), np.arange(len(num_atoms)).tolist())
+                self.assertListEqual(
+                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_atoms)).tolist()
+                )
+                self.assertListEqual(
+                    np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
+                    np.arange(len(num_atoms)).tolist(),
+                )
 
 
 if __name__ == "__main__":

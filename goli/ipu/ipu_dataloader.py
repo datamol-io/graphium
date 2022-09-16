@@ -12,8 +12,10 @@ from torch_geometric.transforms import BaseTransform
 
 from goli.ipu.ipu_utils import import_poptorch
 
-import libpvti as pvti # TODO: Remove when ready to merge
+import libpvti as pvti  # TODO: Remove when ready to merge
+
 channel = pvti.createTraceChannel("MyChannel")
+
 
 @dataclass
 class IPUDataloaderOptions:
@@ -148,7 +150,10 @@ class CombinedBatchingCollator:
         out_batch = {}
 
         # Stack tensors in the first dimension to allow IPUs to differentiate between local and global graph
-        out_batch["labels"] = {key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0) for key in all_batches[0]["labels"].keys()}
+        out_batch["labels"] = {
+            key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0)
+            for key in all_batches[0]["labels"].keys()
+        }
         out_graphs = [this_batch["features"] for this_batch in all_batches]
         stacked_features = deepcopy(out_graphs[0])
         for key, val in out_graphs[0].items():
@@ -219,7 +224,9 @@ def create_ipu_dataloader(
 
     # Estimate the packing size needed
     num_batches = len(num_nodes) // global_batch_size
-    num_simulations = min(max(1000, 2*num_batches), 10000) # Loop many times the number of desired batches to get a better sense
+    num_simulations = min(
+        max(1000, 2 * num_batches), 10000
+    )  # Loop many times the number of desired batches to get a better sense
     max_pack_size = 0
     for _ in range(num_simulations):
         choice = np.random.choice(num_nodes, size=global_batch_size, replace=False)
@@ -228,12 +235,18 @@ def create_ipu_dataloader(
     max_pack_size_per_graph = max_pack_size / batch_size
 
     # Log the estimated pack size, with warnings if too big or too small
-    logger.info(f"Estimating pack max_pack_size={max_pack_size} or max_pack_size_per_graph={max_pack_size_per_graph}")
+    logger.info(
+        f"Estimating pack max_pack_size={max_pack_size} or max_pack_size_per_graph={max_pack_size_per_graph}"
+    )
     logger.info(f"Provided `max_num_nodes={collater.max_num_nodes}`")
     if max_pack_size > collater.max_num_nodes:
-        logger.warning(f"The value of `max_num_nodes={collater.max_num_nodes}` seems to be insufficient compared to `max_pack_size={max_pack_size}` and will likely crash")
+        logger.warning(
+            f"The value of `max_num_nodes={collater.max_num_nodes}` seems to be insufficient compared to `max_pack_size={max_pack_size}` and will likely crash"
+        )
     elif max_pack_size < collater.max_num_nodes - 20:
-        logger.warning(f"The value of `max_num_nodes={collater.max_num_nodes}` seems to be large compared to `max_pack_size={max_pack_size}` and will likely waste memory")
+        logger.warning(
+            f"The value of `max_num_nodes={collater.max_num_nodes}` seems to be large compared to `max_pack_size={max_pack_size}` and will likely waste memory"
+        )
 
     return poptorch.DataLoader(
         options=deepcopy(ipu_options),
@@ -376,7 +389,9 @@ class Pad(BaseTransform):
         for key, val in new_batch.items():
             if isinstance(val, torch.Tensor) and (val.dtype in int_types[1:]):
                 for this_int_type in int_types:
-                    if (val.max() <= torch.iinfo(this_int_type).max) and (val.min() >= torch.iinfo(this_int_type).min):
+                    if (val.max() <= torch.iinfo(this_int_type).max) and (
+                        val.min() >= torch.iinfo(this_int_type).min
+                    ):
                         _types_conversion[key] = val.dtype
                         new_batch[key] = val.to(this_int_type)
                         break
@@ -397,12 +412,14 @@ class Pad(BaseTransform):
         s += f"edge_value={self.edge_value})"
         return s
 
+
 class MolPack:
     """
     Class that keeps track of the number of atoms and indices that are added
     to each pack. Useful when doing packing, or other forms of smart batching.
     A pack is a batch, but with optimized memory consumption.
     """
+
     def __init__(self):
         self.num_atoms = 0
         self.num_mols = 0
@@ -476,17 +493,23 @@ def smart_packing(num_atoms: List[int], batch_size: int) -> List[List[int]]:
     reverse_cumsum = np.sum(sorted_num_atoms) - np.cumsum(sorted_num_atoms) + sorted_num_atoms[-1]
 
     # Start with the largest element in separate packs
-    mol_batches = [MolPack().add_mol(sorted_num_atoms[-ii-1], argsort_num_atoms[-ii-1]) for ii in range(ipu_batch_size)]
+    mol_batches = [
+        MolPack().add_mol(sorted_num_atoms[-ii - 1], argsort_num_atoms[-ii - 1])
+        for ii in range(ipu_batch_size)
+    ]
 
     # Loop from smallest to largest molecule, and add each molecule to the pack with smallest expected sum
     for ii, num_atom in enumerate(sorted_num_atoms):
         remaining_mean = reverse_cumsum[ii] / (len(sorted_num_atoms) - ii)
-        idx_max_average = np.argmax([m.expected_atoms(remaining_mean, batch_size) * (m.num_mols < batch_size) for m in mol_batches])
+        idx_max_average = np.argmax(
+            [m.expected_atoms(remaining_mean, batch_size) * (m.num_mols < batch_size) for m in mol_batches]
+        )
         mol_batches[idx_max_average].add_mol(num_atom, argsort_num_atoms[ii])
 
     packed_indices = [batch.indices for batch in mol_batches]
 
     return packed_indices
+
 
 def get_pack_sizes(packed_indices, num_atoms):
     """
@@ -499,4 +522,3 @@ def get_pack_sizes(packed_indices, num_atoms):
             pack_sum += num_atoms[idx]
         pack_sums.append(pack_sum)
     return pack_sums
-

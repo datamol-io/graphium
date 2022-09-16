@@ -1600,6 +1600,7 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
 
         # Initialize the IPU dataloader
         from goli.ipu.ipu_dataloader import create_ipu_dataloader
+
         loader = create_ipu_dataloader(
             dataset=dataset,
             ipu_dataloader_options=ipu_dataloader_options,
