@@ -20,14 +20,14 @@ datamodule:
         split_test: 0.
         split_seed: *seed
         splits_path: null                 # This may not always be provided
-        sample_size: 50000       # This may not always be provided
+        sample_size: 50000 # 50000       # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number] #[atomic-number, valence]
