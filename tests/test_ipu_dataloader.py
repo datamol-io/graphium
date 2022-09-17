@@ -37,10 +37,9 @@ class test_SmartPacking(ut.TestCase):
                 rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
                 rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
 
-                # Assert that the smart packing is better than the random packing (when bz big enough for randomness)
-                if (batch_size >= 4) and (ipu_batch_size >= 4):
-                    self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
-                    self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
+                # Assert that the smart packing is better than the random packing
+                self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
+                self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
 
                 # Assert that the total number of atoms is right
                 self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)

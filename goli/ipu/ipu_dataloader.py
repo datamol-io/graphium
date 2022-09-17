@@ -131,6 +131,13 @@ class CombinedBatchingCollator:
         packed_indices = smart_packing(num_nodes, batch_size=self.batch_size)
         packs = [[batch[idx] for idx in pack] for pack in packed_indices]
 
+        # TODO: Remove below
+        import pdb
+        pack_sizes = get_pack_sizes(packed_indices, num_nodes)
+        if 425 in pack_sizes:
+            pdb.set_trace()
+        print(pack_sizes)
+
         # Loop all mini-batches within the global batch
         all_batches = []
         for pack in packs:
@@ -489,12 +496,12 @@ def smart_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     argsort_num_nodes = np.argsort(num_nodes)
     sorted_num_nodes = num_nodes[argsort_num_nodes]
     ipu_batch_size = int(len(num_nodes) / batch_size)
-    sorted_num_nodes = sorted_num_nodes[:-ipu_batch_size]
+    sorted_num_nodes, initial_num_nodes = sorted_num_nodes[:-ipu_batch_size], sorted_num_nodes[-ipu_batch_size:]
     reverse_cumsum = np.sum(sorted_num_nodes) - np.cumsum(sorted_num_nodes) + sorted_num_nodes[-1]
 
     # Start with the largest element in separate packs
     mol_batches = [
-        MolPack().add_mol(sorted_num_nodes[-ii - 1], argsort_num_nodes[-ii - 1])
+        MolPack().add_mol(initial_num_nodes[-ii - 1], argsort_num_nodes[-ii - 1])
         for ii in range(ipu_batch_size)
     ]
 
