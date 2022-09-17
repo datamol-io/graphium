@@ -234,8 +234,6 @@ def create_ipu_dataloader(
         max_pack_size = max(max_pack_size, max(get_pack_sizes(packed_indices, num_nodes[this_indices])))
     max_pack_size_per_graph = max_pack_size / batch_size
 
-    import pdb; pdb.set_trace()
-
     # Log the estimated pack size, with warnings if too big or too small
     logger.info(
         f"Estimating pack max_pack_size={max_pack_size} or max_pack_size_per_graph={max_pack_size_per_graph}"
