@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
-from typing import Callable, Optional, List
+from typing import Callable, Iterable, Optional, List
 from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
@@ -220,32 +220,32 @@ def create_ipu_dataloader(
     accum = ipu_options.Training.gradient_accumulation
     repli = ipu_options._values["replication_factor"]
     device_iter = ipu_options._values["device_iterations"]
-    global_batch_size = batch_size * accum * repli * device_iter
+    combined_batch_size = batch_size * accum * repli * device_iter
 
     # Estimate the packing size needed
-    num_batches = len(num_nodes) // global_batch_size
-    rand_indices = np.arange(len(num_nodes))
-    np.random.shuffle(rand_indices)
-    max_pack_size = 0
-    for ii in range(0, len(num_nodes), global_batch_size):
-        this_indices = rand_indices[ii:ii+global_batch_size]
-        choice = num_nodes[this_indices]
-        packed_indices = smart_packing(choice, batch_size)
-        max_pack_size = max(max_pack_size, max(get_pack_sizes(packed_indices, num_nodes[this_indices])))
-    max_pack_size_per_graph = max_pack_size / batch_size
+    max_pack_size, max_pack_size_per_graph = 0, 0
+    for _ in range(4):
+        this_max_pack_size, this_max_pack_size_per_graph = estimate_max_pack_node_size(
+            num_nodes=num_nodes,
+            batch_size=batch_size,
+            combined_batch_size=combined_batch_size,
+        )
+        max_pack_size = max(max_pack_size, this_max_pack_size)
+        max_pack_size_per_graph = max(max_pack_size_per_graph, this_max_pack_size_per_graph)
 
+    max_num_nodes = collater.max_num_nodes
     # Log the estimated pack size, with warnings if too big or too small
     logger.info(
         f"Estimating pack max_pack_size={max_pack_size} or max_pack_size_per_graph={max_pack_size_per_graph}"
     )
-    logger.info(f"Provided `max_num_nodes={collater.max_num_nodes}`")
-    if max_pack_size > collater.max_num_nodes:
+    logger.info(f"Provided `max_num_nodes={max_num_nodes}`")
+    if max_pack_size > max_num_nodes - 10:
         logger.warning(
-            f"The value of `max_num_nodes={collater.max_num_nodes}` seems to be insufficient compared to `max_pack_size={max_pack_size}` and will likely crash"
+            f"The value of `max_num_nodes={max_num_nodes}` seems to be insufficient compared to `max_pack_size={max_pack_size}` and will likely crash"
         )
-    elif max_pack_size < collater.max_num_nodes - 20:
+    elif max_pack_size < max_num_nodes - 20:
         logger.warning(
-            f"The value of `max_num_nodes={collater.max_num_nodes}` seems to be large compared to `max_pack_size={max_pack_size}` and will likely waste memory"
+            f"The value of `max_num_nodes={max_num_nodes}` seems to be large compared to `max_pack_size={max_pack_size}` and will likely waste memory"
         )
 
     return poptorch.DataLoader(
@@ -525,3 +525,31 @@ def get_pack_sizes(packed_indices, num_nodes):
             pack_sum += num_nodes[idx]
         pack_sums.append(pack_sum)
     return pack_sums
+
+
+def estimate_max_pack_node_size(num_nodes: Iterable[int], batch_size: int, combined_batch_size: int):
+    """
+    Estimate the value of `max_num_nodes`, which represents the maximum number of nodes
+    needed in a batch to fit the data.
+
+    Parameters:
+        num_nodes: Number of nodes for all the graphs in the dataset
+        batch_size: The regular batch size per IPU
+        combined_batch_size: batch_size * device_iterations
+                             * replication_factor * gradient_accumulation
+
+    """
+
+    # Estimate the packing size needed
+    rand_indices = np.arange(len(num_nodes))
+    np.random.shuffle(rand_indices)
+    max_pack_size = 0
+    for ii in range(0, len(num_nodes), combined_batch_size):
+        this_indices = rand_indices[ii : ii + combined_batch_size]
+        choice = num_nodes[this_indices]
+        if len(choice) == combined_batch_size:
+            packed_indices = smart_packing(choice, batch_size)
+            max_pack_size = max(max_pack_size, max(get_pack_sizes(packed_indices, num_nodes[this_indices])))
+    max_pack_size_per_graph = max_pack_size / batch_size
+
+    return max_pack_size, max_pack_size_per_graph

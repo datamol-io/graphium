@@ -813,6 +813,7 @@ def mol_to_graph_dict(
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
+    max_num_atoms: Optional[int] = None,
 ) -> GraphDict:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -879,6 +880,11 @@ def mol_to_graph_dict(
             - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans or inf by the specified value
 
+        max_num_atoms:
+            Maximum number of atoms for a given molecule. If a molecule with more atoms
+            is give, an error is raised, but catpured according to the rules of
+            `on_error`.
+
     Returns:
 
         graph_dict:
@@ -904,6 +910,10 @@ def mol_to_graph_dict(
             mol = Chem.AddHs(mol)
         else:
             mol = Chem.RemoveHs(mol)
+
+        num_atoms = mol.GetNumAtoms()
+        if (max_num_atoms is not None) and (num_atoms > max_num_atoms):
+            raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
 
         (adj, ndata, edata, pe_dict, pe_dir_dict,) = mol_to_adj_and_features(
             mol=mol,
@@ -979,6 +989,7 @@ def mol_to_dglgraph(
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
+    max_num_atoms: Optional[int] = None,
 ) -> dgl.DGLGraph:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -1044,6 +1055,10 @@ def mol_to_dglgraph(
             - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
 
+        max_num_atoms:
+            Maximum number of atoms for a given molecule. If a molecule with more atoms
+            is give, an error is raised, but catpured according to the rules of
+            `on_error`.
     Returns:
 
         graph:
@@ -1067,6 +1082,7 @@ def mol_to_dglgraph(
         dtype=dtype,
         on_error=on_error,
         mask_nan=mask_nan,
+        max_num_atoms=max_num_atoms,
     )
 
     print(dgl_dict)
@@ -1090,6 +1106,7 @@ def mol_to_pyggraph(
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
+    max_num_atoms: Optional[int] = None,
 ) -> Data:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -1155,6 +1172,10 @@ def mol_to_pyggraph(
             - "None": DEFAULT. Don't do anything
             - "Floating value": Replace nans by the specified value
 
+        max_num_atoms:
+            Maximum number of atoms for a given molecule. If a molecule with more atoms
+            is give, an error is raised, but catpured according to the rules of
+            `on_error`.
     Returns:
 
         graph:
@@ -1177,6 +1198,7 @@ def mol_to_pyggraph(
         dtype=dtype,
         on_error=on_error,
         mask_nan=mask_nan,
+        max_num_atoms=max_num_atoms,
     )
 
     if graph_dict is not None:
