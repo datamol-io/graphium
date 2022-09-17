@@ -131,14 +131,6 @@ class CombinedBatchingCollator:
         packed_indices = smart_packing(num_nodes, batch_size=self.batch_size)
         packs = [[batch[idx] for idx in pack] for pack in packed_indices]
 
-        # TODO: Remove below
-        import pdb
-
-        pack_sizes = get_pack_sizes(packed_indices, num_nodes)
-        if 425 in pack_sizes:
-            pdb.set_trace()
-        print(pack_sizes)
-
         # Loop all mini-batches within the global batch
         all_batches = []
         for pack in packs:
@@ -232,15 +224,17 @@ def create_ipu_dataloader(
 
     # Estimate the packing size needed
     num_batches = len(num_nodes) // global_batch_size
-    num_simulations = min(
-        max(1000, 2 * num_batches), 10000
-    )  # Loop many times the number of desired batches to get a better sense
+    rand_indices = np.arange(len(num_nodes))
+    np.random.shuffle(rand_indices)
     max_pack_size = 0
-    for _ in range(num_simulations):
-        choice = np.random.choice(num_nodes, size=global_batch_size, replace=False)
+    for ii in range(0, len(num_nodes), global_batch_size):
+        this_indices = rand_indices[ii:ii+global_batch_size]
+        choice = num_nodes[this_indices]
         packed_indices = smart_packing(choice, batch_size)
-        max_pack_size = max(max_pack_size, max(get_pack_sizes(packed_indices, num_nodes)))
+        max_pack_size = max(max_pack_size, max(get_pack_sizes(packed_indices, num_nodes[this_indices])))
     max_pack_size_per_graph = max_pack_size / batch_size
+
+    import pdb; pdb.set_trace()
 
     # Log the estimated pack size, with warnings if too big or too small
     logger.info(
