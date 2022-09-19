@@ -10,10 +10,6 @@ from poptorch import ipu_print_tensor
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
 
-import libpvti as pvti  # TODO: Remove when ready to merge
-
-channel = pvti.createTraceChannel("MyChannel")
-
 
 def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
     """
@@ -50,8 +46,6 @@ class IPUPluginGoli(IPUPlugin):
         The model must take care of re-building the Dict[Tensor] and `Batch` from the tuples. See class `PredictorModuleIPU`.
 
         """
-
-        pvti.Tracepoint.begin(channel, "Dom: prepare tensors")
 
         # Arguments for the loop
         new_args, all_keys = [], []
@@ -98,12 +92,8 @@ class IPUPluginGoli(IPUPlugin):
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
 
-        pvti.Tracepoint.end(channel, "Dom: prepare tensors")
-
         # Run the step using only tuple of tensors
-        pvti.Tracepoint.begin(channel, "Dom: _step")
         out = super()._step(stage, *new_args, **kwargs)
-        pvti.Tracepoint.end(channel, "Dom: _step")
 
         # Remove the keys from the module after the step is executed
         self.model.module._keys_tensor_dict = None
@@ -143,9 +133,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def training_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
-        pvti.Tracepoint.begin(channel, "Dom: train._build_dict_input")
         dict_input = self._build_dict_input(*inputs)
-        pvti.Tracepoint.end(channel, "Dom: train._build_dict_input")
         concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
         loss = concatenated_metrics_logs.pop("loss")
         self._concatenated_metrics_logs = concatenated_metrics_logs
