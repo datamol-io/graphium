@@ -12,11 +12,6 @@ from torch_geometric.transforms import BaseTransform
 
 from goli.ipu.ipu_utils import import_poptorch
 
-import libpvti as pvti  # TODO: Remove when ready to merge
-
-channel = pvti.createTraceChannel("MyChannel")
-
-
 @dataclass
 class IPUDataloaderOptions:
     r"""
@@ -124,7 +119,6 @@ class CombinedBatchingCollator:
         Returns:
             batch: The padded batch
         """
-        pvti.Tracepoint.begin(channel, "Dom: CombinedBatchingCollator")
 
         # Sort the batch such that large graphs are paired with small graphs
         num_nodes = [b["features"].num_nodes for b in batch]
@@ -167,8 +161,6 @@ class CombinedBatchingCollator:
         for key in all_batches[0].keys():
             if key not in ("features", "labels", "_types_conversion"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
-
-        pvti.Tracepoint.end(channel, "Dom: CombinedBatchingCollator")
 
         return out_batch
 
