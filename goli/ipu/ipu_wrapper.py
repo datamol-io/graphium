@@ -5,7 +5,6 @@ from torch import Tensor
 from inspect import _ParameterKind
 from pytorch_lightning.plugins import IPUPlugin
 from pytorch_lightning.trainer.states import RunningStage
-from poptorch import ipu_print_tensor
 
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
