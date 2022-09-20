@@ -11,7 +11,6 @@ on:
 
 jobs:
   test:
-
     strategy:
       fail-fast: false
       matrix:
@@ -28,7 +27,6 @@ jobs:
     name: |
       python=${{ matrix.python-version }} -
       pytorch=${{ matrix.pytorch-version }}
-
 
     steps:
       - name: Checkout the code
