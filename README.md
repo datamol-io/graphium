@@ -39,10 +39,14 @@ Visit https://valence-discovery.github.io/goli/.
 Use either [`mamba`](https://github.com/mamba-org/mamba) or [`conda`](https://docs.conda.io/en/latest/):
 
 ```bash
-# Install Goli's dependencies
+# Install mamba if unavailable
+conda install -c conda-forge mamba
+
+# Install Goli's dependencies in a new environment named `goli_dev`
 mamba env create -f env.yml -n goli_dev
 
 # Install Goli in dev mode
+conda activate goli_dev
 pip install -e .
 ```
 
