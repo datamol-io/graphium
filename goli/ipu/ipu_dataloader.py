@@ -12,6 +12,7 @@ from torch_geometric.transforms import BaseTransform
 
 from goli.ipu.ipu_utils import import_poptorch
 
+
 @dataclass
 class IPUDataloaderOptions:
     r"""
