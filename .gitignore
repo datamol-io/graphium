@@ -27,11 +27,15 @@ expts_untracked/
 debug/
 change_commits.sh
 
-# IPU related ignores
-pro_vision/
-system_profile/
-*.pop*
+# IPU related ignores and profiler outputs
 *.a
+*.cbor
+*.capnp
+*.pop
+*.popart
+*.pop_cache
+*.popef
+*.pvti*
 
 ############ END Goli Custom GitIgnore ##############
 
