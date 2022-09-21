@@ -3,9 +3,9 @@ site_description: "A deep learning library focused on graph representation learn
 site_url: "https://github.com/valence-discovery/goli"
 repo_url: "https://github.com/valence-discovery/goli"
 repo_name: "valence-discovery/goli"
-copyright: Copyright 2020 - 2021 Valence Discovery
+copyright: Copyright 2020 - 2023 Valence Discovery
 
-remote_branch: "privpage"
+remote_branch: "gh-pages"
 use_directory_urls: false
 docs_dir: "docs"
 
@@ -16,6 +16,7 @@ nav:
       - Implementing GNN layers: tutorials/basics/implementing_gnn_layers.ipynb
       - Making GNN networks: tutorials/basics/making_gnn_networks.ipynb
       - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
+      - Training on IPU: tutorials/model_training/ipu_training.ipynb
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
@@ -27,6 +28,8 @@ nav:
     - goli.trainer: api/goli.trainer.md
     - goli.data: api/goli.data.md
     - goli.utils: api/goli.utils.md
+    - goli.config: api/goli.config.md
+    - goli.ipu: api/goli.ipu.md
   - CLI: cli_references.md
 
 theme:
@@ -78,6 +81,7 @@ plugins:
           rendering:
             show_root_heading: yes
             heading_level: 3
+          options:
+            show_source: false
   - mkdocs-jupyter:
       execute: False
-      # kernel_name: python3

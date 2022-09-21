@@ -32,23 +32,51 @@ Visit [![Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh
 
 Visit https://valence-discovery.github.io/goli/.
 
-## Installation
+## Installation for developers
+
+### For CPU and GPU developers installs
 
 Use either [`mamba`](https://github.com/mamba-org/mamba) or [`conda`](https://docs.conda.io/en/latest/):
 
 ```bash
-# Install DGL from https://github.com/dmlc/dgl/#installation
-mamba install -c dglteam dgl
+# Install mamba if unavailable
+conda install -c conda-forge mamba
 
-# Install Goli
-mamba install -c conda-forge goli
+# Install Goli's dependencies in a new environment named `goli_dev`
+mamba env create -f env.yml -n goli_dev
+
+# Install Goli in dev mode
+conda activate goli_dev
+pip install -e .
 ```
 
-or pip:
+### For IPU developers installs
 
 ```bash
-pip install goli-life
+mkdir ~/.venv                           # Create the folder for the environment
+python3 -m venv ~/.venv/goli_ipu        # Create the environment
+source ~/.venv/goli_ipu/bin/activate    # Activate the environment
+
+# Installing the dependencies for the IPU environment
+pip install torch==1.10+cpu torchvision==0.11+cpu torchaudio==0.10 -f https://download.pytorch.org/whl/torch_stable.html
+pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html
+pip install dgl dglgo -f https://data.dgl.ai/wheels/repo.html
+
+# Installing the poptorch SDK. Make sure to change the path
+pip install PATH_TO_SDK/poptorch-3.0.0+84519_672c9cbc7f_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
+
+# Install the remaining requirements
+pip install -r requirements.txt
+
+# Install Goli in dev mode
+pip install -e .
 ```
+
+## Training a model
+
+To learn how to train a model, we invite you to look at the documentation, or the jupyter notebooks available [here](https://github.com/valence-discovery/goli/tree/master/docs/tutorials/model_training).
+
+If you are not familiar with [PyTorch](https://pytorch.org/docs) or [PyTorch-Lightning](https://pytorch-lightning.readthedocs.io/en/latest/), we highly recommend going through their tutorial first.
 
 ## Changelogs
 

@@ -279,6 +279,7 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
 
     in_dim_nodes = 7
     in_dim_edges = 13
+    in_dims = {"feat": in_dim_nodes, "edge_feat": in_dim_edges}
 
     g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
     g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
@@ -294,11 +295,7 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
         cfg = goli.load_config(name="zinc_default_multitask_fulldgl")
 
         # Initialize the network
-        model_class, model_kwargs = load_architecture(
-            cfg,
-            in_dim_nodes=self.in_dim_nodes,
-            in_dim_edges=self.in_dim_edges,
-        )
+        model_class, model_kwargs = load_architecture(cfg, in_dims=self.in_dims)
 
         multitask_fulldgl_nn = model_class(**model_kwargs)
 
