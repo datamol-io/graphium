@@ -78,5 +78,7 @@ plugins:
           rendering:
             show_root_heading: yes
             heading_level: 3
+          options:
+            show_source: false
   - mkdocs-jupyter:
       execute: False
