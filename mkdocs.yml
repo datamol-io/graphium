@@ -16,6 +16,7 @@ nav:
       - Implementing GNN layers: tutorials/basics/implementing_gnn_layers.ipynb
       - Making GNN networks: tutorials/basics/making_gnn_networks.ipynb
       - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
+      - Training on IPU: tutorials/model_training/ipu_training.ipynb
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
@@ -27,6 +28,8 @@ nav:
     - goli.trainer: api/goli.trainer.md
     - goli.data: api/goli.data.md
     - goli.utils: api/goli.utils.md
+    - goli.config: api/goli.config.md
+    - goli.ipu: api/goli.ipu.md
   - CLI: cli_references.md
 
 theme:

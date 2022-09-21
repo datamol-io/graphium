@@ -492,7 +492,7 @@ class BaseDataModule(pl.LightningDataModule):
             collate_fn=self.collate_fn,
             pin_memory=self.pin_memory,
             batch_size=batch_size,
-            shuffle=False,
+            shuffle=shuffle,
             persistent_workers=self.persistent_workers,
             drop_last=True,
         )
@@ -1598,6 +1598,7 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
             logger.warning(f"No IPU options for stage {stage}. Using regular dataloader.")
             return super()._dataloader(dataset, shuffle, stage)
 
+        # Initialize the IPU dataloader
         from goli.ipu.ipu_dataloader import create_ipu_dataloader
 
         loader = create_ipu_dataloader(

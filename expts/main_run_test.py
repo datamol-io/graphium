@@ -4,6 +4,7 @@ from os.path import dirname, abspath
 import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
+from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
@@ -36,7 +37,7 @@ def main(cfg: DictConfig) -> None:
     predictor.metrics = metrics
 
     print(predictor.model)
-    print(predictor.summarize(max_depth=4))
+    print(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg)
 

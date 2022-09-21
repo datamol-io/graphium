@@ -7,6 +7,7 @@ from omegaconf import DictConfig
 import numpy as np
 import pandas as pd
 import torch
+from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
@@ -40,7 +41,7 @@ def main(cfg: DictConfig) -> None:
     predictor = PredictorModule.load_from_checkpoint(MODEL_FILE)
 
     print(predictor.model)
-    print(predictor.summarize(max_depth=4))
+    print(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg)
 

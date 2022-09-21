@@ -6,6 +6,7 @@ from copy import deepcopy
 from omegaconf import DictConfig
 import timeit
 from loguru import logger
+from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
@@ -19,8 +20,8 @@ import wandb
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/configs/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
-CONFIG_FILE = "expts/configs/config_ipu_allsizes.yaml"
-# CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
+# CONFIG_FILE = "expts/configs/config_ipu_allsizes.yaml"
+CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
 
 
@@ -44,7 +45,7 @@ def main(cfg: DictConfig, run_name="main") -> None:
     predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
 
     logger.info(predictor.model)
-    logger.info(predictor.summarize(max_depth=4))
+    logger.info(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg, run_name)
 

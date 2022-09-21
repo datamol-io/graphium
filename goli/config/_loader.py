@@ -1,4 +1,4 @@
-from typing import Dict, Mapping, Union, Any
+from typing import Callable, Dict, Mapping, Type, Union, Any
 
 import omegaconf
 from copy import deepcopy
@@ -25,6 +25,11 @@ from pytorch_lightning import Trainer
 def get_accelerator(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
 ) -> str:
+    """
+    Get the accelerator from the config file, and ensure that they are
+    consistant. For example, specifying `cpu` as the accelerators, but
+    `gpus>0` as a Trainer option will yield an error.
+    """
 
     # Get the accelerator type
     accelerator = config["constants"].get("accelerator")
@@ -61,8 +66,21 @@ def get_accelerator(
     return acc_type
 
 
-def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "goli.datamodule.BaseDataModule":
+    """
+    Load the datamodule from the specified configurations at the key
+    `datamodule: args`.
+    If the accelerator is IPU, load the IPU options as well.
+
+    Parameters:
+        config: The config file, with key `datamodule: args`
+    Returns:
+        datamodule: The datamodule used to process and load the data
+    """
+
     cfg_data = config["datamodule"]["args"]
+
+    # Default empty values for the IPU configurations
     ipu_inference_opts, ipu_training_opts = None, None
     ipu_file = "expts/configs/ipu.config"
     ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
@@ -73,18 +91,21 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
             ipu_file=ipu_file, seed=config["constants"]["seed"]
         )
 
+        # Define the Dataloader options for the IPU on the training sets
         bz_train = cfg_data["batch_size_train_val"]
         ipu_dataloader_training_opts = IPUDataloaderOptions(
             batch_size=bz_train, **ipu_dataloader_training_opts
         )
         ipu_dataloader_training_opts.set_kwargs()
 
+        # Define the Dataloader options for the IPU on the inference sets
         bz_test = cfg_data["batch_size_test"]
         ipu_dataloader_inference_opts = IPUDataloaderOptions(
             batch_size=bz_test, **ipu_dataloader_inference_opts
         )
         ipu_dataloader_inference_opts.set_kwargs()
 
+    # Instanciate the datamodule
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(
         ipu_inference_opts=ipu_inference_opts,
@@ -97,13 +118,21 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
     return datamodule
 
 
-def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, MetricWrapper]:
+    """
+    Loading the metrics to be tracked.
+    Parameters:
+        config: The config file, with key `metrics`
+    Returns:
+        metrics: A dictionary of all the metrics
+    """
 
     task_metrics = {}
     cfg_metrics = deepcopy(config["metrics"])
     if cfg_metrics is None:
         return task_metrics
 
+    # Wrap every metric in the class `MetricWrapper` to standardize them
     for task in cfg_metrics:
         task_metrics[task] = {}
         if cfg_metrics[task] is None:
@@ -117,8 +146,16 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
 
 def load_architecture(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
-    in_dims: Dict,
-):
+    in_dims: Dict[str, int],
+) -> Union[FullGraphNetwork, torch.nn.Module]:
+    """
+    Loading the architecture used for training.
+    Parameters:
+        config: The config file, with key `architecture`
+        in_dims: Dictionary of the input dimensions for various
+    Returns:
+        architecture: The datamodule used to process and load the data
+    """
 
     if isinstance(config, dict):
         config = omegaconf.OmegaConf.create(config)
@@ -139,7 +176,9 @@ def load_architecture(
         raise ValueError(f"Unsupported model_type=`{model_type}`")
 
     # Prepare the various kwargs
-    pe_encoders_kwargs = dict(cfg_arch["pe_encoders"]) if cfg_arch["pe_encoders"] is not None else None
+    pe_encoders_kwargs = (
+        dict(cfg_arch["pe_encoders"]) if cfg_arch.get("pe_encoders", None) is not None else None
+    )
 
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
@@ -157,13 +196,14 @@ def load_architecture(
         pe_encoders_kwargs.setdefault(
             "in_dims", in_dims
         )  # set the input dimensions of all pe with info from the data-module
+    pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs["out_dim"]
 
     # Set the default `node` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_kwargs is not None:
         pre_nn_kwargs = dict(pre_nn_kwargs)
-        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
+        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
     else:
-        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_encoders_kwargs["out_dim"])
+        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
 
     # Set the default `edge` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_edges_kwargs is not None:
@@ -193,8 +233,19 @@ def load_architecture(
     return model_class, model_kwargs
 
 
-def load_predictor(config, model_class, model_kwargs, metrics):
-    # Defining the predictor
+def load_predictor(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    model_class: Type[torch.nn.Module],
+    model_kwargs: Dict[str, Any],
+    metrics: Dict[str, MetricWrapper],
+) -> PredictorModule:
+    """
+    Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`
+    Parameters:
+        model_class: The torch Module containing the main forward function
+    Returns:
+        predictor: The predictor module
+    """
 
     if get_accelerator(config) == "ipu":
         predictor_class = PredictorModuleIPU
@@ -212,7 +263,15 @@ def load_predictor(config, model_class, model_kwargs, metrics):
     return predictor
 
 
-def load_trainer(config, run_name):
+def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str) -> Trainer:
+    """
+    Defining the pytorch-lightning Trainer module.
+    Parameters:
+        config: The config file, with key `trainer`
+        run_name: The name of the current run. To be used for logging.
+    Returns:
+        trainer: the trainer module
+    """
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
@@ -252,7 +311,7 @@ def load_trainer(config, run_name):
     trainer_kwargs["callbacks"] = callbacks
 
     trainer = Trainer(
-        terminate_on_nan=True,
+        detect_anomaly=True,
         plugins=plugins,
         accelerator=accelerator,
         ipus=ipus,

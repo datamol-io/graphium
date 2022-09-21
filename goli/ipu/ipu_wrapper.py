@@ -268,6 +268,11 @@ class PredictorModuleIPU(PredictorModule):
 
         batch = {}
 
+        # Unsqueeze the first dimension that is always 1 here, but is due to the global batch size
+        # (device_iterations * replication_factor * gradient_accumulation)
+        if all([this_input.shape[0] == 1 for this_input in inputs]):
+            inputs = [this_input.squeeze(0) for this_input in inputs]
+
         # Initialize the batch of pyg objects
         for key, pyg_elems in self._keys_batch.items():
             pyg_batch = Batch()
@@ -296,5 +301,18 @@ class PredictorModuleIPU(PredictorModule):
                     batch[sub_key] = sub_val
             else:
                 batch[key] = val
+
+        # Get the current index for non-tensor elements
+        batch_idx = batch.pop("_batch_idx").item()
+
+        non_tensor_keys = set(self._keys_others.keys()) - (
+            set(self._keys_batch.keys()) | set(self._keys_tensor.keys()) | set(self._keys_tensor_dict.keys())
+        )
+        for key in non_tensor_keys:
+            batch[key] = batch[key][batch_idx]
+
+        # Convert the tensors to their full dtype (instead of the reduced dtype used to increase data transfer speed)
+        for key, new_dtype in self._keys_others["_types_conversion"][batch_idx].items():
+            batch["features"][key] = batch["features"][key].to(new_dtype)
 
         return batch

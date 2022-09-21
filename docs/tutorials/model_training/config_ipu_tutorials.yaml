@@ -1,6 +1,6 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name olek_test_ipu #qm9_full
+  name: &name tutorial_model
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -13,7 +13,6 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        # df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
         df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_micro_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
@@ -54,7 +53,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -115,14 +114,14 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: 64
+    out_dim: 32
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
         on_keys: ["eigvecs", "eigvals"]
-        hidden_dim: 64
+        hidden_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
         num_layers_post: 0 # Num. layers to apply after pooling
@@ -132,7 +131,7 @@ architecture:
         encoder_type: "mlp"
         on_keys: ["rwse"]
         out_level: "node"
-        hidden_dim: 64
+        hidden_dim: 32
         num_layers: 1
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
@@ -141,8 +140,8 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
-    hidden_dims: 500
-    depth: 4
+    hidden_dims: 32
+    depth: 3
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -165,16 +164,16 @@ architecture:
       # scalers: [identity, amplification, attenuation]
       # num_heads: 3
 
-  post_nn: null
-    #out_dim: 1
-    #hidden_dims: 32
-    #depth: 2
-    #activation: relu
-    #last_activation: none
-    #dropout: *dropout
-    #normalization: *normalization
-    #last_normalization: "none"
-    #residual_type: none
+  post_nn:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 1
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: "none"
+    residual_type: none
 
   task_heads:
     - task_name: "homo"
@@ -267,31 +266,6 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-    # - name: f1 gt 3
-    #   metric: f1
-    #   num_classes: 2
-    #   average: micro
-    #   threshold_kwargs: &threshold_3
-    #     operator: greater
-    #     threshold: 3
-    #     th_on_preds: True
-    #     th_on_target: True
-    #     target_to_int: True
-
-    # - name: f1 gt 0
-    #   metric: f1
-    #   num_classes: 2
-    #   average: micro
-    #   threshold_kwargs:
-    #     operator: greater
-    #     threshold: 0
-    #     th_on_preds: True
-    #     th_on_target: True
-    #     target_to_int: True
-    # - name: precision gt 3
-    #   metric: precision
-    #   average: micro
-    #   threshold_kwargs: *threshold_3
 
   cv:
     - name: mae
@@ -300,25 +274,6 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-    # - name: f1 gt 3
-    #   metric: f1
-    #   num_classes: 2
-    #   average: micro
-    #   threshold_kwargs: *threshold_3
-    # - name: f1 gt 0
-    #   metric: f1
-    #   num_classes: 2
-    #   average: micro
-    #   threshold_kwargs:
-    #     operator: greater
-    #     threshold: 0
-    #     th_on_preds: True
-    #     th_on_target: True
-    #     target_to_int: True
-    # - name: precision gt 3
-    #   metric: precision
-    #   average: micro
-    #   threshold_kwargs: *threshold_3
 
 trainer:
   logger:
@@ -338,5 +293,5 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 2 #50
+    max_epochs: 5 #50
     min_epochs: 1 #5
