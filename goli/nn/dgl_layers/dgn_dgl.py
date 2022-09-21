@@ -3,8 +3,8 @@ from typing import Dict, List, Tuple, Union, Callable
 from functools import partial
 
 from goli.nn.dgl_layers.pna_dgl import PNAConvolutionalDgl, PNAMessagePassingDgl
-from goli.nn.pna_operations import PNA_DGL_AGGREGATORS
-from goli.nn.dgn_operations import DGN_AGGREGATORS
+from goli.nn.dgl_layers.pna_operations import PNA_DGL_AGGREGATORS
+from goli.nn.dgl_layers.dgn_operations import DGN_AGGREGATORS
 
 
 class BaseDGNDgl:

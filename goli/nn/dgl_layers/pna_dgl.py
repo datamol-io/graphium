@@ -4,7 +4,7 @@ from dgl import DGLGraph
 from typing import Dict, List, Tuple, Union, Callable
 from copy import deepcopy
 
-from goli.nn.pna_operations import PNA_DGL_AGGREGATORS, PNA_DGL_SCALERS
+from goli.nn.dgl_layers.pna_operations import PNA_DGL_AGGREGATORS, PNA_DGL_SCALERS
 from goli.nn.base_layers import MLP, get_activation
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.utils.decorators import classproperty

@@ -18,12 +18,12 @@ class IPUDataloaderOptions:
     r"""
     This data class stores the arguments necessary to instantiate a model for the Predictor.
 
-        Parameters:
-            model_class:
-                pytorch module used to create a model
+    Parameters:
+        model_class:
+            pytorch module used to create a model
 
-            model_kwargs:
-                Key-word arguments used to initialize the model from `model_class`.
+        model_kwargs:
+            Key-word arguments used to initialize the model from `model_class`.
     """
 
     batch_size: int
