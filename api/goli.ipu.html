@@ -1,0 +1,2858 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deep learning library focused on graph representation learning for real-world chemical tasks.">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/valence-discovery/goli/api/goli.ipu.html">
+      
+      <link rel="icon" href="../images/logo.png">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.5.2">
+    
+    
+      
+        <title>goli.ipu - goli</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.9f9400aa.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.cbb835fc.min.css">
+        
+          
+          
+          <meta name="theme-color" content="#ef5552">
+        
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="red" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#goli.ipu.ipu_dataloader" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="goli" class="md-header__button md-logo" aria-label="goli" data-md-component="logo">
+      
+  <img src="../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            goli
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              goli.ipu
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/valence-discovery/goli" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/goli
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="goli" class="md-nav__button md-logo" aria-label="goli" data-md-component="logo">
+      
+  <img src="../images/logo.png" alt="logo">
+
+    </a>
+    goli
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/valence-discovery/goli" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/goli
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="Tutorials" data-md-level="1">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/basics/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/basics/implementing_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/basics/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+        Building and training a simple model from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/ipu_training.html" class="md-nav__link">
+        Building and training on IPU from configurations
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design.html" class="md-nav__link">
+        Design
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets.html" class="md-nav__link">
+        Datasets
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pretrained_models.html" class="md-nav__link">
+        Pretrained Models
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribute.html" class="md-nav__link">
+        Contribute
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.nn.html" class="md-nav__link">
+        goli.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.features.html" class="md-nav__link">
+        goli.features
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.trainer.html" class="md-nav__link">
+        goli.trainer
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.data.html" class="md-nav__link">
+        goli.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.utils.html" class="md-nav__link">
+        goli.utils
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.config.html" class="md-nav__link">
+        goli.config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          goli.ipu
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="goli.ipu.html" class="md-nav__link md-nav__link--active">
+        goli.ipu
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader" class="md-nav__link">
+    ipu_dataloader
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_dataloader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator" class="md-nav__link">
+    CombinedBatchingCollator
+  </a>
+  
+    <nav class="md-nav" aria-label="CombinedBatchingCollator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.IPUDataloaderOptions" class="md-nav__link">
+    IPUDataloaderOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack" class="md-nav__link">
+    MolPack
+  </a>
+  
+    <nav class="md-nav" aria-label="MolPack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack.add_mol" class="md-nav__link">
+    add_mol()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack.expected_atoms" class="md-nav__link">
+    expected_atoms()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad" class="md-nav__link">
+    Pad
+  </a>
+  
+    <nav class="md-nav" aria-label="Pad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad.validate" class="md-nav__link">
+    validate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.create_ipu_dataloader" class="md-nav__link">
+    create_ipu_dataloader()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.estimate_max_pack_node_size" class="md-nav__link">
+    estimate_max_pack_node_size()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.get_pack_sizes" class="md-nav__link">
+    get_pack_sizes()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.smart_packing" class="md-nav__link">
+    smart_packing()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics" class="md-nav__link">
+    ipu_metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.BCELossIPU" class="md-nav__link">
+    BCELossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.L1LossIPU" class="md-nav__link">
+    L1LossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.MSELossIPU" class="md-nav__link">
+    MSELossIPU
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils" class="md-nav__link">
+    ipu_utils
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.import_poptorch" class="md-nav__link">
+    import_poptorch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options" class="md-nav__link">
+    load_ipu_options()
+  </a>
+  
+    <nav class="md-nav" aria-label="load_ipu_options()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" class="md-nav__link">
+    ? see the tutorial for IPU options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" class="md-nav__link">
+    https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here" class="md-nav__link">
+    ? see the full documentation for ipu options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions" class="md-nav__link">
+    https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper" class="md-nav__link">
+    ipu_wrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper.IPUPluginGoli" class="md-nav__link">
+    IPUPluginGoli
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper.PredictorModuleIPU" class="md-nav__link">
+    PredictorModuleIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper.remove_pad_loss" class="md-nav__link">
+    remove_pad_loss()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.to_dense_batch" class="md-nav__link">
+    to_dense_batch
+  </a>
+  
+    <nav class="md-nav" aria-label="to_dense_batch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.to_dense_batch.to_dense_batch" class="md-nav__link">
+    to_dense_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.to_dense_batch.to_sparse_batch" class="md-nav__link">
+    to_sparse_batch()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_references.html" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader" class="md-nav__link">
+    ipu_dataloader
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_dataloader">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator" class="md-nav__link">
+    CombinedBatchingCollator
+  </a>
+  
+    <nav class="md-nav" aria-label="CombinedBatchingCollator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.IPUDataloaderOptions" class="md-nav__link">
+    IPUDataloaderOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack" class="md-nav__link">
+    MolPack
+  </a>
+  
+    <nav class="md-nav" aria-label="MolPack">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack.add_mol" class="md-nav__link">
+    add_mol()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.MolPack.expected_atoms" class="md-nav__link">
+    expected_atoms()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad" class="md-nav__link">
+    Pad
+  </a>
+  
+    <nav class="md-nav" aria-label="Pad">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.Pad.validate" class="md-nav__link">
+    validate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.create_ipu_dataloader" class="md-nav__link">
+    create_ipu_dataloader()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.estimate_max_pack_node_size" class="md-nav__link">
+    estimate_max_pack_node_size()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.get_pack_sizes" class="md-nav__link">
+    get_pack_sizes()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.smart_packing" class="md-nav__link">
+    smart_packing()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics" class="md-nav__link">
+    ipu_metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.BCELossIPU" class="md-nav__link">
+    BCELossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.L1LossIPU" class="md-nav__link">
+    L1LossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.MSELossIPU" class="md-nav__link">
+    MSELossIPU
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils" class="md-nav__link">
+    ipu_utils
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.import_poptorch" class="md-nav__link">
+    import_poptorch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options" class="md-nav__link">
+    load_ipu_options()
+  </a>
+  
+    <nav class="md-nav" aria-label="load_ipu_options()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" class="md-nav__link">
+    ? see the tutorial for IPU options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" class="md-nav__link">
+    https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here" class="md-nav__link">
+    ? see the full documentation for ipu options here
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions" class="md-nav__link">
+    https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper" class="md-nav__link">
+    ipu_wrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="ipu_wrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper.IPUPluginGoli" class="md-nav__link">
+    IPUPluginGoli
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper.PredictorModuleIPU" class="md-nav__link">
+    PredictorModuleIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_wrapper.remove_pad_loss" class="md-nav__link">
+    remove_pad_loss()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.ipu.to_dense_batch" class="md-nav__link">
+    to_dense_batch
+  </a>
+  
+    <nav class="md-nav" aria-label="to_dense_batch">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.to_dense_batch.to_dense_batch" class="md-nav__link">
+    to_dense_batch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.to_dense_batch.to_sparse_batch" class="md-nav__link">
+    to_sparse_batch()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  <a href="https://github.com/valence-discovery/goli/edit/master/docs/api/goli.ipu.md" title="Edit this page" class="md-content__button md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25Z"/></svg>
+  </a>
+
+
+  <h1>goli.ipu</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.ipu.ipu_dataloader" class="doc doc-heading">
+          <code>goli.ipu.ipu_dataloader</code>
+
+
+<a href="#goli.ipu.ipu_dataloader" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.CombinedBatchingCollator" class="doc doc-heading">
+        <code>CombinedBatchingCollator</code>
+
+
+<a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+
+<details class="collator-object-that-manages-the-combined-batch-size-defined-as">
+  <summary>Collator object that manages the combined batch size defined as</summary>
+  <p>combined_batch_size = batch_size * device_iterations
+                     * replication_factor * gradient_accumulation</p>
+</details>      <p>This is intended to be used in combination with the poptorch.DataLoader</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator.__call__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>padding option to pad each batch to be same size.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>batch</code></td>
+          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>The batch of pyg-graphs to be padded</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>batch</code></td>          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>The padded batch</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_num_nodes</span><span class="p">,</span> <span class="n">max_num_edges</span><span class="p">,</span> <span class="n">dataset_max_nodes_per_graph</span><span class="p">,</span> <span class="n">dataset_max_edges_per_graph</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.CombinedBatchingCollator.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>mini batch size used by the model</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Maximum number of nodes in the batched padded graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_edges</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Maximum number of edges in the batched padded graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_nodes_per_graph</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Maximum number of nodes per graph in the full dataset</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_edges_per_graph</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Maximum number of edges per graph in the full dataset</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>collate_fn</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Function used to collate (or batch) the single data or graphs together</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.IPUDataloaderOptions" class="doc doc-heading">
+        <code>IPUDataloaderOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#goli.ipu.ipu_dataloader.IPUDataloaderOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>model_class</code></td>
+          <td>
+          </td>
+          <td><p>pytorch module used to create a model</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>model_kwargs</code></td>
+          <td>
+          </td>
+          <td><p>Key-word arguments used to initialize the model from <code>model_class</code>.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.MolPack" class="doc doc-heading">
+        <code>MolPack</code>
+
+
+<a href="#goli.ipu.ipu_dataloader.MolPack" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Class that keeps track of the number of atoms and indices that are added
+to each pack. Useful when doing packing, or other forms of smart batching.
+A pack is a batch, but with optimized memory consumption.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.MolPack.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.MolPack.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Print the main attributes of the current class</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.MolPack.add_mol" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">add_mol</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">idx</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.MolPack.add_mol" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Add a molecule and it's index to the batch</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Number of atoms of the new molecule</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>idx</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Index associated to the molecule</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.MolPack.expected_atoms" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">expected_atoms</span><span class="p">(</span><span class="n">remaining_mean_num_nodes</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.MolPack.expected_atoms" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Given a desired batch size, and given the remaining mean number of
+atoms, find the expected number of atoms of the current batch when it is full</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>remaining_mean_num_nodes</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Average number of atoms per molecule
+left to be sampled and distributed across tasks.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Desired batch size</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>expected_atoms</code></td>          <td>
+                <code>float</code>
+          </td>
+          <td><p>The expected number of atoms in this batch if we
+sample randomly the remaining molecules.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.Pad" class="doc doc-heading">
+        <code>Pad</code>
+
+
+<a href="#goli.ipu.ipu_dataloader.Pad" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch_geometric.transforms.BaseTransform">BaseTransform</span></code></p>
+
+  
+      <p>Data transform that applies padding to enforce consistent tensor shapes.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.Pad.__call__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.Pad.__call__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Pad the batch with a fake graphs that has the desired
+number of nodes and edges.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.Pad.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">max_num_nodes</span><span class="p">,</span> <span class="n">dataset_max_nodes_per_graph</span><span class="p">,</span> <span class="n">dataset_max_edges_per_graph</span><span class="p">,</span> <span class="n">max_num_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">edge_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.Pad.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>max_num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The maximum number of nodes for the total padded graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_nodes_per_graph</code></td>
+          <td>
+          </td>
+          <td><p>the maximum number of nodes per graph in the dataset</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dataset_max_edges_per_graph</code></td>
+          <td>
+          </td>
+          <td><p>the maximum number of edges per graph in the dataset</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_edges</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The maximum number of edges for the total padded graph</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>node_value</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Value to add to the node padding</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>edge_value</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Value to add to the edge padding</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_dataloader.Pad.validate" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">validate</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.Pad.validate" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+<details class="validates-that-the-input-graph-does-not-exceed-the-constraints-that">
+  <summary>Validates that the input graph does not exceed the constraints that</summary>
+  <ul>
+<li>the number of nodes must be &lt;= max_num_nodes</li>
+<li>the number of edges must be &lt;= max_num_edges</li>
+</ul>
+</details>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+          </td>
+          <td><p>Tuple containing the number nodes and the number of edges</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.create_ipu_dataloader" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">create_ipu_dataloader</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">ipu_dataloader_options</span><span class="p">,</span> <span class="n">ipu_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.create_ipu_dataloader" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Creates a poptorch.DataLoader for graph datasets
+Applies the mini-batching method of concatenating multiple graphs into a
+single graph with multiple disconnected subgraphs. See:
+<a href="https://pytorch-geometric.readthedocs.io/en/2.0.2/notes/batching.html">https://pytorch-geometric.readthedocs.io/en/2.0.2/notes/batching.html</a></p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dataset</code></td>
+          <td>
+                <code><span title="torch_geometric.data.Dataset">Dataset</span></code>
+          </td>
+          <td><p>The torch_geometric.data.Dataset instance from which to
+load the graph examples for the IPU.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ipu_dataloader_options</code></td>
+          <td>
+                <code><a class="autorefs autorefs-internal" title="goli.ipu.ipu_dataloader.IPUDataloaderOptions" href="#goli.ipu.ipu_dataloader.IPUDataloaderOptions">IPUDataloaderOptions</a></code>
+          </td>
+          <td><p>The options to initialize the Dataloader for IPU</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ipu_options</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="poptorch.Options">Options</span>]</code>
+          </td>
+          <td><p>The poptorch.Options used by the
+poptorch.DataLoader. Will use the default options if not provided.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>How many graph examples to load in each batch
+(default: 1).</p></td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>collate_fn</code></td>
+          <td>
+          </td>
+          <td><p>The function used to collate batches</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>**kwargs</code></td>
+          <td>
+                <code>optional</code>
+          </td>
+          <td><p>Additional arguments of :class:<code>poptorch.DataLoader</code>.</p></td>
+          <td>
+                <code>{}</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.estimate_max_pack_node_size" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">estimate_max_pack_node_size</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">combined_batch_size</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.estimate_max_pack_node_size" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Estimate the value of <code>max_num_nodes</code>, which represents the maximum number of nodes
+needed in a batch to fit the data.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code><span title="typing.Iterable">Iterable</span>[int]</code>
+          </td>
+          <td><p>Number of nodes for all the graphs in the dataset</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The regular batch size per IPU</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>combined_batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>batch_size * device_iterations
+                 * replication_factor * gradient_accumulation</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.get_pack_sizes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_pack_sizes</span><span class="p">(</span><span class="n">packed_indices</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.get_pack_sizes" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the number of atoms of each pack</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_dataloader.smart_packing" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">smart_packing</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.smart_packing" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Simple and fast algorithm for packing graphs such that each batch has roughly the
+same number of atoms.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[int]</code>
+          </td>
+          <td><p>List of the number of atoms per molecule for the entire global batch.
+Must be of length <code>batch_size * ipu_batch_size</code>.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The batch size per iteration, considering a single device and single
+forward pass.
+The global batch size is <code>batch_size * device_iterations * replication_factor * gradient_accumulation</code></p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>packed_indices</code></td>          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.List">List</span>[int]]</code>
+          </td>
+          <td><p>A list of packs, each containing a list of indices, such that
+if we collect <code>num_nodes</code> from the indices, then each pack has roughly the
+same total number of atoms.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.ipu.ipu_metrics" class="doc doc-heading">
+          <code>goli.ipu.ipu_metrics</code>
+
+
+<a href="#goli.ipu.ipu_metrics" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_metrics.BCELossIPU" class="doc doc-heading">
+        <code>BCELossIPU</code>
+
+
+<a href="#goli.ipu.ipu_metrics.BCELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn.BCELoss">BCELoss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.BCELoss</code> that can ignore NaNs
+by giving them a weight of <code>0</code>. This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_metrics.L1LossIPU" class="doc doc-heading">
+        <code>L1LossIPU</code>
+
+
+<a href="#goli.ipu.ipu_metrics.L1LossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn.L1Loss">L1Loss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.L1Loss</code> that can ignore NaNs
+by giving them the same value for both <code>input</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_metrics.MSELossIPU" class="doc doc-heading">
+        <code>MSELossIPU</code>
+
+
+<a href="#goli.ipu.ipu_metrics.MSELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn.MSELoss">MSELoss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.MSELoss</code> that can ignore NaNs
+by giving them the same value for both <code>input</code> and <code>target</code>.
+This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.ipu.ipu_utils" class="doc doc-heading">
+          <code>goli.ipu.ipu_utils</code>
+
+
+<a href="#goli.ipu.ipu_utils" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_utils.import_poptorch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">import_poptorch</span><span class="p">()</span></code>
+
+<a href="#goli.ipu.ipu_utils.import_poptorch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Import poptorch and returns it.
+It is wrapped in a function to avoid breaking the code
+for non-IPU devices which did not install poptorch.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="types.ModuleType">ModuleType</span></code>
+          </td>
+          <td><p>The poptorch module</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_utils.load_ipu_options" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_file</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_utils.load_ipu_options" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Load the IPU options from the config file.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>ipu_file</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>file path containing the IPU configurations. Example of options are:</p>
+<p>load the options from a config file. See <code>Options.loadFromFile</code></p>
+<h5 id="goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here">? see the tutorial for IPU options here<a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" title="Permanent link">&para;</a></h5>
+<h5 id="goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading"><a href="https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading">https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading</a><a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" title="Permanent link">&para;</a></h5>
+<h5 id="goli.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here">? see the full documentation for ipu options here<a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here" title="Permanent link">&para;</a></h5>
+<h5 id="goli.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions"><a href="https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options">https://docs.graphcore.ai/projects/poptorch-user-guide/en/latest/reference.html?highlight=options#poptorch.Options</a><a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--httpsdocsgraphcoreaiprojectspoptorch-user-guideenlatestreferencehtmlhighlightoptionspoptorchoptions" title="Permanent link">&para;</a></h5>
+<p><strong><em>minibatch size</em></strong>: The number of samples processed by one simple fwd/bwd pass.
+= # of samples in a minibatch</p>
+<p><strong><em>device iterations</em></strong>: A device iteration corresponds to one iteration of the training loop executed on the IPU, starting with data-loading and ending with a weight update.
+In this simple case, when we set n deviceIterations, the host will prepare n mini-batches in an infeed queue so the IPU can perform efficiently n iterations.
+= # of minibatches to be processed at a time
+= # of training / backward pass in this call</p>
+<p><strong><em>gradient accumulation factor</em></strong>: After each backward pass the gradients are accumulated together for K mini-batches. set K in the argument
+= # of minibatches to accumulate gradients from</p>
+<p><strong><em>replication factor</em></strong>: Replication describes the process of running multiple instances of the same model simultaneously on different IPUs to achieve data parallelism.
+If the model requires N IPUs and the replication factor is M, N x M IPUs will be necessary.
+= # of times the model is copied to speed up computation, each replica of the model is sent a different subset of the dataset</p>
+<p><strong><em>global batch size</em></strong>: In a single device iteration, many mini-batches may be processed and the resulting gradients accumulated.
+We call this total number of samples processed for one optimiser step the global batch size.
+= total number of samples processed for <em>one optimiser step</em>
+= (minibatch size x Gradient accumulation factor) x Number of replicas</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>seed</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>random seed for the IPU</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>training_opts</code></td>          <td>
+                <code><span title="poptorch.Options">Options</span></code>
+          </td>
+          <td><p>IPU options for the training set.</p></td>
+        </tr>
+        <tr>
+<td><code>inference_opts</code></td>          <td>
+                <code><span title="poptorch.Options">Options</span></code>
+          </td>
+          <td><p>IPU options for inference.
+It differs from the <code>training_opts</code> by enforcing <code>gradientAccumulation</code> to 1</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.ipu.ipu_wrapper" class="doc doc-heading">
+          <code>goli.ipu.ipu_wrapper</code>
+
+
+<a href="#goli.ipu.ipu_wrapper" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_wrapper.IPUPluginGoli" class="doc doc-heading">
+        <code>IPUPluginGoli</code>
+
+
+<a href="#goli.ipu.ipu_wrapper.IPUPluginGoli" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="pytorch_lightning.plugins.IPUPlugin">IPUPlugin</span></code></p>
+
+  
+      <p><code>IPUPluginGoli</code> modifies the <code>IPUPlugin</code> for compatibility with the Goli and Pytorch-Lightning training pipeline.
+Modifies the <code>.self</code> method to make it compatible with the rest of Goli.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_wrapper.PredictorModuleIPU" class="doc doc-heading">
+        <code>PredictorModuleIPU</code>
+
+
+<a href="#goli.ipu.ipu_wrapper.PredictorModuleIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="goli.trainer.predictor.PredictorModule" href="goli.trainer.html#goli.trainer.predictor.PredictorModule">PredictorModule</a></code></p>
+
+  
+      <p>This class wraps around the <code>PredictorModule</code> to make it work with IPU and the <code>IPUPluginGoli</code>.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_wrapper.remove_pad_loss" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">remove_pad_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_wrapper.remove_pad_loss" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>helper function to remove the fake graph loss
+always reduce the last loss since it is the fake graph</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.ipu.to_dense_batch" class="doc doc-heading">
+          <code>goli.ipu.to_dense_batch</code>
+
+
+<a href="#goli.ipu.to_dense_batch" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.to_dense_batch.to_dense_batch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_dense_batch</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">batch</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fill_value</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_nodes_last_graph</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.to_dense_batch.to_dense_batch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Given a sparse batch of node features
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code> (with
+:math:<code>N_i</code> indicating the number of nodes in graph :math:<code>i</code>), creates a
+dense node feature tensor
+:math:<code>\mathbf{X} \in \mathbb{R}^{B \times N_{\max} \times F}</code> (with
+:math:<code>N_{\max} = \max_i^B N_i</code>).
+In addition, a mask of shape :math:<code>\mathbf{M} \in \{ 0, 1 \}^{B \times
+N_{\max}}</code> is returned, holding information about the existence of
+fake-nodes in the dense representation.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>x</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>Node feature matrix
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code>.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>Batch vector
+:math:<code>\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N</code>, which assigns each
+node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>fill_value</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>The value for invalid entries in the
+resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_nodes_per_graph</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The size of the output node dimension.
+(default: :obj:<code>None</code>)</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The batch size. (default: :obj:<code>None</code>)</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>drop_nodes_last_graph</code></td>
+          <td>
+          </td>
+          <td><p>Whether to drop the nodes of the last graphs that exceed
+the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a padding.</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+      <p>:rtype: (:class:<code>Tensor</code>, :class:<code>BoolTensor</code>)</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.to_dense_batch.to_sparse_batch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_sparse_batch</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">mask_idx</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.to_dense_batch.to_sparse_batch" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Reverse function of <code>to_dense_batch</code></p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+    <nav class="md-footer__inner md-grid" aria-label="Footer" >
+      
+        
+        <a href="goli.config.html" class="md-footer__link md-footer__link--prev" aria-label="Previous: goli.config" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              goli.config
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../cli_references.html" class="md-footer__link md-footer__link--next" aria-label="Next: CLI" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              CLI
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4Z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2020 - 2023 Valence Discovery
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand"], "search": "../assets/javascripts/workers/search.ecf98df9.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.39f04ddb.min.js"></script>
+      
+        <script src="../javascripts/config.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

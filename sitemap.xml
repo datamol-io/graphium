@@ -36,12 +36,22 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://github.com/valence-discovery/goli/api/goli.config.html</loc>
+         <lastmod>2022-09-21</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.data.html</loc>
          <lastmod>2022-09-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.features.html</loc>
+         <lastmod>2022-09-21</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/valence-discovery/goli/api/goli.ipu.html</loc>
          <lastmod>2022-09-21</lastmod>
          <changefreq>daily</changefreq>
     </url>
@@ -82,6 +92,11 @@
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/basics/using_gnn_layers.html</loc>
+         <lastmod>2022-09-21</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://github.com/valence-discovery/goli/tutorials/model_training/ipu_training.html</loc>
          <lastmod>2022-09-21</lastmod>
          <changefreq>daily</changefreq>
     </url>

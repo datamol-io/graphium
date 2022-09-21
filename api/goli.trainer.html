@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#goli.trainer" class="md-skip">
+        <a href="#goli.trainer.loggers" class="md-skip">
           Skip to content
         </a>
       
@@ -306,6 +306,20 @@
 
             
           
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/ipu_training.html" class="md-nav__link">
+        Building and training on IPU from configurations
+      </a>
+    </li>
+  
+
+            
+          
         </ul>
       </nav>
     </li>
@@ -481,9 +495,334 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#goli.trainer" class="md-nav__link">
-    trainer
+  <a href="#goli.trainer.loggers" class="md-nav__link">
+    loggers
   </a>
+  
+    <nav class="md-nav" aria-label="loggers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.loggers.TensorBoardLoggerGoli" class="md-nav__link">
+    TensorBoardLoggerGoli
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.loggers.WandbLoggerGoli" class="md-nav__link">
+    WandbLoggerGoli
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.metrics" class="md-nav__link">
+    metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper" class="md-nav__link">
+    MetricWrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="MetricWrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__setstate__" class="md-nav__link">
+    __setstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.compute" class="md-nav__link">
+    compute()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.Thresholder" class="md-nav__link">
+    Thresholder
+  </a>
+  
+    <nav class="md-nav" aria-label="Thresholder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.Thresholder.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.Thresholder.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options" class="md-nav__link">
+    predictor_options
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.EvalOptions" class="md-nav__link">
+    EvalOptions
+  </a>
+  
+    <nav class="md-nav" aria-label="EvalOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.EvalOptions.parse_loss_fun" class="md-nav__link">
+    parse_loss_fun()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.FlagOptions" class="md-nav__link">
+    FlagOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.ModelOptions" class="md-nav__link">
+    ModelOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.OptimOptions" class="md-nav__link">
+    OptimOptions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries" class="md-nav__link">
+    predictor_summaries
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_summaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary" class="md-nav__link">
+    Summary
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.Results" class="md-nav__link">
+    Results
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.Results.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.get_metrics_logs" class="md-nav__link">
+    get_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.is_best_epoch" class="md-nav__link">
+    is_best_epoch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.SummaryInterface" class="md-nav__link">
+    SummaryInterface
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.predictor" class="md-nav__link">
+    predictor
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule" class="md-nav__link">
+    PredictorModule
+  </a>
+  
+    <nav class="md-nav" aria-label="PredictorModule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.compute_loss" class="md-nav__link">
+    compute_loss()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.flag_step" class="md-nav__link">
+    flag_step()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.list_pretrained_models" class="md-nav__link">
+    list_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.load_pretrained_models" class="md-nav__link">
+    load_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.training_epoch_end" class="md-nav__link">
+    training_epoch_end()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -518,6 +857,34 @@
     <li class="md-nav__item">
       <a href="goli.utils.html" class="md-nav__link">
         goli.utils
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.config.html" class="md-nav__link">
+        goli.config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.ipu.html" class="md-nav__link">
+        goli.ipu
       </a>
     </li>
   
@@ -570,9 +937,334 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#goli.trainer" class="md-nav__link">
-    trainer
+  <a href="#goli.trainer.loggers" class="md-nav__link">
+    loggers
   </a>
+  
+    <nav class="md-nav" aria-label="loggers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.loggers.TensorBoardLoggerGoli" class="md-nav__link">
+    TensorBoardLoggerGoli
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.loggers.WandbLoggerGoli" class="md-nav__link">
+    WandbLoggerGoli
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.metrics" class="md-nav__link">
+    metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper" class="md-nav__link">
+    MetricWrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="MetricWrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.__setstate__" class="md-nav__link">
+    __setstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.MetricWrapper.compute" class="md-nav__link">
+    compute()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.Thresholder" class="md-nav__link">
+    Thresholder
+  </a>
+  
+    <nav class="md-nav" aria-label="Thresholder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.Thresholder.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.metrics.Thresholder.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options" class="md-nav__link">
+    predictor_options
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.EvalOptions" class="md-nav__link">
+    EvalOptions
+  </a>
+  
+    <nav class="md-nav" aria-label="EvalOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.EvalOptions.parse_loss_fun" class="md-nav__link">
+    parse_loss_fun()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.FlagOptions" class="md-nav__link">
+    FlagOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.ModelOptions" class="md-nav__link">
+    ModelOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.OptimOptions" class="md-nav__link">
+    OptimOptions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries" class="md-nav__link">
+    predictor_summaries
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_summaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary" class="md-nav__link">
+    Summary
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.Results" class="md-nav__link">
+    Results
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.Results.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.get_metrics_logs" class="md-nav__link">
+    get_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.is_best_epoch" class="md-nav__link">
+    is_best_epoch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.Summary.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_summaries.SummaryInterface" class="md-nav__link">
+    SummaryInterface
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.trainer.predictor" class="md-nav__link">
+    predictor
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule" class="md-nav__link">
+    PredictorModule
+  </a>
+  
+    <nav class="md-nav" aria-label="PredictorModule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.compute_loss" class="md-nav__link">
+    compute_loss()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.flag_step" class="md-nav__link">
+    flag_step()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.list_pretrained_models" class="md-nav__link">
+    list_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.load_pretrained_models" class="md-nav__link">
+    load_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.trainer.predictor.PredictorModule.training_epoch_end" class="md-nav__link">
+    training_epoch_end()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -602,11 +1294,11 @@
 
 
 
-<h3 id="goli.trainer" class="doc doc-heading">
-          <code>goli.trainer</code>
+<h3 id="goli.trainer.loggers" class="doc doc-heading">
+          <code>goli.trainer.loggers</code>
 
 
-<a href="#goli.trainer" class="headerlink" title="Permanent link">&para;</a></h3>
+<a href="#goli.trainer.loggers" class="headerlink" title="Permanent link">&para;</a></h3>
 
   <div class="doc doc-contents first">
 
@@ -620,6 +1312,1446 @@
 
 
 
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.loggers.TensorBoardLoggerGoli" class="doc doc-heading">
+        <code>TensorBoardLoggerGoli</code>
+
+
+<a href="#goli.trainer.loggers.TensorBoardLoggerGoli" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="pytorch_lightning.loggers.TensorBoardLogger">TensorBoardLogger</span></code></p>
+
+  
+      <p>Override the regular <code>TensorBoardLogger</code> to save the complete configuration as a YAML file</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.loggers.WandbLoggerGoli" class="doc doc-heading">
+        <code>WandbLoggerGoli</code>
+
+
+<a href="#goli.trainer.loggers.WandbLoggerGoli" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="pytorch_lightning.loggers.WandbLogger">WandbLogger</span></code></p>
+
+  
+      <p>Override the regular <code>WandbLogger</code> to save the complete configuration as a YAML file</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.trainer.metrics" class="doc doc-heading">
+          <code>goli.trainer.metrics</code>
+
+
+<a href="#goli.trainer.metrics" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.metrics.MetricWrapper" class="doc doc-heading">
+        <code>MetricWrapper</code>
+
+
+<a href="#goli.trainer.metrics.MetricWrapper" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Allows to initialize a metric from a name or Callable, and initialize the
+<code>Thresholder</code> in case the metric requires a threshold.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.MetricWrapper.__call__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.metrics.MetricWrapper.__call__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the metric with the method <code>self.compute</code></p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.MetricWrapper.__getstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
+
+<a href="#goli.trainer.metrics.MetricWrapper.__getstate__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Serialize the class for pickling.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.MetricWrapper.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.metrics.MetricWrapper.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Parameters
+    metric:
+        The metric to use. See <code>METRICS_DICT</code></p>
+<pre><code>threshold_kwargs:
+    If `None`, no threshold is applied.
+    Otherwise, we use the class `Thresholder` is initialized with the
+    provided argument, and called before the `compute`
+
+target_nan_mask:
+
+    - None: Do not change behaviour if there are NaNs
+
+    - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
+      all NaNs will be replaced by zeros
+
+    - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
+
+    - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
+      has a different number of NaNs, so the metric will be computed separately
+      on each column, and the metric result will be averaged over all columns.
+      *This option might slowdown the computation if there are too many labels*
+
+kwargs:
+    Other arguments to call with the metric
+</code></pre>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.MetricWrapper.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.trainer.metrics.MetricWrapper.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Control how the class is printed</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.MetricWrapper.__setstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__setstate__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.metrics.MetricWrapper.__setstate__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Reload the class from pickling.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.MetricWrapper.compute" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.metrics.MetricWrapper.compute" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the metric, apply the thresholder if provided, and manage the NaNs</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.metrics.Thresholder" class="doc doc-heading">
+        <code>Thresholder</code>
+
+
+<a href="#goli.trainer.metrics.Thresholder" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.Thresholder.__getstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
+
+<a href="#goli.trainer.metrics.Thresholder.__getstate__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Serialize the class for pickling.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.metrics.Thresholder.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.trainer.metrics.Thresholder.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Control how the class is printed</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.trainer.predictor_options" class="doc doc-heading">
+          <code>goli.trainer.predictor_options</code>
+
+
+<a href="#goli.trainer.predictor_options" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+  
+      <p>Data classes to group together related arguments for the creation of a Predictor Module.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.predictor_options.EvalOptions" class="doc doc-heading">
+        <code>EvalOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor_options.EvalOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+<pre><code>Parameters:
+    loss_fun:
+        Loss function used during training.
+        Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
+        Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
+
+    metrics:
+        A dictionnary of metrics to compute on the prediction, other than the loss function.
+        These metrics will be logged into TensorBoard.
+
+    metrics_on_progress_bar:
+        The metrics names from `metrics` to display also on the progress bar of the training
+
+    metrics_on_training_set:
+        The metrics names from `metrics` to be computed on the training set for each iteration.
+        If `None`, all the metrics are computed. Using less metrics can significantly improve
+        performance, depending on the number of readouts.
+</code></pre>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor_options.EvalOptions.parse_loss_fun" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parse_loss_fun</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor_options.EvalOptions.parse_loss_fun" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Parse the loss function from a string</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>A callable corresponding to the loss function or a string
+specifying the loss function from <code>LOSS_DICT</code>. Accepted strings are:
+"mse", "bce", "l1", "mae", "cosine".</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>Callable</code></td>          <td>
+                <code><span title="typing.Callable">Callable</span></code>
+          </td>
+          <td><p>Function or callable to compute the loss, takes <code>preds</code> and <code>targets</code> as inputs.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.predictor_options.FlagOptions" class="doc doc-heading">
+        <code>FlagOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor_options.FlagOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+<pre><code>Parameters:
+    flag_kwargs:
+        Keyword arguments used for FLAG, and adversarial data augmentation for graph networks.
+        See: https://arxiv.org/abs/2010.09891
+
+        - n_steps: An integer that specifies the number of ascent steps when running FLAG during training.
+          Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
+          many iterations.
+
+        - alpha: A float that specifies the ascent step size when running FLAG. Default=0.01
+</code></pre>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.predictor_options.ModelOptions" class="doc doc-heading">
+        <code>ModelOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor_options.ModelOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+<pre><code>Parameters:
+    model_class:
+        pytorch module used to create a model
+
+    model_kwargs:
+        Key-word arguments used to initialize the model from `model_class`.
+</code></pre>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.predictor_options.OptimOptions" class="doc doc-heading">
+        <code>OptimOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor_options.OptimOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to configure the optimizer for the Predictor.</p>
+<pre><code>Parameters:
+    optim_kwargs:
+        Dictionnary used to initialize the optimizer, with possible keys below.
+
+        - lr `float`: Learning rate (Default=`1e-3`)
+        - weight_decay `float`: Weight decay used to regularize the optimizer (Default=`0.`)
+
+    lr_reduce_on_plateau_kwargs:
+        DEPRECIATED. USE `torch_scheduler_kwargs` instead.
+        Dictionnary for the reduction of learning rate when reaching plateau, with possible keys below.
+
+        - factor `float`: Factor by which to reduce the learning rate (Default=`0.5`)
+        - patience `int`: Number of epochs without improvement to wait before reducing
+          the learning rate (Default=`10`)
+        - mode `str`: One of min, max. In min mode, lr will be reduced when the quantity
+          monitored has stopped decreasing; in max mode it will be reduced when the quantity
+          monitored has stopped increasing. (Default=`"min"`).
+        - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate
+          of all param groups or each group respectively (Default=`1e-4`)
+
+    torch_scheduler_kwargs:
+        Dictionnary for the scheduling of learning rate, with possible keys below.
+
+        - type `str`: Type of the learning rate to use from pytorch. Examples are
+          `'ReduceLROnPlateau'` (default), `'CosineAnnealingWarmRestarts'`, `'StepLR'`, etc.
+        - **kwargs: Any other argument for the learning rate scheduler
+
+    scheduler_kwargs:
+        Dictionnary for the scheduling of the learning rate modification used by pytorch-lightning
+
+        - monitor `str`: metric to track (Default=`"loss/val"`)
+        - interval `str`: Whether to look at iterations or epochs (Default=`"epoch"`)
+        - strict `bool`: if set to True will enforce that value specified in monitor is available
+          while trying to call scheduler.step(), and stop training if not found. If False will
+          only give a warning and continue training (without calling the scheduler). (Default=`True`)
+        - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
+</code></pre>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.trainer.predictor_summaries" class="doc doc-heading">
+          <code>goli.trainer.predictor_summaries</code>
+
+
+<a href="#goli.trainer.predictor_summaries" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+  
+      <p>Classes to store information about resulting evaluation metrics when using a Predictor Module.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.predictor_summaries.Summary" class="doc doc-heading">
+        <code>Summary</code>
+
+
+<a href="#goli.trainer.predictor_summaries.Summary" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="goli.trainer.predictor_summaries.SummaryInterface" href="#goli.trainer.predictor_summaries.SummaryInterface">SummaryInterface</a></code></p>
+
+  
+      <p>A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h5 id="goli.trainer.predictor_summaries.Summary.Results" class="doc doc-heading">
+        <code>Results</code>
+
+
+<a href="#goli.trainer.predictor_summaries.Summary.Results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="goli.trainer.predictor_summaries.Summary.Results.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.predictor_summaries.Summary.Results.__init__" class="headerlink" title="Permanent link">&para;</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This inner class is used as a container for storing the results of the summary.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor_summaries.Summary.get_metrics_logs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_metrics_logs</span><span class="p">()</span></code>
+
+<a href="#goli.trainer.predictor_summaries.Summary.get_metrics_logs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the data about metrics to log.</p>
+<p>Note: This function requires that self.update_predictor_state() be called before it.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor_summaries.Summary.is_best_epoch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_best_epoch</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.predictor_summaries.Summary.is_best_epoch" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>TODO (Gabriela): Check for bugs related to monitor_name</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor_summaries.Summary.set_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.predictor_summaries.Summary.set_results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This function requires that self.update_predictor_state() be called before it.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.predictor_summaries.SummaryInterface" class="doc doc-heading">
+        <code>SummaryInterface</code>
+
+
+<a href="#goli.trainer.predictor_summaries.SummaryInterface" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code>object</code></p>
+
+  
+      <p>An interface to define the functions implemented by summary classes that implement SummaryInterface.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.trainer.predictor" class="doc doc-heading">
+          <code>goli.trainer.predictor</code>
+
+
+<a href="#goli.trainer.predictor" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.trainer.predictor.PredictorModule" class="doc doc-heading">
+        <code>PredictorModule</code>
+
+
+<a href="#goli.trainer.predictor.PredictorModule" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="pytorch_lightning">pl</span>.<span title="pytorch_lightning.LightningModule">LightningModule</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lr_reduce_on_plateau_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.predictor.PredictorModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
+It works in a multi-task setting, with different losses and metrics per class</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>model_class</code></td>
+          <td>
+                <code><span title="typing.Type">Type</span>[<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+          </td>
+          <td><p>The torch Module containing the main forward function</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>model_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>The arguments to initialize the model from <code>model_class</code></p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td><p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the loss function</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>random_seed</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The seed for random initialization</p></td>
+          <td>
+                <code>42</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>optim_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>The optimization arguments.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>lr_reduce_on_plateau_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>TODO: Re-do the scheduling</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>torch_scheduler_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>TODO: Re-do the scheduling</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>scheduler_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>TODO: Re-do the scheduling</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target_nan_mask</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[int, float, str]]</code>
+          </td>
+          <td><p>How to handle the NaNs. See <code>MetricsWrapper</code> for options</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the metric function</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_progress_bar</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td><p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the progress bar</p></td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_training_set</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[str]]]</code>
+          </td>
+          <td><p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the training set</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>flag_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Arguments related to using the FLAG adversarial augmentation</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.trainer.predictor.PredictorModule.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Controls how the class is printed</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.compute_loss" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor.PredictorModule.compute_loss" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the loss using the specified loss function, and dealing with
+the nans in the <code>targets</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>Predicted values</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>targets</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>Target values</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>weights</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>No longer supported, will raise an error.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target_nan_mask</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.Type">Type</span>, str]</code>
+          </td>
+          <td><ul>
+<li>
+<p>None: Do not change behaviour if there are NaNs</p>
+</li>
+<li>
+<p>int, float: Value used to replace NaNs. For example, if <code>target_nan_mask==0</code>, then
+  all NaNs will be replaced by zeros</p>
+</li>
+<li>
+<p>'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.</p>
+</li>
+<li>
+<p>'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
+  has a different number of NaNs, so the metric will be computed separately
+  on each column, and the metric result will be averaged over all columns.
+  <em>This option might slowdown the computation if there are too many labels</em></p>
+</li>
+</ul></td>
+          <td>
+                <code>&#39;ignore&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Loss function to use</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>Tensor</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>Resulting loss</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.flag_step" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">flag_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">to_cpu</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.predictor.PredictorModule.flag_step" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Perform adversarial data agumentation during one training step using FLAG.
+Paper: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891</a>
+Github: <a href="https://github.com/devnkong/FLAG">https://github.com/devnkong/FLAG</a></p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.predictor.PredictorModule.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the result of <code>self.model.forward(*inputs)</code> on the inputs.
+If the output of <code>out = self.model.forward</code> is a dictionary with a <code>"preds"</code> key,
+it is returned directly. Otherwise, a new dictionary is created and
+returns <code>{"preds": out}</code>.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[torch.<span title="torch.Tensor">Tensor</span>, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>A dict with a key <code>"preds"</code> representing the prediction of the network.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.list_pretrained_models" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">list_pretrained_models</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor.PredictorModule.list_pretrained_models" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>List available pretrained models.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.load_pretrained_models" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">load_pretrained_models</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#goli.trainer.predictor.PredictorModule.load_pretrained_models" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Load a pretrained model from its name.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name of the model to load. List available
+from <code>goli.trainer.PredictorModule.list_pretrained_models()</code>.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.trainer.predictor.PredictorModule.training_epoch_end" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">training_epoch_end</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span></code>
+
+<a href="#goli.trainer.predictor.PredictorModule.training_epoch_end" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Nothing happens at the end of the training epoch.
+It serves no purpose to do a general step for the training,
+but it can explode the RAM when using a large dataset.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
 
 
 
