@@ -60,7 +60,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' }}
         run: |
           # Get the privpage branch
-          git fetch origin privpage
+          git fetch origin gh-pages
 
           # Build and serve the doc
-          mkdocs gh-deploy
+          mkdocs gh-deploy --force

@@ -3,9 +3,9 @@ site_description: "A deep learning library focused on graph representation learn
 site_url: "https://github.com/valence-discovery/goli"
 repo_url: "https://github.com/valence-discovery/goli"
 repo_name: "valence-discovery/goli"
-copyright: Copyright 2020 - 2021 Valence Discovery
+copyright: Copyright 2020 - 2023 Valence Discovery
 
-remote_branch: "privpage"
+remote_branch: "gh-pages"
 use_directory_urls: false
 docs_dir: "docs"
 
@@ -80,4 +80,3 @@ plugins:
             heading_level: 3
   - mkdocs-jupyter:
       execute: False
-      # kernel_name: python3
