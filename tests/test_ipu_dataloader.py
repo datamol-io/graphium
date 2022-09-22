@@ -228,6 +228,11 @@ class test_DataLoading(ut.TestCase):
             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
 
     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
+        """
+        Test a simple version of the device-iterations and gradient accumulation
+        to make sure that the dataloader and models handle them correcly.
+        """
+
         # Run this test only if poptorch is available
         try:
             import poptorch
@@ -284,6 +289,11 @@ class test_DataLoading(ut.TestCase):
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
     def test_poptorch_goli_deviceiterations_gradient_accumulation(self):
+        """
+        Test the device-iterations and gradient accumulation in a way
+        that is very similar to the Goli code
+        to make sure that the dataloader and models handle them correcly.
+        """
 
         try:
             import poptorch
