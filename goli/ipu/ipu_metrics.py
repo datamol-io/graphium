@@ -1,7 +1,7 @@
 import torch
 from torch import Tensor
 from torch.nn import BCELoss, MSELoss, L1Loss
-from torchmetrics.functional import auroc
+from torchmetrics.functional import auroc, average_precision
 from torch._C import _infer_size
 
 from typing import Optional, Sequence
@@ -122,12 +122,8 @@ def auroc_ipu(
     target[nan_targets] = 0.0
 
     # Get the original weight matrix. If None, set all weights = 1
-    if sample_weights is not None:
-        prev_weight = sample_weights.clone()
-        new_size = _infer_size(target.size(), sample_weights.size())
-        sample_weights = sample_weights.expand(new_size).clone()
-    else:
-        sample_weights = torch.ones(target.shape, dtype=preds.dtype, device=preds.device)
+    if sample_weights is None:
+        sample_weights = torch.ones(target.shape[0], dtype=preds.dtype, device=preds.device)
     sample_weights[nan_targets] = 0.0
 
     # Compute the loss, and rescale by the number of nan elements
