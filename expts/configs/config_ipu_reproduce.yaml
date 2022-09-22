@@ -20,7 +20,7 @@ datamodule:
         split_test: 0.
         split_seed: *seed
         splits_path: null                 # This may not always be provided
-        sample_size: 20000 # 715233       # This may not always be provided
+        sample_size: 715233 # 715233       # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
