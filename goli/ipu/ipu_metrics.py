@@ -1,7 +1,10 @@
 import torch
 from torch import Tensor
 from torch.nn import BCELoss, MSELoss, L1Loss
+from torchmetrics.functional import auroc
 from torch._C import _infer_size
+
+from typing import Optional, Sequence
 
 
 class BCELossIPU(BCELoss):
@@ -92,3 +95,50 @@ class L1LossIPU(L1Loss):
         loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         return loss
+
+
+def auroc_ipu(
+    preds: Tensor,
+    target: Tensor,
+    num_classes: Optional[int] = None,
+    pos_label: Optional[int] = None,
+    average: Optional[str] = "macro",
+    max_fpr: Optional[float] = None,
+    sample_weights: Optional[Sequence] = None
+    ):
+    """
+    A modified version of the `torchmetrics.functional.auroc` that can ignore NaNs
+    by giving them the same value for both `input` and `target`.
+    This allows it to work with compilation
+    and IPUs since it doesn't modify the tensor's shape.
+    """
+
+    target = target.clone()
+    preds = preds.clone()
+
+    # Replace the nan-targets in the preds/target tensors by 0
+    nan_targets = target.isnan()
+    preds[nan_targets] = 0.0
+    target[nan_targets] = 0.0
+
+    # Get the original weight matrix. If None, set all weights = 1
+    if sample_weights is not None:
+        prev_weight = sample_weights.clone()
+        new_size = _infer_size(target.size(), sample_weights.size())
+        sample_weights = sample_weights.expand(new_size).clone()
+    else:
+        sample_weights = torch.ones(target.shape, dtype=preds.dtype, device=preds.device)
+    sample_weights[nan_targets] = 0.0
+
+    # Compute the loss, and rescale by the number of nan elements
+    score = auroc(
+        preds = preds,
+        target = target.to(int),
+        num_classes = num_classes,
+        pos_label = pos_label,
+        average = average,
+        max_fpr = max_fpr,
+        sample_weights = sample_weights
+    )
+
+    return score
