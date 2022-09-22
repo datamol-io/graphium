@@ -1483,8 +1483,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
     def __init__(
         self,
-        ipu_inference_opts: Optional["poptorch.Options"] = None,
         ipu_training_opts: Optional["poptorch.Options"] = None,
+        ipu_inference_opts: Optional["poptorch.Options"] = None,
         ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
         ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
         *args,
@@ -1573,8 +1573,8 @@ class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
         """
         super().__init__(*args, **kwargs)
 
-        self.ipu_inference_opts = ipu_inference_opts
         self.ipu_training_opts = ipu_training_opts
+        self.ipu_inference_opts = ipu_inference_opts
         self.ipu_dataloader_training_opts = ipu_dataloader_training_opts
         self.ipu_dataloader_inference_opts = ipu_dataloader_inference_opts
 

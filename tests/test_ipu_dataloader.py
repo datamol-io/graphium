@@ -137,19 +137,24 @@ class test_DataLoading(ut.TestCase):
             self.node_batch_size = node_batch_size
             self.edge_batch_size = edge_batch_size
 
+            import poptorch
+            self.pop = poptorch
+
         def validation_step(self, *args):
             dict_input = self._build_dict_input(*args)
             self.assert_shapes(args, dict_input, "val")
             preds = self.forward(dict_input)["preds"]
             loss = self.compute_loss(preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None)
-            return loss[0]
+            loss = loss[0]
+            return loss
 
         def training_step(self, *args):
             dict_input = self._build_dict_input(*args)
             self.assert_shapes(args, dict_input, "train")
             preds = self.forward(dict_input)["preds"]
             loss = self.compute_loss(preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None)
-            return loss[0]
+            loss = self.poptorch.identity_loss(loss[0], reduction="mean")
+            return loss
 
         def assert_shapes(self, args, dict_input, step):
             msg = f", step=`{step}`"
@@ -287,43 +292,24 @@ class test_DataLoading(ut.TestCase):
         CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
+        cfg["datamodule"]["args"]["batch_size_train_val"] = batch_size
+        cfg["datamodule"]["args"]["batch_size_test"] = batch_size
+        node_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_nodes_per_graph"]
+        edge_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_edges_per_graph"]
 
         # Load the datamodule, and prepare the data
         datamodule = load_datamodule(cfg)
         datamodule.prepare_data()
         datamodule.setup()
-
-        node_factor = 20
-        edge_factor = 40
-        collater = CombinedBatchingCollator(
-            batch_size,
-            collate_fn=goli_collate_fn,
-            max_num_nodes=node_factor*batch_size,
-            max_num_edges=edge_factor*batch_size,
-            dataset_max_nodes_per_graph=node_factor,
-            dataset_max_edges_per_graph=edge_factor,
-        )
-
-        train_dataloader = poptorch.DataLoader(
-            options=training_opts,
-            dataset=deepcopy(datamodule.train_ds),
-            batch_size=batch_size,
-            collate_fn=collater,
-        )
-
-        val_dataloader = poptorch.DataLoader(
-            options=inference_opts,
-            dataset=deepcopy(datamodule.val_ds),
-            batch_size=batch_size,
-            collate_fn=collater,
-        )
+        datamodule.ipu_training_opts = training_opts
+        datamodule.ipu_inference_opts = inference_opts
 
         model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
         metrics = load_metrics(cfg)
         predictor = self.TestPredictor(batch_size=batch_size, node_batch_size=node_factor*batch_size, edge_batch_size=edge_factor*batch_size, in_dims=datamodule.in_dims, model_class=model_class, model_kwargs=model_kwargs, metrics=metrics, **cfg["predictor"])
         plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
         trainer = Trainer(logger=False, enable_checkpointing=False, max_epochs=2, plugins=plugins, num_sanity_val_steps=0)
-        trainer.fit(model=predictor, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+        trainer.fit(model=predictor, datamodule=datamodule)
 
 
 

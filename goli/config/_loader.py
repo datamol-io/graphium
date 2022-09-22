@@ -81,13 +81,13 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "gol
     cfg_data = config["datamodule"]["args"]
 
     # Default empty values for the IPU configurations
-    ipu_inference_opts, ipu_training_opts = None, None
+    ipu_training_opts, ipu_inference_opts = None, None
     ipu_file = "expts/configs/ipu.config"
     ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
     ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
 
     if get_accelerator(config) == "ipu":
-        ipu_inference_opts, ipu_training_opts = load_ipu_options(
+        ipu_training_opts, ipu_inference_opts = load_ipu_options(
             ipu_file=ipu_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
@@ -110,8 +110,8 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "gol
     # Instanciate the datamodule
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(
-        ipu_inference_opts=ipu_inference_opts,
         ipu_training_opts=ipu_training_opts,
+        ipu_inference_opts=ipu_inference_opts,
         ipu_dataloader_training_opts=ipu_dataloader_training_opts,
         ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
         **config["datamodule"]["args"],
