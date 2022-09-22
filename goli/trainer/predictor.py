@@ -207,8 +207,8 @@ class PredictorModule(pl.LightningModule):
         targets: Dict[str, Tensor],
         weights: Optional[Tensor],
         loss_fun: Dict[str, Callable],
-        target_nan_mask: Union[Type, str] = "ignore",
-    ) -> Tensor:
+        target_nan_mask: Union[Type, str] = "ignore-flatten",
+    ) -> Tuple[Tensor, Dict[str, Tensor]]:
         r"""
         Compute the loss using the specified loss function, and dealing with
         the nans in the `targets`.
@@ -242,7 +242,8 @@ class PredictorModule(pl.LightningModule):
 
         Returns:
             Tensor:
-                Resulting loss
+                weighted_loss: Resulting weighted loss
+                all_task_losses: Loss per task
         """
 
         wrapped_loss_fun_dict = {
@@ -375,9 +376,10 @@ class PredictorModule(pl.LightningModule):
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
         concatenated_metrics_logs = outputs
-        self.logger.log_metrics(
-            concatenated_metrics_logs, step=self.global_step
-        )  # This is a pytorch lightning function call
+        if self.logger is not None:
+            self.logger.log_metrics(
+                concatenated_metrics_logs, step=self.global_step
+            )  # This is a pytorch lightning function call
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         step_dict = None
@@ -407,7 +409,8 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs["train/grad_norm"] = step_dict["grad_norm"]
 
         # Wandb metric tracking here
-        self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)
+        if self.logger is not None:
+            self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)
 
         # Predictions and targets are no longer needed after the step.
         # Keeping them will increase memory usage significantly for large datasets.
@@ -502,7 +505,8 @@ class PredictorModule(pl.LightningModule):
     def on_train_start(self):
         hparams_log = deepcopy(self.hparams)
         hparams_log["n_params"] = self.n_params
-        self.logger.log_hyperparams(hparams_log)
+        if self.logger is not None:
+            self.logger.log_hyperparams(hparams_log)
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = {}

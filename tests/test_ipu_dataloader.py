@@ -1,3 +1,5 @@
+# General imports
+import yaml
 import unittest as ut
 import numpy as np
 from copy import deepcopy
@@ -9,8 +11,13 @@ from functools import partial
 import torch
 from torch.utils.data.dataloader import default_collate
 
+# Current library imports
 from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_wrapper import PredictorModuleIPU
+from goli.config._loader import load_datamodule, load_metrics, load_architecture
+from goli.ipu.ipu_wrapper import IPUPluginGoli
+from goli.ipu.ipu_dataloader import CombinedBatchingCollator
+from goli.data.collate import goli_collate_fn
 
 def random_packing(num_nodes, batch_size):
     ipu_batch_size = int(len(num_nodes) / batch_size)
@@ -73,7 +80,7 @@ class test_SmartPacking(ut.TestCase):
 
 class test_DataLoading(ut.TestCase):
 
-    class TestModule(LightningModule):
+    class TestSimpleLightning(LightningModule):
     # Create a basic Ligthning for testing the batch sizes
         def __init__(self, batch_size, node_feat_size, edge_feat_size, num_batch) -> None:
             super().__init__()
@@ -121,6 +128,70 @@ class test_DataLoading(ut.TestCase):
             return torch.optim.Adam(self.parameters(), lr=1e-3)
 
 
+    class TestPredictor(PredictorModuleIPU):
+        # Create a basic Ligthning for testing the batch sizes
+        def __init__(self, batch_size, node_batch_size, edge_batch_size, in_dims, **kwargs) -> None:
+            super().__init__(**kwargs)
+            self.in_dims = in_dims
+            self.batch_size = batch_size
+            self.node_batch_size = node_batch_size
+            self.edge_batch_size = edge_batch_size
+
+        def validation_step(self, *args):
+            dict_input = self._build_dict_input(*args)
+            self.assert_shapes(args, dict_input, "val")
+            preds = self.forward(dict_input)["preds"]
+            loss = self.compute_loss(preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None)
+            return loss[0]
+
+        def training_step(self, *args):
+            dict_input = self._build_dict_input(*args)
+            self.assert_shapes(args, dict_input, "train")
+            preds = self.forward(dict_input)["preds"]
+            loss = self.compute_loss(preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None)
+            return loss[0]
+
+        def assert_shapes(self, args, dict_input, step):
+            msg = f", step=`{step}`"
+
+            # Ensure that the first dimension is 1 for all tensors
+            for arg in args:
+                assert arg.shape[0] == 1
+
+            # Test the shape of the labels
+            this_shape = list(dict_input["labels"]["homo"].shape)
+            true_shape = [self.batch_size, 2]
+            assert this_shape == true_shape, f"Shape of the labels is `{this_shape}` but should be {true_shape}. {msg}"
+
+            # Test the shape of the node feature
+            this_shape = list(dict_input["features"]["feat"].shape)
+            true_shape = [self.node_batch_size, self.in_dims["feat"]]
+            assert this_shape == true_shape, f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}. {msg}"
+
+            # Test the shape of the node feature
+            this_shape = list(dict_input["features"]["edge_feat"].shape)
+            true_shape = [self.edge_batch_size, self.in_dims["edge_feat"]]
+            assert this_shape == true_shape, f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}. {msg}"
+
+        def get_progress_bar_dict(self):
+            return {}
+
+        def on_train_batch_end(self, *args, **kwargs):
+            return
+
+        def on_validation_batch_end(self, *args, **kwargs):
+            return
+
+        def validation_epoch_end(self, *args, **kwargs):
+            return
+
+        def on_train_epoch_end(self) -> None:
+            return
+
+        def configure_optimizers(self):
+            return torch.optim.Adam(self.parameters(), lr=1e-3)
+
+
     class TestDataset(torch.utils.data.Dataset):
         # Create a simple dataset for testing the Lightning integration
         def __init__( self, labels, node_features, edge_features):
@@ -136,10 +207,10 @@ class test_DataLoading(ut.TestCase):
             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
 
 
-    def test_poptorch_deviceiterations_gradient_accumulation(self):
+    def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
         # Run this test only if poptorch is available
         try:
-            poptorch = import_poptorch()
+            import poptorch
         except Exception as e:
             warn(f"Skipping this test because poptorch is not available.\n{e}")
             return
@@ -185,10 +256,74 @@ class test_DataLoading(ut.TestCase):
         )
 
         # Build the model, and run it on IPU
-        model = self.TestModule(batch_size, node_feat_size, edge_feat_size, num_batch)
+        model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
         plugins = IPUPlugin(training_opts=training_opts, inference_opts=inference_opts)
         trainer = Trainer(logger=False, enable_checkpointing=False, max_epochs=2, plugins=plugins, num_sanity_val_steps=0)
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+
+
+
+    def test_poptorch_goli_deviceiterations_gradient_accumulation(self):
+
+        try:
+            import poptorch
+        except Exception as e:
+            warn(f"Skipping this test because poptorch is not available.\n{e}")
+            return
+
+        gradient_accumulation = 3
+        device_iterations = 5
+        batch_size = 7
+
+        # Initialize the batch info and poptorch options
+        opts = poptorch.Options()
+        opts.deviceIterations(device_iterations)
+        opts.Jit.traceModel(True)
+        training_opts=deepcopy(opts)
+        training_opts.Training.gradientAccumulation(gradient_accumulation)
+        inference_opts=deepcopy(opts)
+
+        # Load the configuration file for the model
+        CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
+        with open(CONFIG_FILE, "r") as f:
+            cfg = yaml.safe_load(f)
+
+        # Load the datamodule, and prepare the data
+        datamodule = load_datamodule(cfg)
+        datamodule.prepare_data()
+        datamodule.setup()
+
+        node_factor = 20
+        edge_factor = 40
+        collater = CombinedBatchingCollator(
+            batch_size,
+            collate_fn=goli_collate_fn,
+            max_num_nodes=node_factor*batch_size,
+            max_num_edges=edge_factor*batch_size,
+            dataset_max_nodes_per_graph=node_factor,
+            dataset_max_edges_per_graph=edge_factor,
+        )
+
+        train_dataloader = poptorch.DataLoader(
+            options=training_opts,
+            dataset=deepcopy(datamodule.train_ds),
+            batch_size=batch_size,
+            collate_fn=collater,
+        )
+
+        val_dataloader = poptorch.DataLoader(
+            options=inference_opts,
+            dataset=deepcopy(datamodule.val_ds),
+            batch_size=batch_size,
+            collate_fn=collater,
+        )
+
+        model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
+        metrics = load_metrics(cfg)
+        predictor = self.TestPredictor(batch_size=batch_size, node_batch_size=node_factor*batch_size, edge_batch_size=edge_factor*batch_size, in_dims=datamodule.in_dims, model_class=model_class, model_kwargs=model_kwargs, metrics=metrics, **cfg["predictor"])
+        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
+        trainer = Trainer(logger=False, enable_checkpointing=False, max_epochs=2, plugins=plugins, num_sanity_val_steps=0)
+        trainer.fit(model=predictor, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
 
 

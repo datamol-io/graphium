@@ -158,7 +158,7 @@ class CombinedBatchingCollator:
         # TODO: Make this more robust, instead of hard-coding the keys
         out_batch["features"] = stacked_features
         out_batch["_types_conversion"] = [this_batch["_types_conversion"] for this_batch in all_batches]
-        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int64)
+        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int64).unsqueeze(-1)
         for key in all_batches[0].keys():
             if key not in ("features", "labels", "_types_conversion"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
