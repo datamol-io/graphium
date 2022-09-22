@@ -88,7 +88,9 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "gol
 
     if get_accelerator(config) == "ipu":
         ipu_inference_opts, ipu_training_opts = load_ipu_options(
-            ipu_file=ipu_file, seed=config["constants"]["seed"]
+            ipu_file=ipu_file,
+            seed=config["constants"]["seed"],
+            model_name=config["constants"]["name"],
         )
 
         # Define the Dataloader options for the IPU on the training sets
@@ -279,7 +281,11 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     accelerator = get_accelerator(config)
     ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
-        training_opts, inference_opts = load_ipu_options(ipu_file=ipu_file, seed=config["constants"]["seed"])
+        training_opts, inference_opts = load_ipu_options(
+            ipu_file=ipu_file,
+            seed=config["constants"]["seed"],
+            model_name=config["constants"]["name"],
+        )
         plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available

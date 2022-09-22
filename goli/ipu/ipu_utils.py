@@ -24,7 +24,9 @@ def import_poptorch() -> ModuleType:
 
 
 def load_ipu_options(
-    ipu_file: str, seed: Optional[int] = None
+    ipu_file: str,
+    seed: Optional[int] = None,
+    model_name: Optional[str] = None,
 ) -> Tuple["poptorch.Options", "poptorch.Options"]:
     """
     Load the IPU options from the config file.
@@ -59,6 +61,7 @@ def load_ipu_options(
             = (minibatch size x Gradient accumulation factor) x Number of replicas
 
         seed: random seed for the IPU
+        model_name: Name of the model, to be used for ipu profiling
 
     Returns:
 
@@ -70,12 +73,13 @@ def load_ipu_options(
     """
 
     poptorch = import_poptorch()
-
     ipu_options = poptorch.Options()
     ipu_options.loadFromFile(ipu_file)
     ipu_options.outputMode(poptorch.OutputMode.All)
     if seed is not None:
         ipu_options.randomSeed(seed)
+    if model_name is not None:
+        ipu_options.modelName(f"{model_name}_train")
 
     # ipu_options.anchorTensor("grad_input", "Gradient___input")
     ipu_options.anchorTensor("input", "input")
@@ -85,5 +89,7 @@ def load_ipu_options(
     # Change the inference options to remove gradient accumulation
     inference_opts = deepcopy(ipu_options)
     inference_opts.Training.gradientAccumulation(1)
+    if model_name is not None:
+        inference_opts.modelName(f"{model_name}_inference")
 
     return training_opts, inference_opts
