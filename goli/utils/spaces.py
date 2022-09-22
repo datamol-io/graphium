@@ -10,7 +10,7 @@ from goli.data.datamodule import (
     MultitaskIPUFromSmilesDataModule,
     MultitaskIPUFromSmilesDataModule,
 )
-from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU
+from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu
 
 from goli.nn.dgl_layers import (
     GATDgl,
@@ -99,6 +99,7 @@ METRICS_CLASSIFICATION = {
     "accuracy": met.accuracy,
     "averageprecision": met.average_precision,
     "auroc": met.auroc,
+    "auroc_ipu": auroc_ipu,
     "confusionmatrix": met.confusion_matrix,
     "f1": met.f1_score,
     "fbeta": met.fbeta_score,

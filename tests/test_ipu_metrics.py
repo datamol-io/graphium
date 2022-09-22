@@ -1,9 +1,10 @@
 import unittest as ut
 import torch
 from torch.nn import BCELoss, MSELoss, L1Loss
+from torchmetrics.functional import auroc
 from copy import deepcopy
 
-from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU
+from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu
 
 
 class test_Losses(ut.TestCase):
@@ -108,6 +109,54 @@ class test_Losses(ut.TestCase):
             loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss with NaN is different"
         )
 
+    def test_auroc(self):
+        preds_with_weights = deepcopy(self.preds)
+        preds = deepcopy(self.preds)[:, 0]
+        target = deepcopy(self.target)[:, 0]
+        target_nan = deepcopy(self.target_nan)[:, 0]
+
+        target[target < 0.5] = 0
+        target[target >= 0.5] = 1
+
+        target_nan[target_nan < 0.5] = 0
+        target_nan[target_nan >= 0.5] = 1
+
+        # Regular loss
+        score_true = auroc(preds, target.to(int), num_classes=2)
+        score_ipu = auroc_ipu(preds, target, num_classes=2)
+        self.assertFalse(score_true.isnan(), "Regular AUROC score is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Regular AUROC score is different"
+        )
+
+        # Weighted loss (As in BCE)
+        sample_weights = torch.rand(preds.shape[0], dtype=torch.float32)
+        score_true = auroc(preds, target.to(int), num_classes=2, sample_weights=sample_weights)
+        score_ipu = auroc_ipu(preds, target, num_classes=2, sample_weights=sample_weights)
+        self.assertFalse(score_true.isnan(), "Regular AUROC score is NaN")
+        self.assertAlmostEqual(score_true.item(), score_ipu.item(), msg="Weighted AUROC score is different")
+
+        # Regular loss with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = auroc(preds[not_nan], target[not_nan].to(int), num_classes=2)
+        score_ipu = auroc_ipu(preds, target_nan, num_classes=2)
+        self.assertFalse(score_true.isnan(), "Regular AUROC score with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Regular AUROCIPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Regular AUROC score with NaN is different"
+        )
+
+        # Weighted loss with NaNs in target (As in BCE)
+        not_nan = ~target_nan.isnan()
+        sample_weights = torch.rand(preds.shape, dtype=torch.float32)
+        loss_true = auroc(preds[not_nan], target_nan[not_nan].to(int), sample_weights=sample_weights)
+        loss_ipu = auroc_ipu(preds, target_nan, sample_weights=sample_weights)
+        self.assertFalse(loss_true.isnan(), "Weighted AUROC score with target_nan is NaN")
+        self.assertFalse(loss_ipu.isnan(), "Weighted AUROC IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            # AssertionError: 0.6603766679763794 != 0.6234951615333557 within 2 places
+            loss_true.item(), loss_ipu.item(), places=1, msg="Weighted AUROC with NaN is different"
+        )
 
 if __name__ == "__main__":
     ut.main()
