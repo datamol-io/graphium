@@ -207,16 +207,16 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
             if scaler == "identity":
                 pass
             elif scaler == "amplification":
-                out = out * (torch.log(deg + 1) / self.avg_d["log"])
+                out_scaler = out * (torch.log(deg + 1) / self.avg_d["log"])
             elif scaler == "attenuation":
-                out = out * (self.avg_d["log"] / torch.log(deg + 1))
+                out_scaler = out * (self.avg_d["log"] / torch.log(deg + 1))
             elif scaler == "linear":
-                out = out * (deg / self.avg_d["lin"])
+                out_scaler = out * (deg / self.avg_d["lin"])
             elif scaler == "inverse_linear":
-                out = out * (self.avg_d["lin"] / deg)
+                out_scaler = out * (self.avg_d["lin"] / deg)
             else:
                 raise ValueError(f'Unknown scaler "{scaler}".')
-            outs.append(out)
+            outs.append(out_scaler)
         return torch.cat(outs, dim=-1)
 
     @property
