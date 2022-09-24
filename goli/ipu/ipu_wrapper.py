@@ -126,8 +126,7 @@ class PredictorModuleIPU(PredictorModule):
         return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
 
     def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
-        self._concatenated_metrics_logs["loss"] = outputs
-        outputs = self._concatenated_metrics_logs
+        outputs = {"loss/train": outputs["loss"].mean()}
         super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def training_step(self, *inputs) -> Dict[str, Any]:
@@ -135,7 +134,6 @@ class PredictorModuleIPU(PredictorModule):
         dict_input = self._build_dict_input(*inputs)
         concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
         loss = concatenated_metrics_logs.pop("loss")
-        self._concatenated_metrics_logs = concatenated_metrics_logs
         loss = self.poptorch.identity_loss(loss, reduction="mean")
         return loss  # Limitation that only the loss can be returned
 

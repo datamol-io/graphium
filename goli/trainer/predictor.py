@@ -375,10 +375,9 @@ class PredictorModule(pl.LightningModule):
         return step_dict
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
-        concatenated_metrics_logs = outputs
         if self.logger is not None:
             self.logger.log_metrics(
-                concatenated_metrics_logs, step=self.global_step
+                outputs, step=self.global_step
             )  # This is a pytorch lightning function call
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
@@ -408,10 +407,6 @@ class PredictorModule(pl.LightningModule):
         step_dict["grad_norm"] = self.get_gradient_norm()
         concatenated_metrics_logs["train/grad_norm"] = step_dict["grad_norm"]
 
-        # Wandb metric tracking here
-        if self.logger is not None:
-            self.logger.log_metrics(concatenated_metrics_logs, step=self.global_step)
-
         # Predictions and targets are no longer needed after the step.
         # Keeping them will increase memory usage significantly for large datasets.
         step_dict.pop("preds")
@@ -419,6 +414,11 @@ class PredictorModule(pl.LightningModule):
         step_dict.pop("weights")
 
         return concatenated_metrics_logs  # Returning the metrics_logs with the loss
+
+    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
+        # Wandb metric tracking here
+        if self.logger is not None:
+            self.logger.log_metrics(outputs, step=self.global_step)
 
     def get_gradient_norm(self):
         # compute the norm
