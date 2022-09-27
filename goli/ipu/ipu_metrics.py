@@ -217,6 +217,28 @@ def precision_ipu(
 
     return score
 
+
+class NaNTensor(Tensor):
+    @property
+    def get_nans(self):
+        if self.is_floating_point():
+            return self.isnan()
+        else:
+            return self == torch.iinfo(self.dtype).min
+
+    def sum(self, *args, **kwargs):
+        tensor = self.to(float)
+        tensor[self.get_nans] = float("nan")
+        return tensor.nansum(*args, **kwargs).to(self.dtype)
+    def min(self, *args, **kwargs):
+        tensor = self
+        tensor = tensor[~self.get_nans]
+        return super(NaNTensor, tensor).min(*args, **kwargs)
+    def max(self, *args, **kwargs):
+        tensor = self
+        tensor = tensor[~self.get_nans]
+        return super(NaNTensor, tensor).max(*args, **kwargs)
+
 def accuracy_ipu(
     preds: Tensor,
     target: Tensor,
@@ -234,29 +256,24 @@ def accuracy_ipu(
     by giving them the same value for both `input` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
+
+    1/N * sum_N(preds==target)
     """
 
-    target = target.clone()
-    preds = preds.clone()
-
     nans = torch.isnan(target)
-    target[nans] = 1
-    preds[nans] = 0
+    target = NaNTensor(target.clone()).to(int)
+    preds = NaNTensor(preds.clone())
 
-    # Replace the nan-targets in the preds/target tensors by 0
-    # nan_targets = target.isnan()
-    # preds[nan_targets] = 0.0
-    # target[nan_targets] = 0.0
+    # target[nans] = 0
+    # preds[nans] = 0
 
-    # # Get the original weight matrix. If None, set all weights = 1
-    # if sample_weights is None:
-    #     sample_weights = torch.ones(target.shape[0], dtype=preds.dtype, device=preds.device)
-    # sample_weights[nan_targets] = 0.0
+    # if num_classes is not None:
+    #     num_classes += 1
 
     # Compute the loss, and rescale by the number of nan elements
     score = accuracy (
         preds = preds,
-        target = target.to(int),
+        target = target,
         average = average,
         mdmc_average = mdmc_average,
         threshold = threshold,
@@ -264,7 +281,8 @@ def accuracy_ipu(
         subset_accuracy = subset_accuracy,
         num_classes = num_classes,
         multiclass = multiclass,
-        ignore_index = ignore_index)
+        ignore_index = ignore_index,
+        )
 
     return score
 
@@ -290,8 +308,8 @@ def recall_ipu(
     preds = preds.clone()
 
     nans = torch.isnan(target)
-    target[nans] = 1
-    preds[nans] = 0
+    target[nans] = 0
+    preds[nans] = 1
 
     # Replace the nan-targets in the preds/target tensors by 0
     # nan_targets = target.isnan()

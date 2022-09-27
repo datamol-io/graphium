@@ -285,8 +285,8 @@ class test_Losses(ut.TestCase):
 
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
-        score_true = accuracy(preds[not_nan], target[not_nan].to(int), num_classes=1)
-        score_ipu = accuracy_ipu(preds, target_nan, num_classes=1 )
+        score_true = accuracy(preds[not_nan], target[not_nan].to(int), subset_accuracy=True)
+        score_ipu = accuracy_ipu(preds, target_nan, subset_accuracy=True)
         self.assertFalse(score_true.isnan(), "Regular Average Accuracy with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Regular Average Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
