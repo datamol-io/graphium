@@ -219,16 +219,21 @@ def precision_ipu(
 
 
 class NaNTensor(Tensor):
+    def set_nans(self, nans):
+        self._nans = nans
+        return self
+
     @property
     def get_nans(self):
-        if self.is_floating_point():
-            return self.isnan()
-        else:
-            return self == torch.iinfo(self.dtype).min
+        return self._nans
+        # if self.is_floating_point():
+        #     return self.isnan()
+        # else:
+        #     return Tensor.__eq__(self, torch.iinfo(self.dtype).min)
 
     def sum(self, *args, **kwargs):
-        tensor = self.to(float)
-        tensor[self.get_nans] = float("nan")
+        tensor = self
+        tensor[tensor.get_nans] = float("nan")
         return tensor.nansum(*args, **kwargs).to(self.dtype)
     def min(self, *args, **kwargs):
         tensor = self
@@ -238,6 +243,38 @@ class NaNTensor(Tensor):
         tensor = self
         tensor = tensor[~self.get_nans]
         return super(NaNTensor, tensor).max(*args, **kwargs)
+    def __eq__(self, other) -> Tensor:
+        if isinstance(self, NaNTensor) and isinstance(other, NaNTensor):
+            is_eq = super().__eq__(other).to(torch.float32)
+            is_eq[self.get_nans | other.get_nans] = float("nan")
+            return is_eq
+        else:
+            return super().__eq__(other) & ~self.get_nans
+
+    def __ne__(self, other) -> Tensor:
+        if isinstance(self, NaNTensor) and isinstance(other, NaNTensor):
+            is_ne = super().__ne__(other).to(torch.float32)
+            is_ne[self.get_nans | other.get_nans] = float("nan")
+            return is_ne
+        else:
+            return super().__ne__(other) | self.get_nans
+
+    def to(self, *args, **kwargs):
+        nans = self.get_nans
+        return super().to(*args, **kwargs).set_nans(nans)
+
+    def clone(self, *args, **kwargs) -> Tensor:
+        nans = self.get_nans
+        return super().clone(*args, **kwargs).set_nans(nans)
+
+    def squeeze(self, *args, **kwargs):
+        nans = self.get_nans.squeeze(*args, **kwargs)
+        return super().squeeze(*args, **kwargs).set_nans(nans)
+
+    def unsqueeze(self, *args, **kwargs):
+        nans = self.get_nans.unsqueeze(*args, **kwargs)
+        return super().unsqueeze(*args, **kwargs).set_nans(nans)
+
 
 def accuracy_ipu(
     preds: Tensor,
@@ -261,8 +298,8 @@ def accuracy_ipu(
     """
 
     nans = torch.isnan(target)
-    target = NaNTensor(target.clone()).to(int)
-    preds = NaNTensor(preds.clone())
+    target = NaNTensor(target.clone()).set_nans(nans).to(int)
+    preds = NaNTensor(preds.clone()).set_nans(nans).to(int)
 
     # target[nans] = 0
     # preds[nans] = 0
@@ -310,16 +347,6 @@ def recall_ipu(
     nans = torch.isnan(target)
     target[nans] = 0
     preds[nans] = 1
-
-    # Replace the nan-targets in the preds/target tensors by 0
-    # nan_targets = target.isnan()
-    # preds[nan_targets] = 0.0
-    # target[nan_targets] = 0.0
-
-    # # Get the original weight matrix. If None, set all weights = 1
-    # if sample_weights is None:
-    #     sample_weights = torch.ones(target.shape[0], dtype=preds.dtype, device=preds.device)
-    # sample_weights[nan_targets] = 0.0
 
     # Compute the loss, and rescale by the number of nan elements
     score = recall (

@@ -269,19 +269,12 @@ class test_Losses(ut.TestCase):
         target_nan[target_nan >= 0.5] = 1
 
         # Regular loss
-        score_true = accuracy(preds, target.to(int), num_classes=1)
-        score_ipu = accuracy_ipu(preds, target, num_classes=1)
+        score_true = accuracy(preds, target.to(int), )
+        score_ipu = accuracy_ipu(preds, target, )
         self.assertFalse(score_true.isnan(), "Regular Average Accuracy is NaN")
         self.assertAlmostEqual(
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy is different"
         )
-
-        # Weighted loss (As in BCE)
-        sample_weights = torch.rand(preds.shape[0], dtype=torch.float32)
-        score_true = accuracy(preds, target.to(int), num_classes=1)
-        score_ipu = accuracy_ipu(preds, target, num_classes=1)
-        self.assertFalse(score_true.isnan(), "Regular Average Accuracy is NaN")
-        self.assertAlmostEqual(score_true.item(), score_ipu.item(), msg="Weighted Average Accuracy is different")
 
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
@@ -293,20 +286,9 @@ class test_Losses(ut.TestCase):
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy with NaN is different"
         )
 
-        # Weighted loss with NaNs in target (As in BCE)
-        not_nan = ~target_nan.isnan()
-        sample_weights = torch.rand(preds.shape, dtype=torch.float32)
-        loss_true = accuracy(preds[not_nan], target_nan[not_nan].to(int))
-        loss_ipu = accuracy_ipu(preds, target_nan)
-        self.assertFalse(loss_true.isnan(), "Weighted Average Accuracy with target_nan is NaN")
-        self.assertFalse(loss_ipu.isnan(), "Weighted Average Accuracy IPU IPU score with target_nan is NaN")
-        self.assertAlmostEqual(
-            # AssertionError: 0.6603766679763794 != 0.6234951615333557 within 2 places
-            loss_true.item(), loss_ipu.item(), places=6, msg="Weighted Average Accuracy IPU with NaN is different"
-        )
+
 
     def test_recall(self):
-        preds_with_weights = deepcopy(self.preds)
         preds = deepcopy(self.preds)[:, 0]
         target = deepcopy(self.target)[:, 0]
         target_nan = deepcopy(self.target_nan)[:, 0]
@@ -325,13 +307,6 @@ class test_Losses(ut.TestCase):
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Recall is different"
         )
 
-        # Weighted loss (As in BCE)
-        sample_weights = torch.rand(preds.shape[0], dtype=torch.float32)
-        score_true = recall(preds, target.to(int), num_classes=1)
-        score_ipu = recall_ipu(preds, target, num_classes=1)
-        self.assertFalse(score_true.isnan(), "Regular Average Recall is NaN")
-        self.assertAlmostEqual(score_true.item(), score_ipu.item(), msg="Weighted Average Recall is different")
-
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = recall(preds[not_nan], target[not_nan].to(int), num_classes=1)
@@ -342,17 +317,6 @@ class test_Losses(ut.TestCase):
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Recall with NaN is different"
         )
 
-        # Weighted loss with NaNs in target (As in BCE)
-        not_nan = ~target_nan.isnan()
-        sample_weights = torch.rand(preds.shape, dtype=torch.float32)
-        loss_true = recall(preds[not_nan], target_nan[not_nan].to(int))
-        loss_ipu = recall_ipu(preds, target_nan)
-        self.assertFalse(loss_true.isnan(), "Weighted Average Recall with target_nan is NaN")
-        self.assertFalse(loss_ipu.isnan(), "Weighted Average Recall IPU IPU score with target_nan is NaN")
-        self.assertAlmostEqual(
-            # AssertionError: 0.6603766679763794 != 0.6234951615333557 within 2 places
-            loss_true.item(), loss_ipu.item(), places=6, msg="Weighted Average Recall IPU with NaN is different"
-        )
 
 if __name__ == "__main__":
     ut.main()
