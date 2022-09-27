@@ -6,6 +6,8 @@ from torch._C import _infer_size
 
 from typing import Optional, Sequence
 
+from torchmetrics.utilities.checks import _input_squeeze
+from torchmetrics.functional.classification.accuracy import _mode, _check_subset_validity, _subset_accuracy_compute, _subset_accuracy_update, _accuracy_compute, _accuracy_update
 
 class BCELossIPU(BCELoss):
     """
@@ -218,111 +220,6 @@ def precision_ipu(
     return score
 
 
-class NaNTensor(Tensor):
-    def set_nans(self, nans):
-        self._nans = nans
-        return self
-
-    @property
-    def get_nans(self):
-        return self._nans
-        # if self.is_floating_point():
-        #     return self.isnan()
-        # else:
-        #     return Tensor.__eq__(self, torch.iinfo(self.dtype).min)
-
-    def sum(self, *args, **kwargs):
-        tensor = self
-        tensor[tensor.get_nans] = float("nan")
-        return tensor.nansum(*args, **kwargs).to(self.dtype)
-    def min(self, *args, **kwargs):
-        tensor = self
-        tensor = tensor[~self.get_nans]
-        return super(NaNTensor, tensor).min(*args, **kwargs)
-    def max(self, *args, **kwargs):
-        tensor = self
-        tensor = tensor[~self.get_nans]
-        return super(NaNTensor, tensor).max(*args, **kwargs)
-    def __eq__(self, other) -> Tensor:
-        if isinstance(self, NaNTensor) and isinstance(other, NaNTensor):
-            is_eq = super().__eq__(other).to(torch.float32)
-            is_eq[self.get_nans | other.get_nans] = float("nan")
-            return is_eq
-        else:
-            return super().__eq__(other) & ~self.get_nans
-
-    def __ne__(self, other) -> Tensor:
-        if isinstance(self, NaNTensor) and isinstance(other, NaNTensor):
-            is_ne = super().__ne__(other).to(torch.float32)
-            is_ne[self.get_nans | other.get_nans] = float("nan")
-            return is_ne
-        else:
-            return super().__ne__(other) | self.get_nans
-
-    def to(self, *args, **kwargs):
-        nans = self.get_nans
-        return super().to(*args, **kwargs).set_nans(nans)
-
-    def clone(self, *args, **kwargs) -> Tensor:
-        nans = self.get_nans
-        return super().clone(*args, **kwargs).set_nans(nans)
-
-    def squeeze(self, *args, **kwargs):
-        nans = self.get_nans.squeeze(*args, **kwargs)
-        return super().squeeze(*args, **kwargs).set_nans(nans)
-
-    def unsqueeze(self, *args, **kwargs):
-        nans = self.get_nans.unsqueeze(*args, **kwargs)
-        return super().unsqueeze(*args, **kwargs).set_nans(nans)
-
-
-def accuracy_ipu(
-    preds: Tensor,
-    target: Tensor,
-    average: Optional[str] = "micro",
-    mdmc_average: Optional[str] = "global",
-    threshold: float = 0.5,
-    top_k: Optional[int] = None,
-    subset_accuracy: bool = False,
-    num_classes: Optional[int] = None,
-    multiclass: Optional[bool] = None,
-    ignore_index: Optional[int] = None
-    ):
-    """
-    A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
-    This allows it to work with compilation
-    and IPUs since it doesn't modify the tensor's shape.
-
-    1/N * sum_N(preds==target)
-    """
-
-    nans = torch.isnan(target)
-    target = NaNTensor(target.clone()).set_nans(nans).to(int)
-    preds = NaNTensor(preds.clone()).set_nans(nans).to(int)
-
-    # target[nans] = 0
-    # preds[nans] = 0
-
-    # if num_classes is not None:
-    #     num_classes += 1
-
-    # Compute the loss, and rescale by the number of nan elements
-    score = accuracy (
-        preds = preds,
-        target = target,
-        average = average,
-        mdmc_average = mdmc_average,
-        threshold = threshold,
-        top_k = top_k,
-        subset_accuracy = subset_accuracy,
-        num_classes = num_classes,
-        multiclass = multiclass,
-        ignore_index = ignore_index,
-        )
-
-    return score
-
 def recall_ipu(
     preds: Tensor,
     target: Tensor,
@@ -361,3 +258,4 @@ def recall_ipu(
         multiclass = multiclass)
 
     return score
+
