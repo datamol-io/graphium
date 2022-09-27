@@ -205,7 +205,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         outs = []
         for scaler in self.scalers:
             if scaler == "identity":
-                pass
+                out_scaler = out
             elif scaler == "amplification":
                 out_scaler = out * (torch.log(deg + 1) / self.avg_d["log"])
             elif scaler == "attenuation":
