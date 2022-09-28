@@ -382,10 +382,10 @@ class test_Losses(ut.TestCase):
 
 
     def test_r2_score(self):
-        preds = deepcopy(self.preds)[:, 0]
-        target = deepcopy(self.target)[:, 0] + preds
+        preds = deepcopy(self.preds)
+        target = deepcopy(self.target) + preds
         target_nan = deepcopy(target)
-        target_nan[self.is_nan[:, 0]] = float("nan")
+        target_nan[self.is_nan] = float("nan")
 
 
         # Regular loss
@@ -398,13 +398,14 @@ class test_Losses(ut.TestCase):
 
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
-        score_true = r2_score(preds[not_nan], target_nan[not_nan])
-        score_ipu = r2_score_ipu(preds, target_nan)
-        self.assertFalse(score_true.isnan(), "r2_score with target_nan is NaN")
-        self.assertFalse(score_ipu.isnan(), "IPU r2_score with target_nan is NaN")
-        self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=4, msg="r2_score with NaN is different"
-        )
+        score_ipu = r2_score_ipu(preds, target_nan, multioutput="raw_values")
+        for ii in range(preds.shape[1]):
+            score_true = r2_score(preds[:, ii][not_nan[:, ii]], target_nan[:, ii][not_nan[:, ii]], multioutput="raw_values")
+            self.assertFalse(score_true.isnan().any(), f"{ii}: r2_score with target_nan is NaN")
+            self.assertFalse(score_ipu[ii].isnan().any(), f"{ii}: IPU r2_score with target_nan is NaN")
+            self.assertAlmostEqual(
+                score_true.item(), score_ipu[ii].item(), places=4, msg=f"{ii}: r2_score with NaN is different"
+            )
 
 if __name__ == "__main__":
     ut.main()

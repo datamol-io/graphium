@@ -398,6 +398,12 @@ class NaNTensor(Tensor):
     def size(self, dim):
         return (~self.get_nans).sum(dim=dim)
 
+    def __lt__(self, other) -> Tensor:
+        if other == 2:
+            return super().__lt__(other).all()
+        else:
+            return super().__lt__(other)
+
     @classmethod
     def __torch_function__(cls, func, types, args=(), kwargs=None):
         """
