@@ -1,10 +1,10 @@
 import unittest as ut
 import torch
 from torch.nn import BCELoss, MSELoss, L1Loss
-from torchmetrics.functional import auroc, average_precision, precision, accuracy, recall
+from torchmetrics.functional import auroc, average_precision, precision, accuracy, recall, pearson_corrcoef, spearman_corrcoef, r2_score
 from copy import deepcopy
 
-from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu, average_precision_ipu, precision_ipu, accuracy_ipu, recall_ipu
+from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu, average_precision_ipu, precision_ipu, accuracy_ipu, recall_ipu, pearson_ipu, r2_score_ipu
 
 
 class test_Losses(ut.TestCase):
@@ -18,6 +18,7 @@ class test_Losses(ut.TestCase):
     preds_greater = preds > th
     target_greater = (target > th).to(torch.float32)
     target_greater_nan = deepcopy(target_greater)
+    is_nan = target < nan_th
     target_greater_nan[target < nan_th] = torch.nan
     target_nan = deepcopy(target)
     target_nan[target < nan_th] = torch.nan
@@ -257,31 +258,67 @@ class test_Losses(ut.TestCase):
         )
 
     def test_accuracy(self):
-        preds_with_weights = deepcopy(self.preds)
-        preds = deepcopy(self.preds)[:, 0]
+        preds = deepcopy(self.preds)[:, :4]
         target = deepcopy(self.target)[:, 0]
-        target_nan = deepcopy(self.target_nan)[:, 0]
 
-        target[target < 0.5] = 0
-        target[target >= 0.5] = 1
+        target[target < 0.4] = 0
+        target[(target >= 0.4) & (target < 0.6)] = 1
+        target[(target >= 0.6) & (target < 0.8)] = 2
+        target[(target >= 0.8)] = 3
 
-        target_nan[target_nan < 0.5] = 0
-        target_nan[target_nan >= 0.5] = 1
+        target_nan = deepcopy(target)
+        target_nan[self.is_nan[:, 0]] = float("nan")
 
-        # Regular loss
-        score_true = accuracy(preds, target.to(int), )
-        score_ipu = accuracy_ipu(preds, target, )
+        # Micro accuracy
+        score_true = accuracy(preds, target.to(int), average="micro")
+        score_ipu = accuracy_ipu(preds, target, average="micro")
         self.assertFalse(score_true.isnan(), "Regular Average Accuracy is NaN")
         self.assertAlmostEqual(
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy is different"
         )
 
-        # Regular loss with NaNs in target
+        # Micro accuracy with NaNs in target
         not_nan = ~target_nan.isnan()
-        score_true = accuracy(preds[not_nan], target[not_nan].to(int), subset_accuracy=True)
-        score_ipu = accuracy_ipu(preds, target_nan, subset_accuracy=True)
-        self.assertFalse(score_true.isnan(), "Regular Average Accuracy with target_nan is NaN")
-        self.assertFalse(score_ipu.isnan(), "Regular Average Accuracy IPU score with target_nan is NaN")
+        score_true = accuracy(preds[not_nan], target[not_nan].to(int), average="micro")
+        score_ipu = accuracy_ipu(preds, target_nan, average="micro")
+        self.assertFalse(score_true.isnan(), "Micro Accuracy with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Micro Accuracy IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy with NaN is different"
+        )
+
+        # Macro accuracy
+        score_true = accuracy(preds, target.to(int), average="macro", num_classes=4)
+        score_ipu = accuracy_ipu(preds, target, average="macro", num_classes=4)
+        self.assertFalse(score_true.isnan(), "Macro Accuracy is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Accuracy is different"
+        )
+
+        # Macro accuracy with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = accuracy(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
+        score_ipu = accuracy_ipu(preds, target_nan, average="macro", num_classes=4)
+        self.assertFalse(score_true.isnan(), "Macro Accuracy with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Macro Accuracy IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy with NaN is different"
+        )
+
+        # Weighted accuracy
+        score_true = accuracy(preds, target.to(int), average="weighted", num_classes=1)
+        score_ipu = accuracy_ipu(preds, target, average="weighted", num_classes=1)
+        self.assertFalse(score_true.isnan(), "Weighted Accuracy is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted Accuracy is different"
+        )
+
+        # Weighted accuracy with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = accuracy(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=1)
+        score_ipu = accuracy_ipu(preds, target_nan, average="weighted", num_classes=1)
+        self.assertFalse(score_true.isnan(), "Weighted Accuracy with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Weighted Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy with NaN is different"
         )
@@ -317,6 +354,57 @@ class test_Losses(ut.TestCase):
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Recall with NaN is different"
         )
 
+
+    def test_pearsonr(self):
+        preds = deepcopy(self.preds)[:, 0]
+        target = deepcopy(self.target)[:, 0] + preds
+        target_nan = deepcopy(target)
+        target_nan[self.is_nan[:, 0]] = float("nan")
+
+
+        # Regular loss
+        score_true = pearson_corrcoef(preds, target)
+        score_ipu = pearson_ipu(preds, target)
+        self.assertFalse(score_true.isnan(), "Pearson is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=4, msg="Pearson is different"
+        )
+
+        # Regular loss with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = pearson_corrcoef(preds[not_nan], target[not_nan])
+        score_ipu = pearson_ipu(preds, target_nan)
+        self.assertFalse(score_true.isnan(), "Regular PearsonR with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "IPU PearsonR score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=4, msg="Pearson with NaN is different"
+        )
+
+
+    def test_r2_score(self):
+        preds = deepcopy(self.preds)[:, 0]
+        target = deepcopy(self.target)[:, 0] + preds
+        target_nan = deepcopy(target)
+        target_nan[self.is_nan[:, 0]] = float("nan")
+
+
+        # Regular loss
+        score_true = r2_score(preds, target)
+        score_ipu = r2_score_ipu(preds, target)
+        self.assertFalse(score_true.isnan(), "r2_score is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=4, msg="r2_score is different"
+        )
+
+        # Regular loss with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = r2_score(preds[not_nan], target_nan[not_nan])
+        score_ipu = r2_score_ipu(preds, target_nan)
+        self.assertFalse(score_true.isnan(), "r2_score with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "IPU r2_score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=4, msg="r2_score with NaN is different"
+        )
 
 if __name__ == "__main__":
     ut.main()
