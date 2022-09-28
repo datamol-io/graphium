@@ -333,6 +333,8 @@ def get_confusion_matrix(
     nans = torch.isnan(target)
     target[nans] = 0
     preds[nans] = 0
+    if (preds.ndim > 1) and (preds.shape[1] > 1):
+        preds[nans, 0] = 1
     target = target.to(int)
     #### END ADDED ####
 
@@ -350,7 +352,11 @@ def get_confusion_matrix(
 
     #### ADDED ####
     num_nans = nans.sum(0)
-    tn = tn - num_nans
+    if tp.numel() > 1:
+        tp[0] = tp[0] - num_nans
+        tn[1:] = tp[1:] - num_nans
+    else:
+        tp = tp - num_nans
     #### END ADDED ####
 
     return (tp, fp, tn, fn), mode

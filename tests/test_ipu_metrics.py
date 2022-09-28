@@ -260,21 +260,42 @@ class test_Losses(ut.TestCase):
     def test_accuracy(self):
         preds = deepcopy(self.preds)[:, :4]
         target = deepcopy(self.target)[:, 0]
+        t = deepcopy(target)
 
-        target[target < 0.4] = 0
-        target[(target >= 0.4) & (target < 0.6)] = 1
-        target[(target >= 0.6) & (target < 0.8)] = 2
-        target[(target >= 0.8)] = 3
+        target[t < 0.4] = 0
+        target[(t >= 0.4) & (t < 0.6)] = 1
+        target[(t >= 0.6) & (t < 0.8)] = 2
+        target[(t >= 0.8)] = 3
 
         target_nan = deepcopy(target)
         target_nan[self.is_nan[:, 0]] = float("nan")
+        target_nan_bin = deepcopy(target_nan)
+        target_nan_bin[target_nan > 0] = 1
+
+        # Micro accuracy binary
+        score_true = accuracy(preds[:, 0], target.to(int)>0, average="micro")
+        score_ipu = accuracy_ipu(preds[:, 0], target>0, average="micro")
+        self.assertFalse(score_true.isnan(), "Micro Accuracy binary is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy binary is different"
+        )
+
+        # Micro accuracy binary with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = accuracy(preds[:, 0][not_nan], target_nan_bin[not_nan].to(int), average="micro")
+        score_ipu = accuracy_ipu(preds[:, 0], target_nan_bin, average="micro")
+        self.assertFalse(score_true.isnan(), "Micro Accuracy binary with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Micro Accuracy binary IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy with NaN is different"
+        )
 
         # Micro accuracy
         score_true = accuracy(preds, target.to(int), average="micro")
         score_ipu = accuracy_ipu(preds, target, average="micro")
-        self.assertFalse(score_true.isnan(), "Regular Average Accuracy is NaN")
+        self.assertFalse(score_true.isnan(), "Micro Accuracy is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy is different"
         )
 
         # Micro accuracy with NaNs in target
@@ -284,7 +305,7 @@ class test_Losses(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Accuracy with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy with NaN is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy with NaN is different"
         )
 
         # Macro accuracy
@@ -302,12 +323,12 @@ class test_Losses(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Macro Accuracy with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Macro Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Accuracy with NaN is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Accuracy with NaN is different"
         )
 
         # Weighted accuracy
-        score_true = accuracy(preds, target.to(int), average="weighted", num_classes=1)
-        score_ipu = accuracy_ipu(preds, target, average="weighted", num_classes=1)
+        score_true = accuracy(preds, target.to(int), average="weighted", num_classes=4)
+        score_ipu = accuracy_ipu(preds, target, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Accuracy is NaN")
         self.assertAlmostEqual(
             score_true.item(), score_ipu.item(), places=6, msg="Weighted Accuracy is different"
@@ -315,8 +336,8 @@ class test_Losses(ut.TestCase):
 
         # Weighted accuracy with NaNs in target
         not_nan = ~target_nan.isnan()
-        score_true = accuracy(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=1)
-        score_ipu = accuracy_ipu(preds, target_nan, average="weighted", num_classes=1)
+        score_true = accuracy(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4)
+        score_ipu = accuracy_ipu(preds, target_nan, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Accuracy with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Weighted Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
