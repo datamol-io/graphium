@@ -267,32 +267,42 @@ class test_Losses(ut.TestCase):
             score_true.item(), score_ipu.item(), places=6, msg="Macro Precision is different"
         )
 
-        # Macro precision with NaNs in target
+        # Macro precision multiclass with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = precision(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
         score_ipu = precision_ipu(preds, target_nan, average="macro", num_classes=4)
-        self.assertFalse(score_true.isnan(), "Macro Precision with target_nan is NaN")
-        self.assertFalse(score_ipu.isnan(), "Macro Precision IPU score with target_nan is NaN")
+        self.assertFalse(score_true.isnan(), "Macro Precision multiclass with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Macro Precision multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Macro Precision with NaN is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Precision multiclass with NaN is different"
         )
 
-        # Weighted precision
+        # Macro precision multiclass with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = precision(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
+        score_ipu = precision_ipu(preds, target_nan, average="macro", num_classes=4)
+        self.assertFalse(score_true.isnan(), "Macro Precision multiclass with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Macro Precision multiclass IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Precision multiclass with NaN is different"
+        )
+
+        # Weighted precision multiclass
         score_true = precision(preds, target.to(int), average="weighted", num_classes=4)
         score_ipu = precision_ipu(preds, target, average="weighted", num_classes=4)
-        self.assertFalse(score_true.isnan(), "Weighted Precision is NaN")
+        self.assertFalse(score_true.isnan(), "Weighted Precision multiclass is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Weighted Precision is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted Precision multiclass is different"
         )
 
-        # Weighted precision with NaNs in target
+        # Weighted precision multiclass with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = precision(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4)
         score_ipu = precision_ipu(preds, target_nan, average="weighted", num_classes=4)
-        self.assertFalse(score_true.isnan(), "Weighted Precision with target_nan is NaN")
-        self.assertFalse(score_ipu.isnan(), "Weighted Precision IPU score with target_nan is NaN")
+        self.assertFalse(score_true.isnan(), "Weighted Precision multiclass with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Weighted Precision multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Precision with NaN is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Precision multiclass with NaN is different"
         )
 
     def test_accuracy(self):
@@ -414,7 +424,7 @@ class test_Losses(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Recall binary with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Recall binary IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Micro Recall with NaN is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Recall binary with NaN is different"
         )
 
         # Micro recall
@@ -435,25 +445,25 @@ class test_Losses(ut.TestCase):
             score_true.item(), score_ipu.item(), places=6, msg="Micro Recall with NaN is different"
         )
 
-        # Macro recall
+        # Macro recall multiclass
         score_true = recall(preds, target.to(int), average="macro", num_classes=4)
         score_ipu = recall_ipu(preds, target, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro Recall is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Macro Recall is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Recall multiclass is different"
         )
 
-        # Macro recall with NaNs in target
+        # Macro recall multiclass with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = recall(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
         score_ipu = recall_ipu(preds, target_nan, average="macro", num_classes=4)
-        self.assertFalse(score_true.isnan(), "Macro Recall with target_nan is NaN")
-        self.assertFalse(score_ipu.isnan(), "Macro Recall IPU score with target_nan is NaN")
+        self.assertFalse(score_true.isnan(), "Macro Recall multiclass with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Macro Recall multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Macro Recall with NaN is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Recall multiclass with NaN is different"
         )
 
-        # Weighted recall
+        # Weighted recallmulticlass
         score_true = recall(preds, target.to(int), average="weighted", num_classes=4)
         score_ipu = recall_ipu(preds, target, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Recall is NaN")
@@ -461,14 +471,14 @@ class test_Losses(ut.TestCase):
             score_true.item(), score_ipu.item(), places=6, msg="Weighted Recall is different"
         )
 
-        # Weighted recall with NaNs in target
+        # Weighted recall multiclass with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = recall(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4)
         score_ipu = recall_ipu(preds, target_nan, average="weighted", num_classes=4)
-        self.assertFalse(score_true.isnan(), "Weighted Recall with target_nan is NaN")
-        self.assertFalse(score_ipu.isnan(), "Weighted Recall IPU score with target_nan is NaN")
+        self.assertFalse(score_true.isnan(), "Weighted Recall multiclass with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Weighted Recall multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(), score_ipu.item(), places=6, msg="Regular Recall with NaN is different"
+            score_true.item(), score_ipu.item(), places=6, msg="Regular Recall multiclass with NaN is different"
         )
 
 

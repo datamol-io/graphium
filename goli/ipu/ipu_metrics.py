@@ -8,6 +8,7 @@ from typing import Optional, Sequence
 
 from torchmetrics.utilities.checks import _input_squeeze
 from torchmetrics.functional.classification.accuracy import _mode, _check_subset_validity, _subset_accuracy_compute, _subset_accuracy_update, _accuracy_compute, _accuracy_update
+from torchmetrics.functional.classification.precision_recall import _precision_compute, _recall_compute
 from torchmetrics.utilities.checks import _check_classification_inputs, _input_format_classification, _input_squeeze
 from torchmetrics.utilities.enums import AverageMethod, DataType, MDMCAverageMethod
 
@@ -202,26 +203,21 @@ def precision_ipu(
     and IPUs since it doesn't modify the tensor's shape.
     """
 
-    target = target.clone()
-    preds = preds.clone()
+    (tp, fp, tn, fn), mode = get_confusion_matrix(
+        preds=preds,
+        target=target,
+        average=average,
+        mdmc_average=mdmc_average,
+        threshold=threshold,
+        top_k=top_k,
+        subset_accuracy=False,
+        num_classes=num_classes,
+        multiclass=multiclass,
+        ignore_index=ignore_index,
+        )
 
-    nans = torch.isnan(target)
-    target[nans] = 1
-    preds[nans] = 0
+    return _precision_compute(tp, fp, fn, average, mdmc_average)
 
-    # Compute the loss, and rescale by the number of nan elements
-    score = precision (
-        preds = preds,
-        target = target.to(int),
-        average = average,
-        mdmc_average = mdmc_average,
-        ignore_index = ignore_index,
-        num_classes = num_classes,
-        threshold = threshold,
-        top_k = top_k,
-        multiclass = multiclass)
-
-    return score
 
 
 def recall_ipu(
@@ -242,26 +238,19 @@ def recall_ipu(
     and IPUs since it doesn't modify the tensor's shape.
     """
 
-    target = target.clone()
-    preds = preds.clone()
+    (tp, fp, tn, fn), mode = get_confusion_matrix(
+        preds=preds,
+        target=target,
+        average=average,
+        mdmc_average=mdmc_average,
+        threshold=threshold,
+        top_k=top_k,
+        num_classes=num_classes,
+        multiclass=multiclass,
+        ignore_index=ignore_index,
+        )
 
-    nans = torch.isnan(target)
-    target[nans] = 0
-    preds[nans] = 1
-
-    # Compute the loss, and rescale by the number of nan elements
-    score = recall (
-        preds = preds,
-        target = target.to(int),
-        average = average,
-        mdmc_average = mdmc_average,
-        ignore_index = ignore_index,
-        num_classes = num_classes,
-        threshold = threshold,
-        top_k = top_k,
-        multiclass = multiclass)
-
-    return score
+    return _recall_compute(tp, fp, fn, average, mdmc_average)
 
 
 def accuracy_ipu(
@@ -354,9 +343,11 @@ def get_confusion_matrix(
     num_nans = nans.sum(0)
     if tp.numel() > 1:
         tp[0] = tp[0] - num_nans
-        tn[1:] = tp[1:] - num_nans
+        tn[1:] = tn[1:] - num_nans
     else:
-        tp = tp - num_nans
+        tn = tn - num_nans
+        if (preds.ndim > 1) and (preds.shape[1] > 1):
+            tp = tp - num_nans
     #### END ADDED ####
 
     return (tp, fp, tn, fn), mode
