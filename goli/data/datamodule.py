@@ -337,8 +337,8 @@ class MultitaskDataset(Dataset):
 class BaseDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        batch_size_train_val: int = 16,
-        batch_size_test: int = 16,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -346,8 +346,8 @@ class BaseDataModule(pl.LightningDataModule):
     ):
         super().__init__()
 
-        self.batch_size_train_val = batch_size_train_val
-        self.batch_size_test = batch_size_test
+        self.batch_size_training = batch_size_training
+        self.batch_size_inference = batch_size_inference
 
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -490,11 +490,11 @@ class BaseDataModule(pl.LightningDataModule):
 
         # Get batch size and IPU options for training set
         if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
-            loader_kwargs["batch_size"] = self.batch_size_train_val
+            loader_kwargs["batch_size"] = self.batch_size_training
 
         # Get batch size and IPU options for validation / testing sets
         elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
-            loader_kwargs["batch_size"] = self.batch_size_test
+            loader_kwargs["batch_size"] = self.batch_size_inference
         else:
             raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
 
@@ -624,8 +624,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
-        batch_size_train_val: int = 16,
-        batch_size_test: int = 16,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -687,8 +687,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
             featurization: args to apply to the SMILES to Graph featurizer.
-            batch_size_train_val: batch size for training and val dataset.
-            batch_size_test: batch size for test dataset.
+            batch_size_training: batch size for training and val dataset.
+            batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
@@ -715,8 +715,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             dataset_class: The class used to create the dataset from which to sample.
         """
         BaseDataModule.__init__(self,
-            batch_size_train_val=batch_size_train_val,
-            batch_size_test=batch_size_test,
+            batch_size_training=batch_size_training,
+            batch_size_inference=batch_size_inference,
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
@@ -1410,8 +1410,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         obj_repr["train_size"] = len(self.train_indices) if self.train_indices is not None else None
         obj_repr["val_size"] = len(self.val_indices) if self.val_indices is not None else None
         obj_repr["test_size"] = len(self.test_indices) if self.test_indices is not None else None
-        obj_repr["batch_size_train_val"] = self.batch_size_train_val
-        obj_repr["batch_size_test"] = self.batch_size_test
+        obj_repr["batch_size_training"] = self.batch_size_training
+        obj_repr["batch_size_inference"] = self.batch_size_inference
         obj_repr["num_node_feats"] = self.num_node_feats
         obj_repr["num_node_feats_with_positional_encoding"] = self.num_node_feats_with_positional_encoding
         obj_repr["num_edge_feats"] = self.num_edge_feats
@@ -1433,8 +1433,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
-        batch_size_train_val: int = 16,
-        batch_size_test: int = 16,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -1454,8 +1454,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
             featurization: args to apply to the SMILES to Graph featurizer.
-            batch_size_train_val: batch size for training and val dataset.
-            batch_size_test: batch size for test dataset.
+            batch_size_training: batch size for training and val dataset.
+            batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
@@ -1497,8 +1497,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args["task_specific_args"] = new_task_specific_args
         dm_args["cache_data_path"] = cache_data_path
         dm_args["featurization"] = featurization
-        dm_args["batch_size_train_val"] = batch_size_train_val
-        dm_args["batch_size_test"] = batch_size_test
+        dm_args["batch_size_training"] = batch_size_training
+        dm_args["batch_size_inference"] = batch_size_inference
         dm_args["num_workers"] = num_workers
         dm_args["pin_memory"] = pin_memory
         dm_args["featurization_n_jobs"] = featurization_n_jobs

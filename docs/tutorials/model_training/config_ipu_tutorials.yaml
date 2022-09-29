@@ -75,8 +75,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_train_val: 6
-    batch_size_test: 6
+    batch_size_training: 6
+    batch_size_inference: 6
     # cache_data_path: null
 
     num_workers: -1

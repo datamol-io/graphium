@@ -28,8 +28,8 @@ class Test_DataModule(ut.TestCase):
         dm_args["dataset_name"] = dataset_name
         dm_args["cache_data_path"] = None
         dm_args["featurization"] = featurization_args
-        dm_args["batch_size_train_val"] = 16
-        dm_args["batch_size_test"] = 16
+        dm_args["batch_size_training"] = 16
+        dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
         dm_args["featurization_n_jobs"] = 16

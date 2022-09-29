@@ -31,8 +31,8 @@ datamodule:
       mask_nan: raise
 
     # Train, val, test parameters
-    batch_size_train_val: 512
-    batch_size_test: 512
+    batch_size_training: 512
+    batch_size_inference: 512
 
   # Data loading
   num_workers: 0

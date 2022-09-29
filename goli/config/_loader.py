@@ -94,14 +94,14 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "gol
         )
 
         # Define the Dataloader options for the IPU on the training sets
-        bz_train = cfg_data["batch_size_train_val"]
+        bz_train = cfg_data["batch_size_training"]
         ipu_dataloader_training_opts = IPUDataloaderOptions(
             batch_size=bz_train, **ipu_dataloader_training_opts
         )
         ipu_dataloader_training_opts.set_kwargs()
 
         # Define the Dataloader options for the IPU on the inference sets
-        bz_test = cfg_data["batch_size_test"]
+        bz_test = cfg_data["batch_size_inference"]
         ipu_dataloader_inference_opts = IPUDataloaderOptions(
             batch_size=bz_test, **ipu_dataloader_inference_opts
         )
