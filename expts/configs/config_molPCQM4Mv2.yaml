@@ -1,6 +1,6 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name olek_test_ipu #qm9_full
+  name: &name pcqm4mv2_goli_ipu
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -14,6 +14,7 @@ datamodule:
       pcqm4mv2:
         df: null
         dataset_name: "ogbg-lsc-pcqm4mv2"
+        sample_size: 10000
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -39,26 +40,26 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 6
-    batch_size_inference: 6
+    batch_size_training: 38
+    batch_size_inference: 38
     # cache_data_path: null
 
     num_workers: -1
 
     ipu_dataloader_training_opts:
-      max_num_nodes_per_graph: 12
-      max_num_edges_per_graph: 24
+      max_num_nodes_per_graph: &max_nodes 16
+      max_num_edges_per_graph: &max_edges 32
 
     ipu_dataloader_inference_opts:
-      max_num_nodes_per_graph: 12
-      max_num_edges_per_graph: 24
+      max_num_nodes_per_graph: *max_nodes
+      max_num_edges_per_graph: *max_edges
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 32
-    hidden_dims: 32
-    depth: 1
+    out_dim: &gnn_dim 400
+    hidden_dims: *gnn_dim
+    depth: 3
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
@@ -67,9 +68,9 @@ architecture:
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 16
-    hidden_dims: 16
-    depth: 1
+    out_dim: 32
+    hidden_dims: 32
+    depth: 3
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -78,7 +79,7 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: 64
+    out_dim: 100
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
@@ -103,9 +104,9 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 32
-    hidden_dims: 500
-    depth: 4
+    out_dim: *gnn_dim
+    hidden_dims: *gnn_dim
+    depth: 16
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -142,8 +143,8 @@ architecture:
   task_heads:
     - task_name: "pcqm4mv2"
       out_dim: 1
-      hidden_dims: 32
-      depth: 2                          # Not needed if we have hidden_dims
+      hidden_dims: *gnn_dim
+      depth: 3                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
       dropout: *dropout
@@ -205,3 +206,4 @@ trainer:
     precision: 32
     max_epochs: 2 #50
     min_epochs: 1 #5
+    accumulate_grad_batches: 16

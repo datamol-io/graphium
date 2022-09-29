@@ -1481,7 +1481,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             # Get OGB metadata
             this_metadata = self._get_dataset_metadata(task_args["dataset_name"])
             # Get dataset
-            df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(this_metadata)
+            df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(this_metadata, sample_size=task_args["sample_size"])
             new_task_specific_args[task_name] = {
                 "df": df,
                 "idx_col": idx_col,
@@ -1520,7 +1520,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
     # Private methods
 
-    def _load_dataset(self, metadata: dict):
+    def _load_dataset(self, metadata: dict, sample_size: Optional[int] = None):
         """Download, extract and load an OGB dataset."""
 
         base_dir = fs.get_cache_dir("ogb")
@@ -1548,6 +1548,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         logger.info(f"Loading {df_path} in memory.")
         df = pd.read_csv(df_path)
 
+        # Subsample the dataset
+        df = self._sub_sample_df(df, sample_size)
+
         # Load split from the OGB dataset and save them in a single CSV file
         if metadata["download_name"].startswith("pcqm4m"):
             split_name = metadata["split"]
@@ -1568,8 +1571,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 splits_path = dataset_dir / f"{split_name}.csv.gz"
             else:
                 splits_path = splits_path / f"{split_name}.csv.gz"
-            logger.info(f"Saving splits to {splits_path}")
-            splits.to_csv(splits_path, index=None)
         else:
             split_name = metadata["split"]
             train_split = pd.read_csv(dataset_dir / "split" / split_name / "train.csv.gz", header=None)  # type: ignore
@@ -1580,8 +1581,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             splits.columns = ["train", "val", "test"]
 
             splits_path = dataset_dir / "split" / f"{split_name}.csv.gz"
-            logger.info(f"Saving splits to {splits_path}")
-            splits.to_csv(splits_path, index=None)
+
+        logger.info(f"Saving splits to {splits_path}")
+        splits.to_csv(splits_path, index=None)
 
         # Get column names: OGB columns are predictable
         if metadata["download_name"].startswith("pcqm4m"):
