@@ -1,108 +1,18 @@
 import torch
 from torch import Tensor
-from torch.nn import BCELoss, MSELoss, L1Loss
-from torchmetrics.functional import auroc, average_precision, precision, accuracy, recall, pearson_corrcoef, spearman_corrcoef, r2_score
-from torch._C import _infer_size
+from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score # Remove imports
 
 from typing import Optional, Sequence
 
 from torchmetrics.utilities.checks import _input_squeeze
-from torchmetrics.functional.classification.accuracy import _mode, _check_subset_validity, _subset_accuracy_compute, _subset_accuracy_update, _accuracy_compute, _accuracy_update
+from torchmetrics.functional.classification.accuracy import _mode, _check_subset_validity, _accuracy_compute, _accuracy_update # Remove imports
 from torchmetrics.functional.classification.precision_recall import _precision_compute, _recall_compute
-from torchmetrics.utilities.checks import _check_classification_inputs, _input_format_classification, _input_squeeze
-from torchmetrics.utilities.enums import AverageMethod, DataType, MDMCAverageMethod
+from torchmetrics.functional.classification.f_beta import f1_score, _fbeta_compute
+from torchmetrics.utilities.checks import _input_squeeze # Remove imports
 
 from goli.utils.tensor import nan_mean
 
-class BCELossIPU(BCELoss):
-    """
-    A modified version of the `torch.nn.BCELoss` that can ignore NaNs
-    by giving them a weight of `0`. This allows it to work with compilation
-    and IPUs since it doesn't modify the tensor's shape.
-    """
-
-    def forward(self, input: Tensor, target: Tensor) -> Tensor:
-        prev_weight = None
-
-        target = target.clone()
-        weight = self.weight
-
-        # Get the original weight matrix. If None, set all weights = 1
-        if weight is not None:
-            prev_weight = self.weight.clone()
-            new_size = _infer_size(target.size(), weight.size())
-            weight = weight.expand(new_size).clone()
-        else:
-            weight = torch.ones(target.shape, dtype=input.dtype, device=input.device)
-
-        # Replace the nan-targets by 0 or 1. Take the value closest to the input.
-        # Give a weight of 0 where there are nan-targets
-        nan_targets = target.isnan()
-        nan_targets_0 = (input < 0.5) & nan_targets
-        nan_targets_1 = (input >= 0.5) & nan_targets
-        target[nan_targets_0] = 0.0
-        target[nan_targets_1] = 1.0
-        weight[nan_targets] = 0.0
-
-        # Compute the loss, and rescale by the number of nan elements
-        self.weight = weight
-        loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
-
-        # Reset the self.weight to its original value
-        self.weight = prev_weight
-        return loss
-
-
-class MSELossIPU(MSELoss):
-    """
-    A modified version of the `torch.nn.MSELoss` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
-    This allows it to work with compilation
-    and IPUs since it doesn't modify the tensor's shape.
-    """
-
-    def forward(self, input: Tensor, target: Tensor) -> Tensor:
-
-        target = target.clone()
-        input = input.clone()
-
-        # Replace the nan-targets in the input/target tensors by 0
-        nan_targets = target.isnan()
-        input[nan_targets] = 0.0
-        target[nan_targets] = 0.0
-
-        # Compute the loss, and rescale by the number of nan elements
-        loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
-
-        return loss
-
-
-class L1LossIPU(L1Loss):
-    """
-    A modified version of the `torch.nn.L1Loss` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
-    This allows it to work with compilation
-    and IPUs since it doesn't modify the tensor's shape.
-    """
-
-    def forward(self, input: Tensor, target: Tensor) -> Tensor:
-
-        target = target.clone()
-        input = input.clone()
-
-        # Replace the nan-targets in the input/target tensors by 0
-        nan_targets = target.isnan()
-        input[nan_targets] = 0.0
-        target[nan_targets] = 0.0
-
-        # Compute the loss, and rescale by the number of nan elements
-        loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
-
-        return loss
-
+# Move losses into ipu_loss file and add MSE and MAE implementations, do as MSE LOSS, add same tests as for test_mse, jsut replace with MSE Loss (re-implement the metric)
 
 def auroc_ipu(
     preds: Tensor,
@@ -429,15 +339,6 @@ def pearson_ipu(preds, target):
     pearson = pearson_corrcoef(preds, target)
     return Tensor(pearson)
 
-
-def spearman_ipu(preds, targets):
-    raise NotImplementedError("SpearmanR cannot work due to indexing")
-    # preds = NaNTensor(preds)
-    # targets = NaNTensor(targets)
-    # preds[targets.get_nans] = float("nan")
-    # spearman = spearman_corrcoef(preds, targets)
-    # return Tensor(spearman)
-
 def r2_score_ipu(preds, target, *args, **kwargs):
     preds = NaNTensor(preds)
     target = NaNTensor(target)
@@ -445,3 +346,35 @@ def r2_score_ipu(preds, target, *args, **kwargs):
     score = r2_score(preds, target, *args, **kwargs)
     return Tensor(score)
 
+def f1_score_ipu(
+    preds: Tensor,
+    target: Tensor,
+    beta: float = 1.0,
+    average: Optional[str] = "micro",
+    mdmc_average: Optional[str] = None,
+    ignore_index: Optional[int] = None,
+    num_classes: Optional[int] = None,
+    threshold: float = 0.5,
+    top_k: Optional[int] = None,
+    multiclass: Optional[bool] = None,
+    ):
+    """
+    A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
+    by giving them the same value for both `input` and `target`.
+    This allows it to work with compilation
+    and IPUs since it doesn't modify the tensor's shape.
+    """
+
+    (tp, fp, tn, fn), mode = get_confusion_matrix(
+        preds = preds,
+        target=target,
+        average = average,
+        mdmc_average = mdmc_average,
+        ignore_index = ignore_index,
+        num_classes = num_classes,
+        threshold = threshold,
+        top_k = top_k,
+        multiclass = multiclass
+        )
+
+    return _fbeta_compute(tp, fp, tn, fn, 1.0, ignore_index, average, mdmc_average)

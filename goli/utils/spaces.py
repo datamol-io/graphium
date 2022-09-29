@@ -10,7 +10,8 @@ from goli.data.datamodule import (
     MultitaskIPUFromSmilesDataModule,
     MultitaskIPUFromSmilesDataModule,
 )
-from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu
+from goli.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
+from goli.ipu.ipu_metrics import auroc_ipu
 
 from goli.nn.dgl_layers import (
     GATDgl,

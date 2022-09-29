@@ -1,10 +1,9 @@
 import unittest as ut
 import torch
-from torch.nn import BCELoss, MSELoss, L1Loss
-from torchmetrics.functional import auroc, average_precision, precision, accuracy, recall, pearson_corrcoef, spearman_corrcoef, r2_score
+from torchmetrics.functional import auroc, average_precision, precision, accuracy, recall, pearson_corrcoef, r2_score, f1_score
 from copy import deepcopy
 
-from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu, average_precision_ipu, precision_ipu, accuracy_ipu, recall_ipu, pearson_ipu, r2_score_ipu
+from goli.ipu.ipu_metrics import auroc_ipu, average_precision_ipu, precision_ipu, accuracy_ipu, recall_ipu, pearson_ipu, r2_score_ipu, f1_score_ipu
 
 
 class test_Losses(ut.TestCase):
@@ -22,93 +21,6 @@ class test_Losses(ut.TestCase):
     target_greater_nan[target < nan_th] = torch.nan
     target_nan = deepcopy(target)
     target_nan[target < nan_th] = torch.nan
-
-    def test_bce(self):
-        preds = deepcopy(self.preds)
-        target = deepcopy(self.target_greater)
-        target_nan = deepcopy(self.target_greater_nan)
-
-        # Regular loss
-        loss_true = BCELoss()(preds, target)
-        loss_ipu = BCELossIPU()(preds, target)
-        self.assertFalse(loss_true.isnan(), "Regular BCELoss is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular BCELoss is different"
-        )
-
-        # Weighted loss
-        weight = torch.rand(preds.shape[1], dtype=torch.float32)
-        loss_true = BCELoss(weight=weight)(preds, target)
-        loss_ipu = BCELossIPU(weight=weight)(preds, target)
-        self.assertFalse(loss_true.isnan(), "Regular BCELoss is NaN")
-        self.assertAlmostEqual(loss_true.item(), loss_ipu.item(), msg="Weighted BCELoss is different")
-
-        # Regular loss with NaNs in target
-        not_nan = ~target_nan.isnan()
-        loss_true = BCELoss()(preds[not_nan], target[not_nan])
-        loss_ipu = BCELossIPU()(preds, target_nan)
-        self.assertFalse(loss_true.isnan(), "Regular BCELoss with target_nan is NaN")
-        self.assertFalse(loss_ipu.isnan(), "Regular BCELossIPU with target_nan is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular BCELoss with NaN is different"
-        )
-
-        # Weighted loss with NaNs in target
-        not_nan = ~target_nan.isnan()
-        weight = torch.rand(preds.shape, dtype=torch.float32)
-        loss_true = BCELoss(weight=weight[not_nan])(preds[not_nan], target_nan[not_nan])
-        loss_ipu = BCELossIPU(weight=weight)(preds, target_nan)
-        self.assertFalse(loss_true.isnan(), "Weighted BCELoss with target_nan is NaN")
-        self.assertFalse(loss_ipu.isnan(), "Weighted BCELossIPU with target_nan is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Weighted BCELoss with NaN is different"
-        )
-
-    def test_mse(self):
-        preds = deepcopy(self.preds)
-        target = deepcopy(self.target)
-        target_nan = deepcopy(self.target_nan)
-
-        # Regular loss
-        loss_true = MSELoss()(preds, target)
-        loss_ipu = MSELossIPU()(preds, target)
-        self.assertFalse(loss_true.isnan(), "Regular MSELoss is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss is different"
-        )
-
-        # Regular loss with NaNs in target
-        not_nan = ~target_nan.isnan()
-        loss_true = MSELoss()(preds[not_nan], target[not_nan])
-        loss_ipu = MSELossIPU()(preds, target_nan)
-        self.assertFalse(loss_true.isnan(), "Regular MSELoss with target_nan is NaN")
-        self.assertFalse(loss_ipu.isnan(), "Regular MSELossIPU with target_nan is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss with NaN is different"
-        )
-
-    def test_l1(self):
-        preds = deepcopy(self.preds)
-        target = deepcopy(self.target)
-        target_nan = deepcopy(self.target_nan)
-
-        # Regular loss
-        loss_true = L1Loss()(preds, target)
-        loss_ipu = L1LossIPU()(preds, target)
-        self.assertFalse(loss_true.isnan(), "Regular MSELoss is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss is different"
-        )
-
-        # Regular loss with NaNs in target
-        not_nan = ~target_nan.isnan()
-        loss_true = L1Loss()(preds[not_nan], target[not_nan])
-        loss_ipu = L1LossIPU()(preds, target_nan)
-        self.assertFalse(loss_true.isnan(), "Regular MSELoss with target_nan is NaN")
-        self.assertFalse(loss_ipu.isnan(), "Regular MSELossIPU with target_nan is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss with NaN is different"
-        )
 
     def test_auroc(self):
         preds_with_weights = deepcopy(self.preds)
@@ -533,6 +445,93 @@ class test_Losses(ut.TestCase):
             self.assertAlmostEqual(
                 score_true.item(), score_ipu[ii].item(), places=4, msg=f"{ii}: r2_score with NaN is different"
             )
+
+    def test_f1_score(self):
+        preds = deepcopy(self.preds)[:, :4]
+        target = deepcopy(self.target)[:, 0]
+        t = deepcopy(target)
+
+        target[t < 0.4] = 0
+        target[(t >= 0.4) & (t < 0.6)] = 1
+        target[(t >= 0.6) & (t < 0.8)] = 2
+        target[(t >= 0.8)] = 3
+
+        target_nan = deepcopy(target)
+        target_nan[self.is_nan[:, 0]] = float("nan")
+        target_nan_bin = deepcopy(target_nan)
+        target_nan_bin[target_nan > 0] = 1
+
+        # Micro f1_score binary
+        score_true = f1_score(preds[:, 0], target.to(int)>0, average="micro")
+        score_ipu = f1_score_ipu(preds[:, 0], target>0, average="micro")
+        self.assertFalse(score_true.isnan(), "Micro F1_score binary is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score binary is different"
+        )
+
+        # Micro f1_score binary with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = f1_score(preds[:, 0][not_nan], target_nan_bin[not_nan].to(int), average="micro")
+        score_ipu = f1_score_ipu(preds[:, 0], target_nan_bin, average="micro")
+        self.assertFalse(score_true.isnan(), "Micro F1_score binary with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Micro F1_score binary IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score binary with NaN is different"
+        )
+
+        # Micro f1_score
+        score_true = f1_score(preds, target.to(int), average="micro")
+        score_ipu = f1_score_ipu(preds, target, average="micro")
+        self.assertFalse(score_true.isnan(), "Micro F1_score is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score is different"
+        )
+
+        # Micro f1_score with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = f1_score(preds[not_nan], target[not_nan].to(int), average="micro")
+        score_ipu = f1_score_ipu(preds, target_nan, average="micro")
+        self.assertFalse(score_true.isnan(), "Micro F1_score with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Micro F1_score IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score with NaN is different"
+        )
+
+        # Macro f1_score multiclass
+        score_true = f1_score(preds, target.to(int), average="macro", num_classes=4)
+        score_ipu = f1_score_ipu(preds, target, average="macro", num_classes=4)
+        self.assertFalse(score_true.isnan(), "Macro F1_score is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Macro F1_score multiclass is different"
+        )
+
+        # Macro f1_score multiclass with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = f1_score(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
+        score_ipu = f1_score_ipu(preds, target_nan, average="macro", num_classes=4)
+        self.assertFalse(score_true.isnan(), "Macro F1_score multiclass with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Macro F1_score multiclass IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Macro F1_score multiclass with NaN is different"
+        )
+
+        # Weighted f1_scoremulticlass
+        score_true = f1_score(preds, target.to(int), average="weighted", num_classes=4)
+        score_ipu = f1_score_ipu(preds, target, average="weighted", num_classes=4)
+        self.assertFalse(score_true.isnan(), "Weighted F1_score is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted F1_score is different"
+        )
+
+        # Weighted f1_score multiclass with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = f1_score(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4)
+        score_ipu = f1_score_ipu(preds, target_nan, average="weighted", num_classes=4)
+        self.assertFalse(score_true.isnan(), "Weighted F1_score multiclass with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "Weighted F1_score multiclass IPU score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=6, msg="Regular F1_score multiclass with NaN is different"
+        )
 
 if __name__ == "__main__":
     ut.main()
