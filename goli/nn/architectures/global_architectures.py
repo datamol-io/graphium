@@ -1393,108 +1393,6 @@ class FullGraphSiameseNetwork(FullGraphNetwork):
         return out
 
 
-class TaskHead(FeedForwardNN):
-    def __init__(
-        self,
-        task_name: str,  # The name matters for per-task analysis
-        in_dim: int,
-        out_dim: int,
-        hidden_dims: Union[List[int], int],  # Should this only be List? See FeedForwardNN vs. FeedForwardDGL
-        depth: Optional[int] = None,
-        activation: Union[str, Callable] = "relu",
-        last_activation: Union[str, Callable] = "none",
-        dropout: float = 0.0,
-        last_dropout: float = 0.0,
-        normalization: Union[str, Callable] = "none",
-        last_normalization: Union[str, Callable] = "none",
-        residual_type: str = "none",
-        residual_skip_steps: int = 1,
-        name: str = "LNN",
-        layer_type: Union[str, nn.Module] = "fc",
-        layer_kwargs: Optional[Dict] = None,
-    ):
-        r"""
-        This class instantiates a task head, and it is identical to the FeedForwardNN class with the addition of a `task_name` attribute.
-        Parameters:
-            task_name:
-                The name of the task for which the current output head performs predictions.
-            in_dim:
-                Input feature dimensions of the layer
-            out_dim:
-                Output feature dimensions of the layer
-            hidden_dims:
-                Either an integer specifying all the hidden dimensions,
-                or a list of dimensions in the hidden layers.
-                Be careful, the "simple" residual type only supports
-                hidden dimensions of the same value.
-            depth:
-                If `hidden_dims` is an integer, `depth` is 1 + the number of
-                hidden layers to use. If `hidden_dims` is a `list`, `depth` must
-                be `None`.
-            activation:
-                activation function to use in the hidden layers.
-            last_activation:
-                activation function to use in the last layer.
-            dropout:
-                The ratio of units to dropout. Must be between 0 and 1
-            last_dropout:
-                The ratio of units to dropout for the last_layer. Must be between 0 and 1
-            normalization:
-                Normalization to use. Choices:
-                - "none" or `None`: No normalization
-                - "batch_norm": Batch normalization
-                - "layer_norm": Layer normalization
-                - `Callable`: Any callable function
-            last_normalization:
-                Whether to use batch normalization in the last layer
-            residual_type:
-                - "none": No residual connection
-                - "simple": Residual connection similar to the ResNet architecture.
-                  See class `ResidualConnectionSimple`
-                - "weighted": Residual connection similar to the Resnet architecture,
-                  but with weights applied before the summation. See class `ResidualConnectionWeighted`
-                - "concat": Residual connection where the residual is concatenated instead
-                  of being added.
-                - "densenet": Residual connection where the residual of all previous layers
-                  are concatenated. This leads to a strong increase in the number of parameters
-                  if there are multiple hidden layers.
-            residual_skip_steps:
-                The number of steps to skip between each residual connection.
-                If `1`, all the layers are connected. If `2`, half of the
-                layers are connected.
-            name:
-                Name attributed to the current network, for display and printing
-                purposes.
-            layer_type:
-                The type of layers to use in the network.
-                Either "fc" as the `FCLayer`, or a class representing the `nn.Module`
-                to use.
-            layer_kwargs:
-                The arguments to be used in the initialization of the layer provided by `layer_type`
-        """
-
-        self.task_name = task_name
-
-        # Initialize the FeedForwardNN
-        super().__init__(
-            in_dim=in_dim,
-            out_dim=out_dim,
-            hidden_dims=hidden_dims,
-            depth=depth,
-            activation=activation,
-            last_activation=last_activation,
-            normalization=normalization,
-            last_normalization=last_normalization,
-            residual_type=residual_type,
-            residual_skip_steps=residual_skip_steps,
-            name=name,
-            layer_type=layer_type,
-            dropout=dropout,
-            last_dropout=last_dropout,
-            layer_kwargs=layer_kwargs,
-        )
-
-
 class TaskHeads(nn.Module):
     def __init__(
         self,
@@ -1507,17 +1405,19 @@ class TaskHeads(nn.Module):
             in_dim:
                 Input feature dimensions of the layer
             task_heads_kwargs_list:
-                This argument is a list of dictionaries corresponding to the arguments for a TaskHead. Each dict of arguments is used to
+                This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
+                Each dict of arguments is used to
                 initialize a task-specific MLP.
         """
 
         super().__init__()
 
         self.in_dim = in_dim
-
+        task_heads_kwargs_list = deepcopy(task_heads_kwargs_list)
         self.task_heads = nn.ModuleDict()
         for head_kwargs in task_heads_kwargs_list:
-            self.task_heads[head_kwargs["task_name"]] = TaskHead(in_dim=self.in_dim, **head_kwargs)
+            task_name = head_kwargs.pop("task_name")
+            self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
     # Return a dictionary: Dict[task_name, Tensor]
     def forward(self, h: torch.Tensor):
