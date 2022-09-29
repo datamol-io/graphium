@@ -173,7 +173,7 @@ def create_ipu_dataloader(
     batch_size: Optional[int] = 1,
     collate_fn=None,
     **kwargs,
-):
+) -> "poptorch.DataLoader":
     """
     Creates a poptorch.DataLoader for graph datasets
     Applies the mini-batching method of concatenating multiple graphs into a
@@ -191,6 +191,9 @@ def create_ipu_dataloader(
             (default: 1).
         collate_fn: The function used to collate batches
         **kwargs (optional): Additional arguments of :class:`poptorch.DataLoader`.
+
+    Returns:
+        The dataloader
     """
     poptorch = import_poptorch()
 

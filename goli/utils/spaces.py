@@ -7,8 +7,6 @@ from goli.nn.base_layers import FCLayer
 from goli.data.datamodule import (
     GraphOGBDataModule,
     MultitaskFromSmilesDataModule,
-    MultitaskIPUFromSmilesDataModule,
-    MultitaskIPUFromSmilesDataModule,
 )
 from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu
 
@@ -135,5 +133,4 @@ METRICS_DICT.update(METRICS_REGRESSION)
 DATAMODULE_DICT = {
     "GraphOGBDataModule": GraphOGBDataModule,
     "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule,
-    "MultitaskIPUFromSmilesDataModule": MultitaskIPUFromSmilesDataModule,
 }

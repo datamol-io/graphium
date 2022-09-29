@@ -8,7 +8,7 @@ constants:
 
 
 datamodule:
-  module_type: "MultitaskIPUFromSmilesDataModule"
+  module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
