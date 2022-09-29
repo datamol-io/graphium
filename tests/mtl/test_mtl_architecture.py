@@ -13,13 +13,6 @@ import goli
 from goli.config._loader import load_architecture
 from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork
 from goli.nn.base_layers import FCLayer
-from goli.nn.residual_connections import (
-    ResidualConnectionConcat,
-    ResidualConnectionDenseNet,
-    ResidualConnectionNone,
-    ResidualConnectionSimple,
-    ResidualConnectionWeighted,
-)
 
 kwargs = {
     "activation": "relu",
@@ -48,20 +41,6 @@ task_3_kwargs = {
     "hidden_dims": [2, 2, 2],
 }
 
-# The params to create the task head MLPs.
-# task_1_params = TaskHeadParams(
-#     **task_1_kwargs,
-#     **kwargs,
-# )
-# task_2_params = TaskHeadParams(
-#     **task_2_kwargs,
-#     **kwargs,
-# )
-# task_3_params = TaskHeadParams(
-#     **task_3_kwargs,
-#     **kwargs,
-# )
-
 task_1_params = {}
 task_1_params.update(task_1_kwargs)
 task_1_params.update(kwargs)
@@ -87,8 +66,7 @@ class test_TaskHeads(ut.TestCase):
         # Test the sizes of the MLPs for each head
         # Head for task_1
         task_1_head = multi_head_nn.task_heads["task_1"]
-        # Check that the task name is correct
-        self.assertEqual(task_1_head.task_name, task_1_kwargs["task_name"])
+
         # Check the dimensions
         self.assertEqual(len(task_1_head.layers), len(task_1_kwargs["hidden_dims"]) + 1)
         self.assertEqual(task_1_head.layers[0].in_dim, in_dim)
@@ -98,8 +76,7 @@ class test_TaskHeads(ut.TestCase):
 
         # Head for task_2
         task_2_head = multi_head_nn.task_heads["task_2"]
-        # Check that the task name is correct
-        self.assertEqual(task_2_head.task_name, task_2_kwargs["task_name"])
+
         # Check the dimensions
         self.assertEqual(len(task_2_head.layers), len(task_2_kwargs["hidden_dims"]) + 1)
         self.assertEqual(task_2_head.layers[0].in_dim, in_dim)
@@ -109,8 +86,7 @@ class test_TaskHeads(ut.TestCase):
 
         # Head for task_3
         task_3_head = multi_head_nn.task_heads["task_3"]
-        # Check that the task name is correct
-        self.assertEqual(task_3_head.task_name, task_3_kwargs["task_name"])
+
         # Check the dimensions
         self.assertEqual(len(task_3_head.layers), len(task_3_kwargs["hidden_dims"]) + 1)
         self.assertEqual(task_3_head.layers[0].in_dim, in_dim)

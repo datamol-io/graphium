@@ -1417,6 +1417,7 @@ class TaskHeads(nn.Module):
         self.task_heads = nn.ModuleDict()
         for head_kwargs in task_heads_kwargs_list:
             task_name = head_kwargs.pop("task_name")
+            head_kwargs.setdefault("name", f"NN_{task_name}")
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
     # Return a dictionary: Dict[task_name, Tensor]
