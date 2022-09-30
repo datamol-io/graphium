@@ -8,6 +8,7 @@ from torchmetrics.utilities.checks import _input_squeeze
 from torchmetrics.functional.classification.accuracy import _mode, _check_subset_validity, _accuracy_compute, _accuracy_update # Remove imports
 from torchmetrics.functional.classification.precision_recall import _precision_compute, _recall_compute
 from torchmetrics.functional.classification.f_beta import f1_score, _fbeta_compute
+from torchmetrics.functional import mean_squared_error, mean_absolute_error
 from torchmetrics.utilities.checks import _input_squeeze # Remove imports
 
 from goli.utils.tensor import nan_mean
@@ -346,6 +347,39 @@ def r2_score_ipu(preds, target, *args, **kwargs):
     score = r2_score(preds, target, *args, **kwargs)
     return Tensor(score)
 
+def fbeta_score_ipu(
+    preds: Tensor,
+    target: Tensor,
+    beta: float = 1.0,
+    average: Optional[str] = "micro",
+    mdmc_average: Optional[str] = None,
+    ignore_index: Optional[int] = None,
+    num_classes: Optional[int] = None,
+    threshold: float = 0.5,
+    top_k: Optional[int] = None,
+    multiclass: Optional[bool] = None,
+    ):
+    """
+    A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
+    by giving them the same value for both `input` and `target`.
+    This allows it to work with compilation
+    and IPUs since it doesn't modify the tensor's shape.
+    """
+
+    (tp, fp, tn, fn), mode = get_confusion_matrix(
+        preds = preds,
+        target=target,
+        average = average,
+        mdmc_average = mdmc_average,
+        ignore_index = ignore_index,
+        num_classes = num_classes,
+        threshold = threshold,
+        top_k = top_k,
+        multiclass = multiclass
+        )
+
+    return _fbeta_compute(tp, fp, tn, fn, beta, ignore_index, average, mdmc_average)
+
 def f1_score_ipu(
     preds: Tensor,
     target: Tensor,
@@ -378,3 +412,55 @@ def f1_score_ipu(
         )
 
     return _fbeta_compute(tp, fp, tn, fn, 1.0, ignore_index, average, mdmc_average)
+
+def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -> Tensor:
+    target = target.clone()
+    preds = preds.clone()
+
+    # Replace the nan-targets in the preds/target tensors by 0
+    nan_targets = target.isnan()
+    preds[nan_targets] = 0.0
+    target[nan_targets] = 0.0
+
+    # Compute the loss, and rescale by the number of nan elements
+    loss = mean_squared_error(preds, target, squared)
+
+    if squared:
+        factor = nan_targets.numel() / ((~nan_targets).sum())
+    else:
+        factor = (nan_targets.numel() / ((~nan_targets).sum())).sqrt()
+
+    loss = loss * factor
+
+    return loss
+
+def mean_absolute_error_ipu(self, preds: Tensor, target: Tensor) -> Tensor:
+    target = target.clone()
+    preds = preds.clone()
+
+    # Replace the nan-targets in the preds/target tensors by 0
+    nan_targets = target.isnan()
+    preds[nan_targets] = 0.0
+    target[nan_targets] = 0.0
+
+    # Compute the loss, and rescale by the number of nan elements
+    loss = mean_absolute_error(preds, target)
+    loss = loss * nan_targets.numel() / ((~nan_targets).sum())
+
+    return loss
+
+# def forward(self, input: Tensor, target: Tensor) -> Tensor:
+
+#         target = target.clone()
+#         input = input.clone()
+
+#         # Replace the nan-targets in the input/target tensors by 0
+#         nan_targets = target.isnan()
+#         input[nan_targets] = 0.0
+#         target[nan_targets] = 0.0
+
+#         # Compute the loss, and rescale by the number of nan elements
+#         loss = super().forward(input, target)
+#         loss = loss * nan_targets.numel() / ((~nan_targets).sum())
+
+#         return loss
