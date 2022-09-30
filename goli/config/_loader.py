@@ -81,16 +81,17 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "gol
     cfg_data = config["datamodule"]["args"]
 
     # Default empty values for the IPU configurations
-    ipu_inference_opts, ipu_training_opts = None, None
+    ipu_training_opts, ipu_inference_opts = None, None
     ipu_file = "expts/configs/ipu.config"
     ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
     ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
 
     if get_accelerator(config) == "ipu":
-        ipu_inference_opts, ipu_training_opts = load_ipu_options(
+        ipu_training_opts, ipu_inference_opts = load_ipu_options(
             ipu_file=ipu_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
+            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None)
         )
 
         # Define the Dataloader options for the IPU on the training sets
@@ -110,8 +111,8 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "gol
     # Instanciate the datamodule
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
     datamodule = module_class(
-        ipu_inference_opts=ipu_inference_opts,
         ipu_training_opts=ipu_training_opts,
+        ipu_inference_opts=ipu_inference_opts,
         ipu_dataloader_training_opts=ipu_dataloader_training_opts,
         ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
         **config["datamodule"]["args"],
@@ -285,6 +286,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             ipu_file=ipu_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
+            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None)
         )
         plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
 
@@ -301,16 +303,22 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     if accelerator != "ipu":
         ipus = 0
 
+    # Remove the gradient accumulation from IPUs, since it's handled by the device
+    if accelerator == "ipu":
+        cfg_trainer["trainer"].pop("accumulate_grad_batches", None)
+
+    # Define the early stopping parameters
     trainer_kwargs = {}
     callbacks = []
     if "early_stopping" in cfg_trainer.keys():
         callbacks.append(EarlyStopping(**cfg_trainer["early_stopping"]))
 
+    # Define the early model checkpoing parameters
     if "model_checkpoint" in cfg_trainer.keys():
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
+    # Define the logger parameters
     if "logger" in cfg_trainer.keys():
-        # WandB logger (decomment to log runs)
         wandb_logger = WandbLoggerGoli(name=run_name, project="multitask-gnn", full_configs=config)
         trainer_kwargs["logger"] = wandb_logger
 

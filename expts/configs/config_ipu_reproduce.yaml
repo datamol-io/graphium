@@ -17,7 +17,7 @@ datamodule:
         smiles_col: "SMILES"
         label_cols: "assayID-*"
         split_val: 0.08
-        split_test: 0.
+        split_test: 0.01
         split_seed: *seed
         splits_path: null                 # This may not always be provided
         sample_size: 715233 # 715233       # This may not always be provided
@@ -30,28 +30,28 @@ datamodule:
     featurization_n_jobs: -1
     featurization_progress: True
     featurization:
-      atom_property_list_onehot: [atomic-number] #[atomic-number, valence]
-      atom_property_list_float: [mass] # [mass, electronegativity, in-ring, hybridization, chirality, aromatic, degree, formal-charge, single-bond, double-bond, radical-electron, vdw-radius, covalent-radius, metal]
-      edge_property_list: [bond-type-float] # [bond-type-onehot, bond-type-float, stereo, in-ring, conjugated, estimated-bond-length]
+      atom_property_list_onehot: [atomic-number, valence]
+      atom_property_list_float: [mass, electronegativity, in-ring, hybridization, chirality, aromatic, degree, formal-charge, single-bond, double-bond, radical-electron, vdw-radius, covalent-radius, metal]
+      edge_property_list: [bond-type-onehot, bond-type-float, stereo, in-ring, conjugated, estimated-bond-length]
       add_self_loop: False
       explicit_H: False
       use_bonds_weights: False
-      max_num_atoms: 100
-      # pos_encoding_as_features:
-      #   pos_types:
-      #     la_pos: &pos_enc  #use same name as pe_encoder
-      #       pos_type: laplacian_eigvec_eigval #laplacian_eigvec
-      #       num_pos: 3
-      #       normalization: "none"
-      #       disconnected_comp: True
-      #     rw_pos: #use same name as pe_encoder
-      #       pos_type: rwse
-      #       ksteps: 16
+      max_num_atoms: 60
+      pos_encoding_as_features:
+        pos_types:
+          la_pos: &pos_enc  #use same name as pe_encoder
+            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+            num_pos: 3
+            normalization: "none"
+            disconnected_comp: True
+          rw_pos: #use same name as pe_encoder
+            pos_type: rwse
+            ksteps: 16
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 10
-    batch_size_inference: 10
+    batch_size_train_val: 9
+    batch_size_test: 9
     # cache_data_path: null
 
     num_workers: 0
@@ -59,8 +59,8 @@ datamodule:
 
     ipu_dataloader_training_opts:
       mode: async
-      max_num_nodes: &max_num_nodes 325
-      max_num_edges: &max_num_edges 650
+      max_num_nodes: &max_num_nodes 260
+      max_num_edges: &max_num_edges 600
 
     ipu_dataloader_inference_opts:
       mode: async
@@ -70,7 +70,7 @@ datamodule:
 architecture:
   model_type: FullGraphMultiTaskNetwork
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: &hidden_dim 672
+    out_dim: &hidden_dim 600
     hidden_dims: *hidden_dim
     depth: 3
     activation: relu
@@ -93,32 +93,32 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
 
-  # pe_encoders:
-  #   out_dim: 64
-  #   pool: "sum" #"mean" "max"
-  #   last_norm: None #"batch_norm", "layer_norm"
-  #   encoders: #la_pos |  rw_pos
-  #     la_pos:  # Set as null to avoid a pre-nn network
-  #       encoder_type: "laplacian_pe"
-  #       on_keys: ["eigvecs", "eigvals"]
-  #       hidden_dim: 64
-  #       model_type: 'DeepSet' #'Transformer' or 'DeepSet'
-  #       num_layers: 1
-  #       num_layers_post: 0 # Num. layers to apply after pooling
-  #       dropout: 0.1
-  #       first_normalization: "none" #"batch_norm" or "layer_norm"
-  #     rw_pos:
-  #       encoder_type: "mlp"
-  #       on_keys: ["rwse"]
-  #       out_level: "node"
-  #       hidden_dim: 64
-  #       num_layers: 1
-  #       dropout: 0.1
-  #       normalization: "none" #"batch_norm" or "layer_norm"
-  #       first_normalization: "none" #"batch_norm" or "layer_norm"
+  pe_encoders:
+    out_dim: 32
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    encoders: #la_pos |  rw_pos
+      la_pos:  # Set as null to avoid a pre-nn network
+        encoder_type: "laplacian_pe"
+        on_keys: ["eigvecs", "eigvals"]
+        hidden_dim: 32
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 1
+        num_layers_post: 0 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_normalization: "none" #"batch_norm" or "layer_norm"
+      rw_pos:
+        encoder_type: "mlp"
+        on_keys: ["rwse"]
+        out_level: "node"
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "none" #"batch_norm" or "layer_norm"
+        first_normalization: "none" #"batch_norm" or "layer_norm"
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: &out_mlp_dim 1200
+    out_dim: &out_mlp_dim 1150
     hidden_dims: *hidden_dim
     depth: 8
     activation: relu
@@ -189,28 +189,28 @@ predictor:
 
 metrics:
   pc-assays:
-    - name: mae
-      metric: mae
-      threshold_kwargs: null
-      target_nan_mask: 0
+    # - name: mae
+    #   metric: mae
+    #   threshold_kwargs: null
+    #   target_nan_mask: 0
 
-    - name: averageprecision
-      metric: averageprecision
-      target_nan_mask: 0
-      threshold_kwargs:
-        threshold: null
-        th_on_preds: False
-        th_on_target: False
-        target_to_int: True
+    # - name: averageprecision
+    #   metric: averageprecision
+    #   target_nan_mask: 0
+    #   threshold_kwargs:
+    #     threshold: null
+    #     th_on_preds: False
+    #     th_on_target: False
+    #     target_to_int: True
 
-    - name: auroc
-      metric: auroc
-      target_nan_mask: 0
-      threshold_kwargs:
-        threshold: null
-        th_on_preds: False
-        th_on_target: False
-        target_to_int: True
+    # - name: auroc
+    #   metric: auroc
+    #   target_nan_mask: 0
+    #   threshold_kwargs:
+    #     threshold: null
+    #     th_on_preds: False
+    #     th_on_target: False
+    #     target_to_int: True
 
     # - name: f1 > 0.5
     #   metric: f1
@@ -298,3 +298,4 @@ trainer:
     precision: 16
     max_epochs: 1000
     min_epochs: 100
+    accumulate_grad_batches: 1000

@@ -94,7 +94,7 @@ class SingleTaskDataset(Dataset):
     def __init__(
         self,
         labels: Union[torch.Tensor, np.ndarray],
-        features: Optional[List[dgl.DGLGraph]] = None,
+        features: Optional[List[Union[dgl.DGLGraph, GraphDict]]] = None,
         smiles: Optional[List[str]] = None,
         indices: Optional[List[str]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
