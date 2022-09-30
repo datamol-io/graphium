@@ -50,11 +50,11 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_train_val: 9
-    batch_size_test: 9
+    batch_size_training: 9
+    batch_size_inference: 9
     # cache_data_path: null
 
-    num_workers: 0
+    num_workers: 32
     persistent_workers: False
 
     ipu_dataloader_training_opts:
