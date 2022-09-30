@@ -14,11 +14,11 @@ datamodule:
       pcqm4mv2:
         df: null
         dataset_name: "ogbg-lsc-pcqm4mv2"
-        sample_size: 10000
+        sample_size: null
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: -1
+    featurization_n_jobs: 32
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -40,11 +40,11 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 38
-    batch_size_inference: 38
+    batch_size_training: 40
+    batch_size_inference: 40
     # cache_data_path: null
 
-    num_workers: -1
+    num_workers: 32
 
     ipu_dataloader_training_opts:
       max_num_nodes_per_graph: &max_nodes 16
@@ -204,6 +204,6 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 2 #50
+    max_epochs: 20 #50
     min_epochs: 1 #5
-    accumulate_grad_batches: 16
+    accumulate_grad_batches: 4
