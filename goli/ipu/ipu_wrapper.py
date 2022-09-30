@@ -1,4 +1,4 @@
-from typing import Dict, Any, Optional, Callable, Union, Type
+from typing import Dict, Any, Optional, Callable, Union, Type, Tuple
 
 from torch_geometric.data import Batch
 from torch import Tensor
@@ -119,8 +119,8 @@ class PredictorModuleIPU(PredictorModule):
         targets: Dict[str, Tensor],
         weights: Optional[Tensor],
         loss_fun: Dict[str, Callable],
-        target_nan_mask: Union[Type, str] = "ignore",
-    ) -> Tensor:
+        target_nan_mask: Union[Type, str] = "ignore-flatten",
+    ) -> Tuple[Tensor, Dict[str, Tensor]]:
         preds = remove_pad_loss(preds, targets)
 
         return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
@@ -304,6 +304,7 @@ class PredictorModuleIPU(PredictorModule):
 
         # Get the current index for non-tensor elements
         batch_idx = batch.pop("_batch_idx")
+        batch_idx = batch_idx.squeeze(-1).item()
 
         non_tensor_keys = set(self._keys_others.keys()) - (
             set(self._keys_batch.keys()) | set(self._keys_tensor.keys()) | set(self._keys_tensor_dict.keys())

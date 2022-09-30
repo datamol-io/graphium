@@ -8,7 +8,6 @@ from goli.data.datamodule import (
     GraphOGBDataModule,
     MultitaskFromSmilesDataModule,
     MultitaskIPUFromSmilesDataModule,
-    MultitaskIPUFromSmilesDataModule,
 )
 from goli.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
 from goli.ipu.ipu_metrics import auroc_ipu
