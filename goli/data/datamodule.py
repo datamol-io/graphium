@@ -568,7 +568,7 @@ class DatasetProcessingParams:
         self.splits_path = splits_path
 
 
-class IPUDataModuleModifier():
+class IPUDataModuleModifier:
     """
     Modify functions from the a `DataModule` to support IPU and IPU options.
     To be used in dual inheritance, for example:
@@ -580,6 +580,7 @@ class IPUDataModuleModifier():
             IPUDataModuleModifier.__init__(self, **kwargs)
     ```
     """
+
     def __init__(
         self,
         ipu_inference_opts: Optional["poptorch.Options"] = None,
@@ -590,10 +591,10 @@ class IPUDataModuleModifier():
         **kwargs,
     ) -> None:
         """
-            ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
-            ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
-            ipu_dataloader_kwargs_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
-            ipu_dataloader_kwargs_test: Options for the dataloader for the IPU. Ignore if not using IPUs
+        ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
+        ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
+        ipu_dataloader_kwargs_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
+        ipu_dataloader_kwargs_test: Options for the dataloader for the IPU. Ignore if not using IPUs
         """
         self.ipu_inference_opts = ipu_inference_opts
         self.ipu_training_opts = ipu_training_opts
@@ -714,7 +715,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - "pyg:graph": Process molecules as `pyg.data.Data`.
             dataset_class: The class used to create the dataset from which to sample.
         """
-        BaseDataModule.__init__(self,
+        BaseDataModule.__init__(
+            self,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,
             num_workers=num_workers,
@@ -958,7 +960,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
 
-
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
         Get the options for the dataloader depending on the current stage.
@@ -985,14 +986,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
 
         # Remove the IPU options if not available
-        if (loader_kwargs["ipu_options"] is None):
+        if loader_kwargs["ipu_options"] is None:
             loader_kwargs.pop("ipu_options")
-            if (loader_kwargs["ipu_dataloader_options"] is not None):
-                logger.warning("`ipu_dataloader_options` will be ignored since it is provided without `ipu_options`.")
+            if loader_kwargs["ipu_dataloader_options"] is not None:
+                logger.warning(
+                    "`ipu_dataloader_options` will be ignored since it is provided without `ipu_options`."
+                )
             loader_kwargs.pop("ipu_dataloader_options")
         return loader_kwargs
 
-    def get_dataloader(self, dataset: Dataset, shuffle: bool, stage: RunningStage) -> Union[DataLoader, "poptorch.DataLoader"]:
+    def get_dataloader(
+        self, dataset: Dataset, shuffle: bool, stage: RunningStage
+    ) -> Union[DataLoader, "poptorch.DataLoader"]:
         """
         Get the dataloader for a given dataset
 
@@ -1428,6 +1433,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
 class GraphOGBDataModule(MultitaskFromSmilesDataModule):
     """Load an OGB GraphProp dataset."""
+
     def __init__(
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
@@ -1481,7 +1487,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             # Get OGB metadata
             this_metadata = self._get_dataset_metadata(task_args["dataset_name"])
             # Get dataset
-            df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(this_metadata, sample_size=task_args["sample_size"])
+            df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(
+                this_metadata, sample_size=task_args["sample_size"]
+            )
             new_task_specific_args[task_name] = {
                 "df": df,
                 "idx_col": idx_col,
@@ -1490,7 +1498,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 "splits_path": splits_path,
             }
             self.metadata[task_name] = this_metadata
-
 
         # Config for datamodule
         dm_args = {}
@@ -1620,7 +1627,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
 
         return ogb_metadata
-
 
 
 def get_num_nodes(graph):

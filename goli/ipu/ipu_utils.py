@@ -83,7 +83,9 @@ def load_ipu_options(
         ipu_options.modelName(f"{model_name}_train")
     if gradient_accumulation is not None:
         current = ipu_options.Training.gradient_accumulation
-        assert (current == 1) or (current==gradient_accumulation), f"Received inconsistent gradient accumulation `{current}` and `{gradient_accumulation}"
+        assert (current == 1) or (
+            current == gradient_accumulation
+        ), f"Received inconsistent gradient accumulation `{current}` and `{gradient_accumulation}"
         ipu_options.Training.gradientAccumulation(gradient_accumulation)
 
     ipu_options.anchorTensor("input", "input")

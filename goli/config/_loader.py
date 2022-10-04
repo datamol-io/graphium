@@ -91,7 +91,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "gol
             ipu_file=ipu_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
-            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None)
+            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
 
         # Define the Dataloader options for the IPU on the training sets
@@ -286,7 +286,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             ipu_file=ipu_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
-            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None)
+            gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
         plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
 
