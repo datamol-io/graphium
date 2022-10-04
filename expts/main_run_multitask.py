@@ -26,7 +26,7 @@ CONFIG_FILE = "expts/configs/config_molPCQM4Mv2.yaml"
 os.chdir(MAIN_DIR)
 
 
-def main(cfg: DictConfig, run_name:str="main", add_date_time:bool=True) -> None:
+def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) -> None:
     st = timeit.default_timer()
 
     if add_date_time:
