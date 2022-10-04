@@ -14,12 +14,13 @@ datamodule:
       pcqm4mv2:
         df: null
         dataset_name: "ogbg-lsc-pcqm4mv2"
-        sample_size: null
+        sample_size: 1000000
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
     featurization_n_jobs: 32
     featurization_progress: True
+    # featurization_backend: "threads"
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
       atom_property_list_float: [mass, electronegativity, in-ring]
@@ -40,15 +41,15 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 40
-    batch_size_inference: 40
+    batch_size_training: 30
+    batch_size_inference: 30
     # cache_data_path: null
 
-    num_workers: 32
+    num_workers: 4
 
     ipu_dataloader_training_opts:
       max_num_nodes_per_graph: &max_nodes 16
-      max_num_edges_per_graph: &max_edges 32
+      max_num_edges_per_graph: &max_edges 34
 
     ipu_dataloader_inference_opts:
       max_num_nodes_per_graph: *max_nodes
@@ -160,7 +161,7 @@ predictor:
     pcqm4mv2: mse_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-3
+    lr: 1.e-5
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     #module_type: ReduceLROnPlateau
