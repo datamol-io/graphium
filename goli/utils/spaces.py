@@ -8,7 +8,20 @@ from goli.data.datamodule import (
     GraphOGBDataModule,
     MultitaskFromSmilesDataModule,
 )
-from goli.ipu.ipu_metrics import BCELossIPU, MSELossIPU, L1LossIPU, auroc_ipu
+from goli.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
+from goli.ipu.ipu_metrics import (
+    auroc_ipu,
+    average_precision_ipu,
+    precision_ipu,
+    accuracy_ipu,
+    recall_ipu,
+    pearson_ipu,
+    r2_score_ipu,
+    f1_score_ipu,
+    fbeta_score_ipu,
+    mean_squared_error_ipu,
+    mean_absolute_error_ipu,
+)
 
 from goli.nn.dgl_layers import (
     GATDgl,
@@ -105,7 +118,6 @@ METRICS_CLASSIFICATION = {
     "accuracy": met.accuracy,
     "averageprecision": met.average_precision,
     "auroc": met.auroc,
-    "auroc_ipu": auroc_ipu,
     "confusionmatrix": met.confusion_matrix,
     "f1": met.f1_score,
     "fbeta": met.fbeta_score,
@@ -113,6 +125,17 @@ METRICS_CLASSIFICATION = {
     "precision": met.precision,
     "recall": met.recall,
     "mcc": met.matthews_corrcoef,
+    "auroc_ipu": auroc_ipu,
+    "accuracy_ipu": accuracy_ipu,
+    "average_precision_ipu": average_precision_ipu,
+    "f1_score_ipu": f1_score_ipu,
+    "fbeta_score_ipu": fbeta_score_ipu,
+    "precision_ipu": precision_ipu,
+    "recall_ipu": recall_ipu,
+    "pearson_ipu": pearson_ipu,
+    "r2_score_ipu": r2_score_ipu,
+    "mean_squared_error_ipu": mean_squared_error_ipu,
+    "mean_absolute_error_ipu": mean_absolute_error_ipu,
 }
 
 METRICS_REGRESSION = {

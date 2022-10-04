@@ -302,6 +302,7 @@ class PredictorModuleIPU(PredictorModule):
 
         # Get the current index for non-tensor elements
         batch_idx = batch.pop("_batch_idx")
+        batch_idx = batch_idx.squeeze(-1)
 
         non_tensor_keys = set(self._keys_others.keys()) - (
             set(self._keys_batch.keys()) | set(self._keys_tensor.keys()) | set(self._keys_tensor_dict.keys())
