@@ -68,8 +68,7 @@ class OptimOptions:
     torch_scheduler_kwargs: Optional[Dict[str, Any]] = None
     scheduler_kwargs: Optional[Dict[str, Any]] = None
 
-
-    # Instead of passing a dictionary to be processed by the predictor, 
+    # Instead of passing a dictionary to be processed by the predictor,
     # this class will process the dictionary in advance and return the optimizer
     def set_kwargs(self):
         # Set the parameters and default value for the optimizer, and check values
@@ -82,26 +81,25 @@ class OptimOptions:
         assert self.optim_kwargs["lr"] > 0
         assert self.optim_kwargs["weight_decay"] >= 0
 
-        """TODO: Fix scheduling with the Summary class."""
-        # # Set the lightning scheduler
-        # scheduler_kwargs = self.scheduler_kwargs
-        # self.scheduler_kwargs = {
-        #     "interval": "epoch",
-        #     "monitor": "loss/val",
-        #     "mode": "min",
-        #     "frequency": 1,
-        #     "strict": True,
-        # }
-        # if scheduler_kwargs is not None:
-        #     self.scheduler_kwargs.update(scheduler_kwargs)
+        # Set the lightning scheduler
+        scheduler_kwargs = self.scheduler_kwargs
+        self.scheduler_kwargs = {
+            "interval": "epoch",
+            "monitor": "loss/val",
+            "mode": "min",
+            "frequency": 1,
+            "strict": True,
+        }
+        if scheduler_kwargs is not None:
+            self.scheduler_kwargs.update(scheduler_kwargs)
 
-        # # Set the pytorch scheduler arguments
-        # torch_scheduler_kwargs = self.torch_scheduler_kwargs
-        # if torch_scheduler_kwargs is None:
-        #     self.torch_scheduler_kwargs = {}
-        # else:
-        #     self.torch_scheduler_kwargs = torch_scheduler_kwargs
-        # self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
+        # Set the pytorch scheduler arguments
+        torch_scheduler_kwargs = self.torch_scheduler_kwargs
+        if torch_scheduler_kwargs is None:
+            self.torch_scheduler_kwargs = {}
+        else:
+            self.torch_scheduler_kwargs = torch_scheduler_kwargs
+        self.torch_scheduler_kwargs.setdefault("module_type", "ReduceLROnPlateau")
 
 
 @dataclass
