@@ -24,8 +24,9 @@ class Test_DataModule(ut.TestCase):
         featurization_args["explicit_H"] = False
 
         # Config for datamodule
+        task_specific_args = {}
+        task_specific_args["task_1"] = {"dataset_name": dataset_name}
         dm_args = {}
-        dm_args["dataset_name"] = dataset_name
         dm_args["cache_data_path"] = None
         dm_args["featurization"] = featurization_args
         dm_args["batch_size_training"] = 16
@@ -36,7 +37,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
 
-        ds = goli.data.GraphOGBDataModule(**dm_args)
+        ds = goli.data.GraphOGBDataModule(task_specific_args, **dm_args)
 
         ds.prepare_data()
         ds.setup()
@@ -45,16 +46,15 @@ class Test_DataModule(ut.TestCase):
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
         assert len(ds) == 642
-        assert ds.dataset_name == "ogbg-molfreesolv"
 
         # test dataset
-        assert set(ds.train_ds[0].keys()) == {"smiles", "indices", "features", "labels"}
+        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
         assert len(batch["smiles"]) == 16
-        assert len(batch["labels"]) == 16
-        assert len(batch["indices"]) == 16
+        assert len(batch["labels"]["task_1"]) == 16
+        assert len(batch["mol_ids"]) == 16
 
     def test_none_filtering(self):
         # Create the objects to filter

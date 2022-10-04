@@ -1432,11 +1432,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
 
 class GraphOGBDataModule(MultitaskFromSmilesDataModule):
-    """Load an OGB GraphProp dataset."""
+    """Load an OGB (Open-graph-benchmark) GraphProp dataset."""
 
     def __init__(
         self,
-        task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
+        task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
@@ -1455,8 +1455,14 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         """
 
         Parameters:
-            dataset_name: Name of the OGB dataset to load. Examples of possible datasets are
+            task_specific_args: Arguments related to each task, with the task-name being the key,
+              and the specific arguments being the values. The arguments must be a
+              Dict containing the following keys:
+
+              - "dataset_name": Name of the OGB dataset to load. Examples of possible datasets are
                 "ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv".
+              - "sample_size": The number of molecules to sample from the dataset. Default=None,
+                meaning that all molecules will be considered.
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
             featurization: args to apply to the SMILES to Graph featurizer.
@@ -1488,7 +1494,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             this_metadata = self._get_dataset_metadata(task_args["dataset_name"])
             # Get dataset
             df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(
-                this_metadata, sample_size=task_args["sample_size"]
+                this_metadata, sample_size=task_args.get("sample_size", None)
             )
             new_task_specific_args[task_name] = {
                 "df": df,
