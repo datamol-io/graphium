@@ -3,6 +3,7 @@ from torch import Tensor
 from torch.nn import BCELoss, MSELoss, L1Loss
 from torch._C import _infer_size
 
+
 class BCELossIPU(BCELoss):
     """
     A modified version of the `torch.nn.BCELoss` that can ignore NaNs

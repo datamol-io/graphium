@@ -12,5 +12,5 @@ def update_configuration(trial, cfg):
     # hidden_neurons = trial.suggest_categorical("hidden_neurons", [[16, 32, 16], [16, 32, 16], [16, 32, 64, 32, 16], [16, 32, 64, 128, 64, 32, 16]]) #[64, 32], [16, 32, 16]
     # bidirectional = trial.suggest_categorical("bidirectional", [True, False]) # True
     # attention_style = trial.suggest_categorical("attention_style", ['Luong', 'Bahdanau']) # Bahdanau, Luong
-    
+
     return cfg

@@ -1,19 +1,23 @@
 import torch
 from torch import Tensor
-from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score # Remove imports
+from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score  # Remove imports
 
 from typing import Optional, Sequence
 
 from torchmetrics.utilities.checks import _input_squeeze
-from torchmetrics.functional.classification.accuracy import _mode, _check_subset_validity, _accuracy_compute, _accuracy_update # Remove imports
+from torchmetrics.functional.classification.accuracy import (
+    _mode,
+    _check_subset_validity,
+    _accuracy_compute,
+    _accuracy_update,
+)  # Remove imports
 from torchmetrics.functional.classification.precision_recall import _precision_compute, _recall_compute
-from torchmetrics.functional.classification.f_beta import f1_score, _fbeta_compute
+from torchmetrics.functional.classification.f_beta import _fbeta_compute
 from torchmetrics.functional import mean_squared_error, mean_absolute_error
-from torchmetrics.utilities.checks import _input_squeeze # Remove imports
+from torchmetrics.utilities.checks import _input_squeeze
 
 from goli.utils.tensor import nan_mean
 
-# Move losses into ipu_loss file and add MSE and MAE implementations, do as MSE LOSS, add same tests as for test_mse, jsut replace with MSE Loss (re-implement the metric)
 
 def auroc_ipu(
     preds: Tensor,
@@ -22,8 +26,8 @@ def auroc_ipu(
     pos_label: Optional[int] = None,
     average: Optional[str] = "macro",
     max_fpr: Optional[float] = None,
-    sample_weights: Optional[Sequence] = None
-    ):
+    sample_weights: Optional[Sequence] = None,
+):
     """
     A modified version of the `torchmetrics.functional.auroc` that can ignore NaNs
     by giving them the same value for both `input` and `target`.
@@ -46,16 +50,17 @@ def auroc_ipu(
 
     # Compute the loss, and rescale by the number of nan elements
     score = auroc(
-        preds = preds,
-        target = target.to(int),
-        num_classes = num_classes,
-        pos_label = pos_label,
-        average = average,
-        max_fpr = max_fpr,
-        sample_weights = sample_weights
+        preds=preds,
+        target=target.to(int),
+        num_classes=num_classes,
+        pos_label=pos_label,
+        average=average,
+        max_fpr=max_fpr,
+        sample_weights=sample_weights,
     )
 
     return score
+
 
 def average_precision_ipu(
     preds: Tensor,
@@ -64,7 +69,7 @@ def average_precision_ipu(
     pos_label: Optional[int] = None,
     average: Optional[str] = "macro",
     sample_weights: Optional[Sequence] = None,
-    ):
+):
     """
     A modified version of the `torchmetrics.functional.average_precision` that can ignore NaNs
     by giving them the same value for both `input` and `target`.
@@ -86,15 +91,17 @@ def average_precision_ipu(
     sample_weights[nan_targets] = 0.0
 
     # Compute the loss, and rescale by the number of nan elements
-    score = average_precision (
-        preds = preds,
-        target = target.to(int),
-        num_classes = num_classes,
-        pos_label = pos_label,
-        average = average,
-        sample_weights = sample_weights)
+    score = average_precision(
+        preds=preds,
+        target=target.to(int),
+        num_classes=num_classes,
+        pos_label=pos_label,
+        average=average,
+        sample_weights=sample_weights,
+    )
 
     return score
+
 
 def precision_ipu(
     preds: Tensor,
@@ -106,7 +113,7 @@ def precision_ipu(
     threshold: float = 0.5,
     top_k: Optional[int] = None,
     multiclass: Optional[bool] = None,
-    ):
+):
     """
     A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
     by giving them the same value for both `input` and `target`.
@@ -125,10 +132,9 @@ def precision_ipu(
         num_classes=num_classes,
         multiclass=multiclass,
         ignore_index=ignore_index,
-        )
+    )
 
     return _precision_compute(tp, fp, fn, average, mdmc_average)
-
 
 
 def recall_ipu(
@@ -140,10 +146,10 @@ def recall_ipu(
     num_classes: Optional[int] = None,
     threshold: float = 0.5,
     top_k: Optional[int] = None,
-    multiclass: Optional[bool] = None
-    ):
+    multiclass: Optional[bool] = None,
+):
     """
-    A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
+    A modified version of the `torchmetrics.functional.recall` that can ignore NaNs
     by giving them the same value for both `input` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
@@ -159,7 +165,7 @@ def recall_ipu(
         num_classes=num_classes,
         multiclass=multiclass,
         ignore_index=ignore_index,
-        )
+    )
 
     return _recall_compute(tp, fp, fn, average, mdmc_average)
 
@@ -175,12 +181,17 @@ def accuracy_ipu(
     num_classes: Optional[int] = None,
     multiclass: Optional[bool] = None,
     ignore_index: Optional[int] = None,
-    ):
+) -> Tensor:
     """
     A modified version of the `torchmetrics.functional.accuracy` that can ignore NaNs
     by giving them the same value for both `input` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
+
+    Args:
+        average: Defines the reduction that is applied.
+        mdmc_average: Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+            ``average`` parameter).
     """
 
     (tp, fp, tn, fn), mode = get_confusion_matrix(
@@ -194,7 +205,7 @@ def accuracy_ipu(
         num_classes=num_classes,
         multiclass=multiclass,
         ignore_index=ignore_index,
-        )
+    )
 
     return _accuracy_compute(tp, fp, tn, fn, average, mdmc_average, mode)
 
@@ -211,6 +222,9 @@ def get_confusion_matrix(
     multiclass: Optional[bool] = None,
     ignore_index: Optional[int] = None,
 ):
+    """
+    Calculates the confusion matrix according to the specified average method.
+    """
     allowed_average = ["micro", "macro", "weighted", "samples", "none", None]
     if average not in allowed_average:
         raise ValueError(f"The `average` has to be one of {allowed_average}, got {average}.")
@@ -223,7 +237,9 @@ def get_confusion_matrix(
         raise ValueError(f"The `mdmc_average` has to be one of {allowed_mdmc_average}, got {mdmc_average}.")
 
     if num_classes and ignore_index is not None and (not ignore_index < num_classes or num_classes == 1):
-        raise ValueError(f"The `ignore_index` {ignore_index} is not valid for inputs with {num_classes} classes")
+        raise ValueError(
+            f"The `ignore_index` {ignore_index} is not valid for inputs with {num_classes} classes"
+        )
 
     if top_k is not None and (not isinstance(top_k, int) or top_k <= 0):
         raise ValueError(f"The `top_k` should be an integer larger than 0, got {top_k}")
@@ -265,8 +281,19 @@ def get_confusion_matrix(
 
 
 class NaNTensor(Tensor):
+    """
+    Class to create and manage a NaN tensor along it's properties
+
+    The goal of the class is to override the regular tensor such that the basic
+    operations (sum, mean, max, etc) ignore the NaNs in the input.
+    It also supports NaNs in integer tensors (as the lowest integer possible).
+    """
+
     @property
     def get_nans(self):
+        """
+        Gets the NaN shape initialization parameters for the tensor
+        """
         if self.is_floating_point():
             return self.isnan()
         elif self.is_signed():
@@ -275,6 +302,9 @@ class NaNTensor(Tensor):
             return torch.zeros(self.shape, device=self.device, dtype=bool)
 
     def sum(self, *args, **kwargs):
+        """
+        Sums all elements of a tensor while treating NaNs as 0
+        """
         tensor = self.to(float)
         tensor[self.get_nans] = float("nan")
         if self.is_floating_point():
@@ -282,28 +312,52 @@ class NaNTensor(Tensor):
         else:
             dtype = torch.int64
         return tensor.nansum(*args, **kwargs).to(dtype)
+
     def mean(self, *args, **kwargs):
+        """
+        Calculates mean of all elements of a tensor while treating NaNs as 0
+        """
         tensor = self.to(float)
         tensor[self.get_nans] = float("nan")
         return nan_mean(tensor, *args, **kwargs).to(self.dtype)
+
     def numel(self):
+        """
+        Sums all elements of a tensor whitout NaNs
+        """
         return super(NaNTensor, ~self.get_nans).sum()
+
     def min(self, *args, **kwargs):
+        """
+        Returns the min vale of a tensor whitout NaNs
+        """
         tensor = self
         tensor = tensor[~self.get_nans]
         return super(NaNTensor, tensor).min(*args, **kwargs)
+
     def max(self, *args, **kwargs):
+        """
+        Returns the max vale of a tensor whitout NaNs
+        """
         tensor = self
         tensor = tensor[~self.get_nans]
         return super(NaNTensor, tensor).max(*args, **kwargs)
+
     def argsort(self, dim=-1, descending=False):
+        """
+        Sorts values a tensor whitout NaNs
+        """
         tensor = self
         if descending:
             tensor[tensor.get_nans] = float("-inf")
         else:
             tensor[tensor.get_nans] = float("inf")
         return super(NaNTensor, tensor).argsort(dim=dim, descending=descending)
+
     def size(self, dim):
+        """
+        Returns the size of a tensor
+        """
         return (~self.get_nans).sum(dim=dim)
 
     def __lt__(self, other) -> Tensor:
@@ -322,6 +376,8 @@ class NaNTensor(Tensor):
         One corollary to this is that you need coverage for torch.Tensor
         methods if implementing __torch_function__ for subclasses.
 
+        Affects the call torch.sum() as to behave the same way as NaNTensor.sum()
+
         We recommend always calling ``super().__torch_function__`` as the base
         case when doing the above.
 
@@ -333,19 +389,36 @@ class NaNTensor(Tensor):
         else:
             return super().__torch_function__(func, types, args=args, kwargs=kwargs)
 
+
 def pearson_ipu(preds, target):
+    """Computes pearson correlation coefficient.
+
+    Handles NaNs without reshaping tensors in order to work on IPU.
+    """
     preds = NaNTensor(preds)
     target = NaNTensor(target)
     preds[target.get_nans] = float("nan")
     pearson = pearson_corrcoef(preds, target)
     return Tensor(pearson)
 
-def r2_score_ipu(preds, target, *args, **kwargs):
+
+def r2_score_ipu(preds, target, *args, **kwargs) -> Tensor:
+    """
+    Computes r2 score also known as `R2 Score_Coefficient Determination`_:
+
+    .. math:: R^2 = 1 - \frac{SS_{res}}{SS_{tot}}
+
+    where :math:`SS_{res}=\sum_i (y_i - f(x_i))^2` is the sum of residual squares, and
+    :math:`SS_{tot}=\sum_i (y_i - \bar{y})^2` is total sum of squares.
+
+    Handles NaNs without reshaping tensors in order to work on IPU.
+    """
     preds = NaNTensor(preds)
     target = NaNTensor(target)
     preds[target.get_nans] = float("nan")
     score = r2_score(preds, target, *args, **kwargs)
     return Tensor(score)
+
 
 def fbeta_score_ipu(
     preds: Tensor,
@@ -358,27 +431,28 @@ def fbeta_score_ipu(
     threshold: float = 0.5,
     top_k: Optional[int] = None,
     multiclass: Optional[bool] = None,
-    ):
+):
     """
-    A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
+    A modified version of the `torchmetrics.functional.classification.f_beta._fbeta_compute`
+    that can ignore NaNs by giving them the same value for both `input` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
 
     (tp, fp, tn, fn), mode = get_confusion_matrix(
-        preds = preds,
+        preds=preds,
         target=target,
-        average = average,
-        mdmc_average = mdmc_average,
-        ignore_index = ignore_index,
-        num_classes = num_classes,
-        threshold = threshold,
-        top_k = top_k,
-        multiclass = multiclass
-        )
+        average=average,
+        mdmc_average=mdmc_average,
+        ignore_index=ignore_index,
+        num_classes=num_classes,
+        threshold=threshold,
+        top_k=top_k,
+        multiclass=multiclass,
+    )
 
     return _fbeta_compute(tp, fp, tn, fn, beta, ignore_index, average, mdmc_average)
+
 
 def f1_score_ipu(
     preds: Tensor,
@@ -391,29 +465,35 @@ def f1_score_ipu(
     threshold: float = 0.5,
     top_k: Optional[int] = None,
     multiclass: Optional[bool] = None,
-    ):
+):
     """
-    A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
+    A modified version of the `torchmetrics.functional.classification.f_beta._fbeta_compute`
+    that can ignore NaNs by giving them the same value for both `input` and `target`.
+    Used to calculate the f1_score on IPU with beta parameter equal to 1.0
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
 
     (tp, fp, tn, fn), mode = get_confusion_matrix(
-        preds = preds,
+        preds=preds,
         target=target,
-        average = average,
-        mdmc_average = mdmc_average,
-        ignore_index = ignore_index,
-        num_classes = num_classes,
-        threshold = threshold,
-        top_k = top_k,
-        multiclass = multiclass
-        )
+        average=average,
+        mdmc_average=mdmc_average,
+        ignore_index=ignore_index,
+        num_classes=num_classes,
+        threshold=threshold,
+        top_k=top_k,
+        multiclass=multiclass,
+    )
 
     return _fbeta_compute(tp, fp, tn, fn, 1.0, ignore_index, average, mdmc_average)
 
+
 def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -> Tensor:
+    """Computes mean squared error.
+
+    Handles NaNs without reshaping tensors in order to work on IPU.
+    """
     target = target.clone()
     preds = preds.clone()
 
@@ -434,7 +514,12 @@ def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -
 
     return loss
 
+
 def mean_absolute_error_ipu(self, preds: Tensor, target: Tensor) -> Tensor:
+    """Computes mean absolute error.
+
+    Handles NaNs without reshaping tensors in order to work on IPU.
+    """
     target = target.clone()
     preds = preds.clone()
 
@@ -448,19 +533,3 @@ def mean_absolute_error_ipu(self, preds: Tensor, target: Tensor) -> Tensor:
     loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
     return loss
-
-# def forward(self, input: Tensor, target: Tensor) -> Tensor:
-
-#         target = target.clone()
-#         input = input.clone()
-
-#         # Replace the nan-targets in the input/target tensors by 0
-#         nan_targets = target.isnan()
-#         input[nan_targets] = 0.0
-#         target[nan_targets] = 0.0
-
-#         # Compute the loss, and rescale by the number of nan elements
-#         loss = super().forward(input, target)
-#         loss = loss * nan_targets.numel() / ((~nan_targets).sum())
-
-#         return loss
