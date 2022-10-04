@@ -46,19 +46,6 @@ class OptimOptions:
                 - lr `float`: Learning rate (Default=`1e-3`)
                 - weight_decay `float`: Weight decay used to regularize the optimizer (Default=`0.`)
 
-            lr_reduce_on_plateau_kwargs:
-                DEPRECIATED. USE `torch_scheduler_kwargs` instead.
-                Dictionnary for the reduction of learning rate when reaching plateau, with possible keys below.
-
-                - factor `float`: Factor by which to reduce the learning rate (Default=`0.5`)
-                - patience `int`: Number of epochs without improvement to wait before reducing
-                  the learning rate (Default=`10`)
-                - mode `str`: One of min, max. In min mode, lr will be reduced when the quantity
-                  monitored has stopped decreasing; in max mode it will be reduced when the quantity
-                  monitored has stopped increasing. (Default=`"min"`).
-                - min_lr `float`: A scalar or a list of scalars. A lower bound on the learning rate
-                  of all param groups or each group respectively (Default=`1e-4`)
-
             torch_scheduler_kwargs:
                 Dictionnary for the scheduling of learning rate, with possible keys below.
 
@@ -77,10 +64,13 @@ class OptimOptions:
                 - frequency `int`: **TODO: NOT REALLY SURE HOW IT WORKS!** (Default=`1`)
     """
     optim_kwargs: Optional[Dict[str, Any]] = None
-    lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None
+    # lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None
     torch_scheduler_kwargs: Optional[Dict[str, Any]] = None
     scheduler_kwargs: Optional[Dict[str, Any]] = None
 
+
+    # Instead of passing a dictionary to be processed by the predictor, 
+    # this class will process the dictionary in advance and return the optimizer
     def set_kwargs(self):
         # Set the parameters and default value for the optimizer, and check values
         optim_kwargs = (
@@ -104,21 +94,6 @@ class OptimOptions:
         # }
         # if scheduler_kwargs is not None:
         #     self.scheduler_kwargs.update(scheduler_kwargs)
-
-        # # Set the depreciated arguments, if provided
-        # lr_reduce_on_plateau_kwargs = self.lr_reduce_on_plateau_kwargs
-        # if lr_reduce_on_plateau_kwargs is not None:
-        #     logger.warning(
-        #         "`lr_reduce_on_plateau_kwargs` is depreciated, use `torch_scheduler_kwargs` instead."
-        #     )
-        #     if torch_scheduler_kwargs is not None:
-        #         raise ValueError(
-        #             "Ambiguous. Both `lr_reduce_on_plateau_kwargs` and `torch_scheduler_kwargs` are provided"
-        #         )
-        #     torch_scheduler_kwargs = {
-        #         "module_type": "ReduceLROnPlateau",
-        #         **lr_reduce_on_plateau_kwargs,
-        #     }
 
         # # Set the pytorch scheduler arguments
         # torch_scheduler_kwargs = self.torch_scheduler_kwargs
