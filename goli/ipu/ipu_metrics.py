@@ -1,5 +1,5 @@
 import torch
-from torch import Tensor
+from torch import BoolTensor, IntTensor, Tensor
 from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score
 
 from typing import Optional, Tuple, Sequence
@@ -436,9 +436,11 @@ class NaNTensor(Tensor):
     """
 
     @property
-    def get_nans(self):
+    def get_nans(self) -> BoolTensor:
         """
-        Gets the NaN shape initialization parameters for the tensor
+        Gets the boolean Tensor containing the location of NaNs.
+        In the case of an integer tensor, this returns where the tensor is equal to its minimal value
+        In the case of a boolean tensor, this returns a Tensor filled with `False`
         """
         if self.is_floating_point():
             return self.isnan()
@@ -447,9 +449,9 @@ class NaNTensor(Tensor):
         else:
             return torch.zeros(self.shape, device=self.device, dtype=bool)
 
-    def sum(self, *args, **kwargs):
+    def sum(self, *args, **kwargs) -> Tensor:
         """
-        Sums all elements of a tensor while treating NaNs as 0
+        Overloads the traditional sum to ignore the NaNs
         """
         tensor = self.to(float)
         tensor[self.get_nans] = float("nan")
@@ -459,21 +461,21 @@ class NaNTensor(Tensor):
             dtype = torch.int64
         return tensor.nansum(*args, **kwargs).to(dtype)
 
-    def mean(self, *args, **kwargs):
+    def mean(self, *args, **kwargs) -> Tensor:
         """
-        Calculates mean of all elements of a tensor while treating NaNs as 0
+        Overloads the traditional mean to ignore the NaNs
         """
         tensor = self.to(float)
         tensor[self.get_nans] = float("nan")
         return nan_mean(tensor, *args, **kwargs).to(self.dtype)
 
-    def numel(self):
+    def numel(self) -> int:
         """
-        Sums all elements of a tensor whitout NaNs
+        Returns the number of non-NaN elements.
         """
         return super(NaNTensor, ~self.get_nans).sum()
 
-    def min(self, *args, **kwargs):
+    def min(self, *args, **kwargs) -> Tensor:
         """
         Returns the min vale of a tensor whitout NaNs
         """
@@ -481,7 +483,7 @@ class NaNTensor(Tensor):
         tensor = tensor[~self.get_nans]
         return super(NaNTensor, tensor).min(*args, **kwargs)
 
-    def max(self, *args, **kwargs):
+    def max(self, *args, **kwargs) -> Tensor:
         """
         Returns the max vale of a tensor whitout NaNs
         """
@@ -489,9 +491,9 @@ class NaNTensor(Tensor):
         tensor = tensor[~self.get_nans]
         return super(NaNTensor, tensor).max(*args, **kwargs)
 
-    def argsort(self, dim=-1, descending=False):
+    def argsort(self, dim=-1, descending=False) -> IntTensor:
         """
-        Sorts values a tensor whitout NaNs
+        Return the indices that sort the tensor, while putting all the NaNs to the end of the sorting.
         """
         tensor = self
         if descending:
@@ -500,14 +502,20 @@ class NaNTensor(Tensor):
             tensor[tensor.get_nans] = float("inf")
         return super(NaNTensor, tensor).argsort(dim=dim, descending=descending)
 
-    def size(self, dim):
+    def size(self, dim) -> Tensor:
         """
-        Returns the size of a tensor
+        Instead of returning the size, return the number of non-NaN elements in
+        a specific dimension. Useful for the `r2_score` metric.
         """
         return (~self.get_nans).sum(dim=dim)
 
     def __lt__(self, other) -> Tensor:
-        if other == 2:
+        """
+        Stupid fix that allows the code to work with `r2_score`,
+        since it requires the size to be > 2. But since `self.size` now returns
+        a Tensor instead of a value, we check that all elements are > 2.
+        """
+        if (not isinstance(other, Tensor)) and (other == 2):
             return super().__lt__(other).all()
         else:
             return super().__lt__(other)
