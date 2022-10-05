@@ -1709,7 +1709,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="creating-gnn-layers">Creating GNN layers<a class="anchor-link" href="#creating-gnn-layers">&#182;</a></h1><p>One of the primary advantage of the current library is the fact that GNN layers are independant from model architecture, thus allowing more flexibility with the code by easily swapping different layer types as hyper-parameters. However, this requires that the layers be implemented using the DGL library, and must be inherited from the class <code>BaseDGLLayer</code>, which standardizes the inputs, outputs and properties of the layers. Thus, the architecture can be handled independantly using the class <code>FeedForwardDGL</code>, or any similar custom class.</p>
+<h1 id="Creating-GNN-layers">Creating GNN layers<a class="anchor-link" href="#Creating-GNN-layers">&#182;</a></h1><p>One of the primary advantage of the current library is the fact that GNN layers are independant from model architecture, thus allowing more flexibility with the code by easily swapping different layer types as hyper-parameters. However, this requires that the layers be implemented using the DGL library, and must be inherited from the class <code>BaseDGLLayer</code>, which standardizes the inputs, outputs and properties of the layers. Thus, the architecture can be handled independantly using the class <code>FeedForwardDGL</code>, or any similar custom class.</p>
 <p>We will first start by a simple layer that does not use edges, to a more complex layer that uses edges.</p>
 <p>Since these examples are built on top of DGL, we recommend looking at their <a href="https://docs.dgl.ai/en/0.5.x/index.html">library</a> for more info.</p>
 
@@ -1777,9 +1777,7 @@ _ = torch.manual_seed(42)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -1802,7 +1800,7 @@ _ = torch.manual_seed(42)</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="pre-defining-test-variables">Pre-defining test variables<a class="anchor-link" href="#pre-defining-test-variables">&#182;</a></h2><p>We define below a small batched graph on which we can test the created layers</p>
+<h2 id="Pre-defining-test-variables">Pre-defining test variables<a class="anchor-link" href="#Pre-defining-test-variables">&#182;</a></h2><p>We define below a small batched graph on which we can test the created layers</p>
 
 </div>
 </div>
@@ -1886,9 +1884,7 @@ print(bg)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -1913,7 +1909,7 @@ print(bg)</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="creating-a-simple-layer">Creating a simple layer<a class="anchor-link" href="#creating-a-simple-layer">&#182;</a></h2><p>Here, we will show how to create a GNN layer that does a mean aggregation on the neighbouring features.</p>
+<h2 id="Creating-a-simple-layer">Creating a simple layer<a class="anchor-link" href="#Creating-a-simple-layer">&#182;</a></h2><p>Here, we will show how to create a GNN layer that does a mean aggregation on the neighbouring features.</p>
 <p>First, for the layer to be fully compatible with the flexible architecture provided by <code>FeedForwardDGL</code>, it needs to inherit from the class <code>BaseDGLLayer</code>. This base-layer has multiple virtual methods that must be implemented in any class that inherits from it.</p>
 <p>The virtual methods are below</p>
 <ul>
@@ -2098,9 +2094,7 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2124,7 +2118,7 @@ torch.Size([7, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="creating-a-complex-layer-with-edges">Creating a complex layer with edges<a class="anchor-link" href="#creating-a-complex-layer-with-edges">&#182;</a></h2><p>Here, we will show how to create a GNN layer that does a mean aggregation on the neighbouring features, concatenated to the edge features with their neighbours. In that case, only the node features will change, and the network will not update the edge features.</p>
+<h2 id="Creating-a-complex-layer-with-edges">Creating a complex layer with edges<a class="anchor-link" href="#Creating-a-complex-layer-with-edges">&#182;</a></h2><p>Here, we will show how to create a GNN layer that does a mean aggregation on the neighbouring features, concatenated to the edge features with their neighbours. In that case, only the node features will change, and the network will not update the edge features.</p>
 <p>The virtual methods will have different outputs</p>
 <ul>
 <li><code>layer_supports_edges</code>: We want to return <code>True</code> since our layer does support edges</li>
@@ -2336,9 +2330,7 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 

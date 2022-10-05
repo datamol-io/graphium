@@ -1832,9 +1832,9 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="building-and-training-a-simple-model-from-configurations">Building and training a simple model from configurations<a class="anchor-link" href="#building-and-training-a-simple-model-from-configurations">&#182;</a></h1><p>This tutorial will walk you through how to use a configuration file to define all the parameters of a model and of the trainer. This tutorial focuses on training from SMILES data in a CSV format.</p>
+<h1 id="Building-and-training-a-simple-model-from-configurations">Building and training a simple model from configurations<a class="anchor-link" href="#Building-and-training-a-simple-model-from-configurations">&#182;</a></h1><p>This tutorial will walk you through how to use a configuration file to define all the parameters of a model and of the trainer. This tutorial focuses on training from SMILES data in a CSV format.</p>
 <p>There are multiple examples of YAML files located in the folder <code>goli/expts</code> that one can refer to when training a new model. The file <code>config_ZINC_bench_gnn.yaml</code> shows an example of single task regression from a CSV file provided by goli. And the file <code>config_molpcba.yaml</code> shows an example of a multi-task classification on a dataset provided by OGB with some missing data.</p>
-<h2 id="creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#creating-the-yaml-file">&#182;</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>goli/expts/config_micro_ZINC.yaml</code>. We will go through each part of the configurations.</p>
+<h2 id="Creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#Creating-the-yaml-file">&#182;</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>goli/expts/config_micro_ZINC.yaml</code>. We will go through each part of the configurations.</p>
 
 </div>
 </div>
@@ -1954,9 +1954,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -1979,7 +1977,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="constants">Constants<a class="anchor-link" href="#constants">&#182;</a></h3><p>First, we define the constants such as the random seed and whether the model should raise or ignore an error.</p>
+<h3 id="Constants">Constants<a class="anchor-link" href="#Constants">&#182;</a></h3><p>First, we define the constants such as the random seed and whether the model should raise or ignore an error.</p>
 
 </div>
 </div>
@@ -2021,9 +2019,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2049,7 +2045,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="datamodule">Datamodule<a class="anchor-link" href="#datamodule">&#182;</a></h3><p>Here, we define all the parameters required by the datamodule to run correctly, such as the dataset path, whether to cache, the columns for the training, the molecular featurization to use, the train/val/test splits and the batch size.</p>
+<h3 id="Datamodule">Datamodule<a class="anchor-link" href="#Datamodule">&#182;</a></h3><p>Here, we define all the parameters required by the datamodule to run correctly, such as the dataset path, whether to cache, the columns for the training, the molecular featurization to use, the train/val/test splits and the batch size.</p>
 <p>For more details, see class <code>goli.data.datamodule.DGLFromSmilesDataModule</code></p>
 
 </div>
@@ -2092,9 +2088,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2161,7 +2155,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="architecture">Architecture<a class="anchor-link" href="#architecture">&#182;</a></h3><p>In the architecture, we define all the layers for the model, including the layers for the pre-processing MLP (input layers <code>pre-nn</code>), the post-processing MLP (output layers <code>post-nn</code>), and the main GNN (graph neural network <code>gnn</code>).</p>
+<h3 id="Architecture">Architecture<a class="anchor-link" href="#Architecture">&#182;</a></h3><p>In the architecture, we define all the layers for the model, including the layers for the pre-processing MLP (input layers <code>pre-nn</code>), the post-processing MLP (output layers <code>post-nn</code>), and the main GNN (graph neural network <code>gnn</code>).</p>
 <p>The parameters allow to chose the feature size, the depth, the skip connections, the pooling and the virtual node. It also support different GNN layers such as <code>gcn</code>, <code>gin</code>, <code>gat</code>, <code>gated-gcn</code>, <code>pna-conv</code> and <code>pna-msgpass</code>.</p>
 <p>For more details, see the following classes:</p>
 <ul>
@@ -2210,9 +2204,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2293,7 +2285,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="predictor">Predictor<a class="anchor-link" href="#predictor">&#182;</a></h3><p>In the predictor, we define the loss functions, the metrics to track on the progress bar, and all the parameters necessary for the optimizer.</p>
+<h3 id="Predictor">Predictor<a class="anchor-link" href="#Predictor">&#182;</a></h3><p>In the predictor, we define the loss functions, the metrics to track on the progress bar, and all the parameters necessary for the optimizer.</p>
 
 </div>
 </div>
@@ -2335,9 +2327,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2378,7 +2368,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="metrics">Metrics<a class="anchor-link" href="#metrics">&#182;</a></h3><p>All the metrics can be defined there. If we want to use a classification metric, we can also define a threshold.</p>
+<h3 id="Metrics">Metrics<a class="anchor-link" href="#Metrics">&#182;</a></h3><p>All the metrics can be defined there. If we want to use a classification metric, we can also define a threshold.</p>
 <p>See class <code>goli.trainer.metrics.MetricWrapper</code> for more details.</p>
 <p>See <code>goli.trainer.metrics.METRICS_CLASSIFICATION</code> and <code>goli.trainer.metrics.METRICS_REGRESSION</code> for a dictionnary of accepted metrics.</p>
 
@@ -2422,9 +2412,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2483,7 +2471,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="trainer">Trainer<a class="anchor-link" href="#trainer">&#182;</a></h3><p>Finally, the Trainer defines the parameters for the number of epochs to train, the checkpoints, and the patience.</p>
+<h3 id="Trainer">Trainer<a class="anchor-link" href="#Trainer">&#182;</a></h3><p>Finally, the Trainer defines the parameters for the number of epochs to train, the checkpoints, and the patience.</p>
 
 </div>
 </div>
@@ -2525,9 +2513,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2569,7 +2555,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="training-the-model">Training the model<a class="anchor-link" href="#training-the-model">&#182;</a></h2><p>Now that we defined all the configuration files, we want to train the model. The steps are fairly easy using the config loaders, and are given below.</p>
+<h2 id="Training-the-model">Training the model<a class="anchor-link" href="#Training-the-model">&#182;</a></h2><p>Now that we defined all the configuration files, we want to train the model. The steps are fairly easy using the config loaders, and are given below.</p>
 
 </div>
 </div>
@@ -2677,9 +2663,7 @@ trainer.fit(model=predictor, datamodule=datamodule)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2957,7 +2941,7 @@ Epoch 24: 100%|██████████| 7/7 [00:02&lt;00:00,  2.53it/s, l
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="testing-the-model">Testing the model<a class="anchor-link" href="#testing-the-model">&#182;</a></h2><p>Once the model is trained, we can use the same datamodule to get the results on the test set. Here, <code>ckpt_path</code> refers to the checkpoint path where the model at the best validation step was saved. Thus, the results on the test set represent the early stopping.</p>
+<h2 id="Testing-the-model">Testing the model<a class="anchor-link" href="#Testing-the-model">&#182;</a></h2><p>Once the model is trained, we can use the same datamodule to get the results on the test set. Here, <code>ckpt_path</code> refers to the checkpoint path where the model at the best validation step was saved. Thus, the results on the test set represent the early stopping.</p>
 <p>All the metrics that were computed on the validation set are then computed on the test set, printed, and saved into the <code>metrics.yaml</code> file.</p>
 
 </div>
@@ -3002,9 +2986,7 @@ trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3030,9 +3012,7 @@ DATALOADER:0 TEST RESULTS
 </pre>
 </div>
 </div>
-
-<div class="jp-OutputArea-child">
-
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[11]:</div>
 

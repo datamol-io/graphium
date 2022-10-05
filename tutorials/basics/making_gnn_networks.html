@@ -1722,7 +1722,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="making-gnn-networks">Making GNN Networks<a class="anchor-link" href="#making-gnn-networks">&#182;</a></h1><p>In this example, you will learn how to easily build a full GNN network using any kind of GNN layer. This tutorial uses the architecture defined by the class <code>FullDGLNetwork</code>, which is compatible with any layer that inherits from <code>BaseDGLLayer</code>.</p>
+<h1 id="Making-GNN-Networks">Making GNN Networks<a class="anchor-link" href="#Making-GNN-Networks">&#182;</a></h1><p>In this example, you will learn how to easily build a full GNN network using any kind of GNN layer. This tutorial uses the architecture defined by the class <code>FullDGLNetwork</code>, which is compatible with any layer that inherits from <code>BaseDGLLayer</code>.</p>
 <p><code>FullDGLNetwork</code> is an architecture that takes as input node features and (optionally) edge features. It applies a pre-MLP on both sets of features, then it passes it into a main GNN network, and finally applies a post-MLP to produce the final output (either node predictions or graph property predictions).</p>
 <p>The network is very easy to built via a dictionnary of parameter that allow to custom each part of the network.</p>
 
@@ -1786,9 +1786,7 @@ _ = torch.manual_seed(42)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -1896,9 +1894,7 @@ print(bg)
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -1923,7 +1919,7 @@ print(bg)
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="building-the-network">Building the network<a class="anchor-link" href="#building-the-network">&#182;</a></h2><p>To build the network, we must define the arguments to pass at the different steps:</p>
+<h2 id="Building-the-network">Building the network<a class="anchor-link" href="#Building-the-network">&#182;</a></h2><p>To build the network, we must define the arguments to pass at the different steps:</p>
 <ul>
 <li><p><code>pre_nn_kwargs</code>: The parameters used by a feed-forward neural network on the input node-features, before passing to the convolutional layers. See class <code>FeedForwardNN</code> for details on the required parameters. Will be ignored if set to <code>None</code>.</p>
 </li>
@@ -2063,9 +2059,9 @@ gnn_net = FullDGLNetwork(
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="applying-the-network">Applying the network<a class="anchor-link" href="#applying-the-network">&#182;</a></h2><p>Once the network is defined, we only need to run the forward pass on the input graphs to get a prediction.</p>
+<h2 id="Applying-the-network">Applying the network<a class="anchor-link" href="#Applying-the-network">&#182;</a></h2><p>Once the network is defined, we only need to run the forward pass on the input graphs to get a prediction.</p>
 <p>The network will handle the node and edge features depending on it's parameters and layer type.</p>
-<p>Chosing between graph property prediction and node property prediction depends on the parameter given by <code>gnn_kwargs["pooling"]</code>.</p>
+<p>Chosing between graph property prediction and node property prediction depends on the parameter given by <code>gnn_kwargs[&quot;pooling&quot;]</code>.</p>
 
 </div>
 </div>
@@ -2124,9 +2120,7 @@ print(gnn_net)
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 

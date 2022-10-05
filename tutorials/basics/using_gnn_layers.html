@@ -1723,7 +1723,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="using-gnn-layers">Using GNN layers<a class="anchor-link" href="#using-gnn-layers">&#182;</a></h1><p>The current library implements multiple state-of-the-art graph neural networks. In this tutorial, you will learn how to use the <strong>GCN</strong>, <strong>GIN</strong>, <strong>Gated-GCN</strong> and <strong>PNA</strong> layers in a simple <code>forward</code> context.</p>
+<h1 id="Using-GNN-layers">Using GNN layers<a class="anchor-link" href="#Using-GNN-layers">&#182;</a></h1><p>The current library implements multiple state-of-the-art graph neural networks. In this tutorial, you will learn how to use the <strong>GCN</strong>, <strong>GIN</strong>, <strong>Gated-GCN</strong> and <strong>PNA</strong> layers in a simple <code>forward</code> context.</p>
 <p>Other layers such as <strong>DGN</strong> require additional positional encoding to work.</p>
 
 </div>
@@ -1798,9 +1798,7 @@ _ = torch.manual_seed(42)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -1823,7 +1821,7 @@ _ = torch.manual_seed(42)</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We will first create some simple batched graphs that will be used accross the examples. Here, <code>bg</code> is a batch of 2 graphs containing random node features <code>bg.ndata["h"]</code> and edge features <code>bg.edata["e"]</code>.</p>
+<p>We will first create some simple batched graphs that will be used accross the examples. Here, <code>bg</code> is a batch of 2 graphs containing random node features <code>bg.ndata[&quot;h&quot;]</code> and edge features <code>bg.edata[&quot;e&quot;]</code>.</p>
 
 </div>
 </div>
@@ -1908,9 +1906,7 @@ print(bg)
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -1935,8 +1931,8 @@ print(bg)
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="gcn-layer">GCN Layer<a class="anchor-link" href="#gcn-layer">&#182;</a></h2><p>To use the GCN layer from the <em>Kipf et al.</em> paper, the steps are very simple. We create the layer with the desired attributes, and apply it to the graph.</p>
-<p><sub>Kipf, Thomas N., and Max Welling. "Semi-supervised classification with graph convolutional networks." arXiv preprint arXiv:1609.02907 (2016).</sub></p>
+<h2 id="GCN-Layer">GCN Layer<a class="anchor-link" href="#GCN-Layer">&#182;</a></h2><p>To use the GCN layer from the <em>Kipf et al.</em> paper, the steps are very simple. We create the layer with the desired attributes, and apply it to the graph.</p>
+<p><sub>Kipf, Thomas N., and Max Welling. &quot;Semi-supervised classification with graph convolutional networks.&quot; arXiv preprint arXiv:1609.02907 (2016).</sub></p>
 
 </div>
 </div>
@@ -2010,9 +2006,7 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2037,8 +2031,8 @@ torch.Size([7, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="gin-layer">GIN Layer<a class="anchor-link" href="#gin-layer">&#182;</a></h2><p>To use the GIN layer from the <em>Xu et al.</em> paper, the steps are identical to GCN.</p>
-<p><sub>Xu, Keyulu, et al. "How powerful are graph neural networks?." arXiv preprint arXiv:1810.00826 (2018).</sub></p>
+<h2 id="GIN-Layer">GIN Layer<a class="anchor-link" href="#GIN-Layer">&#182;</a></h2><p>To use the GIN layer from the <em>Xu et al.</em> paper, the steps are identical to GCN.</p>
+<p><sub>Xu, Keyulu, et al. &quot;How powerful are graph neural networks?.&quot; arXiv preprint arXiv:1810.00826 (2018).</sub></p>
 
 </div>
 </div>
@@ -2098,9 +2092,7 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2125,8 +2117,8 @@ torch.Size([7, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="gat-layer">GAT Layer<a class="anchor-link" href="#gat-layer">&#182;</a></h2><p>To use the GAT layer from the <em>Velickovic et al.</em> paper, the steps are identical to GCN, but the output dimension is multiplied by the number of heads.</p>
-<p><sub>Velickovic, Petar, et al. "Graph attention networks." arXiv preprint arXiv:1710.10903 (2017).</sub></p>
+<h2 id="GAT-Layer">GAT Layer<a class="anchor-link" href="#GAT-Layer">&#182;</a></h2><p>To use the GAT layer from the <em>Velickovic et al.</em> paper, the steps are identical to GCN, but the output dimension is multiplied by the number of heads.</p>
+<p><sub>Velickovic, Petar, et al. &quot;Graph attention networks.&quot; arXiv preprint arXiv:1710.10903 (2017).</sub></p>
 
 </div>
 </div>
@@ -2186,9 +2178,7 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2213,8 +2203,8 @@ torch.Size([7, 55])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="gated-gcn-layer">Gated-GCN Layer<a class="anchor-link" href="#gated-gcn-layer">&#182;</a></h2><p>To use the Gated-GCN layer from the <em>Bresson et al.</em> paper, the steps are different since the layer requires edge features as inputs, and outputs new edge features.</p>
-<p><sub>Bresson, Xavier, and Thomas Laurent. "Residual gated graph convnets." arXiv preprint arXiv:1711.07553 (2017).</sub></p>
+<h2 id="Gated-GCN-Layer">Gated-GCN Layer<a class="anchor-link" href="#Gated-GCN-Layer">&#182;</a></h2><p>To use the Gated-GCN layer from the <em>Bresson et al.</em> paper, the steps are different since the layer requires edge features as inputs, and outputs new edge features.</p>
+<p><sub>Bresson, Xavier, and Thomas Laurent. &quot;Residual gated graph convnets.&quot; arXiv preprint arXiv:1711.07553 (2017).</sub></p>
 
 </div>
 </div>
@@ -2296,9 +2286,7 @@ print(e_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2325,11 +2313,11 @@ torch.Size([14, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="pna">PNA<a class="anchor-link" href="#pna">&#182;</a></h1><p>PNA is a multi-aggregator method proposed by <em>Corso et al.</em>. It supports 2 types of aggregations, convolutional <em>PNA-conv</em> or message passing <em>PNA-msgpass</em>.</p>
+<h1 id="PNA">PNA<a class="anchor-link" href="#PNA">&#182;</a></h1><p>PNA is a multi-aggregator method proposed by <em>Corso et al.</em>. It supports 2 types of aggregations, convolutional <em>PNA-conv</em> or message passing <em>PNA-msgpass</em>.</p>
 <p><sub>PNA: Principal Neighbourhood Aggregation 
 Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
-https://arxiv.org/abs/2004.05718</sub></p>
-<h2 id="pna-conv">PNA-conv<a class="anchor-link" href="#pna-conv">&#182;</a></h2><p>First, let's focus on the PNA-conv. In this case, it works exactly as the GCN and GIN methods. Although not presented in the example, PNA-conv also supports edge features by concatenating them to the node features during convolution.</p>
+<a href="https://arxiv.org/abs/2004.05718">https://arxiv.org/abs/2004.05718</a></sub></p>
+<h2 id="PNA-conv">PNA-conv<a class="anchor-link" href="#PNA-conv">&#182;</a></h2><p>First, let's focus on the PNA-conv. In this case, it works exactly as the GCN and GIN methods. Although not presented in the example, PNA-conv also supports edge features by concatenating them to the node features during convolution.</p>
 
 </div>
 </div>
@@ -2399,9 +2387,7 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2426,7 +2412,7 @@ torch.Size([7, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="pna-msgpass">PNA-msgpass<a class="anchor-link" href="#pna-msgpass">&#182;</a></h2><p>The PNA message passing is typically more powerful that the convolutional one, and it supports edges as inputs, but doesn't output edges. It's usage is very similar to the <em>PNA-conv</em>. Here, we also present the option to specify the edge dimensions and features.</p>
+<h2 id="PNA-msgpass">PNA-msgpass<a class="anchor-link" href="#PNA-msgpass">&#182;</a></h2><p>The PNA message passing is typically more powerful that the convolutional one, and it supports edges as inputs, but doesn't output edges. It's usage is very similar to the <em>PNA-conv</em>. Here, we also present the option to specify the edge dimensions and features.</p>
 
 </div>
 </div>
@@ -2498,9 +2484,7 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 

@@ -2050,7 +2050,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="building-and-training-on-ipu-from-configurations">Building and training on IPU from configurations<a class="anchor-link" href="#building-and-training-on-ipu-from-configurations">&#182;</a></h1><p>This tutorial will walk you through how to use a configuration file to define all the parameters of a model and of the trainer. This tutorial focuses on training from SMILES data in a CSV format.</p>
+<h1 id="Building-and-training-on-IPU-from-configurations">Building and training on IPU from configurations<a class="anchor-link" href="#Building-and-training-on-IPU-from-configurations">&#182;</a></h1><p>This tutorial will walk you through how to use a configuration file to define all the parameters of a model and of the trainer. This tutorial focuses on training from SMILES data in a CSV format.</p>
 <p>There are multiple examples of YAML files located in the folder <code>goli/expts</code> that one can refer to when training a new model. The file <code>docs/tutorials/model_training/config_ipu_tutorials.yaml</code> shows an example of multi-task regression from a CSV file provided by goli.</p>
 <p>If you are not familiar with <a href="https://pytorch.org/docs">PyTorch</a> or <a href="https://pytorch-lightning.readthedocs.io/en/latest/">PyTorch-Lightning</a>, we highly recommend going through their tutorial first.</p>
 
@@ -2064,7 +2064,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="the-ipu-config-file">The ipu config file<a class="anchor-link" href="#the-ipu-config-file">&#182;</a></h3><p>The IPU config file can be found at <code>expts/configs/ipu.config</code>. And is given below.</p>
+<h3 id="The-ipu-config-file">The ipu config file<a class="anchor-link" href="#The-ipu-config-file">&#182;</a></h3><p>The IPU config file can be found at <code>expts/configs/ipu.config</code>. And is given below.</p>
 
 </div>
 </div>
@@ -2116,9 +2116,7 @@ print("".join(lines))</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2148,7 +2146,7 @@ enableExecutableCaching(&#34;pop_compiler_cache&#34;)
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#creating-the-yaml-file">&#182;</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>goli/docs/tutorials/model_training/config_ipu_tutorials.yaml</code>. We will go through each part of the configurations.</p>
+<h2 id="Creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#Creating-the-yaml-file">&#182;</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>goli/docs/tutorials/model_training/config_ipu_tutorials.yaml</code>. We will go through each part of the configurations.</p>
 
 </div>
 </div>
@@ -2268,9 +2266,7 @@ print("Yaml file loaded")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2293,7 +2289,7 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="constants">Constants<a class="anchor-link" href="#constants">&#182;</a></h3><p>First, we define the constants such as the random seed and whether the model should raise or ignore an error.
+<h3 id="Constants">Constants<a class="anchor-link" href="#Constants">&#182;</a></h3><p>First, we define the constants such as the random seed and whether the model should raise or ignore an error.
 The <code>name</code> here will be used to log the metrics into WandB and log the models.
 The <code>accelerator</code> is used to define the device. It supports <code>cpu</code>, <code>ipu</code> or <code>gpu</code>. This is the only part that needs to change when working with IPUs.</p>
 
@@ -2337,9 +2333,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2368,7 +2362,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="datamodule">Datamodule<a class="anchor-link" href="#datamodule">&#182;</a></h3><p>Here, we define all the parameters required by the datamodule to run correctly, such as the dataset path, whether to cache, the columns for the training, the molecular featurization to use, the train/val/test splits and the batch size.</p>
+<h3 id="Datamodule">Datamodule<a class="anchor-link" href="#Datamodule">&#182;</a></h3><p>Here, we define all the parameters required by the datamodule to run correctly, such as the dataset path, whether to cache, the columns for the training, the molecular featurization to use, the train/val/test splits and the batch size.</p>
 <p>The <code>MultitaskIPUFromSmilesDataModule</code> allows us to define a set of tasks within different CSV or parquet files, and use them to train the model simultaneously via the path <code>datamodule: args: task_specific_args</code></p>
 <p>For more details, see class <code>goli.data.datamodule.MultitaskIPUFromSmilesDataModule</code></p>
 
@@ -2382,7 +2376,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="reading-a-csv-file-and-trainvaltest-splits">Reading a CSV file and train/val/test splits<a class="anchor-link" href="#reading-a-csv-file-and-trainvaltest-splits">&#182;</a></h4><p>Here is an example of configuration regarding the task named "homo", which reads the file located in <code>https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv</code> , selects the columns "homo" and "lumo", and splits into validation and test set with rations of 20% each</p>
+<h4 id="Reading-a-CSV-file-and-train/val/test-splits">Reading a CSV file and train/val/test splits<a class="anchor-link" href="#Reading-a-CSV-file-and-train/val/test-splits">&#182;</a></h4><p>Here is an example of configuration regarding the task named &quot;homo&quot;, which reads the file located in <code>https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv</code> , selects the columns &quot;homo&quot; and &quot;lumo&quot;, and splits into validation and test set with rations of 20% each</p>
 
 </div>
 </div>
@@ -2424,9 +2418,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2464,7 +2456,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="featurizing-a-molecule">Featurizing a molecule<a class="anchor-link" href="#featurizing-a-molecule">&#182;</a></h4><p>Molecules can be featurized using various properties and positional / structural encoding. A list of all features is available here:</p>
+<h4 id="Featurizing-a-molecule">Featurizing a molecule<a class="anchor-link" href="#Featurizing-a-molecule">&#182;</a></h4><p>Molecules can be featurized using various properties and positional / structural encoding. A list of all features is available here:</p>
 <ul>
 <li><code>goli.features.featurizer.get_mol_atomic_features_onehot</code></li>
 <li><code>goli.features.featurizer.get_mol_atomic_features_float</code></li>
@@ -2514,9 +2506,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2564,7 +2554,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="architecture">Architecture<a class="anchor-link" href="#architecture">&#182;</a></h3><p>In the architecture, we define all the layers for the model, including the layers for the pre-processing MLP (input layers <code>pre-nn</code>), the post-processing MLP (output layers <code>post-nn</code>), and the main GNN (graph neural network <code>gnn</code>).</p>
+<h3 id="Architecture">Architecture<a class="anchor-link" href="#Architecture">&#182;</a></h3><p>In the architecture, we define all the layers for the model, including the layers for the pre-processing MLP (input layers <code>pre-nn</code>), the post-processing MLP (output layers <code>post-nn</code>), and the main GNN (graph neural network <code>gnn</code>).</p>
 <p>The parameters allow to chose the feature size, the depth, the skip connections, the pooling and the virtual node. It also support different GNN layers such as <code>pyg:gcn</code>, <code>pyg:gin</code>, <code>pyg:gine</code>,  <code>pyg:gated-gcn</code>, <code>pyg:pna-msgpass</code>, and <code>pyg:gps</code>.</p>
 <p>For more details, see the following classes:</p>
 <ul>
@@ -2583,7 +2573,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-node-pre-processing-nn">Parameters for the node pre-processing NN<a class="anchor-link" href="#parameters-for-the-node-pre-processing-nn">&#182;</a></h4>
+<h4 id="Parameters-for-the-node-pre-processing-NN">Parameters for the node pre-processing NN<a class="anchor-link" href="#Parameters-for-the-node-pre-processing-NN">&#182;</a></h4>
 </div>
 </div>
 </div>
@@ -2624,9 +2614,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2659,7 +2647,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-edge-pre-processing-nn">Parameters for the edge pre-processing NN<a class="anchor-link" href="#parameters-for-the-edge-pre-processing-nn">&#182;</a></h4>
+<h4 id="Parameters-for-the-edge-pre-processing-NN">Parameters for the edge pre-processing NN<a class="anchor-link" href="#Parameters-for-the-edge-pre-processing-NN">&#182;</a></h4>
 </div>
 </div>
 </div>
@@ -2700,9 +2688,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2735,7 +2721,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-gnn">Parameters for the GNN<a class="anchor-link" href="#parameters-for-the-gnn">&#182;</a></h4><p>Here is an example of a GraphGPS layer, with it's MPNN being a GINE model</p>
+<h4 id="Parameters-for-the-GNN">Parameters for the GNN<a class="anchor-link" href="#Parameters-for-the-GNN">&#182;</a></h4><p>Here is an example of a GraphGPS layer, with it's MPNN being a GINE model</p>
 
 </div>
 </div>
@@ -2777,9 +2763,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2823,7 +2807,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-node-post-processing-nn-after-the-gnn">Parameters for the node post-processing NN (after the GNN)<a class="anchor-link" href="#parameters-for-the-node-post-processing-nn-after-the-gnn">&#182;</a></h4>
+<h4 id="Parameters-for-the-node-post-processing-NN-(after-the-GNN)">Parameters for the node post-processing NN (after the GNN)<a class="anchor-link" href="#Parameters-for-the-node-post-processing-NN-(after-the-GNN)">&#182;</a></h4>
 </div>
 </div>
 </div>
@@ -2864,9 +2848,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2899,7 +2881,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-multi-task-output-heads">Parameters for the multi-task output heads<a class="anchor-link" href="#parameters-for-the-multi-task-output-heads">&#182;</a></h4><p>Here is the example for the task heads. Notice that <code>"task_name"</code> should match the tasks in the section <code>datamodule: args: task_specific_args</code>.</p>
+<h4 id="Parameters-for-the-multi-task-output-heads">Parameters for the multi-task output heads<a class="anchor-link" href="#Parameters-for-the-multi-task-output-heads">&#182;</a></h4><p>Here is the example for the task heads. Notice that <code>&quot;task_name&quot;</code> should match the tasks in the section <code>datamodule: args: task_specific_args</code>.</p>
 
 </div>
 </div>
@@ -2942,9 +2924,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -2998,7 +2978,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="predictor">Predictor<a class="anchor-link" href="#predictor">&#182;</a></h3><p>In the predictor, we define the loss functions, the metrics to track on the progress bar, and all the parameters necessary for the optimizer.</p>
+<h3 id="Predictor">Predictor<a class="anchor-link" href="#Predictor">&#182;</a></h3><p>In the predictor, we define the loss functions, the metrics to track on the progress bar, and all the parameters necessary for the optimizer.</p>
 <p>Again, each of these arguments depend on the task. And the <code>task_name</code> should match the ones from <code>datamodule: args: task_specific_args</code></p>
 
 </div>
@@ -3041,9 +3021,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3089,7 +3067,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="metrics">Metrics<a class="anchor-link" href="#metrics">&#182;</a></h3><p>All the metrics can be defined there. If we want to use a classification metric, we can also define a threshold.</p>
+<h3 id="Metrics">Metrics<a class="anchor-link" href="#Metrics">&#182;</a></h3><p>All the metrics can be defined there. If we want to use a classification metric, we can also define a threshold.</p>
 <p>See class <code>goli.trainer.metrics.MetricWrapper</code> for more details.</p>
 <p>See <code>goli.trainer.metrics.METRICS_CLASSIFICATION</code> and <code>goli.trainer.metrics.METRICS_REGRESSION</code> for a dictionnary of accepted metrics.</p>
 <p>Again, the metrics are task-dependant and must match the names in <code>datamodule: args: task_specific_args</code></p>
@@ -3134,9 +3112,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3182,7 +3158,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="trainer">Trainer<a class="anchor-link" href="#trainer">&#182;</a></h3><p>Finally, the Trainer defines the parameters for the number of epochs to train, the checkpoints, and the patience.</p>
+<h3 id="Trainer">Trainer<a class="anchor-link" href="#Trainer">&#182;</a></h3><p>Finally, the Trainer defines the parameters for the number of epochs to train, the checkpoints, and the patience.</p>
 
 </div>
 </div>
@@ -3224,9 +3200,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3262,8 +3236,8 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="training-the-model">Training the model<a class="anchor-link" href="#training-the-model">&#182;</a></h2><p>Now that we defined all the configuration files, we want to train the model. The steps are fairly easy using the config loaders, and are given below.</p>
-<h3 id="first-lets-do-our-imports">First, let's do our imports<a class="anchor-link" href="#first-lets-do-our-imports">&#182;</a></h3>
+<h2 id="Training-the-model">Training the model<a class="anchor-link" href="#Training-the-model">&#182;</a></h2><p>Now that we defined all the configuration files, we want to train the model. The steps are fairly easy using the config loaders, and are given below.</p>
+<h3 id="First,-let's-do-our-imports">First, let's do our imports<a class="anchor-link" href="#First,-let's-do-our-imports">&#182;</a></h3>
 </div>
 </div>
 </div>
@@ -3338,7 +3312,7 @@ import wandb</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="then-lets-load-the-configuration-file">Then, let's load the configuration file<a class="anchor-link" href="#then-lets-load-the-configuration-file">&#182;</a></h3>
+<h3 id="Then,-let's-load-the-configuration-file">Then, let's load the configuration file<a class="anchor-link" href="#Then,-let's-load-the-configuration-file">&#182;</a></h3>
 </div>
 </div>
 </div>
@@ -3394,7 +3368,7 @@ with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="now-lets-process-the-data">Now let's process the data<a class="anchor-link" href="#now-lets-process-the-data">&#182;</a></h3>
+<h3 id="Now-let's-process-the-data">Now let's process the data<a class="anchor-link" href="#Now-let's-process-the-data">&#182;</a></h3>
 </div>
 </div>
 </div>
@@ -3439,9 +3413,7 @@ datamodule.prepare_data()</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3458,9 +3430,7 @@ datamodule.prepare_data()</div>
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3472,9 +3442,7 @@ datamodule.prepare_data()</div>
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3499,7 +3467,7 @@ datamodule.prepare_data()</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="lets-build-the-architecture-metrics-and-set-up-the-trainer">Let's build the architecture, metrics, and set-up the trainer<a class="anchor-link" href="#lets-build-the-architecture-metrics-and-set-up-the-trainer">&#182;</a></h3>
+<h3 id="Let's-build-the-architecture,-metrics,-and-set-up-the-trainer">Let's build the architecture, metrics, and set-up the trainer<a class="anchor-link" href="#Let's-build-the-architecture,-metrics,-and-set-up-the-trainer">&#182;</a></h3>
 </div>
 </div>
 </div>
@@ -3568,9 +3536,7 @@ trainer = load_trainer(cfg, "tutorial-run")</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3650,9 +3616,7 @@ Failed to detect the name of this notebook, you can set it manually with the WAN
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3664,9 +3628,7 @@ wandb version 0.13.3 is available!  To upgrade, please run:
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3677,9 +3639,7 @@ Tracking run with wandb version 0.13.2
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3690,9 +3650,7 @@ Run data is saved locally in <code>/home/dom/goli/wandb/run-20220920_171648-1ss1
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3703,9 +3661,7 @@ Syncing run <strong><a href="https://wandb.ai/multitask-gnn/multitask-gnn/runs/1
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3735,7 +3691,7 @@ HPU available: False, using: 0 HPUs
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="finally-lets-run-the-model">Finally, let's run the model<a class="anchor-link" href="#finally-lets-run-the-model">&#182;</a></h3>
+<h3 id="Finally,-let's-run-the-model">Finally, let's run the model<a class="anchor-link" href="#Finally,-let's-run-the-model">&#182;</a></h3>
 </div>
 </div>
 </div>
@@ -3786,9 +3742,7 @@ wandb.finish()</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3801,9 +3755,7 @@ wandb.finish()</div>
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3815,9 +3767,7 @@ wandb.finish()</div>
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3829,9 +3779,7 @@ wandb.finish()</div>
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3851,9 +3799,7 @@ wandb.finish()</div>
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3894,9 +3840,7 @@ MultitaskDataset
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3908,9 +3852,7 @@ MultitaskDataset
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3928,9 +3870,7 @@ Graph compilation: 100%|██████████| 100/100 [00:01&lt;00:00]
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3942,9 +3882,7 @@ Graph compilation: 100%|██████████| 100/100 [00:01&lt;00:00]
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -3991,9 +3929,7 @@ Graph compilation: 100%|██████████| 100/100 [00:02&lt;00:00]
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4005,9 +3941,7 @@ Graph compilation: 100%|██████████| 100/100 [00:02&lt;00:00]
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4019,9 +3953,7 @@ Graph compilation: 100%|██████████| 100/100 [00:02&lt;00:00]
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4033,9 +3965,7 @@ Graph compilation: 100%|██████████| 100/100 [00:02&lt;00:00]
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4047,9 +3977,7 @@ Graph compilation: 100%|██████████| 100/100 [00:02&lt;00:00]
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4061,9 +3989,7 @@ Graph compilation: 100%|██████████| 100/100 [00:02&lt;00:00]
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4074,9 +4000,7 @@ Waiting for W&B process to finish... <strong style="color:green">(success).</str
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4088,9 +4012,7 @@ Waiting for W&B process to finish... <strong style="color:green">(success).</str
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4106,9 +4028,7 @@ Waiting for W&B process to finish... <strong style="color:green">(success).</str
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4119,9 +4039,7 @@ Synced <strong style="color:#cdcd00">tutorial-run</strong>: <a href="https://wan
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4145,7 +4063,7 @@ Find logs at: <code>./wandb/run-20220920_171648-1ss172i9/logs</code>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="testing-the-model">Testing the model<a class="anchor-link" href="#testing-the-model">&#182;</a></h2><p>Once the model is trained, we can use the same datamodule to get the results on the test set. Here, <code>ckpt_path</code> refers to the checkpoint path where the model at the best validation step was saved. Thus, the results on the test set represent the early stopping.</p>
+<h2 id="Testing-the-model">Testing the model<a class="anchor-link" href="#Testing-the-model">&#182;</a></h2><p>Once the model is trained, we can use the same datamodule to get the results on the test set. Here, <code>ckpt_path</code> refers to the checkpoint path where the model at the best validation step was saved. Thus, the results on the test set represent the early stopping.</p>
 <p>All the metrics that were computed on the validation set are then computed on the test set, printed, and saved into the <code>metrics.yaml</code> file.</p>
 
 </div>
@@ -4190,9 +4108,7 @@ trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4203,9 +4119,7 @@ trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)</div>
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4217,9 +4131,7 @@ trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)</div>
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4232,9 +4144,7 @@ Loaded model weights from checkpoint at /home/dom/goli/models_checkpoints/QM9/tu
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4259,9 +4169,7 @@ MultitaskDataset
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4273,9 +4181,7 @@ MultitaskDataset
 </div>
 
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4297,9 +4203,7 @@ KeyError: &#39;1ss172i9&#39;
 </pre>
 </div>
 </div>
-
 <div class="jp-OutputArea-child">
-
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
@@ -4343,9 +4247,7 @@ alpha/median_target/test     -0.05999755859375
 </pre>
 </div>
 </div>
-
-<div class="jp-OutputArea-child">
-
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
     <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[21]:</div>
 
