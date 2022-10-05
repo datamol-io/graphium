@@ -5,6 +5,7 @@ from functools import partial
 import importlib.resources
 import zipfile
 from copy import deepcopy
+from multiprocessing import Manager
 
 from loguru import logger
 import fsspec
@@ -89,7 +90,6 @@ def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1, backend="loky", progr
     )
     return unique_mol_ids
 
-
 class SingleTaskDataset(Dataset):
     def __init__(
         self,
@@ -100,9 +100,10 @@ class SingleTaskDataset(Dataset):
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
     ):
         self.labels = labels
-        self.smiles = smiles
+        manager = Manager() # Avoid memory leaks with `num_workers > 0`
+        self.smiles = manager.list(smiles)
         self.features = features
-        self.indices = indices
+        self.indices = np.array(indices)
         self.weights = weights
 
     def __len__(self):
