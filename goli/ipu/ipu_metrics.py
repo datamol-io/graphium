@@ -1,8 +1,8 @@
 import torch
 from torch import Tensor
-from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score  # Remove imports
+from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score
 
-from typing import Optional, Sequence
+from typing import Optional, Tuple, Sequence
 
 from torchmetrics.utilities.checks import _input_squeeze
 from torchmetrics.functional.classification.accuracy import (
@@ -10,7 +10,7 @@ from torchmetrics.functional.classification.accuracy import (
     _check_subset_validity,
     _accuracy_compute,
     _accuracy_update,
-)  # Remove imports
+)
 from torchmetrics.functional.classification.precision_recall import _precision_compute, _recall_compute
 from torchmetrics.functional.classification.f_beta import _fbeta_compute
 from torchmetrics.functional import mean_squared_error, mean_absolute_error
@@ -30,7 +30,7 @@ def auroc_ipu(
 ):
     """
     A modified version of the `torchmetrics.functional.auroc` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
+    by giving them the same value for both `preds` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
@@ -72,7 +72,7 @@ def average_precision_ipu(
 ):
     """
     A modified version of the `torchmetrics.functional.average_precision` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
+    by giving them the same value for both `preds` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
@@ -116,7 +116,7 @@ def precision_ipu(
 ):
     """
     A modified version of the `torchmetrics.functional.precision` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
+    by giving them the same value for both `preds` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
@@ -150,7 +150,7 @@ def recall_ipu(
 ):
     """
     A modified version of the `torchmetrics.functional.recall` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
+    by giving them the same value for both `preds` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
     """
@@ -184,14 +184,100 @@ def accuracy_ipu(
 ) -> Tensor:
     """
     A modified version of the `torchmetrics.functional.accuracy` that can ignore NaNs
-    by giving them the same value for both `input` and `target`.
+    by giving them the same value for both `preds` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
 
     Args:
-        average: Defines the reduction that is applied.
-        mdmc_average: Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
-            ``average`` parameter).
+        preds: Predictions from model (probabilities, logits or labels)
+        target: Ground truth labels
+        average:
+            Defines the reduction that is applied. Should be one of the following:
+
+            - ``'micro'`` [default]: Calculate the metric globally, across all samples and classes.
+            - ``'macro'``: Calculate the metric for each class separately, and average the
+              metrics across classes (with equal weights for each class).
+            - ``'weighted'``: Calculate the metric for each class separately, and average the
+              metrics across classes, weighting each class by its support (``tp + fn``).
+            - ``'none'`` or ``None``: Calculate the metric for each class separately, and return
+              the metric for every class.
+            - ``'samples'``: Calculate the metric for each sample, and average the metrics
+              across samples (with equal weights for each sample).
+
+            .. note:: What is considered a sample in the multi-dimensional multi-class case
+                depends on the value of ``mdmc_average``.
+
+            .. note:: If ``'none'`` and a given class doesn't occur in the ``preds`` or ``target``,
+                the value for the class will be ``nan``.
+
+        mdmc_average:
+            Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+            ``average`` parameter). Should be one of the following:
+
+            - ``None`` [default]: Should be left unchanged if your data is not multi-dimensional multi-class.
+
+            - ``'samplewise'``: In this case, the statistics are computed separately for each
+              sample on the ``N`` axis, and then averaged over samples.
+              The computation for each sample is done by treating the flattened extra axes ``...``
+              (see :ref:`pages/classification:input types`) as the ``N`` dimension within the sample,
+              and computing the metric for the sample based on that.
+
+            - ``'global'``: In this case the ``N`` and ``...`` dimensions of the inputs
+              (see :ref:`pages/classification:input types`)
+              are flattened into a new ``N_X`` sample axis, i.e. the inputs are treated as if they
+              were ``(N_X, C)``. From here on the ``average`` parameter applies as usual.
+
+        num_classes:
+            Number of classes. Necessary for ``'macro'``, ``'weighted'`` and ``None`` average methods.
+
+        threshold:
+            Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+            of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.
+        top_k:
+            Number of the highest probability or logit score predictions considered finding the correct label,
+            relevant only for (multi-dimensional) multi-class inputs. The
+            default value (``None``) will be interpreted as 1 for these inputs.
+
+            Should be left at default (``None``) for all other types of inputs.
+        multiclass:
+            Used only in certain special cases, where you want to treat inputs as a different type
+            than what they appear to be. See the parameter's
+            :ref:`documentation section <pages/classification:using the multiclass parameter>`
+            for a more detailed explanation and examples.
+        ignore_index:
+            Integer specifying a target class to ignore. If given, this class index does not contribute
+            to the returned score, regardless of reduction method. If an index is ignored, and ``average=None``
+            or ``'none'``, the score for the ignored class will be returned as ``nan``.
+        subset_accuracy:
+            Whether to compute subset accuracy for multi-label and multi-dimensional
+            multi-class inputs (has no effect for other input types).
+
+            - For multi-label inputs, if the parameter is set to ``True``, then all labels for
+              each sample must be correctly predicted for the sample to count as correct. If it
+              is set to ``False``, then all labels are counted separately - this is equivalent to
+              flattening inputs beforehand (i.e. ``preds = preds.flatten()`` and same for ``target``).
+
+            - For multi-dimensional multi-class inputs, if the parameter is set to ``True``, then all
+              sub-sample (on the extra axis) must be correct for the sample to be counted as correct.
+              If it is set to ``False``, then all sub-samples are counter separately - this is equivalent,
+              in the case of label predictions, to flattening the inputs beforehand (i.e.
+              ``preds = preds.flatten()`` and same for ``target``). Note that the ``top_k`` parameter
+              still applies in both cases, if set.
+
+    Raises:
+        ValueError:
+            If ``top_k`` parameter is set for ``multi-label`` inputs.
+        ValueError:
+            If ``average`` is none of ``"micro"``, ``"macro"``, ``"weighted"``, ``"samples"``, ``"none"``, ``None``.
+        ValueError:
+            If ``mdmc_average`` is not one of ``None``, ``"samplewise"``, ``"global"``.
+        ValueError:
+            If ``average`` is set but ``num_classes`` is not provided.
+        ValueError:
+            If ``num_classes`` is set
+            and ``ignore_index`` is not in the range ``[0, num_classes)``.
+        ValueError:
+            If ``top_k`` is not an ``integer`` larger than ``0``.
     """
 
     (tp, fp, tn, fn), mode = get_confusion_matrix(
@@ -221,9 +307,69 @@ def get_confusion_matrix(
     num_classes: Optional[int] = None,
     multiclass: Optional[bool] = None,
     ignore_index: Optional[int] = None,
-):
+) -> Tuple[Tuple[Tensor], Tensor]:
     """
     Calculates the confusion matrix according to the specified average method.
+
+    Args:
+        preds: Predictions from model (probabilities, logits or labels)
+        target: Ground truth labels
+        average:
+            Defines the reduction that is applied. Should be one of the following:
+
+            - ``'micro'`` [default]: Calculate the metric globally, across all samples and classes.
+            - ``'macro'``: Calculate the metric for each class separately, and average the
+              metrics across classes (with equal weights for each class).
+            - ``'weighted'``: Calculate the metric for each class separately, and average the
+              metrics across classes, weighting each class by its support (``tp + fn``).
+            - ``'none'`` or ``None``: Calculate the metric for each class separately, and return
+              the metric for every class.
+            - ``'samples'``: Calculate the metric for each sample, and average the metrics
+              across samples (with equal weights for each sample).
+
+            .. note:: What is considered a sample in the multi-dimensional multi-class case
+                depends on the value of ``mdmc_average``.
+
+            .. note:: If ``'none'`` and a given class doesn't occur in the ``preds`` or ``target``,
+                the value for the class will be ``nan``.
+
+        mdmc_average:
+            Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+            ``average`` parameter). Should be one of the following:
+
+            - ``None`` [default]: Should be left unchanged if your data is not multi-dimensional multi-class.
+
+            - ``'samplewise'``: In this case, the statistics are computed separately for each
+              sample on the ``N`` axis, and then averaged over samples.
+              The computation for each sample is done by treating the flattened extra axes ``...``
+              (see :ref:`pages/classification:input types`) as the ``N`` dimension within the sample,
+              and computing the metric for the sample based on that.
+
+            - ``'global'``: In this case the ``N`` and ``...`` dimensions of the inputs
+              (see :ref:`pages/classification:input types`)
+              are flattened into a new ``N_X`` sample axis, i.e. the inputs are treated as if they
+              were ``(N_X, C)``. From here on the ``average`` parameter applies as usual.
+
+        num_classes:
+            Number of classes. Necessary for ``'macro'``, ``'weighted'`` and ``None`` average methods.
+
+        threshold:
+            Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+            of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.
+        top_k:
+            Number of the highest probability or logit score predictions considered finding the correct label,
+            relevant only for (multi-dimensional) multi-class inputs. The
+            default value (``None``) will be interpreted as 1 for these inputs.
+
+            Should be left at default (``None``) for all other types of inputs.
+        multiclass:
+            Used only in certain special cases, where you want to treat inputs as a different type
+            than what they appear to be. See the parameter's
+            :ref:`documentation section <pages/classification:using the multiclass parameter>`
+            for a more detailed explanation and examples.
+        ignore_index:
+            Integer specifying a target class to ignore. If given, this class index does not contribute
+            to the returned score, regardless of reduction method. If an index is ignored, and ``average=None``
     """
     allowed_average = ["micro", "macro", "weighted", "samples", "none", None]
     if average not in allowed_average:
@@ -394,6 +540,10 @@ def pearson_ipu(preds, target):
     """Computes pearson correlation coefficient.
 
     Handles NaNs without reshaping tensors in order to work on IPU.
+
+    Args:
+        preds: estimated scores
+        target: ground truth scores
     """
     preds = NaNTensor(preds)
     target = NaNTensor(target)
@@ -409,9 +559,24 @@ def r2_score_ipu(preds, target, *args, **kwargs) -> Tensor:
     .. math:: R^2 = 1 - \frac{SS_{res}}{SS_{tot}}
 
     where :math:`SS_{res}=\sum_i (y_i - f(x_i))^2` is the sum of residual squares, and
-    :math:`SS_{tot}=\sum_i (y_i - \bar{y})^2` is total sum of squares.
+    :math:`SS_{tot}=\sum_i (y_i - \bar{y})^2` is total sum of squares. Can also calculate
+    adjusted r2 score given by
 
+    .. math:: R^2_{adj} = 1 - \frac{(1-R^2)(n-1)}{n-k-1}
+
+    where the parameter :math:`k` (the number of independent regressors) should
+    be provided as the ``adjusted`` argument.
     Handles NaNs without reshaping tensors in order to work on IPU.
+
+    Args:
+        preds: estimated labels
+        target: ground truth labels
+        adjusted: number of independent regressors for calculating adjusted r2 score.
+        multioutput: Defines aggregation in the case of multiple output scores. Can be one of the following strings:
+
+            * ``'raw_values'`` returns full set of scores
+            * ``'uniform_average'`` scores are uniformly averaged
+            * ``'variance_weighted'`` scores are weighted by their individual variances
     """
     preds = NaNTensor(preds)
     target = NaNTensor(target)
@@ -434,9 +599,100 @@ def fbeta_score_ipu(
 ):
     """
     A modified version of the `torchmetrics.functional.classification.f_beta._fbeta_compute`
-    that can ignore NaNs by giving them the same value for both `input` and `target`.
+    that can ignore NaNs by giving them the same value for both `preds` and `target`.
     This allows it to work with compilation
     and IPUs since it doesn't modify the tensor's shape.
+
+    Args:
+        preds: Predictions from model (probabilities, logits or labels)
+        target: Ground truth labels
+        average:
+            Defines the reduction that is applied. Should be one of the following:
+
+            - ``'micro'`` [default]: Calculate the metric globally, across all samples and classes.
+            - ``'macro'``: Calculate the metric for each class separately, and average the
+              metrics across classes (with equal weights for each class).
+            - ``'weighted'``: Calculate the metric for each class separately, and average the
+              metrics across classes, weighting each class by its support (``tp + fn``).
+            - ``'none'`` or ``None``: Calculate the metric for each class separately, and return
+              the metric for every class.
+            - ``'samples'``: Calculate the metric for each sample, and average the metrics
+              across samples (with equal weights for each sample).
+
+            .. note:: What is considered a sample in the multi-dimensional multi-class case
+                depends on the value of ``mdmc_average``.
+
+            .. note:: If ``'none'`` and a given class doesn't occur in the ``preds`` or ``target``,
+                the value for the class will be ``nan``.
+
+        mdmc_average:
+            Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+            ``average`` parameter). Should be one of the following:
+
+            - ``None`` [default]: Should be left unchanged if your data is not multi-dimensional multi-class.
+
+            - ``'samplewise'``: In this case, the statistics are computed separately for each
+              sample on the ``N`` axis, and then averaged over samples.
+              The computation for each sample is done by treating the flattened extra axes ``...``
+              (see :ref:`pages/classification:input types`) as the ``N`` dimension within the sample,
+              and computing the metric for the sample based on that.
+
+            - ``'global'``: In this case the ``N`` and ``...`` dimensions of the inputs
+              (see :ref:`pages/classification:input types`)
+              are flattened into a new ``N_X`` sample axis, i.e. the inputs are treated as if they
+              were ``(N_X, C)``. From here on the ``average`` parameter applies as usual.
+
+        num_classes:
+            Number of classes. Necessary for ``'macro'``, ``'weighted'`` and ``None`` average methods.
+
+        threshold:
+            Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+            of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.
+        top_k:
+            Number of the highest probability or logit score predictions considered finding the correct label,
+            relevant only for (multi-dimensional) multi-class inputs. The
+            default value (``None``) will be interpreted as 1 for these inputs.
+
+            Should be left at default (``None``) for all other types of inputs.
+        multiclass:
+            Used only in certain special cases, where you want to treat inputs as a different type
+            than what they appear to be. See the parameter's
+            :ref:`documentation section <pages/classification:using the multiclass parameter>`
+            for a more detailed explanation and examples.
+        ignore_index:
+            Integer specifying a target class to ignore. If given, this class index does not contribute
+            to the returned score, regardless of reduction method. If an index is ignored, and ``average=None``
+            or ``'none'``, the score for the ignored class will be returned as ``nan``.
+        subset_accuracy:
+            Whether to compute subset accuracy for multi-label and multi-dimensional
+            multi-class inputs (has no effect for other input types).
+
+            - For multi-label inputs, if the parameter is set to ``True``, then all labels for
+              each sample must be correctly predicted for the sample to count as correct. If it
+              is set to ``False``, then all labels are counted separately - this is equivalent to
+              flattening inputs beforehand (i.e. ``preds = preds.flatten()`` and same for ``target``).
+
+            - For multi-dimensional multi-class inputs, if the parameter is set to ``True``, then all
+              sub-sample (on the extra axis) must be correct for the sample to be counted as correct.
+              If it is set to ``False``, then all sub-samples are counter separately - this is equivalent,
+              in the case of label predictions, to flattening the inputs beforehand (i.e.
+              ``preds = preds.flatten()`` and same for ``target``). Note that the ``top_k`` parameter
+              still applies in both cases, if set.
+
+    Raises:
+        ValueError:
+            If ``top_k`` parameter is set for ``multi-label`` inputs.
+        ValueError:
+            If ``average`` is none of ``"micro"``, ``"macro"``, ``"weighted"``, ``"samples"``, ``"none"``, ``None``.
+        ValueError:
+            If ``mdmc_average`` is not one of ``None``, ``"samplewise"``, ``"global"``.
+        ValueError:
+            If ``average`` is set but ``num_classes`` is not provided.
+        ValueError:
+            If ``num_classes`` is set
+            and ``ignore_index`` is not in the range ``[0, num_classes)``.
+        ValueError:
+            If ``top_k`` is not an ``integer`` larger than ``0``.
     """
 
     (tp, fp, tn, fn), mode = get_confusion_matrix(
@@ -468,10 +724,23 @@ def f1_score_ipu(
 ):
     """
     A modified version of the `torchmetrics.functional.classification.f_beta._fbeta_compute`
-    that can ignore NaNs by giving them the same value for both `input` and `target`.
+    that can ignore NaNs by giving them the same value for both `preds` and `target`.
     Used to calculate the f1_score on IPU with beta parameter equal to 1.0
-    This allows it to work with compilation
-    and IPUs since it doesn't modify the tensor's shape.
+    This allows it to work with compilation and IPUs since it doesn't modify the tensor's shape.
+
+    Computes f_beta metric from stat scores: true positives, false positives, true negatives, false negatives.
+
+    Args:
+        tp: True positives
+        fp: False positives
+        tn: True negatives
+        fn: False negatives
+        beta: The parameter `beta` (which determines the weight of recall in the combined score)
+        ignore_index: Integer specifying a target class to ignore. If given, this class index does not contribute
+            to the returned score, regardless of reduction method
+        average: Defines the reduction that is applied
+        mdmc_average: Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+            ``average`` parameter)
     """
 
     (tp, fp, tn, fn), mode = get_confusion_matrix(
@@ -493,6 +762,14 @@ def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -
     """Computes mean squared error.
 
     Handles NaNs without reshaping tensors in order to work on IPU.
+
+    Args:
+        preds: estimated labels
+        target: ground truth labels
+        squared: returns RMSE value if set to False
+
+    Return:
+        Tensor with MSE
     """
     target = target.clone()
     preds = preds.clone()
@@ -519,6 +796,13 @@ def mean_absolute_error_ipu(self, preds: Tensor, target: Tensor) -> Tensor:
     """Computes mean absolute error.
 
     Handles NaNs without reshaping tensors in order to work on IPU.
+
+    Args:
+        preds: estimated labels
+        target: ground truth labels
+
+    Return:
+        Tensor with MAE
     """
     target = target.clone()
     preds = preds.clone()
