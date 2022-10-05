@@ -132,10 +132,6 @@ METRICS_CLASSIFICATION = {
     "fbeta_score_ipu": fbeta_score_ipu,
     "precision_ipu": precision_ipu,
     "recall_ipu": recall_ipu,
-    "pearson_ipu": pearson_ipu,
-    "r2_score_ipu": r2_score_ipu,
-    "mean_squared_error_ipu": mean_squared_error_ipu,
-    "mean_absolute_error_ipu": mean_absolute_error_ipu,
 }
 
 METRICS_REGRESSION = {
@@ -147,6 +143,10 @@ METRICS_REGRESSION = {
     "spearmanr": met.spearman_corrcoef,
     "r2": met.r2_score,
     "cosine": met.cosine_similarity,
+    "pearson_ipu": pearson_ipu,
+    "r2_score_ipu": r2_score_ipu,
+    "mae_ipu": mean_squared_error_ipu,
+    "mse_ipu": mean_absolute_error_ipu,
 }
 
 METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)
