@@ -112,7 +112,7 @@ def is_device_cuda(device: torch.device, ignore_errors: bool = False) -> bool:
     return is_cuda
 
 
-def nan_mean(input: Tensor, **kwargs) -> Tensor:
+def nan_mean(input: Tensor, *args, **kwargs) -> Tensor:
     r"""
     Return the mean of all elements, while ignoring the NaNs.
 
@@ -133,8 +133,8 @@ def nan_mean(input: Tensor, **kwargs) -> Tensor:
         output: The resulting mean of the tensor
     """
 
-    sum = torch.nansum(input, **kwargs)
-    num = torch.sum(~torch.isnan(input), **kwargs)
+    sum = torch.nansum(input, *args, **kwargs)
+    num = torch.sum(~torch.isnan(input), *args, **kwargs)
     mean = sum / num
     return mean
 
