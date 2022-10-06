@@ -1,9 +1,12 @@
+from typing import Union, Callable, Optional, Type
 from copy import deepcopy
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import mup.init as mupi
+from mup import set_base_shapes
 
-from typing import Union, Callable, Optional, Type
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 
@@ -62,6 +65,25 @@ def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]
     return deepcopy(parsed_norm)
 
 
+class MultiheadAttentionMup(nn.MultiheadAttention):
+    def _reset_parameters(self):
+        set_base_shapes(self, None, rescale_params=False) # Set the shapes of the tensors, useful for mup
+        if self._qkv_same_embed_dim:
+            mupi.xavier_uniform_(self.in_proj_weight)
+        else:
+            mupi.xavier_uniform_(self.q_proj_weight)
+            mupi.xavier_uniform_(self.k_proj_weight)
+            mupi.xavier_uniform_(self.v_proj_weight)
+
+        if self.in_proj_bias is not None:
+            nn.init.constant_(self.in_proj_bias, 0.)
+            nn.init.constant_(self.out_proj.bias, 0.)
+        if self.bias_k is not None:
+            mupi.xavier_normal_(self.bias_k)
+        if self.bias_v is not None:
+            mupi.xavier_normal_(self.bias_v)
+
+
 class FCLayer(nn.Module):
     def __init__(
         self,
@@ -75,7 +97,7 @@ class FCLayer(nn.Module):
     ):
 
         r"""
-        A simple fully connected and customizable layer. This layer is centered around a torch.nn.Linear module.
+        A simple fully connected and customizable layer. This layer is centered around a `torch.nn.Linear` module.
         The order in which transformations are applied is:
 
         - Dense Layer
@@ -85,7 +107,7 @@ class FCLayer(nn.Module):
 
         Parameters:
             in_dim:
-                Input dimension of the layer (the torch.nn.Linear)
+                Input dimension of the layer (the `torch.nn.Linear`)
             out_dim:
                 Output dimension of the layer.
             dropout:
@@ -110,9 +132,9 @@ class FCLayer(nn.Module):
                 The ratio of units to dropout.
             normalization (None or Callable):
                 Normalization layer
-            linear (torch.nn.Linear):
+            linear (`torch.nn.Linear`):
                 The linear layer
-            activation (torch.nn.Module):
+            activation (`torch.nn.Module`):
                 The activation layer
             init_fn (Callable):
                 Initialization function used for the weight of the layer
@@ -137,14 +159,18 @@ class FCLayer(nn.Module):
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
-        self.init_fn = init_fn if init_fn is not None else nn.init.xavier_uniform_
+        self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
 
         self.reset_parameters()
 
     def reset_parameters(self, init_fn=None):
+        """
+        Reset the parameters of the linear layer using the `init_fn`.
+        """
+        set_base_shapes(self, None, rescale_params=False) # Set the shapes of the tensors, useful for mup
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
-            init_fn(self.linear.weight, 1 / self.in_dim)
+            init_fn(self.linear.weight, 1)
         if self.bias:
             self.linear.bias.data.zero_()
 
