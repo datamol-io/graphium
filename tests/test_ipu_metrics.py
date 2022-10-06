@@ -99,7 +99,6 @@ class test_Losses(ut.TestCase):
         )
 
     def test_average_precision(self):
-        preds_with_weights = deepcopy(self.preds)
         preds = deepcopy(self.preds)[:, 0]
         target = deepcopy(self.target)[:, 0]
         target_nan = deepcopy(self.target_nan)[:, 0]
