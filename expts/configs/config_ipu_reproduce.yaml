@@ -27,7 +27,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: -1
+    featurization_n_jobs: 32
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
