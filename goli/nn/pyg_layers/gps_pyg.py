@@ -3,14 +3,11 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 """
 
 from copy import deepcopy
-import torch
-import torch.nn as nn
-from torch_scatter import scatter
 from typing import Callable, Union, Optional
 
 
 from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import FCLayer
+from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
@@ -24,7 +21,7 @@ PYG_LAYERS_DICT = {
 }
 
 ATTENTION_LAYERS_DICT = {
-    "full-attention": torch.nn.MultiheadAttention,
+    "full-attention": MultiheadAttentionMup,
     "none": None,
 }
 
@@ -89,7 +86,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.ff_dropout1 = self._parse_dropout(dropout=self.dropout)
         self.ff_dropout2 = self._parse_dropout(dropout=self.dropout)
 
-        # Linear layers
+        # linear layers
         self.ff_linear1 = FCLayer(in_dim, in_dim * 2, activation=None)
         self.ff_linear2 = FCLayer(in_dim * 2, in_dim, activation=None)
         self.ff_out = FCLayer(in_dim, out_dim, activation=None)
