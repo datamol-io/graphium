@@ -6,6 +6,7 @@ from copy import deepcopy
 from omegaconf import DictConfig
 import timeit
 from loguru import logger
+from datetime import datetime
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
@@ -19,14 +20,17 @@ import wandb
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
-# CONFIG_FILE = "expts/configs/config_micro_ZINC_mtl_test_3_tasks_pyg.yaml"
+CONFIG_FILE = "expts/configs/config_molPCQM4Mv2.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_allsizes.yaml"
-CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
+# CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
 
 
-def main(cfg: DictConfig, run_name="main") -> None:
+def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) -> None:
     st = timeit.default_timer()
+
+    if add_date_time:
+        run_name += "_" + datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
     cfg = deepcopy(cfg)
 

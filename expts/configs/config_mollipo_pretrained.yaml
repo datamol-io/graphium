@@ -30,8 +30,8 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Train, val, test parameters
-    batch_size_train_val: 256
-    batch_size_test: 256
+    batch_size_training: 256
+    batch_size_inference: 256
 
   # Data loading
   num_workers: 4

@@ -8,7 +8,7 @@ constants:
 
 
 datamodule:
-  module_type: "MultitaskIPUFromSmilesDataModule"
+  module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
@@ -54,7 +54,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
+    featurization_n_jobs: -1
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
@@ -76,8 +76,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_train_val: 6
-    batch_size_test: 6
+    batch_size_training: 6
+    batch_size_inference: 6
     # cache_data_path: null
 
     num_workers: -1
@@ -340,3 +340,4 @@ trainer:
     precision: 32
     max_epochs: 2 #50
     min_epochs: 1 #5
+    accumulate_grad_batches: 10

@@ -67,8 +67,8 @@ datamodule:
       pos_encoding_as_directions: *pos_enc
 
     # Data handling-related
-    batch_size_train_val: 16
-    batch_size_test: 16
+    batch_size_training: 16
+    batch_size_inference: 16
     # cache_data_path: null
 
 architecture:

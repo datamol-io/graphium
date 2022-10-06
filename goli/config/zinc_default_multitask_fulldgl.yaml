@@ -54,8 +54,8 @@ datamodule:
       use_bonds_weights: False
 
     # Data handling-related
-    batch_size_train_val: 16
-    batch_size_test: 16
+    batch_size_training: 16
+    batch_size_inference: 16
     # cache_data_path: null
 
 architecture:     # The parameters for the full graph network are taken from `config_micro_ZINC.yaml`

@@ -83,8 +83,8 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
         dm_args["cache_data_path"] = None
-        dm_args["batch_size_train_val"] = 16
-        dm_args["batch_size_test"] = 16
+        dm_args["batch_size_training"] = 16
+        dm_args["batch_size_inference"] = 16
 
         # Create the data module
         dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)

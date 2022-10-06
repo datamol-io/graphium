@@ -33,8 +33,8 @@ datamodule:
     split_test: 0.2
     split_seed: *seed
     splits_path: null
-    batch_size_train_val: 128
-    batch_size_test: 128
+    batch_size_training: 128
+    batch_size_inference: 128
 
     # Data loading
     num_workers: 0

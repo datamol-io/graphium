@@ -337,8 +337,8 @@ class MultitaskDataset(Dataset):
 class BaseDataModule(pl.LightningDataModule):
     def __init__(
         self,
-        batch_size_train_val: int = 16,
-        batch_size_test: int = 16,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -346,8 +346,8 @@ class BaseDataModule(pl.LightningDataModule):
     ):
         super().__init__()
 
-        self.batch_size_train_val = batch_size_train_val
-        self.batch_size_test = batch_size_test
+        self.batch_size_training = batch_size_training
+        self.batch_size_inference = batch_size_inference
 
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -370,14 +370,14 @@ class BaseDataModule(pl.LightningDataModule):
         raise NotImplementedError()
 
     def train_dataloader(self, **kwargs):
-        return self._dataloader(
+        return self.get_dataloader(
             dataset=self.train_ds,  # type: ignore
             shuffle=True,
             stage=RunningStage.TRAINING,
         )
 
     def val_dataloader(self, **kwargs):
-        return self._dataloader(
+        return self.get_dataloader(
             dataset=self.val_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.VALIDATING,
@@ -385,7 +385,7 @@ class BaseDataModule(pl.LightningDataModule):
 
     def test_dataloader(self, **kwargs):
 
-        return self._dataloader(
+        return self.get_dataloader(
             dataset=self.test_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.TESTING,
@@ -393,7 +393,7 @@ class BaseDataModule(pl.LightningDataModule):
 
     def predict_dataloader(self, **kwargs):
 
-        return self._dataloader(
+        return self.get_dataloader(
             dataset=self.predict_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.PREDICTING,
@@ -475,26 +475,62 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             return self._read_csv(path)
 
-    def _dataloader(self, dataset: Dataset, shuffle: bool, stage: RunningStage):
-        """Get a dataloader for a given dataset"""
+    def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
+        """
+        Get the options for the dataloader depending on the current stage.
 
-        # Get batch size
-        if stage in [RunningStage.TRAINING]:
-            batch_size = self.batch_size_train_val
+        Parameters:
+            stage: Whether in Training, Validating, Testing, Sanity-checking, Predicting, or Tuning phase.
+            shuffle: set to ``True`` to have the data reshuffled at every epoch.
+
+        Returns:
+            Arguments to pass to the `DataLoader` during initialization
+        """
+        loader_kwargs = {}
+
+        # Get batch size and IPU options for training set
+        if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+            loader_kwargs["batch_size"] = self.batch_size_training
+
+        # Get batch size and IPU options for validation / testing sets
         elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
-            batch_size = self.batch_size_test
+            loader_kwargs["batch_size"] = self.batch_size_inference
         else:
             raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
 
+        # Set default parameters
+        loader_kwargs["shuffle"] = shuffle
+        loader_kwargs["collate_fn"] = self.collate_fn
+        loader_kwargs["num_workers"] = self.get_num_workers
+        loader_kwargs["pin_memory"] = self.pin_memory
+        loader_kwargs["persistent_workers"] = self.persistent_workers
+
+        # Update from provided parameters
+        loader_kwargs.update(**kwargs)
+
+        return loader_kwargs
+
+    def get_dataloader(self, dataset: Dataset, shuffle: bool, stage: RunningStage) -> DataLoader:
+        """
+        Get the dataloader for a given dataset
+
+        Parameters:
+            dataset: The dataset from which to load the data
+            shuffle: set to ``True`` to have the data reshuffled at every epoch.
+            stage: Whether in Training, Validating, Testing, Sanity-checking, Predicting, or Tuning phase.
+
+        Returns:
+            The dataloader to sample from
+        """
+        kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
+        return self._dataloader(dataset=dataset, shuffle=shuffle, stage=stage, **kwargs)
+
+    def _dataloader(self, dataset: Dataset, **kwargs) -> DataLoader:
+        """Get a dataloader for a given dataset"""
+
         loader = DataLoader(
             dataset=dataset,
-            num_workers=self.get_num_workers,
-            collate_fn=self.collate_fn,
-            pin_memory=self.pin_memory,
-            batch_size=batch_size,
-            shuffle=shuffle,
-            persistent_workers=self.persistent_workers,
-            drop_last=True,
+            **kwargs,
         )
 
         return loader
@@ -532,14 +568,65 @@ class DatasetProcessingParams:
         self.splits_path = splits_path
 
 
-class MultitaskFromSmilesDataModule(BaseDataModule):
+class IPUDataModuleModifier:
+    """
+    Modify functions from the a `DataModule` to support IPU and IPU options.
+    To be used in dual inheritance, for example:
+
+    ```
+    IPUDataModule(BaseDataModule, IPUDataModuleModifier):
+        def __init__(self, **kwargs):
+            BaseDataModule.__init__(self, **kwargs)
+            IPUDataModuleModifier.__init__(self, **kwargs)
+    ```
+    """
+
+    def __init__(
+        self,
+        ipu_inference_opts: Optional["poptorch.Options"] = None,
+        ipu_training_opts: Optional["poptorch.Options"] = None,
+        ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
+        ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
+        *args,
+        **kwargs,
+    ) -> None:
+        """
+        ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
+        ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
+        ipu_dataloader_kwargs_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
+        ipu_dataloader_kwargs_test: Options for the dataloader for the IPU. Ignore if not using IPUs
+        """
+        self.ipu_inference_opts = ipu_inference_opts
+        self.ipu_training_opts = ipu_training_opts
+        self.ipu_dataloader_training_opts = ipu_dataloader_training_opts
+        self.ipu_dataloader_inference_opts = ipu_dataloader_inference_opts
+
+    def _dataloader(self, dataset: Dataset, **kwargs) -> "poptorch.DataLoader":
+        """Get a dataloader for a given dataset"""
+
+        # Use regular Dataloader if no IPUs
+        if ("ipu_options" not in kwargs.keys()) or (kwargs["ipu_options"] is None):
+            raise ValueError(f"No IPU options provided.")
+
+        # Initialize the IPU dataloader
+        from goli.ipu.ipu_dataloader import create_ipu_dataloader
+
+        loader = create_ipu_dataloader(
+            dataset=dataset,
+            **kwargs,
+        )
+
+        return loader
+
+
+class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def __init__(
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
-        batch_size_train_val: int = 16,
-        batch_size_test: int = 16,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -549,6 +636,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
+        **kwargs,
     ):
         """
         Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
@@ -600,8 +688,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
             featurization: args to apply to the SMILES to Graph featurizer.
-            batch_size_train_val: batch size for training and val dataset.
-            batch_size_test: batch size for test dataset.
+            batch_size_training: batch size for training and val dataset.
+            batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
@@ -627,14 +715,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
                 - "pyg:graph": Process molecules as `pyg.data.Data`.
             dataset_class: The class used to create the dataset from which to sample.
         """
-        super().__init__(
-            batch_size_train_val=batch_size_train_val,
-            batch_size_test=batch_size_test,
+        BaseDataModule.__init__(
+            self,
+            batch_size_training=batch_size_training,
+            batch_size_inference=batch_size_inference,
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
         )
+        IPUDataModuleModifier.__init__(self, **kwargs)
 
         self.task_specific_args = task_specific_args
         # TODO: Have the input argument to the Data Module be of type DatasetParams
@@ -870,10 +960,63 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
 
-        # Produce the label sizes
-        # label_sizes.update(self.train_ds.labels_size)
-        # label_sizes.update(self.val_ds.labels_size)
-        # label_sizes.update(self.test_ds.labels_size)
+    def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
+        """
+        Get the options for the dataloader depending on the current stage.
+
+        Parameters:
+            stage: Whether in Training, Validating, Testing, Sanity-checking, Predicting, or Tuning phase.
+            shuffle: set to ``True`` to have the data reshuffled at every epoch.
+
+        Returns:
+            Arguments to pass to the `DataLoader` during initialization
+        """
+        loader_kwargs = super().get_dataloader_kwargs(stage=stage, shuffle=shuffle, **kwargs)
+
+        # Get batch size and IPU options for training set
+        if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+            loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_training_opts
+            loader_kwargs["ipu_options"] = self.ipu_training_opts
+
+        # Get batch size and IPU options for validation / testing sets
+        elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
+            loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_inference_opts
+            loader_kwargs["ipu_options"] = self.ipu_inference_opts
+        else:
+            raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
+
+        # Remove the IPU options if not available
+        if loader_kwargs["ipu_options"] is None:
+            loader_kwargs.pop("ipu_options")
+            if loader_kwargs["ipu_dataloader_options"] is not None:
+                logger.warning(
+                    "`ipu_dataloader_options` will be ignored since it is provided without `ipu_options`."
+                )
+            loader_kwargs.pop("ipu_dataloader_options")
+        return loader_kwargs
+
+    def get_dataloader(
+        self, dataset: Dataset, shuffle: bool, stage: RunningStage
+    ) -> Union[DataLoader, "poptorch.DataLoader"]:
+        """
+        Get the dataloader for a given dataset
+
+        Parameters:
+            dataset: The dataset from which to load the data
+            shuffle: set to ``True`` to have the data reshuffled at every epoch.
+            stage: Whether in Training, Validating, Testing, Sanity-checking, Predicting, or Tuning phase.
+
+        Returns:
+            The dataloader to sample from
+        """
+        kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
+        is_ipu = ("ipu_options" in kwargs.keys()) and (kwargs.get("ipu_options") is not None)
+        if is_ipu:
+            loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, **kwargs)
+        else:
+            loader = BaseDataModule._dataloader(self, dataset=dataset, **kwargs)
+
+        return loader
 
     @staticmethod
     def get_collate_fn(collate_fn):
@@ -1265,14 +1408,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
         return num_elements
 
     def to_dict(self):
+        # TODO: Change to make more multi-task friendly
         obj_repr = {}
         obj_repr["name"] = self.__class__.__name__
         obj_repr["len"] = len(self)
         obj_repr["train_size"] = len(self.train_indices) if self.train_indices is not None else None
         obj_repr["val_size"] = len(self.val_indices) if self.val_indices is not None else None
         obj_repr["test_size"] = len(self.test_indices) if self.test_indices is not None else None
-        obj_repr["batch_size_train_val"] = self.batch_size_train_val
-        obj_repr["batch_size_test"] = self.batch_size_test
+        obj_repr["batch_size_training"] = self.batch_size_training
+        obj_repr["batch_size_inference"] = self.batch_size_inference
         obj_repr["num_node_feats"] = self.num_node_feats
         obj_repr["num_node_feats_with_positional_encoding"] = self.num_node_feats_with_positional_encoding
         obj_repr["num_edge_feats"] = self.num_edge_feats
@@ -1288,18 +1432,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule):
 
 
 class GraphOGBDataModule(MultitaskFromSmilesDataModule):
-    """Load an OGB GraphProp dataset."""
+    """Load an OGB (Open-graph-benchmark) GraphProp dataset."""
 
     def __init__(
         self,
-        dataset_name: str,
+        task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
-        weights_col: str = None,
-        weights_type: str = None,
-        sample_size: Union[int, float, Type[None]] = None,
-        batch_size_train_val: int = 16,
-        batch_size_test: int = 16,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -1307,17 +1448,26 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
+        prepare_dict_or_graph: str = "pyg:graph",
+        dataset_class: type = MultitaskDataset,
+        **kwargs,
     ):
         """
 
         Parameters:
-            dataset_name: Name of the OGB dataset to load. Examples of possible datasets are
+            task_specific_args: Arguments related to each task, with the task-name being the key,
+              and the specific arguments being the values. The arguments must be a
+              Dict containing the following keys:
+
+              - "dataset_name": Name of the OGB dataset to load. Examples of possible datasets are
                 "ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv".
+              - "sample_size": The number of molecules to sample from the dataset. Default=None,
+                meaning that all molecules will be considered.
             cache_data_path: path where to save or reload the cached data. The path can be
                 remote (S3, GS, etc).
             featurization: args to apply to the SMILES to Graph featurizer.
-            batch_size_train_val: batch size for training and val dataset.
-            batch_size_test: batch size for test dataset.
+            batch_size_training: batch size for training and val dataset.
+            batch_size_inference: batch size for test dataset.
             num_workers: Number of workers for the dataloader. Use -1 to use all available
                 cores.
             pin_memory: Whether to pin on paginated CPU memory for the dataloader.
@@ -1337,28 +1487,31 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 - `None`: all elements are considered.
         """
 
-        # TODO: Fix the GraphOGBDataModule
-        raise NotImplementedError("`GraphOGBDataModule` does not work with Multi-task. Need to fix it")
-
-        self.dataset_name = dataset_name
-
-        # Get OGB metadata
-        self.metadata = self._get_dataset_metadata(self.dataset_name)
-
-        # Get dataset
-        df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(self.metadata)
+        new_task_specific_args = {}
+        self.metadata = {}
+        for task_name, task_args in task_specific_args.items():
+            # Get OGB metadata
+            this_metadata = self._get_dataset_metadata(task_args["dataset_name"])
+            # Get dataset
+            df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(
+                this_metadata, sample_size=task_args.get("sample_size", None)
+            )
+            new_task_specific_args[task_name] = {
+                "df": df,
+                "idx_col": idx_col,
+                "smiles_col": smiles_col,
+                "label_cols": label_cols,
+                "splits_path": splits_path,
+            }
+            self.metadata[task_name] = this_metadata
 
         # Config for datamodule
         dm_args = {}
-        dm_args["df"] = df
+        dm_args["task_specific_args"] = new_task_specific_args
         dm_args["cache_data_path"] = cache_data_path
         dm_args["featurization"] = featurization
-        dm_args["smiles_col"] = smiles_col
-        dm_args["label_cols"] = label_cols
-        dm_args["idx_col"] = idx_col
-        dm_args["splits_path"] = splits_path
-        dm_args["batch_size_train_val"] = batch_size_train_val
-        dm_args["batch_size_test"] = batch_size_test
+        dm_args["batch_size_training"] = batch_size_training
+        dm_args["batch_size_inference"] = batch_size_inference
         dm_args["num_workers"] = num_workers
         dm_args["pin_memory"] = pin_memory
         dm_args["featurization_n_jobs"] = featurization_n_jobs
@@ -1366,13 +1519,13 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args["featurization_backend"] = featurization_backend
         dm_args["persistent_workers"] = persistent_workers
         dm_args["collate_fn"] = collate_fn
-        dm_args["weights_col"] = weights_col
-        dm_args["weights_type"] = weights_type
-        dm_args["sample_size"] = sample_size
+        dm_args["prepare_dict_or_graph"] = prepare_dict_or_graph
+        dm_args["dataset_class"] = dataset_class
 
-        super().__init__(**dm_args)
+        super().__init__(**dm_args, **kwargs)
 
     def to_dict(self):
+        # TODO: Change to make more multi-task friendly
         obj_repr = {}
         obj_repr["dataset_name"] = self.dataset_name
         obj_repr.update(super().to_dict())
@@ -1380,7 +1533,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
     # Private methods
 
-    def _load_dataset(self, metadata: dict):
+    def _load_dataset(self, metadata: dict, sample_size: Optional[int] = None):
         """Download, extract and load an OGB dataset."""
 
         base_dir = fs.get_cache_dir("ogb")
@@ -1408,6 +1561,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         logger.info(f"Loading {df_path} in memory.")
         df = pd.read_csv(df_path)
 
+        # Subsample the dataset
+        df = self._sub_sample_df(df, sample_size)
+
         # Load split from the OGB dataset and save them in a single CSV file
         if metadata["download_name"].startswith("pcqm4m"):
             split_name = metadata["split"]
@@ -1428,8 +1584,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 splits_path = dataset_dir / f"{split_name}.csv.gz"
             else:
                 splits_path = splits_path / f"{split_name}.csv.gz"
-            logger.info(f"Saving splits to {splits_path}")
-            splits.to_csv(splits_path, index=None)
         else:
             split_name = metadata["split"]
             train_split = pd.read_csv(dataset_dir / "split" / split_name / "train.csv.gz", header=None)  # type: ignore
@@ -1440,8 +1594,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             splits.columns = ["train", "val", "test"]
 
             splits_path = dataset_dir / "split" / f"{split_name}.csv.gz"
-            logger.info(f"Saving splits to {splits_path}")
-            splits.to_csv(splits_path, index=None)
+
+        logger.info(f"Saving splits to {splits_path}")
+        splits.to_csv(splits_path, index=None)
 
         # Get column names: OGB columns are predictable
         if metadata["download_name"].startswith("pcqm4m"):
@@ -1478,142 +1633,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
 
         return ogb_metadata
-
-
-class MultitaskIPUFromSmilesDataModule(MultitaskFromSmilesDataModule):
-    def __init__(
-        self,
-        ipu_training_opts: Optional["poptorch.Options"] = None,
-        ipu_inference_opts: Optional["poptorch.Options"] = None,
-        ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
-        ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
-        *args,
-        **kwargs,
-    ) -> None:
-        """
-        Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
-        and the value is specified below.
-            task_df: (value) a dataframe
-            task_df_path: (value) a path to a dataframe to load (CSV file). `df` takes precedence over
-                `df_path`.
-            task_smiles_col: (value) Name of the SMILES column. If set to `None`, it will look for
-                a column with the word "smile" (case insensitive) in it.
-                If no such column is found, an error will be raised.
-            task_label_cols: (value) Name of the columns to use as labels, with different options.
-
-                - `list`: A list of all column names to use
-                - `None`: All the columns are used except the SMILES one.
-                - `str`: The name of the single column to use
-                - `*str`: A string starting by a `*` means all columns whose name
-                  ends with the specified `str`
-                - `str*`: A string ending by a `*` means all columns whose name
-                  starts with the specified `str`
-
-            task_weights_col: (value) Name of the column to use as sample weights. If `None`, no
-                weights are used. This parameter cannot be used together with `weights_type`.
-            task_weights_type: (value) The type of weights to use. This parameter cannot be used together with `weights_col`.
-                **It only supports multi-label binary classification.**
-
-                Supported types:
-
-                - `None`: No weights are used.
-                - `"sample_balanced"`: A weight is assigned to each sample inversely
-                    proportional to the number of positive value. If there are multiple
-                    labels, the product of the weights is used.
-                - `"sample_label_balanced"`: Similar to the `"sample_balanced"` weights,
-                    but the weights are applied to each element individually, without
-                    computing the product of the weights for a given sample.
-
-            task_idx_col: (value) Name of the columns to use as indices. Unused if set to None.
-            task_sample_size: (value)
-
-                - `int`: The maximum number of elements to take from the dataset.
-                - `float`: Value between 0 and 1 representing the fraction of the dataset to consider
-                - `None`: all elements are considered.
-            task_split_val: (value) Ratio for the validation split.
-            task_split_test: (value) Ratio for the test split.
-            task_split_seed: (value) Seed to use for the random split. More complex splitting strategy
-                should be implemented.
-            task_splits_path: (value) A path a CSV file containing indices for the splits. The file must contains
-                3 columns "train", "val" and "test". It takes precedence over `split_val` and `split_test`.
-
-            cache_data_path: path where to save or reload the cached data. The path can be
-                remote (S3, GS, etc).
-            featurization: args to apply to the SMILES to Graph featurizer.
-            batch_size_train_val: batch size for training and val dataset.
-            batch_size_test: batch size for test dataset.
-            num_workers: Number of workers for the dataloader. Use -1 to use all available
-                cores.
-            pin_memory: Whether to pin on paginated CPU memory for the dataloader.
-            featurization_n_jobs: Number of cores to use for the featurization.
-            featurization_progress: whether to show a progress bar during featurization.
-            featurization_backend: The backend to use for the molecular featurization.
-
-                - "multiprocessing": Found to cause less memory issues.
-                - "loky": joblib's Default. Found to cause memory leaks.
-                - "threading": Found to be slow.
-
-            collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
-            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs, DGL dict or PyG graphs.
-                Possible options:
-
-                - "dgl:graph": Process molecules as `dgl.DGLGraph`. It's slower during pre-processing
-                  and requires more RAM. It is faster during training with `num_workers=0`, but
-                  slower with larger `num_workers`.
-                - "dgl:dict": Process molecules as a `dict`. It's faster and requires less RAM during
-                  pre-processing. It is slower during training with with `num_workers=0` since
-                  DGLGraphs will be created during data-loading, but faster with large
-                  `num_workers`, and less likely to cause memory issues with the parallelization.
-                - "pyg:graph": Process molecules as `pyg.data.Data`.
-            dataset_class: The class used to create the dataset from which to sample.
-            ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
-            ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
-            ipu_dataloader_opts_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
-            ipu_dataloader_opts_test: Options for the dataloader for the IPU. Ignore if not using IPUs
-        """
-        super().__init__(*args, **kwargs)
-
-        self.ipu_training_opts = ipu_training_opts
-        self.ipu_inference_opts = ipu_inference_opts
-        self.ipu_dataloader_training_opts = ipu_dataloader_training_opts
-        self.ipu_dataloader_inference_opts = ipu_dataloader_inference_opts
-
-    def _dataloader(self, dataset: Dataset, shuffle: bool, stage: str):
-        """Get a dataloader for a given dataset"""
-
-        # Get batch size
-        if stage in [RunningStage.TRAINING]:
-            batch_size = self.batch_size_train_val
-            ipu_dataloader_options = self.ipu_dataloader_training_opts
-            ipu_options = self.ipu_training_opts
-        elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
-            batch_size = self.batch_size_test
-            ipu_dataloader_options = self.ipu_dataloader_inference_opts
-            ipu_options = self.ipu_inference_opts
-        else:
-            raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
-
-        # Use regular Dataloader if no IPUs
-        if ipu_options is None:
-            logger.warning(f"No IPU options for stage {stage}. Using regular dataloader.")
-            return super()._dataloader(dataset, shuffle, stage)
-
-        # Initialize the IPU dataloader
-        from goli.ipu.ipu_dataloader import create_ipu_dataloader
-
-        loader = create_ipu_dataloader(
-            dataset=dataset,
-            ipu_dataloader_options=ipu_dataloader_options,
-            ipu_options=ipu_options,
-            batch_size=batch_size,
-            collate_fn=self.collate_fn,
-            num_workers=self.get_num_workers,
-            pin_memory=self.pin_memory,
-            shuffle=shuffle,
-            persistent_workers=self.persistent_workers,
-        )
-
-        return loader
 
 
 def get_num_nodes(graph):

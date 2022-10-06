@@ -33,8 +33,8 @@ datamodule:
     split_test: null
     split_seed: *seed
     splits_path: https://storage.googleapis.com/goli-public/datasets/goli-zinc-bench-gnn/indexes_train_val_test.csv.gz
-    batch_size_train_val: 128
-    batch_size_test: 256
+    batch_size_training: 128
+    batch_size_inference: 256
 
     # Data loading
     num_workers: 0

@@ -11,15 +11,8 @@ from copy import deepcopy
 
 import goli
 from goli.config._loader import load_architecture
-from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork, TaskHead
+from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork
 from goli.nn.base_layers import FCLayer
-from goli.nn.residual_connections import (
-    ResidualConnectionConcat,
-    ResidualConnectionDenseNet,
-    ResidualConnectionNone,
-    ResidualConnectionSimple,
-    ResidualConnectionWeighted,
-)
 
 kwargs = {
     "activation": "relu",
@@ -48,20 +41,6 @@ task_3_kwargs = {
     "hidden_dims": [2, 2, 2],
 }
 
-# The params to create the task head MLPs.
-# task_1_params = TaskHeadParams(
-#     **task_1_kwargs,
-#     **kwargs,
-# )
-# task_2_params = TaskHeadParams(
-#     **task_2_kwargs,
-#     **kwargs,
-# )
-# task_3_params = TaskHeadParams(
-#     **task_3_kwargs,
-#     **kwargs,
-# )
-
 task_1_params = {}
 task_1_params.update(task_1_kwargs)
 task_1_params.update(kwargs)
@@ -74,54 +53,6 @@ task_3_params.update(kwargs)
 
 
 class test_TaskHeads(ut.TestCase):
-    def test_task_head_forward(self):
-        """Task heads are FeedForwardNNs, with the addition of a 'task_name' attribute.
-        We want to make sure that they work as expected even though they are basically the same as FFNNs.
-
-        This test matches `test_forward_no_residual` for the FeedForwardNN."""
-
-        # Assume same setup as when testing the FFNN
-        kwargs = {
-            "activation": "relu",
-            "last_activation": "none",
-            "normalization": "none",
-            "dropout": 0.2,
-            "name": "LNN",
-            "layer_type": FCLayer,
-        }
-
-        task_name = "task"
-        in_dim = 8
-        out_dim = 16
-        hidden_dims = [5, 6, 7]
-        batch = 2
-
-        task_head = TaskHead(
-            task_name=task_name,
-            in_dim=in_dim,
-            out_dim=out_dim,
-            hidden_dims=hidden_dims,
-            residual_type="none",
-            residual_skip_steps=1,
-            **kwargs,
-        )
-
-        # Check that the task name is correct
-        self.assertEqual(task_head.task_name, task_name)
-
-        # Check that the layers were created as intended
-        self.assertEqual(len(task_head.layers), len(hidden_dims) + 1)
-        self.assertEqual(task_head.layers[0].in_dim, in_dim)
-        self.assertEqual(task_head.layers[1].in_dim, hidden_dims[0])
-        self.assertEqual(task_head.layers[2].in_dim, hidden_dims[1])
-        self.assertEqual(task_head.layers[3].in_dim, hidden_dims[2])
-
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = task_head.forward(h)  # For now just inherits the forward() of FFNN
-
-        # Check that the output has the correct dimensions
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
-
     def test_task_heads_forward(self):
 
         in_dim = 4  # Dimension of the incoming data
@@ -135,8 +66,7 @@ class test_TaskHeads(ut.TestCase):
         # Test the sizes of the MLPs for each head
         # Head for task_1
         task_1_head = multi_head_nn.task_heads["task_1"]
-        # Check that the task name is correct
-        self.assertEqual(task_1_head.task_name, task_1_kwargs["task_name"])
+
         # Check the dimensions
         self.assertEqual(len(task_1_head.layers), len(task_1_kwargs["hidden_dims"]) + 1)
         self.assertEqual(task_1_head.layers[0].in_dim, in_dim)
@@ -146,8 +76,7 @@ class test_TaskHeads(ut.TestCase):
 
         # Head for task_2
         task_2_head = multi_head_nn.task_heads["task_2"]
-        # Check that the task name is correct
-        self.assertEqual(task_2_head.task_name, task_2_kwargs["task_name"])
+
         # Check the dimensions
         self.assertEqual(len(task_2_head.layers), len(task_2_kwargs["hidden_dims"]) + 1)
         self.assertEqual(task_2_head.layers[0].in_dim, in_dim)
@@ -157,8 +86,7 @@ class test_TaskHeads(ut.TestCase):
 
         # Head for task_3
         task_3_head = multi_head_nn.task_heads["task_3"]
-        # Check that the task name is correct
-        self.assertEqual(task_3_head.task_name, task_3_kwargs["task_name"])
+
         # Check the dimensions
         self.assertEqual(len(task_3_head.layers), len(task_3_kwargs["hidden_dims"]) + 1)
         self.assertEqual(task_3_head.layers[0].in_dim, in_dim)

@@ -27,6 +27,7 @@ def load_ipu_options(
     ipu_file: str,
     seed: Optional[int] = None,
     model_name: Optional[str] = None,
+    gradient_accumulation: Optional[int] = None,
 ) -> Tuple["poptorch.Options", "poptorch.Options"]:
     """
     Load the IPU options from the config file.
@@ -80,8 +81,13 @@ def load_ipu_options(
         ipu_options.randomSeed(seed)
     if model_name is not None:
         ipu_options.modelName(f"{model_name}_train")
+    if gradient_accumulation is not None:
+        current = ipu_options.Training.gradient_accumulation
+        assert (current == 1) or (
+            current == gradient_accumulation
+        ), f"Received inconsistent gradient accumulation `{current}` and `{gradient_accumulation}"
+        ipu_options.Training.gradientAccumulation(gradient_accumulation)
 
-    # ipu_options.anchorTensor("grad_input", "Gradient___input")
     ipu_options.anchorTensor("input", "input")
 
     training_opts = ipu_options
