@@ -16,8 +16,6 @@ from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes
 from goli.ipu.ipu_wrapper import PredictorModuleIPU
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
 from goli.ipu.ipu_wrapper import IPUPluginGoli
-from goli.ipu.ipu_dataloader import CombinedBatchingCollator
-from goli.data.collate import goli_collate_fn
 
 
 def random_packing(num_nodes, batch_size):

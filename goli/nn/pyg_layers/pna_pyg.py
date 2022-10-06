@@ -3,7 +3,6 @@ from functools import partial
 
 import torch
 from torch import Tensor
-from torch.nn import Linear
 from torch_scatter import scatter
 
 from torch_geometric.nn.conv import MessagePassing
@@ -12,7 +11,7 @@ from torch_geometric.utils import degree
 from torch_geometric.data import Data, Batch
 
 from goli.utils.decorators import classproperty
-from goli.nn.base_layers import MLP, get_activation
+from goli.nn.base_layers import MLP, FCLayer, get_activation
 from goli.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
 
 
@@ -122,7 +121,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         self.in_dim_edges = in_dim_edges
         self.edge_encoder = None
         if self.in_dim_edges > 0:
-            self.edge_encoder = Linear(self.in_dim_edges, self.in_dim_edges)
+            self.edge_encoder = FCLayer(self.in_dim_edges, self.in_dim_edges, activation=None)
 
         # Initializing basic attributes
         self.avg_d = avg_d

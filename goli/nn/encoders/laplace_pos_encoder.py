@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 
 
-from goli.nn.base_layers import MLP, get_norm
+from goli.nn.base_layers import MLP, get_norm, FCLayer
 
 
 class LapPENodeEncoder(torch.nn.Module):
@@ -42,7 +42,7 @@ class LapPENodeEncoder(torch.nn.Module):
             raise ValueError(f"LapPE size {in_dim} is too large for " f"desired embedding size of {out_dim}.")
 
         # Initial projection of eigenvalue and the node's eigenvector value
-        self.linear_A = nn.Linear(2, in_dim)
+        self.linear_A = FCLayer(2, in_dim, activation="none")
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
         if model_type == "Transformer":

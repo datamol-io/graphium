@@ -9,6 +9,7 @@ from typing import Callable, Union, Optional
 
 
 from goli.nn.base_graph_layer import BaseGraphModule
+from goli.nn.base_layers import FCLayer
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
@@ -88,9 +89,9 @@ class GPSLayerPyg(BaseGraphModule):
         self.ff_dropout2 = self._parse_dropout(dropout=self.dropout)
 
         # Linear layers
-        self.ff_linear1 = nn.Linear(in_dim, in_dim * 2)
-        self.ff_linear2 = nn.Linear(in_dim * 2, in_dim)
-        self.ff_out = nn.Linear(in_dim, out_dim)
+        self.ff_linear1 = FCLayer(in_dim, in_dim * 2, activation=None)
+        self.ff_linear2 = FCLayer(in_dim * 2, in_dim, activation=None)
+        self.ff_out = FCLayer(in_dim, out_dim, activation=None)
 
         # Normalization layers
         self.norm_layer_local = self._parse_norm(normalization=self.normalization, dim=in_dim)
