@@ -167,6 +167,8 @@ class EvalOptions:
             raise ValueError(f"`loss_fun` must be `str` or `callable`. Provided: {type(loss_fun)}")
 
         return loss_fun
+
+
 @dataclass
 class FlagOptions:
     r"""
