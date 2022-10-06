@@ -97,7 +97,7 @@ class test_Losses(ut.TestCase):
             msg="Weighted AUROC with NaN is different",
         )
 
-    def test_average_precision(self): # TODO: Make work with multi-class
+    def test_average_precision(self):  # TODO: Make work with multi-class
         preds = deepcopy(self.preds)[:, 0]
         target = deepcopy(self.target)[:, 0]
         target_nan = deepcopy(self.target_nan)[:, 0]
@@ -128,7 +128,6 @@ class test_Losses(ut.TestCase):
             places=6,
             msg="Regular Average Precision with NaN is different",
         )
-
 
     def test_precision(self):
         preds = deepcopy(self.preds)[:, :4]
