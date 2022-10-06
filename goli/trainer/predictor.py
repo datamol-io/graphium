@@ -11,8 +11,7 @@ import pytorch_lightning as pl
 
 from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
-from goli.trainer.predictor_summaries import Summary, TaskSummaries
-from goli.utils.spaces import SCHEDULER_DICT
+from goli.trainer.predictor_summaries import TaskSummaries
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
@@ -24,14 +23,13 @@ class PredictorModule(pl.LightningModule):
         self,
         model_class: Type[nn.Module],
         model_kwargs: Dict[str, Any],
-        loss_fun: Dict[str, Union[str, Callable]],  # Task-specific
-        random_seed: int = 42,  # Leave
-        optim_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
-        lr_reduce_on_plateau_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
-        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
-        scheduler_kwargs: Optional[Dict[str, Any]] = None,  # Leave for now
+        loss_fun: Dict[str, Union[str, Callable]],
+        random_seed: int = 42,
+        optim_kwargs: Optional[Dict[str, Any]] = None,
+        torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
+        scheduler_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[int, float, str]] = None,
-        metrics: Dict[str, Callable] = None,  # Task-specific
+        metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: Dict[str, List[str]] = [],
         metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
@@ -45,10 +43,9 @@ class PredictorModule(pl.LightningModule):
             model_kwargs: The arguments to initialize the model from `model_class`
             loss_fun: A `dict[str, fun]`, where `str` is the task name and `fun` the loss function
             random_seed: The seed for random initialization
-            optim_kwargs: The optimization arguments.
-            lr_reduce_on_plateau_kwargs: TODO: Re-do the scheduling
-            torch_scheduler_kwargs: TODO: Re-do the scheduling
-            scheduler_kwargs: TODO: Re-do the scheduling
+            optim_kwargs: The optimization arguments. See class `OptimOptions`
+            torch_scheduler_kwargs: The torch scheduler arguments. See class `OptimOptions`
+            scheduler_kwargs: The lightning scheduler arguments. See class `OptimOptions`
             target_nan_mask: How to handle the NaNs. See `MetricsWrapper` for options
             metrics: A `dict[str, fun]`, where `str` is the task name and `fun` the metric function
             metrics_on_progress_bar: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the progress bar
@@ -68,9 +65,8 @@ class PredictorModule(pl.LightningModule):
         # Setting the model options
         self._model_options = ModelOptions(model_class=model_class, model_kwargs=model_kwargs)
         # Setting the optimizer options
-        self._optim_options = OptimOptions(
+        self.optim_options = OptimOptions(
             optim_kwargs=optim_kwargs,
-            lr_reduce_on_plateau_kwargs=lr_reduce_on_plateau_kwargs,
             torch_scheduler_kwargs=torch_scheduler_kwargs,
             scheduler_kwargs=scheduler_kwargs,
         )
@@ -117,17 +113,11 @@ class PredictorModule(pl.LightningModule):
         self.flag_kwargs = self._flag_options.flag_kwargs
 
         # Set the parameters for optimizer options
-        self._optim_options.set_kwargs()
-        # Set the parameters and default value for the optimizer, and check values
-        self.optim_kwargs = self._optim_options.optim_kwargs
-        # Set the lightning scheduler
-        self.scheduler_kwargs = self._optim_options.scheduler_kwargs
-        # Set the pytorch scheduler arguments
-        self.torch_scheduler_kwargs = self._optim_options.torch_scheduler_kwargs
+        self.optim_options.set_kwargs()
 
         # Initialize the epoch summary
-        monitor = "micro_zinc/MSELoss/val"  # self.scheduler_kwargs["monitor"].split("/")[0] TODO: Fix the scheduler with the Summary class
-        mode = "min"  # self.scheduler_kwargs["mode"]
+        monitor = self.optim_options.scheduler_kwargs["monitor"].split("/")[0]
+        mode = self.optim_options.scheduler_kwargs["mode"]
 
         self.task_epoch_summary = TaskSummaries(
             task_loss_fun=self.loss_fun,
@@ -179,27 +169,14 @@ class PredictorModule(pl.LightningModule):
 
     def configure_optimizers(self):
 
-        # TODO (Gabriela): Fix scheduling with the Summary class
-        # Configure the parameters for the schedulers
-        # sc_kwargs = deepcopy(self.torch_scheduler_kwargs)
-        # scheduler_class = SCHEDULER_DICT[sc_kwargs.pop("module_type")]
-        # sig = signature(scheduler_class.__init__)
-        # key_args = [p.name for p in sig.parameters.values()]
-        # if "monitor" in key_args:
-        #     sc_kwargs.setdefault("monitor", self.scheduler_kwargs["monitor"])
-        # if "mode" in key_args:
-        #     sc_kwargs.setdefault("mode", self.scheduler_kwargs["mode"])
-
         # Define the optimizer and schedulers
-        optimiser = torch.optim.Adam(self.parameters(), **self.optim_kwargs)
-        # torch_scheduler = scheduler_class(optimizer=optimiser, **sc_kwargs)
-        # scheduler = {
-        #     "scheduler": torch_scheduler,
-        #     **self.scheduler_kwargs,
-        # }
-        # scheduler = None
-        # return [optimiser], [scheduler]
-        return [optimiser]
+        optimiser = torch.optim.Adam(self.parameters(), **self.optim_options.optim_kwargs)
+        torch_scheduler = self.optim_options.scheduler_class(optimizer=optimiser, **self.optim_options.torch_scheduler_kwargs)
+        scheduler = {
+            "scheduler": torch_scheduler,
+            **self.optim_options.scheduler_kwargs,
+        }
+        return [optimiser], [scheduler]
 
     @staticmethod
     def compute_loss(
@@ -300,7 +277,7 @@ class PredictorModule(pl.LightningModule):
 
         # step_dict[f"weighted_loss/{step_name}"] = loss.detach().cpu()
         # step_dict[f"loss/{step_name}"] = loss.detach().cpu()
-        for task in self.tasks:  # TODO: Verify consistency with Summary class
+        for task in self.tasks:
             step_dict[
                 self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)
             ] = loss.detach().cpu()
