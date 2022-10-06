@@ -9,9 +9,7 @@ import torchvision.transforms as transforms
 
 import poptorch
 
-import mup
 from goli.nn.base_layers import FCLayer
-
 
 # The simple PyTorch model used in each of these examples
 class SimpleTorchModel(torch.nn.Module):
@@ -79,7 +77,7 @@ if __name__ == "__main__":
 
     # Normal PyTorch dataset.
     train_set = torchvision.datasets.FashionMNIST(
-        "FashionMNIST", train=True, download=True, transform=transforms.Compose([transforms.ToTensor()])
+        "out/FashionMNIST", train=True, download=True, transform=transforms.Compose([transforms.ToTensor()])
     )
 
     # Normal PyTorch dataloader.
