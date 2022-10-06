@@ -371,6 +371,14 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     trainer_kwargs["callbacks"] = callbacks
 
+    # TODO rewrite IPUlugin to IPUStrategy
+    # if accelerator == 'ipu':
+    #     from pytorch_lightning.strategies import IPUStrategy
+
+    #     strategy=IPUStrategy(autoreport_dir="report_dir/")
+    # else:
+    #     strategy =     
+    
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
@@ -380,5 +388,6 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
+        
 
     return trainer

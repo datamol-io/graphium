@@ -292,6 +292,6 @@ trainer:
     save_top_k: 1
     every_n_epochs: 1
   trainer:
-    precision: 32
+    precision: 16 #32 #16
     max_epochs: 5 #50
     min_epochs: 1 #5
