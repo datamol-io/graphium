@@ -66,11 +66,14 @@ class GatedGCNDgl(BaseGraphModule):
         )
 
         self.out_dim_edges = out_dim_edges
-        self.A = nn.Linear(in_dim, out_dim, bias=True)
-        self.B = nn.Linear(in_dim, out_dim, bias=True)
-        self.C = nn.Linear(in_dim_edges, out_dim, bias=True)
-        self.D = nn.Linear(in_dim, out_dim, bias=True)
-        self.E = nn.Linear(in_dim, out_dim, bias=True)
+
+        # Initialize the layers for the gating
+        self.A = FCLayer(in_dim, out_dim, activation=None, bias=True)
+        self.B = FCLayer(in_dim, out_dim, activation=None, bias=True)
+        self.C = FCLayer(in_dim_edges, out_dim, activation=None, bias=True)
+        self.D = FCLayer(in_dim, out_dim, activation=None, bias=True)
+        self.E = FCLayer(in_dim, out_dim, activation=None, bias=True)
+
         self.edge_out = FCLayer(
             in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True
         )
