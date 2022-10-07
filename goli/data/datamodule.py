@@ -5,6 +5,7 @@ from functools import partial
 import importlib.resources
 import zipfile
 from copy import deepcopy
+from multiprocessing import Manager
 
 from loguru import logger
 import fsspec
@@ -100,9 +101,14 @@ class SingleTaskDataset(Dataset):
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
     ):
         self.labels = labels
-        self.smiles = smiles
+        manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
+        self.smiles = manager.list(smiles)
         self.features = features
         self.indices = indices
+        if self.indices is not None:
+            self.indices = np.array(
+                self.indices
+            )  # Avoid memory leaks with `num_workers > 0` by using numpy array
         self.weights = weights
 
     def __len__(self):

@@ -14,7 +14,7 @@ datamodule:
       pcqm4mv2:
         df: null
         dataset_name: "ogbg-lsc-pcqm4mv2"
-        sample_size: 1000000
+        sample_size: null
 
     # Featurization
     prepare_dict_or_graph: pyg:graph

@@ -81,23 +81,25 @@ def average_precision_ipu(
     preds = preds.clone()
 
     # Replace the nan-targets in the preds/target tensors by 0
+    # Average precision is not sensitive to true negatives
     nan_targets = target.isnan()
     preds[nan_targets] = 0.0
     target[nan_targets] = 0.0
 
-    # Get the original weight matrix. If None, set all weights = 1
-    if sample_weights is None:
-        sample_weights = torch.ones(target.shape[0], dtype=preds.dtype, device=preds.device)
-    sample_weights[nan_targets] = 0.0
+    # No need to use sample weights (which is no longer supported in torchmetrics >=0.10)
+    # # Get the original weight matrix. If None, set all weights = 1
+    # if sample_weights is None:
+    #     sample_weights = torch.ones(target.shape[0], dtype=preds.dtype, device=preds.device)
+    # sample_weights[nan_targets] = 0.0
 
     # Compute the loss, and rescale by the number of nan elements
     score = average_precision(
         preds=preds,
-        target=target.to(int),
+        target=target,
         num_classes=num_classes,
         pos_label=pos_label,
         average=average,
-        sample_weights=sample_weights,
+        # sample_weights=sample_weights,
     )
 
     return score
