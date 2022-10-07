@@ -68,7 +68,7 @@ def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]
 
 class MultiheadAttentionMup(nn.MultiheadAttention):
     def _reset_parameters(self):
-        set_base_shapes(self, None, rescale_params=False) # Set the shapes of the tensors, useful for mup
+        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         if self._qkv_same_embed_dim:
             mupi.xavier_uniform_(self.in_proj_weight)
         else:
@@ -77,8 +77,8 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             mupi.xavier_uniform_(self.v_proj_weight)
 
         if self.in_proj_bias is not None:
-            nn.init.constant_(self.in_proj_bias, 0.)
-            nn.init.constant_(self.out_proj.bias, 0.)
+            nn.init.constant_(self.in_proj_bias, 0.0)
+            nn.init.constant_(self.out_proj.bias, 0.0)
         if self.bias_k is not None:
             mupi.xavier_normal_(self.bias_k)
         if self.bias_v is not None:
@@ -174,7 +174,9 @@ class FCLayer(nn.Module):
 
             # Warn user in case of weird parameters
             if self.normalization is not None:
-                logger.warning(f"Normalization is not `None` for the readout layer. Provided {self.normalization}")
+                logger.warning(
+                    f"Normalization is not `None` for the readout layer. Provided {self.normalization}"
+                )
             if (self.dropout is not None) and (self.dropout.p > 0):
                 logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
 
@@ -186,7 +188,7 @@ class FCLayer(nn.Module):
         """
         Reset the parameters of the linear layer using the `init_fn`.
         """
-        set_base_shapes(self, None, rescale_params=False) # Set the shapes of the tensors, useful for mup
+        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
             init_fn(self.linear.weight, 1)
@@ -258,9 +260,9 @@ class MLP(nn.Module):
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
         last_dropout: float = 0.0,
-        normalization: Union[Type[None], str, Callable]="none",
-        last_normalization: Union[Type[None], str, Callable]="none",
-        first_normalization: Union[Type[None], str, Callable]="none",
+        normalization: Union[Type[None], str, Callable] = "none",
+        last_normalization: Union[Type[None], str, Callable] = "none",
+        first_normalization: Union[Type[None], str, Callable] = "none",
         last_layer_is_readout: bool = False,
     ):
         r"""
