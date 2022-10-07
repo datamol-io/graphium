@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 
 import poptorch
 
+import mup
 from goli.nn.base_layers import FCLayer
 
 # The simple PyTorch model used in each of these examples
