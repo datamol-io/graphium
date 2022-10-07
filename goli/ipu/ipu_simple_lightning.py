@@ -9,6 +9,7 @@ import torchvision.transforms as transforms
 
 import poptorch
 
+import mup
 from goli.nn.base_layers import FCLayer
 
 # The simple PyTorch model used in each of these examples
@@ -23,12 +24,13 @@ class SimpleTorchModel(torch.nn.Module):
             nn.MaxPool2d(3),
         )
 
+        # mup.set_base_shapes not actually called, so we set base_width arbitrarily
         self.the_network = nn.Sequential(
             conv_block,
             torch.nn.Flatten(),
             FCLayer(64, 16),
             FCLayer(16, 16),
-            FCLayer(16, 10, activation=None, is_readout_layer=True),
+            FCLayer(16, 10, activation=None, is_readout_layer=True, ipu=True, base_width=8),
             nn.LogSoftmax(1),
         )
 

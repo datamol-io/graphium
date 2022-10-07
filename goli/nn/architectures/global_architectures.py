@@ -44,6 +44,7 @@ class FeedForwardNN(nn.Module):
         layer_type: Union[str, nn.Module] = "fc",
         layer_kwargs: Optional[Dict] = None,
         last_layer_is_readout: bool = False,
+        ipu: Optional[bool] = None
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -127,6 +128,8 @@ class FeedForwardNN(nn.Module):
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
+            ipu: Whether the model is to be run on the IPU
+
         """
 
         super().__init__()
@@ -152,6 +155,7 @@ class FeedForwardNN(nn.Module):
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
         self.last_layer_is_readout = last_layer_is_readout
+        self.ipu = ipu
 
         # Parse the layer and residuals
         from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
@@ -238,12 +242,14 @@ class FeedForwardNN(nn.Module):
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
             other_kwargs = {}
+            key_args = [p.name for p in sig.parameters.values()]
+            if self.ipu is not None and ("ipu" in key_args):
+                other_kwargs["ipu"] = self.ipu
             if ii == self.depth - 1:
                 this_activation = self.last_activation
                 this_norm = self.last_normalization
                 this_dropout = self.last_dropout
                 sig = inspect.signature(self.layer_class)
-                key_args = [p.name for p in sig.parameters.values()]
                 if self.last_layer_is_readout and ("is_readout_layer" in key_args):
                     other_kwargs["is_readout_layer"] = self.last_layer_is_readout
 

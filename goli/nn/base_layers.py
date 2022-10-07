@@ -8,6 +8,7 @@ import torch.nn.functional as F
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
 
+from goli.nn.ipu.mu_readout import PopReadout
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 
@@ -96,6 +97,8 @@ class FCLayer(nn.Module):
         bias: bool = True,
         init_fn: Optional[Callable] = None,
         is_readout_layer: bool = False,
+        ipu: Optional[bool] = False,
+        base_width: Optional[int] = None
     ):
 
         r"""
@@ -130,6 +133,9 @@ class FCLayer(nn.Module):
                 $$\mathcal{U}(-\sqrt{k}, \sqrt{k})$$ with $$k=\frac{1}{ \text{in_dim}}$$
             is_readout_layer: Whether the layer should be treated as a readout layer by replacing of `torch.nn.Linear`
                 by `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+            ipu: Whether the layer is being run on the IPU (required for readout layers)
+            base_width: Base width for muTransfer (necessary on IPU to ensure agreement with CPU/GPU in readout
+                layer; required for IPU readout layers)
 
         Attributes:
             dropout (int):
@@ -170,7 +176,14 @@ class FCLayer(nn.Module):
         if not is_readout_layer:
             self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         else:
-            self.linear = MuReadout(in_dim, out_dim, bias=bias)
+            if ipu is None:
+                raise ValueError("Whether to use IPU must be specified for readout layers")
+            if not ipu:
+                self.linear = MuReadout(in_dim, out_dim, bias=bias)
+            else:
+                if base_width is None:
+                    raise ValueError("base_width must be specified for IPU readout layer")
+                self.linear = PopReadout(in_dim, out_dim, bias=bias, base_width=base_width)
 
             # Warn user in case of weird parameters
             if self.normalization is not None:
