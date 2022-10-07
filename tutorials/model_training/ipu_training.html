@@ -2363,8 +2363,8 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="Datamodule">Datamodule<a class="anchor-link" href="#Datamodule">&#182;</a></h3><p>Here, we define all the parameters required by the datamodule to run correctly, such as the dataset path, whether to cache, the columns for the training, the molecular featurization to use, the train/val/test splits and the batch size.</p>
-<p>The <code>MultitaskIPUFromSmilesDataModule</code> allows us to define a set of tasks within different CSV or parquet files, and use them to train the model simultaneously via the path <code>datamodule: args: task_specific_args</code></p>
-<p>For more details, see class <code>goli.data.datamodule.MultitaskIPUFromSmilesDataModule</code></p>
+<p>The <code>MultitaskFromSmilesDataModule</code> allows us to define a set of tasks within different CSV or parquet files, and use them to train the model simultaneously via the path <code>datamodule: args: task_specific_args</code></p>
+<p>For more details, see class <code>goli.data.datamodule.MultitaskFromSmilesDataModule</code></p>
 
 </div>
 </div>
