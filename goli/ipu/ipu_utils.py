@@ -3,11 +3,15 @@ from types import ModuleType
 from typing import Optional, Tuple
 
 
-def import_poptorch() -> ModuleType:
+def import_poptorch(raise_error=True) -> Optional[ModuleType]:
     """
     Import poptorch and returns it.
     It is wrapped in a function to avoid breaking the code
     for non-IPU devices which did not install poptorch.
+
+    Parameters:
+        raise_error: Whether to raise an error if poptorch is unavailable.
+            If `False`, return `None`
 
     Returns:
         The poptorch module
@@ -18,9 +22,11 @@ def import_poptorch() -> ModuleType:
 
         return poptorch
     except ImportError:
-        raise ImportError(
-            "You must install poptorch and have IPU hardware. Check the GraphCore support https://www.graphcore.ai/support"
-        )
+        if raise_error:
+            raise ImportError(
+                "You must install poptorch and have IPU hardware. Check the GraphCore support https://www.graphcore.ai/support"
+            )
+        return
 
 
 def load_ipu_options(
