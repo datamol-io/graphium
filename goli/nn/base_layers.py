@@ -8,6 +8,9 @@ import torch.nn.functional as F
 from torch import Tensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
+from functools import partial
+
+GAIN = 1 # TODO: Remove the gain before committing
 
 from goli.ipu.ipu_utils import import_poptorch
 
