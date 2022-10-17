@@ -1,12 +1,16 @@
-from typing import Union, Callable, Optional, Type
+from typing import Union, Callable, Optional, Type, Tuple
 from copy import deepcopy
 from loguru import logger
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
+from functools import partial
+
+GAIN = 1 # TODO: Remove the gain before committing
 
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
@@ -67,23 +71,83 @@ def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]
 
 
 class MultiheadAttentionMup(nn.MultiheadAttention):
+    """
+    Modifying the MultiheadAttention to work with the muTransfer paradigm.
+    The layers are initialized using the mup package.
+    The `_scaled_dot_product_attention` normalizes the attention matrix with `1/d` instead of `1/sqrt(d)`
+    """
     def _reset_parameters(self):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         if self._qkv_same_embed_dim:
-            mupi.xavier_uniform_(self.in_proj_weight)
+            mupi.xavier_uniform_(self.in_proj_weight, gain=GAIN)
         else:
-            mupi.xavier_uniform_(self.q_proj_weight)
-            mupi.xavier_uniform_(self.k_proj_weight)
-            mupi.xavier_uniform_(self.v_proj_weight)
+            mupi.xavier_uniform_(self.q_proj_weight, gain=GAIN)
+            mupi.xavier_uniform_(self.k_proj_weight, gain=GAIN)
+            mupi.xavier_uniform_(self.v_proj_weight, gain=GAIN)
 
         if self.in_proj_bias is not None:
             nn.init.constant_(self.in_proj_bias, 0.0)
             nn.init.constant_(self.out_proj.bias, 0.0)
         if self.bias_k is not None:
-            mupi.xavier_normal_(self.bias_k)
+            mupi.xavier_normal_(self.bias_k, gain=GAIN)
         if self.bias_v is not None:
-            mupi.xavier_normal_(self.bias_v)
+            mupi.xavier_normal_(self.bias_v, gain=GAIN)
 
+    def forward(self, *args, **kwargs) -> Tuple[Tensor, Optional[Tensor]]:
+
+        # Patching the forward to use a different scaling for the dot-product
+        prev_fn = F._scaled_dot_product_attention
+        F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
+        out = super().forward(*args, **kwargs)
+        F._scaled_dot_product_attention = prev_fn
+        return out
+
+def _mup_scaled_dot_product_attention(
+    q: Tensor,
+    k: Tensor,
+    v: Tensor,
+    attn_mask: Optional[Tensor] = None,
+    dropout_p: float = 0.0,
+) -> Tuple[Tensor, Tensor]:
+    r"""
+    Computes scaled dot product attention on query, key and value tensors, using
+    an optional attention mask if passed, and applying dropout if a probability
+    greater than 0.0 is specified.
+    Returns a tensor pair containing attended values and attention weights.
+
+    This modifies the standard torch function by normalizing with `1/d` instead of `1/sqrt(d)`
+
+    Args:
+        q, k, v: query, key and value tensors. See Shape section for shape details.
+        attn_mask: optional tensor containing mask values to be added to calculated
+            attention. May be 2D or 3D; see Shape section for details.
+        dropout_p: dropout probability. If greater than 0.0, dropout is applied.
+
+    Shape:
+        - q: :math:`(B, Nt, E)` where B is batch size, Nt is the target sequence length,
+            and E is embedding dimension.
+        - key: :math:`(B, Ns, E)` where B is batch size, Ns is the source sequence length,
+            and E is embedding dimension.
+        - value: :math:`(B, Ns, E)` where B is batch size, Ns is the source sequence length,
+            and E is embedding dimension.
+        - attn_mask: either a 3D tensor of shape :math:`(B, Nt, Ns)` or a 2D tensor of
+            shape :math:`(Nt, Ns)`.
+
+        - Output: attention values have shape :math:`(B, Nt, E)`; attention weights
+            have shape :math:`(B, Nt, Ns)`
+    """
+    B, Nt, E = q.shape
+    q = q / E # Instead of `q / math.sqrt(E)`
+    # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
+    attn = torch.bmm(q, k.transpose(-2, -1))
+    if attn_mask is not None:
+        attn += attn_mask
+    attn = F.softmax(attn, dim=-1)
+    if dropout_p > 0.0:
+        attn = F.dropout(attn, p=dropout_p)
+    # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
+    output = torch.bmm(attn, v)
+    return output, attn
 
 class FCLayer(nn.Module):
     def __init__(
@@ -181,7 +245,7 @@ class FCLayer(nn.Module):
                 logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
 
         # Define the initialization function based on `muTransfer`, and reset the parameters
-        self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
+        self.init_fn = init_fn if init_fn is not None else partial(mupi.xavier_uniform_, gain=GAIN)
         self.reset_parameters()
 
     def reset_parameters(self, init_fn=None):
@@ -191,7 +255,7 @@ class FCLayer(nn.Module):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
-            init_fn(self.linear.weight, 1)
+            init_fn(self.linear.weight)
         if self.bias:
             self.linear.bias.data.zero_()
 
