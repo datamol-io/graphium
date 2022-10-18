@@ -162,7 +162,7 @@ predictor:
   metrics_on_progress_bar:
     SA: ["mae"]
     logp: ["mae"]
-    score: ["mae", "pearsonr", "f1 gt 3"]
+    score: ["mae", "pearsonr", "f1 > 3"]
   loss_fun:
     SA: mse
     logp: mse
@@ -193,7 +193,7 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-    - name: f1 gt 0.5
+    - name: f1 > 0.5
       metric: f1
       num_classes: 2
       average: micro
@@ -204,7 +204,7 @@ metrics:
         th_on_target: True
         target_to_int: True
 
-    - name: precision gt 0.5
+    - name: precision > 0.5
       metric: precision
       average: micro
       threshold_kwargs: *threshold_05
@@ -216,7 +216,7 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-    - name: f1 gt 3
+    - name: f1 > 3
       metric: f1
       num_classes: 2
       average: micro
@@ -227,7 +227,7 @@ metrics:
         th_on_target: True
         target_to_int: True
 
-    - name: f1 gt 0
+    - name: f1 > 0
       metric: f1
       num_classes: 2
       average: micro
@@ -237,7 +237,7 @@ metrics:
         th_on_preds: True
         th_on_target: True
         target_to_int: True
-    - name: precision gt 3
+    - name: precision > 3
       metric: precision
       average: micro
       threshold_kwargs: *threshold_3
@@ -249,12 +249,12 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-    - name: f1 gt 3
+    - name: f1 > 3
       metric: f1
       num_classes: 2
       average: micro
       threshold_kwargs: *threshold_3
-    - name: f1 gt 0
+    - name: f1 > 0
       metric: f1
       num_classes: 2
       average: micro
@@ -264,7 +264,7 @@ metrics:
         th_on_preds: True
         th_on_target: True
         target_to_int: True
-    - name: precision gt 3
+    - name: precision > 3
       metric: precision
       average: micro
       threshold_kwargs: *threshold_3

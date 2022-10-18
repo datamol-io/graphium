@@ -244,7 +244,7 @@ metrics:
       metric: pearsonr
       threshold_kwargs: null
       target_nan_mask: ignore-mean-label
-    # - name: f1 gt 0.5
+    # - name: f1 > 0.5
     #   metric: f1
     #   num_classes: 2
     #   average: micro
@@ -254,7 +254,7 @@ metrics:
     #     th_on_preds: True
     #     th_on_target: True
     #     target_to_int: True
-    # - name: precision gt 0.5
+    # - name: precision > 0.5
     #   metric: precision
     #   average: micro
     #   threshold_kwargs: *threshold_05
