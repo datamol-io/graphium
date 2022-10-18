@@ -550,7 +550,7 @@ class NaNTensor(Tensor):
 def pearson_ipu(preds, target):
     """Computes pearson correlation coefficient.
 
-    Handles NaNs without reshaping tensors in order to work on IPU.
+    Handles NaNs in the target without reshaping tensors in order to work on IPU.
 
     Args:
         preds: estimated scores
@@ -564,9 +564,9 @@ def pearson_ipu(preds, target):
 
 
 def spearman_ipu(preds, target):
-    """Computes pearson correlation coefficient.
+    """Computes spearman rank correlation coefficient.
 
-    Handles NaNs without reshaping tensors in order to work on IPU.
+    Handles NaNs in the target without reshaping tensors in order to work on IPU.
 
     Args:
         preds: estimated scores
