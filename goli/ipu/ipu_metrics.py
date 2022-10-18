@@ -1,9 +1,8 @@
+from typing import Optional, Tuple, Sequence
+
 import torch
 from torch import BoolTensor, IntTensor, Tensor
 from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score
-
-from typing import Optional, Tuple, Sequence
-
 from torchmetrics.utilities.checks import _input_squeeze
 from torchmetrics.functional.classification.accuracy import (
     _mode,
@@ -15,8 +14,10 @@ from torchmetrics.functional.classification.precision_recall import _precision_c
 from torchmetrics.functional.classification.f_beta import _fbeta_compute
 from torchmetrics.functional import mean_squared_error, mean_absolute_error
 from torchmetrics.utilities.checks import _input_squeeze
+from torchmetrics.utilities.enums import AverageMethod
 
 from goli.utils.tensor import nan_mean
+from goli.ipu.ipu_utils import import_poptorch
 
 
 def auroc_ipu(
@@ -717,7 +718,22 @@ def fbeta_score_ipu(
         multiclass=multiclass,
     )
 
-    return _fbeta_compute(tp, fp, tn, fn, beta, ignore_index, average, mdmc_average)
+    b2 = beta**2
+    fbeta = ((1 + b2) * tp) / ((1 + b2) * tp + b2 * fn + fp)
+
+    if average in (None, "none", AverageMethod.NONE):
+        pass
+    elif average == AverageMethod.MICRO:
+        pass
+    elif average == AverageMethod.MACRO:
+        fbeta = fbeta.mean()
+    elif average == AverageMethod.WEIGHTED:
+        weights = tp + fn
+        fbeta = (weights * fbeta).sum() / weights.sum()
+    else:
+        raise ValueError(f"`average={average}` not yet supported. Chose between None, Micro, Macro, or Weighted")
+
+    return fbeta
 
 
 def f1_score_ipu(
@@ -753,19 +769,7 @@ def f1_score_ipu(
             ``average`` parameter)
     """
 
-    (tp, fp, tn, fn), mode = get_confusion_matrix(
-        preds=preds,
-        target=target,
-        average=average,
-        mdmc_average=mdmc_average,
-        ignore_index=ignore_index,
-        num_classes=num_classes,
-        threshold=threshold,
-        top_k=top_k,
-        multiclass=multiclass,
-    )
-
-    return _fbeta_compute(tp, fp, tn, fn, 1.0, ignore_index, average, mdmc_average)
+    return fbeta_score_ipu(preds, target, beta=beta, average=average, mdmc_average=mdmc_average, ignore_index=ignore_index, num_classes=num_classes, threshold=threshold, top_k=top_k, multiclass=multiclass,)
 
 
 def mean_squared_error_ipu(preds: Tensor, target: Tensor, squared: bool) -> Tensor:
