@@ -9,6 +9,8 @@ import torchvision.transforms as transforms
 
 import poptorch
 
+from goli.nn.base_layers import FCLayer
+
 
 # The simple PyTorch model used in each of these examples
 class SimpleTorchModel(torch.nn.Module):
@@ -23,7 +25,12 @@ class SimpleTorchModel(torch.nn.Module):
         )
 
         self.the_network = nn.Sequential(
-            conv_block, torch.nn.Flatten(), nn.Linear(64, 16), nn.ReLU(), nn.Linear(16, 10), nn.LogSoftmax(1)
+            conv_block,
+            torch.nn.Flatten(),
+            FCLayer(64, 16),
+            FCLayer(16, 16),
+            FCLayer(16, 10, activation=None, is_readout_layer=True),
+            nn.LogSoftmax(1),
         )
 
     def forward(self, x):

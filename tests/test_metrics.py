@@ -100,7 +100,7 @@ class test_MetricWrapper(ut.TestCase):
             self.assertAlmostEqual(score3, mean_squared_error(this_preds, this_target), msg=err_msg)
 
             # Flatten matrix and ignore NaNs
-            metric = MetricWrapper(metric="mse", target_nan_mask="ignore-flatten")
+            metric = MetricWrapper(metric="mse", target_nan_mask="ignore", multitask_handling="flatten")
             score4 = metric(preds, target)
 
             this_target = target.clone()[~is_nan]
@@ -108,7 +108,9 @@ class test_MetricWrapper(ut.TestCase):
             self.assertAlmostEqual(score4, mean_squared_error(this_preds, this_target), msg=err_msg)
 
             # Ignore NaNs in each column and average the score
-            metric = MetricWrapper(metric="mse", target_nan_mask="ignore-mean-label")
+            metric = MetricWrapper(
+                metric="mse", target_nan_mask="ignore", multitask_handling="mean-per-label"
+            )
             score5 = metric(preds, target)
 
             this_target = target.clone()
@@ -130,7 +132,8 @@ class test_MetricWrapper(ut.TestCase):
     def test_pickling(self):
         pickle_file = os.path.join(tempfile.gettempdir(), "test_metric_pickled.pkl")
         metrics = ["mae", "mse", mean_squared_error]
-        target_nan_masks = [None, 2, "ignore-flatten", "ignore-mean-label"]
+        target_nan_masks = [None, 2, "ignore"]
+        multitask_handlings = [None, "flatten", "mean-per-label"]
         other_kwargs = [{}, {"squared": False}]
         thresholds = [
             None,
@@ -145,25 +148,40 @@ class test_MetricWrapper(ut.TestCase):
             for target_nan_mask in target_nan_masks:
                 for kwargs in other_kwargs:
                     for threshold_kwargs in thresholds:
-                        err_msg = f"{metric} - {target_nan_mask} - {kwargs} - {threshold_kwargs}"
-                        metric_wrapper = MetricWrapper(
-                            metric=metric,
-                            threshold_kwargs=threshold_kwargs,
-                            target_nan_mask=target_nan_mask,
-                            **kwargs,
-                        )
+                        for multitask_handling in multitask_handlings:
+                            err_msg = f"{metric} - {target_nan_mask} - {kwargs} - {threshold_kwargs}"
 
-                        # Check that the metric can be saved and re-loaded without error
-                        torch.save(metric_wrapper, pickle_file)
-                        metric_wrapper2 = torch.load(pickle_file)
-                        self.assertTrue(metric_wrapper == metric_wrapper2, msg=err_msg)
+                            if (multitask_handling is None) and (target_nan_mask == "ignore"):
+                                # Raise with incompatible options
+                                with self.assertRaises(ValueError):
+                                    MetricWrapper(
+                                        metric=metric,
+                                        threshold_kwargs=threshold_kwargs,
+                                        target_nan_mask=target_nan_mask,
+                                        multitask_handling=multitask_handling,
+                                        **kwargs,
+                                    )
 
-                        # Check that the metric only contains primitive types
-                        state = metric_wrapper.__getstate__()
-                        if state["threshold_kwargs"] is not None:
-                            self.assertIsInstance(state["threshold_kwargs"], dict, msg=err_msg)
-                        if isinstance(metric, str):
-                            self.assertIsInstance(state["metric"], str, msg=err_msg)
+                            else:
+                                metric_wrapper = MetricWrapper(
+                                    metric=metric,
+                                    threshold_kwargs=threshold_kwargs,
+                                    target_nan_mask=target_nan_mask,
+                                    multitask_handling=multitask_handling,
+                                    **kwargs,
+                                )
+
+                                # Check that the metric can be saved and re-loaded without error
+                                torch.save(metric_wrapper, pickle_file)
+                                metric_wrapper2 = torch.load(pickle_file)
+                                self.assertTrue(metric_wrapper == metric_wrapper2, msg=err_msg)
+
+                                # Check that the metric only contains primitive types
+                                state = metric_wrapper.__getstate__()
+                                if state["threshold_kwargs"] is not None:
+                                    self.assertIsInstance(state["threshold_kwargs"], dict, msg=err_msg)
+                                if isinstance(metric, str):
+                                    self.assertIsInstance(state["metric"], str, msg=err_msg)
 
 
 if __name__ == "__main__":

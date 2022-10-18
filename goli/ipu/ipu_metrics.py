@@ -1,9 +1,8 @@
+from typing import Optional, Tuple, Sequence
+
 import torch
 from torch import BoolTensor, IntTensor, Tensor
 from torchmetrics.functional import auroc, average_precision, pearson_corrcoef, r2_score
-
-from typing import Optional, Tuple, Sequence
-
 from torchmetrics.utilities.checks import _input_squeeze
 from torchmetrics.functional.classification.accuracy import (
     _mode,
@@ -15,8 +14,10 @@ from torchmetrics.functional.classification.precision_recall import _precision_c
 from torchmetrics.functional.classification.f_beta import _fbeta_compute
 from torchmetrics.functional import mean_squared_error, mean_absolute_error
 from torchmetrics.utilities.checks import _input_squeeze
+from torchmetrics.utilities.enums import AverageMethod
 
 from goli.utils.tensor import nan_mean
+from goli.ipu.ipu_utils import import_poptorch
 
 
 def auroc_ipu(
@@ -549,7 +550,7 @@ class NaNTensor(Tensor):
 def pearson_ipu(preds, target):
     """Computes pearson correlation coefficient.
 
-    Handles NaNs without reshaping tensors in order to work on IPU.
+    Handles NaNs in the target without reshaping tensors in order to work on IPU.
 
     Args:
         preds: estimated scores
@@ -560,6 +561,47 @@ def pearson_ipu(preds, target):
     preds[target.get_nans] = float("nan")
     pearson = pearson_corrcoef(preds, target)
     return Tensor(pearson)
+
+
+def spearman_ipu(preds, target):
+    """Computes spearman rank correlation coefficient.
+
+    Handles NaNs in the target without reshaping tensors in order to work on IPU.
+
+    Args:
+        preds: estimated scores
+        target: ground truth scores
+    """
+    nans = target.isnan()
+    dtype = preds.dtype
+    preds[nans] = float("inf")
+    target[nans] = float("inf")
+    preds_sort = _rank_data(preds).to(dtype=dtype)
+    target_sort = _rank_data(target).to(dtype=dtype)
+    target_sort[nans] = float("nan")
+    spearman = pearson_ipu(preds_sort, target_sort)
+    return Tensor(spearman)
+
+
+def _rank_data(data: Tensor) -> Tensor:
+    """Calculate the rank for each element of a tensor.
+
+    The rank refers to the indices of an element in the corresponding sorted tensor (starting from 1).
+    Duplicates of the same value will be assigned the mean of their rank.
+
+    Adopted from `Rank of element tensor`_
+    """
+    n = data.numel()
+    rank = torch.empty_like(data)
+    idx = data.argsort()
+    rank[idx] = torch.arange(1, n + 1, dtype=data.dtype, device=data.device)
+
+    # TODO: Repeats not yet supported
+    # repeats = _find_repeats(data)
+    # for r in repeats:
+    #     condition = data == r
+    #     rank[condition] = rank[condition].mean()
+    return rank
 
 
 def r2_score_ipu(preds, target, *args, **kwargs) -> Tensor:
@@ -717,7 +759,24 @@ def fbeta_score_ipu(
         multiclass=multiclass,
     )
 
-    return _fbeta_compute(tp, fp, tn, fn, beta, ignore_index, average, mdmc_average)
+    b2 = beta**2
+    fbeta = ((1 + b2) * tp) / ((1 + b2) * tp + b2 * fn + fp)
+
+    if average in (None, "none", AverageMethod.NONE):
+        pass
+    elif average == AverageMethod.MICRO:
+        pass
+    elif average == AverageMethod.MACRO:
+        fbeta = fbeta.mean()
+    elif average == AverageMethod.WEIGHTED:
+        weights = tp + fn
+        fbeta = (weights * fbeta).sum() / weights.sum()
+    else:
+        raise ValueError(
+            f"`average={average}` not yet supported. Chose between None, Micro, Macro, or Weighted"
+        )
+
+    return fbeta
 
 
 def f1_score_ipu(
@@ -753,9 +812,10 @@ def f1_score_ipu(
             ``average`` parameter)
     """
 
-    (tp, fp, tn, fn), mode = get_confusion_matrix(
-        preds=preds,
-        target=target,
+    return fbeta_score_ipu(
+        preds,
+        target,
+        beta=beta,
         average=average,
         mdmc_average=mdmc_average,
         ignore_index=ignore_index,
@@ -765,10 +825,8 @@ def f1_score_ipu(
         multiclass=multiclass,
     )
 
-    return _fbeta_compute(tp, fp, tn, fn, 1.0, ignore_index, average, mdmc_average)
 
-
-def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -> Tensor:
+def mean_squared_error_ipu(preds: Tensor, target: Tensor, squared: bool) -> Tensor:
     """Computes mean squared error.
 
     Handles NaNs without reshaping tensors in order to work on IPU.
@@ -802,7 +860,7 @@ def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -
     return loss
 
 
-def mean_absolute_error_ipu(self, preds: Tensor, target: Tensor) -> Tensor:
+def mean_absolute_error_ipu(preds: Tensor, target: Tensor) -> Tensor:
     """Computes mean absolute error.
 
     Handles NaNs without reshaping tensors in order to work on IPU.

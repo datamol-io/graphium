@@ -8,12 +8,14 @@
 # Training logs and models
 *.out
 *.cache
+*.ckpt
 lightning_logs/
 logs/
 models_checkpoints/
 outputs/
 saved_models/
 wandb/
+out/
 
 # Data and predictions
 goli/data/ZINC_bench_gnn/

@@ -315,8 +315,8 @@ class test_DataLoading(ut.TestCase):
         CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
-        cfg["datamodule"]["args"]["batch_size_train_val"] = batch_size
-        cfg["datamodule"]["args"]["batch_size_test"] = batch_size
+        cfg["datamodule"]["args"]["batch_size_training"] = batch_size
+        cfg["datamodule"]["args"]["batch_size_inference"] = batch_size
         node_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_nodes_per_graph"]
         edge_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_edges_per_graph"]
 
