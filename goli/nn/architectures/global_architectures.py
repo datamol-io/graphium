@@ -238,7 +238,7 @@ class FeedForwardNN(nn.Module):
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
             other_kwargs = {}
-            if (ii == self.depth - 1):
+            if ii == self.depth - 1:
                 this_activation = self.last_activation
                 this_norm = self.last_normalization
                 this_dropout = self.last_dropout
