@@ -772,7 +772,9 @@ def fbeta_score_ipu(
         weights = tp + fn
         fbeta = (weights * fbeta).sum() / weights.sum()
     else:
-        raise ValueError(f"`average={average}` not yet supported. Chose between None, Micro, Macro, or Weighted")
+        raise ValueError(
+            f"`average={average}` not yet supported. Chose between None, Micro, Macro, or Weighted"
+        )
 
     return fbeta
 
@@ -810,7 +812,18 @@ def f1_score_ipu(
             ``average`` parameter)
     """
 
-    return fbeta_score_ipu(preds, target, beta=beta, average=average, mdmc_average=mdmc_average, ignore_index=ignore_index, num_classes=num_classes, threshold=threshold, top_k=top_k, multiclass=multiclass,)
+    return fbeta_score_ipu(
+        preds,
+        target,
+        beta=beta,
+        average=average,
+        mdmc_average=mdmc_average,
+        ignore_index=ignore_index,
+        num_classes=num_classes,
+        threshold=threshold,
+        top_k=top_k,
+        multiclass=multiclass,
+    )
 
 
 def mean_squared_error_ipu(preds: Tensor, target: Tensor, squared: bool) -> Tensor:

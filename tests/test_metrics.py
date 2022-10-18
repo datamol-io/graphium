@@ -108,7 +108,9 @@ class test_MetricWrapper(ut.TestCase):
             self.assertAlmostEqual(score4, mean_squared_error(this_preds, this_target), msg=err_msg)
 
             # Ignore NaNs in each column and average the score
-            metric = MetricWrapper(metric="mse", target_nan_mask="ignore", multitask_handling="mean-per-label")
+            metric = MetricWrapper(
+                metric="mse", target_nan_mask="ignore", multitask_handling="mean-per-label"
+            )
             score5 = metric(preds, target)
 
             this_target = target.clone()
@@ -153,11 +155,11 @@ class test_MetricWrapper(ut.TestCase):
                                 # Raise with incompatible options
                                 with self.assertRaises(ValueError):
                                     MetricWrapper(
-                                    metric=metric,
-                                    threshold_kwargs=threshold_kwargs,
-                                    target_nan_mask=target_nan_mask,
-                                    multitask_handling=multitask_handling,
-                                    **kwargs,
+                                        metric=metric,
+                                        threshold_kwargs=threshold_kwargs,
+                                        target_nan_mask=target_nan_mask,
+                                        multitask_handling=multitask_handling,
+                                        **kwargs,
                                     )
 
                             else:

@@ -197,7 +197,9 @@ class MetricWrapper:
             # Only a few str options are accepted
             target_nan_mask = target_nan_mask.lower()
             accepted_str = ["ignore", "none"]
-            assert target_nan_mask in accepted_str, f"Provided {target_nan_mask} not in accepted_str={accepted_str}"
+            assert (
+                target_nan_mask in accepted_str
+            ), f"Provided {target_nan_mask} not in accepted_str={accepted_str}"
 
             if target_nan_mask == "none":
                 target_nan_mask = None
@@ -211,14 +213,16 @@ class MetricWrapper:
         Parse the `multitask_handling` parameter
         """
 
-        if (multitask_handling is None):
+        if multitask_handling is None:
             # None is accepted
             pass
         elif isinstance(multitask_handling, str):
             # Only a few str options are accepted
             multitask_handling = multitask_handling.lower()
             accepted_str = ["flatten", "mean-per-label", "none"]
-            assert multitask_handling in accepted_str, f"Provided {multitask_handling} not in accepted_str={accepted_str}"
+            assert (
+                multitask_handling in accepted_str
+            ), f"Provided {multitask_handling} not in accepted_str={accepted_str}"
 
             if multitask_handling == "none":
                 multitask_handling = None
@@ -226,7 +230,9 @@ class MetricWrapper:
             raise ValueError(f"Unrecognized option `multitask_handling={multitask_handling}`")
 
         if (target_nan_mask == "ignore") and (multitask_handling is None):
-            raise ValueError("Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`. Use either 'flatten' or 'mean-per-label'")
+            raise ValueError(
+                "Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`. Use either 'flatten' or 'mean-per-label'"
+            )
 
         return multitask_handling
 
@@ -261,7 +267,9 @@ class MetricWrapper:
 
         if self.multitask_handling is None:
             # In case of no multi-task handling, apply the nan filtering, then compute the metrics
-            assert self.target_nan_mask != "ignore", f"Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`. Use either 'flatten' or 'mean-per-label'"
+            assert (
+                self.target_nan_mask != "ignore"
+            ), f"Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`. Use either 'flatten' or 'mean-per-label'"
             preds, target = self._filter_nans(preds, target)
             metric_val = self.metric(preds, target, **self.kwargs)
         elif self.multitask_handling == "flatten":
