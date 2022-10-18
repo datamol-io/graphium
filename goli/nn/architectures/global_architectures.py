@@ -44,7 +44,7 @@ class FeedForwardNN(nn.Module):
         layer_type: Union[str, nn.Module] = "fc",
         layer_kwargs: Optional[Dict] = None,
         last_layer_is_readout: bool = False,
-        ipu: Optional[bool] = None
+        ipu: Optional[bool] = None,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
