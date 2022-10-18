@@ -1,9 +1,9 @@
-from os import stat
 from typing import Union, Callable, Optional, Dict, Any
 
 import sys
 
 import torch
+from torch import Tensor
 import operator as op
 
 from torchmetrics.utilities.distributed import reduce
@@ -37,7 +37,7 @@ class Thresholder:
         self.target_to_int = target_to_int
         self.operator, self.op_str = self._get_operator(operator)
 
-    def compute(self, preds: torch.Tensor, target: torch.Tensor):
+    def compute(self, preds: Tensor, target: Tensor):
         # Apply the threshold on the predictions
         if self.th_on_preds:
             preds = self.operator(preds, self.threshold)
@@ -51,7 +51,7 @@ class Thresholder:
 
         return preds, target
 
-    def __call__(self, preds: torch.Tensor, target: torch.Tensor):
+    def __call__(self, preds: Tensor, target: Tensor):
         return self.compute(preds, target)
 
     def __repr__(self):
@@ -134,6 +134,7 @@ class MetricWrapper:
         metric: Union[str, Callable],
         threshold_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[str, int]] = None,
+        multitask_handling: Optional[str] = None,
         **kwargs,
     ):
         r"""
@@ -153,11 +154,18 @@ class MetricWrapper:
                 - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
                   all NaNs will be replaced by zeros
 
-                - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
+                - 'ignore': The NaN values will be removed from the tensor before computing the metrics.
+                  Must be coupled with the `multitask_handling='flatten'` or `multitask_handling='mean-per-label'`.
 
-                - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
-                  has a different number of NaNs, so the metric will be computed separately
-                  on each column, and the metric result will be averaged over all columns.
+            multitask_handling:
+                - None: Do not process the tensor before passing it to the metric.
+                  Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`.
+                  Use either 'flatten' or 'mean-per-label'.
+
+                - 'flatten': Flatten the tensor to produce the equivalent of a single task
+
+                - 'mean-per-label': Loop all the labels columns, process them as a single task,
+                    and average the results over each task
                   *This option might slowdown the computation if there are too many labels*
 
             kwargs:
@@ -168,8 +176,59 @@ class MetricWrapper:
         self.thresholder = None
         if threshold_kwargs is not None:
             self.thresholder = Thresholder(**threshold_kwargs)
-        self.target_nan_mask = target_nan_mask
+
+        self.target_nan_mask = self._parse_target_nan_mask(target_nan_mask)
+        self.multitask_handling = self._parse_multitask_handling(multitask_handling, self.target_nan_mask)
         self.kwargs = kwargs
+
+    @staticmethod
+    def _parse_target_nan_mask(target_nan_mask):
+        """
+        Parse the `target_nan_mask` parameter
+        """
+
+        if (target_nan_mask is None) or isinstance(target_nan_mask, (int, float)):
+            # None, int, float, are accepted
+            pass
+        elif isinstance(target_nan_mask, Tensor) and (target_nan_mask.numel() == 1):
+            # Only single element tensors are accepted
+            target_nan_mask = target_nan_mask.flatten()[0]
+        elif isinstance(target_nan_mask, str):
+            # Only a few str options are accepted
+            target_nan_mask = target_nan_mask.lower()
+            accepted_str = ["ignore", "none"]
+            assert target_nan_mask in accepted_str, f"Provided {target_nan_mask} not in accepted_str={accepted_str}"
+
+            if target_nan_mask == "none":
+                target_nan_mask = None
+        else:
+            raise ValueError(f"Unrecognized option `target_nan_mask={target_nan_mask}`")
+        return target_nan_mask
+
+    @staticmethod
+    def _parse_multitask_handling(multitask_handling, target_nan_mask):
+        """
+        Parse the `multitask_handling` parameter
+        """
+
+        if (multitask_handling is None):
+            # None is accepted
+            pass
+        elif isinstance(multitask_handling, str):
+            # Only a few str options are accepted
+            multitask_handling = multitask_handling.lower()
+            accepted_str = ["flatten", "mean-per-label", "none"]
+            assert multitask_handling in accepted_str, f"Provided {multitask_handling} not in accepted_str={accepted_str}"
+
+            if multitask_handling == "none":
+                multitask_handling = None
+        else:
+            raise ValueError(f"Unrecognized option `multitask_handling={multitask_handling}`")
+
+        if (target_nan_mask == "ignore") and (multitask_handling is None):
+            raise ValueError("Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`. Use either 'flatten' or 'mean-per-label'")
+
+        return multitask_handling
 
     @staticmethod
     def _get_metric(metric):
@@ -183,7 +242,7 @@ class MetricWrapper:
             metric = metric
         return metric, metric_name
 
-    def compute(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def compute(self, preds: Tensor, target: Tensor) -> Tensor:
         r"""
         Compute the metric, apply the thresholder if provided, and manage the NaNs
         """
@@ -194,47 +253,58 @@ class MetricWrapper:
         if target.ndim == 1:
             target = target.unsqueeze(-1)
 
-        target_nans = torch.isnan(target)
-
         # Threshold the prediction
         if self.thresholder is not None:
             preds, target = self.thresholder(preds, target)
 
-        # Manage the NaNs
+        target_nans = torch.isnan(target)
+
+        if self.multitask_handling is None:
+            # In case of no multi-task handling, apply the nan filtering, then compute the metrics
+            assert self.target_nan_mask != "ignore", f"Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`. Use either 'flatten' or 'mean-per-label'"
+            preds, target = self._filter_nans(preds, target)
+            metric_val = self.metric(preds, target, **self.kwargs)
+        elif self.multitask_handling == "flatten":
+            # Flatten the tensors, apply the nan filtering, then compute the metrics
+            preds, target = preds.flatten(), target.flatten()
+            preds, target = self._filter_nans(preds, target)
+            metric_val = self.metric(preds, target, **self.kwargs)
+        elif self.multitask_handling == "mean-per-label":
+            # Loop the columns (last dim) of the tensors, apply the nan filtering, compute the metrics per column, then average the metrics
+            target_list = [target[..., ii][~target_nans[..., ii]] for ii in range(target.shape[-1])]
+            preds_list = [preds[..., ii][~target_nans[..., ii]] for ii in range(preds.shape[-1])]
+            metric_val = []
+            for ii in range(len(target_list)):
+                try:
+                    this_preds, this_target = self._filter_nans(preds_list[ii], target_list[ii])
+                    metric_val.append(self.metric(this_preds, this_target, **self.kwargs))
+                except:
+                    pass
+            # Average the metric
+            metric_val = nan_mean(torch.stack(metric_val))
+        else:
+            # Wrong option
+            raise ValueError(f"Invalid option `self.multitask_handling={self.multitask_handling}`")
+
+        return metric_val
+
+    def _filter_nans(self, preds: Tensor, target: Tensor):
+        """Handle the NaNs according to the chosen options"""
+        target_nans = torch.isnan(target)
+
         if self.target_nan_mask is None:
             pass
         elif isinstance(self.target_nan_mask, (int, float)):
             target = target.clone()
             target[torch.isnan(target)] = self.target_nan_mask
-        elif self.target_nan_mask == "ignore-flatten":
+        elif self.target_nan_mask == "ignore":
             target = target[~target_nans]
             preds = preds[~target_nans]
-        elif self.target_nan_mask == "ignore-mean-label":
-            target_list = [target[..., ii][~target_nans[..., ii]] for ii in range(target.shape[-1])]
-            preds_list = [preds[..., ii][~target_nans[..., ii]] for ii in range(preds.shape[-1])]
-            target = target_list
-            preds = preds_list
         else:
             raise ValueError(f"Invalid option `{self.target_nan_mask}`")
+        return preds, target
 
-        if self.target_nan_mask == "ignore-mean-label":
-
-            # Compute the metric for each column, and output nan if there's an error on a given column
-            metric_val = []
-            for ii in range(len(target)):
-                try:
-                    metric_val.append(self.metric(preds[ii], target[ii], **self.kwargs))
-                except:
-                    pass
-
-            # Average the metric
-            metric_val = nan_mean(torch.stack(metric_val))
-
-        else:
-            metric_val = self.metric(preds, target, **self.kwargs)
-        return metric_val
-
-    def __call__(self, preds: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    def __call__(self, preds: Tensor, target: Tensor) -> Tensor:
         r"""
         Compute the metric with the method `self.compute`
         """
