@@ -1497,7 +1497,7 @@
 
 
 <h5 id="goli.trainer.metrics.MetricWrapper.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.trainer.metrics.MetricWrapper.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -1519,11 +1519,18 @@ target_nan_mask:
     - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
       all NaNs will be replaced by zeros
 
-    - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
+    - 'ignore': The NaN values will be removed from the tensor before computing the metrics.
+      Must be coupled with the `multitask_handling='flatten'` or `multitask_handling='mean-per-label'`.
 
-    - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
-      has a different number of NaNs, so the metric will be computed separately
-      on each column, and the metric result will be averaged over all columns.
+multitask_handling:
+    - None: Do not process the tensor before passing it to the metric.
+      Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`.
+      Use either 'flatten' or 'mean-per-label'.
+
+    - 'flatten': Flatten the tensor to produce the equivalent of a single task
+
+    - 'mean-per-label': Loop all the labels columns, process them as a single task,
+        and average the results over each task
       *This option might slowdown the computation if there are too many labels*
 
 kwargs:

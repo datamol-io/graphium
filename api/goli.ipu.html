@@ -868,6 +868,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.spearman_ipu" class="md-nav__link">
+    spearman_ipu()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1397,6 +1404,13 @@
           <li class="md-nav__item">
   <a href="#goli.ipu.ipu_metrics.recall_ipu" class="md-nav__link">
     recall_ipu()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_metrics.spearman_ipu" class="md-nav__link">
+    spearman_ipu()
   </a>
   
 </li>
@@ -3511,7 +3525,7 @@ to the returned score, regardless of reduction method. If an index is ignored, a
 
 
 <h4 id="goli.ipu.ipu_metrics.mean_absolute_error_ipu" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mean_absolute_error_ipu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">mean_absolute_error_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_metrics.mean_absolute_error_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3568,7 +3582,7 @@ to the returned score, regardless of reduction method. If an index is ignored, a
 
 
 <h4 id="goli.ipu.ipu_metrics.mean_squared_error_ipu" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mean_squared_error_ipu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">squared</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">mean_squared_error_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">squared</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_metrics.mean_squared_error_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3643,7 +3657,7 @@ to the returned score, regardless of reduction method. If an index is ignored, a
   <div class="doc doc-contents ">
   
       <p>Computes pearson correlation coefficient.</p>
-<p>Handles NaNs without reshaping tensors in order to work on IPU.</p>
+<p>Handles NaNs in the target without reshaping tensors in order to work on IPU.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3799,6 +3813,57 @@ Handles NaNs without reshaping tensors in order to work on IPU.</p>
 by giving them the same value for both <code>preds</code> and <code>target</code>.
 This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.ipu.ipu_metrics.spearman_ipu" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">spearman_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_metrics.spearman_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Computes spearman rank correlation coefficient.</p>
+<p>Handles NaNs in the target without reshaping tensors in order to work on IPU.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+          </td>
+          <td><p>estimated scores</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+          </td>
+          <td><p>ground truth scores</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
@@ -4001,7 +4066,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h4 id="goli.ipu.ipu_utils.import_poptorch" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">import_poptorch</span><span class="p">()</span></code>
+<code class="highlight language-python"><span class="n">import_poptorch</span><span class="p">(</span><span class="n">raise_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_utils.import_poptorch" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4011,6 +4076,30 @@ and IPUs since it doesn't modify the tensor's shape.</p>
       <p>Import poptorch and returns it.
 It is wrapped in a function to avoid breaking the code
 for non-IPU devices which did not install poptorch.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>raise_error</code></td>
+          <td>
+          </td>
+          <td><p>Whether to raise an error if poptorch is unavailable.
+If <code>False</code>, return <code>None</code></p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4023,7 +4112,7 @@ for non-IPU devices which did not install poptorch.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="types.ModuleType">ModuleType</span></code>
+                <code><span title="typing.Optional">Optional</span>[<span title="types.ModuleType">ModuleType</span>]</code>
           </td>
           <td><p>The poptorch module</p></td>
         </tr>
