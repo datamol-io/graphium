@@ -43,7 +43,6 @@ class FeedForwardNN(nn.Module):
         name: str = "LNN",
         layer_type: Union[str, nn.Module] = "fc",
         layer_kwargs: Optional[Dict] = None,
-        last_layer_is_readout: bool = False,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -124,9 +123,6 @@ class FeedForwardNN(nn.Module):
             layer_kwargs:
                 The arguments to be used in the initialization of the layer provided by `layer_type`
 
-            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
-                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
         """
 
         super().__init__()
@@ -151,7 +147,6 @@ class FeedForwardNN(nn.Module):
         self.residual_skip_steps = residual_skip_steps
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
-        self.last_layer_is_readout = last_layer_is_readout
 
         # Parse the layer and residuals
         from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
@@ -237,15 +232,10 @@ class FeedForwardNN(nn.Module):
 
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
-            other_kwargs = {}
             if ii == self.depth - 1:
                 this_activation = self.last_activation
                 this_norm = self.last_normalization
                 this_dropout = self.last_dropout
-                sig = inspect.signature(self.layer_class)
-                key_args = [p.name for p in sig.parameters.values()]
-                if self.last_layer_is_readout and ("is_readout_layer" in key_args):
-                    other_kwargs["is_readout_layer"] = self.last_layer_is_readout
 
             # Create the layer
             self.layers.append(
@@ -256,7 +246,6 @@ class FeedForwardNN(nn.Module):
                     dropout=this_dropout,
                     normalization=this_norm,
                     **self.layer_kwargs,
-                    **other_kwargs,
                 )
             )
 
@@ -327,7 +316,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
-        last_layer_is_readout: bool = False,
     ):
         r"""
         **Astract class, must be inherited to override the following methods:**
@@ -465,9 +453,6 @@ class FeedForwardGraphBase(FeedForwardNN):
                 is "none". Otherwise, it will use a simple ResNet like residual
                 connection.
 
-            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
-                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
         """
 
         # Initialize the additional attributes
@@ -507,7 +492,6 @@ class FeedForwardGraphBase(FeedForwardNN):
             dropout=dropout,
             last_dropout=last_dropout,
             layer_kwargs=layer_kwargs,
-            last_layer_is_readout=last_layer_is_readout,
         )
 
     def _check_bad_arguments(self):
@@ -566,6 +550,9 @@ class FeedForwardGraphBase(FeedForwardNN):
         # Create all the layers in a loop
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
+
+            if ii == self.depth - 1:
+                this_activation = self.last_activation
 
             # Find the edge key-word arguments depending on the layer type and residual connection
             this_edge_kwargs = {}
@@ -627,10 +614,9 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.out_linear = FCLayer(
             in_dim=out_pool_dim,
             out_dim=self.out_dim,
-            activation=self.last_activation,
-            dropout=self.last_dropout,
-            normalization=self.last_normalization,
-            is_readout_layer=self.last_layer_is_readout,
+            activation="none",
+            dropout=self.dropout,
+            normalization=self.normalization,
         )
 
     def _pool_layer_forward(self, g, h):
@@ -1431,8 +1417,7 @@ class TaskHeads(nn.Module):
         self.task_heads = nn.ModuleDict()
         for head_kwargs in task_heads_kwargs_list:
             task_name = head_kwargs.pop("task_name")
-            head_kwargs.setdefault("name", f"NN-{task_name}")
-            head_kwargs.setdefault("last_layer_is_readout", True)
+            head_kwargs.setdefault("name", f"NN_{task_name}")
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
     # Return a dictionary: Dict[task_name, Tensor]
@@ -1446,9 +1431,8 @@ class TaskHeads(nn.Module):
 
     def __repr__(self):
         task_repr = []
-        for head, net in self.task_heads.items():
-            task_repr.append(head + ": " + net.__repr__())
-        return "\n".join(task_repr)
+        for head in self.task_heads:
+            task_repr.append(head.__repr__())
 
     @property
     def out_dim(self) -> Dict[str, int]:
@@ -1550,7 +1534,4 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         return self.task_heads.out_dim
 
     def __repr__(self):
-        task_str = self.task_heads.__repr__()
-        task_str = "    Task heads:\n    " + "    ".join(task_str.splitlines(True))
-
-        return super().__repr__() + task_str
+        return super().__repr__()

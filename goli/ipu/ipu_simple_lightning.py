@@ -11,6 +11,7 @@ import poptorch
 
 from goli.nn.base_layers import FCLayer
 
+
 # The simple PyTorch model used in each of these examples
 class SimpleTorchModel(torch.nn.Module):
     def __init__(self):
@@ -76,7 +77,7 @@ if __name__ == "__main__":
 
     # Normal PyTorch dataset.
     train_set = torchvision.datasets.FashionMNIST(
-        "out/FashionMNIST", train=True, download=True, transform=transforms.Compose([transforms.ToTensor()])
+        "FashionMNIST", train=True, download=True, transform=transforms.Compose([transforms.ToTensor()])
     )
 
     # Normal PyTorch dataloader.

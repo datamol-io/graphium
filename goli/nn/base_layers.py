@@ -1,12 +1,11 @@
 from typing import Union, Callable, Optional, Type
 from copy import deepcopy
-from loguru import logger
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import mup.init as mupi
-from mup import set_base_shapes, MuReadout
+from mup import set_base_shapes
 
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
@@ -95,7 +94,6 @@ class FCLayer(nn.Module):
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
         init_fn: Optional[Callable] = None,
-        is_readout_layer: bool = False,
     ):
 
         r"""
@@ -128,8 +126,6 @@ class FCLayer(nn.Module):
             init_fn:
                 Initialization function to use for the weight of the layer. Default is
                 $$\mathcal{U}(-\sqrt{k}, \sqrt{k})$$ with $$k=\frac{1}{ \text{in_dim}}$$
-            is_readout_layer: Whether the layer should be treated as a readout layer by replacing of `torch.nn.Linear`
-                by `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
         Attributes:
             dropout (int):
@@ -153,35 +149,18 @@ class FCLayer(nn.Module):
         self.__params = locals()
         del self.__params["__class__"]
         del self.__params["self"]
-
-        # Basic parameters
         self.in_dim = in_dim
         self.out_dim = out_dim
         self.bias = bias
+        self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         self.dropout = None
         self.normalization = get_norm(normalization, dim=out_dim)
 
-        # Dropout and activation
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
-
-        # Linear layer, or MuReadout layer
-        if not is_readout_layer:
-            self.linear = nn.Linear(in_dim, out_dim, bias=bias)
-        else:
-            self.linear = MuReadout(in_dim, out_dim, bias=bias)
-
-            # Warn user in case of weird parameters
-            if self.normalization is not None:
-                logger.warning(
-                    f"Normalization is not `None` for the readout layer. Provided {self.normalization}"
-                )
-            if (self.dropout is not None) and (self.dropout.p > 0):
-                logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
-
-        # Define the initialization function based on `muTransfer`, and reset the parameters
         self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
+
         self.reset_parameters()
 
     def reset_parameters(self, init_fn=None):
@@ -258,12 +237,11 @@ class MLP(nn.Module):
         layers: int,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
-        dropout: float = 0.0,
-        last_dropout: float = 0.0,
-        normalization: Union[Type[None], str, Callable] = "none",
-        last_normalization: Union[Type[None], str, Callable] = "none",
-        first_normalization: Union[Type[None], str, Callable] = "none",
-        last_layer_is_readout: bool = False,
+        dropout=0.0,
+        normalization="none",
+        last_normalization="none",
+        first_normalization="none",
+        last_dropout=0.0,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -300,8 +278,6 @@ class MLP(nn.Module):
                 Norrmalization to use in **before the first layer**. Same options as `normalization`.
             last_dropout:
                 The ratio of units to dropout at the last layer.
-            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
-                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
         """
 
@@ -313,10 +289,7 @@ class MLP(nn.Module):
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
         fully_connected = []
-        if layers == 0:
-            self.fully_connected = None
-            return
-        elif layers == 1:
+        if layers <= 1:
             fully_connected.append(
                 FCLayer(
                     in_dim,
@@ -324,10 +297,9 @@ class MLP(nn.Module):
                     activation=last_activation,
                     normalization=last_normalization,
                     dropout=last_dropout,
-                    is_readout_layer=last_layer_is_readout,
                 )
             )
-        elif layers > 1:
+        else:
             fully_connected.append(
                 FCLayer(
                     in_dim,
@@ -354,7 +326,6 @@ class MLP(nn.Module):
                     activation=last_activation,
                     normalization=last_normalization,
                     dropout=last_dropout,
-                    is_readout_layer=last_layer_is_readout,
                 )
             )
         self.fully_connected = nn.Sequential(*fully_connected)
@@ -378,8 +349,7 @@ class MLP(nn.Module):
         """
         if self.first_normalization is not None:
             h = self.first_normalization(h)
-        if self.fully_connected is not None:
-            h = self.fully_connected(h)
+        h = self.fully_connected(h)
         return h
 
     @property
