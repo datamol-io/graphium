@@ -242,6 +242,7 @@ class FeedForwardNN(nn.Module):
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
             other_kwargs = {}
+            sig = inspect.signature(self.layer_class)
             key_args = [p.name for p in sig.parameters.values()]
             if self.ipu is not None and ("ipu" in key_args):
                 other_kwargs["ipu"] = self.ipu
@@ -249,7 +250,6 @@ class FeedForwardNN(nn.Module):
                 this_activation = self.last_activation
                 this_norm = self.last_normalization
                 this_dropout = self.last_dropout
-                sig = inspect.signature(self.layer_class)
                 if self.last_layer_is_readout and ("is_readout_layer" in key_args):
                     other_kwargs["is_readout_layer"] = self.last_layer_is_readout
 

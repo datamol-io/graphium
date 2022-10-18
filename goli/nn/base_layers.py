@@ -7,12 +7,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 import mup.init as mupi
-from mup import set_base_shapes, MuReadout
-from functools import partial
+from mup import set_base_shapes, MuReadout, get_shapes
 
-GAIN = 1 # TODO: Remove the gain before committing
-
-from goli.nn.ipu.mu_readout import PopReadout
+from goli.ipu.mu_readout import PopReadout
+from goli.ipu.ipu_utils import import_poptorch
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 
@@ -161,8 +159,8 @@ class FCLayer(nn.Module):
         bias: bool = True,
         init_fn: Optional[Callable] = None,
         is_readout_layer: bool = False,
-        ipu: Optional[bool] = False,
-        base_width: Optional[int] = None
+        base_in_dim: Optional[int] = None,
+        base_out_dim: Optional[int] = None,
     ):
 
         r"""
@@ -197,9 +195,8 @@ class FCLayer(nn.Module):
                 $$\mathcal{U}(-\sqrt{k}, \sqrt{k})$$ with $$k=\frac{1}{ \text{in_dim}}$$
             is_readout_layer: Whether the layer should be treated as a readout layer by replacing of `torch.nn.Linear`
                 by `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-            ipu: Whether the layer is being run on the IPU (required for readout layers)
-            base_width: Base width for muTransfer (necessary on IPU to ensure agreement with CPU/GPU in readout
-                layer; required for IPU readout layers)
+            base_in_dim: Base input dimension, used for muTransfer. If None, it will be equal to `in_dim`
+            base_out_dim: Base output dimension, used for muTransfer. If None, it will be equal to `out_dim`
 
         Attributes:
             dropout (int):
@@ -230,6 +227,8 @@ class FCLayer(nn.Module):
         self.bias = bias
         self.dropout = None
         self.normalization = get_norm(normalization, dim=out_dim)
+        self.base_in_dim = base_in_dim
+        self.base_out_dim = base_out_dim
 
         # Dropout and activation
         if dropout:
@@ -240,14 +239,17 @@ class FCLayer(nn.Module):
         if not is_readout_layer:
             self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         else:
-            if ipu is None:
-                raise ValueError("Whether to use IPU must be specified for readout layers")
+            # Find whether the model is running on IPU
+            ipu = False
+            poptorch = import_poptorch(raise_error=False)
+            if poptorch is not None:
+                ipu = poptorch.isRunningOnIpu()
+
+            # Slightly different behaviour on IPU since the `InfShape` parameter will tend to disappear
             if not ipu:
                 self.linear = MuReadout(in_dim, out_dim, bias=bias)
             else:
-                if base_width is None:
-                    raise ValueError("base_width must be specified for IPU readout layer")
-                self.linear = PopReadout(in_dim, out_dim, bias=bias, base_width=base_width)
+                self.linear = PopReadout(in_dim, out_dim, bias=bias, base_width=base_out_dim)
 
             # Warn user in case of weird parameters
             if self.normalization is not None:
@@ -257,6 +259,7 @@ class FCLayer(nn.Module):
             if (self.dropout is not None) and (self.dropout.p > 0):
                 logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
 
+
         # Define the initialization function based on `muTransfer`, and reset the parameters
         self.init_fn = init_fn if init_fn is not None else partial(mupi.xavier_uniform_, gain=GAIN)
         self.reset_parameters()
@@ -265,7 +268,12 @@ class FCLayer(nn.Module):
         """
         Reset the parameters of the linear layer using the `init_fn`.
         """
-        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
+        base_shapes = get_shapes(self)
+        base_shapes["linear.weight"] = list(base_shapes["linear.weight"])
+        if self.base_in_dim is not None:
+            base_shapes["linear.weight"][0] = self.base_in_dim
+        if self.base_out_dim is not None:
+            base_shapes["linear.weight"][1] = self.base_out_dim
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
             init_fn(self.linear.weight)
