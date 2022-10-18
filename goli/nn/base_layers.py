@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 import mup.init as mupi
-from mup import set_base_shapes, MuReadout, get_shapes
+from mup import set_base_shapes, MuReadout
 
 from goli.ipu.ipu_utils import import_poptorch
 
@@ -187,6 +187,41 @@ class MuReadoutGoli(MuReadout):
         return self.absolute_width / self.base_width
 
 
+class MuReadoutGoli(MuReadout):
+    """
+    PopTorch-compatible replacement for `mup.MuReadout`
+
+    Not quite a drop-in replacement for `mup.MuReadout` - you need to specify
+    `base_width`.
+
+    Set `base_width` to width of base model passed to `mup.set_base_shapes`
+    to get same results on IPU and CPU. Should still "work" with any other
+    value, but won't give the same results as CPU
+    """
+
+    def __init__(self, in_features, *args, **kwargs):
+        super().__init__(in_features, *args, **kwargs)
+        self.base_width = in_features
+
+    @property
+    def absolute_width(self):
+        return float(self.in_features)
+
+    @property
+    def base_width(self):
+        return self._base_width
+
+    @base_width.setter
+    def base_width(self, val):
+        if val is None:
+            return
+        assert isinstance(val, (int, torch.int, torch.long)), f"`base_width` must be None, int or long, provided {val} of type {type(val)}"
+        self._base_width = val
+
+    def width_mult(self):
+        return self.absolute_width / self.base_width
+
+
 class FCLayer(nn.Module):
     def __init__(
         self,
@@ -264,8 +299,6 @@ class FCLayer(nn.Module):
         self.bias = bias
         self.dropout = None
         self.normalization = get_norm(normalization, dim=out_dim)
-        self.base_in_dim = base_in_dim
-        self.base_out_dim = base_out_dim
 
         # Dropout and activation
         if dropout:
@@ -295,12 +328,7 @@ class FCLayer(nn.Module):
         """
         Reset the parameters of the linear layer using the `init_fn`.
         """
-        base_shapes = get_shapes(self)
-        base_shapes["linear.weight"] = list(base_shapes["linear.weight"])
-        if self.base_in_dim is not None:
-            base_shapes["linear.weight"][0] = self.base_in_dim
-        if self.base_out_dim is not None:
-            base_shapes["linear.weight"][1] = self.base_out_dim
+        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
             init_fn(self.linear.weight)
