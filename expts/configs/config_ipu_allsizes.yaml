@@ -1,10 +1,10 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name olek_test_ipu #qm9_full
+  name: &name qm9_micro
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  #cpu or ipu or gpu
+    type: cpu  #cpu or ipu or gpu
 
 
 datamodule:
@@ -13,7 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        # df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
+        # df_path: &df_path goli/data/QM9/norm_micro_olek_test_ipu-v82.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
         df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_micro_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
@@ -92,6 +92,7 @@ datamodule:
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
+  mup_base_path: base_shapes.yaml
   pre_nn:   # Set as null to avoid a pre-nn network
     out_dim: 32
     hidden_dims: 32

@@ -7,9 +7,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 import mup.init as mupi
-from mup import set_base_shapes, MuReadout, get_shapes
+from mup import set_base_shapes, MuReadout
 
-from goli.ipu.mu_readout import PopReadout
 from goli.ipu.ipu_utils import import_poptorch
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
@@ -148,6 +147,41 @@ def _mup_scaled_dot_product_attention(
     output = torch.bmm(attn, v)
     return output, attn
 
+class MuReadoutGoli(MuReadout):
+    """
+    PopTorch-compatible replacement for `mup.MuReadout`
+
+    Not quite a drop-in replacement for `mup.MuReadout` - you need to specify
+    `base_width`.
+
+    Set `base_width` to width of base model passed to `mup.set_base_shapes`
+    to get same results on IPU and CPU. Should still "work" with any other
+    value, but won't give the same results as CPU
+    """
+
+    def __init__(self, in_features, *args, **kwargs):
+        super().__init__(in_features, *args, **kwargs)
+        self.base_width = in_features
+
+    @property
+    def absolute_width(self):
+        return float(self.in_features)
+
+    @property
+    def base_width(self):
+        return self._base_width
+
+    @base_width.setter
+    def base_width(self, val):
+        if val is None:
+            return
+        assert isinstance(val, (int, torch.int, torch.long)), f"`base_width` must be None, int or long, provided {val} of type {type(val)}"
+        self._base_width = val
+
+    def width_mult(self):
+        return self.absolute_width / self.base_width
+
+
 class FCLayer(nn.Module):
     def __init__(
         self,
@@ -195,8 +229,6 @@ class FCLayer(nn.Module):
                 $$\mathcal{U}(-\sqrt{k}, \sqrt{k})$$ with $$k=\frac{1}{ \text{in_dim}}$$
             is_readout_layer: Whether the layer should be treated as a readout layer by replacing of `torch.nn.Linear`
                 by `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-            base_in_dim: Base input dimension, used for muTransfer. If None, it will be equal to `in_dim`
-            base_out_dim: Base output dimension, used for muTransfer. If None, it will be equal to `out_dim`
 
         Attributes:
             dropout (int):
@@ -227,8 +259,6 @@ class FCLayer(nn.Module):
         self.bias = bias
         self.dropout = None
         self.normalization = get_norm(normalization, dim=out_dim)
-        self.base_in_dim = base_in_dim
-        self.base_out_dim = base_out_dim
 
         # Dropout and activation
         if dropout:
@@ -239,17 +269,7 @@ class FCLayer(nn.Module):
         if not is_readout_layer:
             self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         else:
-            # Find whether the model is running on IPU
-            ipu = False
-            poptorch = import_poptorch(raise_error=False)
-            if poptorch is not None:
-                ipu = poptorch.isRunningOnIpu()
-
-            # Slightly different behaviour on IPU since the `InfShape` parameter will tend to disappear
-            if not ipu:
-                self.linear = MuReadout(in_dim, out_dim, bias=bias)
-            else:
-                self.linear = PopReadout(in_dim, out_dim, bias=bias, base_width=base_out_dim)
+            self.linear = MuReadoutGoli(in_dim, out_dim, bias=bias)
 
             # Warn user in case of weird parameters
             if self.normalization is not None:
@@ -268,12 +288,7 @@ class FCLayer(nn.Module):
         """
         Reset the parameters of the linear layer using the `init_fn`.
         """
-        base_shapes = get_shapes(self)
-        base_shapes["linear.weight"] = list(base_shapes["linear.weight"])
-        if self.base_in_dim is not None:
-            base_shapes["linear.weight"][0] = self.base_in_dim
-        if self.base_out_dim is not None:
-            base_shapes["linear.weight"][1] = self.base_out_dim
+        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
             init_fn(self.linear.weight)
