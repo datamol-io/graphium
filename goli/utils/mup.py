@@ -7,6 +7,7 @@ from mup.shape import _zip_infshape_dict, _extract_shapes
 
 from goli.nn.base_layers import MuReadoutGoli
 
+
 def apply_infshapes(model, infshapes):
     """
     Modified from the regular `mup.apply_infshapes` by explicitly adding `base_dim` to the `MuReadoutGoli`.

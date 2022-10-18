@@ -215,7 +215,9 @@ class MuReadoutGoli(MuReadout):
     def base_width(self, val):
         if val is None:
             return
-        assert isinstance(val, (int, torch.int, torch.long)), f"`base_width` must be None, int or long, provided {val} of type {type(val)}"
+        assert isinstance(
+            val, (int, torch.int, torch.long)
+        ), f"`base_width` must be None, int or long, provided {val} of type {type(val)}"
         self._base_width = val
 
     def width_mult(self):
@@ -318,7 +320,6 @@ class FCLayer(nn.Module):
                 )
             if (self.dropout is not None) and (self.dropout.p > 0):
                 logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
-
 
         # Define the initialization function based on `muTransfer`, and reset the parameters
         self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
