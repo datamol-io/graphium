@@ -768,7 +768,7 @@ def f1_score_ipu(
     return _fbeta_compute(tp, fp, tn, fn, 1.0, ignore_index, average, mdmc_average)
 
 
-def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -> Tensor:
+def mean_squared_error_ipu(preds: Tensor, target: Tensor, squared: bool) -> Tensor:
     """Computes mean squared error.
 
     Handles NaNs without reshaping tensors in order to work on IPU.
@@ -802,7 +802,7 @@ def mean_squared_error_ipu(self, preds: Tensor, target: Tensor, squared: bool) -
     return loss
 
 
-def mean_absolute_error_ipu(self, preds: Tensor, target: Tensor) -> Tensor:
+def mean_absolute_error_ipu(preds: Tensor, target: Tensor) -> Tensor:
     """Computes mean absolute error.
 
     Handles NaNs without reshaping tensors in order to work on IPU.

@@ -30,7 +30,7 @@ from goli.ipu.ipu_metrics import (
 )
 
 
-class test_Losses(ut.TestCase):
+class test_Metrics(ut.TestCase):
 
     torch.manual_seed(42)
     preds = torch.rand((100, 10), dtype=torch.float32)
@@ -662,7 +662,7 @@ class test_Losses(ut.TestCase):
 
         # Regular loss
         loss_true = mean_squared_error(preds, target, squared)
-        loss_ipu = mean_squared_error_ipu(self, preds=preds, target=target, squared=squared)
+        loss_ipu = mean_squared_error_ipu(preds=preds, target=target, squared=squared)
         self.assertFalse(loss_true.isnan(), "Regular Mean Squared Error is NaN")
         self.assertAlmostEqual(
             loss_true.item(), loss_ipu.item(), places=6, msg="Regular Mean Squared Error is different"
@@ -671,7 +671,7 @@ class test_Losses(ut.TestCase):
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
         loss_true = mean_squared_error(preds[not_nan], target[not_nan], squared)
-        loss_ipu = mean_squared_error_ipu(self, preds=preds, target=target_nan, squared=squared)
+        loss_ipu = mean_squared_error_ipu(preds=preds, target=target_nan, squared=squared)
         self.assertFalse(loss_true.isnan(), "Regular Mean Squared Error with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Regular Mean Squared Error IPU with target_nan is NaN")
         self.assertAlmostEqual(
@@ -685,7 +685,7 @@ class test_Losses(ut.TestCase):
 
         # Regular loss
         loss_true = mean_squared_error(preds, target, squared)
-        loss_ipu = mean_squared_error_ipu(self, preds=preds, target=target, squared=squared)
+        loss_ipu = mean_squared_error_ipu(preds=preds, target=target, squared=squared)
         self.assertFalse(loss_true.isnan(), "Regular Mean Squared Error is NaN")
         self.assertAlmostEqual(
             loss_true.item(), loss_ipu.item(), places=6, msg="Regular Mean Squared Error is different"
@@ -694,7 +694,7 @@ class test_Losses(ut.TestCase):
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
         loss_true = mean_squared_error(preds[not_nan], target[not_nan], squared)
-        loss_ipu = mean_squared_error_ipu(self, preds=preds, target=target_nan, squared=squared)
+        loss_ipu = mean_squared_error_ipu(preds=preds, target=target_nan, squared=squared)
         self.assertFalse(loss_true.isnan(), "Regular Mean Squared Error with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Regular Mean Squared Error IPU with target_nan is NaN")
         self.assertAlmostEqual(
@@ -711,7 +711,7 @@ class test_Losses(ut.TestCase):
 
         # Regular loss
         loss_true = mean_absolute_error(preds, target)
-        loss_ipu = mean_absolute_error_ipu(self, preds=preds, target=target)
+        loss_ipu = mean_absolute_error_ipu(preds=preds, target=target)
         self.assertFalse(loss_true.isnan(), "Regular Mean Absolute Error is NaN")
         self.assertAlmostEqual(
             loss_true.item(), loss_ipu.item(), places=6, msg="Regular Mean Absolute Error is different"
@@ -720,7 +720,7 @@ class test_Losses(ut.TestCase):
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
         loss_true = mean_absolute_error(preds[not_nan], target[not_nan])
-        loss_ipu = mean_absolute_error_ipu(self, preds=preds, target=target_nan)
+        loss_ipu = mean_absolute_error_ipu(preds=preds, target=target_nan)
         self.assertFalse(loss_true.isnan(), "Regular Mean Absolute Error with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Regular Mean Absolute Error IPU with target_nan is NaN")
         self.assertAlmostEqual(
