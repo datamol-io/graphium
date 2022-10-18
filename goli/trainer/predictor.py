@@ -512,6 +512,7 @@ class PredictorModule(pl.LightningModule):
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = {}
+        prog_dict["loss"] = self.task_epoch_summary.weighted_loss.item()
         results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
         for task in self.tasks:
             prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = (
