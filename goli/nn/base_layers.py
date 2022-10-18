@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import Tensor
 import mup.init as mupi
-from mup import set_base_shapes, MuReadout
+from mup import set_base_shapes, MuReadout, get_shapes
 
 from goli.ipu.ipu_utils import import_poptorch
 
@@ -264,6 +264,8 @@ class FCLayer(nn.Module):
         self.bias = bias
         self.dropout = None
         self.normalization = get_norm(normalization, dim=out_dim)
+        self.base_in_dim = base_in_dim
+        self.base_out_dim = base_out_dim
 
         # Dropout and activation
         if dropout:
@@ -284,6 +286,7 @@ class FCLayer(nn.Module):
             if (self.dropout is not None) and (self.dropout.p > 0):
                 logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
 
+
         # Define the initialization function based on `muTransfer`, and reset the parameters
         self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
         self.reset_parameters()
@@ -292,7 +295,12 @@ class FCLayer(nn.Module):
         """
         Reset the parameters of the linear layer using the `init_fn`.
         """
-        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
+        base_shapes = get_shapes(self)
+        base_shapes["linear.weight"] = list(base_shapes["linear.weight"])
+        if self.base_in_dim is not None:
+            base_shapes["linear.weight"][0] = self.base_in_dim
+        if self.base_out_dim is not None:
+            base_shapes["linear.weight"][1] = self.base_out_dim
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
             init_fn(self.linear.weight)
