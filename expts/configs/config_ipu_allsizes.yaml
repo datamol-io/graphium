@@ -92,7 +92,7 @@ datamodule:
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
-  mup_base_path: base_shapes.yaml
+  mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
     out_dim: 32
     hidden_dims: 32
