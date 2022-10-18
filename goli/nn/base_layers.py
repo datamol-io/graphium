@@ -8,9 +8,6 @@ import torch.nn.functional as F
 from torch import Tensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
-from functools import partial
-
-GAIN = 1 # TODO: Remove the gain before committing
 
 from goli.ipu.ipu_utils import import_poptorch
 
@@ -77,22 +74,23 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
     The layers are initialized using the mup package.
     The `_scaled_dot_product_attention` normalizes the attention matrix with `1/d` instead of `1/sqrt(d)`
     """
+
     def _reset_parameters(self):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         if self._qkv_same_embed_dim:
-            mupi.xavier_uniform_(self.in_proj_weight, gain=GAIN)
+            mupi.xavier_uniform_(self.in_proj_weight)
         else:
-            mupi.xavier_uniform_(self.q_proj_weight, gain=GAIN)
-            mupi.xavier_uniform_(self.k_proj_weight, gain=GAIN)
-            mupi.xavier_uniform_(self.v_proj_weight, gain=GAIN)
+            mupi.xavier_uniform_(self.q_proj_weight)
+            mupi.xavier_uniform_(self.k_proj_weight)
+            mupi.xavier_uniform_(self.v_proj_weight)
 
         if self.in_proj_bias is not None:
             nn.init.constant_(self.in_proj_bias, 0.0)
             nn.init.constant_(self.out_proj.bias, 0.0)
         if self.bias_k is not None:
-            mupi.xavier_normal_(self.bias_k, gain=GAIN)
+            mupi.xavier_normal_(self.bias_k)
         if self.bias_v is not None:
-            mupi.xavier_normal_(self.bias_v, gain=GAIN)
+            mupi.xavier_normal_(self.bias_v)
 
     def forward(self, *args, **kwargs) -> Tuple[Tensor, Optional[Tensor]]:
 
@@ -102,6 +100,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         out = super().forward(*args, **kwargs)
         F._scaled_dot_product_attention = prev_fn
         return out
+
 
 def _mup_scaled_dot_product_attention(
     q: Tensor,
@@ -138,7 +137,7 @@ def _mup_scaled_dot_product_attention(
             have shape :math:`(B, Nt, Ns)`
     """
     B, Nt, E = q.shape
-    q = q / E # Instead of `q / math.sqrt(E)`
+    q = q / E  # Instead of `q / math.sqrt(E)`
     # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
     attn = torch.bmm(q, k.transpose(-2, -1))
     if attn_mask is not None:
@@ -149,6 +148,7 @@ def _mup_scaled_dot_product_attention(
     # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
     output = torch.bmm(attn, v)
     return output, attn
+
 
 class MuReadoutGoli(MuReadout):
     """
@@ -285,7 +285,7 @@ class FCLayer(nn.Module):
                 logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
 
         # Define the initialization function based on `muTransfer`, and reset the parameters
-        self.init_fn = init_fn if init_fn is not None else partial(mupi.xavier_uniform_, gain=GAIN)
+        self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
         self.reset_parameters()
 
     def reset_parameters(self, init_fn=None):
