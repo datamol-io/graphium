@@ -563,6 +563,47 @@ def pearson_ipu(preds, target):
     return Tensor(pearson)
 
 
+def spearman_ipu(preds, target):
+    """Computes pearson correlation coefficient.
+
+    Handles NaNs without reshaping tensors in order to work on IPU.
+
+    Args:
+        preds: estimated scores
+        target: ground truth scores
+    """
+    nans = target.isnan()
+    dtype = preds.dtype
+    preds[nans] = float("inf")
+    target[nans] = float("inf")
+    preds_sort = _rank_data(preds).to(dtype=dtype)
+    target_sort = _rank_data(target).to(dtype=dtype)
+    target_sort[nans] = float("nan")
+    spearman = pearson_ipu(preds_sort, target_sort)
+    return Tensor(spearman)
+
+
+def _rank_data(data: Tensor) -> Tensor:
+    """Calculate the rank for each element of a tensor.
+
+    The rank refers to the indices of an element in the corresponding sorted tensor (starting from 1).
+    Duplicates of the same value will be assigned the mean of their rank.
+
+    Adopted from `Rank of element tensor`_
+    """
+    n = data.numel()
+    rank = torch.empty_like(data)
+    idx = data.argsort()
+    rank[idx] = torch.arange(1, n + 1, dtype=data.dtype, device=data.device)
+
+    # TODO: Repeats not yet supported
+    # repeats = _find_repeats(data)
+    # for r in repeats:
+    #     condition = data == r
+    #     rank[condition] = rank[condition].mean()
+    return rank
+
+
 def r2_score_ipu(preds, target, *args, **kwargs) -> Tensor:
     """
     Computes r2 score also known as `R2 Score_Coefficient Determination`_:

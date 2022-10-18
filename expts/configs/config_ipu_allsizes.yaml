@@ -211,9 +211,9 @@ architecture:
 #Task-specific
 predictor:
   metrics_on_progress_bar:
-    homo: ["mae", "pearsonr"]
+    homo: ["mae", "pearsonr", "spearmanr", "f1 > 0.5", "precision > 0.5"]
     alpha: ["mae"]
-    cv: ["mae", "pearsonr"]
+    cv: ["mae"]
   loss_fun:
     homo: mse_ipu
     alpha: mse_ipu
@@ -248,7 +248,12 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
-    - name: f1 gt 0.5
+    - name: spearmanr
+      metric: spearmanr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: f1 > 0.5
       metric: f1_ipu
       num_classes: 2
       average: micro
@@ -259,8 +264,8 @@ metrics:
         threshold: 0.5
         th_on_preds: True
         th_on_target: True
-        target_to_int: True
-    - name: precision gt 0.5
+        target_to_int: False
+    - name: precision > 0.5
       metric: precision_ipu
       average: micro
       target_nan_mask: null

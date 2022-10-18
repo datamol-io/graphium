@@ -7,6 +7,7 @@ from torchmetrics.functional import (
     accuracy,
     recall,
     pearson_corrcoef,
+    spearman_corrcoef,
     r2_score,
     f1_score,
     fbeta_score,
@@ -22,6 +23,7 @@ from goli.ipu.ipu_metrics import (
     accuracy_ipu,
     recall_ipu,
     pearson_ipu,
+    spearman_ipu,
     r2_score_ipu,
     f1_score_ipu,
     fbeta_score_ipu,
@@ -430,6 +432,28 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_ipu.isnan(), "IPU PearsonR score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(), score_ipu.item(), places=4, msg="Pearson with NaN is different"
+        )
+
+    def test_spearmanr(self):
+        preds = deepcopy(self.preds)[:, 0]
+        target = deepcopy(self.target)[:, 0] + preds
+        target_nan = deepcopy(target)
+        target_nan[self.is_nan[:, 0]] = float("nan")
+
+        # Regular loss
+        score_true = spearman_corrcoef(preds, target)
+        score_ipu = spearman_ipu(preds, target)
+        self.assertFalse(score_true.isnan(), "Spearman is NaN")
+        self.assertAlmostEqual(score_true.item(), score_ipu.item(), places=4, msg="Spearman is different")
+
+        # Regular loss with NaNs in target
+        not_nan = ~target_nan.isnan()
+        score_true = spearman_corrcoef(preds[not_nan], target[not_nan])
+        score_ipu = spearman_ipu(preds, target_nan)
+        self.assertFalse(score_true.isnan(), "Regular Spearman with target_nan is NaN")
+        self.assertFalse(score_ipu.isnan(), "IPU Spearman score with target_nan is NaN")
+        self.assertAlmostEqual(
+            score_true.item(), score_ipu.item(), places=4, msg="Spearman with NaN is different"
         )
 
     def test_r2_score(self):
