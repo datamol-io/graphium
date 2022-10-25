@@ -2432,7 +2432,7 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 
 
 <h5 id="goli.trainer.predictor.PredictorModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.trainer.predictor.PredictorModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2526,7 +2526,7 @@ It works in a multi-task setting, with different losses and metrics per class</p
         <tr>
           <td><code>target_nan_mask</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[int, float, str]]</code>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, int]]</code>
           </td>
           <td><p>How to handle the NaNs. See <code>MetricsWrapper</code> for options</p></td>
           <td>
@@ -2603,7 +2603,7 @@ It works in a multi-task setting, with different losses and metrics per class</p
 
 
 <h5 id="goli.trainer.predictor.PredictorModule.compute_loss" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="s1">&#39;ignore-flatten&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">compute_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
@@ -2661,7 +2661,7 @@ the nans in the <code>targets</code>.</p>
         <tr>
           <td><code>target_nan_mask</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="typing.Type">Type</span>, str]</code>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, int]]</code>
           </td>
           <td><ul>
 <li>
@@ -2672,17 +2672,36 @@ the nans in the <code>targets</code>.</p>
   all NaNs will be replaced by zeros</p>
 </li>
 <li>
-<p>'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.</p>
+<p>'ignore': The NaN values will be removed from the tensor before computing the metrics.
+  Must be coupled with the <code>multitask_handling='flatten'</code> or <code>multitask_handling='mean-per-label'</code>.</p>
+</li>
+</ul></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>multitask_handling</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><ul>
+<li>
+<p>None: Do not process the tensor before passing it to the metric.
+  Cannot use the option <code>multitask_handling=None</code> when <code>target_nan_mask=ignore</code>.
+  Use either 'flatten' or 'mean-per-label'.</p>
 </li>
 <li>
-<p>'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
-  has a different number of NaNs, so the metric will be computed separately
-  on each column, and the metric result will be averaged over all columns.
+<p>'flatten': Flatten the tensor to produce the equivalent of a single task</p>
+</li>
+<li>
+<p>'mean-per-label': Loop all the labels columns, process them as a single task,
+    and average the results over each task
   <em>This option might slowdown the computation if there are too many labels</em></p>
 </li>
 </ul></td>
           <td>
-                <code>&#39;ignore-flatten&#39;</code>
+                <code>None</code>
           </td>
         </tr>
         <tr>
@@ -2769,7 +2788,7 @@ returns <code>{"preds": out}</code>.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[torch.<span title="torch.Tensor">Tensor</span>, <span title="typing.Any">Any</span>]]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]]</code>
           </td>
           <td><p>A dict with a key <code>"preds"</code> representing the prediction of the network.</p></td>
         </tr>

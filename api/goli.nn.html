@@ -1990,6 +1990,34 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.get_edge_feats" class="md-nav__link">
+    get_edge_feats()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.get_node_feats" class="md-nav__link">
+    get_node_feats()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.set_edge_feats" class="md-nav__link">
+    set_edge_feats()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.set_node_feats" class="md-nav__link">
+    set_node_feats()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -4086,6 +4114,34 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.get_edge_feats" class="md-nav__link">
+    get_edge_feats()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.get_node_feats" class="md-nav__link">
+    get_node_feats()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.set_edge_feats" class="md-nav__link">
+    set_edge_feats()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_graph_layer.set_node_feats" class="md-nav__link">
+    set_node_feats()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -5781,8 +5837,8 @@ purposes.</p></td>
 <code class="highlight language-python"><span class="n">concat_last_layers</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.concat_last_layers" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -14304,8 +14360,8 @@ output layer.</p>
 <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.layer_inputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -14348,8 +14404,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.layer_outputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -14429,8 +14485,8 @@ supports output edges edges or not.</p>
 <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.out_dim_factor" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -14492,6 +14548,214 @@ of heads.</p>
   
       <p>Overwrite the <strong>check_input</strong> to allow for int32 and int16
 TODO: Remove when PyG and pytorch supports int32.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.nn.base_graph_layer.get_edge_feats" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_edge_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
+
+<a href="#goli.nn.base_graph_layer.get_edge_feats" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the node features of a graph <code>g</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
+          </td>
+          <td><p>graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>key</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>key associated to the node features</p></td>
+          <td>
+                <code>&#39;h&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.nn.base_graph_layer.get_node_feats" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_node_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
+
+<a href="#goli.nn.base_graph_layer.get_node_feats" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the node features of a graph <code>g</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
+          </td>
+          <td><p>graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>key</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>key associated to the node features</p></td>
+          <td>
+                <code>&#39;h&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.nn.base_graph_layer.set_edge_feats" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_edge_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">edge_feats</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
+
+<a href="#goli.nn.base_graph_layer.set_edge_feats" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Set the node features of a graph <code>g</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
+          </td>
+          <td><p>graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>key</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>key associated to the node features</p></td>
+          <td>
+                <code>&#39;h&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.nn.base_graph_layer.set_node_feats" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_node_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">node_feats</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
+
+<a href="#goli.nn.base_graph_layer.set_node_feats" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Set the node features of a graph <code>g</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
+          </td>
+          <td><p>graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>key</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>key associated to the node features</p></td>
+          <td>
+                <code>&#39;h&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
