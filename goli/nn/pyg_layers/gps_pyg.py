@@ -2,6 +2,7 @@
 adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
 """
 
+from copy import deepcopy
 import torch
 import torch.nn as nn
 from torch_scatter import scatter
@@ -101,6 +102,7 @@ class GPSLayerPyg(BaseGraphModule):
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
             mpnn_kwargs = {}
+        mpnn_kwargs = deepcopy(mpnn_kwargs)
         mpnn_kwargs.setdefault("in_dim", in_dim)
         mpnn_kwargs.setdefault("out_dim", in_dim)
         mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)

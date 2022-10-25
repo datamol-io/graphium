@@ -120,10 +120,13 @@ class PredictorModuleIPU(PredictorModule):
         weights: Optional[Tensor],
         loss_fun: Dict[str, Callable],
         target_nan_mask: Union[Type, str] = "ignore-flatten",
+        multitask_handling: Optional[str] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
         preds = remove_pad_loss(preds, targets)
 
-        return PredictorModule.compute_loss(preds, targets, weights, loss_fun, target_nan_mask)
+        return PredictorModule.compute_loss(
+            preds, targets, weights, loss_fun, target_nan_mask, multitask_handling
+        )
 
     def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
         outputs = {"loss/train": outputs["loss"].mean()}

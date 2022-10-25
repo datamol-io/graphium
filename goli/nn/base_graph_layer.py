@@ -1,5 +1,5 @@
 import abc
-from typing import Union, Callable, List, Optional
+from typing import Union, Callable, List, Optional, Mapping
 from copy import deepcopy
 
 import torch
@@ -9,6 +9,15 @@ from torch_sparse import SparseTensor
 
 from goli.nn.base_layers import get_activation
 from goli.utils.decorators import classproperty
+
+try:
+    import dgl
+except:
+    dgl = None
+try:
+    import torch_geometric as pyg
+except:
+    pyg = None
 
 
 class BaseGraphStructure:
@@ -306,3 +315,97 @@ def check_intpus_allow_int(obj, edge_index, size):
             "argument `edge_index`."
         )
     )
+
+
+def get_node_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
+) -> Tensor:
+    """
+    Get the node features of a graph `g`.
+
+    Parameters:
+        g: graph
+        key: key associated to the node features
+    """
+    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
+        return g.ndata.get(key, None)
+    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
+        return g.get(key, None)
+    elif isinstance(g, Mapping):
+        return g.get(key, None)
+    else:
+        raise TypeError(f"Unrecognized graph type {type(g)}")
+
+
+def set_node_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], node_feats: Tensor, key: str = "h"
+) -> Tensor:
+    """
+    Set the node features of a graph `g`.
+
+    Parameters:
+        g: graph
+        key: key associated to the node features
+    """
+    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
+        assert node_feats.shape[0] == g.num_nodes()
+        g.ndata[key] = node_feats
+    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
+        assert node_feats.shape[0] == g.num_nodes
+        g[key] = node_feats
+    elif isinstance(g, Mapping):
+        g[key] = node_feats
+    else:
+        raise TypeError(
+            f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed"
+        )
+
+    return g
+
+
+def get_edge_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
+) -> Tensor:
+    """
+    Get the node features of a graph `g`.
+
+    Parameters:
+        g: graph
+        key: key associated to the node features
+    """
+    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
+        return g.edata.get(key, None)
+    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
+        return g.get(key, None)
+    elif isinstance(g, Mapping):
+        return g.get(key, None)
+    else:
+        raise TypeError(f"Unrecognized graph type {type(g)}")
+
+
+def set_edge_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], edge_feats: Tensor, key: str = "h"
+) -> Tensor:
+    """
+    Set the node features of a graph `g`.
+
+    Parameters:
+        g: graph
+        key: key associated to the node features
+    """
+    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
+        if edge_feats is not None:
+            assert edge_feats.shape[0] == g.num_edges()
+            g.edata[key] = edge_feats
+    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
+        if edge_feats is not None:
+            assert edge_feats.shape[0] == g.num_edges
+            g[key] = edge_feats
+    elif isinstance(g, Mapping):
+        g[key] = edge_feats
+    else:
+        raise TypeError(
+            f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed"
+        )
+
+    return g
