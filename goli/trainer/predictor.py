@@ -274,9 +274,9 @@ class PredictorModule(pl.LightningModule):
             preds=preds,
             targets=targets_dict,
             weights=weights,
+            loss_fun=self.loss_fun,
             target_nan_mask=self.target_nan_mask,
             multitask_handling=self.multitask_handling,
-            loss_fun=self.loss_fun,  # This is a dictionary
         )
 
         device = "cpu" if to_cpu else None
