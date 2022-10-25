@@ -237,7 +237,12 @@ class PredictorModule(pl.LightningModule):
         """
 
         wrapped_loss_fun_dict = {
-            task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask, multitask_handling=multitask_handling)
+            task: MetricWrapper(
+                metric=loss,
+                threshold_kwargs=None,
+                target_nan_mask=target_nan_mask,
+                multitask_handling=multitask_handling,
+            )
             for task, loss in loss_fun.items()
         }
 
@@ -327,13 +332,13 @@ class PredictorModule(pl.LightningModule):
             targets[key] = targets[key].to(dtype=preds[key].dtype)
         weights = batch.pop("weights", None)
         loss, task_losses = self.compute_loss(
-                preds=preds,
-                targets=targets,
-                weights=weights,
-                target_nan_mask=self.target_nan_mask,
-                multitask_handling=self.multitask_handling,
-                loss_fun=self.loss_fun,
-            )
+            preds=preds,
+            targets=targets,
+            weights=weights,
+            target_nan_mask=self.target_nan_mask,
+            multitask_handling=self.multitask_handling,
+            loss_fun=self.loss_fun,
+        )
 
         loss = loss / n_steps
 
@@ -348,13 +353,13 @@ class PredictorModule(pl.LightningModule):
             pert_batch["features"] = features
             preds = self.forward(pert_batch)["preds"]
             loss, _ = self.compute_loss(
-                    preds=preds,
-                    targets=targets,
-                    weights=weights,
-                    target_nan_mask=self.target_nan_mask,
-                    multitask_handling=self.multitask_handling,
-                    loss_fun=self.loss_fun,
-                )
+                preds=preds,
+                targets=targets,
+                weights=weights,
+                target_nan_mask=self.target_nan_mask,
+                multitask_handling=self.multitask_handling,
+                loss_fun=self.loss_fun,
+            )
             loss = loss / n_steps
 
         device = "cpu" if to_cpu else None

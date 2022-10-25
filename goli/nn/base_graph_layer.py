@@ -19,6 +19,7 @@ try:
 except:
     pyg = None
 
+
 class BaseGraphStructure:
     def __init__(
         self,
@@ -316,7 +317,9 @@ def check_intpus_allow_int(obj, edge_index, size):
     )
 
 
-def get_node_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h") -> Tensor:
+def get_node_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
+) -> Tensor:
     """
     Get the node features of a graph `g`.
 
@@ -333,7 +336,10 @@ def get_node_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", M
     else:
         raise TypeError(f"Unrecognized graph type {type(g)}")
 
-def set_node_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], node_feats: Tensor, key: str = "h") -> Tensor:
+
+def set_node_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], node_feats: Tensor, key: str = "h"
+) -> Tensor:
     """
     Set the node features of a graph `g`.
 
@@ -350,11 +356,16 @@ def set_node_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", M
     elif isinstance(g, Mapping):
         g[key] = node_feats
     else:
-        raise TypeError(f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed")
+        raise TypeError(
+            f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed"
+        )
 
     return g
 
-def get_edge_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h") -> Tensor:
+
+def get_edge_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
+) -> Tensor:
     """
     Get the node features of a graph `g`.
 
@@ -371,7 +382,10 @@ def get_edge_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", M
     else:
         raise TypeError(f"Unrecognized graph type {type(g)}")
 
-def set_edge_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], edge_feats: Tensor, key: str = "h") -> Tensor:
+
+def set_edge_feats(
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], edge_feats: Tensor, key: str = "h"
+) -> Tensor:
     """
     Set the node features of a graph `g`.
 
@@ -390,6 +404,8 @@ def set_edge_feats(g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", M
     elif isinstance(g, Mapping):
         g[key] = edge_feats
     else:
-        raise TypeError(f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed")
+        raise TypeError(
+            f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed"
+        )
 
     return g
