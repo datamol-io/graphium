@@ -12,6 +12,7 @@ import pytorch_lightning as pl
 from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
 from goli.trainer.predictor_summaries import TaskSummaries
+from goli.nn.base_graph_layer import get_edge_feats, get_node_feats, set_edge_feats, set_node_feats
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
@@ -28,7 +29,8 @@ class PredictorModule(pl.LightningModule):
         optim_kwargs: Optional[Dict[str, Any]] = None,
         torch_scheduler_kwargs: Optional[Dict[str, Any]] = None,
         scheduler_kwargs: Optional[Dict[str, Any]] = None,
-        target_nan_mask: Optional[Union[int, float, str]] = None,
+        target_nan_mask: Optional[Union[str, int]] = None,
+        multitask_handling: Optional[str] = None,
         metrics: Dict[str, Callable] = None,
         metrics_on_progress_bar: Dict[str, List[str]] = [],
         metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
@@ -59,6 +61,7 @@ class PredictorModule(pl.LightningModule):
         np.random.seed(self.random_seed)
 
         self.target_nan_mask = target_nan_mask
+        self.multitask_handling = multitask_handling
 
         super().__init__()
 
@@ -131,7 +134,7 @@ class PredictorModule(pl.LightningModule):
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
 
-    def forward(self, inputs: Dict) -> Dict[str, Union[torch.Tensor, Any]]:
+    def forward(self, inputs: Dict) -> Dict[str, Union[Tensor, Dict[str, Tensor]]]:
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         If the output of `out = self.model.forward` is a dictionary with a `"preds"` key,
@@ -186,7 +189,8 @@ class PredictorModule(pl.LightningModule):
         targets: Dict[str, Tensor],
         weights: Optional[Tensor],
         loss_fun: Dict[str, Callable],
-        target_nan_mask: Union[Type, str] = "ignore-flatten",
+        target_nan_mask: Optional[Union[str, int]] = None,
+        multitask_handling: Optional[str] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
         r"""
         Compute the loss using the specified loss function, and dealing with
@@ -209,11 +213,18 @@ class PredictorModule(pl.LightningModule):
                 - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
                   all NaNs will be replaced by zeros
 
-                - 'ignore-flatten': The Tensor will be reduced to a vector without the NaN values.
+                - 'ignore': The NaN values will be removed from the tensor before computing the metrics.
+                  Must be coupled with the `multitask_handling='flatten'` or `multitask_handling='mean-per-label'`.
 
-                - 'ignore-mean-label': NaNs will be ignored when computing the loss. Note that each column
-                  has a different number of NaNs, so the metric will be computed separately
-                  on each column, and the metric result will be averaged over all columns.
+            multitask_handling:
+                - None: Do not process the tensor before passing it to the metric.
+                  Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`.
+                  Use either 'flatten' or 'mean-per-label'.
+
+                - 'flatten': Flatten the tensor to produce the equivalent of a single task
+
+                - 'mean-per-label': Loop all the labels columns, process them as a single task,
+                    and average the results over each task
                   *This option might slowdown the computation if there are too many labels*
 
             loss_fun:
@@ -226,7 +237,7 @@ class PredictorModule(pl.LightningModule):
         """
 
         wrapped_loss_fun_dict = {
-            task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask)
+            task: MetricWrapper(metric=loss, threshold_kwargs=None, target_nan_mask=target_nan_mask, multitask_handling=multitask_handling)
             for task, loss in loss_fun.items()
         }
 
@@ -264,6 +275,7 @@ class PredictorModule(pl.LightningModule):
             targets=targets_dict,
             weights=weights,
             target_nan_mask=self.target_nan_mask,
+            multitask_handling=self.multitask_handling,
             loss_fun=self.loss_fun,  # This is a dictionary
         )
 
@@ -299,28 +311,31 @@ class PredictorModule(pl.LightningModule):
         alpha, n_steps = self.flag_kwargs["alpha"], self.flag_kwargs["n_steps"]
 
         X = self._convert_features_dtype(batch["features"])
-        X_shape = X.ndata["feat"].shape
+        X_shape = get_node_feats(X, "feat").shape
 
-        pert = torch.FloatTensor(X_shape).uniform_(-alpha, alpha).to(device=X.device)
+        pert = torch.FloatTensor(X_shape).uniform_(-alpha, alpha).to(device=get_node_feats(X, "feat").device)
         pert.requires_grad = True
 
         # Perturb the features
         pert_batch = deepcopy(batch)
-        pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
+        features = pert_batch["features"]
+        features = set_node_feats(features, get_node_feats(features, "feat") + pert, "feat")
 
         preds = self.forward(pert_batch)["preds"]
-        targets = batch.pop("labels").to(dtype=preds.dtype)
+        targets = batch.pop("labels")
+        for key in targets.keys():
+            targets[key] = targets[key].to(dtype=preds[key].dtype)
         weights = batch.pop("weights", None)
-        loss = (
-            self.compute_loss(
+        loss, task_losses = self.compute_loss(
                 preds=preds,
                 targets=targets,
                 weights=weights,
                 target_nan_mask=self.target_nan_mask,
+                multitask_handling=self.multitask_handling,
                 loss_fun=self.loss_fun,
             )
-            / n_steps
-        )
+
+        loss = loss / n_steps
 
         # Iteratively augment data by applying perturbations
         # Accumulate the gradients to be applied to the weights of the network later on
@@ -329,28 +344,30 @@ class PredictorModule(pl.LightningModule):
             pert_data = pert.detach() + alpha * torch.sign(pert.grad.detach())
             pert.data = pert_data.data
             pert.grad[:] = 0
-            pert_batch["features"].ndata["feat"] = batch["features"].ndata["feat"] + pert
+            features = set_node_feats(features, get_node_feats(features, "feat") + pert, "feat")
+            pert_batch["features"] = features
             preds = self.forward(pert_batch)["preds"]
-            loss = (
-                self.compute_loss(
+            loss, _ = self.compute_loss(
                     preds=preds,
                     targets=targets,
                     weights=weights,
                     target_nan_mask=self.target_nan_mask,
+                    multitask_handling=self.multitask_handling,
                     loss_fun=self.loss_fun,
                 )
-                / n_steps
-            )
+            loss = loss / n_steps
+
         device = "cpu" if to_cpu else None
-        preds = preds.detach().to(device=device)
-        targets = targets.detach().to(device=device)
+        for key in preds.keys():
+            preds[key] = preds[key].detach().to(device=device)
+            targets[key] = targets[key].detach().to(device=device)
         if weights is not None:
             weights = weights.detach().to(device=device)
 
         step_dict = {"preds": preds, "targets": targets, "weights": weights}
-        step_dict[f"{self.loss_fun._get_name()}/{step_name}"] = loss.detach().cpu()
-
+        step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         step_dict["loss"] = loss
+        step_dict["task_losses"] = task_losses
         return step_dict
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
@@ -432,6 +449,7 @@ class PredictorModule(pl.LightningModule):
             targets=targets,
             weights=weights,
             target_nan_mask=self.target_nan_mask,
+            multitask_handling=self.multitask_handling,
             loss_fun=self.loss_fun,
         )
 
