@@ -65,7 +65,10 @@ PCQM4Mv2_meta.update(
 )
 
 
-def smiles_to_unique_mol_id(smiles: str):
+def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
+    """
+    Convert a smiles to a unique MD5 Hash ID. Returns None if featurization fails.
+    """
     try:
         mol = dm.to_mol(mol=smiles)
         mol_id = dm.unique_id(mol)
@@ -76,8 +79,26 @@ def smiles_to_unique_mol_id(smiles: str):
     return mol_id
 
 
-def smiles_to_unique_mol_ids(smiles: List[str], n_jobs=-1, backend="loky", progress=True):
-    """This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids."""
+def smiles_to_unique_mol_ids(
+    smiles: Iterable[str], n_jobs=-1, backend="loky", progress=True
+) -> List[Optional[str]]:
+    """
+    This function takes a list of smiles and finds the corresponding datamol unique_id
+    in an element-wise fashion, returning the corresponding unique_ids.
+
+    The ID is an MD5 hash of the non-standard InChiKey provided
+    by `dm.to_inchikey_non_standard()`. It guarantees uniqueness for
+    different tautomeric forms of the same molecule.
+
+    Parameters:
+        smiles: a list of smiles to be converted to mol ids
+        n_jobs: number of jobs to run in parallel
+        backend: Parallelization backend
+        progress: Whether to display the progress bar
+
+    Returns:
+        ids: A list of MD5 hash ids
+    """
     if backend == "loky":
         backend = None
     unique_mol_ids = dm.parallelized(
@@ -99,6 +120,7 @@ class SingleTaskDataset(Dataset):
         smiles: Optional[List[str]] = None,
         indices: Optional[List[str]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
+        unique_ids: Optional[List[str]] = None,
     ):
         self.labels = labels
         manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
@@ -110,6 +132,7 @@ class SingleTaskDataset(Dataset):
                 self.indices
             )  # Avoid memory leaks with `num_workers > 0` by using numpy array
         self.weights = weights
+        self.unique_ids = unique_ids
 
     def __len__(self):
         return len(self.labels)
@@ -131,6 +154,9 @@ class SingleTaskDataset(Dataset):
 
         if self.weights is not None:
             datum["weights"] = self.weights[idx]
+
+        if self.unique_ids is not None:
+            datum["unique_ids"] = self.unique_ids[idx]
 
         return datum
 
@@ -260,12 +286,14 @@ class MultitaskDataset(Dataset):
         all_smiles = []
         all_features = []
         all_labels = []
-
+        all_mol_ids = []
         all_tasks = []
+
         for task, ds in datasets.items():
             # Get data from single task dataset
             ds_smiles = [ds[i]["smiles"] for i in range(len(ds))]
             ds_labels = [ds[i]["labels"] for i in range(len(ds))]
+            ds_mol_ids = [ds[i]["unique_ids"] for i in range(len(ds))]
             if "features" in ds[0]:
                 ds_features = [ds[i]["features"] for i in range(len(ds))]
             else:
@@ -273,17 +301,14 @@ class MultitaskDataset(Dataset):
 
             all_smiles.extend(ds_smiles)
             all_labels.extend(ds_labels)
+            all_mol_ids.extend(ds_mol_ids)
             if ds_features is not None:
                 all_features.extend(ds_features)
 
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
 
-        mol_ids = []
         # Get all unique mol ids.
-        all_mol_ids = smiles_to_unique_mol_ids(
-            all_smiles, n_jobs=self.n_jobs, backend=self.backend, progress=self.progress
-        )
         unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         mol_ids = unique_mol_ids
 
@@ -848,8 +873,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """Convert SMILES to features (graphs, fingerprints, etc.) for the unique molecules found."""
         all_smiles = []
         all_tasks = []
+        idx_per_task = {}
+        total_len = 0
         for task, dataset_args in task_dataset_args.items():
             all_smiles.extend(dataset_args["smiles"])
+            num_smiles = len(dataset_args["smiles"])
+            idx_per_task[task] = (total_len, total_len + num_smiles)
+            total_len += num_smiles
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
@@ -905,6 +935,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
+                unique_ids=all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
                 **task_dataset_args[task]["extras"],
             )
 
