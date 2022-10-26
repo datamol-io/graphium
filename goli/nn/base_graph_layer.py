@@ -20,6 +20,7 @@ except:
     pyg = None
 
 
+
 class BaseGraphStructure:
     def __init__(
         self,
@@ -283,8 +284,8 @@ def check_intpus_allow_int(obj, edge_index, size):
     if isinstance(edge_index, Tensor):
         # These 3 lines are different. They check for more int types and avoid overflow
         assert edge_index.dtype in (torch.long, torch.int64, torch.int32, torch.int16)
-        assert edge_index.min() >= 0
-        assert edge_index.max() < torch.iinfo(edge_index.dtype).max
+        # assert edge_index.min() >= 0
+        # assert edge_index.max() < torch.iinfo(edge_index.dtype).max
 
         assert edge_index.dim() == 2
         assert edge_index.size(0) == 2
