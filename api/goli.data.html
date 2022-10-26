@@ -791,6 +791,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#goli.data.datamodule.smiles_to_unique_mol_id" class="md-nav__link">
+    smiles_to_unique_mol_id()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.data.datamodule.smiles_to_unique_mol_ids" class="md-nav__link">
     smiles_to_unique_mol_ids()
   </a>
@@ -1222,6 +1229,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#goli.data.datamodule.smiles_to_unique_mol_id" class="md-nav__link">
+    smiles_to_unique_mol_id()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.data.datamodule.smiles_to_unique_mol_ids" class="md-nav__link">
     smiles_to_unique_mol_ids()
   </a>
@@ -1635,8 +1649,8 @@ with that.</p>
 <code class="highlight language-python"><span class="n">predict_ds</span><span class="p">()</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.data.datamodule.BaseDataModule.predict_ds" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2692,15 +2706,106 @@ raw positional encoding dimensions such eigval, eigvec, rwse and more</p>
 
 
 
+<h4 id="goli.data.datamodule.smiles_to_unique_mol_id" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">smiles_to_unique_mol_id</span><span class="p">(</span><span class="n">smiles</span><span class="p">)</span></code>
+
+<a href="#goli.data.datamodule.smiles_to_unique_mol_id" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert a smiles to a unique MD5 Hash ID. Returns None if featurization fails.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h4 id="goli.data.datamodule.smiles_to_unique_mol_ids" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">smiles_to_unique_mol_ids</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">smiles_to_unique_mol_ids</span><span class="p">(</span><span class="n">smiles</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">progress_desc</span><span class="o">=</span><span class="s1">&#39;mols to ids&#39;</span><span class="p">)</span></code>
 
 <a href="#goli.data.datamodule.smiles_to_unique_mol_ids" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
   
-      <p>This function takes a list of smiles and finds the corresponding datamol unique_id in an element-wise fashion, returning the corresponding unique_ids.</p>
+      <p>This function takes a list of smiles and finds the corresponding datamol unique_id
+in an element-wise fashion, returning the corresponding unique_ids.</p>
+<p>The ID is an MD5 hash of the non-standard InChiKey provided
+by <code>dm.to_inchikey_non_standard()</code>. It guarantees uniqueness for
+different tautomeric forms of the same molecule.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>smiles</code></td>
+          <td>
+                <code><span title="typing.Iterable">Iterable</span>[str]</code>
+          </td>
+          <td><p>a list of smiles to be converted to mol ids</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_jobs</code></td>
+          <td>
+          </td>
+          <td><p>number of jobs to run in parallel</p></td>
+          <td>
+                <code>-1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>backend</code></td>
+          <td>
+          </td>
+          <td><p>Parallelization backend</p></td>
+          <td>
+                <code>&#39;loky&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>progress</code></td>
+          <td>
+          </td>
+          <td><p>Whether to display the progress bar</p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>ids</code></td>          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.Optional">Optional</span>[str]]</code>
+          </td>
+          <td><p>A list of MD5 hash ids</p></td>
+        </tr>
+    </tbody>
+  </table>
 
   </div>
 
