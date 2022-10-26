@@ -21,6 +21,7 @@ except:
 
 
 
+
 class BaseGraphStructure:
     def __init__(
         self,

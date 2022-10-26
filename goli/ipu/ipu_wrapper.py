@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional, Callable, Union, Type, Tuple
 
 from torch_geometric.data import Batch
 from torch import Tensor
+import torch
 from inspect import _ParameterKind
 from pytorch_lightning.strategies import IPUStrategy
 from pytorch_lightning.utilities.types import STEP_OUTPUT
