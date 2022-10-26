@@ -80,7 +80,11 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
 
 
 def smiles_to_unique_mol_ids(
-    smiles: Iterable[str], n_jobs=-1, backend="loky", progress=True
+    smiles: Iterable[str],
+    n_jobs=-1,
+    backend="loky",
+    progress=True,
+    progress_desc="mols to ids",
 ) -> List[Optional[str]]:
     """
     This function takes a list of smiles and finds the corresponding datamol unique_id
@@ -107,7 +111,7 @@ def smiles_to_unique_mol_ids(
         progress=progress,
         n_jobs=n_jobs,
         scheduler=backend,
-        tqdm_kwargs={"desc": "mols to ids"},
+        tqdm_kwargs={"desc": progress_desc},
     )
     return unique_mol_ids
 
@@ -293,7 +297,16 @@ class MultitaskDataset(Dataset):
             # Get data from single task dataset
             ds_smiles = [ds[i]["smiles"] for i in range(len(ds))]
             ds_labels = [ds[i]["labels"] for i in range(len(ds))]
-            ds_mol_ids = [ds[i]["unique_ids"] for i in range(len(ds))]
+            if "unique_ids" in ds[0].keys():
+                ds_mol_ids = [ds[i]["unique_ids"] for i in range(len(ds))]
+            else:
+                ds_mol_ids = smiles_to_unique_mol_ids(
+                    ds_smiles,
+                    n_jobs=self.n_jobs,
+                    backend=self.backend,
+                    progress=self.progress,
+                    progress_desc=f"{task}: mol to ids",
+                )
             if "features" in ds[0]:
                 ds_features = [ds[i]["features"] for i in range(len(ds))]
             else:
