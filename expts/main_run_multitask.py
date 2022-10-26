@@ -8,6 +8,7 @@ import timeit
 from loguru import logger
 from datetime import datetime
 from pytorch_lightning.utilities.model_summary import ModelSummary
+import joblib
 
 # Current project imports
 import goli
@@ -52,6 +53,10 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     logger.info(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg, run_name)
+
+    # Save the featurizer into wandb
+    featurizer_path = os.path.join(trainer.logger.experiment.dir, "featurizer.pickle")
+    joblib.dump(datamodule.smiles_transformer, featurizer_path)
 
     datamodule.prepare_data()
     # Run the model training
