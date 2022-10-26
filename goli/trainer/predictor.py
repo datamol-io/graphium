@@ -308,7 +308,7 @@ class PredictorModule(pl.LightningModule):
         for task in self.tasks:
             step_dict[
                 self.task_epoch_summary.metric_log_name(task, self.loss_fun[task]._get_name(), step_name)
-            ] = loss.detach().cpu()
+            ] = loss.detach()
 
         step_dict["loss"] = loss
         # print("loss ", self.global_step, self.current_epoch, loss)

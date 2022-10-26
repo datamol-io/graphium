@@ -2,6 +2,7 @@ from typing import Dict, Any, Optional, Callable, Union, Type, Tuple
 
 from torch_geometric.data import Batch
 from torch import Tensor
+import torch
 from inspect import _ParameterKind
 from pytorch_lightning.plugins import IPUPlugin
 from pytorch_lightning.trainer.states import RunningStage
@@ -45,6 +46,8 @@ class IPUPluginGoli(IPUPlugin):
         The model must take care of re-building the Dict[Tensor] and `Batch` from the tuples. See class `PredictorModuleIPU`.
 
         """
+
+        print(args)
 
         # Arguments for the loop
         new_args, all_keys = [], []
@@ -90,6 +93,13 @@ class IPUPluginGoli(IPUPlugin):
         # Walk-around to set the variable names for the poptorch model
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
+
+        for idx in range(len(new_args)):
+            if new_args[idx].dtype == torch.int64:
+                new_args[idx] = new_args[idx].to(torch.int32)
+        print(new_args)
+
+        print(kwargs)
 
         # Run the step using only tuple of tensors
         out = super()._step(stage, *new_args, **kwargs)
@@ -312,14 +322,14 @@ class PredictorModuleIPU(PredictorModule):
         batch_idx = batch.pop("_batch_idx")
         batch_idx = batch_idx.squeeze(-1)
 
-        non_tensor_keys = set(self._keys_others.keys()) - (
-            set(self._keys_batch.keys()) | set(self._keys_tensor.keys()) | set(self._keys_tensor_dict.keys())
-        )
-        for key in non_tensor_keys:
-            batch[key] = batch[key][batch_idx]
+        # non_tensor_keys = set(self._keys_others.keys()) - (
+        #     set(self._keys_batch.keys()) | set(self._keys_tensor.keys()) | set(self._keys_tensor_dict.keys())
+        # )
+        # for key in non_tensor_keys:
+        #     batch[key] = batch[key][batch_idx]
 
         # Convert the tensors to their full dtype (instead of the reduced dtype used to increase data transfer speed)
-        for key, new_dtype in self._keys_others["_types_conversion"][batch_idx].items():
-            batch["features"][key] = batch["features"][key].to(new_dtype)
+        # for key, new_dtype in self._keys_others["_types_conversion"][batch_idx].items():
+        #     batch["features"][key] = batch["features"][key].to(new_dtype)
 
         return batch
