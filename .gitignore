@@ -9,6 +9,7 @@
 *.out
 *.cache
 *.ckpt
+*.pickle
 lightning_logs/
 logs/
 models_checkpoints/
