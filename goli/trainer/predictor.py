@@ -146,7 +146,7 @@ class PredictorModule(pl.LightningModule):
 
         """
         # Convert to the right dtype and run the model
-        feats = self._convert_features_dtype(inputs["features"])
+        feats = self._convert_features_dtype(inputs["features"])    # TODO how to unpack dict_input to get features out?
         # *check for nan in model output
         out = self.model.forward(feats)
         if isinstance(out, dict) and ("preds" in out.keys()):
@@ -259,6 +259,7 @@ class PredictorModule(pl.LightningModule):
 
     def _general_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
         r"""Common code for training_step, validation_step and testing_step"""
+        # import pdb; pdb.set_trace()
         preds = self.forward(batch)  # The dictionary of predictions
 
         # * check for nan in model output

@@ -20,6 +20,7 @@ from goli.data.datamodule import BaseDataModule
 
 # Weights and Biases
 from pytorch_lightning import Trainer
+from pytorch_lightning.strategies import IPUStrategy
 
 
 def get_accelerator(
@@ -296,7 +297,6 @@ def load_predictor(
     Returns:
         predictor: The predictor module
     """
-
     if get_accelerator(config) == "ipu":
         predictor_class = PredictorModuleIPU
     else:
@@ -312,6 +312,24 @@ def load_predictor(
 
     return predictor
 
+from torch import Tensor
+from typing import Dict, Any
+
+from pytorch_lightning.trainer.states import RunningStage
+from pytorch_lightning.utilities.types import STEP_OUTPUT
+from torch_geometric.data import Batch
+
+class DictIPUStrategy(IPUStrategy):
+
+    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
+        args = self._prepare_input(args)
+        args = args[0]
+
+        poptorch_model = self.poptorch_models[stage]
+        self.lightning_module._running_torchscript = True
+        out = poptorch_model(**args)
+        self.lightning_module._running_torchscript = False
+        return out
 
 def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str) -> Trainer:
     """
@@ -371,23 +389,16 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     trainer_kwargs["callbacks"] = callbacks
 
-    # TODO rewrite IPUlugin to IPUStrategy
-    # if accelerator == 'ipu':
-    #     from pytorch_lightning.strategies import IPUStrategy
-
-    #     strategy=IPUStrategy(autoreport_dir="report_dir/")
-    # else:
-    #     strategy =     
-    
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
         accelerator=accelerator,
         ipus=ipus,
         gpus=gpus,
+        strategy=strategy,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
-        
+
 
     return trainer
