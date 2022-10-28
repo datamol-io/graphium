@@ -47,8 +47,6 @@ class IPUPluginGoli(IPUPlugin):
 
         """
 
-        print(args)
-
         # Arguments for the loop
         new_args, all_keys = [], []
         keys_tensor_dict, keys_batch, keys_tensor, keys_others = {}, {}, {}, {}
@@ -93,13 +91,6 @@ class IPUPluginGoli(IPUPlugin):
         # Walk-around to set the variable names for the poptorch model
         self.poptorch_models[stage]._args_parser._varnames = all_keys
         self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
-
-        for idx in range(len(new_args)):
-            if new_args[idx].dtype == torch.int64:
-                new_args[idx] = new_args[idx].to(torch.int32)
-        print(new_args)
-
-        print(kwargs)
 
         # Run the step using only tuple of tensors
         out = super()._step(stage, *new_args, **kwargs)
