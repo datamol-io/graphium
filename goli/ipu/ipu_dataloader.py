@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
-from typing import Callable, Iterable, Optional, List, Dict
+from typing import Callable, Iterable, Optional, List
 from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
