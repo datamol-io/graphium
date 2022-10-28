@@ -142,9 +142,9 @@ class GPSLayerPyg(BaseGraphModule):
         if self.attn_layer is not None:
 
             # If there's padding, then we are on IPU
-            on_ipu = True # ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
+            on_ipu = True # HACK could try poptorch.isRunningOnIpu()
             if on_ipu:
-                max_num_nodes_per_graph = 1 # batch.dataset_max_nodes_per_graph[0].item()
+                max_num_nodes_per_graph = 1 # TODO also this value is likely wrong
             else:
                 max_num_nodes_per_graph = None
 
