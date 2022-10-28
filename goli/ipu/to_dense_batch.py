@@ -54,7 +54,7 @@ def to_dense_batch(
         batch = x.new_zeros(x.size(0), dtype=torch.long)
 
     if batch_size is None:
-        batch_size = 6 # int(batch.max()) + 1
+        batch_size = 6 # TODO should be determined from tensor shapes or passed as an argument
 
     num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
