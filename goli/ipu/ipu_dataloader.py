@@ -1,10 +1,11 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
-from typing import Callable, Iterable, Optional, List
+from typing import Callable, Iterable, Optional, List, Dict
 from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
 from loguru import logger
+from torch import Tensor
 
 import torch
 from torch_geometric.data import Data, Batch, Dataset
@@ -162,6 +163,12 @@ class CombinedBatchingCollator:
         for key in all_batches[0].keys():
             if key not in ("features", "labels", "_types_conversion"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
+
+        for data_key, data_val in out_batch.items():
+            if isinstance(data_val, Batch):
+                for sub_key, sub_val in data_val.items():
+                    if isinstance(sub_val, Tensor) and sub_val.dtype == torch.int64:
+                        out_batch[data_key][sub_key] = sub_val.to(torch.int32)
 
         return out_batch
 
