@@ -7,7 +7,6 @@ import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
-from loguru import logger
 
 from goli.features.featurizer import (
     get_mol_atomic_features_onehot,
@@ -39,6 +38,10 @@ class test_featurizer(ut.TestCase):
         "implicit-valence",
         "hybridization",
         "chirality",
+        "phase",
+        "type",
+        "group",
+        "period",
     ]
 
     atomic_float_props = [
@@ -67,6 +70,8 @@ class test_featurizer(ut.TestCase):
         "double-bond",
         "triple-bond",
         "is-carbon",
+        "group",
+        "period",
     ]
 
     edge_props = [
