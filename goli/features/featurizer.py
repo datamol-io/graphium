@@ -92,6 +92,10 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
             - "implicit-valence"
             - "hybridization"
             - "chirality"
+            - "phase"
+            - "type"
+            - "group"
+            - "period"
 
     Returns:
         prop_dict:
@@ -128,6 +132,14 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
                     one_hot.append(int(atom.HasProp("_ChiralityPossible")))
                 except:
                     one_hot = [0, 0, int(atom.HasProp("_ChiralityPossible"))]
+            elif prop in "phase":
+                one_hot = one_of_k_encoding(nmp.PHASE[atom.GetAtomicNum() - 1], nmp.PHASE_SET)
+            elif prop in "type":
+                one_hot = one_of_k_encoding(nmp.TYPE[atom.GetAtomicNum() - 1], nmp.TYPE_SET)
+            elif prop in "group":
+                one_hot = one_of_k_encoding(nmp.GROUP[atom.GetAtomicNum() - 1], nmp.GROUP_SET)
+            elif prop in "period":
+                one_hot = one_of_k_encoding(nmp.PERIOD[atom.GetAtomicNum() - 1], nmp.PERIOD_SET)
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
@@ -190,6 +202,8 @@ def get_mol_atomic_features_float(
             - "double-bond"
             - "triple-bond"
             - "is-carbon"
+            - "group"
+            - "period"
 
         offset_carbon:
             Whether to subract the Carbon property from the desired atomic property.
@@ -298,6 +312,10 @@ def get_mol_atomic_features_float(
                     ) / 200
                 elif prop in ["metal"]:
                     val = nmp.METAL[atom.GetAtomicNum() - 1]
+                elif prop in "group":
+                    val = float(nmp.GROUP[atom.GetAtomicNum() - 1]) - offC * float(nmp.GROUP[C_num - 1])
+                elif prop in "period":
+                    val = float(nmp.PERIOD[atom.GetAtomicNum() - 1]) - offC * float(nmp.PERIOD[C_num - 1])
                 elif "-bond" in prop:
                     bonds = [bond.GetBondTypeAsDouble() for bond in atom.GetBonds()]
                     if prop in ["single-bond"]:

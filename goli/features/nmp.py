@@ -1,6 +1,8 @@
 import importlib.resources
-
+from copy import deepcopy
 import pandas as pd
+import numpy as np
+import math
 from rdkit import Chem
 
 # NOTE(hadim): usually it's best to embed this in a function.
@@ -26,6 +28,17 @@ ELECTRONEGATIVITY = [float_or_none(elem) for elem in PERIODIC_TABLE["Electronega
 FIRST_IONIZATION = [float_or_none(elem) for elem in PERIODIC_TABLE["FirstIonization"]]
 MELTING_POINT = [float_or_none(elem) for elem in PERIODIC_TABLE["MeltingPoint"]]
 METAL = (2 * (PERIODIC_TABLE["Metal"] == "yes") + (PERIODIC_TABLE["Metalloid"] == "yes")).tolist()
+
+PHASE = list(PERIODIC_TABLE["Phase"].values)
+PHASE_SET = list(set(PHASE))
+TYPE = list(deepcopy(PERIODIC_TABLE["Type"]))
+TYPE = ["none" if (isinstance(t, float) and math.isnan(t)) else t for t in TYPE]
+TYPE_SET = list(set(TYPE))
+GROUP = deepcopy(PERIODIC_TABLE["Group"].values)
+GROUP[np.isnan(GROUP)] = 19
+GROUP_SET = list(set(GROUP))
+PERIOD = list(PERIODIC_TABLE["Period"].values)
+PERIOD_SET = list(set(PERIOD))
 
 ATOM_LIST = [
     "C",
