@@ -30,7 +30,7 @@ class SimpleTorchModel(torch.nn.Module):
             torch.nn.Flatten(),
             FCLayer(64, 16),
             FCLayer(16, 16),
-            FCLayer(16, 10, activation=None, is_readout_layer=True, ipu=True, base_width=8),
+            FCLayer(16, 10, activation=None, is_readout_layer=True),
             nn.LogSoftmax(1),
         )
 

@@ -155,7 +155,6 @@ class FeedForwardNN(nn.Module):
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
         self.last_layer_is_readout = last_layer_is_readout
-        self.ipu = ipu
 
         # Parse the layer and residuals
         from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
@@ -244,8 +243,6 @@ class FeedForwardNN(nn.Module):
             other_kwargs = {}
             sig = inspect.signature(self.layer_class)
             key_args = [p.name for p in sig.parameters.values()]
-            if self.ipu is not None and ("ipu" in key_args):
-                other_kwargs["ipu"] = self.ipu
             if ii == self.depth - 1:
                 this_activation = self.last_activation
                 this_norm = self.last_normalization

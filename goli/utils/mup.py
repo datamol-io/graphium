@@ -24,7 +24,7 @@ def set_base_shapes(model, base, rescale_params=True, delta=None, savefile=None,
     """Sets the `p.infshape` attribute for each parameter `p` of `model`.
 
     Code taken from the `mup` package from Microsoft https://github.com/microsoft/mup.
-    No change except in the `apply_inf_shapes`
+    No change except in the `apply_inf_shapes`, using the one from Goli instead of `mup`
 
     Inputs:
         model: nn.Module instance

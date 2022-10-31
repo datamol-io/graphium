@@ -4,7 +4,6 @@ import omegaconf
 from copy import deepcopy
 import torch
 from loguru import logger
-from mup import load_base_shapes
 
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
@@ -277,7 +276,7 @@ def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
         if mup_base_path.endswith(".ckpt"):
             base = predictor.__class__.load_from_checkpoint(mup_base_path, map_location="cpu")
         elif mup_base_path.endswith(".yaml"):
-            base = load_base_shapes(mup_base_path)
+            base = mup_base_path
         else:
             raise ValueError(f"Unrecognized file type {mup_base_path}")
         predictor = set_base_shapes(predictor, base, rescale_params=False)

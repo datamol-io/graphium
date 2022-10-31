@@ -235,8 +235,6 @@ class FCLayer(nn.Module):
         bias: bool = True,
         init_fn: Optional[Callable] = None,
         is_readout_layer: bool = False,
-        base_in_dim: Optional[int] = None,
-        base_out_dim: Optional[int] = None,
     ):
 
         r"""
