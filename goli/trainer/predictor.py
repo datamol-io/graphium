@@ -6,7 +6,8 @@ from copy import deepcopy
 import torch
 from torch import nn, Tensor
 import pytorch_lightning as pl
-import dgl
+from torch_geometric.data import Data, Batch
+from dgl import DGLHeteroGraph
 import mup
 
 from goli.config.config_convert import recursive_config_reformating
@@ -134,7 +135,9 @@ class PredictorModule(pl.LightningModule):
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
 
-    def forward(self, inputs: Dict) -> Dict[str, Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]]:
+    def forward(
+        self, inputs: Dict
+    ) -> Dict[str, Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]]:
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         If the output of `out = self.model.forward` is a dictionary with a `"preds"` key,
@@ -157,11 +160,10 @@ class PredictorModule(pl.LightningModule):
         return out_dict
 
     def _convert_features_dtype(self, feats):
-        from torch_geometric.data import Data, Batch
         # Convert features to dtype
         if isinstance(feats, torch.Tensor):
             feats = feats.to(self.dtype)
-        elif isinstance(feats, dgl.DGLHeteroGraph):
+        elif isinstance(feats, DGLHeteroGraph):
             for key, val in feats.ndata.items():
                 if isinstance(val, torch.Tensor) and (val.is_floating_point()):
                     feats.ndata[key] = val.to(dtype=self.dtype)
