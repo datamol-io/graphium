@@ -8,7 +8,7 @@ from torch import nn, Tensor
 import pytorch_lightning as pl
 from torch_geometric.data import Data, Batch
 from dgl import DGLHeteroGraph
-import mup
+from mup.optim import MuAdam
 
 from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
@@ -176,10 +176,13 @@ class PredictorModule(pl.LightningModule):
                     feats[key] = val.to(dtype=self.dtype)
         return feats
 
-    def configure_optimizers(self):
+    def configure_optimizers(self, impl=None):
+
+        if impl is None:
+            impl = torch.optim.Adam
 
         # Define the optimizer and schedulers
-        optimiser = mup.optim.Adam(self.parameters(), **self.optim_options.optim_kwargs)
+        optimiser = MuAdam(self.parameters(), **self.optim_options.optim_kwargs, impl=impl)
         torch_scheduler = self.optim_options.scheduler_class(
             optimizer=optimiser, **self.optim_options.torch_scheduler_kwargs
         )

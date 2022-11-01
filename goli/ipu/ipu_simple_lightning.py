@@ -1,5 +1,7 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 import pytorch_lightning as pl
+from pytorch_lightning.plugins import IPUPlugin
+from pytorch_lightning.loggers import WandbLogger
 
 import torch
 from torch import nn
@@ -7,11 +9,15 @@ from torch import nn
 import torchvision
 import torchvision.transforms as transforms
 
-import poptorch
 import mup
 
 from goli.nn.base_layers import FCLayer
 from goli.utils.mup import set_base_shapes
+
+
+ON_IPU = True   # Change this line to run on CPU
+SEED = 42
+
 
 # The simple PyTorch model used in each of these examples
 class SimpleTorchModel(torch.nn.Module):
@@ -42,11 +48,12 @@ class SimpleTorchModel(torch.nn.Module):
 # SimpleTorchModel which is a basic 2 conv, 2 FC torch network. It can be
 # found in simple_torch_model.py.
 class SimpleLightning(pl.LightningModule):
-    def __init__(self, in_dim, hidden_dim, kernel_size, num_classes):
+    def __init__(self, in_dim, hidden_dim, kernel_size, num_classes, on_ipu):
         super().__init__()
         self.model = SimpleTorchModel(
             in_dim=in_dim, hidden_dim=hidden_dim, kernel_size=kernel_size, num_classes=num_classes
         )
+        self.on_ipu = on_ipu
 
     def training_step(self, batch, _):
         x, label = batch
@@ -75,18 +82,23 @@ class SimpleLightning(pl.LightningModule):
         self.log("val_acc", torch.stack(acc).mean(), prog_bar=True)
 
     def configure_optimizers(self):
-        optimizer = mup.optim.Adam(self.parameters(), lr=0.01)
+        adam = torch.optim.Adam
+
+        if self.on_ipu:
+            import poptorch
+            adam = poptorch.optim.Adam
+
+        optimizer = mup.MuAdam(self.parameters(), lr=0.01, impl=adam)
         return optimizer
 
 
 if __name__ == "__main__":
 
-    SEED = 42
     torch.manual_seed(SEED)
 
     # Create the model as usual.
-    base = None # SimpleLightning(in_dim=1, hidden_dim=8, kernel_size=3, num_classes=10)
-    model = SimpleLightning(in_dim=1, hidden_dim=32, kernel_size=3, num_classes=10)
+    base = None # SimpleLightning(in_dim=1, hidden_dim=8, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
+    model = SimpleLightning(in_dim=1, hidden_dim=32, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
     model = set_base_shapes(model, base, rescale_params=False)
 
     torch.manual_seed(SEED)
@@ -102,25 +114,30 @@ if __name__ == "__main__":
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=16, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_set, batch_size=16, shuffle=False)
 
-    training_opts = poptorch.Options()
-    training_opts.Jit.traceModel(True)
-    inference_opts = poptorch.Options()
-    inference_opts.Jit.traceModel(True)
-
-    # Set the seeds
     torch.manual_seed(SEED)
-    training_opts.randomSeed(SEED)
-    inference_opts.randomSeed(SEED)
 
-    plugins = pl.plugins.IPUPlugin(training_opts=training_opts, inference_opts=inference_opts)
+    ipus = None
+    plugins = None
+    if ON_IPU:
+        import poptorch
+        training_opts = poptorch.Options()
+        training_opts.Jit.traceModel(True)
+        inference_opts = poptorch.Options()
+        inference_opts.Jit.traceModel(True)
+
+        # Set the seeds
+        training_opts.randomSeed(SEED)
+        inference_opts.randomSeed(SEED)
+        ipus = 1
+        plugins = IPUPlugin(training_opts=training_opts, inference_opts=inference_opts)
 
     trainer = pl.Trainer(
-        logger=pl.loggers.WandbLogger(),
-        # ipus=1, # Comment this line to run on CPU
+        logger=WandbLogger(),
+        ipus=ipus,
         max_epochs=3,
         progress_bar_refresh_rate=20,
         log_every_n_steps=1,
-        # plugins=plugins, # Comment this line to run on CPU
+        plugins=plugins,
     )
 
     # When fit is called the model will be compiled for IPU and will run on the available IPU devices.
