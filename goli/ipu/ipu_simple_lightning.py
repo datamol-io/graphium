@@ -8,6 +8,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 import poptorch
+import mup
 
 from goli.nn.base_layers import FCLayer
 from goli.utils.mup import set_base_shapes
@@ -43,7 +44,9 @@ class SimpleTorchModel(torch.nn.Module):
 class SimpleLightning(pl.LightningModule):
     def __init__(self, in_dim, hidden_dim, kernel_size, num_classes):
         super().__init__()
-        self.model = SimpleTorchModel(in_dim=in_dim, hidden_dim=hidden_dim, kernel_size=kernel_size, num_classes=num_classes)
+        self.model = SimpleTorchModel(
+            in_dim=in_dim, hidden_dim=hidden_dim, kernel_size=kernel_size, num_classes=num_classes
+        )
 
     def training_step(self, batch, _):
         x, label = batch
@@ -67,7 +70,7 @@ class SimpleLightning(pl.LightningModule):
         self.log("val_acc", torch.stack(outputs).mean(), prog_bar=True)
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=0.01)
+        optimizer = mup.optim.Adam(self.parameters(), lr=0.01)
         return optimizer
 
 
