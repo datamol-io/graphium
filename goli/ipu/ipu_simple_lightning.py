@@ -9,28 +9,27 @@ import torchvision.transforms as transforms
 
 import poptorch
 
-import mup
 from goli.nn.base_layers import FCLayer
+from goli.utils.mup import set_base_shapes
 
 # The simple PyTorch model used in each of these examples
 class SimpleTorchModel(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, in_dim, hidden_dim, kernel_size, num_classes):
         super().__init__()
         conv_block = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(in_channels=in_dim, out_channels=hidden_dim, kernel_size=kernel_size),
+            nn.BatchNorm2d(hidden_dim),
             nn.ReLU(),
-            nn.MaxPool2d(3),
-            nn.MaxPool2d(3),
+            nn.MaxPool2d(kernel_size),
+            nn.MaxPool2d(kernel_size),
         )
 
-        # mup.set_base_shapes not actually called, so we set base_width arbitrarily
         self.the_network = nn.Sequential(
             conv_block,
             torch.nn.Flatten(),
-            FCLayer(64, 16),
-            FCLayer(16, 16),
-            FCLayer(16, 10, activation=None, is_readout_layer=True),
+            FCLayer(4 * hidden_dim, hidden_dim),
+            FCLayer(hidden_dim, hidden_dim),
+            FCLayer(hidden_dim, num_classes, activation=None, is_readout_layer=True),
             nn.LogSoftmax(1),
         )
 
@@ -42,9 +41,9 @@ class SimpleTorchModel(torch.nn.Module):
 # SimpleTorchModel which is a basic 2 conv, 2 FC torch network. It can be
 # found in simple_torch_model.py.
 class SimpleLightning(pl.LightningModule):
-    def __init__(self):
+    def __init__(self, in_dim, hidden_dim, kernel_size, num_classes):
         super().__init__()
-        self.model = SimpleTorchModel()
+        self.model = SimpleTorchModel(in_dim=in_dim, hidden_dim=hidden_dim, kernel_size=kernel_size, num_classes=num_classes)
 
     def training_step(self, batch, _):
         x, label = batch
@@ -74,7 +73,9 @@ class SimpleLightning(pl.LightningModule):
 
 if __name__ == "__main__":
     # Create the model as usual.
-    model = SimpleLightning()
+    base = SimpleLightning(in_dim=1, hidden_dim=8, kernel_size=3, num_classes=10)
+    model = SimpleLightning(in_dim=1, hidden_dim=32, kernel_size=3, num_classes=10)
+    model = set_base_shapes(model, base, rescale_params=False)
 
     # Normal PyTorch dataset.
     train_set = torchvision.datasets.FashionMNIST(
