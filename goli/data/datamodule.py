@@ -1,6 +1,7 @@
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
+import gc
 from functools import partial
 import importlib.resources
 import zipfile
@@ -10,12 +11,12 @@ from multiprocessing import Manager
 from loguru import logger
 import fsspec
 import omegaconf
+from tqdm import tqdm
 
 import pandas as pd
 import numpy as np
 import datamol as dm
-import pyarrow as pa
-from pyarrow.parquet import read_schema
+from fastparquet import ParquetFile
 
 from sklearn.model_selection import train_test_split
 
@@ -511,32 +512,48 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_parquet(path, **kwargs):
+        kwargs.pop("dtype", None) # Only useful for csv
+        schema = BaseDataModule._get_table_columns_schema(path)
+
         # Change the 'usecols' parameter to 'columns'
         columns = kwargs.pop("columns", None)
         if "usecols" in kwargs.keys():
             assert columns is None, "Ambiguous value of `columns`"
             columns = kwargs.pop("usecols")
-        kwargs["columns"] = columns
+        if columns is None:
+            columns = list(schema.keys())
 
-        # Change the 'dtype' parameter to schema
-        dtype = kwargs.pop("dtype", None)
-        if dtype is not None:
-            schema = BaseDataModule._get_table_columns_schema(path)
-            new_schema = {col: pa.from_numpy_dtype(type) for col, type in dtype.items()}
-            schema.update(new_schema)
-            if columns is not None:
-                schema = {col: type for col, type in schema.items() if col in columns}
-            schema_list = []
-            for col, type in schema.items():
-                if pa.types.is_float16(type):
-                    type = pa.float32()
-                schema_list.append((col, type))
-            schema_list = pa.schema(schema_list)
+        # Read the parquet file per column, and convert the data to float16 to reduce memory consumption
+        all_series = {}
+        progress = tqdm(columns)
+        for col in progress:
 
-            kwargs["schema"] = schema_list
+            # Read single column
+            progress.set_description(f"Reading parquet column `{col}`")
+            this_series = pd.read_parquet(path, columns=[col], engine="fastparquet", **kwargs)[col]
 
-        # Read the parquet file
-        df = pd.read_parquet(path, **kwargs)
+            # Check if the data is float
+            first_elem = this_series[0]
+            is_float = False
+            if isinstance(first_elem, (list, tuple)):
+                is_float = isinstance(first_elem[0], np.floating)
+            elif isinstance(first_elem, np.ndarray):
+                is_float = isinstance(first_elem, np.floating)
+
+            # Convert floats to float16
+            if is_float:
+                if isinstance(first_elem, np.ndarray):
+                    this_series.update([elem.astype(np.float16) for elem in this_series])
+                elif isinstance(first_elem, list):
+                    this_series.update([np.asarray(elem).astype(np.float16) for elem in this_series])
+                else:
+                    this_series = this_series.astype(np.float16)
+
+            all_series[col] = this_series
+            gc.collect() # Reset memory after each column
+
+        # Merge columns into a dataframe
+        df = pd.concat(all_series, axis=1)
 
         return df
 
@@ -545,9 +562,9 @@ class BaseDataModule(pl.LightningDataModule):
 
         if str(path).endswith((".parquet")):
             # Read the schema of a parquet file
-            schema = read_schema(path)
-            names = schema.names
-            types = schema.types
+            file = ParquetFile(path) # TODO: Change to fastparquet
+            names = file.columns
+            types = list(file.dtypes.values())
         else:
             # Read the schema of a csv / tsv file
             df = BaseDataModule._read_csv(path, nrows=2)
