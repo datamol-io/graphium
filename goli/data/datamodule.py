@@ -562,7 +562,7 @@ class BaseDataModule(pl.LightningDataModule):
 
         if str(path).endswith((".parquet")):
             # Read the schema of a parquet file
-            file = ParquetFile(path) # TODO: Change to fastparquet
+            file = ParquetFile(path)
             names = file.columns
             types = list(file.dtypes.values())
         else:
