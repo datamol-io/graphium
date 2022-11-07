@@ -956,6 +956,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 unique_ids=all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
                 **task_dataset_args[task]["extras"],
             )
+
         """We split the data up to create train, val and test datasets"""
         self.task_train_indices = {}
         self.task_val_indices = {}
