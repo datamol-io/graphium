@@ -63,6 +63,8 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
 
     datamodule.prepare_data()
+
+
     # Run the model training
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.fit(model=predictor, datamodule=datamodule)

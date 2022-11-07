@@ -13,7 +13,7 @@ from torch_geometric.data import Data
 
 # goli imports
 from goli.nn.base_layers import FCLayer, get_activation, get_norm
-from goli.nn.base_graph_layer import BaseGraphModule
+from goli.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionWeighted,
@@ -1481,6 +1481,15 @@ class FullGraphNetwork(nn.Module):
 
         return kwargs
 
+    def set_max_num_nodes_per_graph(self, value: Optional[int]):
+        """
+        Set the maximum number of nodes for all gnn layers
+        """
+        if self.gnn is not None:
+            for layer in self.gnn.layers:
+                if isinstance(layer, BaseGraphStructure):
+                    layer.max_num_nodes_per_graph = value
+
     def __repr__(self) -> str:
         r"""
         Controls how the class is printed
@@ -1731,6 +1740,16 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             divide_factor=divide_factor, factor_in_dim=True
         )["task_heads_kwargs"]
         return kwargs
+
+    def set_max_num_nodes_per_graph(self, value: Optional[int]):
+        """
+        Set the maximum number of nodes for all gnn layers
+        """
+        super().set_max_num_nodes_per_graph(value)
+        for task_head in self.task_heads.task_heads.values():
+            for layer in task_head.layers:
+                if isinstance(layer, BaseGraphStructure):
+                    layer.max_num_nodes_per_graph = value
 
     def __repr__(self):
         task_str = self.task_heads.__repr__()
