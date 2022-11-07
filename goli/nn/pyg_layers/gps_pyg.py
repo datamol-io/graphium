@@ -14,7 +14,7 @@ from goli.nn.base_layers import FCLayer
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
-
+from goli.ipu.ipu_utils import import_poptorch
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -143,12 +143,12 @@ class GPSLayerPyg(BaseGraphModule):
         # * h_dense
         if self.attn_layer is not None:
 
-            # If there's padding, then we are on IPU
-            on_ipu = True # ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
+            # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
+            poptorch = import_poptorch(raise_error=False)
+            on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+            max_num_nodes_per_graph = None
             if on_ipu:
-                max_num_nodes_per_graph = 1 # batch.dataset_max_nodes_per_graph[0].item()
-            else:
-                max_num_nodes_per_graph = None
+                max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
             # Convert the tensor to a dense batch, then back to a sparse batch
             h_dense, mask, idx = to_dense_batch(

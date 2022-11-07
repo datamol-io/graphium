@@ -68,6 +68,7 @@ class BaseGraphStructure:
         self.normalization = normalization
         self.dropout = dropout
         self.activation = activation
+        self._max_num_nodes_per_graph = None
 
     def _initialize_activation_dropout_norm(self):
 
@@ -216,6 +217,23 @@ class BaseGraphStructure:
                 The factor that multiplies the output dimensions
         """
         ...
+
+
+    @property
+    def max_num_nodes_per_graph(self) -> Optional[int]:
+        """
+        Get the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
+        """
+        return self._max_num_nodes_per_graph
+
+    @max_num_nodes_per_graph.setter
+    def max_num_nodes_per_graph(self, value: Optional[int]):
+        """
+        Set the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
+        """
+        if value is not None:
+            assert isinstance(value, int), f"Value should be an integer, provided f{value} of type {type(value)}"
+        self._max_num_nodes_per_graph = value
 
     def __repr__(self):
         r"""

@@ -54,11 +54,10 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 
     trainer = load_trainer(cfg, run_name)
 
-    # Save the featurizer into wandb
-    featurizer_path = os.path.join(trainer.logger.experiment.dir, "featurizer.pickle")
-    joblib.dump(datamodule.smiles_transformer, featurizer_path)
-
+    # Prepare data. Extract bigger graphs and set the model's parameters
     datamodule.prepare_data()
+
+
     # Run the model training
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.fit(model=predictor, datamodule=datamodule)
