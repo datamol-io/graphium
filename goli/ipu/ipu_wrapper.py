@@ -3,11 +3,20 @@ from typing import Dict, Any, Optional, Callable, Union, Type, Tuple
 from torch_geometric.data import Batch
 from torch import Tensor
 from inspect import _ParameterKind
+from pytorch_lightning.strategies import IPUStrategy
+from pytorch_lightning.utilities.types import STEP_OUTPUT
 from pytorch_lightning.plugins import IPUPlugin
 from pytorch_lightning.trainer.states import RunningStage
 
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
+
+import torch
+from torch_geometric.data import Data, Batch
+from torch_geometric.data.data import BaseData
+from loguru import logger
+
+poptorch = import_poptorch()
 
 
 def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
@@ -22,85 +31,74 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
             preds[task] = preds[task][:-1]
     return preds
 
+class DictIPUStrategy(IPUStrategy):
 
-class IPUPluginGoli(IPUPlugin):
-    """
-    `IPUPluginGoli` modifies the `IPUPlugin` for compatibility with the Goli and Pytorch-Lightning training pipeline.
-    Modifies the `.self` method to make it compatible with the rest of Goli.
-    """
+    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
+        print(f'args before prepare input {args}')
+        args = self._prepare_input(args)
+        args = args[0]
+        poptorch_model = self.poptorch_models[stage]
+        self.lightning_module._running_torchscript = True
 
-    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any):
-        """
-        The `Goli` Dataloader generates Dictionaries as inputs for the `Predictor`.
-        But the IPU does not support the following:
-          - Dictionaries of inputs. Must pass Tuples. NamedTuples won't work, they will be converted to Tuples.
-          - Only Tensors can be passed to the model. Anything else (strings, numpy array, etc) will cause compilation to fail.
+        for key_to_drop in ['_batch_idx', 'mol_ids', 'smiles']:
+            args.pop(key_to_drop)
 
-        This function overloads the regular `_step` function to do the following:
-          1. Create `Tuple[Tensor]` from the inputs of type `Dict[Tensor]` or `Tensor` or `pyg.Data.Batch` and pass them to `super()._step`
-          2. Save the keys of the `Dict` structure as attributes of the model: `self.model.module._keys_tensor_dict` and `self.model.module._keys_tensor`
-          3. Convert every non-Tensor to Tuples and pass to the module directly.
-          4. Run the `super()._step` function, then remove every parameter that was added to the model
+        print(f'args before poptorch model {args}')
+        out = poptorch_model(**args)
+        print(f'output {out}')
 
-        The model must take care of re-building the Dict[Tensor] and `Batch` from the tuples. See class `PredictorModuleIPU`.
-
-        """
-
-        # Arguments for the loop
-        new_args, all_keys = [], []
-        keys_tensor_dict, keys_batch, keys_tensor, keys_others = {}, {}, {}, {}
-
-        # Loop every argument. If a dict or pyg graph is found, split into tensors
-        for data_key, data_val in args[0].items():
-            if isinstance(data_val, (Dict, Batch)):
-                for sub_key, sub_val in data_val.items():
-                    if isinstance(sub_val, Tensor):
-                        new_args.append(sub_val)
-                        all_keys.append(sub_key)
-
-                        # Append the keys for the tensors
-                        if isinstance(data_val, Dict):
-                            if data_key not in keys_tensor_dict:
-                                keys_tensor_dict[data_key] = {}
-                            keys_tensor_dict[data_key][sub_key] = len(all_keys) - 1
-
-                        # Append the keys for the pyg Batch
-                        elif isinstance(data_val, Batch):
-                            if data_key not in keys_batch:
-                                keys_batch[data_key] = {}
-                            keys_batch[data_key][sub_key] = len(all_keys) - 1
-                    else:
-                        if data_key not in keys_others:
-                            keys_others[data_key] = {}
-                        keys_others[data_key][sub_key] = sub_val
-
-            elif isinstance(data_val, Tensor):
-                new_args.append(data_val)
-                all_keys.append(data_key)
-                keys_tensor[data_key] = len(all_keys) - 1
-            else:
-                keys_others[data_key] = data_val
-
-        # Tell the module what are the labels associated to the labels and batches
-        self.model.module._keys_tensor_dict = keys_tensor_dict
-        self.model.module._keys_tensor = keys_tensor
-        self.model.module._keys_batch = keys_batch
-        self.model.module._keys_others = keys_others
-
-        # Walk-around to set the variable names for the poptorch model
-        self.poptorch_models[stage]._args_parser._varnames = all_keys
-        self.poptorch_models[stage]._args_parser._var_kinds = [_ParameterKind.VAR_POSITIONAL] * len(all_keys)
-
-        # Run the step using only tuple of tensors
-        out = super()._step(stage, *new_args, **kwargs)
-
-        # Remove the keys from the module after the step is executed
-        self.model.module._keys_tensor_dict = None
-        self.model.module._keys_tensor = None
-        self.model.module._keys_batch = None
-        self.model.module._keys_others = None
-
+        self.lightning_module._running_torchscript = False
         return out
+
+
+class PyGArgsParser(poptorch.ICustomArgParser):
+
+    @staticmethod
+    def sortedTensorKeys(struct):
+        """
+        Find all the keys that map to a tensor value in struct. The keys
+        are returned in sorted order.
+        """
+        all_keys = sorted(struct.keys)
+
+        def isTensor(k):
+            return isinstance(struct[k], torch.Tensor)
+
+        return filter(isTensor, all_keys)
+
+    def yieldTensors(self, struct):
+        """
+        yield every torch.Tensor in struct in sorted order
+        """
+        for k in self.sortedTensorKeys(struct):
+            yield struct[k]
+
+    def reconstruct(self, original_structure, tensor_iterator):
+        """
+        Create a new instance with the same class type as the
+        original_structure. This new instance will be initialized with tensors
+        from the provided iterator and uses the same sorted keys from the
+        yieldTensors() implementation.
+        """
+        tensor_keys = self.sortedTensorKeys(original_structure)
+        kwargs = {k: next(tensor_iterator) for k in tensor_keys}
+
+        for k in original_structure.keys:
+            if k not in kwargs:
+                # copy non-tensor properties to the new instance
+                kwargs[k] = original_structure[k]
+
+        cls = original_structure.__class__
+
+        if issubclass(cls, Batch):
+            kwargs['_base_cls'] = Data
+            return Batch(**kwargs)
+
+        return cls(**kwargs)
+
+
+# PyG uses the BaseData object as the root for data and batch objects
+poptorch.registerCustomArgParser(BaseData, PyGArgsParser())
 
 
 class PredictorModuleIPU(PredictorModule):
@@ -132,17 +130,17 @@ class PredictorModuleIPU(PredictorModule):
         outputs = {"loss/train": outputs["loss"].mean()}
         super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
-    def training_step(self, *inputs) -> Dict[str, Any]:
-        # Build a dictionary from the tuples
-        dict_input = self._build_dict_input(*inputs)
+    def training_step(self, features, labels) -> Dict[str, Any]:
+        logger.warning('running training_step')
+        dict_input = {'features': features, 'labels': labels}
         concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
         loss = concatenated_metrics_logs.pop("loss")
         loss = self.poptorch.identity_loss(loss, reduction="mean")
         return loss  # Limitation that only the loss can be returned
 
-    def validation_step(self, *inputs) -> Dict[str, Any]:
-        # Build a dictionary from the tuples
-        dict_input = self._build_dict_input(*inputs)
+    def validation_step(self, features, labels) -> Dict[str, Any]:
+        logger.warning('running validation_step')
+        dict_input = {'features': features, 'labels': labels}
         step_dict = super().validation_step(dict_input, to_cpu=False)
 
         # The output dict must be converted to a tuple
