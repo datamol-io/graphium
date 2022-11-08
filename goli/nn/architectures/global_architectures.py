@@ -1298,14 +1298,15 @@ class FullGraphNetwork(nn.Module):
             value = [value]
         self._concat_last_layers = value
 
-    def set_max_num_nodes_per_graph(self, value: Optional[int]):
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]):
         """
-        Set the maximum number of nodes for all gnn layers
+        Set the maximum number of nodes and edges for all gnn layers
         """
         if self.gnn is not None:
             for layer in self.gnn.layers:
                 if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = value
+                    layer.max_num_nodes_per_graph = max_nodes
+                    layer.max_num_edges_per_graph = max_edges
 
     def __repr__(self) -> str:
         r"""
@@ -1542,15 +1543,16 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         """
         return self.task_heads.out_dim
 
-    def set_max_num_nodes_per_graph(self, value: Optional[int]):
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]):
         """
         Set the maximum number of nodes for all gnn layers
         """
-        super().set_max_num_nodes_per_graph(value)
+        super().set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
         for task_head in self.task_heads.task_heads.values():
             for layer in task_head.layers:
                 if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = value
+                    layer.max_num_nodes_per_graph = max_nodes
+                    layer.max_num_edges_per_graph = max_edges
 
     def __repr__(self):
         parent_str = super().__repr__()
