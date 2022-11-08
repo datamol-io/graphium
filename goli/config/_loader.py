@@ -13,7 +13,7 @@ from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
-from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
+from goli.ipu.ipu_wrapper import PredictorModuleIPU, DictIPUStrategy
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
 from goli.trainer.loggers import WandbLoggerGoli
 
@@ -278,7 +278,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    plugins = []
+    strategy = None
     accelerator = get_accelerator(config)
     ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
@@ -288,7 +288,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
-        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available
     _ = cfg_trainer["trainer"].pop("accelerator", None)
@@ -326,7 +326,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     trainer = Trainer(
         detect_anomaly=True,
-        plugins=plugins,
+        strategy=strategy,
         accelerator=accelerator,
         ipus=ipus,
         gpus=gpus,
