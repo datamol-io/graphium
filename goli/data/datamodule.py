@@ -399,11 +399,11 @@ class BaseDataModule(pl.LightningDataModule):
 
         self.collate_fn = self.get_collate_fn(collate_fn)
 
-        self.dataset = None
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
         self._predict_ds = None
+        self.dataloaders_dict: Dict[RunningStage, DataLoader] = {}
 
         self._data_is_prepared = False
 
@@ -418,6 +418,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.train_ds,  # type: ignore
             shuffle=True,
             stage=RunningStage.TRAINING,
+            **kwargs,
         )
 
     def val_dataloader(self, **kwargs):
@@ -425,6 +426,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.val_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.VALIDATING,
+            **kwargs,
         )
 
     def test_dataloader(self, **kwargs):
@@ -433,6 +435,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.test_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.TESTING,
+            **kwargs,
         )
 
     def predict_dataloader(self, **kwargs):
@@ -441,6 +444,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.predict_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.PREDICTING,
+            **kwargs,
         )
 
     @staticmethod
@@ -567,7 +571,9 @@ class BaseDataModule(pl.LightningDataModule):
             The dataloader to sample from
         """
         kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
-        return self._dataloader(dataset=dataset, shuffle=shuffle, stage=stage, **kwargs)
+        dataloader = self._dataloader(dataset=dataset, shuffle=shuffle, stage=stage, **kwargs)
+        self.dataloaders_dict[stage] = dataloader
+        return dataloader
 
     def _dataloader(self, dataset: Dataset, **kwargs) -> DataLoader:
         """Get a dataloader for a given dataset"""
@@ -791,7 +797,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.val_singletask_datasets = None
         self.test_singletask_datasets = None
 
-        self.dataset = None
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
@@ -1065,6 +1070,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, **kwargs)
         else:
             loader = BaseDataModule._dataloader(self, dataset=dataset, **kwargs)
+
+        self.dataloaders_dict[stage] = loader
 
         return loader
 

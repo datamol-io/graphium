@@ -12,7 +12,7 @@ import joblib
 
 # Current project imports
 import goli
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
+from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer, get_max_num_nodes_edges_datamodule
 from goli.utils.safe_run import SafeRun
 
 
@@ -57,11 +57,20 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     # Prepare data. Extract bigger graphs and set the model's parameters
     datamodule.prepare_data()
 
+    # Determine the max num nodes and edges in training and validation
+    datamodule.setup(stage=None)
+    max_nodes, max_edges = get_max_num_nodes_edges_datamodule(datamodule, stages=["train", "val"])
+    predictor.model.set_max_num_nodes_per_graph(max_nodes)
 
     # Run the model training
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.fit(model=predictor, datamodule=datamodule)
 
+    # Determine the max num nodes and edges in testing
+    max_nodes, max_edges = get_max_num_nodes_edges_datamodule(datamodule, stages=["test"])
+    predictor.model.set_max_num_nodes_per_graph(max_nodes)
+
+    # Run the model testing
     with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.test(model=predictor, datamodule=datamodule)  # , ckpt_path=ckpt_path)
 
