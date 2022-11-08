@@ -4,8 +4,6 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 
 from copy import deepcopy
 import torch
-import torch.nn as nn
-from torch_scatter import scatter
 from typing import Callable, Union, Optional
 
 
