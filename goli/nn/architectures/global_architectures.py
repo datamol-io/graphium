@@ -44,7 +44,6 @@ class FeedForwardNN(nn.Module):
         layer_type: Union[str, nn.Module] = "fc",
         layer_kwargs: Optional[Dict] = None,
         last_layer_is_readout: bool = False,
-        ipu: Optional[bool] = None,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -127,8 +126,6 @@ class FeedForwardNN(nn.Module):
 
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
-            ipu: Whether the model is to be run on the IPU
 
         """
 
@@ -297,6 +294,49 @@ class FeedForwardNN(nn.Module):
 
         return h
 
+    def get_init_kwargs(self) -> Dict[str, Any]:
+        """
+        Get a dictionary that can be used to instanciate a new object with identical parameters.
+        """
+        return deepcopy(dict(
+            in_dim=self.in_dim,
+            out_dim=self.out_dim,
+            hidden_dims=self.hidden_dims,
+            depth=None,
+            activation=self.activation,
+            last_activation=self.last_activation,
+            dropout=self.dropout,
+            last_dropout=self.last_dropout,
+            normalization=self.normalization,
+            first_normalization=self.first_normalization,
+            last_normalization=self.last_normalization,
+            residual_type=self.residual_type,
+            residual_skip_steps=self.residual_skip_steps,
+            name=self.name,
+            layer_type=self.layer_type,
+            layer_kwargs=self.layer_kwargs,
+            last_layer_is_readout=self.last_layer_is_readout,
+        ))
+
+    def make_mup_base_model(self, divide_factor: int = 2, factor_in_dim: bool=False):
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a factor of 2.
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        kwargs = self.get_init_kwargs()
+        kwargs["hidden_dims"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims"]]
+        if factor_in_dim:
+            kwargs["in_dim"] = int(kwargs["in_dim"] / divide_factor)
+        if not self.last_layer_is_readout:
+            kwargs["out_dim"] = int(kwargs["out_dim"] / divide_factor)
+        return self.__class__.__init__(self, **kwargs)
+        
+
     def __repr__(self):
         r"""
         Controls how the class is printed
@@ -312,7 +352,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self,
         in_dim: int,
         out_dim: int,
-        hidden_dims: List[int],
+        hidden_dims: Union[List[int], int],
         layer_type: Union[str, nn.Module],
         depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
@@ -903,6 +943,41 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
         return g
+
+    def get_init_kwargs(self) -> Dict[str, Any]:
+        """
+        Get a dictionary that can be used to instanciate a new object with identical parameters.
+        """
+        kwargs = super().get_init_kwargs()
+        new_kwargs = dict(
+            in_dim_edges=self.in_dim_edges,
+            hidden_dims_edges=self.hidden_dims_edges,
+            pooling=self.pooling,
+            virtual_node=self.virtual_node,
+        )
+        kwargs.update(new_kwargs)
+        return deepcopy(kwargs)
+
+    def make_mup_base_model(self, divide_factor: int = 2, factor_in_dim: bool=False):
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a factor of 2.
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        kwargs = self.get_init_kwargs()
+        kwargs["hidden_dims"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims"]]
+        kwargs["hidden_dims_edges"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
+        if factor_in_dim:
+            kwargs["in_dim"] = int(kwargs["in_dim"] / divide_factor)
+            kwargs["in_dim_edges"] = int(kwargs["in_dim_edges"] / divide_factor)
+        if not self.last_layer_is_readout:
+            kwargs["out_dim"] = int(kwargs["out_dim"] / divide_factor)
+        return self.__class__.__init__(self, **kwargs)
+        
 
     def __repr__(self):
         r"""
