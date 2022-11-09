@@ -427,7 +427,6 @@ class BaseDataModule(pl.LightningDataModule):
         self.val_ds = None
         self.test_ds = None
         self._predict_ds = None
-        self.dataloaders_dict: Dict[RunningStage, DataLoader] = {}
 
         self._data_is_prepared = False
 
@@ -1106,8 +1105,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, **kwargs)
         else:
             loader = BaseDataModule._dataloader(self, dataset=dataset, **kwargs)
-
-        self.dataloaders_dict[stage] = loader
 
         return loader
 
