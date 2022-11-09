@@ -571,9 +571,7 @@ class BaseDataModule(pl.LightningDataModule):
             The dataloader to sample from
         """
         kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
-        dataloader = self._dataloader(dataset=dataset, shuffle=shuffle, stage=stage, **kwargs)
-        self.dataloaders_dict[stage] = dataloader
-        return dataloader
+        return self._dataloader(dataset=dataset, shuffle=shuffle, stage=stage, **kwargs)
 
     def _dataloader(self, dataset: Dataset, **kwargs) -> DataLoader:
         """Get a dataloader for a given dataset"""
