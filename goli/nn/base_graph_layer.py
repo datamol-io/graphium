@@ -68,6 +68,7 @@ class BaseGraphStructure:
         self.dropout = dropout
         self.activation = activation
         self._max_num_nodes_per_graph = None
+        self._max_num_edges_per_graph = None
 
     def _initialize_activation_dropout_norm(self):
 

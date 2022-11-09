@@ -1481,9 +1481,16 @@ class FullGraphNetwork(nn.Module):
 
         return kwargs
 
-    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]):
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
         Set the maximum number of nodes and edges for all gnn layers
+
+        Parameters:
+            max_nodes: Maximum number of nodes in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+
+            max_edges: Maximum number of edges in the dataset.
+                This will be useful for certain architecture, but ignored by others.
         """
         if self.gnn is not None:
             for layer in self.gnn.layers:
@@ -1742,9 +1749,16 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         )["task_heads_kwargs"]
         return kwargs
 
-    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]):
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
-        Set the maximum number of nodes for all gnn layers
+        Set the maximum number of nodes and edges for all gnn layers
+
+        Parameters:
+            max_nodes: Maximum number of nodes in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+
+            max_edges: Maximum number of edges in the dataset.
+                This will be useful for certain architecture, but ignored by others.
         """
         super().set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
         for task_head in self.task_heads.task_heads.values():
