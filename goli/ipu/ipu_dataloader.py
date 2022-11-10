@@ -12,7 +12,6 @@ from torch_geometric.transforms import BaseTransform
 
 from goli.ipu.ipu_utils import import_poptorch
 
-
 @dataclass
 class IPUDataloaderOptions:
     r"""
@@ -500,13 +499,34 @@ def smart_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     # Loop from smallest to largest molecule, and add each molecule to the pack with smallest expected sum
     for ii, num_atom in enumerate(sorted_num_nodes):
         remaining_mean = reverse_cumsum[ii] / (len(sorted_num_nodes) - ii)
-        idx_max_average = np.argmax(
-            [m.expected_atoms(remaining_mean, batch_size) * (m.num_graphs < batch_size) for m in mol_batches]
-        )
-        mol_batches[idx_max_average].add_mol(num_atom, argsort_num_nodes[ii])
+        max_expected, idx_max_expected = 0, 0
+        for jj, m in enumerate(mol_batches):
+            if m.num_graphs >= batch_size:
+                continue
+            expected = m.num_nodes + ((batch_size - m.num_graphs) * remaining_mean) # Faster than calling m.expected_atoms
+            if expected > max_expected:
+                max_expected = expected
+                idx_max_expected = jj
+        mol_batches[idx_max_expected].add_mol(num_atom, argsort_num_nodes[ii])
 
     packed_indices = [batch.indices for batch in mol_batches]
 
+    return packed_indices
+
+
+def fast_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
+    # Sort the list
+    num_nodes = np.asarray(num_nodes)
+    argsort_num_nodes = np.argsort(num_nodes)
+    ipu_batch_size = int(len(num_nodes) / batch_size)
+
+    groups = []
+    for ii in range(batch_size):
+        group = argsort_num_nodes[ii*ipu_batch_size:(ii+1)*ipu_batch_size]
+        np.random.shuffle(group)
+        groups.append(group)
+
+    packed_indices = np.stack(groups, axis=1).tolist()
     return packed_indices
 
 
