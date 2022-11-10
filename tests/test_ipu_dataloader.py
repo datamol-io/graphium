@@ -12,7 +12,7 @@ import torch
 from torch.utils.data.dataloader import default_collate
 
 # Current library imports
-from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing
+from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing, hybrid_packing
 from goli.ipu.ipu_wrapper import PredictorModuleIPU
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
 from goli.ipu.ipu_wrapper import IPUPluginGoli
@@ -117,6 +117,48 @@ class test_Packing(ut.TestCase):
                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
                     np.arange(len(num_nodes)).tolist(),
                 )
+
+    def test_hybrid_packing(self):
+
+        np.random.seed(42)
+
+        batch_sizes = [4, 8, 16, 32, 64]
+        ipu_batch_sizes = [4, 8, 16, 32, 64]
+
+        for batch_size in batch_sizes:
+            for ipu_batch_size in ipu_batch_sizes:
+
+                err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
+
+                # Generate random batch size
+                global_batch = batch_size * ipu_batch_size
+                num_nodes = np.abs(np.random.gamma(2, 20, size=global_batch)).astype(int)
+
+                # Use the smart packing
+                packed_indices = hybrid_packing(num_nodes=num_nodes, batch_size=batch_size)
+                pack_num_nodes = get_pack_sizes(packed_indices, num_nodes)
+
+                # Use the random packing
+                rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
+                rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
+
+                # Assert that the smart packing is better than the random packing
+                self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
+                self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
+
+                # Assert that the total number of atoms is right
+                self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)
+                self.assertEqual(sum(rand_pack_num_nodes), sum(num_nodes), msg=err_msg)
+
+                # Assert that all index are there
+                self.assertListEqual(
+                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
+                )
+                self.assertListEqual(
+                    np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
+                    np.arange(len(num_nodes)).tolist(),
+                )
+
 
 
 class test_DataLoading(ut.TestCase):
