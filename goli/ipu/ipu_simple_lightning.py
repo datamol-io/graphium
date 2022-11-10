@@ -23,6 +23,11 @@ SEED = 42
 class SimpleTorchModel(torch.nn.Module):
     def __init__(self, in_dim, hidden_dim, kernel_size, num_classes):
         super().__init__()
+        self.in_dim = in_dim
+        self.hidden_dim = hidden_dim
+        self.kernel_size = kernel_size
+        self.num_classes = num_classes
+
         conv_block = nn.Sequential(
             nn.Conv2d(in_channels=in_dim, out_channels=hidden_dim, kernel_size=kernel_size),
             nn.BatchNorm2d(hidden_dim),
@@ -38,6 +43,14 @@ class SimpleTorchModel(torch.nn.Module):
             FCLayer(hidden_dim, hidden_dim),
             FCLayer(hidden_dim, num_classes, activation=None, is_readout_layer=True),
             nn.LogSoftmax(1),
+        )
+
+    def make_mup_base_kwargs(self, divide_factor: int = 2):
+	    return dict(
+            in_dim=self.in_dim,
+	        hidden_dim=round(self.hidden_dim / divide_factor),
+            kernel_size=self.kernel_size,
+            num_classes=self.num_classes
         )
 
     def forward(self, x):
@@ -98,9 +111,10 @@ if __name__ == "__main__":
     torch.manual_seed(SEED)
 
     # Create the model as usual.
-    base = None  # SimpleLightning(in_dim=1, hidden_dim=8, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
-    model = SimpleLightning(in_dim=1, hidden_dim=32, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
-    model = set_base_shapes(model, base, rescale_params=False)
+    predictor = SimpleLightning(in_dim=1, hidden_dim=32, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
+    model = predictor.model
+    base = model.__class__(**model.make_mup_base_kwargs(divide_factor=2))
+    predictor.model = set_base_shapes(model, base, rescale_params=False)
 
     torch.manual_seed(SEED)
     # Normal PyTorch dataset.
@@ -143,4 +157,4 @@ if __name__ == "__main__":
     )
 
     # When fit is called the model will be compiled for IPU and will run on the available IPU devices.
-    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    trainer.fit(predictor, train_dataloaders=train_loader, val_dataloaders=val_loader)

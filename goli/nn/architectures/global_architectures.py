@@ -1,12 +1,17 @@
-from torch import Tensor, nn
-import torch
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
+
+# Misc imports
 import inspect
 from copy import deepcopy
 
+# Torch imports
+from torch import Tensor, nn
+import torch
+import mup
 from dgl import DGLGraph
 from torch_geometric.data import Data
 
+# goli imports
 from goli.nn.base_layers import FCLayer, get_activation, get_norm
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.residual_connections import (
@@ -331,11 +336,11 @@ class FeedForwardNN(nn.Module):
             factor_in_dim: Whether to factor the input dimension
         """
         kwargs = self.get_init_kwargs()
-        kwargs["hidden_dims"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims"]]
+        kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
         if factor_in_dim:
-            kwargs["in_dim"] = int(kwargs["in_dim"] / divide_factor)
+            kwargs["in_dim"] = round(kwargs["in_dim"] / divide_factor)
         if not self.last_layer_is_readout:
-            kwargs["out_dim"] = int(kwargs["out_dim"] / divide_factor)
+            kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
         return kwargs
 
     def __repr__(self):
@@ -973,14 +978,14 @@ class FeedForwardGraphBase(FeedForwardNN):
             factor_in_dim: Whether to factor the input dimension for the edges
         """
         kwargs = self.get_init_kwargs()
-        kwargs["hidden_dims"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims"]]
-        kwargs["hidden_dims_edges"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
+        kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
+        kwargs["hidden_dims_edges"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
         if factor_in_dim:
-            kwargs["in_dim"] = int(kwargs["in_dim"] / divide_factor)
+            kwargs["in_dim"] = round(kwargs["in_dim"] / divide_factor)
         if factor_in_dim_edges:
-            kwargs["in_dim_edges"] = int(kwargs["in_dim_edges"] / divide_factor)
+            kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
-            kwargs["out_dim"] = int(kwargs["out_dim"] / divide_factor)
+            kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
         return kwargs
 
     def __repr__(self):
@@ -1004,6 +1009,7 @@ class FullGraphNetwork(nn.Module):
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
+        last_layer_is_readout: bool = False,
         name: str = "DGL_GNN",
     ):
         r"""
@@ -1045,6 +1051,9 @@ class FullGraphNetwork(nn.Module):
                 this parameter is ignored.
                 NOTE: The inference time will be slowed-down proportionaly to this parameter.
 
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -1053,6 +1062,7 @@ class FullGraphNetwork(nn.Module):
         super().__init__()
         self.name = name
         self.num_inference_to_average = num_inference_to_average
+        self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
 
@@ -1078,6 +1088,7 @@ class FullGraphNetwork(nn.Module):
         # Initialize the graph neural net (applied after the pre_nn)
         name = gnn_kwargs.pop("name", "GNN")
         gnn_class = self._parse_feed_forward_gnn(gnn_kwargs)
+        gnn_kwargs.setdefault("last_layer_is_readout", self.last_layer_is_readout and (post_nn_kwargs is None))
         self.gnn = gnn_class(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
 
@@ -1085,6 +1096,7 @@ class FullGraphNetwork(nn.Module):
         if post_nn_kwargs is not None:
             name = post_nn_kwargs.pop("name", "post-NN")
             post_nn_kwargs.setdefault("in_dim", next_in_dim)
+            post_nn_kwargs.setdefault("last_layer_is_readout", self.last_layer_is_readout)
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
 
@@ -1411,6 +1423,7 @@ class FullGraphNetwork(nn.Module):
             pe_encoders_kwargs=None,
             post_nn_kwargs=None,
             num_inference_to_average=self.num_inference_to_average,
+            last_layer_is_readout=self.last_layer_is_readout,
             name=self.name,
         )
         if self.pre_nn is not None:
@@ -1508,6 +1521,7 @@ class TaskHeads(nn.Module):
         self,
         in_dim: int,
         task_heads_kwargs: Dict[str, Any],
+        last_layer_is_readout: bool = True,
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
@@ -1518,16 +1532,20 @@ class TaskHeads(nn.Module):
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to
                 initialize a task-specific MLP.
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
         """
 
         super().__init__()
 
         self.in_dim = in_dim
+        self.last_layer_is_readout = last_layer_is_readout
         task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.task_heads = nn.ModuleDict()
         for task_name, head_kwargs in task_heads_kwargs.items():
             head_kwargs.setdefault("name", f"NN-{task_name}")
-            head_kwargs.setdefault("last_layer_is_readout", True)
+            head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)
             head_in_dim = head_kwargs.pop("in_dim", None)
             if head_in_dim is not None:
                 assert self.in_dim == head_in_dim, f"Inconsistent input dim {self.in_dim} != {head_in_dim}"
@@ -1552,11 +1570,16 @@ class TaskHeads(nn.Module):
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
         """
-        kwargs = {}
+        task_heads_kwargs = {}
         for task_name, task_nn in self.task_heads.items():
-            kwargs[task_name] = task_nn.make_mup_base_kwargs(
+            task_heads_kwargs[task_name] = task_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=factor_in_dim
             )
+        kwargs = dict(
+            in_dim=self.in_dim,
+            last_layer_is_readout=self.last_layer_is_readout,
+            task_heads_kwargs=task_heads_kwargs,
+        )
         return kwargs
 
     @property
@@ -1592,6 +1615,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
+        last_layer_is_readout: bool = False,
         name: str = "Multitask_GNN",
     ):
         r"""
@@ -1636,6 +1660,9 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 this parameter is ignored.
                 NOTE: The inference time will be slowed-down proportionaly to this parameter.
 
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -1648,10 +1675,12 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             pe_encoders_kwargs=pe_encoders_kwargs,
             post_nn_kwargs=post_nn_kwargs,
             num_inference_to_average=num_inference_to_average,
+            last_layer_is_readout=False,
             name=name,
         )
+        self.last_layer_is_readout = last_layer_is_readout
 
-        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs=task_heads_kwargs)
+        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs=task_heads_kwargs, last_layer_is_readout=last_layer_is_readout)
 
     def forward(self, g: Union[DGLGraph, Data]):
         h = super().forward(g)
@@ -1676,7 +1705,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor)
         kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(
             divide_factor=divide_factor, factor_in_dim=True
-        )
+        )["task_heads_kwargs"]
         return kwargs
 
     def __repr__(self):

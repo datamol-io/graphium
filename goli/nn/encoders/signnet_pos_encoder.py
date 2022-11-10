@@ -306,7 +306,7 @@ class SignNetNodeEncoder(torch.nn.Module):
         """
         return dict(
             on_keys=self.on_keys,
-            in_dim=(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
+            in_dim=round(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
             hidden_dim=self.hidden_dim / divide_factor,
             out_dim=self.out_dim,
             model_type=self.model_type,
