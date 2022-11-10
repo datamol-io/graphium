@@ -377,3 +377,8 @@ def save_params_to_wandb(logger: LightningLoggerBase, config: Union[omegaconf.Di
     # Save the featurizer into wandb
     featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
     joblib.dump(datamodule.smiles_transformer, featurizer_path)
+
+    wandb_run = logger.experiment
+    if wandb_run is not None:
+        wandb_run.save("*.yaml")
+        wandb_run.save(".pickle")
