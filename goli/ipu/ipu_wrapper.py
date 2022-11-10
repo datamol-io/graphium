@@ -188,7 +188,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def configure_optimizers(self, impl=None):
         if impl is None:
-            impl=self.poptorch.optim.Adam
+            impl = self.poptorch.optim.Adam
         return super().configure_optimizers(impl=impl)
 
     def _retrieve_output_batch(self, outputs):

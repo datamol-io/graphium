@@ -15,7 +15,7 @@ from goli.nn.base_layers import FCLayer
 from goli.utils.mup import set_base_shapes
 
 
-ON_IPU = True   # Change this line to run on CPU
+ON_IPU = True  # Change this line to run on CPU
 SEED = 42
 
 
@@ -86,6 +86,7 @@ class SimpleLightning(pl.LightningModule):
 
         if self.on_ipu:
             import poptorch
+
             adam = poptorch.optim.Adam
 
         optimizer = mup.MuAdam(self.parameters(), lr=0.01, impl=adam)
@@ -97,7 +98,7 @@ if __name__ == "__main__":
     torch.manual_seed(SEED)
 
     # Create the model as usual.
-    base = None # SimpleLightning(in_dim=1, hidden_dim=8, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
+    base = None  # SimpleLightning(in_dim=1, hidden_dim=8, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
     model = SimpleLightning(in_dim=1, hidden_dim=32, kernel_size=3, num_classes=10, on_ipu=ON_IPU)
     model = set_base_shapes(model, base, rescale_params=False)
 
@@ -120,6 +121,7 @@ if __name__ == "__main__":
     plugins = None
     if ON_IPU:
         import poptorch
+
         training_opts = poptorch.Options()
         training_opts.Jit.traceModel(True)
         inference_opts = poptorch.Options()
