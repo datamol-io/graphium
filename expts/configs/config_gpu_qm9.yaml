@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  #cpu or ipu or gpu
+    type: gpu  #cpu or ipu or gpu
 
 
 datamodule:
@@ -14,7 +14,7 @@ datamodule:
       homo:
         df: null
         # df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
-        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_micro_qm9.csv
+        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -76,8 +76,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 6
-    batch_size_inference: 6
+    batch_size_training: 6000
+    batch_size_inference: 6000
     # cache_data_path: null
 
     num_workers: -1
@@ -140,8 +140,8 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 32
-    hidden_dims: 64
+    out_dim: 500
+    hidden_dims: 500
     depth: 16
     activation: relu
     last_activation: none
@@ -165,16 +165,16 @@ architecture:
       # scalers: [identity, amplification, attenuation]
       # num_heads: 3
 
-  post_nn: null
-    #out_dim: 1
-    #hidden_dims: 32
-    #depth: 2
-    #activation: relu
-    #last_activation: none
-    #dropout: *dropout
-    #normalization: *normalization
-    #last_normalization: "none"
-    #residual_type: none
+  post_nn:
+    out_dim: 32
+    hidden_dims: 400
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: "none"
+    residual_type: none
 
   task_heads:
     - task_name: "homo"
@@ -316,4 +316,4 @@ trainer:
     precision: 32
     max_epochs: 50 #50
     min_epochs: 1 #5
-    accumulate_grad_batches: 10
+    accumulate_grad_batches: 1
