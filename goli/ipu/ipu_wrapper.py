@@ -132,36 +132,36 @@ class PredictorModuleIPU(PredictorModule):
         outputs = {"loss/train": outputs["loss"].mean()}
         super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
-    def training_step(self, *inputs, to_cpu: bool = False) -> Dict[str, Any]:
+    def training_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
-        concatenated_metrics_logs = super().training_step(dict_input, batch_idx=0, to_cpu=to_cpu)
+        concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
         loss = concatenated_metrics_logs.pop("loss")
         loss = self.poptorch.identity_loss(loss, reduction="mean")
         return loss  # Limitation that only the loss can be returned
 
-    def validation_step(self, *inputs, to_cpu: bool = False) -> Dict[str, Any]:
+    def validation_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
-        step_dict = super().validation_step(dict_input, batch_idx=0, to_cpu=to_cpu)
+        step_dict = super().validation_step(dict_input, to_cpu=False)
 
         # The output dict must be converted to a tuple
         step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
-    def test_step(self, *inputs, to_cpu: bool = False) -> Dict[str, Any]:
+    def test_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
-        step_dict = super().test_step(dict_input, batch_idx=0, to_cpu=to_cpu)
+        step_dict = super().test_step(dict_input, to_cpu=False)
 
         # The output dict must be converted to a tuple
         step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
-    def predict_step(self, *inputs, to_cpu: bool = False) -> Dict[str, Any]:
+    def predict_step(self, *inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         dict_input = self._build_dict_input(*inputs)
-        step_dict = super().predict_step(dict_input, batch_idx=0, to_cpu=to_cpu)
+        step_dict = super().predict_step(dict_input, to_cpu=False)
 
         # The output dict must be converted to a tuple
         step_dict = self._clean_output_batch(step_dict)

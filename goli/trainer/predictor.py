@@ -381,7 +381,7 @@ class PredictorModule(pl.LightningModule):
                 outputs, step=self.global_step
             )  # This is a pytorch lightning function call
 
-    def training_step(self, batch: Dict[str, Tensor], batch_idx: int, to_cpu: bool = True) -> Dict[str, Any]:
+    def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         step_dict = None
 
         # Train using FLAG
@@ -431,35 +431,11 @@ class PredictorModule(pl.LightningModule):
         total_norm = total_norm**0.5
         return total_norm
 
-    def validation_step(
-        self, batch: Dict[str, Tensor], batch_idx: int, to_cpu: bool = True
-    ) -> Dict[str, Any]:
+    def validation_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="val", to_cpu=to_cpu)
 
-    def test_step(self, batch: Dict[str, Tensor], batch_idx: int, to_cpu: bool = True) -> Dict[str, Any]:
+    def test_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
         return self._general_step(batch=batch, step_name="test", to_cpu=to_cpu)
-
-    def predict_step(self, batch: Dict[str, Tensor], batch_idx: int, to_cpu: bool = True) -> Dict[str, Any]:
-        preds = self.forward(batch)
-
-        # Different type of preds can be return by the forward
-        if isinstance(preds, dict) and ("preds" in preds.keys()):
-            preds = preds["preds"]
-        elif isinstance(preds, Tensor):
-            preds = {k: preds[ii] for ii, k in enumerate(self.tasks)}
-
-        # Cast to CPU
-        device = "cpu" if to_cpu else None
-        for task, pred in preds.items():
-            preds[task] = pred.detach().to(device=device)
-
-        return preds
-
-    def on_predict_epoch_end(self, outputs: Dict[str, Any]) -> None:
-        preds = {}
-        for task in self.tasks:
-            preds[task] = torch.cat([out["preds"][task] for out in outputs], dim=0)
-        return preds
 
     def _general_epoch_end(self, outputs: Dict[str, Any], step_name: str) -> None:
         r"""Common code for training_epoch_end, validation_epoch_end and testing_epoch_end"""
