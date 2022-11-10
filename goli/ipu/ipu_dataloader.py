@@ -464,6 +464,7 @@ def smart_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     """
     Simple and fast algorithm for packing graphs such that each batch has roughly the
     same number of atoms.
+    Has scalability issues O(n^2)
 
     Parameters:
         num_nodes: List of the number of atoms per molecule for the entire global batch.
@@ -515,7 +516,23 @@ def smart_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
 
 
 def fast_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
-    # Sort the list
+    """
+    Super fast algorithm for packing graphs such that each batch has roughly the
+    same number of atoms. Not as good as `smart_packing` but faster and more scalable O(n).
+
+    Parameters:
+        num_nodes: List of the number of atoms per molecule for the entire global batch.
+            Must be of length `batch_size * ipu_batch_size`.
+
+        batch_size: The batch size per iteration, considering a single device and single
+            forward pass.
+            The global batch size is `batch_size * device_iterations * replication_factor * gradient_accumulation`
+
+    Returns:
+        packed_indices: A list of packs, each containing a list of indices, such that
+            if we collect `num_nodes` from the indices, then each pack has roughly the
+            same total number of atoms.
+    """
     num_nodes = np.asarray(num_nodes)
     argsort_num_nodes = np.argsort(num_nodes)
     ipu_batch_size = int(len(num_nodes) / batch_size)
