@@ -122,8 +122,8 @@ class test_Packing(ut.TestCase):
 
         np.random.seed(42)
 
-        batch_sizes = [4, 8, 16, 32, 64]
-        ipu_batch_sizes = [4, 8, 16, 32, 64]
+        batch_sizes = [2, 4, 8, 16, 32, 64]
+        ipu_batch_sizes = [2, 3, 4, 8, 16, 32, 64]
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
