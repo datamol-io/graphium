@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Any
 import torch
 import torch.nn as nn
 
@@ -33,6 +33,15 @@ class LapPENodeEncoder(torch.nn.Module):
 
         # Parse the `on_keys`.
         self.on_keys = self.parse_on_keys(on_keys)
+        self.in_dim = in_dim
+        self.hidden_dim = hidden_dim
+        self.out_dim = out_dim
+        self.num_layers = num_layers
+        self.model_type = model_type
+        self.num_layers_post = num_layers_post
+        self.dropout = dropout
+        self.first_normalization = first_normalization
+        self.model_kwargs = model_kwargs
 
         if model_type not in ["Transformer", "DeepSet"]:
             raise ValueError(f"Unexpected PE model {model_type}")
@@ -120,3 +129,27 @@ class LapPENodeEncoder(torch.nn.Module):
         output = {"node": pos_enc}
 
         return output
+
+
+    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool=False) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        return dict(
+            on_keys=self.on_keys,
+            in_dim=(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
+            hidden_dim=self.hidden_dim / divide_factor,
+            out_dim=self.out_dim,
+            num_layers=self.num_layers,
+            model_type=self.model_type,
+            num_layers_post=self.num_layers_post,
+            dropout=self.dropout,
+            first_normalization=self.first_normalization,
+            **self.model_kwargs,
+        )

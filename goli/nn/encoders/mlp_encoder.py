@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from typing import Union, Callable, List, Dict
+from typing import Union, Callable, List, Dict, Any
 
 from goli.nn.base_layers import MLP
 
@@ -44,6 +44,15 @@ class MLPEncoder(torch.nn.Module):
             raise ValueError(f"`out_level` must be in {accepted_out_levels}, provided {out_level}")
 
         self.on_keys = self.parse_on_keys(on_keys)
+        self.out_level = out_level
+        self.in_dim = in_dim
+        self.hidden_dim = hidden_dim
+        self.out_dim = out_dim
+        self.num_layers = num_layers
+        self.activation = activation
+        self.dropout = dropout
+        self.normalization = normalization
+        self.first_normalization = first_normalization
 
         # Initialize the MLP
         self.pe_encoder = MLP(
@@ -77,3 +86,26 @@ class MLPEncoder(torch.nn.Module):
         output = {self.out_level: encoding}
 
         return output
+
+    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool=False) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        return dict(
+            on_keys=self.on_keys,
+            out_level=self.out_level,
+            in_dim=(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
+            hidden_dim=self.hidden_dim / divide_factor,
+            out_dim=self.out_dim,
+            num_layers=self.num_layers,
+            activation=self.activation,
+            dropout=self.dropout,
+            normalization=self.normalization,
+            first_normalization=self.first_normalization,
+        )

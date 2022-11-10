@@ -313,7 +313,7 @@ class FeedForwardNN(nn.Module):
             residual_type=self.residual_type,
             residual_skip_steps=self.residual_skip_steps,
             name=self.name,
-            layer_type=self.layer_type,
+            layer_type=self.layer_class,
             layer_kwargs=self.layer_kwargs,
             last_layer_is_readout=self.last_layer_is_readout,
         ))
@@ -322,7 +322,7 @@ class FeedForwardNN(nn.Module):
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
-        layers width divided by a factor of 2.
+        layers width divided by a given factor (2 by default)
 
         Parameter:
             divide_factor: Factor by which to divide the width.
@@ -962,7 +962,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
-        layers width divided by a factor of 2.
+        layers width divided by a given factor (2 by default)
 
         Parameter:
             divide_factor: Factor by which to divide the width.
@@ -1054,6 +1054,7 @@ class FullGraphNetwork(nn.Module):
         self._concat_last_layers = None
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
 
+        self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
@@ -1396,7 +1397,7 @@ class FullGraphNetwork(nn.Module):
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
-        layers width divided by a factor of 2.
+        layers width divided by a given factor (2 by default)
 
         Parameter:
             divide_factor: Factor by which to divide the width.
@@ -1415,12 +1416,19 @@ class FullGraphNetwork(nn.Module):
         if self.pre_nn_edges is not None:
             kwargs["pre_nn_edges_kwargs"] = self.pre_nn_edges.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
         if self.pe_encoders is not None:
-            kwargs["pe_encoders_kwargs"] = self.pe_encoders.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
+            pe_kw = deepcopy(self.pe_encoders_kwargs)
+            new_pe_kw = {key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False) for key, encoder in self.pe_encoders.items()}
+            for key, enc in pe_kw["encoders"].items():
+                new_pe_kw[key].pop("in_dim", None)
+                new_pe_kw[key].pop("in_dim_edges", None)
+                new_pe_kw[key].pop("out_dim", None)
+                enc.update(new_pe_kw[key])
+            kwargs["pe_encoders_kwargs"] = pe_kw
         if self.post_nn is not None:
             kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=True)
         if self.gnn is not None:
-            factor_in_dim = self.pre_nn is None
-            factor_in_dim_edges = self.pre_nn_edges is None
+            factor_in_dim = self.pre_nn is not None
+            factor_in_dim_edges = self.pre_nn_edges is not None
             kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim, factor_in_dim_edges=factor_in_dim_edges)
  
         return kwargs
@@ -1505,6 +1513,9 @@ class TaskHeads(nn.Module):
         for task_name, head_kwargs in task_heads_kwargs.items():
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault("last_layer_is_readout", True)
+            head_in_dim = head_kwargs.pop("in_dim", None)
+            if head_in_dim is not None:
+                assert self.in_dim == head_in_dim, f"Inconsistent input dim {self.in_dim} != {head_in_dim}"
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
     # Return a dictionary: Dict[task_name, Tensor]
@@ -1520,7 +1531,7 @@ class TaskHeads(nn.Module):
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
-        layers width divided by a factor of 2.
+        layers width divided by a given factor (2 by default)
 
         Parameter:
             divide_factor: Factor by which to divide the width.
@@ -1641,13 +1652,13 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
-        layers width divided by a factor of 2.
+        layers width divided by a given factor (2 by default)
 
         Parameter:
             divide_factor: Factor by which to divide the width.
         """
         kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor)
-        kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
+        kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=True)
         return kwargs
 
     def __repr__(self):
