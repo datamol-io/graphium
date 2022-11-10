@@ -132,6 +132,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def training_step(self, features, labels) -> Dict[str, Any]:
         logger.warning('running training_step')
+        features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {'features': features, 'labels': labels}
         concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
         loss = concatenated_metrics_logs.pop("loss")
@@ -140,6 +141,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def validation_step(self, features, labels) -> Dict[str, Any]:
         logger.warning('running validation_step')
+        features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {'features': features, 'labels': labels}
         step_dict = super().validation_step(dict_input, to_cpu=False)
 
@@ -250,59 +252,13 @@ class PredictorModuleIPU(PredictorModule):
 
         return cleaned_batch
 
-    def _build_dict_input(self, *inputs):
-        """
-        The method `IPUPluginGoli._step` converts the `Dict` structure into Tuples
-        to allow the IPU tracer to compile correctly.
+    def squeeze_input_dims(self, features, labels):
 
-        This method rebuilds the `Dict` structure from the saved keys to allow
-        to use the same code as the CPU or GPU.
+        for key, tensor in features:
+            if isinstance(tensor, torch.Tensor):
+                features[key] = features[key].squeeze(0)
 
-        It processes the following attributes, which must be set by `IPUPluginGoli._step`:
-          - _keys_batch: The keys for rebuilding the `pyg.Data.Batch`
-          - _keys_tensor_dict: The keys for rebuilding the `Dict[Dict[Tensor]]`
-          - _keys_tensor: The keys for rebuilding the `Dict[Tensor]`
-          - _keys_others: The keys for non-Tensor inputs, which are passed directly to the model.
-        """
+        for key in labels:
+            labels[key] = labels[key].squeeze()
 
-        batch = {}
-
-        # Unsqueeze the first dimension that is always 1 here, but is due to the global batch size
-        # (device_iterations * replication_factor * gradient_accumulation)
-        if all([this_input.shape[0] == 1 for this_input in inputs]):
-            inputs = [this_input.squeeze(0) for this_input in inputs]
-
-        # Initialize the batch of pyg objects
-        for key, pyg_elems in self._keys_batch.items():
-            pyg_batch = Batch()
-            for pyg_key, idx in pyg_elems.items():
-                pyg_batch[pyg_key] = inputs[idx]
-            batch[key] = pyg_batch
-
-        # Initialize the dictionaries of tensors, such as the multitask labels
-        for key, this_dict in self._keys_tensor_dict.items():
-            tensor_dict = {}
-            for tensor_key, idx in this_dict.items():
-                tensor_dict[tensor_key] = inputs[idx]
-            batch[key] = tensor_dict
-
-        # Initialize the tensors
-        for key, idx in self._keys_tensor.items():
-            batch[key] = inputs[idx]
-
-        # Initialize the other elements
-        for key, val in self._keys_others.items():
-            if isinstance(val, dict):
-                if key not in batch.keys():
-                    batch[key] = {}
-                # Update the dict or pyg-Batch
-                for sub_key, sub_val in val.items():
-                    batch[sub_key] = sub_val
-            else:
-                batch[key] = val
-
-        # Get the current index for non-tensor elements
-        batch_idx = batch.pop("_batch_idx")
-        batch_idx = batch_idx.squeeze(-1)
-
-        return batch
+        return features, labels
