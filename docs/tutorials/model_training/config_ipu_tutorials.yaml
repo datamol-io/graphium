@@ -243,7 +243,7 @@ metrics:
     - name: pearsonr
       metric: pearsonr
       threshold_kwargs: null
-      target_nan_mask: ignore-mean-label
+      # target_nan_mask: ignore-mean-label # AssertionError: Provided ignore-mean-label not in accepted_str=['ignore', 'none']
     # - name: f1 > 0.5
     #   metric: f1
     #   num_classes: 2
