@@ -12,6 +12,7 @@ from torch_geometric.transforms import BaseTransform
 
 from goli.ipu.ipu_utils import import_poptorch
 
+
 @dataclass
 class IPUDataloaderOptions:
     r"""
@@ -504,7 +505,9 @@ def smart_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
         for jj, m in enumerate(mol_batches):
             if m.num_graphs >= batch_size:
                 continue
-            expected = m.num_nodes + ((batch_size - m.num_graphs) * remaining_mean) # Faster than calling m.expected_atoms
+            expected = m.num_nodes + (
+                (batch_size - m.num_graphs) * remaining_mean
+            )  # Faster than calling m.expected_atoms
             if expected > max_expected:
                 max_expected = expected
                 idx_max_expected = jj
@@ -540,7 +543,7 @@ def fast_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
 
     groups = []
     for ii in range(batch_size):
-        group = argsort_num_nodes[ii*ipu_batch_size:(ii+1)*ipu_batch_size]
+        group = argsort_num_nodes[ii * ipu_batch_size : (ii + 1) * ipu_batch_size]
         np.random.shuffle(group)
         groups.append(group)
 
@@ -572,7 +575,7 @@ def hybrid_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     # Determine the parameters based on the complexity of the smart-packing.
     # The bigger the complexity, the more the `fast_packing` algorithm becomes
     # statistically powerful, and the more speed benefits it provides.
-    smart_packing_complexity = len(num_nodes)**2 / batch_size
+    smart_packing_complexity = len(num_nodes) ** 2 / batch_size
     if smart_packing_complexity < 1e4:
         return smart_packing(num_nodes=num_nodes, batch_size=batch_size)
     elif smart_packing_complexity < 1e6:
@@ -594,23 +597,26 @@ def hybrid_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     argsort_num_nodes = np.argsort(num_nodes)
 
     # Smallest and biggest graphs are often outliers and will benefit from the `smart_packing`
-    biggest_graphs = argsort_num_nodes[-big*ipu_batch_size:]
-    smallest_graphs = argsort_num_nodes[:small*ipu_batch_size]
+    biggest_graphs = argsort_num_nodes[-big * ipu_batch_size :]
+    smallest_graphs = argsort_num_nodes[: small * ipu_batch_size]
     big_n_small_graphs = np.concatenate([biggest_graphs, smallest_graphs])
     big_n_small_packs = smart_packing(num_nodes[big_n_small_graphs], batch_size=big + small)
     big_n_small_indices = [big_n_small_graphs[pack] for pack in big_n_small_packs]
     big_n_small_nodes = [num_nodes[pack] for pack in big_n_small_indices]
 
     # Medium graphs will be packed faster
-    medium_graphs = argsort_num_nodes[small*ipu_batch_size:-big*ipu_batch_size]
-    medium_packs = fast_packing(num_nodes[medium_graphs], batch_size=batch_size-big-small)
+    medium_graphs = argsort_num_nodes[small * ipu_batch_size : -big * ipu_batch_size]
+    medium_packs = fast_packing(num_nodes[medium_graphs], batch_size=batch_size - big - small)
     medium_indices = [medium_graphs[pack] for pack in medium_packs]
     medium_nodes = [num_nodes[pack] for pack in medium_indices]
 
     # Pack the big/small with the medium in a smart way
     big_n_small_sort = np.argsort(np.sum(np.stack(big_n_small_nodes, axis=1), axis=0))
     medium_sort = np.argsort(np.sum(np.stack(medium_nodes, axis=1), axis=0))
-    packed_indices = [np.concatenate([medium_indices[medium_sort[ii]], big_n_small_indices[big_n_small_sort[-ii]]]) for ii in range(len(medium_indices))]
+    packed_indices = [
+        np.concatenate([medium_indices[medium_sort[ii]], big_n_small_indices[big_n_small_sort[-ii]]])
+        for ii in range(len(medium_indices))
+    ]
 
     return packed_indices
 

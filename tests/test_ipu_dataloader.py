@@ -81,8 +81,14 @@ class test_Packing(ut.TestCase):
 
         np.random.seed(42)
 
-        batch_sizes = [4, 8, 16, 32, 64]    # Start at 4 for fast_packing for better statistical significance
-        ipu_batch_sizes = [4, 8, 16, 32, 64]    # Start at 4 for fast_packing for better statistical significance
+        batch_sizes = [4, 8, 16, 32, 64]  # Start at 4 for fast_packing for better statistical significance
+        ipu_batch_sizes = [
+            4,
+            8,
+            16,
+            32,
+            64,
+        ]  # Start at 4 for fast_packing for better statistical significance
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
@@ -158,7 +164,6 @@ class test_Packing(ut.TestCase):
                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
                     np.arange(len(num_nodes)).tolist(),
                 )
-
 
 
 class test_DataLoading(ut.TestCase):
