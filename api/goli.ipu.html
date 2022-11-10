@@ -675,8 +675,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.fast_packing" class="md-nav__link">
+    fast_packing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.ipu.ipu_dataloader.get_pack_sizes" class="md-nav__link">
     get_pack_sizes()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.hybrid_packing" class="md-nav__link">
+    hybrid_packing()
   </a>
   
 </li>
@@ -1215,8 +1229,22 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.fast_packing" class="md-nav__link">
+    fast_packing()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.ipu.ipu_dataloader.get_pack_sizes" class="md-nav__link">
     get_pack_sizes()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_dataloader.hybrid_packing" class="md-nav__link">
+    hybrid_packing()
   </a>
   
 </li>
@@ -2445,6 +2473,83 @@ needed in a batch to fit the data.</p>
 
 
 
+<h4 id="goli.ipu.ipu_dataloader.fast_packing" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">fast_packing</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.fast_packing" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Super fast algorithm for packing graphs such that each batch has roughly the
+same number of atoms. Not as good as <code>smart_packing</code> but
+faster and more scalable for-loop complexity of <code>O(batch_size)</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[int]</code>
+          </td>
+          <td><p>List of the number of atoms per molecule for the entire global batch.
+Must be of length <code>batch_size * ipu_batch_size</code>.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The batch size per iteration, considering a single device and single
+forward pass.
+The global batch size is <code>batch_size * device_iterations * replication_factor * gradient_accumulation</code></p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>packed_indices</code></td>          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.List">List</span>[int]]</code>
+          </td>
+          <td><p>A list of packs, each containing a list of indices, such that
+if we collect <code>num_nodes</code> from the indices, then each pack has roughly the
+same total number of atoms.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h4 id="goli.ipu.ipu_dataloader.get_pack_sizes" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">get_pack_sizes</span><span class="p">(</span><span class="n">packed_indices</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">)</span></code>
 
@@ -2463,6 +2568,83 @@ needed in a batch to fit the data.</p>
 
 
 
+<h4 id="goli.ipu.ipu_dataloader.hybrid_packing" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">hybrid_packing</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_dataloader.hybrid_packing" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Uses a combination of the <code>smart_packing</code> <code>O(n^2)</code> on the most important data points,
+and the <code>fast_packing</code> <code>O(n)</code> on the average-sized data points.</p>
+<p>Depending on the expected complexity</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[int]</code>
+          </td>
+          <td><p>List of the number of atoms per molecule for the entire global batch.
+Must be of length <code>batch_size * ipu_batch_size</code>.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The batch size per iteration, considering a single device and single
+forward pass.
+The global batch size is <code>batch_size * device_iterations * replication_factor * gradient_accumulation</code></p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>packed_indices</code></td>          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.List">List</span>[int]]</code>
+          </td>
+          <td><p>A list of packs, each containing a list of indices, such that
+if we collect <code>num_nodes</code> from the indices, then each pack has roughly the
+same total number of atoms.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h4 id="goli.ipu.ipu_dataloader.smart_packing" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">smart_packing</span><span class="p">(</span><span class="n">num_nodes</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">)</span></code>
 
@@ -2472,7 +2654,8 @@ needed in a batch to fit the data.</p>
   <div class="doc doc-contents ">
   
       <p>Simple and fast algorithm for packing graphs such that each batch has roughly the
-same number of atoms.</p>
+same number of atoms.
+Has for-loop scalability issues <code>O(num_graphs * ipu_batch_size)</code> = <code>O(num_graphs^2 / batch_size)</code></p>
 
   <p><strong>Parameters:</strong></p>
   <table>
