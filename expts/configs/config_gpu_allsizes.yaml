@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  #cpu or ipu or gpu
+    type: gpu  #cpu or ipu or gpu
 
 
 datamodule:
@@ -76,8 +76,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 60
-    batch_size_inference: 60
+    batch_size_training: 6000
+    batch_size_inference: 6000
     # cache_data_path: null
 
     num_workers: -1
@@ -316,4 +316,4 @@ trainer:
     precision: 32
     max_epochs: 50 #50
     min_epochs: 1 #5
-    accumulate_grad_batches: 500
+    accumulate_grad_batches: 1
