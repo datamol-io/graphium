@@ -11,7 +11,7 @@ from pytorch_lightning import Trainer
 from goli.utils.mup import set_base_shapes
 from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
+from goli.nn.architectures import FullGraphNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
@@ -167,9 +167,6 @@ def load_architecture(
     model_type = cfg_arch["model_type"].lower()
     if model_type == "fulldglnetwork":
         model_class = FullGraphNetwork
-    elif model_type == "fulldglsiamesenetwork":
-        model_class = FullGraphSiameseNetwork
-        kwargs["dist_method"] = cfg_arch["dist_method"]
     elif model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork
     else:
@@ -213,12 +210,7 @@ def load_architecture(
         gnn_kwargs.setdefault("in_dim_edges", in_dims["edge_feat"])
 
     # Set the parameters for the full network
-    task_head_params_list = []
-    for params in omegaconf.OmegaConf.to_object(
-        task_heads_kwargs
-    ):  # This turns the ListConfig into List[TaskHeadParams]
-        params_dict = dict(params)
-        task_head_params_list.append(params_dict)
+    task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
     # Set all the input arguments for the model
     model_kwargs = dict(
@@ -227,7 +219,7 @@ def load_architecture(
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
         post_nn_kwargs=post_nn_kwargs,
-        task_heads_kwargs_list=task_head_params_list,
+        task_heads_kwargs=task_heads_kwargs,
     )
 
     return model_class, model_kwargs

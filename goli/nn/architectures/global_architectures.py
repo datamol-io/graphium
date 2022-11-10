@@ -318,7 +318,7 @@ class FeedForwardNN(nn.Module):
             last_layer_is_readout=self.last_layer_is_readout,
         ))
 
-    def make_mup_base_model(self, divide_factor: int = 2, factor_in_dim: bool=False):
+    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool=False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -334,7 +334,7 @@ class FeedForwardNN(nn.Module):
             kwargs["in_dim"] = int(kwargs["in_dim"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = int(kwargs["out_dim"] / divide_factor)
-        return self.__class__.__init__(self, **kwargs)
+        return kwargs
         
 
     def __repr__(self):
@@ -958,7 +958,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         kwargs.update(new_kwargs)
         return deepcopy(kwargs)
 
-    def make_mup_base_model(self, divide_factor: int = 2, factor_in_dim: bool=False):
+    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool=False, factor_in_dim_edges: bool=False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -966,17 +966,19 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         Parameter:
             divide_factor: Factor by which to divide the width.
-            factor_in_dim: Whether to factor the input dimension
+            factor_in_dim: Whether to factor the input dimension for the nodes
+            factor_in_dim: Whether to factor the input dimension for the edges
         """
         kwargs = self.get_init_kwargs()
         kwargs["hidden_dims"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims"]]
         kwargs["hidden_dims_edges"] = [int(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
         if factor_in_dim:
             kwargs["in_dim"] = int(kwargs["in_dim"] / divide_factor)
+        if factor_in_dim_edges:
             kwargs["in_dim_edges"] = int(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = int(kwargs["out_dim"] / divide_factor)
-        return self.__class__.__init__(self, **kwargs)
+        return kwargs
         
 
     def __repr__(self):
@@ -1390,6 +1392,39 @@ class FullGraphNetwork(nn.Module):
             value = [value]
         self._concat_last_layers = value
 
+    def make_mup_base_kwargs(self, divide_factor: int = 2) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a factor of 2.
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+        """
+        kwargs = dict(
+            gnn_kwargs=None,
+            pre_nn_kwargs=None,
+            pre_nn_edges_kwargs=None,
+            pe_encoders_kwargs=None,
+            post_nn_kwargs=None,
+            num_inference_to_average=self.num_inference_to_average,
+            name=self.name,
+        )
+        if self.pre_nn is not None:
+            kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
+        if self.pre_nn_edges is not None:
+            kwargs["pre_nn_edges_kwargs"] = self.pre_nn_edges.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
+        if self.pe_encoders is not None:
+            kwargs["pe_encoders_kwargs"] = self.pe_encoders.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
+        if self.post_nn is not None:
+            kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=True)
+        if self.gnn is not None:
+            factor_in_dim = self.pre_nn is None
+            factor_in_dim_edges = self.pre_nn_edges is None
+            kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim, factor_in_dim_edges=factor_in_dim_edges)
+ 
+        return kwargs
+
     def __repr__(self) -> str:
         r"""
         Controls how the class is printed
@@ -1445,58 +1480,18 @@ class FullGraphNetwork(nn.Module):
         return self.gnn.out_linear.linear.weight.dtype
 
 
-class FullGraphSiameseNetwork(FullGraphNetwork):
-    def __init__(self, pre_nn_kwargs, gnn_kwargs, post_nn_kwargs, dist_method, name="Siamese_DGL_GNN"):
-
-        # Initialize the parent nn.Module
-        super().__init__(
-            pre_nn_kwargs=pre_nn_kwargs,
-            gnn_kwargs=gnn_kwargs,
-            post_nn_kwargs=post_nn_kwargs,
-            name=name,
-        )
-
-        self.dist_method = dist_method.lower()
-
-    def forward(self, graphs):
-        graph_1, graph_2 = graphs
-
-        out_1 = super().forward(graph_1)
-        out_2 = super().forward(graph_2)
-
-        if self.dist_method == "manhattan":
-            # Normalized L1 distance
-            out_1 = out_1 / torch.mean(out_1.abs(), dim=-1, keepdim=True)
-            out_2 = out_2 / torch.mean(out_2.abs(), dim=-1, keepdim=True)
-            dist = torch.abs(out_1 - out_2)
-            out = torch.mean(dist, dim=-1)
-
-        elif self.dist_method == "euclidean":
-            # Normalized Euclidean distance
-            out_1 = out_1 / torch.norm(out_1, dim=-1, keepdim=True)
-            out_2 = out_2 / torch.norm(out_2, dim=-1, keepdim=True)
-            out = torch.norm(out_1 - out_2, dim=-1)
-        elif self.dist_method == "cosine":
-            # Cosine distance
-            out = torch.sum(out_1 * out_2, dim=-1) / (torch.norm(out_1, dim=-1) * torch.norm(out_2, dim=-1))
-        else:
-            raise ValueError(f"Unsupported `dist_method`: {self.dist_method}")
-
-        return out
-
-
 class TaskHeads(nn.Module):
     def __init__(
         self,
         in_dim: int,
-        task_heads_kwargs_list: List[Dict[str, Any]],
+        task_heads_kwargs: Dict[str, Any],
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
         Parameters:
             in_dim:
                 Input feature dimensions of the layer
-            task_heads_kwargs_list:
+            task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to
                 initialize a task-specific MLP.
@@ -1505,10 +1500,9 @@ class TaskHeads(nn.Module):
         super().__init__()
 
         self.in_dim = in_dim
-        task_heads_kwargs_list = deepcopy(task_heads_kwargs_list)
+        task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.task_heads = nn.ModuleDict()
-        for head_kwargs in task_heads_kwargs_list:
-            task_name = head_kwargs.pop("task_name")
+        for task_name, head_kwargs in task_heads_kwargs.items():
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault("last_layer_is_readout", True)
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
@@ -1522,11 +1516,20 @@ class TaskHeads(nn.Module):
 
         return task_head_outputs
 
-    def __repr__(self):
-        task_repr = []
-        for head, net in self.task_heads.items():
-            task_repr.append(head + ": " + net.__repr__())
-        return "\n".join(task_repr)
+    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool=False) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a factor of 2.
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        kwargs = {}
+        for task_name, task_nn in self.task_heads.items():
+            kwargs[task_name] = task_nn.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
+        return kwargs
 
     @property
     def out_dim(self) -> Dict[str, int]:
@@ -1534,6 +1537,13 @@ class TaskHeads(nn.Module):
         Returns the output dimension of each task head
         """
         return {task_name: head.out_dim for task_name, head in self.task_heads.items()}
+
+
+    def __repr__(self):
+        task_repr = []
+        for head, net in self.task_heads.items():
+            task_repr.append(head + ": " + net.__repr__())
+        return "\n".join(task_repr)
 
 
 class FullGraphMultiTaskNetwork(FullGraphNetwork):
@@ -1548,7 +1558,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
     def __init__(
         self,
-        task_heads_kwargs_list: List[Dict[str, Any]],
+        task_heads_kwargs: Dict[str, Any],
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
@@ -1566,7 +1576,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
         Parameters:
 
-            task_heads_kwargs_list:
+            task_heads_kwargs:
                 This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
                 initialize a task-specific MLP.
 
@@ -1614,7 +1624,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             name=name,
         )
 
-        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs_list=task_heads_kwargs_list)
+        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs=task_heads_kwargs)
 
     def forward(self, g: Union[DGLGraph, Data]):
         h = super().forward(g)
@@ -1626,6 +1636,19 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         Returns the output dimension of the network for each task
         """
         return self.task_heads.out_dim
+
+    def make_mup_base_kwargs(self, divide_factor: int = 2) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a factor of 2.
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+        """
+        kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor)
+        kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
+        return kwargs
 
     def __repr__(self):
         task_str = self.task_heads.__repr__()
