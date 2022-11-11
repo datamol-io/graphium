@@ -536,7 +536,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.pooling = pooling
 
         self.virtual_node_class = self._parse_virtual_node_class()
-        self.first_normalization_edges = get_norm(first_normalization, dim=in_dim_edges)
 
         # Initialize the parent `FeedForwardNN`
         super().__init__(
@@ -558,6 +557,8 @@ class FeedForwardGraphBase(FeedForwardNN):
             layer_kwargs=layer_kwargs,
             last_layer_is_readout=last_layer_is_readout,
         )
+
+        self.first_normalization_edges = get_norm(first_normalization, dim=in_dim_edges)
 
     def _check_bad_arguments(self):
         r"""
@@ -1440,10 +1441,10 @@ class FullGraphNetwork(nn.Module):
                 key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
                 for key, encoder in self.pe_encoders.items()
             }
+            pe_kw["out_dim"] = round(pe_kw["out_dim"] / divide_factor)
             for key, enc in pe_kw["encoders"].items():
                 new_pe_kw[key].pop("in_dim", None)
                 new_pe_kw[key].pop("in_dim_edges", None)
-                new_pe_kw[key].pop("out_dim", None)
                 enc.update(new_pe_kw[key])
             kwargs["pe_encoders_kwargs"] = pe_kw
         if self.post_nn is not None:

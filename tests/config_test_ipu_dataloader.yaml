@@ -76,22 +76,24 @@ datamodule:
       max_num_nodes_per_graph: 12
       max_num_edges_per_graph: 24
 
+
 architecture:
   model_type: FullGraphMultiTaskNetwork
+  mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 8
-    hidden_dims: 8
+    out_dim: 32
+    hidden_dims: 32
     depth: 1
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    normalization: &normalization "none"
+    normalization: &normalization batch_norm
     last_normalization: *normalization
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 8
-    hidden_dims: 8
+    out_dim: 16
+    hidden_dims: 16
     depth: 1
     activation: relu
     last_activation: none
@@ -101,14 +103,14 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: 32
+    out_dim: 64
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
         on_keys: ["eigvecs", "eigvals"]
-        hidden_dim: 8
+        hidden_dim: 64
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
         num_layers_post: 0 # Num. layers to apply after pooling
@@ -118,34 +120,49 @@ architecture:
         encoder_type: "mlp"
         on_keys: ["rwse"]
         out_level: "node"
-        hidden_dim: 8
+        hidden_dim: 64
         num_layers: 1
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
-        first_normalization: "none" #"batch_norm" or "layer_norm"
+        first_normalization: "batch_norm" #"batch_norm" or "layer_norm"
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 8
-    hidden_dims: 8
-    depth: 2
+    out_dim: 32
+    hidden_dims: 64
+    depth: 16
     activation: relu
     last_activation: none
     dropout: *dropout
     normalization: *normalization
     last_normalization: *normalization
     residual_type: simple
-    pooling: [mean]
+    pooling: [sum, mean, max]
     virtual_node: 'none'
-    layer_type: 'pyg:gine'
+    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      mpnn_type: 'pyg:gine'
+      mpnn_kwargs: null
+        #out_dim_edges: 10
+      attn_type: "none" # "full-attention", "none"
+      attn_kwargs: null
 
-  post_nn: null
+  post_nn:
+    out_dim: 32
+    hidden_dims: 32
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: "none"
+    residual_type: none
 
   task_heads:
     homo:
       out_dim: 2
-      hidden_dims: 8
-      depth: 1                          # Not needed if we have hidden_dims
+      hidden_dims: 32
+      depth: 2                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
       dropout: *dropout
@@ -153,6 +170,16 @@ architecture:
       last_normalization: "none"
       residual_type: none
     alpha:
+      out_dim: 1
+      hidden_dims: 32
+      depth: 2                          # Not needed if we have hidden_dims
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+    cv:
       out_dim: 1
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
