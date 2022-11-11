@@ -129,9 +129,10 @@ class GPSLayerPyg(BaseGraphModule):
         # Local MPNN with edge attributes.
         batch_out = self.mpnn(batch.clone())
         h_local = batch_out.h
-        h_local = self.dropout_local(h_local)
+        if self.dropout_local is not None:
+            h_local = self.dropout_local(h_local)
         h_local = h_in + h_local  # Residual connection.
-        if self.norm_layer_local:
+        if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
         h = h_local
 
@@ -155,9 +156,10 @@ class GPSLayerPyg(BaseGraphModule):
             h_attn = to_sparse_batch(h_dense, idx)
 
             # Dropout, residual, norm
-            h_attn = self.dropout_attn(h_attn)
+            if self.dropout_attn is not None:
+                h_attn = self.dropout_attn(h_attn)
             h_attn = h_in + h_attn
-            if self.norm_layer_attn:
+            if self.norm_layer_attn is not None:
                 h_attn = self.norm_layer_attn(h_attn)
 
             # Combine local and global outputs.
