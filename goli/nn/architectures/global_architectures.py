@@ -1152,6 +1152,9 @@ class FullGraphNetwork(nn.Module):
                     )
 
                 # Initialize the pe_encoder layer
+                pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
+                if pe_out_dim2 is not None:
+                    assert pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
                 pe_encoders[encoder_name] = encoder(out_dim=pe_out_dim, **this_in_dims, **encoder_kwargs)
 
         return pe_encoders

@@ -848,18 +848,18 @@ pe_encoders.la_pos.linear_A.linear.weight:
 - null
 - null
 pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.bias:
-- null
+- 32
 pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.weight:
-- null
+- 32
 - null
 pe_encoders.rw_pos.pe_encoder.first_normalization.bias:
 - null
 pe_encoders.rw_pos.pe_encoder.first_normalization.weight:
 - null
 pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.bias:
-- null
+- 32
 pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.weight:
-- null
+- 32
 - null
 pre_nn.layers.0.linear.bias:
 - 16

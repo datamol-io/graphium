@@ -387,4 +387,4 @@ def save_params_to_wandb(
     wandb_run = logger.experiment
     if wandb_run is not None:
         wandb_run.save("*.yaml")
-        wandb_run.save(".pickle")
+        wandb_run.save("*.pickle")

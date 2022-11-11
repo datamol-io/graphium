@@ -14,7 +14,7 @@ datamodule:
       homo:
         df: null
         # df_path: &df_path goli/data/QM9/norm_micro_olek_test_ipu-v82.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
-        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_micro_qm9.csv
+        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
