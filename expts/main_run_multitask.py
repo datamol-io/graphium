@@ -11,7 +11,14 @@ from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer, save_params_to_wandb
+from goli.config._loader import (
+    load_datamodule,
+    load_metrics,
+    load_architecture,
+    load_predictor,
+    load_trainer,
+    save_params_to_wandb,
+)
 from goli.utils.safe_run import SafeRun
 
 

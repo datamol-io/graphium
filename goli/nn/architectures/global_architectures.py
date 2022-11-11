@@ -325,7 +325,7 @@ class FeedForwardNN(nn.Module):
             )
         )
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2., factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -966,7 +966,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         return deepcopy(kwargs)
 
     def make_mup_base_kwargs(
-        self, divide_factor: float = 2., factor_in_dim: bool = False, factor_in_dim_edges: bool = False
+        self, divide_factor: float = 2.0, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
     ) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
@@ -1089,7 +1089,9 @@ class FullGraphNetwork(nn.Module):
         # Initialize the graph neural net (applied after the pre_nn)
         name = gnn_kwargs.pop("name", "GNN")
         gnn_class = self._parse_feed_forward_gnn(gnn_kwargs)
-        gnn_kwargs.setdefault("last_layer_is_readout", self.last_layer_is_readout and (post_nn_kwargs is None))
+        gnn_kwargs.setdefault(
+            "last_layer_is_readout", self.last_layer_is_readout and (post_nn_kwargs is None)
+        )
         self.gnn = gnn_class(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
 
@@ -1408,7 +1410,7 @@ class FullGraphNetwork(nn.Module):
             value = [value]
         self._concat_last_layers = value
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -1561,7 +1563,7 @@ class TaskHeads(nn.Module):
 
         return task_head_outputs
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2., factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -1681,7 +1683,11 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         )
         self.last_layer_is_readout = last_layer_is_readout
 
-        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs=task_heads_kwargs, last_layer_is_readout=last_layer_is_readout)
+        self.task_heads = TaskHeads(
+            in_dim=super().out_dim,
+            task_heads_kwargs=task_heads_kwargs,
+            last_layer_is_readout=last_layer_is_readout,
+        )
 
     def forward(self, g: Union[DGLGraph, Data]):
         h = super().forward(g)
@@ -1694,7 +1700,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         """
         return self.task_heads.out_dim
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the

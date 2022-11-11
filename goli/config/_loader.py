@@ -357,7 +357,13 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     return trainer
 
-def save_params_to_wandb(logger: LightningLoggerBase, config: Union[omegaconf.DictConfig, Dict[str, Any]], predictor: PredictorModule, datamodule: MultitaskFromSmilesDataModule):
+
+def save_params_to_wandb(
+    logger: LightningLoggerBase,
+    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    predictor: PredictorModule,
+    datamodule: MultitaskFromSmilesDataModule,
+):
     """
     Save a few stuff to weights-and-biases WandB
     Parameters:

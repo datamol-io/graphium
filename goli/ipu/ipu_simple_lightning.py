@@ -45,12 +45,12 @@ class SimpleTorchModel(torch.nn.Module):
             nn.LogSoftmax(1),
         )
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.):
-	    return dict(
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0):
+        return dict(
             in_dim=self.in_dim,
-	        hidden_dim=round(self.hidden_dim / divide_factor),
+            hidden_dim=round(self.hidden_dim / divide_factor),
             kernel_size=self.kernel_size,
-            num_classes=self.num_classes
+            num_classes=self.num_classes,
         )
 
     def forward(self, x):
