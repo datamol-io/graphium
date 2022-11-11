@@ -184,20 +184,23 @@ class GPSLayerPyg(BaseGraphModule):
         """Feed Forward block."""
         h_in = h
         # First linear layer + activation + dropout
-        if self.activation_layer is None:
-            h = self.ff_dropout1(self.ff_linear1(h))
-        else:
-            h = self.ff_dropout1(self.activation_layer(self.ff_linear1(h)))
+        h = self.ff_linear1(h)
+        if self.activation_layer is not None:
+            h = self.activation_layer(h)
+        if self.ff_dropout1 is not None:
+            h = self.ff_dropout1(h)
 
         # Second linear layer + dropout
-        h = self.ff_dropout2(self.ff_linear2(h))
+        h = self.ff_linear2(h)
+        if self.ff_dropout2 is not None:
+            h = self.ff_dropout2(h)
 
         # Residual
         h = h + h_in
 
         # Third linear layer + norm
         h = self.ff_out(h)
-        if self.norm_layer_ff:
+        if self.norm_layer_ff is not None:
             h = self.norm_layer_ff(h)
         return h
 
