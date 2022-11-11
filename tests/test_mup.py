@@ -10,7 +10,7 @@ import yaml
 from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphNetwork, FullGraphMultiTaskNetwork
 
 
-class test_nan_statistics(ut.TestCase):
+class test_mup(ut.TestCase):
     kwargs = dict(
         in_dim=12,
         out_dim=60,
