@@ -87,7 +87,7 @@ class MLPEncoder(torch.nn.Module):
 
         return output
 
-    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2., factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -101,8 +101,8 @@ class MLPEncoder(torch.nn.Module):
             on_keys=self.on_keys,
             out_level=self.out_level,
             in_dim=round(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
-            hidden_dim=self.hidden_dim / divide_factor,
-            out_dim=self.out_dim,
+            hidden_dim=round(self.hidden_dim / divide_factor),
+            out_dim=round(self.out_dim / divide_factor),
             num_layers=self.num_layers,
             activation=self.activation,
             dropout=self.dropout,

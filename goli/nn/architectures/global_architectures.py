@@ -325,7 +325,7 @@ class FeedForwardNN(nn.Module):
             )
         )
 
-    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2., factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -965,7 +965,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         return deepcopy(kwargs)
 
     def make_mup_base_kwargs(
-        self, divide_factor: int = 2, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
+        self, divide_factor: float = 2., factor_in_dim: bool = False, factor_in_dim_edges: bool = False
     ) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
@@ -1407,7 +1407,7 @@ class FullGraphNetwork(nn.Module):
             value = [value]
         self._concat_last_layers = value
 
-    def make_mup_base_kwargs(self, divide_factor: int = 2) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -1560,7 +1560,7 @@ class TaskHeads(nn.Module):
 
         return task_head_outputs
 
-    def make_mup_base_kwargs(self, divide_factor: int = 2, factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2., factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -1693,7 +1693,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         """
         return self.task_heads.out_dim
 
-    def make_mup_base_kwargs(self, divide_factor: int = 2) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
