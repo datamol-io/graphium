@@ -155,7 +155,7 @@ class GPSLayerPyg(BaseGraphModule):
                 h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
-            h_attn = to_sparse_batch(h_dense, idx)
+            h_attn = to_sparse_batch(h_attn, idx)
 
             # Dropout, residual, norm
             h_attn = self.dropout_attn(h_attn)
