@@ -312,25 +312,6 @@ def load_predictor(
 
     return predictor
 
-from torch import Tensor
-from typing import Dict, Any
-
-from pytorch_lightning.trainer.states import RunningStage
-from pytorch_lightning.utilities.types import STEP_OUTPUT
-from torch_geometric.data import Batch
-
-class DictIPUStrategy(IPUStrategy):
-
-    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
-        args = self._prepare_input(args)
-        args = args[0]
-
-        poptorch_model = self.poptorch_models[stage]
-        self.lightning_module._running_torchscript = True
-        out = poptorch_model(**args)
-        self.lightning_module._running_torchscript = False
-        return out
-
 def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
@@ -391,7 +372,6 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     trainer = Trainer(
         detect_anomaly=True,
-        strategy=strategy,
         accelerator=accelerator,
         ipus=ipus,
         gpus=gpus,
