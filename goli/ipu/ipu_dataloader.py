@@ -378,13 +378,6 @@ class Pad(BaseTransform):
         if "num_nodes" in new_batch:
             new_batch.num_nodes = self.max_num_nodes
 
-        new_batch.dataset_max_nodes_per_graph = torch.as_tensor(
-            [self.dataset_max_nodes_per_graph], dtype=torch.int32
-        )
-        new_batch.dataset_max_edges_per_graph = torch.as_tensor(
-            [self.dataset_max_edges_per_graph], dtype=torch.int32
-        )
-
         return new_batch
 
     def __repr__(self) -> str:
