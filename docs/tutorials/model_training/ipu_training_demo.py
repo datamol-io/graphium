@@ -21,7 +21,8 @@ import wandb
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
-CONFIG_FILE= "expts/configs/config_ipu_allsizes.yaml"
+# CONFIG_FILE= "expts/configs/config_ipu_allsizes.yaml"
+CONFIG_FILE = "docs/tutorials/model_training/config_ipu_tutorials.yaml"
 os.chdir(MAIN_DIR)
 
 with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
