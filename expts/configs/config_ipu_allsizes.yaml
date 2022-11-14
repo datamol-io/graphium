@@ -317,3 +317,4 @@ trainer:
     max_epochs: 50 #50
     min_epochs: 1 #5
     accumulate_grad_batches: 2
+    num_sanity_val_steps: 2 # 2 -> default, 0 -> turn OFF

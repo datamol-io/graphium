@@ -295,3 +295,4 @@ trainer:
     precision: 16
     max_epochs: 5
     min_epochs: 1
+    num_sanity_val_steps: 2 # 2 -> default, 0 -> turn OFF
