@@ -1261,7 +1261,7 @@ class FullGraphNetwork(nn.Module):
         elif pooling == "mean":
             pooled = torch.mean(h, dim=dim)
         elif pooling == "max":
-            pooled = torch.max(h, dim=dim).values
+            pooled = torch.amax(h, dim=dim)
         else:
             raise Exception(f"Pooling method `{self.pe_pool}` is not defined")
         return pooled
