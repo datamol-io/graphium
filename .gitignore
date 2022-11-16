@@ -17,6 +17,7 @@ outputs/
 saved_models/
 wandb/
 out/
+datacache/
 
 # Data and predictions
 goli/data/ZINC_bench_gnn/
