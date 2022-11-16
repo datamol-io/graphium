@@ -1484,7 +1484,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     def get_data_hash(self):
         """
-        TODO
+        Get a hash specific to a dataset and smiles_transformer.
+        Useful to cache the pre-processed data.
         """
         hash_dict = {
             "smiles_transformer": self.smiles_transformer,
@@ -1493,12 +1494,32 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         data_hash = get_md5_hash(hash_dict)
         return data_hash
 
-    def save_data_to_cache(self, verbose=True):
+    def get_data_cache_fullname(self, compress: bool = True):
         """
-        TODO
+        Create a hash for the dataset, and use it to generate a file name
+
+        Parameters:
+            compress: Whether to compress the data
+
         """
         data_hash = self.get_data_hash()
-        full_cache_data_path = fs.join(self.cache_data_path, data_hash + ".datacache")
+        ext = ".datacache"
+        if compress:
+            ext += ".gz"
+        data_cache_fullname = fs.join(self.cache_data_path, data_hash + ext)
+        return data_cache_fullname
+
+    def save_data_to_cache(self, verbose: bool = True, compress: bool = False) -> None:
+        """
+        Save the datasets from cache. First create a hash for the dataset, use it to
+        generate a file name. Then save to the path given by `self.cache_data_path`.
+
+        Parameters:
+            verbose: Whether to print the progress
+            compress: Whether to compress the data
+
+        """
+        full_cache_data_path = self.get_data_cache_fullname(compress=compress)
 
         save_params = {
             "single_task_datasets": self.single_task_datasets,
@@ -1508,19 +1529,30 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         }
 
         fs.mkdir(self.cache_data_path)
-        with fsspec.open(full_cache_data_path, mode="wb") as file:
+        with fsspec.open(full_cache_data_path, mode="wb", compression="infer") as file:
             if verbose:
                 logger.info(f"Saving the data to cache at path:\n`{full_cache_data_path}`")
+            now = time.time()
             torch.save(save_params, file)
+            elapsed = round(time.time() - now)
             if verbose:
-                logger.info(f"Successfully saved the data to cache at path: `{full_cache_data_path}`")
+                logger.info(
+                    f"Successfully saved the data to cache in {elapsed}s at path: `{full_cache_data_path}`"
+                )
 
-    def load_data_from_cache(self, verbose=True):
+    def load_data_from_cache(self, verbose: bool = True, compress: bool = False) -> bool:
         """
-        TODO
+        Load the datasets from cache. First create a hash for the dataset, and verify if that
+        hash is available at the path given by `self.cache_data_path`.
+
+        Parameters:
+            verbose: Whether to print the progress
+            compress: Whether to compress the data
+
+        Returns:
+            cache_data_exists: Whether the cache exists (if the hash matches)
         """
-        data_hash = self.get_data_hash()
-        full_cache_data_path = fs.join(self.cache_data_path, data_hash + ".datacache")
+        full_cache_data_path = self.get_data_cache_fullname(compress=compress)
         cache_data_exists = fs.exists(full_cache_data_path)
 
         if cache_data_exists:
@@ -1540,7 +1572,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     self.task_test_indices,
                 )
             elapsed = round(time.time() - now)
-            logger.info(f"Successfully loaded the data from cache in {elapsed}s at path: `{full_cache_data_path}`")
+            logger.info(
+                f"Successfully loaded the data from cache in {elapsed}s at path: `{full_cache_data_path}`"
+            )
             return True
         else:
             if verbose:
@@ -1549,9 +1583,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 )
             return False
 
-    def get_subsets_of_datasets(self, single_task_datasets, task_train_indices, task_val_indices, task_test_indices):
+    def get_subsets_of_datasets(
+        self,
+        single_task_datasets: Dict[str, SingleTaskDataset],
+        task_train_indices: Dict[str, Iterable],
+        task_val_indices: Dict[str, Iterable],
+        task_test_indices: Dict[str, Iterable],
+    ) -> Tuple[Subset, Subset, Subset]:
         """
-        TODO
+        From a dictionary of datasets and their associated indices, subset the train/val/test sets
         """
         train_singletask_datasets = {}
         val_singletask_datasets = {}
