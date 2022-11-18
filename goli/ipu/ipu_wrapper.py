@@ -35,19 +35,13 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
 class DictIPUStrategy(IPUStrategy):
 
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
-        print(f'args before prepare input {args}')
         args = self._prepare_input(args)
         args = args[0]
         poptorch_model = self.poptorch_models[stage]
         self.lightning_module._running_torchscript = True
-
         for key_to_drop in ['_batch_idx', 'mol_ids', 'smiles']:
             args.pop(key_to_drop)
-
-        print(f'args before poptorch model {args}')
         out = poptorch_model(**args)
-        print(f'output {out}')
-
         self.lightning_module._running_torchscript = False
         return out
 
@@ -128,18 +122,18 @@ class PredictorModuleIPU(PredictorModule):
         )
 
     def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
-        outputs = {"loss/train": outputs["loss"].mean()}
+        outputs["loss/train"] = outputs["loss"].mean()
         super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
     def training_step(self, features, labels) -> Dict[str, Any]:
         logger.warning('running training_step')
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {'features': features, 'labels': labels}
-        concatenated_metrics_logs = super().training_step(dict_input, to_cpu=False)
+        step_dict = super().training_step(dict_input, to_cpu=False)
 
-        loss = concatenated_metrics_logs.pop("loss")
-        loss = self.poptorch.identity_loss(loss, reduction="mean")
-        return loss  # Limitation that only the loss can be returned
+        loss = step_dict.pop("loss")
+        step_dict["loss"] = self.poptorch.identity_loss(loss, reduction="mean")
+        return step_dict
 
     def validation_step(self, features, labels) -> Dict[str, Any]:
         logger.warning('running validation_step')
@@ -148,7 +142,7 @@ class PredictorModuleIPU(PredictorModule):
         step_dict = super().validation_step(dict_input, to_cpu=False)
 
         # The output dict must be converted to a tuple
-        step_dict = self._clean_output_batch(step_dict)
+        # step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
     def test_step(self, **inputs) -> Dict[str, Any]:
