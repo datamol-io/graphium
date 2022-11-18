@@ -313,6 +313,7 @@ class PredictorModule(pl.LightningModule):
         step_dict["loss"] = loss
         # print("loss ", self.global_step, self.current_epoch, loss)
         step_dict["task_losses"] = task_losses
+        step_dict["gradient_norm"] = self.get_gradient_norm()
         return step_dict
 
     def flag_step(self, batch: Dict[str, Tensor], step_name: str, to_cpu: bool) -> Dict[str, Any]:
@@ -385,12 +386,31 @@ class PredictorModule(pl.LightningModule):
         return step_dict
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
+        # this code is likely repeated for validation and testing, this should be moved to a function
+        self.task_epoch_summary.update_predictor_state(
+            step_name="train",
+            targets=outputs["targets"],
+            predictions=outputs["preds"],
+            loss=outputs["loss/train"],  # This is the weighted loss for now, but change to task-specific loss
+            task_losses=outputs["task_losses"],
+            n_epochs=self.current_epoch,
+        )
+        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
+        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
+        outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
+
+        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        concatenated_metrics_logs["loss"] = outputs["loss"]
+        outputs["grad_norm"] = self.get_gradient_norm()
+        concatenated_metrics_logs["train/grad_norm"] = outputs["grad_norm"]
+
         if self.logger is not None:
             self.logger.log_metrics(
-                outputs, step=self.global_step
+                concatenated_metrics_logs, step=self.global_step
             )  # This is a pytorch lightning function call
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
+        print('predictor training')
         step_dict = None
 
         # Train using FLAG
@@ -398,37 +418,10 @@ class PredictorModule(pl.LightningModule):
             step_dict = self.flag_step(batch=batch, step_name="train", to_cpu=to_cpu)
         # Train normally, without using FLAG
         elif self.flag_kwargs["n_steps"] == 0:
-            step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
+            # step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
+            step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
 
-        self.task_epoch_summary.update_predictor_state(
-            step_name="train",
-            targets=step_dict["targets"],
-            predictions=step_dict["preds"],
-            loss=step_dict["loss"],  # This is the weighted loss for now, but change to task-sepcific loss
-            task_losses=step_dict["task_losses"],
-            n_epochs=self.current_epoch,
-        )
-        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
-        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
-        step_dict.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
-
-        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        concatenated_metrics_logs["loss"] = step_dict["loss"]
-        step_dict["grad_norm"] = self.get_gradient_norm()
-        concatenated_metrics_logs["train/grad_norm"] = step_dict["grad_norm"]
-
-        # Predictions and targets are no longer needed after the step.
-        # Keeping them will increase memory usage significantly for large datasets.
-        step_dict.pop("preds")
-        step_dict.pop("targets")
-        step_dict.pop("weights")
-
-        return concatenated_metrics_logs  # Returning the metrics_logs with the loss
-
-    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
-        # Wandb metric tracking here
-        if self.logger is not None:
-            self.logger.log_metrics(outputs, step=self.global_step)
+        return step_dict  # Returning the metrics_logs with the loss
 
     def get_gradient_norm(self):
         # compute the norm
