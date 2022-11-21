@@ -120,9 +120,9 @@ class PredictorModuleIPU(PredictorModule):
             preds, targets, weights, loss_fun, target_nan_mask, multitask_handling
         )
 
-    def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(self, outputs, batch, batch_idx):
         outputs["loss/train"] = outputs["loss"].mean()
-        super().on_train_batch_end(outputs, batch, batch_idx, dataloader_idx)
+        super().on_train_batch_end(outputs, batch, batch_idx)
 
     def training_step(self, features, labels) -> Dict[str, Any]:
         logger.warning('running training_step')
