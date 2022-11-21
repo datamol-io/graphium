@@ -140,8 +140,6 @@ class PredictorModuleIPU(PredictorModule):
         dict_input = {'features': features, 'labels': labels}
         step_dict = super().validation_step(dict_input, to_cpu=False)
 
-        # The output dict must be converted to a tuple
-        # step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
     def test_step(self, **inputs) -> Dict[str, Any]:
@@ -158,95 +156,10 @@ class PredictorModuleIPU(PredictorModule):
 
         return step_dict
 
-    def training_epoch_end(self, outputs: Dict[str, Any]):
-        # Limited. Since only the loss can be returned in `training_step`
-        return
-
-    def validation_epoch_end(self, outputs: Dict[str, Any]):
-        # Retrieve the dict structure of the output batch from the tuple
-        retrieved_outputs = self._retrieve_output_batch(outputs)
-        return super().validation_epoch_end(retrieved_outputs)
-
-    def test_epoch_end(self, outputs: Dict[str, Any]):
-        # Retrieve the dict structure of the output batch from the tuple
-        retrieved_outputs = self._retrieve_output_batch(outputs)
-        return super().test_epoch_end(retrieved_outputs)
-
-    def predict_epoch_end(self, outputs: Dict[str, Any]):
-        # Retrieve the dict structure of the output batch from the tuple
-        retrieved_outputs = self._retrieve_output_batch(outputs)
-        return super().test_epoch_end(retrieved_outputs)
-
     def configure_optimizers(self, impl=None):
         if impl is None:
             impl = self.poptorch.optim.Adam
         return super().configure_optimizers(impl=impl)
-
-    def _retrieve_output_batch(self, outputs):
-        """
-        A limitation of the IPU is that only Tuples can be returned from
-        `validation_step` and `test_step`.
-
-        Here, we rebuild a dictionary from the tuples so that the code
-        remains compatible with the original `[STAGE]_epoch_end` methods.
-
-        The keys to rebuild the dict must be contained in `self._output_step_structure`
-        as a `Dict[Dict[str]]`, with `self._output_step_structure["_others"]` representing the keys of
-        the non-nested dictionaries.
-
-        """
-
-        new_outputs = []
-        for batch in outputs:
-            new_outputs.append({})
-            # Get the keys of the nested dictionaries
-            for ii, struct in enumerate(self._output_step_structure):
-                new_outputs[-1][struct[0]] = {}
-                for jj, key in enumerate(struct[1:]):
-                    new_outputs[-1][struct[0]][key] = batch[ii][jj]
-
-            # Pop the non-nested dictionaries, and re-add them
-            others = new_outputs[-1].pop("_others", {})
-            new_outputs[-1].update(others)
-        return new_outputs
-
-    def _clean_output_batch(self, out_batch):
-        """
-        The output batch cannot contain `Dict[Tensor]` or `Dict[Dict[Tensor]]`,
-        only nested tuples. And they must all be the same depth.
-
-        This function converts every `Dict[Tensor]` or `Dict[Dict[Tensor]]` to
-        `Tuple[Tuple[Tensor]]` and stores the keys `self._output_step_structure`.
-
-        In the case of non-nested dict, they will be stored under the key `_others`
-        to ensure that everything has the same nesting depth.
-        """
-
-        # Transform Dict[Tensor] into Dict[Dict[Tensor]] by grouping them
-        cleaned_batch, others = {}, {}
-        for key, val in out_batch.items():
-            if isinstance(val, dict):
-                cleaned_batch[key] = val
-            elif isinstance(val, Tensor):
-                others[key] = val
-        if len(others) > 0:
-            cleaned_batch["_others"] = others
-
-        # Save the structure of the dict somewhere
-        output_step_structure = []
-        for key, val in cleaned_batch.items():
-            output_step_structure.append([key])
-            for sub_key, sub_val in val.items():
-                output_step_structure[-1].append(sub_key)
-        self._output_step_structure = output_step_structure
-
-        # Convert Dict[Dict[Tensor]] into Tuple[Tuple[Tensor]]
-        new_dict = {}
-        for key, val in cleaned_batch.items():
-            new_dict[key] = tuple(val.values())
-        cleaned_batch = tuple(new_dict.values())
-
-        return cleaned_batch
 
     def squeeze_input_dims(self, features, labels):
 
