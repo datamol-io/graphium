@@ -376,7 +376,7 @@ class PredictorModule(pl.LightningModule):
         step_dict["task_losses"] = task_losses
         return step_dict
 
-    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int, unused: int = 0) -> None:
+    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
         # this code is likely repeated for validation and testing, this should be moved to a function
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
