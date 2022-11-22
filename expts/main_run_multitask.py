@@ -8,7 +8,6 @@ import timeit
 from loguru import logger
 from datetime import datetime
 from pytorch_lightning.utilities.model_summary import ModelSummary
-import joblib
 
 # Current project imports
 import goli

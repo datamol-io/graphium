@@ -1414,14 +1414,14 @@ class TaskHeads(nn.Module):
     def __init__(
         self,
         in_dim: int,
-        task_heads_kwargs_list: List[Dict[str, Any]],
+        task_heads_kwargs: List[Dict[str, Any]],
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
         Parameters:
             in_dim:
                 Input feature dimensions of the layer
-            task_heads_kwargs_list:
+            task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to
                 initialize a task-specific MLP.
@@ -1430,10 +1430,9 @@ class TaskHeads(nn.Module):
         super().__init__()
 
         self.in_dim = in_dim
-        task_heads_kwargs_list = deepcopy(task_heads_kwargs_list)
+        task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.task_heads = nn.ModuleDict()
-        for head_kwargs in task_heads_kwargs_list:
-            task_name = head_kwargs.pop("task_name")
+        for task_name, head_kwargs in task_heads_kwargs.items():
             head_kwargs.setdefault("name", f"NN_{task_name}")
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
@@ -1471,7 +1470,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
     def __init__(
         self,
-        task_heads_kwargs_list: List[Dict[str, Any]],
+        task_heads_kwargs: List[Dict[str, Any]],
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
@@ -1489,7 +1488,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
         Parameters:
 
-            task_heads_kwargs_list:
+            task_heads_kwargs:
                 This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
                 initialize a task-specific MLP.
 
@@ -1537,7 +1536,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             name=name,
         )
 
-        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs_list=task_heads_kwargs_list)
+        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs=task_heads_kwargs)
 
     def forward(self, g: Union[DGLGraph, Data]):
         h = super().forward(g)

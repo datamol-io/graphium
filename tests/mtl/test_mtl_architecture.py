@@ -61,7 +61,7 @@ class test_TaskHeads(ut.TestCase):
         task_heads_params = [task_1_params, task_2_params, task_3_params]
 
         # Create the "multitask" network. Really it's just an input going to various FFNNs since there's nothing shared.
-        multi_head_nn = TaskHeads(in_dim=in_dim, task_heads_kwargs_list=task_heads_params)
+        multi_head_nn = TaskHeads(in_dim=in_dim, task_heads_kwargs=task_heads_params)
 
         # Test the sizes of the MLPs for each head
         # Head for task_1
@@ -174,7 +174,7 @@ class test_Multitask_NN(ut.TestCase):
                             )
 
                             multitask_fulldgl_nn = FullGraphMultiTaskNetwork(
-                                task_heads_kwargs_list=task_heads_params,
+                                task_heads_kwargs=task_heads_params,
                                 gnn_kwargs=gnn_kwargs,
                                 pre_nn_kwargs=pre_nn_kwargs,
                                 post_nn_kwargs=post_nn_kwargs,

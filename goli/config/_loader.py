@@ -264,12 +264,7 @@ def load_architecture(
         gnn_kwargs.setdefault("in_dim_edges", in_dims["edge_feat"])
 
     # Set the parameters for the full network
-    task_head_params_list = []
-    for params in omegaconf.OmegaConf.to_object(
-        task_heads_kwargs
-    ):  # This turns the ListConfig into List[TaskHeadParams]
-        params_dict = dict(params)
-        task_head_params_list.append(params_dict)
+    task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
     # Set all the input arguments for the model
     model_kwargs = dict(
@@ -278,7 +273,7 @@ def load_architecture(
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
         post_nn_kwargs=post_nn_kwargs,
-        task_heads_kwargs_list=task_head_params_list,
+        task_heads_kwargs=task_heads_kwargs,
     )
 
     return model_class, model_kwargs
