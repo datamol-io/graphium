@@ -1550,36 +1550,44 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             compress: Whether to compress the data
 
         Returns:
-            cache_data_exists: Whether the cache exists (if the hash matches)
+            cache_data_exists: Whether the cache exists (if the hash matches) and the loading succeeded
         """
         full_cache_data_path = self.get_data_cache_fullname(compress=compress)
         cache_data_exists = fs.exists(full_cache_data_path)
 
         if cache_data_exists:
-            logger.info(f"Loading the data from cache at path `{full_cache_data_path}`")
-            now = time.time()
-            with fsspec.open(full_cache_data_path, mode="rb", compression="infer") as file:
-                load_params = torch.load(file)
-                self.__dict__.update(load_params)
-                (
-                    self.train_singletask_datasets,
-                    self.val_singletask_datasets,
-                    self.test_singletask_datasets,
-                ) = self.get_subsets_of_datasets(
-                    self.single_task_datasets,
-                    self.task_train_indices,
-                    self.task_val_indices,
-                    self.task_test_indices,
+            try:
+                logger.info(f"Loading the data from cache at path `{full_cache_data_path}`")
+                now = time.time()
+                with fsspec.open(full_cache_data_path, mode="rb", compression="infer") as file:
+                    load_params = torch.load(file)
+                    self.__dict__.update(load_params)
+                    (
+                        self.train_singletask_datasets,
+                        self.val_singletask_datasets,
+                        self.test_singletask_datasets,
+                    ) = self.get_subsets_of_datasets(
+                        self.single_task_datasets,
+                        self.task_train_indices,
+                        self.task_val_indices,
+                        self.task_test_indices,
+                    )
+                elapsed = round(time.time() - now)
+                logger.info(
+                    f"Successfully loaded the data from cache in {elapsed}s at path: `{full_cache_data_path}`"
                 )
-            elapsed = round(time.time() - now)
-            logger.info(
-                f"Successfully loaded the data from cache in {elapsed}s at path: `{full_cache_data_path}`"
-            )
-            return True
+                return True
+            except Exception as e:
+                if verbose:
+                    logger.warning(
+                        f"Data cache failed to load path: `{full_cache_data_path}`.\nThe data will be prepared and cache will be created for future runs."
+                    )
+                    logger.warning(e.__str__())
+                return False
         else:
             if verbose:
                 logger.info(
-                    f"Data cache not found at path: `{full_cache_data_path}`.\nThe data will be loaded and cache will be created for future runs."
+                    f"Data cache not found at path: `{full_cache_data_path}`.\nThe data will be prepared and cache will be created for future runs."
                 )
             return False
 
