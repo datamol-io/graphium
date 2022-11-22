@@ -89,6 +89,12 @@ def mkdir(path: Union[str, os.PathLike], exist_ok: bool = True):
     fs.mkdirs(path, exist_ok=exist_ok)
 
 
+def rm(path: Union[str, os.PathLike], recursive=False, maxdepth=None):
+    """Delete a file or a directory with all nested files."""
+    fs = get_mapper(path).fs
+    fs.rm(path, recursive=recursive, maxdepth=maxdepth)
+
+
 def join(*paths):
     """Join paths together. The first element determine the
     filesystem to use (and so the separator.

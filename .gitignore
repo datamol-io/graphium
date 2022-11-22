@@ -10,6 +10,8 @@
 *.cache
 *.ckpt
 *.pickle
+*.datacache
+*.datacache.gz
 lightning_logs/
 logs/
 models_checkpoints/

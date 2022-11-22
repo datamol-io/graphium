@@ -1494,7 +1494,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         data_hash = get_md5_hash(hash_dict)
         return data_hash
 
-    def get_data_cache_fullname(self, compress: bool = True):
+    def get_data_cache_fullname(self, compress: bool = False):
         """
         Create a hash for the dataset, and use it to generate a file name
 
