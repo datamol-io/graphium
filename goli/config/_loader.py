@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Mapping, Type, Union, Any
+from typing import Callable, Dict, Mapping, Type, Union, Any, Optional, List, Tuple
 
 import omegaconf
 from copy import deepcopy
@@ -13,13 +13,14 @@ from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
-from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
+from goli.ipu.ipu_wrapper import PredictorModuleIPU, DictIPUStrategy
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
 from goli.trainer.loggers import WandbLoggerGoli
+from goli.data.datamodule import BaseDataModule
 
 # Weights and Biases
-from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning import Trainer
+from pytorch_lightning.strategies import IPUStrategy
 
 
 def get_accelerator(
@@ -64,6 +65,53 @@ def get_accelerator(
     if acc_type is None:
         acc_type = "cpu"
     return acc_type
+
+
+def get_max_num_nodes_edges_datamodule(datamodule: BaseDataModule, stages: Optional[List[str]] = None) -> Tuple[int, int]:
+    """
+    Get the maximum number of nodes and edges across all datasets from the datamodule
+
+    Parameters:
+        datamodule: The datamodule from which to extract the maximum number of nodes
+        stages: The stages from which to extract the max num nodes.
+            Possible values are ["train", "val", "test", "predict"].
+            If None, all stages are considered.
+
+    Returns:
+        max_num_nodes: The maximum number of nodes across all datasets from the datamodule
+        max_num_edges: The maximum number of edges across all datasets from the datamodule
+    """
+
+    allowed_stages = ["train", "val", "test", "predict"]
+    if stages is None:
+        stages = allowed_stages
+    for stage in stages:
+        assert stage in allowed_stages, f"stage value `{stage}` not allowed."
+
+    max_nodes, max_edges = [], []
+    # Max number of nodes/edges in the training dataset
+    if (datamodule.train_ds is not None) and ("train" in stages):
+        max_nodes.append(datamodule.train_ds.max_num_nodes_per_graph)
+        max_edges.append(datamodule.train_ds.max_num_edges_per_graph)
+
+    # Max number of nodes/edges in the validation dataset
+    if (datamodule.val_ds is not None) and ("train" in stages):
+        max_nodes.append(datamodule.val_ds.max_num_nodes_per_graph)
+        max_edges.append(datamodule.val_ds.max_num_edges_per_graph)
+
+    # Max number of nodes/edges in the test dataset
+    if (datamodule.test_ds is not None) and ("train" in stages):
+        max_nodes.append(datamodule.test_ds.max_num_nodes_per_graph)
+        max_edges.append(datamodule.test_ds.max_num_edges_per_graph)
+
+    # Max number of nodes/edges in the predict dataset
+    if (datamodule.predict_ds is not None) and ("train" in stages):
+        max_nodes.append(datamodule.predict_ds.max_num_nodes_per_graph)
+        max_edges.append(datamodule.predict_ds.max_num_edges_per_graph)
+
+    max_num_nodes = max(max_nodes)
+    max_num_edges = max(max_edges)
+    return max_num_nodes, max_num_edges
 
 
 def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "goli.datamodule.BaseDataModule":
@@ -249,7 +297,6 @@ def load_predictor(
     Returns:
         predictor: The predictor module
     """
-
     if get_accelerator(config) == "ipu":
         predictor_class = PredictorModuleIPU
     else:
@@ -265,7 +312,6 @@ def load_predictor(
 
     return predictor
 
-
 def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
@@ -278,7 +324,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    plugins = []
+    strategy = None
     accelerator = get_accelerator(config)
     ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
@@ -288,7 +334,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
-        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available
     _ = cfg_trainer["trainer"].pop("accelerator", None)
@@ -326,12 +372,13 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     trainer = Trainer(
         detect_anomaly=True,
-        plugins=plugins,
         accelerator=accelerator,
         ipus=ipus,
         gpus=gpus,
+        strategy=strategy,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
+
 
     return trainer

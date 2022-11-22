@@ -399,7 +399,6 @@ class BaseDataModule(pl.LightningDataModule):
 
         self.collate_fn = self.get_collate_fn(collate_fn)
 
-        self.dataset = None
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
@@ -418,6 +417,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.train_ds,  # type: ignore
             shuffle=True,
             stage=RunningStage.TRAINING,
+            **kwargs,
         )
 
     def val_dataloader(self, **kwargs):
@@ -425,6 +425,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.val_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.VALIDATING,
+            **kwargs,
         )
 
     def test_dataloader(self, **kwargs):
@@ -433,6 +434,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.test_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.TESTING,
+            **kwargs,
         )
 
     def predict_dataloader(self, **kwargs):
@@ -441,6 +443,7 @@ class BaseDataModule(pl.LightningDataModule):
             dataset=self.predict_ds,  # type: ignore
             shuffle=False,
             stage=RunningStage.PREDICTING,
+            **kwargs,
         )
 
     @staticmethod
@@ -791,7 +794,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.val_singletask_datasets = None
         self.test_singletask_datasets = None
 
-        self.dataset = None
         self.train_ds = None
         self.val_ds = None
         self.test_ds = None
