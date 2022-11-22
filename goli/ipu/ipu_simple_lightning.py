@@ -1,10 +1,8 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 import pytorch_lightning as pl
-from pytorch_lightning.strategies import IPUStrategy
 
 import torch
 from torch import nn
-from torch.utils.data._utils.collate import default_collate
 
 import torchvision
 import torchvision.transforms as transforms
@@ -18,7 +16,6 @@ from goli.nn.base_layers import FCLayer
 class SimpleTorchModel(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        
         conv_block = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3),
             nn.BatchNorm2d(16),
@@ -26,7 +23,7 @@ class SimpleTorchModel(torch.nn.Module):
             nn.MaxPool2d(3),
             nn.MaxPool2d(3),
         )
-        print("fwd pass conv")
+
         self.the_network = nn.Sequential(
             conv_block,
             torch.nn.Flatten(),
@@ -79,20 +76,18 @@ if __name__ == "__main__":
     model = SimpleLightning()
 
     # Normal PyTorch dataset.
-    import pdb; pdb.set_trace()
     train_set = torchvision.datasets.FashionMNIST(
-        "FashionMNIST", train=True, download=True, transform=transforms.Compose([transforms.ToTensor(), transforms.ConvertImageDtype(torch.float16)]),
-                                    target_transform = torchvision.transforms.Lambda(lambda y : torch.tensor(y, dtype=torch.int32)))
+        "FashionMNIST", train=True, download=True, transform=transforms.Compose([transforms.ToTensor()])
+    )
 
     # Normal PyTorch dataloader.
     train_loader = torch.utils.data.DataLoader(train_set, batch_size=16, shuffle=True)
-    
-    training_opts = poptorch.Options()
-    training_opts.Jit.traceModel(False)
-    inference_opts = poptorch.Options()
-    inference_opts.Jit.traceModel(False)
 
-    
+    training_opts = poptorch.Options()
+    training_opts.Jit.traceModel(True)
+    inference_opts = poptorch.Options()
+    inference_opts.Jit.traceModel(True)
+    plugins = pl.plugins.IPUPlugin(training_opts=training_opts, inference_opts=inference_opts)
     # Run on IPU using IPUs=1. This will run on IPU but will not include any custom
     # PopTorch Options. Changing IPUs to 1 to IPUs=N will replicate the graph N
     # times. This can lead to issues with the DataLoader batching - the script
@@ -104,10 +99,8 @@ if __name__ == "__main__":
         max_epochs=3,
         progress_bar_refresh_rate=20,
         log_every_n_steps=1,
-        strategy=IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
+        plugins=plugins,
     )
 
     # When fit is called the model will be compiled for IPU and will run on the available IPU devices.
-    
-    print(train_loader.dataset.data.dtype)
     trainer.fit(model, train_loader)

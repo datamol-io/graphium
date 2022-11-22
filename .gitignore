@@ -14,7 +14,6 @@ lightning_logs/
 logs/
 models_checkpoints/
 outputs/
-out/
 saved_models/
 wandb/
 out/
