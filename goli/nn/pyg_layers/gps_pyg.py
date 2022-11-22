@@ -3,14 +3,11 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 """
 
 from copy import deepcopy
-import torch
-import torch.nn as nn
-from torch_scatter import scatter
 from typing import Callable, Union, Optional
 
 
 from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import FCLayer
+from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
@@ -24,7 +21,7 @@ PYG_LAYERS_DICT = {
 }
 
 ATTENTION_LAYERS_DICT = {
-    "full-attention": torch.nn.MultiheadAttention,
+    "full-attention": MultiheadAttentionMup,
     "none": None,
 }
 
@@ -89,7 +86,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.ff_dropout1 = self._parse_dropout(dropout=self.dropout)
         self.ff_dropout2 = self._parse_dropout(dropout=self.dropout)
 
-        # Linear layers
+        # linear layers
         self.ff_linear1 = FCLayer(in_dim, in_dim * 2, activation=None)
         self.ff_linear2 = FCLayer(in_dim * 2, in_dim, activation=None)
         self.ff_out = FCLayer(in_dim, out_dim, activation=None)
@@ -132,9 +129,10 @@ class GPSLayerPyg(BaseGraphModule):
         # Local MPNN with edge attributes.
         batch_out = self.mpnn(batch.clone())
         h_local = batch_out.h
-        h_local = self.dropout_local(h_local)
+        if self.dropout_local is not None:
+            h_local = self.dropout_local(h_local)
         h_local = h_in + h_local  # Residual connection.
-        if self.norm_layer_local:
+        if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
         h = h_local
 
@@ -158,9 +156,10 @@ class GPSLayerPyg(BaseGraphModule):
             h_attn = to_sparse_batch(h_attn, idx)
 
             # Dropout, residual, norm
-            h_attn = self.dropout_attn(h_attn)
+            if self.dropout_attn is not None:
+                h_attn = self.dropout_attn(h_attn)
             h_attn = h_in + h_attn
-            if self.norm_layer_attn:
+            if self.norm_layer_attn is not None:
                 h_attn = self.norm_layer_attn(h_attn)
 
             # Combine local and global outputs.
@@ -185,20 +184,23 @@ class GPSLayerPyg(BaseGraphModule):
         """Feed Forward block."""
         h_in = h
         # First linear layer + activation + dropout
-        if self.activation_layer is None:
-            h = self.ff_dropout1(self.ff_linear1(h))
-        else:
-            h = self.ff_dropout1(self.activation_layer(self.ff_linear1(h)))
+        h = self.ff_linear1(h)
+        if self.activation_layer is not None:
+            h = self.activation_layer(h)
+        if self.ff_dropout1 is not None:
+            h = self.ff_dropout1(h)
 
         # Second linear layer + dropout
-        h = self.ff_dropout2(self.ff_linear2(h))
+        h = self.ff_linear2(h)
+        if self.ff_dropout2 is not None:
+            h = self.ff_dropout2(h)
 
         # Residual
         h = h + h_in
 
         # Third linear layer + norm
         h = self.ff_out(h)
-        if self.norm_layer_ff:
+        if self.norm_layer_ff is not None:
             h = self.norm_layer_ff(h)
         return h
 

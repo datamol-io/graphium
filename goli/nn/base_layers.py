@@ -1,9 +1,15 @@
+from typing import Union, Callable, Optional, Type, Tuple
 from copy import deepcopy
+from loguru import logger
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import Tensor
+import mup.init as mupi
+from mup import set_base_shapes, MuReadout
 
-from typing import Union, Callable, Optional, Type
+from goli.ipu.ipu_utils import import_poptorch
 
 SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
 
@@ -62,6 +68,162 @@ def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]
     return deepcopy(parsed_norm)
 
 
+class MultiheadAttentionMup(nn.MultiheadAttention):
+    """
+    Modifying the MultiheadAttention to work with the muTransfer paradigm.
+    The layers are initialized using the mup package.
+    The `_scaled_dot_product_attention` normalizes the attention matrix with `1/d` instead of `1/sqrt(d)`
+    """
+
+    def _reset_parameters(self):
+        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
+        if self._qkv_same_embed_dim:
+            mupi.xavier_uniform_(self.in_proj_weight)
+        else:
+            mupi.xavier_uniform_(self.q_proj_weight)
+            mupi.xavier_uniform_(self.k_proj_weight)
+            mupi.xavier_uniform_(self.v_proj_weight)
+
+        if self.in_proj_bias is not None:
+            nn.init.constant_(self.in_proj_bias, 0.0)
+            nn.init.constant_(self.out_proj.bias, 0.0)
+        if self.bias_k is not None:
+            mupi.xavier_normal_(self.bias_k)
+        if self.bias_v is not None:
+            mupi.xavier_normal_(self.bias_v)
+
+    def forward(self, *args, **kwargs) -> Tuple[Tensor, Optional[Tensor]]:
+
+        # Patching the forward to use a different scaling for the dot-product
+        prev_fn = F._scaled_dot_product_attention
+        F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
+        out = super().forward(*args, **kwargs)
+        F._scaled_dot_product_attention = prev_fn
+        return out
+
+
+def _mup_scaled_dot_product_attention(
+    q: Tensor,
+    k: Tensor,
+    v: Tensor,
+    attn_mask: Optional[Tensor] = None,
+    dropout_p: float = 0.0,
+) -> Tuple[Tensor, Tensor]:
+    r"""
+    Computes scaled dot product attention on query, key and value tensors, using
+    an optional attention mask if passed, and applying dropout if a probability
+    greater than 0.0 is specified.
+    Returns a tensor pair containing attended values and attention weights.
+
+    This modifies the standard torch function by normalizing with `1/d` instead of `1/sqrt(d)`
+
+    Args:
+        q, k, v: query, key and value tensors. See Shape section for shape details.
+        attn_mask: optional tensor containing mask values to be added to calculated
+            attention. May be 2D or 3D; see Shape section for details.
+        dropout_p: dropout probability. If greater than 0.0, dropout is applied.
+
+    Shape:
+        - q: :math:`(B, Nt, E)` where B is batch size, Nt is the target sequence length,
+            and E is embedding dimension.
+        - key: :math:`(B, Ns, E)` where B is batch size, Ns is the source sequence length,
+            and E is embedding dimension.
+        - value: :math:`(B, Ns, E)` where B is batch size, Ns is the source sequence length,
+            and E is embedding dimension.
+        - attn_mask: either a 3D tensor of shape :math:`(B, Nt, Ns)` or a 2D tensor of
+            shape :math:`(Nt, Ns)`.
+
+        - Output: attention values have shape :math:`(B, Nt, E)`; attention weights
+            have shape :math:`(B, Nt, Ns)`
+    """
+    B, Nt, E = q.shape
+    q = q / E  # Instead of `q / math.sqrt(E)`
+    # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
+    attn = torch.bmm(q, k.transpose(-2, -1))
+    if attn_mask is not None:
+        attn += attn_mask
+    attn = F.softmax(attn, dim=-1)
+    if dropout_p > 0.0:
+        attn = F.dropout(attn, p=dropout_p)
+    # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
+    output = torch.bmm(attn, v)
+    return output, attn
+
+
+class MuReadoutGoli(MuReadout):
+    """
+    PopTorch-compatible replacement for `mup.MuReadout`
+
+    Not quite a drop-in replacement for `mup.MuReadout` - you need to specify
+    `base_width`.
+
+    Set `base_width` to width of base model passed to `mup.set_base_shapes`
+    to get same results on IPU and CPU. Should still "work" with any other
+    value, but won't give the same results as CPU
+    """
+
+    def __init__(self, in_features, *args, **kwargs):
+        super().__init__(in_features, *args, **kwargs)
+        self.base_width = in_features
+
+    @property
+    def absolute_width(self):
+        return float(self.in_features)
+
+    @property
+    def base_width(self):
+        return self._base_width
+
+    @base_width.setter
+    def base_width(self, val):
+        if val is None:
+            return
+        assert isinstance(
+            val, (int, torch.int, torch.long)
+        ), f"`base_width` must be None, int or long, provided {val} of type {type(val)}"
+        self._base_width = val
+
+    def width_mult(self):
+        return self.absolute_width / self.base_width
+
+
+class MuReadoutGoli(MuReadout):
+    """
+    PopTorch-compatible replacement for `mup.MuReadout`
+
+    Not quite a drop-in replacement for `mup.MuReadout` - you need to specify
+    `base_width`.
+
+    Set `base_width` to width of base model passed to `mup.set_base_shapes`
+    to get same results on IPU and CPU. Should still "work" with any other
+    value, but won't give the same results as CPU
+    """
+
+    def __init__(self, in_features, *args, **kwargs):
+        super().__init__(in_features, *args, **kwargs)
+        self.base_width = in_features
+
+    @property
+    def absolute_width(self):
+        return float(self.in_features)
+
+    @property
+    def base_width(self):
+        return self._base_width
+
+    @base_width.setter
+    def base_width(self, val):
+        if val is None:
+            return
+        assert isinstance(
+            val, (int, torch.int, torch.long)
+        ), f"`base_width` must be None, int or long, provided {val} of type {type(val)}"
+        self._base_width = val
+
+    def width_mult(self):
+        return self.absolute_width / self.base_width
+
+
 class FCLayer(nn.Module):
     def __init__(
         self,
@@ -72,10 +234,11 @@ class FCLayer(nn.Module):
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
         init_fn: Optional[Callable] = None,
+        is_readout_layer: bool = False,
     ):
 
         r"""
-        A simple fully connected and customizable layer. This layer is centered around a torch.nn.Linear module.
+        A simple fully connected and customizable layer. This layer is centered around a `torch.nn.Linear` module.
         The order in which transformations are applied is:
 
         - Dense Layer
@@ -85,7 +248,7 @@ class FCLayer(nn.Module):
 
         Parameters:
             in_dim:
-                Input dimension of the layer (the torch.nn.Linear)
+                Input dimension of the layer (the `torch.nn.Linear`)
             out_dim:
                 Output dimension of the layer.
             dropout:
@@ -104,15 +267,17 @@ class FCLayer(nn.Module):
             init_fn:
                 Initialization function to use for the weight of the layer. Default is
                 $$\mathcal{U}(-\sqrt{k}, \sqrt{k})$$ with $$k=\frac{1}{ \text{in_dim}}$$
+            is_readout_layer: Whether the layer should be treated as a readout layer by replacing of `torch.nn.Linear`
+                by `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
         Attributes:
             dropout (int):
                 The ratio of units to dropout.
             normalization (None or Callable):
                 Normalization layer
-            linear (torch.nn.Linear):
+            linear (`torch.nn.Linear`):
                 The linear layer
-            activation (torch.nn.Module):
+            activation (`torch.nn.Module`):
                 The activation layer
             init_fn (Callable):
                 Initialization function used for the weight of the layer
@@ -127,24 +292,45 @@ class FCLayer(nn.Module):
         self.__params = locals()
         del self.__params["__class__"]
         del self.__params["self"]
+
+        # Basic parameters
         self.in_dim = in_dim
         self.out_dim = out_dim
         self.bias = bias
-        self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         self.dropout = None
         self.normalization = get_norm(normalization, dim=out_dim)
 
+        # Dropout and activation
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
-        self.init_fn = init_fn if init_fn is not None else nn.init.xavier_uniform_
 
+        # Linear layer, or MuReadout layer
+        if not is_readout_layer:
+            self.linear = nn.Linear(in_dim, out_dim, bias=bias)
+        else:
+            self.linear = MuReadoutGoli(in_dim, out_dim, bias=bias)
+
+            # Warn user in case of weird parameters
+            if self.normalization is not None:
+                logger.warning(
+                    f"Normalization is not `None` for the readout layer. Provided {self.normalization}"
+                )
+            if (self.dropout is not None) and (self.dropout.p > 0):
+                logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
+
+        # Define the initialization function based on `muTransfer`, and reset the parameters
+        self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
         self.reset_parameters()
 
     def reset_parameters(self, init_fn=None):
+        """
+        Reset the parameters of the linear layer using the `init_fn`.
+        """
+        set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         init_fn = init_fn or self.init_fn
         if init_fn is not None:
-            init_fn(self.linear.weight, 1 / self.in_dim)
+            init_fn(self.linear.weight)
         if self.bias:
             self.linear.bias.data.zero_()
 
@@ -211,11 +397,12 @@ class MLP(nn.Module):
         layers: int,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
-        dropout=0.0,
-        normalization="none",
-        last_normalization="none",
-        first_normalization="none",
-        last_dropout=0.0,
+        dropout: float = 0.0,
+        last_dropout: float = 0.0,
+        normalization: Union[Type[None], str, Callable] = "none",
+        last_normalization: Union[Type[None], str, Callable] = "none",
+        first_normalization: Union[Type[None], str, Callable] = "none",
+        last_layer_is_readout: bool = False,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -252,6 +439,8 @@ class MLP(nn.Module):
                 Norrmalization to use in **before the first layer**. Same options as `normalization`.
             last_dropout:
                 The ratio of units to dropout at the last layer.
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
         """
 
@@ -263,7 +452,10 @@ class MLP(nn.Module):
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
         fully_connected = []
-        if layers <= 1:
+        if layers == 0:
+            self.fully_connected = None
+            return
+        elif layers == 1:
             fully_connected.append(
                 FCLayer(
                     in_dim,
@@ -271,9 +463,10 @@ class MLP(nn.Module):
                     activation=last_activation,
                     normalization=last_normalization,
                     dropout=last_dropout,
+                    is_readout_layer=last_layer_is_readout,
                 )
             )
-        else:
+        elif layers > 1:
             fully_connected.append(
                 FCLayer(
                     in_dim,
@@ -300,6 +493,7 @@ class MLP(nn.Module):
                     activation=last_activation,
                     normalization=last_normalization,
                     dropout=last_dropout,
+                    is_readout_layer=last_layer_is_readout,
                 )
             )
         self.fully_connected = nn.Sequential(*fully_connected)
@@ -323,7 +517,8 @@ class MLP(nn.Module):
         """
         if self.first_normalization is not None:
             h = self.first_normalization(h)
-        h = self.fully_connected(h)
+        if self.fully_connected is not None:
+            h = self.fully_connected(h)
         return h
 
     @property

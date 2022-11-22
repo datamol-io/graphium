@@ -2,17 +2,18 @@ from goli.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import numpy as np
 from copy import deepcopy
-import dgl
 
 import torch
 from torch import nn, Tensor
-
 import pytorch_lightning as pl
+from torch_geometric.data import Data, Batch
+from dgl import DGLHeteroGraph
+from mup.optim import MuAdam
 
 from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
 from goli.trainer.predictor_summaries import TaskSummaries
-from goli.nn.base_graph_layer import get_edge_feats, get_node_feats, set_edge_feats, set_node_feats
+from goli.nn.base_graph_layer import get_node_feats, set_node_feats
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
@@ -134,7 +135,9 @@ class PredictorModule(pl.LightningModule):
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
 
-    def forward(self, inputs: Dict) -> Dict[str, Union[Tensor, Dict[str, Tensor]]]:
+    def forward(
+        self, inputs: Dict
+    ) -> Dict[str, Union[Tensor, Dict[str, Tensor], Dict[str, Dict[str, Tensor]]]]:
         r"""
         Returns the result of `self.model.forward(*inputs)` on the inputs.
         If the output of `out = self.model.forward` is a dictionary with a `"preds"` key,
@@ -160,20 +163,26 @@ class PredictorModule(pl.LightningModule):
         # Convert features to dtype
         if isinstance(feats, torch.Tensor):
             feats = feats.to(self.dtype)
-        elif isinstance(feats, dgl.DGLHeteroGraph):
+        elif isinstance(feats, DGLHeteroGraph):
             for key, val in feats.ndata.items():
-                if isinstance(val, torch.Tensor):
+                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
                     feats.ndata[key] = val.to(dtype=self.dtype)
             for key, val in feats.edata.items():
-                if isinstance(val, torch.Tensor):
+                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
                     feats.edata[key] = val.to(dtype=self.dtype)
-
+        elif isinstance(feats, (Data, Batch, dict)):
+            for key, val in feats.items():
+                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
+                    feats[key] = val.to(dtype=self.dtype)
         return feats
 
-    def configure_optimizers(self):
+    def configure_optimizers(self, impl=None):
+
+        if impl is None:
+            impl = torch.optim.Adam
 
         # Define the optimizer and schedulers
-        optimiser = torch.optim.Adam(self.parameters(), **self.optim_options.optim_kwargs)
+        optimiser = MuAdam(self.parameters(), **self.optim_options.optim_kwargs, impl=impl)
         torch_scheduler = self.optim_options.scheduler_class(
             optimizer=optimiser, **self.optim_options.torch_scheduler_kwargs
         )
@@ -512,6 +521,7 @@ class PredictorModule(pl.LightningModule):
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = {}
+        prog_dict["loss"] = self.task_epoch_summary.weighted_loss.item()
         results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
         for task in self.tasks:
             prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = (

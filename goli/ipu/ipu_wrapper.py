@@ -186,6 +186,11 @@ class PredictorModuleIPU(PredictorModule):
         retrieved_outputs = self._retrieve_output_batch(outputs)
         return super().test_epoch_end(retrieved_outputs)
 
+    def configure_optimizers(self, impl=None):
+        if impl is None:
+            impl = self.poptorch.optim.Adam
+        return super().configure_optimizers(impl=impl)
+
     def _retrieve_output_batch(self, outputs):
         """
         A limitation of the IPU is that only Tuples can be returned from
