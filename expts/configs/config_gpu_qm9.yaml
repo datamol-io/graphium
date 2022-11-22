@@ -177,7 +177,7 @@ architecture:
     residual_type: none
 
   task_heads:
-    homo:
+    - task_name: "homo"
       out_dim: 2
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
@@ -187,7 +187,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
-    alpha:
+    - task_name: "alpha"
       out_dim: 1
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
@@ -197,7 +197,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
-    cv:
+    - task_name: "cv"
       out_dim: 1
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
@@ -316,5 +316,4 @@ trainer:
     precision: 32
     max_epochs: 50 #50
     min_epochs: 1 #5
-    accumulate_grad_batches: 2
-    num_sanity_val_steps: 2 # 2 -> default, 0 -> turn OFF
+    accumulate_grad_batches: 1

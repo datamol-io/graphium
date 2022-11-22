@@ -8,7 +8,7 @@ from dgl import DGLGraph
 from torch_geometric.data import Data
 
 from goli.nn.base_layers import FCLayer, get_activation, get_norm
-from goli.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionWeighted,
@@ -1298,23 +1298,6 @@ class FullGraphNetwork(nn.Module):
             value = [value]
         self._concat_last_layers = value
 
-    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
-        """
-        Set the maximum number of nodes and edges for all gnn layers
-
-        Parameters:
-            max_nodes: Maximum number of nodes in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-
-            max_edges: Maximum number of edges in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-        """
-        if self.gnn is not None:
-            for layer in self.gnn.layers:
-                if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = max_nodes
-                    layer.max_num_edges_per_graph = max_edges
-
     def __repr__(self) -> str:
         r"""
         Controls how the class is printed
@@ -1549,27 +1532,5 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         """
         return self.task_heads.out_dim
 
-    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
-        """
-        Set the maximum number of nodes and edges for all gnn layers
-
-        Parameters:
-            max_nodes: Maximum number of nodes in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-
-            max_edges: Maximum number of edges in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-        """
-        super().set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
-        for task_head in self.task_heads.task_heads.values():
-            for layer in task_head.layers:
-                if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = max_nodes
-                    layer.max_num_edges_per_graph = max_edges
-
     def __repr__(self):
-        parent_str = super().__repr__()
-        tasks_str = self.task_heads.task_heads.__repr__()
-        tasks_str = "    " + "    ".join(tasks_str.splitlines(True))
-        return parent_str + tasks_str
-
+        return super().__repr__()
