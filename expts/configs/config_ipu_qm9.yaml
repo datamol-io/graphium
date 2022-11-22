@@ -78,7 +78,7 @@ datamodule:
     # Data handling-related
     batch_size_training: 50
     batch_size_inference: 50
-    # cache_data_path: null
+    cache_data_path: "datacache"
 
     num_workers: -1
 

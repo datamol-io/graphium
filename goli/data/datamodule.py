@@ -6,6 +6,7 @@ import importlib.resources
 import zipfile
 from copy import deepcopy
 from multiprocessing import Manager
+import time
 
 from loguru import logger
 import fsspec
@@ -36,6 +37,7 @@ from goli.features import (
 )
 from goli.data.collate import goli_collate_fn
 from goli.utils.arg_checker import check_arg_iterator
+from goli.utils.hashing import get_md5_hash
 
 
 PCQM4M_meta = {
@@ -127,8 +129,11 @@ class SingleTaskDataset(Dataset):
         unique_ids: Optional[List[str]] = None,
     ):
         self.labels = labels
-        manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
-        self.smiles = manager.list(smiles)
+        if smiles is not None:
+            manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
+            self.smiles = manager.list(smiles)
+        else:
+            self.smiles = None
         self.features = features
         self.indices = indices
         if self.indices is not None:
@@ -163,6 +168,25 @@ class SingleTaskDataset(Dataset):
             datum["unique_ids"] = self.unique_ids[idx]
 
         return datum
+
+    def __getstate__(self):
+        """Serialize the class for pickling."""
+        state = {}
+        state["labels"] = self.labels
+        state["smiles"] = list(self.smiles) if self.smiles is not None else None
+        state["features"] = self.features
+        state["indices"] = self.indices
+        state["weights"] = self.weights
+        state["unique_ids"] = self.unique_ids
+        return state
+
+    def __setstate__(self, state: dict):
+        """Reload the class from pickling."""
+        if state["smiles"] is not None:
+            manager = Manager()
+            state["smiles"] = manager.list(state["smiles"])
+
+        self.__dict__.update(state)
 
 
 class MultitaskDataset(Dataset):
@@ -796,6 +820,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.val_ds = None
         self.test_ds = None
 
+        self.cache_data_path = cache_data_path
+
         # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
         if prepare_dict_or_graph == "dgl:dict":
             self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
@@ -822,9 +848,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             - Create a corresponding SingletaskDataset
             - Split the SingletaskDataset according to the task-specific splits for train, val and test
         """
-        # TODO (Gabriela): Implement the ability to load from cache.
 
         if self._data_is_prepared:
+            logger.info("Data is already prepared. Skipping the preparation")
+            return
+
+        # If a path for data caching is provided, try to load from the path.
+        # If successful, skip the data preparation.
+        cache_data_exists = self.load_data_from_cache()
+        if cache_data_exists:
+            self._data_is_prepared = True
             return
 
         """Load all single-task dataframes."""
@@ -957,9 +990,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.task_val_indices = {}
         self.task_test_indices = {}
 
-        self.train_singletask_datasets = {}
-        self.val_singletask_datasets = {}
-        self.test_singletask_datasets = {}
         for task, df in task_df.items():
             train_indices, val_indices, test_indices = self._get_split_indices(
                 len(df),
@@ -973,9 +1003,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.task_val_indices[task] = val_indices
             self.task_test_indices[task] = test_indices
 
-            self.train_singletask_datasets[task] = Subset(self.single_task_datasets[task], train_indices)
-            self.val_singletask_datasets[task] = Subset(self.single_task_datasets[task], val_indices)
-            self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], test_indices)
+        (
+            self.train_singletask_datasets,
+            self.val_singletask_datasets,
+            self.test_singletask_datasets,
+        ) = self.get_subsets_of_datasets(
+            self.single_task_datasets, self.task_train_indices, self.task_val_indices, self.task_test_indices
+        )
+
+        # When a path is provided but no cache is found, save to cache
+        if (self.cache_data_path is not None) and (not cache_data_exists):
+            self.save_data_to_cache()
 
         self._data_is_prepared = True
         # TODO (Gabriela): Implement the ability to save to cache.
@@ -1443,6 +1481,134 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )  # Maybe specify which task it was for?
 
         return df
+
+    def get_data_hash(self):
+        """
+        Get a hash specific to a dataset and smiles_transformer.
+        Useful to cache the pre-processed data.
+        """
+        hash_dict = {
+            "smiles_transformer": self.smiles_transformer,
+            "task_specific_args": self.task_specific_args,
+        }
+        data_hash = get_md5_hash(hash_dict)
+        return data_hash
+
+    def get_data_cache_fullname(self, compress: bool = False):
+        """
+        Create a hash for the dataset, and use it to generate a file name
+
+        Parameters:
+            compress: Whether to compress the data
+
+        """
+        data_hash = self.get_data_hash()
+        ext = ".datacache"
+        if compress:
+            ext += ".gz"
+        data_cache_fullname = fs.join(self.cache_data_path, data_hash + ext)
+        return data_cache_fullname
+
+    def save_data_to_cache(self, verbose: bool = True, compress: bool = False) -> None:
+        """
+        Save the datasets from cache. First create a hash for the dataset, use it to
+        generate a file name. Then save to the path given by `self.cache_data_path`.
+
+        Parameters:
+            verbose: Whether to print the progress
+            compress: Whether to compress the data
+
+        """
+        full_cache_data_path = self.get_data_cache_fullname(compress=compress)
+
+        save_params = {
+            "single_task_datasets": self.single_task_datasets,
+            "task_train_indices": self.task_train_indices,
+            "task_val_indices": self.task_val_indices,
+            "task_test_indices": self.task_test_indices,
+        }
+
+        fs.mkdir(self.cache_data_path)
+        with fsspec.open(full_cache_data_path, mode="wb", compression="infer") as file:
+            if verbose:
+                logger.info(f"Saving the data to cache at path:\n`{full_cache_data_path}`")
+            now = time.time()
+            torch.save(save_params, file)
+            elapsed = round(time.time() - now)
+            if verbose:
+                logger.info(
+                    f"Successfully saved the data to cache in {elapsed}s at path: `{full_cache_data_path}`"
+                )
+
+    def load_data_from_cache(self, verbose: bool = True, compress: bool = False) -> bool:
+        """
+        Load the datasets from cache. First create a hash for the dataset, and verify if that
+        hash is available at the path given by `self.cache_data_path`.
+
+        Parameters:
+            verbose: Whether to print the progress
+            compress: Whether to compress the data
+
+        Returns:
+            cache_data_exists: Whether the cache exists (if the hash matches) and the loading succeeded
+        """
+        full_cache_data_path = self.get_data_cache_fullname(compress=compress)
+        cache_data_exists = fs.exists(full_cache_data_path)
+
+        if cache_data_exists:
+            try:
+                logger.info(f"Loading the data from cache at path `{full_cache_data_path}`")
+                now = time.time()
+                with fsspec.open(full_cache_data_path, mode="rb", compression="infer") as file:
+                    load_params = torch.load(file)
+                    self.__dict__.update(load_params)
+                    (
+                        self.train_singletask_datasets,
+                        self.val_singletask_datasets,
+                        self.test_singletask_datasets,
+                    ) = self.get_subsets_of_datasets(
+                        self.single_task_datasets,
+                        self.task_train_indices,
+                        self.task_val_indices,
+                        self.task_test_indices,
+                    )
+                elapsed = round(time.time() - now)
+                logger.info(
+                    f"Successfully loaded the data from cache in {elapsed}s at path: `{full_cache_data_path}`"
+                )
+                return True
+            except Exception as e:
+                if verbose:
+                    logger.warning(
+                        f"Data cache failed to load path: `{full_cache_data_path}`.\nThe data will be prepared and cache will be created for future runs."
+                    )
+                    logger.warning(e.__str__())
+                return False
+        else:
+            if verbose:
+                logger.info(
+                    f"Data cache not found at path: `{full_cache_data_path}`.\nThe data will be prepared and cache will be created for future runs."
+                )
+            return False
+
+    def get_subsets_of_datasets(
+        self,
+        single_task_datasets: Dict[str, SingleTaskDataset],
+        task_train_indices: Dict[str, Iterable],
+        task_val_indices: Dict[str, Iterable],
+        task_test_indices: Dict[str, Iterable],
+    ) -> Tuple[Subset, Subset, Subset]:
+        """
+        From a dictionary of datasets and their associated indices, subset the train/val/test sets
+        """
+        train_singletask_datasets = {}
+        val_singletask_datasets = {}
+        test_singletask_datasets = {}
+        for task in task_train_indices.keys():
+            train_singletask_datasets[task] = Subset(single_task_datasets[task], task_train_indices[task])
+            val_singletask_datasets[task] = Subset(single_task_datasets[task], task_val_indices[task])
+            test_singletask_datasets[task] = Subset(single_task_datasets[task], task_test_indices[task])
+        return train_singletask_datasets, val_singletask_datasets, test_singletask_datasets
 
     def __len__(self) -> int:
         r"""
