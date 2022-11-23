@@ -1463,7 +1463,6 @@ class FullGraphNetwork(nn.Module):
                 enc.update(new_pe_kw[key])
             kwargs["pe_encoders_kwargs"] = pe_kw
 
-
         # For the post-nn network, all the dimension are divided
         if self.post_nn is not None:
             kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(

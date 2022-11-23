@@ -90,7 +90,6 @@ class test_mup(ut.TestCase):
         model_2_lastreadout = FeedForwardNN(**base_2_lastreadout)
         model_2_lastreadout.forward(deepcopy(in_features))
 
-
     def test_feedforwardgraph_mup(self):
         kwargs = deepcopy(self.kwargs)
         in_dim_edges = kwargs["in_dim"]
@@ -136,7 +135,6 @@ class test_mup(ut.TestCase):
         model_2_lastreadout = FeedForwardPyg(**base_2_lastreadout)
         model_2_lastreadout.forward(deepcopy(in_features))
 
-
     def test_fullgraphnetwork(self):
 
         # Load the configuration file for the model
@@ -147,15 +145,12 @@ class test_mup(ut.TestCase):
         # Make fake graphs
         in_dim = 12
         in_dim_edges = 12
-        pe_indims = {"rw_pos/rwse": 16,
-                    "la_pos/eigvecs": 3,
-                    "la_pos/eigvals": 3}
+        pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3}
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
         in_features["feat"] = in_features["h"]
         in_features["edge_feat"] = in_features["edge_attr"]
         for key, dim in pe_indims.items():
             in_features[key] = torch.randn(in_features.num_nodes, dim)
-
 
         # Load the model
         kwargs = {}
@@ -219,7 +214,6 @@ class test_mup(ut.TestCase):
         model_1 = FullGraphNetwork(**kw_1)
         model_1.forward(deepcopy(in_features))
 
-
         # Test that the models with divide_factor=2 can be built run a forward pass
         kw_2["last_layer_is_readout"] = False
         model_2 = FullGraphNetwork(**kw_2)
@@ -227,9 +221,6 @@ class test_mup(ut.TestCase):
         kw_2["last_layer_is_readout"] = True
         model_2 = FullGraphNetwork(**kw_2)
         model_2.forward(deepcopy(in_features))
-
-
-
 
     def test_fullgraphmultitasknetwork(self):
 
@@ -241,9 +232,7 @@ class test_mup(ut.TestCase):
         # Make fake graphs
         in_dim = 12
         in_dim_edges = 12
-        pe_indims = {"rw_pos/rwse": 16,
-                    "la_pos/eigvecs": 3,
-                    "la_pos/eigvals": 3}
+        pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3}
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
         in_features["feat"] = in_features["h"]
         in_features["edge_feat"] = in_features["edge_attr"]
@@ -333,7 +322,6 @@ class test_mup(ut.TestCase):
         model_1 = FullGraphMultiTaskNetwork(**kw_1)
         model_1.forward(deepcopy(in_features))
 
-
         # Test that the models with divide_factor=2 can be built run a forward pass
         kw_2["last_layer_is_readout"] = False
         model_2 = FullGraphMultiTaskNetwork(**kw_2)
@@ -341,7 +329,6 @@ class test_mup(ut.TestCase):
         kw_2["last_layer_is_readout"] = True
         model_2 = FullGraphMultiTaskNetwork(**kw_2)
         model_2.forward(deepcopy(in_features))
-
 
 
 if __name__ == "__main__":
