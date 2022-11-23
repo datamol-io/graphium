@@ -891,7 +891,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
             h = self.first_normalization(h)
-        if self.first_normalization_edges is not None:
+        if (self.first_normalization_edges is not None) and (self.in_dim_edges > 0):
             e = self.first_normalization_edges(e)
 
         # Apply the forward loop of the layers, residuals and virtual nodes
@@ -1432,14 +1432,24 @@ class FullGraphNetwork(nn.Module):
             last_layer_is_readout=self.last_layer_is_readout,
             name=self.name,
         )
+
+        # For the pre-nn network, get the smaller dimensions.
+        # For the input dim, only divide the features coming from the pe-encoders
         if self.pre_nn is not None:
             kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=False
             )
+            pe_enc_outdim = 0 if self.pe_encoders is None else self.pe_encoders_kwargs["out_dim"]
+            pre_nn_indim = kwargs["pre_nn_kwargs"]["in_dim"] - pe_enc_outdim
+            kwargs["pre_nn_kwargs"]["in_dim"] = round(pre_nn_indim + (pe_enc_outdim / divide_factor))
+
+        # For the pre-nn on the edges, factor all dimensions, except the in_dim
         if self.pre_nn_edges is not None:
             kwargs["pre_nn_edges_kwargs"] = self.pre_nn_edges.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=False
             )
+
+        # For the pe-encoders, don't factor the in_dim and in_dim_edges
         if self.pe_encoders is not None:
             pe_kw = deepcopy(self.pe_encoders_kwargs)
             new_pe_kw = {
@@ -1452,10 +1462,15 @@ class FullGraphNetwork(nn.Module):
                 new_pe_kw[key].pop("in_dim_edges", None)
                 enc.update(new_pe_kw[key])
             kwargs["pe_encoders_kwargs"] = pe_kw
+
+
+        # For the post-nn network, all the dimension are divided
         if self.post_nn is not None:
             kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=True
             )
+
+        # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
             factor_in_dim = self.pre_nn is not None
             factor_in_dim_edges = self.pre_nn_edges is not None

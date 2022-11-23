@@ -5,9 +5,26 @@ Unit tests for the implementation of mup
 import unittest as ut
 from copy import deepcopy
 import torch.nn as nn
+import torch
 import yaml
 
+from torch_geometric.data import Batch, Data
+
 from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphNetwork, FullGraphMultiTaskNetwork
+
+
+def get_pyg_graphs(in_dim, in_dim_edges):
+    edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
+    edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
+    x1 = torch.randn(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
+    e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
+    x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
+    e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
+    g1 = Data(h=x1, edge_index=edge_idx1, edge_attr=e1)
+    g2 = Data(h=x2, edge_index=edge_idx2, edge_attr=e2)
+    bg = Batch.from_data_list([g1, g2])
+
+    return bg
 
 
 class test_mup(ut.TestCase):
@@ -60,9 +77,24 @@ class test_mup(ut.TestCase):
             else:
                 self.assertEqual(kwargs_2_lastreadout[key], base_2_lastreadout[key], msg=key)
 
-    def test_feedforwardgrapg_mup(self):
+        # Test that the models with divide_factor=1 can be built run a forward pass
+        in_features = torch.randn((10, kwargs["in_dim"]))
+        model_1 = FeedForwardNN(**base_1)
+        model_1.forward(deepcopy(in_features))
+        model_1_lastreadout = FeedForwardNN(**base_1_lastreadout)
+        model_1_lastreadout.forward(deepcopy(in_features))
+
+        # Test that the models with divide_factor=2 can be built run a forward pass
+        model_2 = FeedForwardNN(**base_2)
+        model_2.forward(deepcopy(in_features))
+        model_2_lastreadout = FeedForwardNN(**base_2_lastreadout)
+        model_2_lastreadout.forward(deepcopy(in_features))
+
+
+    def test_feedforwardgraph_mup(self):
         kwargs = deepcopy(self.kwargs)
-        kwargs.update(dict(layer_type="pyg:gin"))
+        in_dim_edges = kwargs["in_dim"]
+        kwargs.update(dict(layer_type="pyg:gine", in_dim_edges=in_dim_edges))
         model = FeedForwardPyg(**kwargs, last_layer_is_readout=False)
         model_lastreadout = FeedForwardPyg(**kwargs, last_layer_is_readout=True)
         base_1 = model.make_mup_base_kwargs(divide_factor=1)
@@ -91,6 +123,20 @@ class test_mup(ut.TestCase):
             else:
                 self.assertEqual(kwargs_2_lastreadout[key], base_2_lastreadout[key], msg=key)
 
+        # Test that the models with divide_factor=1 can be built run a forward pass
+        in_features = get_pyg_graphs(in_dim=kwargs["in_dim"], in_dim_edges=in_dim_edges)
+        model_1 = FeedForwardPyg(**base_1)
+        model_1.forward(deepcopy(in_features))
+        model_1_lastreadout = FeedForwardPyg(**base_1_lastreadout)
+        model_1_lastreadout.forward(deepcopy(in_features))
+
+        # Test that the models with divide_factor=2 can be built run a forward pass
+        model_2 = FeedForwardPyg(**base_2)
+        model_2.forward(deepcopy(in_features))
+        model_2_lastreadout = FeedForwardPyg(**base_2_lastreadout)
+        model_2_lastreadout.forward(deepcopy(in_features))
+
+
     def test_fullgraphnetwork(self):
 
         # Load the configuration file for the model
@@ -98,24 +144,35 @@ class test_mup(ut.TestCase):
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
 
+        # Make fake graphs
+        in_dim = 12
+        in_dim_edges = 12
+        pe_indims = {"rw_pos/rwse": 16,
+                    "la_pos/eigvecs": 3,
+                    "la_pos/eigvals": 3}
+        in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
+        in_features["feat"] = in_features["h"]
+        in_features["edge_feat"] = in_features["edge_attr"]
+        for key, dim in pe_indims.items():
+            in_features[key] = torch.randn(in_features.num_nodes, dim)
+
+
         # Load the model
         kwargs = {}
         for key, val in cfg["architecture"].items():
             if key in ["model_type", "task_heads", "mup_base_path"]:
                 continue
             kwargs[key + "_kwargs"] = val
-        kwargs["pre_nn_kwargs"]["in_dim"] = 5
-        kwargs["pre_nn_edges_kwargs"]["in_dim"] = 7
-        kwargs["pe_encoders_kwargs"]["in_dims"] = {
-            "rw_pos/rwse": 16,
-            "la_pos/eigvecs": 3,
-            "la_pos/eigvals": 3,
-        }
+        kwargs["pre_nn_kwargs"]["in_dim"] = in_dim + kwargs["pe_encoders_kwargs"]["out_dim"]
+        kwargs["pre_nn_edges_kwargs"]["in_dim"] = in_dim_edges
+        kwargs["pe_encoders_kwargs"]["in_dims"] = pe_indims
+
         model = FullGraphNetwork(**kwargs, last_layer_is_readout=True)
 
         kw_1 = model.make_mup_base_kwargs(divide_factor=1)
         kw_2 = model.make_mup_base_kwargs(divide_factor=2)
 
+        # Check the parameter sizes
         for key, elem in kw_1.items():
             if not isinstance(elem, dict):
                 continue
@@ -123,12 +180,13 @@ class test_mup(ut.TestCase):
                 if "dim" in subkey:
                     match = f"{key}:{subkey}"
                     if match in [
-                        "pre_nn_kwargs:in_dim",
                         "pre_nn_edges_kwargs:in_dim",
                         "post_nn_kwargs:out_dim",
                     ]:
                         # Constants
                         self.assertEqual(subelem, kw_2[key][subkey], msg=match)
+                    elif match in ["pre_nn_kwargs:in_dim"]:
+                        self.assertNotEqual(subelem, kw_2[key][subkey], msg=match)
                     elif match in [
                         "pre_nn_kwargs:out_dim",
                         "pre_nn_edges_kwargs:out_dim",
@@ -153,6 +211,26 @@ class test_mup(ut.TestCase):
                     else:
                         print(match)
 
+        # Test that the models with divide_factor=1 can be built run a forward pass
+        kw_1["last_layer_is_readout"] = False
+        model_1 = FullGraphNetwork(**kw_1)
+        model_1.forward(deepcopy(in_features))
+        kw_1["last_layer_is_readout"] = True
+        model_1 = FullGraphNetwork(**kw_1)
+        model_1.forward(deepcopy(in_features))
+
+
+        # Test that the models with divide_factor=2 can be built run a forward pass
+        kw_2["last_layer_is_readout"] = False
+        model_2 = FullGraphNetwork(**kw_2)
+        model_2.forward(deepcopy(in_features))
+        kw_2["last_layer_is_readout"] = True
+        model_2 = FullGraphNetwork(**kw_2)
+        model_2.forward(deepcopy(in_features))
+
+
+
+
     def test_fullgraphmultitasknetwork(self):
 
         # Load the configuration file for the model
@@ -160,33 +238,45 @@ class test_mup(ut.TestCase):
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
 
+        # Make fake graphs
+        in_dim = 12
+        in_dim_edges = 12
+        pe_indims = {"rw_pos/rwse": 16,
+                    "la_pos/eigvecs": 3,
+                    "la_pos/eigvals": 3}
+        in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
+        in_features["feat"] = in_features["h"]
+        in_features["edge_feat"] = in_features["edge_attr"]
+        for key, dim in pe_indims.items():
+            in_features[key] = torch.randn(in_features.num_nodes, dim)
+
         # Load the model
         kwargs = {}
         for key, val in cfg["architecture"].items():
             if key in ["model_type", "mup_base_path"]:
                 continue
             kwargs[key + "_kwargs"] = val
-        kwargs["pre_nn_kwargs"]["in_dim"] = 5
-        kwargs["pre_nn_edges_kwargs"]["in_dim"] = 7
-        kwargs["pe_encoders_kwargs"]["in_dims"] = {
-            "rw_pos/rwse": 16,
-            "la_pos/eigvecs": 3,
-            "la_pos/eigvals": 3,
-        }
+        kwargs["pre_nn_kwargs"]["in_dim"] = in_dim + kwargs["pe_encoders_kwargs"]["out_dim"]
+        kwargs["pre_nn_edges_kwargs"]["in_dim"] = in_dim_edges
+        kwargs["pe_encoders_kwargs"]["in_dims"] = pe_indims
+
         model = FullGraphMultiTaskNetwork(**kwargs, last_layer_is_readout=True)
 
         kw_1 = model.make_mup_base_kwargs(divide_factor=1)
         kw_2 = model.make_mup_base_kwargs(divide_factor=2)
 
+        # Check the parameter sizes
         for key, elem in kw_1.items():
             if not isinstance(elem, dict):
                 continue
             for subkey, subelem in elem.items():
                 if "dim" in subkey:
                     match = f"{key}:{subkey}"
-                    if match in ["pre_nn_kwargs:in_dim", "pre_nn_edges_kwargs:in_dim"]:
+                    if match in ["pre_nn_edges_kwargs:in_dim"]:
                         # Constants
                         self.assertEqual(subelem, kw_2[key][subkey], msg=match)
+                    elif match in ["pre_nn_kwargs:in_dim"]:
+                        self.assertNotEqual(subelem, kw_2[key][subkey], msg=match)
                     elif match in [
                         "pre_nn_kwargs:out_dim",
                         "pre_nn_edges_kwargs:out_dim",
@@ -234,6 +324,24 @@ class test_mup(ut.TestCase):
                             # Divide by 2 a list
                             new_list = [round(e / 2) for e in subsubelem]
                             self.assertListEqual(new_list, kw_2[key][subkey][subsubkey], msg=match)
+
+        # Test that the models with divide_factor=1 can be built run a forward pass
+        kw_1["last_layer_is_readout"] = False
+        model_1 = FullGraphMultiTaskNetwork(**kw_1)
+        model_1.forward(deepcopy(in_features))
+        kw_1["last_layer_is_readout"] = True
+        model_1 = FullGraphMultiTaskNetwork(**kw_1)
+        model_1.forward(deepcopy(in_features))
+
+
+        # Test that the models with divide_factor=2 can be built run a forward pass
+        kw_2["last_layer_is_readout"] = False
+        model_2 = FullGraphMultiTaskNetwork(**kw_2)
+        model_2.forward(deepcopy(in_features))
+        kw_2["last_layer_is_readout"] = True
+        model_2 = FullGraphMultiTaskNetwork(**kw_2)
+        model_2.forward(deepcopy(in_features))
+
 
 
 if __name__ == "__main__":
