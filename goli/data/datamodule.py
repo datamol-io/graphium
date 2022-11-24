@@ -1619,7 +1619,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
             if args.df is None:
-                df = self._read_csv(args.df_path, usecols=args.smiles_col)
+                df = self._read_csv(args.df_path, usecols=[args.smiles_col])
                 num_elements += len(df)
             else:
                 num_elements += len(args.df)
