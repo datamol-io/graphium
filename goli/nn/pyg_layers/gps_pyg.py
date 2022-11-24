@@ -4,7 +4,7 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 
 from copy import deepcopy
 from typing import Callable, Union, Optional
-
+import torch
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
