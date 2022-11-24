@@ -164,6 +164,6 @@ class PredictorModuleIPU(PredictorModule):
                 features[key] = features[key].squeeze(0)
 
         for key in labels:
-            labels[key] = labels[key].squeeze()
+            labels[key] = labels[key].squeeze(0)
 
         return features, labels
