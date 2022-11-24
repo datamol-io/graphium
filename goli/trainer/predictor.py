@@ -396,6 +396,7 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs["train/grad_norm"] = outputs["grad_norm"]
 
         if self.logger is not None:
+            concatenated_metrics_logs = {"loss": concatenated_metrics_logs["loss"]} # HACK
             self.logger.log_metrics(
                 concatenated_metrics_logs, step=self.global_step
             )  # This is a pytorch lightning function call
