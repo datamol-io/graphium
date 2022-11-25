@@ -403,6 +403,9 @@ class MultitaskDataset(Dataset):
 
 
 class BaseDataModule(pl.LightningDataModule):
+
+    molecule_column_name = "_rdkit_molecule_obj"
+
     def __init__(
         self,
         batch_size_training: int = 16,
@@ -533,15 +536,31 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_parquet(path, **kwargs):
-        df = pd.read_parquet(path)
+        df = pd.read_parquet(path, **kwargs)
         return df
 
     @staticmethod
-    def _read_table(self, path, **kwargs):
+    def _read_sdf(path, **kwargs):
+        kwargs.setdefault("sanitize", False)
+        kwargs.setdefault("mol_column", BaseDataModule.molecule_column_name)
+        kwargs.setdefault("include_private", True)
+        kwargs.setdefault("include_computed", True)
+        kwargs.setdefault("remove_hs", False)
+        kwargs.setdefault("n_jobs", -1)
+
+        df = dm.read_sdf(path, as_df=True)
+        return df
+
+    @staticmethod
+    def _read_table(path, **kwargs):
         if str(path).endswith((".parquet")):
-            return self._read_parquet(path)
+            return self._read_parquet(path, **kwargs)
+        elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
+            return self._read_csv(path, **kwargs)
+        elif (".sdf" in str(path)[-8:]):
+            return self._read_sdf(path, **kwargs)
         else:
-            return self._read_csv(path)
+            raise ValueError(f"unsupported file `{path}`")
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
