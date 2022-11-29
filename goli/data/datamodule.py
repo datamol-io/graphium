@@ -538,9 +538,22 @@ class BaseDataModule(pl.LightningDataModule):
         return df
 
     @staticmethod
+    def _get_table_columns(path):
+        if str(path).endswith((".parquet")):
+            mini_table = ParquetFile(path).head(nrows=20)
+        elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
+            mini_table = BaseDataModule._read_csv(path, sample_size=20)
+        elif (".sdf" in str(path)[-8:]):
+            mini_table = BaseDataModule._read_sdf(path, sample_size=20)
+        else:
+            raise ValueError(f"unsupported file `{path}`")
+
+        return list(mini_table.columns)
+
+    @staticmethod
     def _read_parquet(path, **kwargs):
         kwargs.pop("dtype", None) # Only useful for csv
-        schema = BaseDataModule._get_table_columns_schema(path)
+        schema = BaseDataModule._get_table_columns(path)
 
         # Change the 'usecols' parameter to 'columns'
         columns = kwargs.pop("columns", None)
@@ -586,14 +599,37 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_sdf(path, **kwargs):
+
+        # Set default arguments for reading the SDF
+        kwargs.setdefault("smiles_column", "smiles")
         kwargs.setdefault("sanitize", False)
-        kwargs.setdefault("mol_column", BaseDataModule.molecule_column_name)
         kwargs.setdefault("include_private", True)
         kwargs.setdefault("include_computed", True)
         kwargs.setdefault("remove_hs", False)
         kwargs.setdefault("n_jobs", -1)
+        kwargs.setdefault("max_num_mols", kwargs.pop("sample_size", None))
+        kwargs.setdefault("discard_invalid", False)
 
-        df = dm.read_sdf(path, as_df=True)
+        # Get the interesting columns
+        mol_cols = BaseDataModule.molecule_column_name
+        kwargs.setdefault("mol_column", mol_cols)
+        usecols = kwargs.pop("usecols", None)
+        dtype = kwargs.pop("dtype", None)
+        smiles_col = kwargs["smiles_column"]
+
+        # Read the SDF
+        df = dm.read_sdf(path, as_df=True, **kwargs)
+
+        # Keep only the columns needed
+        if usecols is not None:
+            df = df[usecols + [mol_cols]]
+
+        # Convert the dtypes
+        if dtype is not None:
+            label_columns = list(set(usecols) - set([mol_cols, smiles_col]))
+            dtype_mapper = {col: dtype for col in label_columns}
+            df.astype(dtype=dtype_mapper, copy=False)
+
         return df
 
     @staticmethod
@@ -1287,8 +1323,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            schema = self._get_table_columns_schema(df_path)
-            cols = list(schema.keys())
+            cols = self._get_table_columns(df_path)
         else:
             cols = list(df.columns)
 

@@ -263,7 +263,7 @@ def load_predictor(
     )
 
     # mup base shapes
-    mup_base_path = config["architecture"].pop("mup_base_path")
+    mup_base_path = config["architecture"].pop("mup_base_path", None)
     predictor = load_mup(mup_base_path, predictor)
 
     return predictor
