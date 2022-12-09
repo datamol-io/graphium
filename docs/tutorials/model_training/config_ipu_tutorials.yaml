@@ -238,12 +238,15 @@ predictor:
 metrics:
   homo:
     - name: mae
-      metric: mae
+      metric: mae_ipu
+      target_nan_mask: null
+      multitask_handling: flatten
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr
+      metric: pearsonr_ipu
       threshold_kwargs: null
-      # target_nan_mask: ignore-mean-label # AssertionError: Provided ignore-mean-label not in accepted_str=['ignore', 'none']
+      target_nan_mask: null
+      multitask_handling: mean-per-label
     # - name: f1 > 0.5
     #   metric: f1
     #   num_classes: 2
