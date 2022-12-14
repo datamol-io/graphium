@@ -14,10 +14,10 @@ def to_sparse_batch(x: Tensor, mask_idx: Tensor):
 
 def to_dense_batch(
     x: Tensor,
+    batch_size: int,
     batch: Optional[Tensor] = None,
     fill_value: float = 0.0,
     max_num_nodes_per_graph: Optional[int] = None,
-    batch_size: Optional[int] = None,
     drop_nodes_last_graph=False,
 ) -> Tuple[Tensor, Tensor]:
     r"""Given a sparse batch of node features
@@ -52,9 +52,6 @@ def to_dense_batch(
 
     if batch is None:
         batch = x.new_zeros(x.size(0), dtype=torch.long)
-
-    if batch_size is None:
-        batch_size = 6 # TODO should be determined from tensor shapes or passed as an argument
 
     num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
