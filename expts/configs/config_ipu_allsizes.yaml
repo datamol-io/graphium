@@ -99,7 +99,7 @@ architecture:
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    normalization: &normalization batch_norm
+    normalization: &normalization none
     last_normalization: *normalization
     residual_type: none
 
@@ -316,5 +316,5 @@ trainer:
     precision: 32
     max_epochs: 50 #50
     min_epochs: 1 #5
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 1
     num_sanity_val_steps: 2 # 2 -> default, 0 -> turn OFF
