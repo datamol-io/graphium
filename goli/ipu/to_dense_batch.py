@@ -86,7 +86,8 @@ def to_dense_batch(
     out[idx] = x
     out = out.view([batch_size, max_num_nodes_per_graph] + list(x.size())[1:])
 
-    mask = torch.zeros(batch_size * max_num_nodes_per_graph, dtype=torch.bool, device=x.device)
+    mask = torch.zeros(batch_size * max_num_nodes_per_graph, dtype=torch.bool, device='cpu')
+    mask = mask.to('ipu')
     mask[idx] = 1
     mask = mask.view(batch_size, max_num_nodes_per_graph)
 
