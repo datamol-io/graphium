@@ -45,4 +45,3 @@ wandb
 optuna
 google-cloud-storage
 mup
-#  pip install torch==1.10.0+cpu torchvision==0.11.0+cpu torch_scatter torch_sparse pytorch_lightning dgl  --find-links https://download.pytorch.org/whl/torch_stable.html
