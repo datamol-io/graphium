@@ -10,14 +10,16 @@
 *.cache
 *.ckpt
 *.pickle
+*.datacache
+*.datacache.gz
 lightning_logs/
 logs/
 models_checkpoints/
 outputs/
-out/
 saved_models/
 wandb/
 out/
+datacache/
 
 # Data and predictions
 goli/data/ZINC_bench_gnn/

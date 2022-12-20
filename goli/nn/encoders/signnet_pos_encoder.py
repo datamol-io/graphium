@@ -2,7 +2,7 @@
 SignNet https://arxiv.org/abs/2202.13013
 based on https://github.com/cptq/SignNet-BasisNet
 """
-from typing import Dict
+from typing import Dict, Any
 
 import torch
 import torch.nn as nn
@@ -217,6 +217,16 @@ class SignNetNodeEncoder(torch.nn.Module):
 
         # Parse the `on_keys`.
         self.on_keys = self.parse_on_keys(on_keys)
+        self.in_dim = in_dim
+        self.hidden_dim = hidden_dim
+        self.out_dim = out_dim
+        self.model_type = model_type
+        self.num_layers = num_layers
+        self.max_freqs = max_freqs
+        self.num_layers_post = num_layers_post
+        self.activation = activation
+        self.dropout = dropout
+        self.normalization = normalization
 
         if model_type not in ["MLP", "DeepSet"]:
             raise ValueError(f"Unexpected SignNet model {model_type}")
@@ -283,3 +293,27 @@ class SignNetNodeEncoder(torch.nn.Module):
         output = {"node": pos_enc}
 
         return output
+
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        return dict(
+            on_keys=self.on_keys,
+            in_dim=round(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
+            hidden_dim=round(self.hidden_dim / divide_factor),
+            out_dim=round(self.out_dim / divide_factor),
+            model_type=self.model_type,
+            num_layers=self.num_layers,
+            max_freqs=self.max_freqs,
+            num_layers_post=self.num_layers_post,
+            activation=self.activation,
+            dropout=self.dropout,
+            normalization=self.normalization,
+        )

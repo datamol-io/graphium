@@ -1,14 +1,19 @@
-from torch import Tensor, nn
-import torch
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
+
+# Misc imports
 import inspect
 from copy import deepcopy
 
+# Torch imports
+from torch import Tensor, nn
+import torch
+import mup
 from dgl import DGLGraph
 from torch_geometric.data import Data
 
+# goli imports
 from goli.nn.base_layers import FCLayer, get_activation, get_norm
-from goli.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionWeighted,
@@ -43,6 +48,7 @@ class FeedForwardNN(nn.Module):
         name: str = "LNN",
         layer_type: Union[str, nn.Module] = "fc",
         layer_kwargs: Optional[Dict] = None,
+        last_layer_is_readout: bool = False,
     ):
         r"""
         A flexible neural network architecture, with variable hidden dimensions,
@@ -123,6 +129,9 @@ class FeedForwardNN(nn.Module):
             layer_kwargs:
                 The arguments to be used in the initialization of the layer provided by `layer_type`
 
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
         """
 
         super().__init__()
@@ -147,6 +156,7 @@ class FeedForwardNN(nn.Module):
         self.residual_skip_steps = residual_skip_steps
         self.layer_kwargs = layer_kwargs if layer_kwargs is not None else {}
         self.name = name
+        self.last_layer_is_readout = last_layer_is_readout
 
         # Parse the layer and residuals
         from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
@@ -232,10 +242,15 @@ class FeedForwardNN(nn.Module):
 
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
+            other_kwargs = {}
+            sig = inspect.signature(self.layer_class)
+            key_args = [p.name for p in sig.parameters.values()]
             if ii == self.depth - 1:
                 this_activation = self.last_activation
                 this_norm = self.last_normalization
                 this_dropout = self.last_dropout
+                if self.last_layer_is_readout and ("is_readout_layer" in key_args):
+                    other_kwargs["is_readout_layer"] = self.last_layer_is_readout
 
             # Create the layer
             self.layers.append(
@@ -246,6 +261,7 @@ class FeedForwardNN(nn.Module):
                     dropout=this_dropout,
                     normalization=this_norm,
                     **self.layer_kwargs,
+                    **other_kwargs,
                 )
             )
 
@@ -283,6 +299,50 @@ class FeedForwardNN(nn.Module):
 
         return h
 
+    def get_init_kwargs(self) -> Dict[str, Any]:
+        """
+        Get a dictionary that can be used to instanciate a new object with identical parameters.
+        """
+        return deepcopy(
+            dict(
+                in_dim=self.in_dim,
+                out_dim=self.out_dim,
+                hidden_dims=self.hidden_dims,
+                depth=None,
+                activation=self.activation,
+                last_activation=self.last_activation,
+                dropout=self.dropout,
+                last_dropout=self.last_dropout,
+                normalization=self.normalization,
+                first_normalization=self.first_normalization,
+                last_normalization=self.last_normalization,
+                residual_type=self.residual_type,
+                residual_skip_steps=self.residual_skip_steps,
+                name=self.name,
+                layer_type=self.layer_class,
+                layer_kwargs=self.layer_kwargs,
+                last_layer_is_readout=self.last_layer_is_readout,
+            )
+        )
+
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        kwargs = self.get_init_kwargs()
+        kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
+        if factor_in_dim:
+            kwargs["in_dim"] = round(kwargs["in_dim"] / divide_factor)
+        if not self.last_layer_is_readout:
+            kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+        return kwargs
+
     def __repr__(self):
         r"""
         Controls how the class is printed
@@ -298,7 +358,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self,
         in_dim: int,
         out_dim: int,
-        hidden_dims: List[int],
+        hidden_dims: Union[List[int], int],
         layer_type: Union[str, nn.Module],
         depth: Optional[int] = None,
         activation: Union[str, Callable] = "relu",
@@ -316,6 +376,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
+        last_layer_is_readout: bool = False,
     ):
         r"""
         **Astract class, must be inherited to override the following methods:**
@@ -453,6 +514,9 @@ class FeedForwardGraphBase(FeedForwardNN):
                 is "none". Otherwise, it will use a simple ResNet like residual
                 connection.
 
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
         """
 
         # Initialize the additional attributes
@@ -472,7 +536,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.pooling = pooling
 
         self.virtual_node_class = self._parse_virtual_node_class()
-        self.first_normalization_edges = get_norm(first_normalization, dim=in_dim_edges)
 
         # Initialize the parent `FeedForwardNN`
         super().__init__(
@@ -492,7 +555,10 @@ class FeedForwardGraphBase(FeedForwardNN):
             dropout=dropout,
             last_dropout=last_dropout,
             layer_kwargs=layer_kwargs,
+            last_layer_is_readout=last_layer_is_readout,
         )
+
+        self.first_normalization_edges = get_norm(first_normalization, dim=in_dim_edges)
 
     def _check_bad_arguments(self):
         r"""
@@ -550,9 +616,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         # Create all the layers in a loop
         for ii in range(self.depth):
             this_out_dim = self.full_dims[ii + 1]
-
-            if ii == self.depth - 1:
-                this_activation = self.last_activation
 
             # Find the edge key-word arguments depending on the layer type and residual connection
             this_edge_kwargs = {}
@@ -614,9 +677,10 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.out_linear = FCLayer(
             in_dim=out_pool_dim,
             out_dim=self.out_dim,
-            activation="none",
-            dropout=self.dropout,
-            normalization=self.normalization,
+            activation=self.last_activation,
+            dropout=self.last_dropout,
+            normalization=self.last_normalization,
+            is_readout_layer=self.last_layer_is_readout,
         )
 
     def _pool_layer_forward(self, g, h):
@@ -827,7 +891,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
             h = self.first_normalization(h)
-        if self.first_normalization_edges is not None:
+        if (self.first_normalization_edges is not None) and (self.in_dim_edges > 0):
             e = self.first_normalization_edges(e)
 
         # Apply the forward loop of the layers, residuals and virtual nodes
@@ -887,6 +951,44 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
         return g
 
+    def get_init_kwargs(self) -> Dict[str, Any]:
+        """
+        Get a dictionary that can be used to instanciate a new object with identical parameters.
+        """
+        kwargs = super().get_init_kwargs()
+        new_kwargs = dict(
+            in_dim_edges=self.in_dim_edges,
+            hidden_dims_edges=self.hidden_dims_edges,
+            pooling=self.pooling,
+            virtual_node=self.virtual_node,
+        )
+        kwargs.update(new_kwargs)
+        return deepcopy(kwargs)
+
+    def make_mup_base_kwargs(
+        self, divide_factor: float = 2.0, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension for the nodes
+            factor_in_dim: Whether to factor the input dimension for the edges
+        """
+        kwargs = self.get_init_kwargs()
+        kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
+        kwargs["hidden_dims_edges"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
+        if factor_in_dim:
+            kwargs["in_dim"] = round(kwargs["in_dim"] / divide_factor)
+        if factor_in_dim_edges:
+            kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
+        if not self.last_layer_is_readout:
+            kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+        return kwargs
+
     def __repr__(self):
         r"""
         Controls how the class is printed
@@ -908,6 +1010,7 @@ class FullGraphNetwork(nn.Module):
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
+        last_layer_is_readout: bool = False,
         name: str = "DGL_GNN",
     ):
         r"""
@@ -949,6 +1052,9 @@ class FullGraphNetwork(nn.Module):
                 this parameter is ignored.
                 NOTE: The inference time will be slowed-down proportionaly to this parameter.
 
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -957,9 +1063,11 @@ class FullGraphNetwork(nn.Module):
         super().__init__()
         self.name = name
         self.num_inference_to_average = num_inference_to_average
+        self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
 
+        self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
@@ -981,6 +1089,9 @@ class FullGraphNetwork(nn.Module):
         # Initialize the graph neural net (applied after the pre_nn)
         name = gnn_kwargs.pop("name", "GNN")
         gnn_class = self._parse_feed_forward_gnn(gnn_kwargs)
+        gnn_kwargs.setdefault(
+            "last_layer_is_readout", self.last_layer_is_readout and (post_nn_kwargs is None)
+        )
         self.gnn = gnn_class(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
 
@@ -988,6 +1099,7 @@ class FullGraphNetwork(nn.Module):
         if post_nn_kwargs is not None:
             name = post_nn_kwargs.pop("name", "post-NN")
             post_nn_kwargs.setdefault("in_dim", next_in_dim)
+            post_nn_kwargs.setdefault("last_layer_is_readout", self.last_layer_is_readout)
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
 
@@ -1040,6 +1152,9 @@ class FullGraphNetwork(nn.Module):
                     )
 
                 # Initialize the pe_encoder layer
+                pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
+                if pe_out_dim2 is not None:
+                    assert pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
                 pe_encoders[encoder_name] = encoder(out_dim=pe_out_dim, **this_in_dims, **encoder_kwargs)
 
         return pe_encoders
@@ -1298,22 +1413,73 @@ class FullGraphNetwork(nn.Module):
             value = [value]
         self._concat_last_layers = value
 
-    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
-        Set the maximum number of nodes and edges for all gnn layers
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
 
-        Parameters:
-            max_nodes: Maximum number of nodes in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-
-            max_edges: Maximum number of edges in the dataset.
-                This will be useful for certain architecture, but ignored by others.
+        Parameter:
+            divide_factor: Factor by which to divide the width.
         """
+        kwargs = dict(
+            gnn_kwargs=None,
+            pre_nn_kwargs=None,
+            pre_nn_edges_kwargs=None,
+            pe_encoders_kwargs=None,
+            post_nn_kwargs=None,
+            num_inference_to_average=self.num_inference_to_average,
+            last_layer_is_readout=self.last_layer_is_readout,
+            name=self.name,
+        )
+
+        # For the pre-nn network, get the smaller dimensions.
+        # For the input dim, only divide the features coming from the pe-encoders
+        if self.pre_nn is not None:
+            kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(
+                divide_factor=divide_factor, factor_in_dim=False
+            )
+            pe_enc_outdim = 0 if self.pe_encoders is None else self.pe_encoders_kwargs["out_dim"]
+            pre_nn_indim = kwargs["pre_nn_kwargs"]["in_dim"] - pe_enc_outdim
+            kwargs["pre_nn_kwargs"]["in_dim"] = round(pre_nn_indim + (pe_enc_outdim / divide_factor))
+
+        # For the pre-nn on the edges, factor all dimensions, except the in_dim
+        if self.pre_nn_edges is not None:
+            kwargs["pre_nn_edges_kwargs"] = self.pre_nn_edges.make_mup_base_kwargs(
+                divide_factor=divide_factor, factor_in_dim=False
+            )
+
+        # For the pe-encoders, don't factor the in_dim and in_dim_edges
+        if self.pe_encoders is not None:
+            pe_kw = deepcopy(self.pe_encoders_kwargs)
+            new_pe_kw = {
+                key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
+                for key, encoder in self.pe_encoders.items()
+            }
+            pe_kw["out_dim"] = round(pe_kw["out_dim"] / divide_factor)
+            for key, enc in pe_kw["encoders"].items():
+                new_pe_kw[key].pop("in_dim", None)
+                new_pe_kw[key].pop("in_dim_edges", None)
+                enc.update(new_pe_kw[key])
+            kwargs["pe_encoders_kwargs"] = pe_kw
+
+        # For the post-nn network, all the dimension are divided
+        if self.post_nn is not None:
+            kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(
+                divide_factor=divide_factor, factor_in_dim=True
+            )
+
+        # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
-            for layer in self.gnn.layers:
-                if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = max_nodes
-                    layer.max_num_edges_per_graph = max_edges
+            factor_in_dim = self.pre_nn is not None
+            factor_in_dim_edges = self.pre_nn_edges is not None
+            kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(
+                divide_factor=divide_factor,
+                factor_in_dim=factor_in_dim,
+                factor_in_dim_edges=factor_in_dim_edges,
+            )
+
+        return kwargs
 
     def __repr__(self) -> str:
         r"""
@@ -1370,71 +1536,39 @@ class FullGraphNetwork(nn.Module):
         return self.gnn.out_linear.linear.weight.dtype
 
 
-class FullGraphSiameseNetwork(FullGraphNetwork):
-    def __init__(self, pre_nn_kwargs, gnn_kwargs, post_nn_kwargs, dist_method, name="Siamese_DGL_GNN"):
-
-        # Initialize the parent nn.Module
-        super().__init__(
-            pre_nn_kwargs=pre_nn_kwargs,
-            gnn_kwargs=gnn_kwargs,
-            post_nn_kwargs=post_nn_kwargs,
-            name=name,
-        )
-
-        self.dist_method = dist_method.lower()
-
-    def forward(self, graphs):
-        graph_1, graph_2 = graphs
-
-        out_1 = super().forward(graph_1)
-        out_2 = super().forward(graph_2)
-
-        if self.dist_method == "manhattan":
-            # Normalized L1 distance
-            out_1 = out_1 / torch.mean(out_1.abs(), dim=-1, keepdim=True)
-            out_2 = out_2 / torch.mean(out_2.abs(), dim=-1, keepdim=True)
-            dist = torch.abs(out_1 - out_2)
-            out = torch.mean(dist, dim=-1)
-
-        elif self.dist_method == "euclidean":
-            # Normalized Euclidean distance
-            out_1 = out_1 / torch.norm(out_1, dim=-1, keepdim=True)
-            out_2 = out_2 / torch.norm(out_2, dim=-1, keepdim=True)
-            out = torch.norm(out_1 - out_2, dim=-1)
-        elif self.dist_method == "cosine":
-            # Cosine distance
-            out = torch.sum(out_1 * out_2, dim=-1) / (torch.norm(out_1, dim=-1) * torch.norm(out_2, dim=-1))
-        else:
-            raise ValueError(f"Unsupported `dist_method`: {self.dist_method}")
-
-        return out
-
-
 class TaskHeads(nn.Module):
     def __init__(
         self,
         in_dim: int,
-        task_heads_kwargs_list: List[Dict[str, Any]],
+        task_heads_kwargs: Dict[str, Any],
+        last_layer_is_readout: bool = True,
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
         Parameters:
             in_dim:
                 Input feature dimensions of the layer
-            task_heads_kwargs_list:
+            task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to
                 initialize a task-specific MLP.
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
         """
 
         super().__init__()
 
         self.in_dim = in_dim
-        task_heads_kwargs_list = deepcopy(task_heads_kwargs_list)
+        self.last_layer_is_readout = last_layer_is_readout
+        task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.task_heads = nn.ModuleDict()
-        for head_kwargs in task_heads_kwargs_list:
-            task_name = head_kwargs.pop("task_name")
-            head_kwargs.setdefault("name", f"NN_{task_name}")
+        for task_name, head_kwargs in task_heads_kwargs.items():
+            head_kwargs.setdefault("name", f"NN-{task_name}")
+            head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)
+            head_in_dim = head_kwargs.pop("in_dim", None)
+            if head_in_dim is not None:
+                assert self.in_dim == head_in_dim, f"Inconsistent input dim {self.in_dim} != {head_in_dim}"
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
     # Return a dictionary: Dict[task_name, Tensor]
@@ -1446,10 +1580,27 @@ class TaskHeads(nn.Module):
 
         return task_head_outputs
 
-    def __repr__(self):
-        task_repr = []
-        for head in self.task_heads:
-            task_repr.append(head.__repr__())
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
+        """
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
+
+        Parameter:
+            divide_factor: Factor by which to divide the width.
+            factor_in_dim: Whether to factor the input dimension
+        """
+        task_heads_kwargs = {}
+        for task_name, task_nn in self.task_heads.items():
+            task_heads_kwargs[task_name] = task_nn.make_mup_base_kwargs(
+                divide_factor=divide_factor, factor_in_dim=factor_in_dim
+            )
+        kwargs = dict(
+            in_dim=self.in_dim,
+            last_layer_is_readout=self.last_layer_is_readout,
+            task_heads_kwargs=task_heads_kwargs,
+        )
+        return kwargs
 
     @property
     def out_dim(self) -> Dict[str, int]:
@@ -1457,6 +1608,12 @@ class TaskHeads(nn.Module):
         Returns the output dimension of each task head
         """
         return {task_name: head.out_dim for task_name, head in self.task_heads.items()}
+
+    def __repr__(self):
+        task_repr = []
+        for head, net in self.task_heads.items():
+            task_repr.append(head + ": " + net.__repr__())
+        return "\n".join(task_repr)
 
 
 class FullGraphMultiTaskNetwork(FullGraphNetwork):
@@ -1471,13 +1628,14 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
     def __init__(
         self,
-        task_heads_kwargs_list: List[Dict[str, Any]],
+        task_heads_kwargs: Dict[str, Any],
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
+        last_layer_is_readout: bool = False,
         name: str = "Multitask_GNN",
     ):
         r"""
@@ -1489,7 +1647,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
         Parameters:
 
-            task_heads_kwargs_list:
+            task_heads_kwargs:
                 This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
                 initialize a task-specific MLP.
 
@@ -1522,6 +1680,9 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 this parameter is ignored.
                 NOTE: The inference time will be slowed-down proportionaly to this parameter.
 
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -1534,10 +1695,16 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             pe_encoders_kwargs=pe_encoders_kwargs,
             post_nn_kwargs=post_nn_kwargs,
             num_inference_to_average=num_inference_to_average,
+            last_layer_is_readout=False,
             name=name,
         )
+        self.last_layer_is_readout = last_layer_is_readout
 
-        self.task_heads = TaskHeads(in_dim=super().out_dim, task_heads_kwargs_list=task_heads_kwargs_list)
+        self.task_heads = TaskHeads(
+            in_dim=super().out_dim,
+            task_heads_kwargs=task_heads_kwargs,
+            last_layer_is_readout=last_layer_is_readout,
+        )
 
     def forward(self, g: Union[DGLGraph, Data]):
         h = super().forward(g)
@@ -1550,27 +1717,23 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         """
         return self.task_heads.out_dim
 
-    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
-        Set the maximum number of nodes and edges for all gnn layers
+        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
+        The base model is usually identical to the regular model, but with the
+        layers width divided by a given factor (2 by default)
 
-        Parameters:
-            max_nodes: Maximum number of nodes in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-
-            max_edges: Maximum number of edges in the dataset.
-                This will be useful for certain architecture, but ignored by others.
+        Parameter:
+            divide_factor: Factor by which to divide the width.
         """
-        super().set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
-        for task_head in self.task_heads.task_heads.values():
-            for layer in task_head.layers:
-                if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = max_nodes
-                    layer.max_num_edges_per_graph = max_edges
+        kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor)
+        kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(
+            divide_factor=divide_factor, factor_in_dim=True
+        )["task_heads_kwargs"]
+        return kwargs
 
     def __repr__(self):
-        parent_str = super().__repr__()
-        tasks_str = self.task_heads.task_heads.__repr__()
-        tasks_str = "    " + "    ".join(tasks_str.splitlines(True))
-        return parent_str + tasks_str
+        task_str = self.task_heads.__repr__()
+        task_str = "    Task heads:\n    " + "    ".join(task_str.splitlines(True))
 
+        return super().__repr__() + task_str

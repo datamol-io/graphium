@@ -1,26 +1,32 @@
-from typing import Callable, Dict, Mapping, Type, Union, Any, Optional, List, Tuple
+from typing import Callable, Dict, Mapping, Type, Union, Any
 
+# Misc
+import os
 import omegaconf
 from copy import deepcopy
-import torch
 from loguru import logger
+import yaml
+import joblib
 
+# Torch
+import torch
+import mup
+
+# Lightning
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from goli.ipu.ipu_dataloader import IPUDataloaderOptions
+from pytorch_lightning.loggers import WandbLogger, LightningLoggerBase
 
+# Goli
+from goli.utils.mup import set_base_shapes
+from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullGraphSiameseNetwork, FullGraphMultiTaskNetwork
+from goli.nn.architectures import FullGraphNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
-from goli.ipu.ipu_wrapper import PredictorModuleIPU, DictIPUStrategy
+from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
-from goli.trainer.loggers import WandbLoggerGoli
-from goli.data.datamodule import BaseDataModule
-
-# Weights and Biases
-from pytorch_lightning import Trainer
-from pytorch_lightning.strategies import IPUStrategy
+from goli.data.datamodule import MultitaskFromSmilesDataModule
 
 
 def get_accelerator(
@@ -65,53 +71,6 @@ def get_accelerator(
     if acc_type is None:
         acc_type = "cpu"
     return acc_type
-
-
-def get_max_num_nodes_edges_datamodule(datamodule: BaseDataModule, stages: Optional[List[str]] = None) -> Tuple[int, int]:
-    """
-    Get the maximum number of nodes and edges across all datasets from the datamodule
-
-    Parameters:
-        datamodule: The datamodule from which to extract the maximum number of nodes
-        stages: The stages from which to extract the max num nodes.
-            Possible values are ["train", "val", "test", "predict"].
-            If None, all stages are considered.
-
-    Returns:
-        max_num_nodes: The maximum number of nodes across all datasets from the datamodule
-        max_num_edges: The maximum number of edges across all datasets from the datamodule
-    """
-
-    allowed_stages = ["train", "val", "test", "predict"]
-    if stages is None:
-        stages = allowed_stages
-    for stage in stages:
-        assert stage in allowed_stages, f"stage value `{stage}` not allowed."
-
-    max_nodes, max_edges = [], []
-    # Max number of nodes/edges in the training dataset
-    if (datamodule.train_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.train_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.train_ds.max_num_edges_per_graph)
-
-    # Max number of nodes/edges in the validation dataset
-    if (datamodule.val_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.val_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.val_ds.max_num_edges_per_graph)
-
-    # Max number of nodes/edges in the test dataset
-    if (datamodule.test_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.test_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.test_ds.max_num_edges_per_graph)
-
-    # Max number of nodes/edges in the predict dataset
-    if (datamodule.predict_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.predict_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.predict_ds.max_num_edges_per_graph)
-
-    max_num_nodes = max(max_nodes)
-    max_num_edges = max(max_edges)
-    return max_num_nodes, max_num_edges
 
 
 def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "goli.datamodule.BaseDataModule":
@@ -218,9 +177,6 @@ def load_architecture(
     model_type = cfg_arch["model_type"].lower()
     if model_type == "fulldglnetwork":
         model_class = FullGraphNetwork
-    elif model_type == "fulldglsiamesenetwork":
-        model_class = FullGraphSiameseNetwork
-        kwargs["dist_method"] = cfg_arch["dist_method"]
     elif model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork
     else:
@@ -264,12 +220,7 @@ def load_architecture(
         gnn_kwargs.setdefault("in_dim_edges", in_dims["edge_feat"])
 
     # Set the parameters for the full network
-    task_head_params_list = []
-    for params in omegaconf.OmegaConf.to_object(
-        task_heads_kwargs
-    ):  # This turns the ListConfig into List[TaskHeadParams]
-        params_dict = dict(params)
-        task_head_params_list.append(params_dict)
+    task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
     # Set all the input arguments for the model
     model_kwargs = dict(
@@ -278,7 +229,7 @@ def load_architecture(
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
         post_nn_kwargs=post_nn_kwargs,
-        task_heads_kwargs_list=task_head_params_list,
+        task_heads_kwargs=task_heads_kwargs,
     )
 
     return model_class, model_kwargs
@@ -297,6 +248,7 @@ def load_predictor(
     Returns:
         predictor: The predictor module
     """
+
     if get_accelerator(config) == "ipu":
         predictor_class = PredictorModuleIPU
     else:
@@ -310,7 +262,30 @@ def load_predictor(
         **cfg_pred,
     )
 
+    # mup base shapes
+    mup_base_path = config["architecture"].pop("mup_base_path")
+    predictor = load_mup(mup_base_path, predictor)
+
     return predictor
+
+
+def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
+    """
+    Load the base shapes for the mup, based either on a `.ckpt` or `.yaml` file.
+    If `.yaml`, it should be generated by `mup.save_base_shapes`
+    """
+    if mup_base_path is None:
+        model = predictor.model
+        base = model.__class__(**model.make_mup_base_kwargs(divide_factor=2))
+    elif mup_base_path.endswith(".ckpt"):
+        base = predictor.__class__.load_from_checkpoint(mup_base_path, map_location="cpu")
+    elif mup_base_path.endswith(".yaml"):
+        base = mup_base_path
+    else:
+        raise ValueError(f"Unrecognized file type {mup_base_path}")
+    predictor.model = set_base_shapes(predictor.model, base, rescale_params=False)
+    return predictor
+
 
 def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str) -> Trainer:
     """
@@ -324,7 +299,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    strategy = None
+    plugins = []
     accelerator = get_accelerator(config)
     ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
@@ -334,7 +309,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
-        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
+        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available
     _ = cfg_trainer["trainer"].pop("accelerator", None)
@@ -365,20 +340,51 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     # Define the logger parameters
     if "logger" in cfg_trainer.keys():
-        wandb_logger = WandbLoggerGoli(name=run_name, project="multitask-gnn", full_configs=config)
+        wandb_logger = WandbLogger(name=run_name, project="multitask-gnn")
         trainer_kwargs["logger"] = wandb_logger
 
     trainer_kwargs["callbacks"] = callbacks
 
     trainer = Trainer(
         detect_anomaly=True,
+        plugins=plugins,
         accelerator=accelerator,
         ipus=ipus,
         gpus=gpus,
-        strategy=strategy,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
 
-
     return trainer
+
+
+def save_params_to_wandb(
+    logger: LightningLoggerBase,
+    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    predictor: PredictorModule,
+    datamodule: MultitaskFromSmilesDataModule,
+):
+    """
+    Save a few stuff to weights-and-biases WandB
+    Parameters:
+        logger: The object used to log the training. Usually WandbLogger
+        config: The config file, with key `trainer`
+        predictor: The predictor used to handle the train/val/test steps logic
+        datamodule: The datamodule used to load the data into training
+    """
+
+    # Save the mup base model to WandB as a yaml file
+    mup.save_base_shapes(predictor.model, "mup_base_params.yaml")
+
+    # Save the full configs as a YAML file
+    with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
+        yaml.dump(config, file)
+
+    # Save the featurizer into wandb
+    featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
+    joblib.dump(datamodule.smiles_transformer, featurizer_path)
+
+    wandb_run = logger.experiment
+    if wandb_run is not None:
+        wandb_run.save("*.yaml")
+        wandb_run.save("*.pickle")

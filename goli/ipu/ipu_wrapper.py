@@ -91,7 +91,6 @@ class PyGArgsParser(poptorch.ICustomArgParser):
 
         return cls(**kwargs)
 
-
 # PyG uses the BaseData object as the root for data and batch objects
 poptorch.registerCustomArgParser(BaseData, PyGArgsParser())
 

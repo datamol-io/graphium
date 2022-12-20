@@ -4,6 +4,10 @@ import torch
 import pandas as pd
 
 import goli
+from goli.utils.fs import mkdir, rm, exists, get_size
+
+
+TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
 
 class Test_DataModule(ut.TestCase):
@@ -147,6 +151,70 @@ class Test_DataModule(ut.TestCase):
             self.assertIs(df_shuffled_2["str"].tolist() == filtered_str, bool_to_check, msg=msg)
             self.assertIs(series_num_shuffled_2.tolist() == filtered_num, bool_to_check, msg=msg)
 
+    def test_caching(self):
+
+        # other datasets are too large to be tested
+        dataset_name = "ogbg-molfreesolv"
+
+        # Setup the featurization
+        featurization_args = {}
+        featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
+        featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
+        featurization_args["edge_property_list"] = ["bond-type-onehot"]
+        featurization_args["add_self_loop"] = False
+        featurization_args["use_bonds_weights"] = False
+        featurization_args["explicit_H"] = False
+
+        # Config for datamodule
+        task_specific_args = {}
+        task_specific_args["task_1"] = {"dataset_name": dataset_name}
+        dm_args = {}
+        dm_args["featurization"] = featurization_args
+        dm_args["batch_size_training"] = 16
+        dm_args["batch_size_inference"] = 16
+        dm_args["num_workers"] = 0
+        dm_args["pin_memory"] = True
+        dm_args["featurization_n_jobs"] = 16
+        dm_args["featurization_progress"] = True
+        dm_args["featurization_backend"] = "loky"
+
+        # Delete the cache if already exist
+        if exists(TEMP_CACHE_DATA_PATH):
+            rm(TEMP_CACHE_DATA_PATH, recursive=True)
+
+        # Prepare the data. It should create the cache there
+        assert not exists(TEMP_CACHE_DATA_PATH)
+        ds = goli.data.GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
+        assert not ds.load_data_from_cache(verbose=False)
+        ds.prepare_data()
+        ds.setup()
+
+        # Make sure that the cache is created
+        full_cache_path = ds.get_data_cache_fullname(compress=False)
+        assert exists(full_cache_path)
+        assert get_size(full_cache_path) > 10000
+
+        # Check that the data is loaded correctly from cache
+        assert ds.load_data_from_cache(verbose=False)
+
+        # test module
+        assert ds.num_edge_feats == 5
+        assert ds.num_node_feats == 50
+        assert len(ds) == 642
+
+        # test dataset
+        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
+
+        # test batch loader
+        batch = next(iter(ds.train_dataloader()))
+        assert len(batch["smiles"]) == 16
+        assert len(batch["labels"]["task_1"]) == 16
+        assert len(batch["mol_ids"]) == 16
+
 
 if __name__ == "__main__":
     ut.main()
+
+    # Delete the cache
+    if exists(TEMP_CACHE_DATA_PATH):
+        rm(TEMP_CACHE_DATA_PATH, recursive=True)

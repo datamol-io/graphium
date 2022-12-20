@@ -5,7 +5,6 @@ from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
 from loguru import logger
-from torch import Tensor
 
 import torch
 from torch_geometric.data import Data, Batch, Dataset
@@ -124,7 +123,7 @@ class CombinedBatchingCollator:
 
         # Sort the batch such that large graphs are paired with small graphs
         num_nodes = [b["features"].num_nodes for b in batch]
-        packed_indices = smart_packing(num_nodes, batch_size=self.batch_size)
+        packed_indices = hybrid_packing(num_nodes, batch_size=self.batch_size)
         packs = [[batch[idx] for idx in pack] for pack in packed_indices]
 
         # Loop all mini-batches within the global batch
@@ -140,7 +139,7 @@ class CombinedBatchingCollator:
                 dataset_max_edges_per_graph=self.dataset_max_edges_per_graph,
             )
 
-            local_batch["features"] = transform(local_batch["features"])
+            local_batch["features"], local_batch["_types_conversion"] = transform(local_batch["features"])
             all_batches.append(local_batch)
 
         out_batch = {}
@@ -158,16 +157,11 @@ class CombinedBatchingCollator:
 
         # TODO: Make this more robust, instead of hard-coding the keys
         out_batch["features"] = stacked_features
-        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int32).unsqueeze(-1)
+        out_batch["_types_conversion"] = [this_batch["_types_conversion"] for this_batch in all_batches]
+        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int64).unsqueeze(-1)
         for key in all_batches[0].keys():
             if key not in ("features", "labels", "_types_conversion"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
-
-        for data_key, data_val in out_batch.items():
-            if isinstance(data_val, Batch):
-                for sub_key, sub_val in data_val.items():
-                    if isinstance(sub_val, Tensor) and sub_val.dtype == torch.int64:
-                        out_batch[data_key][sub_key] = sub_val.to(torch.int32)
 
         return out_batch
 
@@ -378,7 +372,33 @@ class Pad(BaseTransform):
         if "num_nodes" in new_batch:
             new_batch.num_nodes = self.max_num_nodes
 
-        return new_batch
+        new_batch.dataset_max_nodes_per_graph = torch.as_tensor(
+            [self.dataset_max_nodes_per_graph], dtype=torch.int32
+        )
+        new_batch.dataset_max_edges_per_graph = torch.as_tensor(
+            [self.dataset_max_edges_per_graph], dtype=torch.int32
+        )
+
+        # Convert integer types to smaller integers for faster transfer of data to IPUs
+        _types_conversion = {}
+        int_types = [torch.int16, torch.int32, torch.int64]
+        for key, val in new_batch.items():
+            if isinstance(val, torch.Tensor) and (val.dtype in int_types[1:]):
+                for this_int_type in int_types:
+                    if (val.max() <= torch.iinfo(this_int_type).max) and (
+                        val.min() >= torch.iinfo(this_int_type).min
+                    ):
+                        _types_conversion[key] = val.dtype
+                        new_batch[key] = val.to(this_int_type)
+                        break
+
+        # Convert float types to smaller floats for faster transfer of data to IPUs
+        float_types = [torch.float16, torch.float32, torch.float64]
+        for key, val in new_batch.items():
+            if isinstance(val, torch.Tensor) and (val.dtype in float_types[1:]):
+                new_batch[key] = val.to(torch.float16)
+
+        return new_batch, _types_conversion
 
     def __repr__(self) -> str:
         s = f"{self.__class__.__name__}("
@@ -445,6 +465,7 @@ def smart_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     """
     Simple and fast algorithm for packing graphs such that each batch has roughly the
     same number of atoms.
+    Has for-loop scalability issues `O(num_graphs * ipu_batch_size)` = `O(num_graphs^2 / batch_size)`
 
     Parameters:
         num_nodes: List of the number of atoms per molecule for the entire global batch.
@@ -480,12 +501,122 @@ def smart_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     # Loop from smallest to largest molecule, and add each molecule to the pack with smallest expected sum
     for ii, num_atom in enumerate(sorted_num_nodes):
         remaining_mean = reverse_cumsum[ii] / (len(sorted_num_nodes) - ii)
-        idx_max_average = np.argmax(
-            [m.expected_atoms(remaining_mean, batch_size) * (m.num_graphs < batch_size) for m in mol_batches]
-        )
-        mol_batches[idx_max_average].add_mol(num_atom, argsort_num_nodes[ii])
+        max_expected, idx_max_expected = 0, 0
+        for jj, m in enumerate(mol_batches):
+            if m.num_graphs >= batch_size:
+                continue
+            expected = m.num_nodes + (
+                (batch_size - m.num_graphs) * remaining_mean
+            )  # Faster than calling m.expected_atoms
+            if expected > max_expected:
+                max_expected = expected
+                idx_max_expected = jj
+        mol_batches[idx_max_expected].add_mol(num_atom, argsort_num_nodes[ii])
 
     packed_indices = [batch.indices for batch in mol_batches]
+
+    return packed_indices
+
+
+def fast_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
+    """
+    Super fast algorithm for packing graphs such that each batch has roughly the
+    same number of atoms. Not as good as `smart_packing` but
+    faster and more scalable for-loop complexity of `O(batch_size)`.
+
+    Parameters:
+        num_nodes: List of the number of atoms per molecule for the entire global batch.
+            Must be of length `batch_size * ipu_batch_size`.
+
+        batch_size: The batch size per iteration, considering a single device and single
+            forward pass.
+            The global batch size is `batch_size * device_iterations * replication_factor * gradient_accumulation`
+
+    Returns:
+        packed_indices: A list of packs, each containing a list of indices, such that
+            if we collect `num_nodes` from the indices, then each pack has roughly the
+            same total number of atoms.
+    """
+    num_nodes = np.asarray(num_nodes)
+    argsort_num_nodes = np.argsort(num_nodes)
+    ipu_batch_size = int(len(num_nodes) / batch_size)
+
+    groups = []
+    for ii in range(batch_size):
+        group = argsort_num_nodes[ii * ipu_batch_size : (ii + 1) * ipu_batch_size]
+        np.random.shuffle(group)
+        groups.append(group)
+
+    packed_indices = np.stack(groups, axis=1).tolist()
+    return packed_indices
+
+
+def hybrid_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
+    """
+    Uses a combination of the `smart_packing` `O(n^2)` on the most important data points,
+    and the `fast_packing` `O(n)` on the average-sized data points.
+
+    Depending on the expected complexity
+
+    Parameters:
+        num_nodes: List of the number of atoms per molecule for the entire global batch.
+            Must be of length `batch_size * ipu_batch_size`.
+
+        batch_size: The batch size per iteration, considering a single device and single
+            forward pass.
+            The global batch size is `batch_size * device_iterations * replication_factor * gradient_accumulation`
+
+    Returns:
+        packed_indices: A list of packs, each containing a list of indices, such that
+            if we collect `num_nodes` from the indices, then each pack has roughly the
+            same total number of atoms.
+    """
+
+    # Determine the parameters based on the complexity of the smart-packing.
+    # The bigger the complexity, the more the `fast_packing` algorithm becomes
+    # statistically powerful, and the more speed benefits it provides.
+    smart_packing_complexity = len(num_nodes) ** 2 / batch_size
+    if smart_packing_complexity < 1e4:
+        return smart_packing(num_nodes=num_nodes, batch_size=batch_size)
+    elif smart_packing_complexity < 1e6:
+        big, small = 3, 6
+    elif smart_packing_complexity < 1e8:
+        big, small = 2, 4
+    elif smart_packing_complexity < 1e10:
+        big, small = 1, 2
+    else:
+        return fast_packing(num_nodes=num_nodes, batch_size=batch_size)
+
+    # Small datasets benefit from smart-packing, without compute burden
+    ipu_batch_size = int(len(num_nodes) / batch_size)
+    if len(num_nodes) < (big + small) * ipu_batch_size:
+        return smart_packing(num_nodes=num_nodes, batch_size=batch_size)
+
+    # Sort the list
+    num_nodes = np.asarray(num_nodes)
+    argsort_num_nodes = np.argsort(num_nodes)
+
+    # Smallest and biggest graphs are often outliers and will benefit from the `smart_packing`
+    biggest_graphs = argsort_num_nodes[-big * ipu_batch_size :]
+    smallest_graphs = argsort_num_nodes[: small * ipu_batch_size]
+    big_n_small_graphs = np.concatenate([biggest_graphs, smallest_graphs])
+    big_n_small_packs = smart_packing(num_nodes[big_n_small_graphs], batch_size=big + small)
+    big_n_small_indices = [big_n_small_graphs[pack] for pack in big_n_small_packs]
+    big_n_small_nodes = [num_nodes[pack] for pack in big_n_small_indices]
+
+    # Medium graphs will be packed faster
+    medium_graphs = argsort_num_nodes[small * ipu_batch_size : -big * ipu_batch_size]
+    medium_packs = fast_packing(num_nodes[medium_graphs], batch_size=batch_size - big - small)
+    medium_indices = [medium_graphs[pack] for pack in medium_packs]
+    medium_nodes = [num_nodes[pack] for pack in medium_indices]
+
+    # Pack the big/small with the medium in a smart way
+    big_n_small_sort = np.argsort(np.sum(np.stack(big_n_small_nodes, axis=1), axis=0))
+    medium_sort = np.argsort(np.sum(np.stack(medium_nodes, axis=1), axis=0))
+    packed_indices = [
+        np.concatenate([medium_indices[medium_sort[ii]], big_n_small_indices[big_n_small_sort[-ii]]])
+        for ii in range(len(medium_indices))
+    ]
 
     return packed_indices
 
@@ -524,7 +655,7 @@ def estimate_max_pack_node_size(num_nodes: Iterable[int], batch_size: int, combi
         this_indices = rand_indices[ii : ii + combined_batch_size]
         choice = num_nodes[this_indices]
         if len(choice) == combined_batch_size:
-            packed_indices = smart_packing(choice, batch_size)
+            packed_indices = hybrid_packing(choice, batch_size)
             max_pack_size = max(max_pack_size, max(get_pack_sizes(packed_indices, num_nodes[this_indices])))
     max_pack_size_per_graph = max_pack_size / batch_size
 
