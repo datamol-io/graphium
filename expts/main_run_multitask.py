@@ -16,8 +16,7 @@ from goli.config._loader import (
     load_metrics,
     load_architecture,
     load_predictor,
-    load_trainer,
-    save_params_to_wandb,
+    load_trainer
 )
 from goli.utils.safe_run import SafeRun
 
@@ -62,7 +61,6 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     logger.info(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg, run_name)
-    save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
 
     datamodule.prepare_data()
     # Run the model training
