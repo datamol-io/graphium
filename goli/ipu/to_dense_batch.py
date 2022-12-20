@@ -19,7 +19,7 @@ def to_dense_batch(
     fill_value: float = 0.0,
     max_num_nodes_per_graph: Optional[int] = None,
     drop_nodes_last_graph=False,
-) -> Tuple[Tensor, Tensor]:
+) -> Tuple[Tensor, Tensor, Tensor]:
     r"""Given a sparse batch of node features
     :math:`\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}` (with
     :math:`N_i` indicating the number of nodes in graph :math:`i`), creates a
@@ -44,7 +44,7 @@ def to_dense_batch(
         drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
             the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
 
-    :rtype: (:class:`Tensor`, :class:`BoolTensor`)
+    :rtype: (:class:`Tensor`, :class:`BoolTensor`, :class:`IntTensor`)
     """
     if batch is None and max_num_nodes_per_graph is None:
         mask = torch.ones(1, x.size(0), dtype=torch.bool, device=x.device)
@@ -86,7 +86,8 @@ def to_dense_batch(
     out[idx] = x
     out = out.view([batch_size, max_num_nodes_per_graph] + list(x.size())[1:])
 
-    mask = torch.zeros(batch_size * max_num_nodes_per_graph, dtype=torch.bool, device=x.device)
+    mask = torch.zeros(batch_size * max_num_nodes_per_graph, dtype=torch.bool, device='cpu')
+    mask = mask.to('ipu')
     mask[idx] = 1
     mask = mask.view(batch_size, max_num_nodes_per_graph)
 
