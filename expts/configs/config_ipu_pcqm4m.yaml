@@ -13,6 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
+        #url for full set http://ogb-data.stanford.edu/data/lsc/pcqm4m-v2-train.sdf.tar.gz
         # df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
         df_path: &df_path goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.sdf.zip
         smiles_col: "smiles"
