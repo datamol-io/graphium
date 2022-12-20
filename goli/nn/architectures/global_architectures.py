@@ -54,52 +54,38 @@ class FeedForwardNN(nn.Module):
         A flexible neural network architecture, with variable hidden dimensions,
         support for multiple layer types, and support for different residual
         connections.
-
         Parameters:
-
             in_dim:
                 Input feature dimensions of the layer
-
             out_dim:
                 Output feature dimensions of the layer
-
             hidden_dims:
                 Either an integer specifying all the hidden dimensions,
                 or a list of dimensions in the hidden layers.
                 Be careful, the "simple" residual type only supports
                 hidden dimensions of the same value.
-
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
                 hidden layers to use. If `hidden_dims` is a `list`, `depth` must
                 be `None`.
-
             activation:
                 activation function to use in the hidden layers.
-
             last_activation:
                 activation function to use in the last layer.
-
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
-
             last_dropout:
                 The ratio of units to dropout for the last_layer. Must be between 0 and 1
-
             normalization:
                 Normalization to use. Choices:
-
                 - "none" or `None`: No normalization
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
-
             first_normalization:
                 Whether to use batch normalization **before** the first layer
-
             last_normalization:
                 Whether to use batch normalization in the last layer
-
             residual_type:
                 - "none": No residual connection
                 - "simple": Residual connection similar to the ResNet architecture.
@@ -111,27 +97,21 @@ class FeedForwardNN(nn.Module):
                 - "densenet": Residual connection where the residual of all previous layers
                   are concatenated. This leads to a strong increase in the number of parameters
                   if there are multiple hidden layers.
-
             residual_skip_steps:
                 The number of steps to skip between each residual connection.
                 If `1`, all the layers are connected. If `2`, half of the
                 layers are connected.
-
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
-
             layer_type:
                 The type of layers to use in the network.
                 Either "fc" as the `FCLayer`, or a class representing the `nn.Module`
                 to use.
-
             layer_kwargs:
                 The arguments to be used in the initialization of the layer provided by `layer_type`
-
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
         """
 
         super().__init__()
@@ -227,7 +207,6 @@ class FeedForwardNN(nn.Module):
         Create all the necessary layers for the network.
         It's a bit complicated to explain what's going on in this function,
         but it must manage the varying features sizes caused by:
-
         - The presence of different types of residual connections
         """
 
@@ -271,19 +250,14 @@ class FeedForwardNN(nn.Module):
     def forward(self, h: torch.Tensor) -> torch.Tensor:
         r"""
         Apply the neural network on the input features.
-
         Parameters:
-
             h: `torch.Tensor[..., Din]`:
                 Input feature tensor, before the network.
                 `Din` is the number of input features
-
         Returns:
-
             `torch.Tensor[..., Dout]`:
                 Output feature tensor, after the network.
                 `Dout` is the number of output features
-
         """
         h_prev = None
 
@@ -330,7 +304,6 @@ class FeedForwardNN(nn.Module):
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
-
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
@@ -387,59 +360,43 @@ class FeedForwardGraphBase(FeedForwardNN):
         - `_get_edge_feats`
         - `_set_node_feats`
         - `_set_edge_feats`
-
         A flexible neural network architecture, with variable hidden dimensions,
         support for multiple layer types, and support for different residual
         connections.
-
         This class is meant to work with different graph neural networks
         layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
         or `goli.nn.base_graph_layer.BaseGraphLayer`.
-
         Parameters:
-
             in_dim:
                 Input feature dimensions of the layer
-
             out_dim:
                 Output feature dimensions of the layer
-
             hidden_dims:
                 List of dimensions in the hidden layers.
                 Be careful, the "simple" residual type only supports
                 hidden dimensions of the same value.
-
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
                 hidden layers to use. If `hidden_dims` is a `list`, `depth` must
                 be `None`.
-
             activation:
                 activation function to use in the hidden layers.
-
             last_activation:
                 activation function to use in the last layer.
-
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
-
             last_dropout:
                 The ratio of units to dropout for the last layer. Must be between 0 and 1
-
             normalization:
                 Normalization to use. Choices:
-
                 - "none" or `None`: No normalization
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
-
             first_normalization:
                 Whether to use batch normalization **before** the first layer
-
             last_normalization:
                 Whether to use batch normalization in the last layer
-
             residual_type:
                 - "none": No residual connection
                 - "simple": Residual connection similar to the ResNet architecture.
@@ -451,27 +408,22 @@ class FeedForwardGraphBase(FeedForwardNN):
                 - "densenet": Residual connection where the residual of all previous layers
                   are concatenated. This leads to a strong increase in the number of parameters
                   if there are multiple hidden layers.
-
             residual_skip_steps:
                 The number of steps to skip between each residual connection.
                 If `1`, all the layers are connected. If `2`, half of the
                 layers are connected.
-
             in_dim_edges:
                 Input edge-feature dimensions of the network. Keep at 0 if not using
                 edge features, or if the layer doesn't support edges.
-
             hidden_dims_edges:
                 Hidden dimensions for the edges. Most models don't support it, so it
                 should only be used for those that do, i.e. `GatedGCNLayer`
-
             pooling:
                 The pooling types to use. Multiple pooling can be used, and their
                 results will be concatenated.
                 For node feature predictions, use `["none"]`.
                 For graph feature predictions see `goli.nn.dgl_layers.pooling.parse_pooling_layer`.
                 The list must either contain Callables, or the string below
-
                 - "none": No pooling is applied
                 - "sum": `SumPooling`
                 - "mean": `MeanPooling`
@@ -479,16 +431,13 @@ class FeedForwardGraphBase(FeedForwardNN):
                 - "min": `MinPooling`
                 - "std": `StdPooling`
                 - "s2s": `Set2Set`
-
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
-
             layer_type:
                 The type of layers to use in the network.
                 A class that inherits from `goli.nn.dgl_layers.BaseDGLLayer`,
                 or one of the following strings
-
                 - "dgl:gcn": GCNDgl
                 - "dgl:gin": GINDgl
                 - "dgl:gat": GATDgl
@@ -501,22 +450,17 @@ class FeedForwardGraphBase(FeedForwardNN):
                 - "pyg:gine": GINEConvPyg
                 - "pyg:gated-gcn": GatedGCNPyg
                 - "pyg:pna-msgpass": PNAMessagePassingPyg
-
             layer_kwargs:
                 The arguments to be used in the initialization of the layer provided by `layer_type`
-
             virtual_node:
                 A string associated to the type of virtual node to use,
                 either `None`, "none", "mean", "sum", "max", "logsum".
                 See `goli.nn.dgl_layers.VirtualNode`.
-
                 The virtual node will not use any residual connection if `residual_type`
                 is "none". Otherwise, it will use a simple ResNet like residual
                 connection.
-
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
         """
 
         # Initialize the additional attributes
@@ -573,7 +517,6 @@ class FeedForwardGraphBase(FeedForwardNN):
     def _parse_virtual_node_class(self) -> type:
         r"""
         Virtual method to parse the VirtualNode class. Must be inherited.
-
         Should simply return the class of the virtual node that works
         with the specified graph. Example below.
         `return goli.nn.dgl_layers.pooling_dgl.VirtualNodeDgl`.
@@ -585,7 +528,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         Create all the necessary layers for the network.
         It's a bit complicated to explain what's going on in this function,
         but it must manage the varying features sizes caused by:
-
         - The presence of different types of residual connections
         - The presence or absence of edges
         - The output dimensions varying for different networks i.e. `GatLayer` outputs different feature sizes according to the number of heads
@@ -686,23 +628,17 @@ class FeedForwardGraphBase(FeedForwardNN):
     def _pool_layer_forward(self, g, h):
         r"""
         Apply the graph pooling layer, followed by the linear output layer.
-
         Parameters:
-
             g: dgl.DGLGraph
                 graph on which the convolution is done
-
             h (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the output size of the last DGL layer
-
         Returns:
-
             torch.Tensor[..., M, Din] or torch.Tensor[..., N, Din]:
                 Node feature tensor, after convolution.
                 `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
                 If the pooling is `None`, the dimension is `N`, otherwise it is `M`
-
         """
 
         if len(self.global_pool_layer) > 0:
@@ -727,52 +663,36 @@ class FeedForwardGraphBase(FeedForwardNN):
         r"""
         Apply the *i-th* graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.
-
         Then, the residual is also applied on both the features and the edges (if applicable)
-
         **This function is virtual, so it needs to be implemented by the child class.**
-
         Parameters:
-
             layer:
                 The layer used for the convolution
-
             g:
                 batched graphs on which the convolution is done
-
             h (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
-
             e (torch.Tensor[..., N, Ein]):
                 Edge feature tensor, before convolution.
                 `N` is the number of nodes, `Ein` is the input edge features
-
             h_prev:
                 Node feature of the previous residual connection, or `None`
-
             e_prev:
                 Edge feature of the previous residual connection, or `None`
-
             step_idx:
                 The current step idx in the forward loop
-
         Returns:
-
             h (torch.Tensor[..., N, Dout]):
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
-
             e:
                 Edge feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Ein` is the input edge features
-
             h_prev:
                 Node feature tensor to be used at the next residual connection, or `None`
-
             e_prev:
                 Edge feature tensor to be used at the next residual connection, or `None`
-
         """
 
         raise NotImplementedError("Virtual method must be overwritten by child class")
@@ -783,15 +703,11 @@ class FeedForwardGraphBase(FeedForwardNN):
         r"""
         Return the pooling layer
         **This function is virtual, so it needs to be implemented by the child class.**
-
         Parameters:
-
             in_dim:
                 The dimension at the input layer of the pooling
-
             pooling:
                 The list of pooling layers to use. The accepted strings are:
-
                 - "sum": `SumPooling`
                 - "mean": `MeanPooling`
                 - "max": `MaxPooling`
@@ -799,14 +715,11 @@ class FeedForwardGraphBase(FeedForwardNN):
                 - "std": `StdPooling`
                 - "s2s": `Set2Set`
                 - "dir{int}": `DirPooling`
-
             kwargs:
                 Kew-word arguments for the pooling layer initialization
-
         Return:
             pool_layer: Pooling layer module
             out_pool_dim: Output dimension of the pooling layer
-
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
@@ -815,34 +728,25 @@ class FeedForwardGraphBase(FeedForwardNN):
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
-
         Parameters:
-
             g:
                 graph on which the convolution is done
-
             h (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
-
             vn_h (torch.Tensor[..., M, Din]):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features
                 It is added to the result after the MLP, as a residual connection
-
             step_idx:
                 The current step idx in the forward loop
-
         Returns:
-
             `h = torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
-
             `vn_h = torch.Tensor[..., M, Dout]`:
                 Graph feature tensor to be used at the next virtual node, or `None`
                 `M` is the number of graphs, `Dout` is the output features
-
         """
 
         if step_idx == 0:
@@ -855,30 +759,22 @@ class FeedForwardGraphBase(FeedForwardNN):
     def forward(self, g) -> torch.Tensor:
         r"""
         Apply the full graph neural network on the input graph and node features.
-
         Parameters:
-
             g:
                 batched graphs on which the convolution is done with the keys:
-
                 - `"h"`: torch.Tensor[..., N, Din]
                   Node feature tensor, before convolution.
                   `N` is the number of nodes, `Din` is the input features
-
                 - `"edge_attr"` (torch.Tensor[..., N, Ein]):
                   Edge feature tensor, before convolution.
                   `N` is the number of nodes, `Ein` is the input edge features
-
-
         Returns:
-
             `torch.Tensor[..., M, Dout]` or `torch.Tensor[..., N, Dout]`:
                 Node or graph feature tensor, after the network.
                 `N` is the number of nodes, `M` is the number of graphs,
                 `Dout` is the output dimension ``self.out_dim``
                 If the `self.pooling` is [`None`], then it returns node features and the output dimension is `N`,
                 otherwise it returns graph features and the output dimension is `M`
-
         """
 
         # Initialize values of the residuals and virtual node
@@ -909,7 +805,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         Get the node features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
-
         Parameters:
             g: graph
             key: key associated to the node features
@@ -920,7 +815,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         Get the edge features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
-
         Parameters:
             g: graph
             key: key associated to the edge features
@@ -931,7 +825,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         Set the node features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
-
         Parameters:
             g: graph
             key: key associated to the node features
@@ -943,7 +836,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         """
         Set the edge features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
-
         Parameters:
             g: graph
             key: key associated to the edge features
@@ -972,7 +864,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
-
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension for the nodes
@@ -1016,45 +907,35 @@ class FullGraphNetwork(nn.Module):
         r"""
         Class that allows to implement a full graph neural network architecture,
         including the pre-processing MLP and the post processing MLP.
-
         Parameters:
-
             gnn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
                 GNN network using the class `FeedForwardDGL`.
                 It must respect the following criteria:
-
                 - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
                 - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
-
             pe_encoders_kwargs:
                 key-word arguments to use for the initialization of all positional encoding encoders
                 can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)
-
             pre_nn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
                 MLP network of the node features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
-
             pre_nn_edges_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
                 MLP network of the edge features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
-
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a post-processing MLP.
-
             num_inference_to_average:
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
                 by positional encodings with sign-flips. In case no such encoding is given,
                 this parameter is ignored.
                 NOTE: The inference time will be slowed-down proportionaly to this parameter.
-
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -1106,7 +987,6 @@ class FullGraphNetwork(nn.Module):
     def _initialize_positional_encoders(self, pe_encoders_kwargs: Dict[str, Any]) -> Optional[nn.ModuleDict]:
         """
         Initialize the positional encoders for each positional/structural encodings.
-
         TODO: Currently only supports PE/SE on the nodes. Need to add edges.
         """
         pe_encoders = None
@@ -1211,10 +1091,8 @@ class FullGraphNetwork(nn.Module):
     def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
         r"""
         Remove the last layers of the model. Useful for Transfer Learning.
-
         Parameters:
             num_layers_to_drop: The number of layers to drop from the `self.post_nn` network.
-
         """
 
         assert num_layers_to_drop >= 0
@@ -1226,10 +1104,8 @@ class FullGraphNetwork(nn.Module):
     def extend_post_nn_layers(self, layers: nn.ModuleList):
         r"""
         Add layers at the end of the model. Useful for Transfer Learning.
-
         Parameters:
             layers: A ModuleList of all the layers to extend
-
         """
 
         assert isinstance(layers, nn.ModuleList)
@@ -1242,34 +1118,26 @@ class FullGraphNetwork(nn.Module):
         r"""
         Apply the pre-processing neural network, the graph neural network,
         and the post-processing neural network on the graph features.
-
         Parameters:
-
             g:
                 graph on which the convolution is done.
                 Must contain the following elements:
-
                 - Node key `"feat"`: `torch.Tensor[..., N, Din]`.
                   Input node feature tensor, before the network.
                   `N` is the number of nodes, `Din` is the input features dimension ``self.pre_nn.in_dim``
-
                 - Edge key `"edge_feat"`: `torch.Tensor[..., N, Ein]` **Optional**.
                   The edge features to use. It will be ignored if the
                   model doesn't supporte edge features or if
                   `self.in_dim_edges==0`.
-
                 - Other keys related to positional encodings `"pos_enc_feats_sign_flip"`,
                   `"pos_enc_feats_no_flip"`.
-
         Returns:
-
             `torch.Tensor[..., M, Dout]` or `torch.Tensor[..., N, Dout]`:
                 Node or graph feature tensor, after the network.
                 `N` is the number of nodes, `M` is the number of graphs,
                 `Dout` is the output dimension ``self.post_nn.out_dim``
                 If the `self.gnn.pooling` is [`None`], then it returns node features and the output dimension is `N`,
                 otherwise it returns graph features and the output dimension is `M`
-
         """
 
         return self._forward(g)
@@ -1331,14 +1199,11 @@ class FullGraphNetwork(nn.Module):
         """
         Forward pass for the positional encodings (PE) on the nodes,
         with each PE having it's own encoder defined in `self.pe_encoders`.
-
         Parameters:
             g: graph containing the node positional encodings
-
         Returns:
             pe_node_pooled: The positional / structural encodings go through
             encoders, then are pooled together
-
         """
 
         # Return None if no positional encoders
@@ -1387,9 +1252,7 @@ class FullGraphNetwork(nn.Module):
         Property to control the output of the `self.forward`.
         If set to a list of integer, the `forward` function will
         concatenate the output of different layers.
-
         If set to `None`, the output of the last layer is returned.
-
         NOTE: The indexes are inverted. 0 is the last layer, 1 is the second last, etc.
         """
         return self._concat_last_layers
@@ -1401,11 +1264,8 @@ class FullGraphNetwork(nn.Module):
         If set to a list of integer, the `forward` function will
         concatenate the output of different layers.
         If a single integer is provided, it will output that specific layer.
-
         If set to `None`, the output of the last layer is returned.
-
         NOTE: The indexes are inverted. 0 is the last layer, 1 is the second last, etc.
-
         Parameters:
             value: Output layers to concatenate, in reverse order (`0` is the last layer)
         """
@@ -1418,7 +1278,6 @@ class FullGraphNetwork(nn.Module):
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
-
         Parameter:
             divide_factor: Factor by which to divide the width.
         """
@@ -1554,7 +1413,6 @@ class TaskHeads(nn.Module):
                 initialize a task-specific MLP.
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
         """
 
         super().__init__()
@@ -1585,7 +1443,6 @@ class TaskHeads(nn.Module):
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
-
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
@@ -1620,9 +1477,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
     """
     Class that allows to implement a full multi-task graph neural network architecture,
     including the pre-processing MLP, post-processing MLP and the task-specific heads.
-
     In this model, the tasks share a full DGL network as a "trunk", and then they have task-specific MLPs.
-
     Each molecular graph is associated with a variety of tasks, so the network should output the task-specific preedictions for a graph.
     """
 
@@ -1641,48 +1496,37 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         r"""
         Class that allows to implement a full multi-task graph neural network architecture,
         including the pre-processing MLP, post-processing MLP and the task-specific heads.
-
         In this model, the tasks share a full DGL network as a "trunk", and additionally have task-specific MLPs.
         Each molecular graph is associated with a variety of tasks, so the network outputs the task-specific preedictions for a graph.
-
         Parameters:
-
             task_heads_kwargs:
                 This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
                 initialize a task-specific MLP.
-
             gnn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
                 GNN network using the class `FeedForwardDGL`.
                 It must respect the following criteria:
-
                 - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
                 - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
-
             pre_nn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
                 MLP network of the node features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
-
             pre_nn_edges_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
                 MLP network of the edge features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
-
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a post-processing MLP.
-
             num_inference_to_average:
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
                 by positional encodings with sign-flips. In case no such encoding is given,
                 this parameter is ignored.
                 NOTE: The inference time will be slowed-down proportionaly to this parameter.
-
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -1722,7 +1566,6 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
-
         Parameter:
             divide_factor: Factor by which to divide the width.
         """
