@@ -87,7 +87,7 @@ def to_dense_batch(
 
     # Create a zero-mask on the right device
     mask_sz = batch_size * max_num_nodes_per_graph
-    if x.device.type in ("ipu", "xla"):
+    if x.device.type in ("ipu", "xla"): # Either ipu device or JIT-compiled code
         mask = torch.zeros(mask_sz, dtype=torch.bool, device='cpu')
         mask = mask.to(x.device)
     else:
