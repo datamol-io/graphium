@@ -47,22 +47,6 @@ def write_csv(cxs, homos, fname):
             writer.writerow({'cxsmiles': cxs[i], 'homo_lumo_gap': homos[i]})
 
 
-
-# def write_smiles(smis, homos, fname):
-#     '''
-#     #* write the validation and test set smiles to file
-#     simply write the smiles in place of cxsmiles and leave homo_lumo_gap empty
-#     '''
-#     outname = fname + ".csv"
-#     fieldnames = ['cxsmiles', 'homo_lumo_gap']
-#     with open(outname, 'w') as outfile:
-#         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
-#         for i in range(len(smis)):
-#             writer.writerow({'cxsmiles': smis[i], 'homo_lumo_gap': homos[i]})
-
-
-
-
 def sdf2csv(fname):
     '''
     #* function converting sdf file molecules into csv format using CXSmiles
@@ -86,10 +70,6 @@ def sdf2csv(fname):
     for j in range(len(mols), len(dataset)):
         cxs.append(dataset[j][0])
         homos.append(dataset[j][1])
-    
-    print ("there are " + str(len(cxs)) + " molecules")
-    print ("there are " + str(len(homos)) + " homo lumo gaps")
-    print ("write to file now")
     
     write_csv(cxs, homos, fname)
 
