@@ -6,31 +6,37 @@ from ogb.lsc import PCQM4Mv2Dataset
 from goli.data.datamodule import BaseDataModule
 import csv
 
-#*extract sdf from zip
 def extract_zip(fname):
+    '''
+    #* extract sdf from zip    
+    '''
     zf = zipfile.ZipFile(fname)
     zf.extractall(".")
 
-
-
-#* load sdf into mols  
 def extract_mols_from_sdf(fname):
+    '''
+    #* load sdf into mols  
+    '''
     mol_df = BaseDataModule._read_sdf(fname)
     mols = mol_df['_rdkit_molecule_obj']
-    #smiles = mol_df['smiles']
-    #dm.unique_id(mol) #checking the unique id of mols
     return mols
 
 
 
 def mols2cxs(mols):
+    '''
     #* convert into a smiles that contains the 3D structure
+    '''
     cxs = []
     for mol in mols:
         cxs.append(dm.to_smiles(mol, cxsmiles=True))
     return cxs
 
 def write_csv(cxs, homos, fname):
+    '''
+    #* write cxsmiles and homo lomo to file
+    write the training molecules with cxsmiles first
+    '''
     outname = fname + ".csv"
     fieldnames = ['cxsmiles', 'homo_lumo_gap']
 
@@ -42,12 +48,26 @@ def write_csv(cxs, homos, fname):
 
 
 
+# def write_smiles(smis, homos, fname):
+#     '''
+#     #* write the validation and test set smiles to file
+#     simply write the smiles in place of cxsmiles and leave homo_lumo_gap empty
+#     '''
+#     outname = fname + ".csv"
+#     fieldnames = ['cxsmiles', 'homo_lumo_gap']
+#     with open(outname, 'w') as outfile:
+#         writer = csv.DictWriter(outfile, fieldnames=fieldnames)
+#         for i in range(len(smis)):
+#             writer.writerow({'cxsmiles': smis[i], 'homo_lumo_gap': homos[i]})
 
-'''
-function converting sdf file molecules into csv format using CXSmiles
-fname: input file name * for the *.sdf.zip file
-'''
+
+
+
 def sdf2csv(fname):
+    '''
+    #* function converting sdf file molecules into csv format using CXSmiles
+    fname: input file name * for the *.sdf.zip file
+    '''
     
     #* extract zip file 
     # extract_zip(fname+".sdf.zip")
@@ -61,14 +81,27 @@ def sdf2csv(fname):
         homo = dataset[i][1]
         homos.append(homo)
 
+    #write the trainning set molecules first with cxsmiles
     cxs = mols2cxs(mols)
+    for j in range(len(mols), len(dataset)):
+        cxs.append(dataset[j][0])
+        homos.append(dataset[j][1])
+    
+    print ("there are " + str(len(cxs)) + " molecules")
+    print ("there are " + str(len(homos)) + " homo lumo gaps")
+    print ("write to file now")
+    
     write_csv(cxs, homos, fname)
 
-'''
-#! this script need to be located at the specific data folder as it uses relative dependencies
-for example   #* goli/data/PCQM4Mv2
-'''
+
+
+
 if __name__ == "__main__":
+    """
+    #* main function
+    #! this script need to be located at the specific data folder as it uses relative dependencies
+    for example   #* goli/data/PCQM4Mv2
+    """
     fname = "pcqm4m-v2-train" #"pcqm4m-v2-train-mini"
     sdf2csv(fname)
 
