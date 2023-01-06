@@ -13,8 +13,8 @@ import goli
 from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer, get_max_num_nodes_edges_datamodule
 from goli.utils.safe_run import SafeRun
 
-from torch_geometric.nn.aggr import Aggregation
-Aggregation.set_validate_args(False)
+# from torch_geometric.nn.aggr import Aggregation
+# Aggregation.set_validate_args(False)
 
 # WandB
 import wandb
