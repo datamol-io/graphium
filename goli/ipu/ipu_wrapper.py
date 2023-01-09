@@ -149,22 +149,18 @@ class PredictorModuleIPU(PredictorModule):
         step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
-    def test_step(self, *inputs) -> Dict[str, Any]:
+    def test_step(self, **inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
-        dict_input = self._build_dict_input(*inputs)
+        dict_input = inputs
         step_dict = super().test_step(dict_input, to_cpu=False)
 
-        # The output dict must be converted to a tuple
-        step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
-    def predict_step(self, *inputs) -> Dict[str, Any]:
+    def predict_step(self, **inputs) -> Dict[str, Any]:
         # Build a dictionary from the tuples
-        dict_input = self._build_dict_input(*inputs)
+        dict_input = inputs
         step_dict = super().predict_step(dict_input, to_cpu=False)
 
-        # The output dict must be converted to a tuple
-        step_dict = self._clean_output_batch(step_dict)
         return step_dict
 
     def training_epoch_end(self, outputs: Dict[str, Any]):
