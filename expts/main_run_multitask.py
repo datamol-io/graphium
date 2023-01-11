@@ -67,6 +67,9 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 
     # Determine the max num nodes and edges in training and validation
     datamodule.setup(stage=None)
+    train_dataloader = datamodule.train_dataloader()
+    first_sample = next(iter(train_dataloader))
+    print(f'first sample {first_sample}')
     max_nodes, max_edges = get_max_num_nodes_edges_datamodule(datamodule, stages=["train", "val"])
     predictor.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
