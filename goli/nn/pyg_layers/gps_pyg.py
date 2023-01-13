@@ -77,7 +77,7 @@ class GPSLayerPyg(BaseGraphModule):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            normalization=normalization,
+            normalization=None,
         )
 
         # Dropout layers
@@ -94,7 +94,7 @@ class GPSLayerPyg(BaseGraphModule):
         # Normalization layers
         self.norm_layer_local = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
-        self.norm_layer_ff = self.norm_layer
+        self.norm_layer_ff = self._parse_norm(self.normalization)
 
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
