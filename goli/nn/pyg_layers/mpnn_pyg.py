@@ -109,8 +109,8 @@ class MPNNPyg(BaseGraphModule):
     def gather_features(self, input_features, senders, receivers):
         out = []
 
-        receiver_features = torch.gather(input_features, receivers)
-        sender_features = torch.gather(input_features, senders)
+        receiver_features = input_features[receivers]
+        sender_features = input_features[senders]
 
         if self.gather_from == 'receivers':
             out.append(receiver_features)
@@ -122,8 +122,7 @@ class MPNNPyg(BaseGraphModule):
             if self.node_combine_method == 'sum':
                 out.append(receiver_features + sender_features)
             elif self.node_combine_method == 'concat':
-                out.append(receiver_features)
-                out.append(sender_features)
+                torch.cat([receiver_features, sender_features], dim=-1)
             else:
                 raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
 
@@ -132,24 +131,23 @@ class MPNNPyg(BaseGraphModule):
     def forward(self, batch):
         nodes_input = batch.h
         edges_input = batch.edge_attr
-        senders = edges_input[0]
-        receivers = edges_input[1]
+        senders = batch.edge_index[0]
+        receivers = batch.edge_index[1]
 
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(nodes_input, senders, receivers)
 
         if self.use_edges:
             edge_model_input.append(edges_input)
-            edge_model_input = torch.cat(edge_model_input, axis=-1)
+            edge_model_input = torch.cat([edge_model_input[0], edge_model_input[1]], dim=-1)
 
             edges = self.edge_model(edge_model_input)
             if 'before_scatter' in self.edge_dropout_loc:
                 edges = self.edge_dropout(edges, training=training)
         else:
-            edges = torch.cat(edge_model_input, axis=-1)
+            edges = edge_model_input
 
         # ---------------NODE step---------------
-        edges = batch.edge_index
         if self.use_edges:
             sender_nodes = self.edge_dna_dropout['senders'](sender_nodes, training=training)
             receiver_nodes = self.edge_dna_dropout['receivers'](receiver_nodes, training=training)
