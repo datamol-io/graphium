@@ -137,9 +137,7 @@ if __name__ == "__main__":
         import poptorch
 
         training_opts = poptorch.Options()
-        training_opts.Jit.traceModel(False)
         inference_opts = poptorch.Options()
-        inference_opts.Jit.traceModel(False)
 
         # Set the seeds
         training_opts.randomSeed(SEED)
