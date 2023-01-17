@@ -1,11 +1,9 @@
-from typing import Dict, Any, Optional, Callable, Union, Type, Tuple
+from typing import Dict, Any, Optional, Callable, Union, Type, Tuple, Iterable
 
 from torch_geometric.data import Batch
 from torch import Tensor
-from inspect import _ParameterKind
 from pytorch_lightning.strategies import IPUStrategy
 from pytorch_lightning.utilities.types import STEP_OUTPUT
-from pytorch_lightning.plugins import IPUPlugin
 from pytorch_lightning.trainer.states import RunningStage
 
 from goli.trainer.predictor import PredictorModule
@@ -46,28 +44,34 @@ class DictIPUStrategy(IPUStrategy):
 
 
 class PyGArgsParser(poptorch.ICustomArgParser):
+    """
+        This class is responsible for converting a PyG Batch from and to
+        a tensor of tuples. This allows PyG Batch to be used as inputs to
+        IPU programs. Copied from poppyg repo, in the future import from
+        the repo directly.
+    """
 
     @staticmethod
-    def sortedTensorKeys(struct):
+    def sortedTensorKeys(struct: BaseData) -> Iterable[str]:
         """
         Find all the keys that map to a tensor value in struct. The keys
         are returned in sorted order.
         """
         all_keys = sorted(struct.keys)
 
-        def isTensor(k):
+        def isTensor(k: str) -> bool:
             return isinstance(struct[k], torch.Tensor)
 
         return filter(isTensor, all_keys)
 
-    def yieldTensors(self, struct):
+    def yieldTensors(self, struct: BaseData):
         """
         yield every torch.Tensor in struct in sorted order
         """
         for k in self.sortedTensorKeys(struct):
             yield struct[k]
 
-    def reconstruct(self, original_structure, tensor_iterator):
+    def reconstruct(self, original_structure: BaseData, tensor_iterator: Iterable[Tensor]):
         """
         Create a new instance with the same class type as the
         original_structure. This new instance will be initialized with tensors
@@ -125,7 +129,6 @@ class PredictorModuleIPU(PredictorModule):
         super().on_train_batch_end(outputs, batch, batch_idx)
 
     def training_step(self, features, labels) -> Dict[str, Any]:
-        logger.warning('running training_step')
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {'features': features, 'labels': labels}
         step_dict = super().training_step(dict_input, to_cpu=False)
@@ -135,7 +138,6 @@ class PredictorModuleIPU(PredictorModule):
         return step_dict
 
     def validation_step(self, features, labels) -> Dict[str, Any]:
-        logger.warning('running validation_step')
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {'features': features, 'labels': labels}
         step_dict = super().validation_step(dict_input, to_cpu=False)
