@@ -32,28 +32,59 @@ class MPNNPyg(BaseGraphModule):
             Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
             https://arxiv.org/abs/2212.02229
 
-        # TODO: complete the doc string
         Parameters:
 
             in_dim:
-                Input feature dimensions of the layer
+                Input feature dimensions of the nodes
 
             out_dim:
-                Output feature dimensions of the layer
+                Output feature dimensions of the nodes
 
             activation:
-                activation function to use in the layer
+                Activation function to use in the edge and node model
 
             dropout:
-                The ratio of units to dropout. Must be between 0 and 1
+                The ratio of units to dropout at the end within apply_norm_activation_dropout.
 
             normalization:
-                Normalization to use. Choices:
+                Normalization to use with the edge, node models and at the end
+                within apply_norm_activation_dropout. Choices:
 
                 - "none" or `None`: No normalization
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
+
+            gather_from:
+                The method to gather features from. Could choose from:
+                "senders", "receivers" and "both".
+
+            scatter_to:
+                The method to scatter features to. Could choose from:
+                "senders", "receivers" and "both".
+
+            node_combine_method:
+                The method to combine the node features, Could choose from:
+                "sum" and "concat".
+
+            num_node_mlp:
+                Number of mlp layer used for node model
+
+            use_edges:
+                If edge features are used
+
+            in_dim_edges:
+                Input feature dimensions of the edges
+
+            out_dim_edges:
+                Output feature dimensions of the edges
+
+            num_edge_mlp:
+                Number of mlp layer used for edge model
+
+            edge_dropout_rate:
+                dropout rate for the edges
+
         """
 
         super().__init__(
@@ -194,7 +225,7 @@ class MPNNPyg(BaseGraphModule):
 
         # ---------------Apply norm activation and dropout---------------
         # use dropout value of the layer (default 0.35) and layer normalization
-        batch.h = self.apply_norm_activdropout_layeration_dropout(batch.h, activation=False) + node_org
+        batch.h = self.apply_norm_activation_dropout(batch.h, activation=False) + node_org
         batch.edge_attr = batch.edge_attr + edge_org
 
         return batch
