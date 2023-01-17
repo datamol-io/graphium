@@ -99,7 +99,7 @@ architecture:
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    normalization: &normalization none
+    normalization: &normalization batch_norm
     last_normalization: *normalization
     residual_type: none
 
