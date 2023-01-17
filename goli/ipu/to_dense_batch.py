@@ -14,10 +14,10 @@ def to_sparse_batch(x: Tensor, mask_idx: Tensor):
 
 def to_dense_batch(
     x: Tensor,
-    batch_size: int,
     batch: Optional[Tensor] = None,
     fill_value: float = 0.0,
     max_num_nodes_per_graph: Optional[int] = None,
+    batch_size: Optional[int] = None,
     drop_nodes_last_graph=False,
 ) -> Tuple[Tensor, Tensor]:
     r"""Given a sparse batch of node features
@@ -53,6 +53,11 @@ def to_dense_batch(
     if batch is None:
         batch = x.new_zeros(x.size(0), dtype=torch.long)
 
+    if batch_size is None:
+        assert x.device.type != 'ipu', ("When using the IPU the batch size must be "
+            "provided during compilation instead of determined at runtime")
+        batch_size = int(batch.max()) + 1
+
     num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
 
@@ -74,9 +79,10 @@ def to_dense_batch(
         idx[idx >= size[0]] = size[0] - 1
 
     # Raise error if num_nodes > max_num_nodes
-    # assert (
-    #     num_nodes <= max_num_nodes_per_graph
-    # ).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {max_num_nodes_per_graph}`"
+    if x.device != 'ipu':
+        assert (
+            num_nodes <= max_num_nodes_per_graph
+        ).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {max_num_nodes_per_graph}`"
 
     ##### END CHANGES FROM PYG #####
 
