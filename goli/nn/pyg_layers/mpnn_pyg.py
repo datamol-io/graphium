@@ -1,6 +1,7 @@
 from typing import Callable, Optional, Union
 
 import torch
+from custom_ops import grouped_ops
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
@@ -11,17 +12,18 @@ class MPNNPyg(BaseGraphModule):
         self,
         in_dim: int,
         out_dim: int,
-        activation: Union[str, Callable] = "relu",
-        dropout: float = 0.0,
-        normalization: Union[str, Callable] = "none",
-        gather_from: str = "none",
-        node_combine_method: str = "none",
+        activation: Union[str, Callable] = "gelu",
+        dropout: float = 0.35,
+        normalization: Union[str, Callable] = "layer_norm",
+        gather_from: str = "both",
+        scatter_to: str = "both",
+        node_combine_method: str = "concat",
         num_node_mlp: int = None,
         use_edges: bool = False,
         in_dim_edges: Optional[int] = None,
         out_dim_edges: Optional[int] = None,
-        edge_dropout: Optional[Union[str, Callable]] = "none",
         num_edge_mlp: Optional[int] = None,
+        edge_dropout_rate: Optional[float] = 0.0035,
     ):
         r"""
             MPNNPyg: InteractionNetwork layer witg edges and global feature, GPS++ type of GNN layer
@@ -63,41 +65,61 @@ class MPNNPyg(BaseGraphModule):
         )
 
         self.gather_from = gather_from
+        self.scatter_to = scatter_to
         self.node_combine_method = node_combine_method
         self.num_node_mlp = num_node_mlp
 
         self.use_edges = use_edges
         self.in_dim_edges = in_dim_edges
         self.out_dim_edges = out_dim_edges
-        self.edge_dropout = edge_dropout
         self.num_edge_mlp = num_edge_mlp
+        self.edge_dropout_rate = edge_dropout_rate
+
+        self.aggregator = grouped_ops.grouped_scatter_add
+
+        # node_model:
+        # linear 1:
+        # in_dim: 3*ndim + 2*edim (in_dim_edge) + gdim
+        # hidden_dim: 4*ndim (in_dim)
+        # linear 2: 
+        # hidden_dim: 4*ndim (in_dim)
+        # out_dim: ndim (out_dim)
+        # linear 1, gelu act, layer_norm, linear 2
 
         self.node_model = MLP(
-            in_dim=self.in_dim,
-            hidden_dim=self.in_dim,
+            in_dim=3*self.in_dim+2*self.in_dim_edges,
+            hidden_dim=4*self.in_dim,
             out_dim=self.out_dim,
             layers=self.num_node_mlp,
             activation=self.activation_layer,
-            last_activation="none",
             normalization=self.normalization,
-            last_normalization="none",
         )
 
+
+        # edge_model:
+        # linear 1:
+        # in_dim: 2*ndim + edim (in_dim_edge) + gdim
+        # hidden_dim: 4*edim (in_dim_edge)
+        # linear 2: 
+        # hidden_dim: 4*edim (in_dim_edge)
+        # out_dim: edim (out_dim_edge)
+        # linear 1, gelu act, layer_norm, linear 2, dropout
+
         self.edge_model = MLP(
-            in_dim=self.in_dim_edges,
-            hidden_dim=self.in_dim,
+            in_dim=2*self.in_dim+self.in_dim_edges,
+            hidden_dim=4*self.in_dim_edges,
             out_dim=self.out_dim_edges,
             layers=self.num_edge_mlp,
             activation=self.activation_layer,
-            last_activation="none",
+            last_dropout=self.edge_dropout_rate,
             normalization=self.normalization,
-            last_normalization="none",
         )
 
 
     def gather_features(self, input_features, senders, receivers):
         out = []
 
+        # we might need grouped_ops.grouped_gather(input_features, senders) on IPU
         receiver_features = input_features[receivers]
         sender_features = input_features[senders]
 
@@ -117,9 +139,38 @@ class MPNNPyg(BaseGraphModule):
 
         return out, sender_features, receiver_features
 
+
+    def aggregate_features(self, input_features, senders, receivers, sender_features, receiver_features, dim):
+        out = []
+        aggregated_features = []
+
+        if self.scatter_to in ['receivers', 'both']:
+            # using direct_neighbour_aggregation to generate the message
+            message = torch.cat([input_features, sender_features], dim=-1)
+            # sum method is used with aggregators
+            aggregated_features.append(self.aggregator(message, receivers, table_size=dim))
+
+        if self.scatter_to in ['senders', 'both']:
+            # using direct_neighbour_aggregation to generate the message
+            message = torch.cat([input_features, receiver_features], dim=-1)
+            # sum method is used with aggregators
+            aggregated_features.append(self.aggregator(message, senders, table_size=dim))
+
+        if self.node_combine_method == 'sum' and self.scatter_to == 'both':
+            out.append(aggregated_features[0] + aggregated_features[1])
+        elif self.scatter_to == 'both':
+            out.append(torch.cat([aggregated_features[0] + aggregated_features[1]], dim=-1))
+        else:
+            out.extend(aggregated_features)
+
+        return out
+
+
     def forward(self, batch):
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
+        node_org = batch.h
+        edge_org = batch.edge_attr
 
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
@@ -127,31 +178,24 @@ class MPNNPyg(BaseGraphModule):
         if self.use_edges:
             edge_model_input.append(batch.edge_attr)
             edge_model_input = torch.cat([edge_model_input[0], edge_model_input[1]], dim=-1)
-
+            # edge dropout included in the edge_model
             batch.edge_attr = self.edge_model(edge_model_input)
-            # TODO: need to implement edge_dropout
-            if self.edge_dropout:
-                batch.edge_attr = self.edge_dropout(batch.edge_attr)
         else:
             batch.edge_attr = edge_model_input
 
         # ---------------NODE step---------------
-        if self.use_edges:
-            # TODO: implement self.edge_dna_dropout
-            sender_nodes = self.edge_dna_dropout['senders'](sender_nodes)
-            receiver_nodes = self.edge_dna_dropout['receivers'](receiver_nodes)
         # message + aggregate
-        # TODO: implement self.aggregate_features
+        node_count_per_pack = batch.h.shape[-2]
         node_model_input = self.aggregate_features(batch.edge_attr, senders, receivers, sender_nodes, receiver_nodes,
-                                                   self.n_nodes_per_pack)
+                                                   node_count_per_pack)
         node_model_input.append(batch.h)
-        batch.h = torch.cat(node_model_input, axis=-1)
+        batch.h = torch.cat([node_model_input[0], node_model_input[1]], dim=-1)
         batch.h = self.node_model(batch.h)
 
         # ---------------Apply norm activation and dropout---------------
-        batch.h = self.apply_norm_activation_dropout(batch.h)
-        # TODO: edge would only need a residual
-        batch.edge_attr = self.apply_norm_activation_dropout(batch.edge_attr)
+        # use dropout value of the layer (default 0.35) and layer normalization
+        batch.h = self.apply_norm_activdropout_layeration_dropout(batch.h, activation=False) + node_org
+        batch.edge_attr = batch.edge_attr + edge_org
 
         return batch
 
