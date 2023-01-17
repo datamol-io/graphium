@@ -1,11 +1,7 @@
+from typing import Callable, Optional, Union
+
 import torch
-from typing import Callable, Union, Optional
-from functools import partial
-
-import torch_geometric.nn as pyg_nn
-from torch_geometric.data import Data, Batch
-
-from goli.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
+from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
@@ -15,11 +11,17 @@ class MPNNPyg(BaseGraphModule):
         self,
         in_dim: int,
         out_dim: int,
-        in_dim_edges: Optional[int] = None,
-        activation: Union[Callable, str] = "relu",
+        activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
-        use_edges=False,
+        gather_from: str = "none",
+        node_combine_method: str = "none",
+        num_node_mlp: int = None,
+        use_edges: bool = False,
+        in_dim_edges: Optional[int] = None,
+        out_dim_edges: Optional[int] = None,
+        edge_dropout: Optional[Union[str, Callable]] = "none",
+        num_edge_mlp: Optional[int] = None,
     ):
         r"""
             MPNNPyg: InteractionNetwork layer witg edges and global feature, GPS++ type of GNN layer
@@ -28,6 +30,7 @@ class MPNNPyg(BaseGraphModule):
             Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
             https://arxiv.org/abs/2212.02229
 
+        # TODO: complete the doc string
         Parameters:
 
             in_dim:
@@ -49,13 +52,6 @@ class MPNNPyg(BaseGraphModule):
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
-
-            init_eps :
-                Initial :math:`\epsilon` value, default: ``0``.
-
-            learn_eps :
-                If True, :math:`\epsilon` will be a learnable parameter.
-
         """
 
         super().__init__(
@@ -66,26 +62,21 @@ class MPNNPyg(BaseGraphModule):
             normalization=normalization,
         )
 
-        self.use_edges = use_edges
         self.gather_from = gather_from
         self.node_combine_method = node_combine_method
+        self.num_node_mlp = num_node_mlp
 
-        gin_nn = MLP(
-            in_dim=self.in_dim,
-            hidden_dim=self.in_dim,
-            out_dim=self.out_dim,
-            layers=2,
-            activation=self.activation_layer,
-            last_activation="none",
-            normalization=self.normalization,
-            last_normalization="none",
-        )
+        self.use_edges = use_edges
+        self.in_dim_edges = in_dim_edges
+        self.out_dim_edges = out_dim_edges
+        self.edge_dropout = edge_dropout
+        self.num_edge_mlp = num_edge_mlp
 
         self.node_model = MLP(
             in_dim=self.in_dim,
             hidden_dim=self.in_dim,
             out_dim=self.out_dim,
-            layers=2,
+            layers=self.num_node_mlp,
             activation=self.activation_layer,
             last_activation="none",
             normalization=self.normalization,
@@ -93,18 +84,16 @@ class MPNNPyg(BaseGraphModule):
         )
 
         self.edge_model = MLP(
-            in_dim=self.in_dim,
+            in_dim=self.in_dim_edges,
             hidden_dim=self.in_dim,
-            out_dim=self.out_dim,
-            layers=2,
+            out_dim=self.out_dim_edges,
+            layers=self.num_edge_mlp,
             activation=self.activation_layer,
             last_activation="none",
             normalization=self.normalization,
             last_normalization="none",
         )
 
-        self.model = pyg_nn.GINEConv(gin_nn, edge_dim=in_dim_edges)  # , node_dim=-1)
-        self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
     def gather_features(self, input_features, senders, receivers):
         out = []
@@ -129,60 +118,40 @@ class MPNNPyg(BaseGraphModule):
         return out, sender_features, receiver_features
 
     def forward(self, batch):
-        nodes_input = batch.h
-        edges_input = batch.edge_attr
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
 
         # ---------------EDGE step---------------
-        edge_model_input, sender_nodes, receiver_nodes = self.gather_features(nodes_input, senders, receivers)
+        edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
 
         if self.use_edges:
-            edge_model_input.append(edges_input)
+            edge_model_input.append(batch.edge_attr)
             edge_model_input = torch.cat([edge_model_input[0], edge_model_input[1]], dim=-1)
 
-            edges = self.edge_model(edge_model_input)
-            if 'before_scatter' in self.edge_dropout_loc:
-                edges = self.edge_dropout(edges, training=training)
+            batch.edge_attr = self.edge_model(edge_model_input)
+            # TODO: need to implement edge_dropout
+            if self.edge_dropout:
+                batch.edge_attr = self.edge_dropout(batch.edge_attr)
         else:
-            edges = edge_model_input
+            batch.edge_attr = edge_model_input
 
         # ---------------NODE step---------------
         if self.use_edges:
-            sender_nodes = self.edge_dna_dropout['senders'](sender_nodes, training=training)
-            receiver_nodes = self.edge_dna_dropout['receivers'](receiver_nodes, training=training)
+            # TODO: implement self.edge_dna_dropout
+            sender_nodes = self.edge_dna_dropout['senders'](sender_nodes)
+            receiver_nodes = self.edge_dna_dropout['receivers'](receiver_nodes)
         # message + aggregate
-        node_model_input = self.aggregate_features(edges, senders, receivers, sender_nodes, receiver_nodes,
+        # TODO: implement self.aggregate_features
+        node_model_input = self.aggregate_features(batch.edge_attr, senders, receivers, sender_nodes, receiver_nodes,
                                                    self.n_nodes_per_pack)
-        node_model_input.append(nodes_input)
-        nodes = torch.cat(node_model_input, axis=-1)
-        nodes = self.node_model(nodes)
+        node_model_input.append(batch.h)
+        batch.h = torch.cat(node_model_input, axis=-1)
+        batch.h = self.node_model(batch.h)
 
-        # ---------------- Stochastic depth  ---------------
-        '''
-        nodes = self.graph_dropout(nodes, node_graph_idx)
-        if self.use_edges:
-            edges = self.graph_dropout(edges, edge_graph_idx)
-        if self.use_globals:
-            global_latent = self.graph_dropout(global_latent, None)
-
-        # dropout before the residual block`
-        nodes = self.node_dropout(nodes, training=training)
-        nodes = self.residual_add(nodes_input, nodes)
-        if self.output_scale != 1.0:
-            nodes *= tf.cast(self.output_scale, nodes.dtype)
-
-        if self.use_edges:
-            if self.edge_dropout_loc == 'before_residual_add':
-                edges = self.edge_dropout(edges, training=training)
-            edges = self.residual_add(edges_input, edges)
-            if self.output_scale != 1.0:
-                edges *= tf.cast(self.output_scale, edges.dtype)
-        '''
-        batch.h = nodes
-        batch.edge_attr = edges
-        # batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
-        # batch.h = self.apply_norm_activation_dropout(batch.h)
+        # ---------------Apply norm activation and dropout---------------
+        batch.h = self.apply_norm_activation_dropout(batch.h)
+        # TODO: edge would only need a residual
+        batch.edge_attr = self.apply_norm_activation_dropout(batch.edge_attr)
 
         return batch
 

@@ -211,14 +211,6 @@ class GPSLayerPyg(BaseGraphModule):
         )[0]
         return x
 
-    # # forward function that doesn't do anything
-    # def forward(self, batch):
-    #     #x, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
-
-    #     batch = self.mpnn(batch)
-    #     #batch.h = self.apply_norm_activation_dropout(batch.h)
-    #     return batch
-
     @classproperty
     def layer_supports_edges(cls) -> bool:
         r"""
