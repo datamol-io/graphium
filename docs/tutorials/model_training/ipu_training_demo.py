@@ -34,16 +34,11 @@ datamodule.prepare_data()
 datamodule.setup(stage=None)
 max_nodes, max_edges = get_max_num_nodes_edges_datamodule(datamodule, stages=["train", "val"])
 
-print(f'datamodule type {type(datamodule)}')
-
 # Initialize the network
 model_class, model_kwargs = load_architecture(
     cfg,
     in_dims=datamodule.in_dims,
 )
-
-print(f'model class {model_class}')
-print(f'model args {model_kwargs}')
 
 metrics = load_metrics(cfg)
 logger.info(metrics)
@@ -55,8 +50,6 @@ logger.info(predictor.model)
 logger.info(ModelSummary(predictor, max_depth=4))
 
 trainer = load_trainer(cfg, "tutorial-run")
-
-print(trainer)
 
 # Run the model training
 with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):

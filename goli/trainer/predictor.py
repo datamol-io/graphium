@@ -410,7 +410,6 @@ class PredictorModule(pl.LightningModule):
             )  # This is a pytorch lightning function call
 
     def training_step(self, batch: Dict[str, Tensor], to_cpu: bool = True) -> Dict[str, Any]:
-        print('predictor training')
         step_dict = None
 
         # Train using FLAG
