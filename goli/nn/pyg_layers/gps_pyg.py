@@ -149,8 +149,9 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
             # Convert the tensor to a dense batch, then back to a sparse batch
+            batch_size = None if h.device.type != 'ipu' else batch.graph_is_true.shape[0]
             h_dense, mask, idx = to_dense_batch(
-                h, batch=batch.batch, batch_size=batch.graph_is_true.shape[0],
+                h, batch=batch.batch, batch_size=batch_size,
                 max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
