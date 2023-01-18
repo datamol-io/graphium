@@ -79,7 +79,7 @@ def to_dense_batch(
         idx[idx >= size[0]] = size[0] - 1
 
     # Raise error if num_nodes > max_num_nodes
-    if x.device != 'ipu':
+    if x.device.type != 'ipu':
         assert (
             num_nodes <= max_num_nodes_per_graph
         ).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {max_num_nodes_per_graph}`"
