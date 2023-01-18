@@ -392,7 +392,7 @@ class PredictorModule(pl.LightningModule):
             step_name="train",
             targets=outputs["targets"],
             predictions=outputs["preds"],
-            loss=outputs["loss/train"],  # This is the weighted loss for now, but change to task-specific loss
+            loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
             task_losses=outputs["task_losses"],
             n_epochs=self.current_epoch,
         )
