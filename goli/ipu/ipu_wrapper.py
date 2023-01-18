@@ -144,9 +144,10 @@ class PredictorModuleIPU(PredictorModule):
 
         return step_dict
 
-    def test_step(self, **inputs) -> Dict[str, Any]:
+    def test_step(self, features, labels) -> Dict[str, Any]:
         # Build a dictionary from the tuples
-        dict_input = inputs
+        features, labels = self.squeeze_input_dims(features, labels)
+        dict_input = {'features': features, 'labels': labels}
         step_dict = super().test_step(dict_input, to_cpu=False)
 
         return step_dict
