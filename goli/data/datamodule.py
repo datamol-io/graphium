@@ -76,6 +76,16 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
     """
     try:
         mol = dm.to_mol(mol=smiles)
+        '''
+        -------------------------
+        0.8907
+        C#Cc1cnc(O)c([N+](=O)[O-])c1
+        -------------------------
+        '''
+        # print ("-------------------------")
+        # print (mol.GetConformer().GetAtomPosition(0).x)
+        # print (dm.to_smiles(mol))
+        # print ("-------------------------")
         mol_id = dm.unique_id(mol)
     except:
         mol_id = ""
@@ -542,9 +552,9 @@ class BaseDataModule(pl.LightningDataModule):
         if str(path).endswith((".parquet")):
             mini_table = ParquetFile(path).head(nrows=20)
         elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
-            mini_table = BaseDataModule._read_csv(path, sample_size=20)
+            mini_table = BaseDataModule._read_csv(path, nrows=20)
         elif (".sdf" in str(path)[-8:]):
-            mini_table = BaseDataModule._read_sdf(path, sample_size=20)
+            mini_table = BaseDataModule._read_sdf(path, nrows=20)
         else:
             raise ValueError(f"unsupported file `{path}`")
 

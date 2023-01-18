@@ -376,15 +376,18 @@ def save_params_to_wandb(
     # Save the mup base model to WandB as a yaml file
     mup.save_base_shapes(predictor.model, "mup_base_params.yaml")
 
-    # Save the full configs as a YAML file
-    with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
-        yaml.dump(config, file)
+    # Save the full configs as a YAML file  
+    #! [andy] logging when logger is active, avoid error when logger is removed
+    if "logger" in config.keys():
+        with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
+            yaml.dump(config, file)
 
     # Save the featurizer into wandb
-    featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
-    joblib.dump(datamodule.smiles_transformer, featurizer_path)
+    if "logger" in config.keys():
+        featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
+        joblib.dump(datamodule.smiles_transformer, featurizer_path)
 
-    wandb_run = logger.experiment
-    if wandb_run is not None:
-        wandb_run.save("*.yaml")
-        wandb_run.save("*.pickle")
+        wandb_run = logger.experiment
+        if wandb_run is not None:
+            wandb_run.save("*.yaml")
+            wandb_run.save("*.pickle")

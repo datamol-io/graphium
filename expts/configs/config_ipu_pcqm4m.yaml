@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  #cpu or ipu or gpu
+    type: cpu #ipu  #cpu or ipu or gpu
 
 
 datamodule:
@@ -15,7 +15,7 @@ datamodule:
         df: null
         #url for full set http://ogb-data.stanford.edu/data/lsc/pcqm4m-v2-train.sdf.tar.gz
         # df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
-        df_path: &df_path goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.sdf.zip
+        df_path: &df_path goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv #goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.sdf.zip
         smiles_col: "smiles"
         label_cols: ["homo"]
         split_val: 0.2
@@ -33,7 +33,8 @@ datamodule:
     featurization_progress: True
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
-      atom_property_list_float: [mass, electronegativity, in-ring]
+      atom_property_list_float: [mass, electronegativity, in-ring, conf-x, conf-y, conf-z]
+      #atom_property_list_float: [mass, electronegativity, in-ring] 
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
       explicit_H: False
@@ -53,17 +54,26 @@ datamodule:
     # Data handling-related
     batch_size_training: 50
     batch_size_inference: 50
-    cache_data_path: "datacache"
+    #cache_data_path: "datacache"
 
     num_workers: -1
 
     ipu_dataloader_training_opts:
-      max_num_nodes_per_graph: 9
-      max_num_edges_per_graph: 24
+      max_num_nodes_per_graph: 50
+      max_num_edges_per_graph: 150
 
     ipu_dataloader_inference_opts:
-      max_num_nodes_per_graph: 9
-      max_num_edges_per_graph: 24
+      max_num_nodes_per_graph: 50
+      max_num_edges_per_graph: 150
+
+    #! these only for qm9
+    # ipu_dataloader_training_opts:
+    #   max_num_nodes_per_graph: 9
+    #   max_num_edges_per_graph: 24
+
+    # ipu_dataloader_inference_opts:
+    #   max_num_nodes_per_graph: 9
+    #   max_num_edges_per_graph: 24
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -153,7 +163,7 @@ architecture:
 
   task_heads:
     homo:
-      out_dim: 2
+      out_dim: 1 #2 
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
@@ -224,9 +234,9 @@ metrics:
       threshold_kwargs: *threshold_05
 
 trainer:
-  logger:
-    save_dir: logs/QM9
-    name: *name
+  # logger:
+  #   save_dir: logs/QM9
+  #   name: *name
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0

@@ -903,7 +903,7 @@ task_heads.task_heads.homo.layers.0.normalization.bias:
 task_heads.task_heads.homo.layers.0.normalization.weight:
 - 16
 task_heads.task_heads.homo.layers.1.linear.bias:
-- 1
+- 0
 task_heads.task_heads.homo.layers.1.linear.weight:
-- 1
+- 0
 - 16
