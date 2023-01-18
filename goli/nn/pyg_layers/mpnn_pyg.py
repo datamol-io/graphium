@@ -10,18 +10,18 @@ from torch_geometric.nn.aggr import MultiAggregation
 class MPNNPyg(BaseGraphModule):
     def __init__(
         self,
-        in_dim: int = 256,
-        out_dim: int = 256,
+        in_dim: int = 64,
+        out_dim: int = 64,
         activation: Union[str, Callable] = "gelu",
-        dropout: float = 0.35,
+        dropout: float = 0.3,
         normalization: Union[str, Callable] = "layer_norm",
         gather_from: str = "both",
         scatter_to: str = "both",
         node_combine_method: str = "concat",
         num_node_mlp: int = 2,
         use_edges: bool = True,
-        in_dim_edges: Optional[int] = 128,
-        out_dim_edges: Optional[int] = 128,
+        in_dim_edges: Optional[int] = 32,
+        out_dim_edges: Optional[int] = 32,
         num_edge_mlp: Optional[int] = 2,
         edge_dropout_rate: Optional[float] = 0.0035,
         xpu: Optional[str] = "cpu",
@@ -126,10 +126,11 @@ class MPNNPyg(BaseGraphModule):
         # hidden_dim: 4*ndim (in_dim)
         # out_dim: ndim (out_dim)
         # linear 1, gelu act, layer_norm, linear 2
-
+        node_model_in_dim = 3*self.in_dim+2*self.in_dim_edges
+        node_model_hidden_dim = 4*self.in_dim
         self.node_model = MLP(
-            in_dim=3*self.in_dim+2*self.in_dim_edges,
-            hidden_dim=4*self.in_dim,
+            in_dim=node_model_in_dim,
+            hidden_dim=node_model_hidden_dim,
             out_dim=self.out_dim,
             layers=self.num_node_mlp,
             activation=self.activation_layer,
@@ -145,10 +146,11 @@ class MPNNPyg(BaseGraphModule):
         # hidden_dim: 4*edim (in_dim_edge)
         # out_dim: edim (out_dim_edge)
         # linear 1, gelu act, layer_norm, linear 2, dropout
-
+        edge_model_in_dim = 2*self.in_dim+self.in_dim_edges
+        edge_model_hidden_dim = 4*self.in_dim_edges
         self.edge_model = MLP(
-            in_dim=2*self.in_dim+self.in_dim_edges,
-            hidden_dim=4*self.in_dim_edges,
+            in_dim=edge_model_in_dim,
+            hidden_dim=edge_model_hidden_dim,
             out_dim=self.out_dim_edges,
             layers=self.num_edge_mlp,
             activation=self.activation_layer,
@@ -174,7 +176,7 @@ class MPNNPyg(BaseGraphModule):
             if self.node_combine_method == 'sum':
                 out.append(receiver_features + sender_features)
             elif self.node_combine_method == 'concat':
-                torch.cat([receiver_features, sender_features], dim=-1)
+                out.append(torch.cat([receiver_features, sender_features], dim=-1))
             else:
                 raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
 
@@ -220,8 +222,6 @@ class MPNNPyg(BaseGraphModule):
     def forward(self, batch):
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
-        node_org = batch.h
-        edge_org = batch.edge_attr
 
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
@@ -242,11 +242,6 @@ class MPNNPyg(BaseGraphModule):
         node_model_input.append(batch.h)
         batch.h = torch.cat([node_model_input[0], node_model_input[1]], dim=-1)
         batch.h = self.node_model(batch.h)
-
-        # ---------------Apply norm activation and dropout---------------
-        # use dropout value of the layer (default 0.35) and layer normalization
-        batch.h = self.apply_norm_activation_dropout(batch.h, activation=False) + node_org
-        batch.edge_attr = batch.edge_attr + edge_org
 
         return batch
 
@@ -290,7 +285,7 @@ class MPNNPyg(BaseGraphModule):
             bool:
                 Always ``False`` for the current class
         """
-        return False
+        return True
 
     @property
     def out_dim_factor(self) -> int:

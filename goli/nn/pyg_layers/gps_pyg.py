@@ -33,6 +33,7 @@ class GPSLayerPyg(BaseGraphModule):
         in_dim: int,
         out_dim: int,
         in_dim_edges: Optional[int] = None,
+        out_dim_edges: Optional[int] = None,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
@@ -97,17 +98,20 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_ff = self.norm_layer
 
+        self.mpnn_type = mpnn_type
+
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
             mpnn_kwargs = {}
         mpnn_kwargs = deepcopy(mpnn_kwargs)
         mpnn_kwargs.setdefault("in_dim", in_dim)
-        mpnn_kwargs.setdefault("out_dim", in_dim)
+        mpnn_kwargs.setdefault("out_dim", out_dim)
         mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
+        mpnn_kwargs.setdefault("out_dim_edges", out_dim_edges)
         # TODO: The rest of default values
 
         # Initialize the MPNN layer
-        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
+        mpnn_class = PYG_LAYERS_DICT[self.mpnn_type]
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
         # Set the default values for the Attention layer
@@ -124,18 +128,22 @@ class GPSLayerPyg(BaseGraphModule):
     def forward(self, batch):
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
+        edge_in = batch.edge_attr
 
         h_in = h  # for first residual connection
 
         # Local MPNN with edge attributes.
         batch_out = self.mpnn(batch.clone())
         h_local = batch_out.h
+        edge_attr_local = batch_out.edge_attr
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
-        h_local = h_in + h_local  # Residual connection.
+        h_local = h_in + h_local  # Residual connection for nodes.
+        edge_attr_local = edge_in + edge_attr_local  # Residual connection for edges.
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
         h = h_local
+        batch.edge_attr = edge_attr_local
 
         # Multi-head attention.
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
