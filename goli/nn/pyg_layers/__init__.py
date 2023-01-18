@@ -2,6 +2,7 @@ from .gated_gcn_pyg import GatedGCNPyg
 from .gin_pyg import GINConvPyg
 from .gin_pyg import GINEConvPyg
 from .pna_pyg import PNAMessagePassingPyg
+from .mpnn_pyg import MPNNPyg
 from .gps_pyg import GPSLayerPyg
 from .pooling_pyg import scatter_logsum_pool
 from .pooling_pyg import scatter_std_pool

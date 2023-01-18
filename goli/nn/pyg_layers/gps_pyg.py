@@ -8,7 +8,7 @@ from typing import Callable, Union, Optional
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
-from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
+from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg, MPNNPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
@@ -18,6 +18,7 @@ PYG_LAYERS_DICT = {
     "pyg:gine": GINEConvPyg,
     "pyg:gated-gcn": GatedGCNPyg,
     "pyg:pna-msgpass": PNAMessagePassingPyg,
+    "pyg:mpnn": MPNNPyg,
 }
 
 ATTENTION_LAYERS_DICT = {

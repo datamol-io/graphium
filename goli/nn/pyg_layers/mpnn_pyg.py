@@ -1,29 +1,30 @@
 from typing import Callable, Optional, Union
 
 import torch
-from custom_ops import grouped_ops
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
+from torch_geometric.nn.aggr import MultiAggregation
 
 
 class MPNNPyg(BaseGraphModule):
     def __init__(
         self,
-        in_dim: int,
-        out_dim: int,
+        in_dim: int = 256,
+        out_dim: int = 256,
         activation: Union[str, Callable] = "gelu",
         dropout: float = 0.35,
         normalization: Union[str, Callable] = "layer_norm",
         gather_from: str = "both",
         scatter_to: str = "both",
         node_combine_method: str = "concat",
-        num_node_mlp: int = None,
-        use_edges: bool = False,
-        in_dim_edges: Optional[int] = None,
-        out_dim_edges: Optional[int] = None,
-        num_edge_mlp: Optional[int] = None,
+        num_node_mlp: int = 2,
+        use_edges: bool = True,
+        in_dim_edges: Optional[int] = 128,
+        out_dim_edges: Optional[int] = 128,
+        num_edge_mlp: Optional[int] = 2,
         edge_dropout_rate: Optional[float] = 0.0035,
+        xpu: Optional[str] = "cpu",
     ):
         r"""
             MPNNPyg: InteractionNetwork layer witg edges and global feature, GPS++ type of GNN layer
@@ -85,6 +86,9 @@ class MPNNPyg(BaseGraphModule):
             edge_dropout_rate:
                 dropout rate for the edges
 
+            xpu:
+                hardware used, choose from "ipu", "gpu", "cpu"
+
         """
 
         super().__init__(
@@ -106,7 +110,13 @@ class MPNNPyg(BaseGraphModule):
         self.num_edge_mlp = num_edge_mlp
         self.edge_dropout_rate = edge_dropout_rate
 
-        self.aggregator = grouped_ops.grouped_scatter_add
+        self.xpu = xpu
+        if self.xpu == "ipu":
+            from custom_ops import grouped_ops
+            self.aggregator = grouped_ops.grouped_scatter_add
+        else:
+            self.aggregator = MultiAggregation(["add"])
+
 
         # node_model:
         # linear 1:
@@ -179,13 +189,23 @@ class MPNNPyg(BaseGraphModule):
             # using direct_neighbour_aggregation to generate the message
             message = torch.cat([input_features, sender_features], dim=-1)
             # sum method is used with aggregators
-            aggregated_features.append(self.aggregator(message, receivers, table_size=dim))
+            if self.xpu in ["gpu", "cpu"]:
+                aggregated_features.append(self.aggregator(message, receivers, dim=dim))
+            elif self.xpu == "ipu":
+                aggregated_features.append(self.aggregator(message, receivers, table_size=dim))
+            else:
+                raise NotImplementedError("The hardware you specified is not accepted. Please use ipu, gpu or cpu.")
 
         if self.scatter_to in ['senders', 'both']:
             # using direct_neighbour_aggregation to generate the message
             message = torch.cat([input_features, receiver_features], dim=-1)
             # sum method is used with aggregators
-            aggregated_features.append(self.aggregator(message, senders, table_size=dim))
+            if self.xpu in ["gpu", "cpu"]:
+                aggregated_features.append(self.aggregator(message, senders, dim=dim))
+            elif self.xpu == "ipu":
+                aggregated_features.append(self.aggregator(message, senders, table_size=dim))
+            else:
+                raise NotImplementedError("The hardware you specified is not accepted. Please use ipu, gpu or cpu.")
 
         if self.node_combine_method == 'sum' and self.scatter_to == 'both':
             out.append(aggregated_features[0] + aggregated_features[1])
