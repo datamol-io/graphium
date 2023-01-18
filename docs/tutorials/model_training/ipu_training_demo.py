@@ -10,7 +10,7 @@ from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer, get_max_num_nodes_edges_datamodule
+from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
 from goli.utils.safe_run import SafeRun
 
 # from torch_geometric.nn.aggr import Aggregation
@@ -31,8 +31,6 @@ with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
 # Load and initialize the dataset
 datamodule = load_datamodule(cfg)
 datamodule.prepare_data()
-datamodule.setup(stage=None)
-max_nodes, max_edges = get_max_num_nodes_edges_datamodule(datamodule, stages=["train", "val"])
 
 # Initialize the network
 model_class, model_kwargs = load_architecture(
@@ -44,7 +42,7 @@ metrics = load_metrics(cfg)
 logger.info(metrics)
 
 predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
-predictor.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
 logger.info(predictor.model)
 logger.info(ModelSummary(predictor, max_depth=4))
