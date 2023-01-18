@@ -77,53 +77,6 @@ def get_accelerator(
     return acc_type
 
 
-def get_max_num_nodes_edges_datamodule(datamodule: BaseDataModule, stages: Optional[List[str]] = None) -> Tuple[int, int]:
-    """
-    Get the maximum number of nodes and edges across all datasets from the datamodule
-
-    Parameters:
-        datamodule: The datamodule from which to extract the maximum number of nodes
-        stages: The stages from which to extract the max num nodes.
-            Possible values are ["train", "val", "test", "predict"].
-            If None, all stages are considered.
-
-    Returns:
-        max_num_nodes: The maximum number of nodes across all datasets from the datamodule
-        max_num_edges: The maximum number of edges across all datasets from the datamodule
-    """
-
-    allowed_stages = ["train", "val", "test", "predict"]
-    if stages is None:
-        stages = allowed_stages
-    for stage in stages:
-        assert stage in allowed_stages, f"stage value `{stage}` not allowed."
-
-    max_nodes, max_edges = [], []
-    # Max number of nodes/edges in the training dataset
-    if (datamodule.train_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.train_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.train_ds.max_num_edges_per_graph)
-
-    # Max number of nodes/edges in the validation dataset
-    if (datamodule.val_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.val_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.val_ds.max_num_edges_per_graph)
-
-    # Max number of nodes/edges in the test dataset
-    if (datamodule.test_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.test_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.test_ds.max_num_edges_per_graph)
-
-    # Max number of nodes/edges in the predict dataset
-    if (datamodule.predict_ds is not None) and ("train" in stages):
-        max_nodes.append(datamodule.predict_ds.max_num_nodes_per_graph)
-        max_edges.append(datamodule.predict_ds.max_num_edges_per_graph)
-
-    max_num_nodes = max(max_nodes)
-    max_num_edges = max(max_edges)
-    return max_num_nodes, max_num_edges
-
-
 def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> BaseDataModule:
     """
     Load the datamodule from the specified configurations at the key

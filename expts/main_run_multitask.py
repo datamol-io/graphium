@@ -18,7 +18,6 @@ from goli.config._loader import (
     load_predictor,
     load_trainer,
     save_params_to_wandb,
-    get_max_num_nodes_edges_datamodule,
 )
 from goli.utils.safe_run import SafeRun
 
@@ -66,18 +65,14 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     datamodule.prepare_data()
 
     # Determine the max num nodes and edges in training and validation
-    datamodule.setup(stage=None)
-    train_dataloader = datamodule.train_dataloader()
-    max_nodes, max_edges = get_max_num_nodes_edges_datamodule(datamodule, stages=["train", "val"])
-    predictor.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
     # Run the model training
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.fit(model=predictor, datamodule=datamodule)
 
     # Determine the max num nodes and edges in testing
-    max_nodes, max_edges = get_max_num_nodes_edges_datamodule(datamodule, stages=["test"])
-    predictor.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])
 
     # Run the model testing
     with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):

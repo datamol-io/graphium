@@ -606,6 +606,84 @@ class BaseDataModule(pl.LightningDataModule):
 
         return loader
 
+    def get_max_num_nodes_datamodule(self, stages: Optional[List[str]] = None) -> int:
+        """
+        Get the maximum number of nodes across all datasets from the datamodule
+
+        Parameters:
+            datamodule: The datamodule from which to extract the maximum number of nodes
+            stages: The stages from which to extract the max num nodes.
+                Possible values are ["train", "val", "test", "predict"].
+                If None, all stages are considered.
+
+        Returns:
+            max_num_nodes: The maximum number of nodes across all datasets from the datamodule
+        """
+
+        allowed_stages = ["train", "val", "test", "predict"]
+        if stages is None:
+            stages = allowed_stages
+        for stage in stages:
+            assert stage in allowed_stages, f"stage value `{stage}` not allowed."
+
+        max_num_nodes = 0
+        # Max number of nodes in the training dataset
+        if (self.train_ds is not None) and ("train" in stages):
+            max_num_nodes = max(max_num_nodes, self.train_ds.max_num_nodes_per_graph)
+
+        # Max number of nodes in the validation dataset
+        if (self.val_ds is not None) and ("val" in stages):
+            max_num_nodes = max(max_num_nodes, self.val_ds.max_num_nodes_per_graph)
+
+        # Max number of nodes in the test dataset
+        if (self.test_ds is not None) and ("test" in stages):
+            max_num_nodes = max(max_num_nodes, self.test_ds.max_num_nodes_per_graph)
+
+        # Max number of nodes in the predict dataset
+        if (self.predict_ds is not None) and ("predict" in stages):
+            max_num_nodes = max(max_num_nodes, self.predict_ds.max_num_nodes_per_graph)
+
+        return max_num_nodes
+
+    def get_max_num_edges_datamodule(self, stages: Optional[List[str]] = None) -> int:
+        """
+        Get the maximum number of edges across all datasets from the datamodule
+
+        Parameters:
+            datamodule: The datamodule from which to extract the maximum number of nodes
+            stages: The stages from which to extract the max num nodes.
+                Possible values are ["train", "val", "test", "predict"].
+                If None, all stages are considered.
+
+        Returns:
+            max_num_edges: The maximum number of edges across all datasets from the datamodule
+        """
+
+        allowed_stages = ["train", "val", "test", "predict"]
+        if stages is None:
+            stages = allowed_stages
+        for stage in stages:
+            assert stage in allowed_stages, f"stage value `{stage}` not allowed."
+
+        max_num_edges = 0
+        # Max number of nodes/edges in the training dataset
+        if (self.train_ds is not None) and ("train" in stages):
+            max_num_edges = max(max_num_edges, self.train_ds.max_num_edges_per_graph)
+
+        # Max number of nodes/edges in the validation dataset
+        if (self.val_ds is not None) and ("val" in stages):
+            max_num_edges = max(max_num_edges, self.val_ds.max_num_edges_per_graph)
+
+        # Max number of nodes/edges in the test dataset
+        if (self.test_ds is not None) and ("test" in stages):
+            max_num_edges = max(max_num_edges, self.test_ds.max_num_edges_per_graph)
+
+        # Max number of nodes/edges in the predict dataset
+        if (self.predict_ds is not None) and ("predict" in stages):
+            max_num_edges = max(max_num_edges, self.predict_ds.max_num_edges_per_graph)
+
+        return max_num_edges
+
 
 class DatasetProcessingParams:
     def __init__(

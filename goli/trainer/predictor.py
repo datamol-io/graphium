@@ -14,6 +14,7 @@ from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
 from goli.trainer.predictor_summaries import TaskSummaries
 from goli.nn.base_graph_layer import get_node_feats, set_node_feats
+from goli.data.datamodule import BaseDataModule
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
@@ -551,3 +552,12 @@ class PredictorModule(pl.LightningModule):
             )
 
         return PredictorModule.load_from_checkpoint(GOLI_PRETRAINED_MODELS[name])
+
+    def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
+
+        datamodule.setup()
+
+        max_nodes = datamodule.get_max_num_nodes_datamodule(stages)
+        max_edges = datamodule.get_max_num_edges_datamodule(stages)
+
+        self.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
