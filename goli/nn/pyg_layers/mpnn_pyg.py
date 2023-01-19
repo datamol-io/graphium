@@ -24,7 +24,7 @@ class MPNNPyg(BaseGraphModule):
         out_dim_edges: Optional[int] = 32,
         num_edge_mlp: Optional[int] = 2,
         edge_dropout_rate: Optional[float] = 0.0035,
-        xpu: Optional[str] = "cpu",
+        xpu: Optional[str] = "ipu",
     ):
         r"""
             MPNNPyg: InteractionNetwork layer witg edges and global feature, GPS++ type of GNN layer
@@ -192,7 +192,7 @@ class MPNNPyg(BaseGraphModule):
             message = torch.cat([input_features, sender_features], dim=-1)
             # sum method is used with aggregators
             if self.xpu in ["gpu", "cpu"]:
-                aggregated_features.append(self.aggregator(message, receivers, dim=dim))
+                aggregated_features.append(self.aggregator(message, receivers, dim_size=dim))
             elif self.xpu == "ipu":
                 aggregated_features.append(self.aggregator(message, receivers, table_size=dim))
             else:
@@ -203,7 +203,7 @@ class MPNNPyg(BaseGraphModule):
             message = torch.cat([input_features, receiver_features], dim=-1)
             # sum method is used with aggregators
             if self.xpu in ["gpu", "cpu"]:
-                aggregated_features.append(self.aggregator(message, senders, dim=dim))
+                aggregated_features.append(self.aggregator(message, senders, dim_size=dim))
             elif self.xpu == "ipu":
                 aggregated_features.append(self.aggregator(message, senders, table_size=dim))
             else:
@@ -212,7 +212,7 @@ class MPNNPyg(BaseGraphModule):
         if self.node_combine_method == 'sum' and self.scatter_to == 'both':
             out.append(aggregated_features[0] + aggregated_features[1])
         elif self.scatter_to == 'both':
-            out.append(torch.cat([aggregated_features[0] + aggregated_features[1]], dim=-1))
+            out.append(torch.cat([aggregated_features[0], aggregated_features[1]], dim=-1))
         else:
             out.extend(aggregated_features)
 
@@ -222,6 +222,10 @@ class MPNNPyg(BaseGraphModule):
     def forward(self, batch):
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
+
+        # for residual connection
+        node_org = batch.h
+        edge_org = batch.edge_attr
 
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
@@ -242,6 +246,11 @@ class MPNNPyg(BaseGraphModule):
         node_model_input.append(batch.h)
         batch.h = torch.cat([node_model_input[0], node_model_input[1]], dim=-1)
         batch.h = self.node_model(batch.h)
+    
+        # ---------------Apply norm activation and dropout---------------
+        # use dropout value of the layer (default 0.3)
+        batch.h = self.apply_norm_activation_dropout(batch.h, normalization=False, activation=False) + node_org
+        batch.edge_attr = batch.edge_attr + edge_org
 
         return batch
 

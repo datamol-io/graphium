@@ -128,22 +128,18 @@ class GPSLayerPyg(BaseGraphModule):
     def forward(self, batch):
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
-        edge_in = batch.edge_attr
 
         h_in = h  # for first residual connection
 
         # Local MPNN with edge attributes.
         batch_out = self.mpnn(batch.clone())
         h_local = batch_out.h
-        edge_attr_local = batch_out.edge_attr
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
-        h_local = h_in + h_local  # Residual connection for nodes.
-        edge_attr_local = edge_in + edge_attr_local  # Residual connection for edges.
+        h_local = h_in + h_local  # Residual connection for nodes, not used in gps++.
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
         h = h_local
-        batch.edge_attr = edge_attr_local
 
         # Multi-head attention.
         # * batch.batch is the indicator vector for nodes of which graph it belongs to

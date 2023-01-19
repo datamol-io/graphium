@@ -22,9 +22,9 @@ gnn.layers.0.ff_linear2.linear.weight:
 - 32
 - 64
 gnn.layers.0.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.0.ff_out.linear.weight:
-- 128
+- 32
 - 32
 gnn.layers.0.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
@@ -59,9 +59,9 @@ gnn.layers.0.mpnn.norm_layer.bias:
 gnn.layers.0.mpnn.norm_layer.weight:
 - null
 gnn.layers.0.norm_layer.bias:
-- 128
+- 32
 gnn.layers.0.norm_layer.weight:
-- 128
+- 32
 gnn.layers.0.norm_layer_attn.bias:
 - 32
 gnn.layers.0.norm_layer_attn.weight:
@@ -71,30 +71,30 @@ gnn.layers.0.norm_layer_local.bias:
 gnn.layers.0.norm_layer_local.weight:
 - 32
 gnn.layers.1.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.1.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.1.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.1.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.1.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.1.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.1.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.1.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.1.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.1.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.1.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.1.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -128,42 +128,42 @@ gnn.layers.1.mpnn.norm_layer.bias:
 gnn.layers.1.mpnn.norm_layer.weight:
 - null
 gnn.layers.1.norm_layer.bias:
-- 128
+- 32
 gnn.layers.1.norm_layer.weight:
-- 128
+- 32
 gnn.layers.1.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.1.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.1.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.1.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.10.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.10.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.10.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.10.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.10.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.10.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.10.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.10.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.10.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.10.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.10.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.10.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -197,42 +197,42 @@ gnn.layers.10.mpnn.norm_layer.bias:
 gnn.layers.10.mpnn.norm_layer.weight:
 - null
 gnn.layers.10.norm_layer.bias:
-- 128
+- 32
 gnn.layers.10.norm_layer.weight:
-- 128
+- 32
 gnn.layers.10.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.10.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.10.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.10.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.11.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.11.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.11.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.11.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.11.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.11.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.11.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.11.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.11.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.11.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.11.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.11.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -266,42 +266,42 @@ gnn.layers.11.mpnn.norm_layer.bias:
 gnn.layers.11.mpnn.norm_layer.weight:
 - null
 gnn.layers.11.norm_layer.bias:
-- 128
+- 32
 gnn.layers.11.norm_layer.weight:
-- 128
+- 32
 gnn.layers.11.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.11.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.11.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.11.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.12.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.12.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.12.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.12.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.12.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.12.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.12.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.12.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.12.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.12.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.12.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.12.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -335,42 +335,42 @@ gnn.layers.12.mpnn.norm_layer.bias:
 gnn.layers.12.mpnn.norm_layer.weight:
 - null
 gnn.layers.12.norm_layer.bias:
-- 128
+- 32
 gnn.layers.12.norm_layer.weight:
-- 128
+- 32
 gnn.layers.12.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.12.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.12.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.12.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.13.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.13.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.13.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.13.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.13.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.13.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.13.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.13.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.13.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.13.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.13.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.13.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -404,42 +404,42 @@ gnn.layers.13.mpnn.norm_layer.bias:
 gnn.layers.13.mpnn.norm_layer.weight:
 - null
 gnn.layers.13.norm_layer.bias:
-- 128
+- 32
 gnn.layers.13.norm_layer.weight:
-- 128
+- 32
 gnn.layers.13.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.13.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.13.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.13.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.14.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.14.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.14.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.14.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.14.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.14.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.14.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.14.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.14.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.14.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.14.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.14.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -473,42 +473,42 @@ gnn.layers.14.mpnn.norm_layer.bias:
 gnn.layers.14.mpnn.norm_layer.weight:
 - null
 gnn.layers.14.norm_layer.bias:
-- 128
+- 32
 gnn.layers.14.norm_layer.weight:
-- 128
+- 32
 gnn.layers.14.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.14.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.14.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.14.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.15.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.15.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.15.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.15.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.15.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.15.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.15.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.15.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.15.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.15.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.15.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.15.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -542,42 +542,42 @@ gnn.layers.15.mpnn.norm_layer.bias:
 gnn.layers.15.mpnn.norm_layer.weight:
 - null
 gnn.layers.15.norm_layer.bias:
-- 128
+- 32
 gnn.layers.15.norm_layer.weight:
-- 128
+- 32
 gnn.layers.15.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.15.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.15.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.15.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.2.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.2.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.2.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.2.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.2.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.2.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.2.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.2.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.2.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.2.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.2.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.2.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -611,42 +611,42 @@ gnn.layers.2.mpnn.norm_layer.bias:
 gnn.layers.2.mpnn.norm_layer.weight:
 - null
 gnn.layers.2.norm_layer.bias:
-- 128
+- 32
 gnn.layers.2.norm_layer.weight:
-- 128
+- 32
 gnn.layers.2.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.2.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.2.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.2.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.3.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.3.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.3.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.3.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.3.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.3.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.3.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.3.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.3.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.3.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.3.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.3.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -680,42 +680,42 @@ gnn.layers.3.mpnn.norm_layer.bias:
 gnn.layers.3.mpnn.norm_layer.weight:
 - null
 gnn.layers.3.norm_layer.bias:
-- 128
+- 32
 gnn.layers.3.norm_layer.weight:
-- 128
+- 32
 gnn.layers.3.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.3.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.3.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.3.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.4.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.4.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.4.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.4.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.4.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.4.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.4.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.4.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.4.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.4.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.4.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.4.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -749,42 +749,42 @@ gnn.layers.4.mpnn.norm_layer.bias:
 gnn.layers.4.mpnn.norm_layer.weight:
 - null
 gnn.layers.4.norm_layer.bias:
-- 128
+- 32
 gnn.layers.4.norm_layer.weight:
-- 128
+- 32
 gnn.layers.4.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.4.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.4.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.4.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.5.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.5.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.5.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.5.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.5.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.5.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.5.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.5.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.5.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.5.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.5.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.5.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -818,42 +818,42 @@ gnn.layers.5.mpnn.norm_layer.bias:
 gnn.layers.5.mpnn.norm_layer.weight:
 - null
 gnn.layers.5.norm_layer.bias:
-- 128
+- 32
 gnn.layers.5.norm_layer.weight:
-- 128
+- 32
 gnn.layers.5.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.5.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.5.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.5.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.6.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.6.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.6.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.6.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.6.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.6.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.6.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.6.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.6.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.6.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.6.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.6.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -887,42 +887,42 @@ gnn.layers.6.mpnn.norm_layer.bias:
 gnn.layers.6.mpnn.norm_layer.weight:
 - null
 gnn.layers.6.norm_layer.bias:
-- 128
+- 32
 gnn.layers.6.norm_layer.weight:
-- 128
+- 32
 gnn.layers.6.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.6.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.6.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.6.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.7.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.7.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.7.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.7.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.7.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.7.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.7.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.7.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.7.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.7.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.7.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.7.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -956,42 +956,42 @@ gnn.layers.7.mpnn.norm_layer.bias:
 gnn.layers.7.mpnn.norm_layer.weight:
 - null
 gnn.layers.7.norm_layer.bias:
-- 128
+- 32
 gnn.layers.7.norm_layer.weight:
-- 128
+- 32
 gnn.layers.7.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.7.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.7.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.7.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.8.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.8.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.8.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.8.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.8.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.8.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.8.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.8.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.8.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.8.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.8.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.8.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -1025,42 +1025,42 @@ gnn.layers.8.mpnn.norm_layer.bias:
 gnn.layers.8.mpnn.norm_layer.weight:
 - null
 gnn.layers.8.norm_layer.bias:
-- 128
+- 32
 gnn.layers.8.norm_layer.weight:
-- 128
+- 32
 gnn.layers.8.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.8.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.8.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.8.norm_layer_local.weight:
-- 128
+- 32
 gnn.layers.9.attn_layer.in_proj_bias:
-- 384
+- 96
 gnn.layers.9.attn_layer.in_proj_weight:
-- 384
-- 128
+- 96
+- 32
 gnn.layers.9.attn_layer.out_proj.bias:
-- 128
+- 32
 gnn.layers.9.attn_layer.out_proj.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.9.ff_linear1.linear.bias:
-- 256
+- 64
 gnn.layers.9.ff_linear1.linear.weight:
-- 256
-- 128
+- 64
+- 32
 gnn.layers.9.ff_linear2.linear.bias:
-- 128
+- 32
 gnn.layers.9.ff_linear2.linear.weight:
-- 128
-- 256
+- 32
+- 64
 gnn.layers.9.ff_out.linear.bias:
-- 128
+- 32
 gnn.layers.9.ff_out.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.layers.9.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.9.mpnn.edge_model.fully_connected.0.linear.weight:
@@ -1094,26 +1094,26 @@ gnn.layers.9.mpnn.norm_layer.bias:
 gnn.layers.9.mpnn.norm_layer.weight:
 - null
 gnn.layers.9.norm_layer.bias:
-- 128
+- 32
 gnn.layers.9.norm_layer.weight:
-- 128
+- 32
 gnn.layers.9.norm_layer_attn.bias:
-- 128
+- 32
 gnn.layers.9.norm_layer_attn.weight:
-- 128
+- 32
 gnn.layers.9.norm_layer_local.bias:
-- 128
+- 32
 gnn.layers.9.norm_layer_local.weight:
-- 128
+- 32
 gnn.out_linear.linear.bias:
-- 128
+- 32
 gnn.out_linear.linear.weight:
-- 128
-- 128
+- 32
+- 32
 gnn.out_linear.normalization.bias:
-- 128
+- 32
 gnn.out_linear.normalization.weight:
-- 128
+- 32
 pe_encoders.la_pos.linear_A.linear.bias:
 - null
 pe_encoders.la_pos.linear_A.linear.weight:
@@ -1137,7 +1137,7 @@ post_nn.layers.0.linear.bias:
 - 200
 post_nn.layers.0.linear.weight:
 - 200
-- 128
+- 32
 post_nn.layers.0.normalization.bias:
 - 200
 post_nn.layers.0.normalization.weight:

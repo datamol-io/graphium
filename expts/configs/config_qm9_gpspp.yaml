@@ -141,12 +141,12 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 256
-    hidden_dims: 256
+    out_dim: 64
+    hidden_dims: 64
     depth: 16
     activation: gelu
     last_activation: none
-    dropout: 0.3
+    dropout: 0.0
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
@@ -160,6 +160,7 @@ architecture:
         out_dim: 64
         in_dim_edges: 32
         out_dim_edges: 32
+        xpu: 'cpu'
       attn_type: "full-attention" # "full-attention", "none"
       attn_kwargs: null
 
