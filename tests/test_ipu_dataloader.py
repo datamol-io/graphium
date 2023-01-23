@@ -5,7 +5,7 @@ import numpy as np
 from copy import deepcopy
 from warnings import warn
 from pytorch_lightning import Trainer, LightningModule
-from pytorch_lightning.plugins import IPUPlugin
+from pytorch_lightning.strategies import IPUStrategy
 from functools import partial
 
 import torch
@@ -13,9 +13,8 @@ from torch.utils.data.dataloader import default_collate
 
 # Current library imports
 from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing, hybrid_packing
-from goli.ipu.ipu_wrapper import PredictorModuleIPU
+from goli.ipu.ipu_wrapper import PredictorModuleIPU, DictIPUStrategy
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
-from goli.ipu.ipu_wrapper import IPUPluginGoli
 
 
 def random_packing(num_nodes, batch_size):
@@ -189,28 +188,27 @@ class test_DataLoading(ut.TestCase):
             return loss
 
         def assert_shapes(self, batch, batch_idx, step):
-            msg = f"\nbatch_idx=`{batch_idx}`, step=`{step}`"
 
             # Test the shape of the labels
             this_shape = list(batch[0].shape)
             true_shape = [1, self.batch_size]
             assert (
                 this_shape == true_shape
-            ), f"Shape of the labels is `{this_shape}` but should be {true_shape}. {msg}"
+            ), f"Shape of the labels is `{this_shape}` but should be {true_shape}"
 
             # Test the shape of the first feature
             this_shape = list(batch[1][0].shape)
             true_shape = [1, self.batch_size, self.node_feat_size]
             assert (
                 this_shape == true_shape
-            ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}. {msg}"
+            ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}"
 
             # Test the shape of the second feature
             this_shape = list(batch[1][1].shape)
             true_shape = [1, self.batch_size, self.edge_feat_size]
             assert (
                 this_shape == true_shape
-            ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}. {msg}"
+            ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}"
 
         def configure_optimizers(self):
             return torch.optim.Adam(self.parameters(), lr=1e-3)
@@ -228,9 +226,10 @@ class test_DataLoading(ut.TestCase):
 
             self.pop = poptorch
 
-        def validation_step(self, *args):
-            dict_input = self._build_dict_input(*args)
-            self.assert_shapes(args, dict_input, "val")
+        def validation_step(self, features, labels):
+            features, labels = self.squeeze_input_dims(features, labels)
+            dict_input = {'features': features, 'labels': labels}
+            self.assert_shapes(dict_input, "val")
             preds = self.forward(dict_input)["preds"]
             loss = self.compute_loss(
                 preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None
@@ -238,9 +237,9 @@ class test_DataLoading(ut.TestCase):
             loss = loss[0]
             return loss
 
-        def training_step(self, *args):
-            dict_input = self._build_dict_input(*args)
-            self.assert_shapes(args, dict_input, "train")
+        def training_step(self, features, labels):
+            features, labels = self.squeeze_input_dims(features, labels)
+            dict_input = {'features': features, 'labels': labels}
             preds = self.forward(dict_input)["preds"]
             loss = self.compute_loss(
                 preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None
@@ -248,12 +247,8 @@ class test_DataLoading(ut.TestCase):
             loss = self.poptorch.identity_loss(loss[0], reduction="mean")
             return loss
 
-        def assert_shapes(self, args, dict_input, step):
+        def assert_shapes(self, dict_input, step):
             msg = f", step=`{step}`"
-
-            # Ensure that the first dimension is 1 for all tensors
-            for arg in args:
-                assert arg.shape[0] == 1
 
             # Test the shape of the labels
             this_shape = list(dict_input["labels"]["homo"].shape)
@@ -294,6 +289,17 @@ class test_DataLoading(ut.TestCase):
         def configure_optimizers(self):
             return torch.optim.Adam(self.parameters(), lr=1e-3)
 
+        def squeeze_input_dims(self, features, labels):
+
+            for key, tensor in features:
+                if isinstance(tensor, torch.Tensor):
+                    features[key] = features[key].squeeze(0)
+
+            for key in labels:
+                labels[key] = labels[key].squeeze(0)
+
+            return features, labels
+
     class TestDataset(torch.utils.data.Dataset):
         # Create a simple dataset for testing the Lightning integration
         def __init__(self, labels, node_features, edge_features):
@@ -332,7 +338,6 @@ class test_DataLoading(ut.TestCase):
         # Initialize the batch info and poptorch options
         opts = poptorch.Options()
         opts.deviceIterations(device_iterations)
-        opts.Jit.traceModel(True)
         training_opts = deepcopy(opts)
         training_opts.Training.gradientAccumulation(gradient_accumulation)
         inference_opts = deepcopy(opts)
@@ -363,9 +368,9 @@ class test_DataLoading(ut.TestCase):
 
         # Build the model, and run it on IPU
         model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
-        plugins = IPUPlugin(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
         trainer = Trainer(
-            logger=False, enable_checkpointing=False, max_epochs=2, plugins=plugins, num_sanity_val_steps=0
+            logger=False, enable_checkpointing=False, max_epochs=2, strategy=strategy, num_sanity_val_steps=0, ipus=1
         )
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
@@ -389,7 +394,6 @@ class test_DataLoading(ut.TestCase):
         # Initialize the batch info and poptorch options
         opts = poptorch.Options()
         opts.deviceIterations(device_iterations)
-        opts.Jit.traceModel(True)
         training_opts = deepcopy(opts)
         training_opts.Training.gradientAccumulation(gradient_accumulation)
         inference_opts = deepcopy(opts)
@@ -422,9 +426,9 @@ class test_DataLoading(ut.TestCase):
             metrics=metrics,
             **cfg["predictor"],
         )
-        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
         trainer = Trainer(
-            logger=False, enable_checkpointing=False, max_epochs=2, plugins=plugins, num_sanity_val_steps=0
+            logger=False, enable_checkpointing=False, max_epochs=2, strategy=strategy, num_sanity_val_steps=0
         )
         trainer.fit(model=predictor, datamodule=datamodule)
 
