@@ -26,17 +26,14 @@ kwargs = {
 }
 
 task_1_kwargs = {
-    "task_name": "task_1",
     "out_dim": 5,
     "hidden_dims": [5, 6, 7],
 }
 task_2_kwargs = {
-    "task_name": "task_2",
     "out_dim": 3,
     "hidden_dims": [8, 9, 10],
 }
 task_3_kwargs = {
-    "task_name": "task_3",
     "out_dim": 4,
     "hidden_dims": [2, 2, 2],
 }
@@ -58,7 +55,7 @@ class test_TaskHeads(ut.TestCase):
         in_dim = 4  # Dimension of the incoming data
         batch = 2
 
-        task_heads_params = [task_1_params, task_2_params, task_3_params]
+        task_heads_params = {'task_1':task_1_params, 'task_2':task_2_params, 'task_3':task_3_params}
 
         # Create the "multitask" network. Really it's just an input going to various FFNNs since there's nothing shared.
         multi_head_nn = TaskHeads(in_dim=in_dim, task_heads_kwargs=task_heads_params)
@@ -98,9 +95,9 @@ class test_TaskHeads(ut.TestCase):
         h_out = multi_head_nn.forward(h)
 
         # Check the output: It's a per-task prediction!
-        self.assertListEqual(list(h_out[task_1_kwargs["task_name"]].shape), [batch, task_1_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out[task_2_kwargs["task_name"]].shape), [batch, task_2_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out[task_3_kwargs["task_name"]].shape), [batch, task_3_kwargs["out_dim"]])
+        self.assertListEqual(list(h_out['task_1'].shape), [batch, task_1_kwargs["out_dim"]])
+        self.assertListEqual(list(h_out['task_2'].shape), [batch, task_2_kwargs["out_dim"]])
+        self.assertListEqual(list(h_out['task_3'].shape), [batch, task_3_kwargs["out_dim"]])
 
 
 class test_Multitask_NN(ut.TestCase):
@@ -143,7 +140,7 @@ class test_Multitask_NN(ut.TestCase):
 
     def test_fulldgl_multitask_forward(self):
         # Task heads
-        task_heads_params = [task_1_params, task_2_params, task_3_params]
+        task_heads_params = {'task_1':task_1_params, 'task_2':task_2_params, 'task_3':task_3_params}
 
         # Params for the FullDGLNetwork
         temp_dim_1 = 5
@@ -187,17 +184,17 @@ class test_Multitask_NN(ut.TestCase):
                             # self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
                             self.assertListEqual(
-                                list(h_out[task_1_kwargs["task_name"]].shape),
+                                list(h_out['task_1'].shape),
                                 [dim_1, task_1_kwargs["out_dim"]],
                                 msg=err_msg,
                             )
                             self.assertListEqual(
-                                list(h_out[task_2_kwargs["task_name"]].shape),
+                                list(h_out['task_2'].shape),
                                 [dim_1, task_2_kwargs["out_dim"]],
                                 msg=err_msg,
                             )
                             self.assertListEqual(
-                                list(h_out[task_3_kwargs["task_name"]].shape),
+                                list(h_out['task_3'].shape),
                                 [dim_1, task_3_kwargs["out_dim"]],
                                 msg=err_msg,
                             )
@@ -233,9 +230,9 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
 
         dim_1 = self.bg.batch_size
 
-        self.assertListEqual(list(h_out[task_1_kwargs["task_name"]].shape), [dim_1, task_1_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out[task_2_kwargs["task_name"]].shape), [dim_1, task_2_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out[task_3_kwargs["task_name"]].shape), [dim_1, task_3_kwargs["out_dim"]])
+        self.assertListEqual(list(h_out['task_1'].shape), [dim_1, task_1_kwargs["out_dim"]])
+        self.assertListEqual(list(h_out['task_2'].shape), [dim_1, task_2_kwargs["out_dim"]])
+        self.assertListEqual(list(h_out['task_3'].shape), [dim_1, task_3_kwargs["out_dim"]])
 
 
 if __name__ == "__main__":
