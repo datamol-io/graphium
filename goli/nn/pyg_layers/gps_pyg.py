@@ -65,6 +65,9 @@ class GPSLayerPyg(BaseGraphModule):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
+            node_residual:
+                If node residual is used after on the gnn layer output
+
             normalization:
                 Normalization to use. Choices:
 
