@@ -107,7 +107,6 @@ class SimpleLightning(pl.LightningModule):
 
 
 if __name__ == "__main__":
-
     torch.manual_seed(SEED)
 
     # Create the model as usual.

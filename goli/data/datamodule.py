@@ -452,7 +452,6 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
     def test_dataloader(self, **kwargs):
-
         return self.get_dataloader(
             dataset=self.test_ds,  # type: ignore
             shuffle=False,
@@ -460,7 +459,6 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
     def predict_dataloader(self, **kwargs):
-
         return self.get_dataloader(
             dataset=self.predict_ds,  # type: ignore
             shuffle=False,
@@ -1756,7 +1754,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dataset_dir = base_dir / metadata["download_name"]
 
         if not dataset_dir.exists():
-
             # Create cache filepath for zip file and associated folder
             dataset_path = base_dir / f"{metadata['download_name']}.zip"
 

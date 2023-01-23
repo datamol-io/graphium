@@ -177,7 +177,6 @@ class PredictorModule(pl.LightningModule):
         return feats
 
     def configure_optimizers(self, impl=None):
-
         if impl is None:
             impl = torch.optim.Adam
 
@@ -489,7 +488,6 @@ class PredictorModule(pl.LightningModule):
         pass
 
     def validation_epoch_end(self, outputs: Dict[str, Any]):
-
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
@@ -503,7 +501,6 @@ class PredictorModule(pl.LightningModule):
         full_dict.update(self.task_epoch_summary.get_dict_summary())
 
     def test_epoch_end(self, outputs: Dict[str, Any]):
-
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 

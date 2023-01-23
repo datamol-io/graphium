@@ -28,6 +28,7 @@ class GINConvPyg(BaseGraphModule):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         GIN: Graph Isomorphism Networks
@@ -89,7 +90,6 @@ class GINConvPyg(BaseGraphModule):
         self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
     def forward(self, batch: Union[Data, Batch]):
-
         batch.h = self.model(batch.h, batch.edge_index)
         batch.h = self.apply_norm_activation_dropout(batch.h)
 
@@ -167,6 +167,7 @@ class GINEConvPyg(BaseGraphModule):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         GINE: Graph Isomorphism Networks with Edges
@@ -229,7 +230,6 @@ class GINEConvPyg(BaseGraphModule):
         self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
     def forward(self, batch):
-
         batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
         batch.h = self.apply_norm_activation_dropout(batch.h)
 

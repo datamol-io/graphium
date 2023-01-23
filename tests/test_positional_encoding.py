@@ -16,7 +16,6 @@ from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encod
 
 
 class test_positional_encoder(ut.TestCase):
-
     smiles = [
         "C",
         "CC",
@@ -29,7 +28,6 @@ class test_positional_encoder(ut.TestCase):
     adjs = [Chem.rdmolops.GetAdjacencyMatrix(mol) for mol in mols]
 
     def test_laplacian_eigvec(self):
-
         for ii, adj in enumerate(deepcopy(self.adjs)):
             for num_pos in [1, 2, 4]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
@@ -70,7 +68,6 @@ class test_positional_encoder(ut.TestCase):
                         )
 
     def test_laplacian_eigvec_eigval(self):
-
         for ii, adj in enumerate(deepcopy(self.adjs)):
             for num_pos in [1, 2, 4]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
@@ -130,7 +127,6 @@ class test_positional_encoder(ut.TestCase):
     """
 
     def test_laplacian_eigvec_with_encoder(self):
-
         for ii, adj in enumerate(deepcopy(self.adjs)):
             for num_pos in [2, 4, 8]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:

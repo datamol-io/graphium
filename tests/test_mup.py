@@ -136,7 +136,6 @@ class test_mup(ut.TestCase):
         model_2_lastreadout.forward(deepcopy(in_features))
 
     def test_fullgraphnetwork(self):
-
         # Load the configuration file for the model
         CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
         with open(CONFIG_FILE, "r") as f:
@@ -223,7 +222,6 @@ class test_mup(ut.TestCase):
         model_2.forward(deepcopy(in_features))
 
     def test_fullgraphmultitasknetwork(self):
-
         # Load the configuration file for the model
         CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
         with open(CONFIG_FILE, "r") as f:

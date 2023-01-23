@@ -1563,6 +1563,7 @@ class TaskHeads(nn.Module):
         self.last_layer_is_readout = last_layer_is_readout
         task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.task_heads = nn.ModuleDict()
+        # task_heads_kwargs is a list of dicts
         for task_name, head_kwargs in task_heads_kwargs.items():
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)

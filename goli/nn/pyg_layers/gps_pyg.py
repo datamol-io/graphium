@@ -36,6 +36,7 @@ class GPSLayerPyg(BaseGraphModule):
         out_dim_edges: Optional[int] = None,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
+        node_residual: Optional[bool] = True,
         normalization: Union[str, Callable] = "none",
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs=None,
@@ -88,6 +89,9 @@ class GPSLayerPyg(BaseGraphModule):
         self.ff_dropout1 = self._parse_dropout(dropout=self.dropout)
         self.ff_dropout2 = self._parse_dropout(dropout=self.dropout)
 
+        # Residual connections
+        self.node_residual = node_residual
+
         # linear layers
         self.ff_linear1 = FCLayer(in_dim, in_dim * 2, activation=None)
         self.ff_linear2 = FCLayer(in_dim * 2, in_dim, activation=None)
@@ -98,20 +102,18 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_ff = self.norm_layer
 
-        self.mpnn_type = mpnn_type
-
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
             mpnn_kwargs = {}
         mpnn_kwargs = deepcopy(mpnn_kwargs)
         mpnn_kwargs.setdefault("in_dim", in_dim)
-        mpnn_kwargs.setdefault("out_dim", out_dim)
+        mpnn_kwargs.setdefault("out_dim", in_dim)
         mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
         mpnn_kwargs.setdefault("out_dim_edges", out_dim_edges)
         # TODO: The rest of default values
 
         # Initialize the MPNN layer
-        mpnn_class = PYG_LAYERS_DICT[self.mpnn_type]
+        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
         # Set the default values for the Attention layer
@@ -136,7 +138,8 @@ class GPSLayerPyg(BaseGraphModule):
         h_local = batch_out.h
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
-        h_local = h_in + h_local  # Residual connection for nodes, not used in gps++.
+        if self.node_residual:
+            h_local = h_in + h_local  # Residual connection for nodes, not used in gps++.
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
         h = h_local
@@ -145,7 +148,6 @@ class GPSLayerPyg(BaseGraphModule):
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
         # * h_dense
         if self.attn_layer is not None:
-
             # If there's padding, then we are on IPU
             on_ipu = ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
             if on_ipu:

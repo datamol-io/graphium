@@ -118,7 +118,6 @@ class DictTensor(dict):
         """
 
         def wrap(first_input: Union[DictTensor, Any], *args, **kwargs):
-
             # The following lines are for when a function is 'bounded' and
             # is called form `torch.FUNCTION()` instead of `Tensor.FUNCTION()`.
             this_func, this_args, this_kwargs = func, args, kwargs

@@ -37,7 +37,6 @@ def global_batch_collator(batch_size, batches):
 
 class test_Packing(ut.TestCase):
     def test_smart_packing(self):
-
         np.random.seed(42)
 
         batch_sizes = [2, 4, 8, 16, 32, 64]
@@ -45,7 +44,6 @@ class test_Packing(ut.TestCase):
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
-
                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
                 # Generate random batch size
@@ -78,7 +76,6 @@ class test_Packing(ut.TestCase):
                 )
 
     def test_fast_packing(self):
-
         np.random.seed(42)
 
         # Start at 4 for fast_packing for better statistical significance
@@ -87,7 +84,6 @@ class test_Packing(ut.TestCase):
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
-
                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
                 # Generate random batch size
@@ -120,7 +116,6 @@ class test_Packing(ut.TestCase):
                 )
 
     def test_hybrid_packing(self):
-
         np.random.seed(42)
 
         batch_sizes = [2, 4, 8, 16, 32, 64]
@@ -128,7 +123,6 @@ class test_Packing(ut.TestCase):
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
-
                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
                 # Generate random batch size
