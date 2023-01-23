@@ -57,16 +57,14 @@ mkdir ~/.venv                           # Create the folder for the environment
 python3 -m venv ~/.venv/goli_ipu        # Create the environment
 source ~/.venv/goli_ipu/bin/activate    # Activate the environment
 
-# Installing the dependencies for the IPU environment
-pip install torch==1.10+cpu torchvision==0.11+cpu torchaudio==0.10 -f https://download.pytorch.org/whl/torch_stable.html
-pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric -f https://data.pyg.org/whl/torch-1.10.0+cpu.html
-pip install dgl dglgo -f https://data.dgl.ai/wheels/repo.html
+# Activate poplar SDK.
+source PATH_TO_SDK/enable
 
 # Installing the poptorch SDK. Make sure to change the path
 pip install PATH_TO_SDK/poptorch-3.0.0+86945_163b7ce462_ubuntu_20_04-cp38-cp38-linux_x86_64.wh
 
-# Install the remaining requirements
-pip install -r requirements.txt
+# Install the IPU specific and goli requirements
+pip install -r requirements_ipu.txt
 
 # Install Goli in dev mode
 pip install -e .
