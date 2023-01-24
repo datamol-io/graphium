@@ -246,10 +246,6 @@ class MPNNPlusPyg(BaseGraphModule):
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
 
-        # for residual connection
-        node_org = batch.h
-        edge_org = batch.edge_attr
-
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
 
@@ -273,10 +269,7 @@ class MPNNPlusPyg(BaseGraphModule):
 
         # ---------------Apply norm activation and dropout---------------
         # use dropout value of the layer (default 0.3)
-        batch.h = (
-            self.apply_norm_activation_dropout(batch.h, normalization=False, activation=False) + node_org
-        )
-        batch.edge_attr = batch.edge_attr + edge_org
+        batch.h = self.apply_norm_activation_dropout(batch.h, normalization=False, activation=False)
 
         return batch
 
