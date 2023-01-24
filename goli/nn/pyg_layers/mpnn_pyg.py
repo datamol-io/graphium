@@ -1,13 +1,14 @@
-from typing import Callable, Optional, Union
+from typing import Callable, Optional, Union, Tuple, List
 
 import torch
+from torch import Tensor
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 from torch_geometric.nn.aggr import MultiAggregation
 
 
-class MPNNPyg(BaseGraphModule):
+class MPNNPlusPyg(BaseGraphModule):
     def __init__(
         self,
         in_dim: int = 64,
@@ -22,12 +23,13 @@ class MPNNPyg(BaseGraphModule):
         use_edges: bool = True,
         in_dim_edges: Optional[int] = 32,
         out_dim_edges: Optional[int] = 32,
+        aggregation_method: Optional[List[str]] = ["add"],
         num_edge_mlp: Optional[int] = 2,
         edge_dropout_rate: Optional[float] = 0.0035,
         **kwargs,
     ):
         r"""
-            MPNNPyg: InteractionNetwork layer witg edges and global feature, GPS++ type of GNN layer
+            MPNNPlusPyg: InteractionNetwork layer witg edges and global feature, GPS++ type of GNN layer
             GPS++: An Optimised Hybrid MPNN/Transformer for Molecular Property Prediction
             Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam Sanders,
             Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
@@ -107,16 +109,9 @@ class MPNNPyg(BaseGraphModule):
         self.num_edge_mlp = num_edge_mlp
         self.edge_dropout_rate = edge_dropout_rate
 
-        self.aggregator = MultiAggregation(["add"])
+        self.aggregator = MultiAggregation(aggregation_method)
 
         # node_model:
-        # linear 1:
-        # in_dim: 3*ndim + 2*edim (in_dim_edge) + gdim
-        # hidden_dim: 4*ndim (in_dim)
-        # linear 2:
-        # hidden_dim: 4*ndim (in_dim)
-        # out_dim: ndim (out_dim)
-        # linear 1, gelu act, layer_norm, linear 2
         node_model_in_dim = 3 * self.in_dim + 2 * self.in_dim_edges
         node_model_hidden_dim = 4 * self.in_dim
         self.node_model = MLP(
@@ -129,13 +124,6 @@ class MPNNPyg(BaseGraphModule):
         )
 
         # edge_model:
-        # linear 1:
-        # in_dim: 2*ndim + edim (in_dim_edge) + gdim
-        # hidden_dim: 4*edim (in_dim_edge)
-        # linear 2:
-        # hidden_dim: 4*edim (in_dim_edge)
-        # out_dim: edim (out_dim_edge)
-        # linear 1, gelu act, layer_norm, linear 2, dropout
         edge_model_in_dim = 2 * self.in_dim + self.in_dim_edges
         edge_model_hidden_dim = 4 * self.in_dim_edges
         self.edge_model = MLP(
@@ -148,10 +136,32 @@ class MPNNPyg(BaseGraphModule):
             normalization=self.normalization,
         )
 
-    def gather_features(self, input_features, senders, receivers):
+    def gather_features(
+        self, input_features: Tensor, senders: Tensor, receivers: Tensor
+    ) -> Tuple[Tensor, Tensor, Tensor]:
+        r"""
+            Function to gather node features based on the senders and receivers of the edge indices.
+
+        Parameters:
+
+            input_features:
+                Node features of the batch
+
+            senders:
+                Senders of the edge_index of the batch
+
+            receivers:
+                Receivers of the edge_index of the batch
+
+        Output:
+            Gathered node features (sender and receiver) summed up or concatenated
+            Gathered sender features
+            Gathered receiver features
+
+        """
+
         out = []
 
-        # we might need grouped_ops.grouped_gather(input_features, senders) on IPU
         receiver_features = input_features[receivers]
         sender_features = input_features[senders]
 
@@ -171,7 +181,43 @@ class MPNNPyg(BaseGraphModule):
 
         return out, sender_features, receiver_features
 
-    def aggregate_features(self, input_features, senders, receivers, sender_features, receiver_features, dim):
+    def aggregate_features(
+        self,
+        input_features: Tensor,
+        senders: Tensor,
+        receivers: Tensor,
+        sender_features: Tensor,
+        receiver_features: Tensor,
+        size: int,
+    ) -> Tensor:
+        r"""
+            Function to aggregate (scatter) messages built from node and edge features.
+
+        Parameters:
+
+            input_features:
+                Edge features of the batch
+
+            senders:
+                Senders of the edge_index of the batch
+
+            receivers:
+                Receivers of the edge_index of the batch
+
+            sender_features:
+                Senders features gathered from the gather_features function
+
+            receiver_features:
+                Receiver features gathered from the gather_features function
+
+            size:
+                size of the aggregation, equals to the total number of nodes
+
+        Output:
+            Aggregated node features
+
+        """
+
         out = []
         aggregated_features = []
 
@@ -179,13 +225,13 @@ class MPNNPyg(BaseGraphModule):
             # using direct_neighbour_aggregation to generate the message
             message = torch.cat([input_features, sender_features], dim=-1)
             # sum method is used with aggregators
-            aggregated_features.append(self.aggregator(message, receivers, dim_size=dim))
+            aggregated_features.append(self.aggregator(message, receivers, dim_size=size))
 
         if self.scatter_to in ["senders", "both"]:
             # using direct_neighbour_aggregation to generate the message
             message = torch.cat([input_features, receiver_features], dim=-1)
             # sum method is used with aggregators
-            aggregated_features.append(self.aggregator(message, senders, dim_size=dim))
+            aggregated_features.append(self.aggregator(message, senders, dim_size=size))
 
         if self.node_combine_method == "sum" and self.scatter_to == "both":
             out.append(aggregated_features[0] + aggregated_features[1])
@@ -196,7 +242,7 @@ class MPNNPyg(BaseGraphModule):
 
         return out
 
-    def forward(self, batch):
+    def forward(self, batch: Tensor) -> Tensor:
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
 
@@ -272,7 +318,7 @@ class MPNNPyg(BaseGraphModule):
         Returns:
 
             bool:
-                Always ``False`` for the current class
+                Always ``True`` for the current class
         """
         return True
 

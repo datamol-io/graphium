@@ -15,7 +15,7 @@ from goli.ipu.to_dense_batch import to_dense_batch
 from goli.nn.pyg_layers import (
     GINConvPyg,
     GINEConvPyg,
-    MPNNPyg,
+    MPNNPlusPyg,
     GatedGCNPyg,
     PNAMessagePassingPyg,
     GPSLayerPyg,
@@ -109,7 +109,7 @@ class test_Pyg_Layers(ut.TestCase):
         h_in = bg.h
         # need in_dim = out_dim for skip connection
         # mpnn layer accept different dimension for node and edge features
-        layer = MPNNPyg(
+        layer = MPNNPlusPyg(
             in_dim=self.in_dim,
             out_dim=self.in_dim,
             use_edges=True,
