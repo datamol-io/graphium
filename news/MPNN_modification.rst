@@ -1,7 +1,7 @@
 **Added:**
 
 * MPNNPlus pyg layer (along with functions to gather and aggregate features)
-* config for GPUPlusPlus
+* config for GPSPlusPlus
 * unit test for MPNNPlus pyg layer
 
 **Changed:**
