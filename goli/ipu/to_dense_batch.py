@@ -54,8 +54,10 @@ def to_dense_batch(
         batch = x.new_zeros(x.size(0), dtype=torch.long)
 
     if batch_size is None:
-        assert x.device.type != 'ipu', ("When using the IPU the batch size must be "
-            "provided during compilation instead of determined at runtime")
+        assert x.device.type != "ipu", (
+            "When using the IPU the batch size must be "
+            "provided during compilation instead of determined at runtime"
+        )
         batch_size = int(batch.max()) + 1
 
     num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
@@ -79,11 +81,10 @@ def to_dense_batch(
         idx[idx >= size[0]] = size[0] - 1
 
     # Raise error if num_nodes > max_num_nodes
-    if x.device.type != 'ipu':
+    if x.device.type != "ipu":
         assert (
             num_nodes <= max_num_nodes_per_graph
         ).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {max_num_nodes_per_graph}`"
-
 
     out[idx] = x
     out = out.view([batch_size, max_num_nodes_per_graph] + list(x.size())[1:])
@@ -91,7 +92,7 @@ def to_dense_batch(
     # Create a zero-mask on the right device
     mask_sz = batch_size * max_num_nodes_per_graph
     if x.device.type in ("ipu", "xla"):
-        mask = torch.zeros(mask_sz, dtype=torch.bool, device='cpu')
+        mask = torch.zeros(mask_sz, dtype=torch.bool, device="cpu")
         mask = mask.to(x.device)
     else:
         mask = torch.zeros(mask_sz, dtype=torch.bool, device=x.device)

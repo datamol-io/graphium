@@ -25,7 +25,6 @@ os.chdir(MAIN_DIR)
 
 
 def main() -> None:
-
     LIST_CONCAT_LAST_LAYERS = [1, 0, [1, 2], [0, 1, 2]]
     DATA_NAME_ALL = ["molbace"]  # , "mollipo", "moltox21", "molHIV"]
     MODEL_PATH = "gs://goli-public/pretrained-models"

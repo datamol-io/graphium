@@ -20,7 +20,6 @@ except:
     pyg = None
 
 
-
 class BaseGraphStructure:
     def __init__(
         self,
@@ -71,7 +70,6 @@ class BaseGraphStructure:
         self._max_num_edges_per_graph = None
 
     def _initialize_activation_dropout_norm(self):
-
         if not isinstance(self, nn.Module):
             raise TypeError(
                 "This function requires the current object to be an `nn.Module`. Use multi-inheritance or the class `BaseGraphModule` instead"
@@ -91,7 +89,6 @@ class BaseGraphStructure:
         return
 
     def _parse_norm(self, normalization, dim=None):
-
         if dim is None:
             dim = self.out_dim * self.out_dim_factor
         if normalization is None or normalization == "none":
@@ -218,7 +215,6 @@ class BaseGraphStructure:
         """
         ...
 
-
     @property
     def max_num_nodes_per_graph(self) -> Optional[int]:
         """
@@ -232,7 +228,9 @@ class BaseGraphStructure:
         Set the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
         """
         if value is not None:
-            assert isinstance(value, int) and (value > 0), f"Value should be a positive integer, provided f{value} of type {type(value)}"
+            assert isinstance(value, int) and (
+                value > 0
+            ), f"Value should be a positive integer, provided f{value} of type {type(value)}"
         self._max_num_nodes_per_graph = value
 
     @property
@@ -248,9 +246,10 @@ class BaseGraphStructure:
         Set the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
         """
         if value is not None:
-            assert isinstance(value, int) and (value > 0), f"Value should be a positive integer, provided f{value} of type {type(value)}"
+            assert isinstance(value, int) and (
+                value > 0
+            ), f"Value should be a positive integer, provided f{value} of type {type(value)}"
         self._max_num_edges_per_graph = value
-
 
     def __repr__(self):
         r"""

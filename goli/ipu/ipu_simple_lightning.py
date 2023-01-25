@@ -107,7 +107,6 @@ class SimpleLightning(pl.LightningModule):
 
 
 if __name__ == "__main__":
-
     torch.manual_seed(SEED)
 
     # Create the model as usual.
@@ -143,7 +142,7 @@ if __name__ == "__main__":
         training_opts.randomSeed(SEED)
         inference_opts.randomSeed(SEED)
         ipus = 1
-        strategy=IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     trainer = pl.Trainer(
         logger=WandbLogger(),

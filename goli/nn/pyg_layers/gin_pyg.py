@@ -89,7 +89,6 @@ class GINConvPyg(BaseGraphModule):
         self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
     def forward(self, batch: Union[Data, Batch]):
-
         batch.h = self.model(batch.h, batch.edge_index)
         batch.h = self.apply_norm_activation_dropout(batch.h)
 
@@ -229,7 +228,6 @@ class GINEConvPyg(BaseGraphModule):
         self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
     def forward(self, batch):
-
         batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
         batch.h = self.apply_norm_activation_dropout(batch.h)
 

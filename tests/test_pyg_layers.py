@@ -22,7 +22,6 @@ from goli.nn.pyg_layers import (
 
 
 class test_Pyg_Layers(ut.TestCase):
-
     in_dim = 21
     out_dim = 11
     in_dim_edges = 13
@@ -68,7 +67,6 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_ginlayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.h
         layer = GINConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
@@ -85,7 +83,6 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_ginelayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.h
         layer = GINEConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
@@ -107,7 +104,6 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_gatedgcnlayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.h
         e_in = bg.edge_attr
@@ -134,7 +130,6 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_pnamessagepassinglayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.h
         aggregators = ["mean", "max", "min", "std", "sum"]

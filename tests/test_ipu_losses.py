@@ -7,7 +7,6 @@ from goli.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
 
 
 class test_Losses(ut.TestCase):
-
     torch.manual_seed(42)
     preds = torch.rand((100, 10), dtype=torch.float32)
     target = torch.rand((100, 10), dtype=torch.float32)

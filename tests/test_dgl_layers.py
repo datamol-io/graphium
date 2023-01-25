@@ -23,7 +23,6 @@ from goli.nn.dgl_layers import (
 
 
 class test_DGL_Layers(ut.TestCase):
-
     in_dim = 21
     out_dim = 11
     in_dim_edges = 13
@@ -46,7 +45,6 @@ class test_DGL_Layers(ut.TestCase):
     }
 
     def test_gcnlayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         layer = GCNDgl(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
@@ -63,7 +61,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_ginlayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         layer = GINDgl(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs).to(float)
@@ -80,7 +77,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_gatlayer(self):
-
         num_heads = 3
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
@@ -98,7 +94,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_gatedgcnlayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["edge_attr"]
@@ -129,7 +124,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_pnaconvolutionallayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["edge_attr"]
@@ -178,7 +172,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_pnamessagepassinglayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["edge_attr"]
@@ -228,7 +221,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_dgnconvolutionallayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["edge_attr"]
@@ -293,7 +285,6 @@ class test_DGL_Layers(ut.TestCase):
         self.assertEqual(h.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_dgnmessagepassinglayer(self):
-
         bg = deepcopy(self.bg)
         h_in = bg.ndata["h"]
         e_in = bg.edata["edge_attr"]

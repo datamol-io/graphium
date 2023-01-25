@@ -254,6 +254,7 @@ def load_predictor(
 
     if get_accelerator(config) == "ipu":
         from goli.ipu.ipu_wrapper import PredictorModuleIPU
+
         predictor_class = PredictorModuleIPU
     else:
         predictor_class = PredictorModule
@@ -314,6 +315,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
         from goli.ipu.ipu_wrapper import DictIPUStrategy
+
         strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available

@@ -58,7 +58,6 @@ def download_goli_dataset(name: str, output_path: str, extract_zip: bool = True,
         goli.utils.fs.copy(dataset_path_source, dataset_path_destination, progress=progress)
 
         if extract_zip and str(dataset_path_destination).endswith(".zip"):
-
             # Unzip the dataset
             with zipfile.ZipFile(dataset_path_destination, "r") as zf:
                 zf.extractall(output_path)

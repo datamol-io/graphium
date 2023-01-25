@@ -140,7 +140,6 @@ class GPSLayerPyg(BaseGraphModule):
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
         # * h_dense
         if self.attn_layer is not None:
-
             # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
             poptorch = import_poptorch(raise_error=False)
             on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
@@ -149,10 +148,13 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
             # Convert the tensor to a dense batch, then back to a sparse batch
-            batch_size = None if h.device.type != 'ipu' else batch.graph_is_true.shape[0]
+            batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
             h_dense, mask, idx = to_dense_batch(
-                h, batch=batch.batch, batch_size=batch_size,
-                max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu
+                h,
+                batch=batch.batch,
+                batch_size=batch_size,
+                max_num_nodes_per_graph=max_num_nodes_per_graph,
+                drop_nodes_last_graph=on_ipu,
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)

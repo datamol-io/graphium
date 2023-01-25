@@ -178,7 +178,6 @@ class PredictorModule(pl.LightningModule):
         return feats
 
     def configure_optimizers(self, impl=None):
-
         if impl is None:
             impl = torch.optim.Adam
 
@@ -444,7 +443,7 @@ class PredictorModule(pl.LightningModule):
         # Transform the list of dict of dict, into a dict of list of dict
         preds = {}
         targets = {}
-        #device = device=outputs[0]["preds"][self.tasks[0]].device
+        # device = device=outputs[0]["preds"][self.tasks[0]].device
         device = 0
         for task in self.tasks:
             preds[task] = torch.cat([out["preds"][task].to(device=device) for out in outputs], dim=0)
@@ -484,7 +483,6 @@ class PredictorModule(pl.LightningModule):
         pass
 
     def validation_epoch_end(self, outputs: Dict[str, Any]):
-
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
@@ -498,7 +496,6 @@ class PredictorModule(pl.LightningModule):
         full_dict.update(self.task_epoch_summary.get_dict_summary())
 
     def test_epoch_end(self, outputs: Dict[str, Any]):
-
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
@@ -556,7 +553,6 @@ class PredictorModule(pl.LightningModule):
         return PredictorModule.load_from_checkpoint(GOLI_PRETRAINED_MODELS[name])
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
-
         datamodule.setup()
 
         max_nodes = datamodule.get_max_num_nodes_datamodule(stages)

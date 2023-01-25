@@ -35,7 +35,6 @@ class IPUDataloaderOptions:
     mode: "poptorch.DataLoaderMode" = "Sync"
 
     def set_kwargs(self):
-
         # Get the maximum number of nodes
         if self.max_num_nodes is not None:
             assert (

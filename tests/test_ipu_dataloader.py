@@ -36,7 +36,6 @@ def global_batch_collator(batch_size, batches):
 
 class test_Packing(ut.TestCase):
     def test_smart_packing(self):
-
         np.random.seed(42)
 
         batch_sizes = [2, 4, 8, 16, 32, 64]
@@ -44,7 +43,6 @@ class test_Packing(ut.TestCase):
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
-
                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
                 # Generate random batch size
@@ -77,7 +75,6 @@ class test_Packing(ut.TestCase):
                 )
 
     def test_fast_packing(self):
-
         np.random.seed(42)
 
         # Start at 4 for fast_packing for better statistical significance
@@ -86,7 +83,6 @@ class test_Packing(ut.TestCase):
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
-
                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
                 # Generate random batch size
@@ -119,7 +115,6 @@ class test_Packing(ut.TestCase):
                 )
 
     def test_hybrid_packing(self):
-
         np.random.seed(42)
 
         batch_sizes = [2, 4, 8, 16, 32, 64]
@@ -127,7 +122,6 @@ class test_Packing(ut.TestCase):
 
         for batch_size in batch_sizes:
             for ipu_batch_size in ipu_batch_sizes:
-
                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
                 # Generate random batch size
@@ -188,7 +182,6 @@ class test_DataLoading(ut.TestCase):
             return loss
 
         def assert_shapes(self, batch, batch_idx, step):
-
             # Test the shape of the labels
             this_shape = list(batch[0].shape)
             true_shape = [1, self.batch_size]
@@ -228,7 +221,7 @@ class test_DataLoading(ut.TestCase):
 
         def validation_step(self, features, labels):
             features, labels = self.squeeze_input_dims(features, labels)
-            dict_input = {'features': features, 'labels': labels}
+            dict_input = {"features": features, "labels": labels}
             self.assert_shapes(dict_input, "val")
             preds = self.forward(dict_input)["preds"]
             loss = self.compute_loss(
@@ -239,7 +232,7 @@ class test_DataLoading(ut.TestCase):
 
         def training_step(self, features, labels):
             features, labels = self.squeeze_input_dims(features, labels)
-            dict_input = {'features': features, 'labels': labels}
+            dict_input = {"features": features, "labels": labels}
             preds = self.forward(dict_input)["preds"]
             loss = self.compute_loss(
                 preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None
@@ -290,7 +283,6 @@ class test_DataLoading(ut.TestCase):
             return torch.optim.Adam(self.parameters(), lr=1e-3)
 
         def squeeze_input_dims(self, features, labels):
-
             for key, tensor in features:
                 if isinstance(tensor, torch.Tensor):
                     features[key] = features[key].squeeze(0)
@@ -370,7 +362,12 @@ class test_DataLoading(ut.TestCase):
         model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
         strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
         trainer = Trainer(
-            logger=False, enable_checkpointing=False, max_epochs=2, strategy=strategy, num_sanity_val_steps=0, ipus=1
+            logger=False,
+            enable_checkpointing=False,
+            max_epochs=2,
+            strategy=strategy,
+            num_sanity_val_steps=0,
+            ipus=1,
         )
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
