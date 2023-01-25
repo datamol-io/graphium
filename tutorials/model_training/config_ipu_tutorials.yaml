@@ -176,7 +176,7 @@ architecture:
     residual_type: none
 
   task_heads:
-    - task_name: "homo"
+    homo:
       out_dim: 2
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
@@ -186,7 +186,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
-    - task_name: "alpha"
+    alpha:
       out_dim: 1
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
@@ -196,7 +196,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
-    - task_name: "cv"
+    cv:
       out_dim: 1
       hidden_dims: 32
       depth: 2                          # Not needed if we have hidden_dims
@@ -238,12 +238,15 @@ predictor:
 metrics:
   homo:
     - name: mae
-      metric: mae
+      metric: mae_ipu
+      target_nan_mask: null
+      multitask_handling: flatten
       threshold_kwargs: null
     - name: pearsonr
-      metric: pearsonr
+      metric: pearsonr_ipu
       threshold_kwargs: null
-      target_nan_mask: ignore-mean-label
+      target_nan_mask: null
+      multitask_handling: mean-per-label
     # - name: f1 > 0.5
     #   metric: f1
     #   num_classes: 2
@@ -292,6 +295,6 @@ trainer:
     save_top_k: 1
     every_n_epochs: 1
   trainer:
-    precision: 32
-    max_epochs: 5 #50
-    min_epochs: 1 #5
+    precision: 16
+    max_epochs: 5
+    min_epochs: 1
