@@ -16,7 +16,6 @@ def compute_laplacian_positional_eigvecs(
     disconnected_comp: bool = True,
     normalization: str = "none",
 ) -> Tuple[np.ndarray, np.ndarray]:
-
     # Sparsify the adjacency patrix
     if issparse(adj):
         adj = adj.astype(np.float64)
@@ -57,7 +56,6 @@ def compute_laplacian_positional_eigvecs(
 
 
 def _get_positional_eigvecs(matrix, num_pos: int):
-
     mat_len = matrix.shape[0]
     eigvals, eigvecs = eig(matrix.todense())
 

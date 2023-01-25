@@ -90,7 +90,6 @@ class LapPENodeEncoder(torch.nn.Module):
         return on_keys
 
     def forward(self, eigvals, eigvecs):
-
         # TODO Dom: add random flipping to the Laplacian encoder
         if self.training:
             sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device)

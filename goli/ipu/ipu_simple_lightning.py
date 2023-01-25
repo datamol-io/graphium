@@ -1,6 +1,6 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
 import pytorch_lightning as pl
-from pytorch_lightning.plugins import IPUPlugin
+from pytorch_lightning.strategies import IPUStrategy
 from pytorch_lightning.loggers import WandbLogger
 
 import torch
@@ -84,7 +84,7 @@ class SimpleLightning(pl.LightningModule):
 
     # PopTorch doesn't currently support logging within steps. Use the Lightning
     # callback hooks instead.
-    def on_train_batch_end(self, outputs, batch, batch_idx, dataloader_idx):
+    def on_train_batch_end(self, outputs, batch, batch_idx):
         self.log("StepLoss", outputs["loss"])
 
     def validation_epoch_end(self, outputs):
@@ -107,7 +107,6 @@ class SimpleLightning(pl.LightningModule):
 
 
 if __name__ == "__main__":
-
     torch.manual_seed(SEED)
 
     # Create the model as usual.
@@ -137,21 +136,18 @@ if __name__ == "__main__":
         import poptorch
 
         training_opts = poptorch.Options()
-        training_opts.Jit.traceModel(True)
         inference_opts = poptorch.Options()
-        inference_opts.Jit.traceModel(True)
 
         # Set the seeds
         training_opts.randomSeed(SEED)
         inference_opts.randomSeed(SEED)
         ipus = 1
-        plugins = IPUPlugin(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     trainer = pl.Trainer(
         logger=WandbLogger(),
         ipus=ipus,
         max_epochs=3,
-        progress_bar_refresh_rate=20,
         log_every_n_steps=1,
         plugins=plugins,
     )

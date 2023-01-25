@@ -14,7 +14,6 @@ from torch import Tensor
 
 
 def save_im(im_dir, im_name: str, ext: List[str] = ["svg", "png"], dpi: int = 600) -> None:
-
     if not os.path.exists(im_dir):
         if im_dir[-1] not in ["/", "\\"]:
             im_dir += "/"

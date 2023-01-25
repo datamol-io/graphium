@@ -76,11 +76,9 @@ class ResidualConnectionBase(nn.Module):
         ...
 
     def get_true_out_dims(self, out_dims: List):
-
         true_out_dims = [out_dims[0]]
         out_dims_at_skip = [out_dims[0]]
         for ii in range(1, len(out_dims) - 1):
-
             # For the `None` type, don't change the output dims
             if self.h_dim_increase_type is None:
                 true_out_dims.append(out_dims[ii])

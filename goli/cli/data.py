@@ -36,7 +36,6 @@ def data_cli():
     help="Whether to extract the dataset if it's a zip file.",
 )
 def download(name, output, progress):
-
     args = {}
     args["name"] = name
     args["output_path"] = output
@@ -52,6 +51,5 @@ def download(name, output, progress):
 
 @data_cli.command(name="list", help="List available Goli dataset.")
 def list():
-
     logger.info("Goli datasets:")
     logger.info(goli.data.utils.list_goli_datasets())

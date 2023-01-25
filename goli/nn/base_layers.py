@@ -93,7 +93,6 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             mupi.xavier_normal_(self.bias_v)
 
     def forward(self, *args, **kwargs) -> Tuple[Tensor, Optional[Tensor]]:
-
         # Patching the forward to use a different scaling for the dot-product
         prev_fn = F._scaled_dot_product_attention
         F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
@@ -236,7 +235,6 @@ class FCLayer(nn.Module):
         init_fn: Optional[Callable] = None,
         is_readout_layer: bool = False,
     ):
-
         r"""
         A simple fully connected and customizable layer. This layer is centered around a `torch.nn.Linear` module.
         The order in which transformations are applied is:

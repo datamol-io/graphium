@@ -33,7 +33,6 @@ def to_dense_array(array, dtype=None):
 
 
 def _mask_nans_inf(mask_nan, array, array_name):
-
     if (mask_nan is None) or (array is None):
         return array
 
@@ -108,13 +107,11 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
     prop_dict = {}
 
     for prop in property_list:
-
         prop = prop.lower()
         prop_name = prop
 
         property_array = []
         for ii, atom in enumerate(mol.GetAtoms()):
-
             if prop in ["atomic-number"]:
                 one_hot = one_of_k_encoding(atom.GetSymbol(), nmp.ATOM_LIST)
             elif prop in ["degree"]:
@@ -237,16 +234,13 @@ def get_mol_atomic_features_float(
     atom_list = list(mol.GetAtoms())
 
     for prop in property_list:
-
         prop_name = None
 
         property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float16)
         for ii, atom in enumerate(atom_list):
-
             val = None
 
             if isinstance(prop, str):
-
                 prop = prop.lower()
                 prop_name = prop
 

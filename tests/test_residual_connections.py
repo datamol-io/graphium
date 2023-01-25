@@ -50,7 +50,6 @@ class test_ResidualConnectionSimple(ut.TestCase):
         self.assertListEqual(expected_out_dims, true_out_dims)
 
     def test_forward_simple(self):
-
         for skip_steps in [1, 2, 3]:
             rc = ResidualConnectionSimple(skip_steps=skip_steps)
             num_loops = 10
@@ -99,7 +98,6 @@ class test_ResidualConnectionRandom(ut.TestCase):
             rc = ResidualConnectionRandom(skip_steps=1, out_dims=None, num_layers=None)
 
     def test_forward_random(self):
-
         for skip_steps in [1, 2, 3]:
             num_loops = 10
 
@@ -130,7 +128,6 @@ class test_ResidualConnectionWeighted(ut.TestCase):
         self.assertListEqual(expected_out_dims, true_out_dims)
 
     def test_forward_weighted(self):
-
         for skip_steps in [1, 2, 3]:
             num_loops = 10
             shape = (3, 11)
@@ -149,7 +146,6 @@ class test_ResidualConnectionWeighted(ut.TestCase):
             h_prev = None
             step_counter = 0
             for ii in range(num_loops):
-
                 h_prev_backup = h_prev
                 h, h_prev = rc.forward(h_original[ii], h_prev, step_idx=ii)
 
@@ -197,7 +193,6 @@ class test_ResidualConnectionConcat(ut.TestCase):
         self.assertListEqual(expected_out_dims, true_out_dims)
 
     def test_forward_concat(self):
-
         for skip_steps in [1, 2, 3]:
             rc = ResidualConnectionConcat(skip_steps=skip_steps)
             num_loops = 10
@@ -250,7 +245,6 @@ class test_ResidualConnectionDenseNet(ut.TestCase):
         self.assertListEqual(expected_out_dims, true_out_dims)
 
     def test_forward_densenet(self):
-
         for skip_steps in [1, 2, 3]:
             rc = ResidualConnectionDenseNet(skip_steps=skip_steps)
             num_loops = 10

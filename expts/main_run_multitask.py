@@ -28,7 +28,8 @@ import wandb
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/configs/config_molPCQM4Mv2.yaml"
-CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"
+# CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"
+CONFIG_FILE = "expts/configs/config_gpu_qm9.yaml"
 # CONFIG_FILE = "expts/configs/config_gpu_qm9.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
@@ -63,10 +64,18 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
 
     datamodule.prepare_data()
+
+    # Determine the max num nodes and edges in training and validation
+    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
+
     # Run the model training
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.fit(model=predictor, datamodule=datamodule)
 
+    # Determine the max num nodes and edges in testing
+    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])
+
+    # Run the model testing
     with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.test(model=predictor, datamodule=datamodule)  # , ckpt_path=ckpt_path)
 

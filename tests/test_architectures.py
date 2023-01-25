@@ -25,7 +25,6 @@ from goli.utils.spaces import LAYERS_DICT
 
 
 class test_FeedForwardNN(ut.TestCase):
-
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
@@ -321,7 +320,6 @@ class test_FeedForwardNN(ut.TestCase):
 
 
 class test_FeedForwardGraph(ut.TestCase):
-
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
@@ -377,7 +375,6 @@ class test_FeedForwardGraph(ut.TestCase):
     }
 
     def test_forward_no_residual(self):
-
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
             for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
@@ -431,7 +428,6 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_simple_residual(self):
-
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
             for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
@@ -484,7 +480,6 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_weighted_residual(self):
-
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
             for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
@@ -537,7 +532,6 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_concat_residual(self):
-
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
             for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
@@ -594,7 +588,6 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_densenet_residual(self):
-
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
             for residual_skip_steps in [1, 2]:
                 for virtual_node in self.virtual_nodes:
@@ -654,7 +647,6 @@ class test_FeedForwardGraph(ut.TestCase):
 
 
 class test_FullGraphNetwork(ut.TestCase):
-
     kwargs = {
         "activation": "relu",
         "last_activation": "none",
@@ -711,7 +703,6 @@ class test_FullGraphNetwork(ut.TestCase):
     }
 
     def test_full_network_densenet(self):
-
         temp_dim_1 = 5
         temp_dim_2 = 17
         temp_dim_edges = 21
@@ -733,7 +724,6 @@ class test_FullGraphNetwork(ut.TestCase):
                             layer_type = layer_name.split("#")[0]
                             for pre_nn_kwargs in pre_nn_kwargs_all:
                                 for pre_nn_edges_kwargs in pre_nn_edges_kwargs_all:
-
                                     # PYG or DGL
                                     if layer_type.startswith("dgl:"):
                                         bg = deepcopy(self.batch_dgl)

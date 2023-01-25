@@ -11,7 +11,7 @@ from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
-
+from goli.ipu.ipu_utils import import_poptorch
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -77,7 +77,7 @@ class GPSLayerPyg(BaseGraphModule):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            normalization=normalization,
+            normalization=None,
         )
 
         # Dropout layers
@@ -94,7 +94,7 @@ class GPSLayerPyg(BaseGraphModule):
         # Normalization layers
         self.norm_layer_local = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
-        self.norm_layer_ff = self.norm_layer
+        self.norm_layer_ff = self._parse_norm(self.normalization)
 
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
@@ -140,17 +140,21 @@ class GPSLayerPyg(BaseGraphModule):
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
         # * h_dense
         if self.attn_layer is not None:
-
-            # If there's padding, then we are on IPU
-            on_ipu = ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
+            # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
+            poptorch = import_poptorch(raise_error=False)
+            on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+            max_num_nodes_per_graph = None
             if on_ipu:
-                max_num_nodes_per_graph = batch.dataset_max_nodes_per_graph[0].item()
-            else:
-                max_num_nodes_per_graph = None
+                max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
             # Convert the tensor to a dense batch, then back to a sparse batch
+            batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
             h_dense, mask, idx = to_dense_batch(
-                h, batch.batch, max_num_nodes_per_graph=max_num_nodes_per_graph, drop_nodes_last_graph=on_ipu
+                h,
+                batch=batch.batch,
+                batch_size=batch_size,
+                max_num_nodes_per_graph=max_num_nodes_per_graph,
+                drop_nodes_last_graph=on_ipu,
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)
