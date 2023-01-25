@@ -20,7 +20,6 @@ from goli.features.featurizer import (
 
 
 class test_featurizer(ut.TestCase):
-
     smiles = [
         "C",
         "CC",
@@ -131,7 +130,6 @@ class test_featurizer(ut.TestCase):
                 get_mol_atomic_features_float(mol, property_list=bad_props)
 
     def test_get_mol_atomic_features_float_nan_mask(self):
-
         for s in self.smiles_noble:
             mol = dm.to_mol(s)
 
@@ -186,7 +184,6 @@ class test_featurizer(ut.TestCase):
                     get_mol_edge_features(mol, property_list=bad_props)
 
     def test_mol_to_adj_and_features(self):
-
         np.random.seed(42)
 
         for s in self.smiles:
@@ -224,7 +221,6 @@ class test_featurizer(ut.TestCase):
                         self.assertGreaterEqual(ndata.shape[1], num_props, msg=err_msg2)
 
     def test_mol_to_dglgraph(self):
-
         np.random.seed(42)
 
         for s in self.smiles:
@@ -264,7 +260,6 @@ class test_featurizer(ut.TestCase):
                         self.assertGreaterEqual(edata.shape[1], num_props, msg=err_msg2)
 
     def test_mol_to_pyggraph(self):
-
         np.random.seed(42)
 
         for s in self.smiles:

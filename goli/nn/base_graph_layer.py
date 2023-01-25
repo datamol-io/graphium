@@ -68,7 +68,6 @@ class BaseGraphStructure:
         self.activation = activation
 
     def _initialize_activation_dropout_norm(self):
-
         if not isinstance(self, nn.Module):
             raise TypeError(
                 "This function requires the current object to be an `nn.Module`. Use multi-inheritance or the class `BaseGraphModule` instead"
@@ -88,7 +87,6 @@ class BaseGraphStructure:
         return
 
     def _parse_norm(self, normalization, dim=None):
-
         if dim is None:
             dim = self.out_dim * self.out_dim_factor
         if normalization is None or normalization == "none":

@@ -54,7 +54,6 @@ task_3_params.update(kwargs)
 
 class test_TaskHeads(ut.TestCase):
     def test_task_heads_forward(self):
-
         in_dim = 4  # Dimension of the incoming data
         batch = 2
 
@@ -204,7 +203,6 @@ class test_Multitask_NN(ut.TestCase):
 
 
 class test_FullGraphMultiTaskNetwork(ut.TestCase):
-
     in_dim_nodes = 7
     in_dim_edges = 13
     in_dims = {"feat": in_dim_nodes, "edge_feat": in_dim_edges}

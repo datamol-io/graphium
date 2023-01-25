@@ -23,7 +23,6 @@ CONFIG_FILE = "expts/config_molPCBA.yaml"
 
 
 def main(cfg: DictConfig) -> None:
-
     cfg = deepcopy(cfg)
 
     # Load and initialize the dataset

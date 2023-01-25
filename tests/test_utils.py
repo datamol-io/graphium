@@ -11,7 +11,6 @@ import unittest as ut
 
 
 class test_nan_statistics(ut.TestCase):
-
     torch.manual_seed(42)
 
     dims = [
@@ -32,7 +31,6 @@ class test_nan_statistics(ut.TestCase):
     tensor[is_nan] = float("nan")
 
     def test_nan_mean(self):
-
         for keepdim in [False, True]:
             for dim in self.dims:
                 err_msg = f"Error for :\n dim = {dim}\n keepdim = {keepdim}"
@@ -53,7 +51,6 @@ class test_nan_statistics(ut.TestCase):
                 np.testing.assert_almost_equal(torch_mean.numpy(), numpy_mean, decimal=6, err_msg=err_msg)
 
     def test_nan_std_var(self):
-
         for unbiased in [True, False]:
             for keepdim in [False, True]:
                 for dim in self.dims:
@@ -80,7 +77,6 @@ class test_nan_statistics(ut.TestCase):
                     np.testing.assert_almost_equal(torch_var.numpy(), numpy_var, decimal=6, err_msg=err_msg)
 
     def test_nan_median(self):
-
         for keepdim in [False, True]:
             # Cannot test
             for dim in self.dims:  # in [d for d in self.dims if not isinstance(d, Tuple)]:
@@ -106,7 +102,6 @@ class test_nan_statistics(ut.TestCase):
                 self.assertListEqual(list(torch_med.shape), list(torch_sum.shape))
 
     def test_nan_mad(self):
-
         for normal in [False, True]:
             # Cannot test
             for dim in self.dims:  # in [d for d in self.dims if not isinstance(d, Tuple)]:
@@ -132,7 +127,6 @@ class test_nan_statistics(ut.TestCase):
 
 class test_SafeRun(ut.TestCase):
     def test_safe_run(self):
-
         # Error is caught
         with SafeRun(name="bob", raise_error=False, verbose=0):
             raise ValueError("This is an error")

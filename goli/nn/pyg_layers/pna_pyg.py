@@ -162,7 +162,6 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         return batch
 
     def message(self, x_i: Tensor, x_j: Tensor, edge_attr: OptTensor) -> Tensor:
-
         h: Tensor = x_i  # Dummy.
         if (edge_attr is not None) and (self.edge_encoder is not None):
             edge_attr = self.edge_encoder(edge_attr)
@@ -175,7 +174,6 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
     def aggregate(
         self, inputs: Tensor, index: Tensor, edge_index: Tensor, dim_size: Optional[int] = None
     ) -> Tensor:
-
         outs = []
 
         for aggregator in self.aggregators:

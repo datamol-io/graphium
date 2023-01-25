@@ -13,7 +13,6 @@ TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 class Test_DataModule(ut.TestCase):
     # TODO: Add this test once the OGB Datamodule is fixed
     def test_ogb_datamodule(self):
-
         # other datasets are too large to be tested
         dataset_names = ["ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv"]
         dataset_name = dataset_names[3]
@@ -152,7 +151,6 @@ class Test_DataModule(ut.TestCase):
             self.assertIs(series_num_shuffled_2.tolist() == filtered_num, bool_to_check, msg=msg)
 
     def test_caching(self):
-
         # other datasets are too large to be tested
         dataset_name = "ogbg-molfreesolv"
 

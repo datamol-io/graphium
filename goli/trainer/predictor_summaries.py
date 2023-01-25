@@ -30,6 +30,7 @@ class SummaryInterface(object):
 
 class Summary(SummaryInterface):
     r"""A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided."""
+
     # TODO (Gabriela): Default argument cannot be []
     def __init__(
         self,

@@ -29,7 +29,6 @@ CONFIG_FILE = f"expts/config_{DATA_NAME}_pretrained.yaml"
 
 
 def main(cfg: DictConfig) -> None:
-
     cfg = deepcopy(cfg)
 
     # Load and initialize the dataset

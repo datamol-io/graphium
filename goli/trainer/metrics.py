@@ -29,7 +29,6 @@ class Thresholder:
         th_on_target: bool = False,
         target_to_int: bool = False,
     ):
-
         # Basic params
         self.threshold = threshold
         self.th_on_target = th_on_target

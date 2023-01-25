@@ -76,12 +76,12 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
     """
     try:
         mol = dm.to_mol(mol=smiles)
-        '''
+        """
         -------------------------
         0.8907
         C#Cc1cnc(O)c([N+](=O)[O-])c1
         -------------------------
-        '''
+        """
         # print ("-------------------------")
         # print (mol.GetConformer().GetAtomPosition(0).x)
         # print (dm.to_smiles(mol))
@@ -416,7 +416,6 @@ class MultitaskDataset(Dataset):
 
 
 class BaseDataModule(pl.LightningDataModule):
-
     molecule_column_name = "_rdkit_molecule_obj"
 
     def __init__(
@@ -468,7 +467,6 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
     def test_dataloader(self, **kwargs):
-
         return self.get_dataloader(
             dataset=self.test_ds,  # type: ignore
             shuffle=False,
@@ -476,7 +474,6 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
     def predict_dataloader(self, **kwargs):
-
         return self.get_dataloader(
             dataset=self.predict_ds,  # type: ignore
             shuffle=False,
@@ -553,7 +550,7 @@ class BaseDataModule(pl.LightningDataModule):
             mini_table = ParquetFile(path).head(nrows=20)
         elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
             mini_table = BaseDataModule._read_csv(path, nrows=20)
-        elif (".sdf" in str(path)[-8:]):
+        elif ".sdf" in str(path)[-8:]:
             mini_table = BaseDataModule._read_sdf(path, nrows=20)
         else:
             raise ValueError(f"unsupported file `{path}`")
@@ -562,7 +559,7 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_parquet(path, **kwargs):
-        kwargs.pop("dtype", None) # Only useful for csv
+        kwargs.pop("dtype", None)  # Only useful for csv
         schema = BaseDataModule._get_table_columns(path)
 
         # Change the 'usecols' parameter to 'columns'
@@ -577,7 +574,6 @@ class BaseDataModule(pl.LightningDataModule):
         all_series = {}
         progress = tqdm(columns)
         for col in progress:
-
             # Read single column
             progress.set_description(f"Reading parquet column `{col}`")
             this_series = pd.read_parquet(path, columns=[col], engine="fastparquet", **kwargs)[col]
@@ -600,7 +596,7 @@ class BaseDataModule(pl.LightningDataModule):
                     this_series = this_series.astype(np.float16)
 
             all_series[col] = this_series
-            gc.collect() # Reset memory after each column
+            gc.collect()  # Reset memory after each column
 
         # Merge columns into a dataframe
         df = pd.concat(all_series, axis=1)
@@ -609,7 +605,6 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_sdf(path, **kwargs):
-
         # Set default arguments for reading the SDF
         kwargs.setdefault("smiles_column", "smiles")
         kwargs.setdefault("sanitize", False)
@@ -648,11 +643,10 @@ class BaseDataModule(pl.LightningDataModule):
             return BaseDataModule._read_parquet(path, **kwargs)
         elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
             return BaseDataModule._read_csv(path, **kwargs)
-        elif (".sdf" in str(path)[-8:]):
+        elif ".sdf" in str(path)[-8:]:
             return BaseDataModule._read_sdf(path, **kwargs)
         else:
             raise ValueError(f"unsupported file `{path}`")
-
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
@@ -1837,7 +1831,6 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dataset_dir = base_dir / metadata["download_name"]
 
         if not dataset_dir.exists():
-
             # Create cache filepath for zip file and associated folder
             dataset_path = base_dir / f"{metadata['download_name']}.zip"
 

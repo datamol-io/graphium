@@ -10,6 +10,7 @@ with importlib.resources.open_text("goli.features", "periodic_table.csv") as f:
     PERIODIC_TABLE = pd.read_csv(f)
 PERIODIC_TABLE = PERIODIC_TABLE.set_index("AtomicNumber")
 
+
 # Small function to convert strings to floats
 def float_or_none(string):
     try:

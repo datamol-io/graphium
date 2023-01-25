@@ -7,7 +7,6 @@ from goli.data.utils import load_tiny_zinc
 
 
 class Test_Multitask_Dataset(ut.TestCase):
-
     # Then we can choose different rows and columns for the tests as we see fit.
     # Remember tests are supposed to be FAST, and reading from the file system multiple times slows things down.
 

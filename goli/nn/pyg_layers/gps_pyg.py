@@ -140,7 +140,6 @@ class GPSLayerPyg(BaseGraphModule):
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
         # * h_dense
         if self.attn_layer is not None:
-
             # If there's padding, then we are on IPU
             on_ipu = ("graph_is_true" in batch.keys) and (not batch.graph_is_true.all())
             if on_ipu:

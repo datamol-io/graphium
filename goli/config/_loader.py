@@ -376,7 +376,7 @@ def save_params_to_wandb(
     # Save the mup base model to WandB as a yaml file
     mup.save_base_shapes(predictor.model, "mup_base_params.yaml")
 
-    # Save the full configs as a YAML file  
+    # Save the full configs as a YAML file
     #! [andy] logging when logger is active, avoid error when logger is removed
     if "logger" in config.keys():
         with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
