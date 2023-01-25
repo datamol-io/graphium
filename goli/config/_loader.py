@@ -24,7 +24,6 @@ from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
-from goli.ipu.ipu_wrapper import PredictorModuleIPU, DictIPUStrategy
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
 from goli.data.datamodule import MultitaskFromSmilesDataModule
 from goli.data.datamodule import BaseDataModule
@@ -254,6 +253,7 @@ def load_predictor(
     """
 
     if get_accelerator(config) == "ipu":
+        from goli.ipu.ipu_wrapper import PredictorModuleIPU
         predictor_class = PredictorModuleIPU
     else:
         predictor_class = PredictorModule
@@ -313,6 +313,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
+        from goli.ipu.ipu_wrapper import DictIPUStrategy
         strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available

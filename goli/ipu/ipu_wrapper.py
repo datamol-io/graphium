@@ -42,7 +42,6 @@ class DictIPUStrategy(IPUStrategy):
         self.lightning_module._running_torchscript = False
         return out
 
-
 class PyGArgsParser(poptorch.ICustomArgParser):
     """
         This class is responsible for converting a PyG Batch from and to
