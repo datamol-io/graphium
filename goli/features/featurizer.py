@@ -147,11 +147,11 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
     return prop_dict
 
 
-#! might be worth while to do a function for just conformer features
-#! including edge bond length and 3d coordinates
-# * migrate the code here, once the other function with conformer works
-# * what should be cleaned for opensourcing, add a comment or open an issue
-# * maybe choose return type instead of making individual functions
+# might be worth while to do a function for just conformer features
+# including edge bond length and 3d coordinates
+# migrate the code here, once the other function with conformer works
+# what should be cleaned for opensourcing, add a comment or open an issue
+# maybe choose return type instead of making individual functions
 # def get_mol_conformer_features()
 
 
@@ -209,7 +209,7 @@ def get_mol_atomic_features_float(
             - "is-carbon"
             - "group"
             - "period"
-            - "conf-x" #! [andy], added the x, y, z conformer coordinates here, now we assume only 1 conformer is used per molecule
+            - "conf-x" # we assume only 1 conformer is used per molecule
             - "conf-y"
             - "conf-z"
 
@@ -253,8 +253,7 @@ def get_mol_atomic_features_float(
                 try:
                     conf = mol.GetConformer()
                 except Exception as e:
-                    #! if there is no conformer for this molecule, pad the property
-                    conf = None
+                    conf = None  # if there is no conformer for this molecule, pad the property
 
         for ii, atom in enumerate(atom_list):
             val = None
@@ -346,7 +345,7 @@ def get_mol_atomic_features_float(
                     val -= offC * 1
                 elif prop in ["conf-x"]:
                     if conf is None:
-                        val = np.inf  #! [andy] if there is no conformer, pad with inf (will be caught)
+                        val = np.inf  # pad with inf if there is no conformer
                     else:
                         val = conf.GetAtomPosition(ii).x
                 elif prop in ["conf-y"]:
@@ -539,7 +538,6 @@ def get_mol_edge_features(
                 encoding = [bond.IsInRing()]
             elif prop in ["conjugated"]:
                 encoding = [bond.GetIsConjugated()]
-            #! Andy: Read the conformer if available
             elif prop in ["conformer-bond-length"]:
                 conf = get_simple_mol_conformer(mol)
                 if conf is not None:

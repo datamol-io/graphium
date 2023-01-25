@@ -66,7 +66,6 @@ datamodule:
       max_num_nodes_per_graph: 50
       max_num_edges_per_graph: 150
 
-    #! these only for qm9
     # ipu_dataloader_training_opts:
     #   max_num_nodes_per_graph: 9
     #   max_num_edges_per_graph: 24

@@ -76,16 +76,6 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
     """
     try:
         mol = dm.to_mol(mol=smiles)
-        """
-        -------------------------
-        0.8907
-        C#Cc1cnc(O)c([N+](=O)[O-])c1
-        -------------------------
-        """
-        # print ("-------------------------")
-        # print (mol.GetConformer().GetAtomPosition(0).x)
-        # print (dm.to_smiles(mol))
-        # print ("-------------------------")
         mol_id = dm.unique_id(mol)
     except:
         mol_id = ""
@@ -549,6 +539,13 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _get_table_columns(path):
+        """
+        read the column names in the dataset file
+        Parameters:
+            path: path to the dataset file which will be loaded
+        Returns:
+            a list of str for each of the column names in the dataset file
+        """
         if str(path).endswith((".parquet")):
             mini_table = ParquetFile(path).head(nrows=20)
         elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
@@ -608,6 +605,16 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_sdf(path, **kwargs):
+        """
+        use the datamol read_sdf() function to read .sdf file into a pandas dataframe
+        Parameters:
+            path: path to the dataset file which will be loaded
+            smiles_column: column name which contains the smile strings
+            optional arguments come from dm.read_sdf() function
+            see datamol documentation for all list of optional arguments: https://doc.datamol.io/stable/api/datamol.io.html#datamol.io.read_sdf
+        Returns:
+            pandas dataframe object with rdkit molecules converted from smile strings
+        """
         # Set default arguments for reading the SDF
         kwargs.setdefault("smiles_column", "smiles")
         kwargs.setdefault("sanitize", False)
@@ -642,6 +649,14 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_table(path, **kwargs):
+        """
+        read the dataset file based on its format into pandas dataframe object
+        supported format: .csv (recommended) and .sdf
+        Parameters:
+            path: path to the dataset file which will be loaded
+        Returns:
+            pandas dataframe object
+        """
         if str(path).endswith((".parquet")):
             return BaseDataModule._read_parquet(path, **kwargs)
         elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
