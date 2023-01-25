@@ -443,8 +443,8 @@ class PredictorModule(pl.LightningModule):
         # Transform the list of dict of dict, into a dict of list of dict
         preds = {}
         targets = {}
-        # device = device=outputs[0]["preds"][self.tasks[0]].device
-        device = 0
+        device = device=outputs[0]["preds"][self.tasks[0]].device #should be better way to do this
+        #device = 0
         for task in self.tasks:
             preds[task] = torch.cat([out["preds"][task].to(device=device) for out in outputs], dim=0)
             targets[task] = torch.cat([out["targets"][task].to(device=device) for out in outputs], dim=0)
