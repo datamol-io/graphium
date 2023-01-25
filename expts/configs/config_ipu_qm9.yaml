@@ -82,13 +82,13 @@ datamodule:
 
     num_workers: -1
 
-    # ipu_dataloader_training_opts:
-    #   max_num_nodes_per_graph: 9
-    #   max_num_edges_per_graph: 24
+    ipu_dataloader_training_opts:
+      max_num_nodes_per_graph: 9
+      max_num_edges_per_graph: 24
 
-    # ipu_dataloader_inference_opts:
-    #   max_num_nodes_per_graph: 9
-    #   max_num_edges_per_graph: 24
+    ipu_dataloader_inference_opts:
+      max_num_nodes_per_graph: 9
+      max_num_edges_per_graph: 24
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
