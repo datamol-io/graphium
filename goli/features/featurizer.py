@@ -247,12 +247,6 @@ def get_mol_atomic_features_float(
         prop_name = None
         property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float16)
 
-        #! continue debugging here
-        # check if a given mol is looped
-        found = False
-        if dm.to_smiles(mol) == "C#Cc1cnc(O)c([N+](=O)[O-])c1":
-            found = True
-
         # * check if there is a conformer property
         if isinstance(prop, str):
             if prop in ["conf-x", "conf-y", "conf-z"]:
@@ -384,9 +378,6 @@ def get_mol_atomic_features_float(
 
         # Mask the NaNs
         prop_dict[prop_name] = _mask_nans_inf(mask_nan, property_array, "atom featurization")
-
-        if found:
-            print(property_array)
 
     return prop_dict
 
