@@ -798,8 +798,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="md-nav__link">
-    get_first_graph()
+  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="md-nav__link">
+    get_dummy_graph()
   </a>
   
 </li>
@@ -1312,8 +1312,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="md-nav__link">
-    get_first_graph()
+  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="md-nav__link">
+    get_dummy_graph()
   </a>
   
 </li>
@@ -1653,8 +1653,8 @@ with that.</p>
 <code class="highlight language-python"><span class="n">predict_ds</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
   </span>
 
 <a href="#goli.data.datamodule.BaseDataModule.predict_ds" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2969,18 +2969,15 @@ Useful to cache the pre-processed data.</p>
 
 
 
-<h5 id="goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_first_graph</span><span class="p">()</span></code>
+<h5 id="goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_dummy_graph</span><span class="p">()</span></code>
 
-<a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="headerlink" title="Permanent link">&para;</a></h5>
+<a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="headerlink" title="Permanent link">&para;</a></h5>
 
 
   <div class="doc doc-contents ">
   
-      <p>Low memory footprint method to get the first datapoint DGL graph.
-The first 10 rows of the data are read in case the first one has a featurization
-error. If all 20 first element, then <code>None</code> is returned, otherwise the first
-graph to not fail is returned.</p>
+      <p>Return a dummy graph for the smiles 'C1=C(C)[N]=CC=C1'</p>
 
   </div>
 
