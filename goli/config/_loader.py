@@ -15,7 +15,7 @@ import mup
 # Lightning
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger,Logger
+from pytorch_lightning.loggers import WandbLogger, Logger
 
 # Goli
 from goli.utils.mup import set_base_shapes
@@ -363,6 +363,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     )
 
     return trainer
+
 
 def save_params_to_wandb(
     logger: Logger,

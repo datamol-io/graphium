@@ -959,7 +959,13 @@ def mol_to_graph_dict(
         if (max_num_atoms is not None) and (num_atoms > max_num_atoms):
             raise ValueError(f"Maximum number of atoms greater than permitted {num_atoms}>{max_num_atoms}")
 
-        (adj, ndata, edata, pe_dict, pe_dir_dict,) = mol_to_adj_and_features(
+        (
+            adj,
+            ndata,
+            edata,
+            pe_dict,
+            pe_dir_dict,
+        ) = mol_to_adj_and_features(
             mol=mol,
             atom_property_list_onehot=atom_property_list_onehot,
             atom_property_list_float=atom_property_list_float,
