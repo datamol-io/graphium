@@ -38,10 +38,11 @@ loguru
 appdirs
 matplotlib
 tk
-pytorch-lightning >=1.5.0,<=1.9
+pytorch-lightning >=1.9.0
 datamol
 PyYAML
 wandb
 optuna
 google-cloud-storage
 mup
+fastparquet
