@@ -45,5 +45,4 @@ wandb
 optuna
 google-cloud-storage
 mup
-pyarrow
 fastparquet

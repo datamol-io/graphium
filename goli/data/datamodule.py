@@ -526,7 +526,16 @@ class BaseDataModule(pl.LightningDataModule):
     # Private methods
 
     @staticmethod
-    def _read_csv(path, **kwargs):
+    def _read_csv(path: Union[str, os.PathLike], **kwargs) -> pd.DataFrame:
+        """
+        Use pandas to read the molecules in in a .csv file.
+        Parameters:
+            path: path to the dataset file which will be loaded
+            kwargs: arguments come from pd.read_csv() function
+                see pandas documentation for all list of optional arguments: https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html
+        Returns:
+            pandas dataframe object containing the csv data
+        """
         if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
             sep = ","
         elif str(path).endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
@@ -538,7 +547,7 @@ class BaseDataModule(pl.LightningDataModule):
         return df
 
     @staticmethod
-    def _get_table_columns(path):
+    def _get_table_columns(path: Union[str, os.PathLike]) -> List[str]:
         """
         read the column names in the dataset file
         Parameters:
@@ -558,7 +567,18 @@ class BaseDataModule(pl.LightningDataModule):
         return list(mini_table.columns)
 
     @staticmethod
-    def _read_parquet(path, **kwargs):
+    def _read_parquet(path: Union[str, os.PathLike], **kwargs) -> pd.DataFrame:
+        """
+        Use pandas and fastparquet to read the molecules in in a .parquet file.
+        All values will be converted to float16
+        Parameters:
+            path: path to the dataset file which will be loaded
+            usecols: columns to read. If not provided, all columns will be read. Can also be called `columns`
+            kwargs: arguments come from pd.read_parquet() function
+                see pandas documentation for all list of optional arguments: https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html
+        Returns:
+            pandas dataframe object containing the parquet data
+        """
         kwargs.pop("dtype", None)  # Only useful for csv
         schema = BaseDataModule._get_table_columns(path)
 
@@ -610,8 +630,8 @@ class BaseDataModule(pl.LightningDataModule):
         Parameters:
             path: path to the dataset file which will be loaded
             smiles_column: column name which contains the smile strings
-            optional arguments come from dm.read_sdf() function
-            see datamol documentation for all list of optional arguments: https://doc.datamol.io/stable/api/datamol.io.html#datamol.io.read_sdf
+            kwargs: arguments come from dm.read_sdf() function
+                see datamol documentation for all list of optional arguments: https://doc.datamol.io/stable/api/datamol.io.html#datamol.io.read_sdf
         Returns:
             pandas dataframe object with rdkit molecules converted from smile strings
         """
