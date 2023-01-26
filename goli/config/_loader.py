@@ -15,7 +15,7 @@ import mup
 # Lightning
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger, Logger
+from pytorch_lightning.loggers import WandbLogger, LightningLoggerBase
 
 # Goli
 from goli.utils.mup import set_base_shapes
@@ -366,7 +366,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
 
 def save_params_to_wandb(
-    logger: Logger,
+    logger: LightningLoggerBase,
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     predictor: PredictorModule,
     datamodule: MultitaskFromSmilesDataModule,
@@ -384,16 +384,14 @@ def save_params_to_wandb(
     mup.save_base_shapes(predictor.model, "mup_base_params.yaml")
 
     # Save the full configs as a YAML file
-    if "logger" in config.keys():
-        with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
-            yaml.dump(config, file)
+    with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
+        yaml.dump(config, file)
 
     # Save the featurizer into wandb
-    if "logger" in config.keys():
-        featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
-        joblib.dump(datamodule.smiles_transformer, featurizer_path)
+    featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
+    joblib.dump(datamodule.smiles_transformer, featurizer_path)
 
-        wandb_run = logger.experiment
-        if wandb_run is not None:
-            wandb_run.save("*.yaml")
-            wandb_run.save("*.pickle")
+    wandb_run = logger.experiment
+    if wandb_run is not None:
+        wandb_run.save("*.yaml")
+        wandb_run.save("*.pickle")
