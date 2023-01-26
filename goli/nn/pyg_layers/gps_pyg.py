@@ -8,7 +8,7 @@ from typing import Callable, Union, Optional
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
-from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg
+from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg, MPNNPlusPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 from goli.ipu.ipu_utils import import_poptorch
@@ -18,6 +18,7 @@ PYG_LAYERS_DICT = {
     "pyg:gine": GINEConvPyg,
     "pyg:gated-gcn": GatedGCNPyg,
     "pyg:pna-msgpass": PNAMessagePassingPyg,
+    "pyg:mpnnplus": MPNNPlusPyg,
 }
 
 ATTENTION_LAYERS_DICT = {
@@ -32,8 +33,10 @@ class GPSLayerPyg(BaseGraphModule):
         in_dim: int,
         out_dim: int,
         in_dim_edges: Optional[int] = None,
+        out_dim_edges: Optional[int] = None,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
+        node_residual: Optional[bool] = True,
         normalization: Union[str, Callable] = "none",
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs=None,
@@ -62,6 +65,9 @@ class GPSLayerPyg(BaseGraphModule):
             dropout:
                 The ratio of units to dropout. Must be between 0 and 1
 
+            node_residual:
+                If node residual is used after on the gnn layer output
+
             normalization:
                 Normalization to use. Choices:
 
@@ -86,6 +92,9 @@ class GPSLayerPyg(BaseGraphModule):
         self.ff_dropout1 = self._parse_dropout(dropout=self.dropout)
         self.ff_dropout2 = self._parse_dropout(dropout=self.dropout)
 
+        # Residual connections
+        self.node_residual = node_residual
+
         # linear layers
         self.ff_linear1 = FCLayer(in_dim, in_dim * 2, activation=None)
         self.ff_linear2 = FCLayer(in_dim * 2, in_dim, activation=None)
@@ -103,6 +112,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs.setdefault("in_dim", in_dim)
         mpnn_kwargs.setdefault("out_dim", in_dim)
         mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
+        mpnn_kwargs.setdefault("out_dim_edges", out_dim_edges)
         # TODO: The rest of default values
 
         # Initialize the MPNN layer
@@ -131,7 +141,8 @@ class GPSLayerPyg(BaseGraphModule):
         h_local = batch_out.h
         if self.dropout_local is not None:
             h_local = self.dropout_local(h_local)
-        h_local = h_in + h_local  # Residual connection.
+        if self.node_residual:
+            h_local = h_in + h_local  # Residual connection for nodes, not used in gps++.
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
         h = h_local
@@ -214,14 +225,6 @@ class GPSLayerPyg(BaseGraphModule):
             x, x, x, attn_mask=attn_mask, key_padding_mask=key_padding_mask, need_weights=False
         )[0]
         return x
-
-    # # forward function that doesn't do anything
-    # def forward(self, batch):
-    #     #x, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
-
-    #     batch = self.mpnn(batch)
-    #     #batch.h = self.apply_norm_activation_dropout(batch.h)
-    #     return batch
 
     @classproperty
     def layer_supports_edges(cls) -> bool:

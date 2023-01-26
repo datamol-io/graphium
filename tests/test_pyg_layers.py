@@ -15,6 +15,7 @@ from goli.ipu.to_dense_batch import to_dense_batch
 from goli.nn.pyg_layers import (
     GINConvPyg,
     GINEConvPyg,
+    MPNNPlusPyg,
     GatedGCNPyg,
     PNAMessagePassingPyg,
     GPSLayerPyg,
@@ -102,6 +103,32 @@ class test_Pyg_Layers(ut.TestCase):
         bg = layer.forward(bg)
         self.assertEqual(bg.h.shape[0], h_in.shape[0])
         self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
+
+    def test_mpnnlayer(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        # need in_dim = out_dim for skip connection
+        # mpnn layer accept different dimension for node and edge features
+        layer = MPNNPlusPyg(
+            in_dim=self.in_dim,
+            out_dim=self.in_dim,
+            use_edges=True,
+            in_dim_edges=self.in_dim_edges,
+            out_dim_edges=self.in_dim_edges,
+            **self.kwargs,
+        )
+
+        # Check the re-implementation of abstract methods
+        self.assertTrue(layer.layer_supports_edges)
+        self.assertTrue(layer.layer_inputs_edges)
+        self.assertTrue(layer.layer_outputs_edges)
+        self.assertEqual(layer.out_dim_factor, 1)
+
+        # Create new edge attributes with same dim and check that it works
+        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim_edges), dtype=torch.float32)
+        bg = layer.forward(bg)
+        self.assertEqual(bg.h.shape[0], h_in.shape[0])
+        self.assertEqual(bg.h.shape[1], self.in_dim * layer.out_dim_factor)
 
     def test_gatedgcnlayer(self):
         bg = deepcopy(self.bg)

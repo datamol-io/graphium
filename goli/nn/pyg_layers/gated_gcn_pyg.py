@@ -31,6 +31,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         ResGatedGCN: Residual Gated Graph ConvNets
