@@ -65,7 +65,7 @@ pip install PATH_TO_SDK/poptorch-3.1.0+98660_0a383de63f_ubuntu_20_04-cp38-cp38-l
 source PATH_TO_SDK/enable
 
 # Install the IPU specific and goli requirements
-pip install -r requirements_ipu.txt
+PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
 
 # Install Goli in dev mode
 pip install -e .
