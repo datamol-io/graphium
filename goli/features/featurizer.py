@@ -147,14 +147,6 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
     return prop_dict
 
 
-# might be worth while to do a function for just conformer features
-# including edge bond length and 3d coordinates
-# migrate the code here, once the other function with conformer works
-# what should be cleaned for opensourcing, add a comment or open an issue
-# maybe choose return type instead of making individual functions
-# def get_mol_conformer_features()
-
-
 def get_mol_atomic_features_float(
     mol: dm.Mol,
     property_list: Union[List[str], List[Callable]],
@@ -209,9 +201,6 @@ def get_mol_atomic_features_float(
             - "is-carbon"
             - "group"
             - "period"
-            - "conf-x" # we assume only 1 conformer is used per molecule
-            - "conf-y"
-            - "conf-z"
 
         offset_carbon:
             Whether to subract the Carbon property from the desired atomic property.
@@ -236,6 +225,7 @@ def get_mol_atomic_features_float(
             in ``mol``.
 
     """
+
     periodic_table = Chem.GetPeriodicTable()
     prop_dict = {}
     C = Chem.Atom("C")
@@ -245,18 +235,11 @@ def get_mol_atomic_features_float(
 
     for prop in property_list:
         prop_name = None
+
         property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float16)
-
-        # * check if there is a conformer property
-        if isinstance(prop, str):
-            if prop in ["conf-x", "conf-y", "conf-z"]:
-                try:
-                    conf = mol.GetConformer()
-                except Exception as e:
-                    conf = None  # if there is no conformer for this molecule, pad the property
-
         for ii, atom in enumerate(atom_list):
             val = None
+
             if isinstance(prop, str):
                 prop = prop.lower()
                 prop_name = prop
@@ -343,21 +326,6 @@ def get_mol_atomic_features_float(
                 elif prop in ["is-carbon"]:
                     val = atom.GetAtomicNum() == 6
                     val -= offC * 1
-                elif prop in ["conf-x"]:
-                    if conf is None:
-                        val = np.inf  # pad with inf if there is no conformer
-                    else:
-                        val = conf.GetAtomPosition(ii).x
-                elif prop in ["conf-y"]:
-                    if conf is None:
-                        val = np.inf
-                    else:
-                        val = conf.GetAtomPosition(ii).y
-                elif prop in ["conf-z"]:
-                    if conf is None:
-                        val = np.inf
-                    else:
-                        val = conf.GetAtomPosition(ii).z
                 else:
                     raise ValueError(f"Unsupported property `{prop}`")
 
@@ -1128,6 +1096,9 @@ def mol_to_dglgraph(
         mask_nan=mask_nan,
         max_num_atoms=max_num_atoms,
     )
+
+    print(dgl_dict)
+
     if dgl_dict is not None:
         return dgl_dict.make_dgl_graph()
 
