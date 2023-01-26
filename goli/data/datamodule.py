@@ -1,7 +1,6 @@
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
-import gc
 from functools import partial
 import importlib.resources
 import zipfile
@@ -12,12 +11,10 @@ import time
 from loguru import logger
 import fsspec
 import omegaconf
-from tqdm import tqdm
 
 import pandas as pd
 import numpy as np
 import datamol as dm
-from fastparquet import ParquetFile
 
 from sklearn.model_selection import train_test_split
 
@@ -406,8 +403,6 @@ class MultitaskDataset(Dataset):
 
 
 class BaseDataModule(pl.LightningDataModule):
-    molecule_column_name = "_rdkit_molecule_obj"
-
     def __init__(
         self,
         batch_size_training: int = 16,
@@ -526,16 +521,7 @@ class BaseDataModule(pl.LightningDataModule):
     # Private methods
 
     @staticmethod
-    def _read_csv(path: Union[str, os.PathLike], **kwargs) -> pd.DataFrame:
-        """
-        Use pandas to read the molecules in in a .csv file.
-        Parameters:
-            path: path to the dataset file which will be loaded
-            kwargs: arguments come from pd.read_csv() function
-                see pandas documentation for all list of optional arguments: https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html
-        Returns:
-            pandas dataframe object containing the csv data
-        """
+    def _read_csv(path, **kwargs):
         if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
             sep = ","
         elif str(path).endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
@@ -547,144 +533,16 @@ class BaseDataModule(pl.LightningDataModule):
         return df
 
     @staticmethod
-    def _get_table_columns(path: Union[str, os.PathLike]) -> List[str]:
-        """
-        read the column names in the dataset file
-        Parameters:
-            path: path to the dataset file which will be loaded
-        Returns:
-            a list of str for each of the column names in the dataset file
-        """
-        if str(path).endswith((".parquet")):
-            mini_table = ParquetFile(path).head(nrows=20)
-        elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
-            mini_table = BaseDataModule._read_csv(path, nrows=20)
-        elif ".sdf" in str(path)[-8:]:
-            mini_table = BaseDataModule._read_sdf(path, nrows=20)
-        else:
-            raise ValueError(f"unsupported file `{path}`")
-
-        return list(mini_table.columns)
-
-    @staticmethod
-    def _read_parquet(path: Union[str, os.PathLike], **kwargs) -> pd.DataFrame:
-        """
-        Use pandas and fastparquet to read the molecules in in a .parquet file.
-        All values will be converted to float16
-        Parameters:
-            path: path to the dataset file which will be loaded
-            usecols: columns to read. If not provided, all columns will be read. Can also be called `columns`
-            kwargs: arguments come from pd.read_parquet() function
-                see pandas documentation for all list of optional arguments: https://pandas.pydata.org/docs/reference/api/pandas.read_parquet.html
-        Returns:
-            pandas dataframe object containing the parquet data
-        """
-        kwargs.pop("dtype", None)  # Only useful for csv
-        schema = BaseDataModule._get_table_columns(path)
-
-        # Change the 'usecols' parameter to 'columns'
-        columns = kwargs.pop("columns", None)
-        if "usecols" in kwargs.keys():
-            assert columns is None, "Ambiguous value of `columns`"
-            columns = kwargs.pop("usecols")
-        if columns is None:
-            columns = list(schema.keys())
-
-        # Read the parquet file per column, and convert the data to float16 to reduce memory consumption
-        all_series = {}
-        progress = tqdm(columns)
-        for col in progress:
-            # Read single column
-            progress.set_description(f"Reading parquet column `{col}`")
-            this_series = pd.read_parquet(path, columns=[col], engine="fastparquet", **kwargs)[col]
-
-            # Check if the data is float
-            first_elem = this_series[0]
-            is_float = False
-            if isinstance(first_elem, (list, tuple)):
-                is_float = isinstance(first_elem[0], np.floating)
-            elif isinstance(first_elem, np.ndarray):
-                is_float = isinstance(first_elem, np.floating)
-
-            # Convert floats to float16
-            if is_float:
-                if isinstance(first_elem, np.ndarray):
-                    this_series.update([elem.astype(np.float16) for elem in this_series])
-                elif isinstance(first_elem, list):
-                    this_series.update([np.asarray(elem).astype(np.float16) for elem in this_series])
-                else:
-                    this_series = this_series.astype(np.float16)
-
-            all_series[col] = this_series
-            gc.collect()  # Reset memory after each column
-
-        # Merge columns into a dataframe
-        df = pd.concat(all_series, axis=1)
-
+    def _read_parquet(path, **kwargs):
+        df = pd.read_parquet(path)
         return df
 
     @staticmethod
-    def _read_sdf(path, **kwargs):
-        """
-        use the datamol read_sdf() function to read .sdf file into a pandas dataframe
-        Parameters:
-            path: path to the dataset file which will be loaded
-            smiles_column: column name which contains the smile strings
-            kwargs: arguments come from dm.read_sdf() function
-                see datamol documentation for all list of optional arguments: https://doc.datamol.io/stable/api/datamol.io.html#datamol.io.read_sdf
-        Returns:
-            pandas dataframe object with rdkit molecules converted from smile strings
-        """
-        # Set default arguments for reading the SDF
-        kwargs.setdefault("smiles_column", "smiles")
-        kwargs.setdefault("sanitize", False)
-        kwargs.setdefault("include_private", True)
-        kwargs.setdefault("include_computed", True)
-        kwargs.setdefault("remove_hs", False)
-        kwargs.setdefault("n_jobs", -1)
-        kwargs.setdefault("max_num_mols", kwargs.pop("sample_size", None))
-        kwargs.setdefault("discard_invalid", False)
-
-        # Get the interesting columns
-        mol_cols = BaseDataModule.molecule_column_name
-        kwargs.setdefault("mol_column", mol_cols)
-        usecols = kwargs.pop("usecols", None)
-        dtype = kwargs.pop("dtype", None)
-        smiles_col = kwargs["smiles_column"]
-
-        # Read the SDF
-        df = dm.read_sdf(path, as_df=True, **kwargs)
-
-        # Keep only the columns needed
-        if usecols is not None:
-            df = df[usecols + [mol_cols]]
-
-        # Convert the dtypes
-        if dtype is not None:
-            label_columns = list(set(usecols) - set([mol_cols, smiles_col]))
-            dtype_mapper = {col: dtype for col in label_columns}
-            df.astype(dtype=dtype_mapper, copy=False)
-
-        return df
-
-    @staticmethod
-    def _read_table(path, **kwargs):
-        """
-        read the dataset file based on its format into pandas dataframe object
-        supported format: .csv (recommended) and .sdf
-        Parameters:
-            path: path to the dataset file which will be loaded
-        Returns:
-            pandas dataframe object
-        """
+    def _read_table(self, path, **kwargs):
         if str(path).endswith((".parquet")):
-            return BaseDataModule._read_parquet(path, **kwargs)
-        elif (".csv" in str(path)[-8:]) or (".tsv" in str(path)[-8:]):
-            return BaseDataModule._read_csv(path, **kwargs)
-        elif ".sdf" in str(path)[-8:]:
-            return BaseDataModule._read_sdf(path, **kwargs)
+            return self._read_parquet(path)
         else:
-            raise ValueError(f"unsupported file `{path}`")
+            return self._read_csv(path)
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
@@ -1097,7 +955,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 )
                 label_dtype = {col: np.float16 for col in label_cols}
 
-                task_df[task] = self._read_table(args.df_path, usecols=usecols, dtype=label_dtype)
+                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
             else:
                 label_cols = self._parse_label_cols(
                     df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
@@ -1442,9 +1300,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            cols = self._get_table_columns(df_path)
+            data_frame = self._read_csv(df_path, nrows=0)
         else:
-            cols = list(df.columns)
+            data_frame = df
+        cols = list(data_frame.columns)
 
         # A star `*` at the beginning or end of the string specifies to look for all
         # columns that starts/end with a specific string
@@ -1476,7 +1335,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     @property
     def num_node_feats(self):
         """Return the number of node features in the first graph"""
-        graph = self.get_dummy_graph()
+        graph = self.get_first_graph()
         num_feats = graph.feat.shape[1]
         return num_feats
 
@@ -1488,7 +1347,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         raw positional encoding dimensions such eigval, eigvec, rwse and more
         """
 
-        graph = self.get_dummy_graph()
+        graph = self.get_first_graph()
         if isinstance(graph, (dgl.DGLGraph, GraphDict)):
             graph = graph.ndata
 
@@ -1507,7 +1366,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def num_edge_feats(self):
         """Return the number of edge features in the first graph"""
 
-        graph = self.get_dummy_graph()
+        graph = self.get_first_graph()
         if isinstance(graph, (dgl.DGLGraph, GraphDict)):
             graph = graph.edata
 
@@ -1516,12 +1375,41 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return num_feats
 
-    def get_dummy_graph(self):
-        """Return a dummy graph for the smiles 'C1=C(C)[N]=CC=C1'"""
+    def get_first_graph(self):
+        """
+        Low memory footprint method to get the first datapoint DGL graph.
+        The first 10 rows of the data are read in case the first one has a featurization
+        error. If all 20 first element, then `None` is returned, otherwise the first
+        graph to not fail is returned.
+        """
+        keys = list(self.task_dataset_processing_params.keys())
+        task = keys[0]
+        args = self.task_dataset_processing_params[task]
+        if args.df is None:
+            df = self._read_csv(args.df_path, nrows=20)
+        else:
+            df = args.df.iloc[0:20, :]
 
-        smiles = "C1=C(C)[N]=CC=C1"
-        graph = self.smiles_transformer(smiles, mask_nan=0.0)
+        label_cols = self._parse_label_cols(
+            df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
+        )
 
+        smiles, labels, sample_idx, extras = self._extract_smiles_labels(
+            df,
+            smiles_col=args.smiles_col,
+            label_cols=label_cols,
+            idx_col=args.idx_col,
+            weights_col=args.weights_col,
+            weights_type=args.weights_type,
+        )
+
+        graph = None
+        for s in smiles:
+            graph = self.smiles_transformer(s, mask_nan=0.0)
+            num_nodes = get_num_nodes(graph)
+            num_edges = get_num_edges(graph)
+            if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
+                break
         return graph
 
     ########################## Private methods ######################################
@@ -1640,7 +1528,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = self._read_table(splits_path)
+                splits = self._read_csv(splits_path)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -1807,7 +1695,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
             if args.df is None:
-                df = self._read_table(args.df_path, usecols=args.smiles_col)
+                df = self._read_csv(args.df_path, usecols=[args.smiles_col])
                 num_elements += len(df)
             else:
                 num_elements += len(args.df)
