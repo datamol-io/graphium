@@ -1,7 +1,7 @@
 from typing import Callable, Optional, Union, Tuple, List
 
 import torch
-from torch import Tensor
+from torch import Tensor, IntTensor, LongTensor
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
@@ -70,6 +70,10 @@ class MPNNPlusPyg(BaseGraphModule):
                 The method to combine the node features, Could choose from:
                 "sum" and "concat".
 
+            aggregation_method:
+                Methods for aggregating (scatter) messages built from node and edge features.
+                Provide a list of method/methods.
+
             num_node_mlp:
                 Number of mlp layer used for node model
 
@@ -137,7 +141,10 @@ class MPNNPlusPyg(BaseGraphModule):
         )
 
     def gather_features(
-        self, input_features: Tensor, senders: Tensor, receivers: Tensor
+        self,
+        input_features: Tensor,
+        senders: Union[IntTensor, LongTensor],
+        receivers: Union[IntTensor, LongTensor],
     ) -> Tuple[Tensor, Tensor, Tensor]:
         r"""
             Function to gather node features based on the senders and receivers of the edge indices.
@@ -184,8 +191,8 @@ class MPNNPlusPyg(BaseGraphModule):
     def aggregate_features(
         self,
         input_features: Tensor,
-        senders: Tensor,
-        receivers: Tensor,
+        senders: Union[IntTensor, LongTensor],
+        receivers: Union[IntTensor, LongTensor],
         sender_features: Tensor,
         receiver_features: Tensor,
         size: int,
