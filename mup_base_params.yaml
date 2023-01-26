@@ -22,7 +22,7 @@ gnn.layers.0.ff_linear2.linear.weight:
 - 32
 - 64
 gnn.layers.0.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.0.ff_out.linear.weight:
 - 32
 - 32
@@ -71,27 +71,27 @@ gnn.layers.0.norm_layer_local.bias:
 gnn.layers.0.norm_layer_local.weight:
 - 32
 gnn.layers.1.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.1.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.1.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.1.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.1.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.1.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.1.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.1.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.1.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.1.ff_out.linear.weight:
 - 32
 - 32
@@ -140,27 +140,27 @@ gnn.layers.1.norm_layer_local.bias:
 gnn.layers.1.norm_layer_local.weight:
 - 32
 gnn.layers.10.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.10.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.10.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.10.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.10.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.10.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.10.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.10.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.10.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.10.ff_out.linear.weight:
 - 32
 - 32
@@ -209,27 +209,27 @@ gnn.layers.10.norm_layer_local.bias:
 gnn.layers.10.norm_layer_local.weight:
 - 32
 gnn.layers.11.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.11.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.11.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.11.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.11.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.11.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.11.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.11.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.11.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.11.ff_out.linear.weight:
 - 32
 - 32
@@ -278,27 +278,27 @@ gnn.layers.11.norm_layer_local.bias:
 gnn.layers.11.norm_layer_local.weight:
 - 32
 gnn.layers.12.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.12.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.12.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.12.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.12.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.12.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.12.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.12.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.12.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.12.ff_out.linear.weight:
 - 32
 - 32
@@ -347,27 +347,27 @@ gnn.layers.12.norm_layer_local.bias:
 gnn.layers.12.norm_layer_local.weight:
 - 32
 gnn.layers.13.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.13.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.13.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.13.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.13.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.13.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.13.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.13.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.13.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.13.ff_out.linear.weight:
 - 32
 - 32
@@ -416,27 +416,27 @@ gnn.layers.13.norm_layer_local.bias:
 gnn.layers.13.norm_layer_local.weight:
 - 32
 gnn.layers.14.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.14.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.14.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.14.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.14.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.14.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.14.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.14.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.14.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.14.ff_out.linear.weight:
 - 32
 - 32
@@ -485,25 +485,25 @@ gnn.layers.14.norm_layer_local.bias:
 gnn.layers.14.norm_layer_local.weight:
 - 32
 gnn.layers.15.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.15.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.15.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.15.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.15.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.15.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.15.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.15.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.15.ff_out.linear.bias:
 - 32
 gnn.layers.15.ff_out.linear.weight:
@@ -554,27 +554,27 @@ gnn.layers.15.norm_layer_local.bias:
 gnn.layers.15.norm_layer_local.weight:
 - 32
 gnn.layers.2.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.2.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.2.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.2.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.2.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.2.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.2.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.2.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.2.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.2.ff_out.linear.weight:
 - 32
 - 32
@@ -623,27 +623,27 @@ gnn.layers.2.norm_layer_local.bias:
 gnn.layers.2.norm_layer_local.weight:
 - 32
 gnn.layers.3.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.3.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.3.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.3.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.3.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.3.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.3.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.3.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.3.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.3.ff_out.linear.weight:
 - 32
 - 32
@@ -692,27 +692,27 @@ gnn.layers.3.norm_layer_local.bias:
 gnn.layers.3.norm_layer_local.weight:
 - 32
 gnn.layers.4.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.4.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.4.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.4.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.4.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.4.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.4.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.4.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.4.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.4.ff_out.linear.weight:
 - 32
 - 32
@@ -761,27 +761,27 @@ gnn.layers.4.norm_layer_local.bias:
 gnn.layers.4.norm_layer_local.weight:
 - 32
 gnn.layers.5.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.5.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.5.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.5.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.5.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.5.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.5.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.5.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.5.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.5.ff_out.linear.weight:
 - 32
 - 32
@@ -830,27 +830,27 @@ gnn.layers.5.norm_layer_local.bias:
 gnn.layers.5.norm_layer_local.weight:
 - 32
 gnn.layers.6.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.6.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.6.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.6.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.6.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.6.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.6.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.6.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.6.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.6.ff_out.linear.weight:
 - 32
 - 32
@@ -899,27 +899,27 @@ gnn.layers.6.norm_layer_local.bias:
 gnn.layers.6.norm_layer_local.weight:
 - 32
 gnn.layers.7.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.7.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.7.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.7.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.7.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.7.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.7.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.7.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.7.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.7.ff_out.linear.weight:
 - 32
 - 32
@@ -968,27 +968,27 @@ gnn.layers.7.norm_layer_local.bias:
 gnn.layers.7.norm_layer_local.weight:
 - 32
 gnn.layers.8.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.8.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.8.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.8.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.8.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.8.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.8.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.8.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.8.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.8.ff_out.linear.weight:
 - 32
 - 32
@@ -1037,27 +1037,27 @@ gnn.layers.8.norm_layer_local.bias:
 gnn.layers.8.norm_layer_local.weight:
 - 32
 gnn.layers.9.attn_layer.in_proj_bias:
-- 96
+- 750
 gnn.layers.9.attn_layer.in_proj_weight:
-- 96
-- 32
+- 750
+- 250
 gnn.layers.9.attn_layer.out_proj.bias:
-- 32
+- 250
 gnn.layers.9.attn_layer.out_proj.weight:
-- 32
-- 32
+- 250
+- 250
 gnn.layers.9.ff_linear1.linear.bias:
-- 64
+- 500
 gnn.layers.9.ff_linear1.linear.weight:
-- 64
-- 32
+- 500
+- 250
 gnn.layers.9.ff_linear2.linear.bias:
-- 32
+- 250
 gnn.layers.9.ff_linear2.linear.weight:
-- 32
-- 64
+- 250
+- 500
 gnn.layers.9.ff_out.linear.bias:
-- 32
+- 250
 gnn.layers.9.ff_out.linear.weight:
 - 32
 - 32
