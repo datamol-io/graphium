@@ -39,7 +39,6 @@ appdirs
 matplotlib
 tk
 pytorch-lightning >=1.9
-datamol
 PyYAML
 wandb
 optuna

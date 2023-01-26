@@ -11,7 +11,18 @@ from mup import set_base_shapes, MuReadout
 
 from goli.ipu.ipu_utils import import_poptorch
 
-SUPPORTED_ACTIVATION_MAP = {"ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus", "None"}
+SUPPORTED_ACTIVATION_MAP = {
+    "ReLU",
+    "Sigmoid",
+    "Tanh",
+    "ELU",
+    "SELU",
+    "GLU",
+    "GELU",
+    "LeakyReLU",
+    "Softplus",
+    "None",
+}
 
 
 def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Callable]:
