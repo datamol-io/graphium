@@ -516,7 +516,6 @@ class PredictorModule(pl.LightningModule):
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
         return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
-
     def validation_epoch_end(self, outputs: Dict[str, Any]):
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
@@ -598,7 +597,6 @@ class PredictorModule(pl.LightningModule):
         self.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
     def get_num_graphs(self, data: Union[Batch, List, str]):
-
         if isinstance(data, Batch):
             data = data["mol_ids"]
 
