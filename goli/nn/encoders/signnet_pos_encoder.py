@@ -281,7 +281,6 @@ class SignNetNodeEncoder(torch.nn.Module):
         return on_keys
 
     def forward(self, eigvecs, edge_index, batch_index):
-
         pos_enc = eigvecs.unsqueeze(-1)  # (Num nodes) x (Num Eigenvectors) x 1
 
         empty_mask = torch.isnan(pos_enc)

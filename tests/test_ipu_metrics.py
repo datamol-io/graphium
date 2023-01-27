@@ -33,7 +33,6 @@ from goli.ipu.ipu_metrics import (
 
 
 class test_Metrics(ut.TestCase):
-
     torch.manual_seed(42)
     preds = torch.rand((100, 10), dtype=torch.float32)
     target = torch.rand((100, 10), dtype=torch.float32)

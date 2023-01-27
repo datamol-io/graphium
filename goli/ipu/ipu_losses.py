@@ -53,7 +53,6 @@ class MSELossIPU(MSELoss):
     """
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
-
         target = target.clone()
         input = input.clone()
 
@@ -78,7 +77,6 @@ class L1LossIPU(L1Loss):
     """
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
-
         target = target.clone()
         input = input.clone()
 

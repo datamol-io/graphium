@@ -29,14 +29,14 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
             preds[task] = preds[task][:-1]
     return preds
 
-class DictIPUStrategy(IPUStrategy):
 
+class DictIPUStrategy(IPUStrategy):
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         args = self._prepare_input(args)
         args = args[0]
         poptorch_model = self.poptorch_models[stage]
         self.lightning_module._running_torchscript = True
-        for key_to_drop in ['_batch_idx', 'mol_ids', 'smiles']:
+        for key_to_drop in ["_batch_idx", "mol_ids", "smiles"]:
             args.pop(key_to_drop)
         out = poptorch_model(**args)
         self.lightning_module._running_torchscript = False
@@ -45,10 +45,10 @@ class DictIPUStrategy(IPUStrategy):
 
 class PyGArgsParser(poptorch.ICustomArgParser):
     """
-        This class is responsible for converting a PyG Batch from and to
-        a tensor of tuples. This allows PyG Batch to be used as inputs to
-        IPU programs. Copied from poppyg repo, in the future import from
-        the repo directly.
+    This class is responsible for converting a PyG Batch from and to
+    a tensor of tuples. This allows PyG Batch to be used as inputs to
+    IPU programs. Copied from poppyg repo, in the future import from
+    the repo directly.
     """
 
     @staticmethod
@@ -89,7 +89,7 @@ class PyGArgsParser(poptorch.ICustomArgParser):
         cls = original_structure.__class__
 
         if issubclass(cls, Batch):
-            kwargs['_base_cls'] = Data
+            kwargs["_base_cls"] = Data
             return Batch(**kwargs)
 
         return cls(**kwargs)
@@ -130,7 +130,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def training_step(self, features, labels) -> Dict[str, Any]:
         features, labels = self.squeeze_input_dims(features, labels)
-        dict_input = {'features': features, 'labels': labels}
+        dict_input = {"features": features, "labels": labels}
         step_dict = super().training_step(dict_input, to_cpu=False)
 
         loss = step_dict.pop("loss")
@@ -139,7 +139,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def validation_step(self, features, labels) -> Dict[str, Any]:
         features, labels = self.squeeze_input_dims(features, labels)
-        dict_input = {'features': features, 'labels': labels}
+        dict_input = {"features": features, "labels": labels}
         step_dict = super().validation_step(dict_input, to_cpu=False)
 
         return step_dict
@@ -147,7 +147,7 @@ class PredictorModuleIPU(PredictorModule):
     def test_step(self, features, labels) -> Dict[str, Any]:
         # Build a dictionary from the tuples
         features, labels = self.squeeze_input_dims(features, labels)
-        dict_input = {'features': features, 'labels': labels}
+        dict_input = {"features": features, "labels": labels}
         step_dict = super().test_step(dict_input, to_cpu=False)
 
         return step_dict
@@ -165,7 +165,6 @@ class PredictorModuleIPU(PredictorModule):
         return super().configure_optimizers(impl=impl)
 
     def squeeze_input_dims(self, features, labels):
-
         for key, tensor in features:
             if isinstance(tensor, torch.Tensor):
                 features[key] = features[key].squeeze(0)

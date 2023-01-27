@@ -18,7 +18,6 @@ from torchmetrics.functional import mean_squared_error
 
 class test_Metrics(ut.TestCase):
     def test_thresholder(self):
-
         torch.manual_seed(42)
         preds = torch.rand(100, dtype=torch.float32)
         target = torch.rand(100, dtype=torch.float32)
@@ -62,11 +61,9 @@ class test_Metrics(ut.TestCase):
 
 class test_MetricWrapper(ut.TestCase):
     def test_target_nan_mask(self):
-
         torch.random.manual_seed(42)
 
         for sz in [(100,), (100, 1), (100, 10)]:
-
             err_msg = f"Error for `sz = {sz}`"
 
             # Generate prediction and target matrices

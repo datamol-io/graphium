@@ -186,7 +186,6 @@ class PredictorModule(pl.LightningModule):
         return feats
 
     def configure_optimizers(self, impl=None):
-
         if impl is None:
             impl = torch.optim.Adam
 
@@ -462,9 +461,11 @@ class PredictorModule(pl.LightningModule):
         # Transform the list of dict of dict, into a dict of list of dict
         preds = {}
         targets = {}
+        device = device = outputs[0]["preds"][self.tasks[0]].device  # should be better way to do this
+        # device = 0
         for task in self.tasks:
-            preds[task] = torch.cat([out["preds"][task] for out in outputs], dim=0)
-            targets[task] = torch.cat([out["targets"][task] for out in outputs], dim=0)
+            preds[task] = torch.cat([out["preds"][task].to(device=device) for out in outputs], dim=0)
+            targets[task] = torch.cat([out["targets"][task].to(device=device) for out in outputs], dim=0)
         if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
@@ -517,7 +518,6 @@ class PredictorModule(pl.LightningModule):
 
 
     def validation_epoch_end(self, outputs: Dict[str, Any]):
-
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = self.mean_val_time_tracker.mean_value
@@ -533,7 +533,6 @@ class PredictorModule(pl.LightningModule):
         full_dict.update(self.task_epoch_summary.get_dict_summary())
 
     def test_epoch_end(self, outputs: Dict[str, Any]):
-
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
@@ -591,7 +590,6 @@ class PredictorModule(pl.LightningModule):
         return PredictorModule.load_from_checkpoint(GOLI_PRETRAINED_MODELS[name])
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
-
         datamodule.setup()
 
         max_nodes = datamodule.get_max_num_nodes_datamodule(stages)
