@@ -2,6 +2,7 @@ from goli.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import numpy as np
 from copy import deepcopy
+import time
 
 import torch
 from torch import nn, Tensor
@@ -15,6 +16,7 @@ from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOption
 from goli.trainer.predictor_summaries import TaskSummaries
 from goli.nn.base_graph_layer import get_node_feats, set_node_feats
 from goli.data.datamodule import BaseDataModule
+from goli.utils.moving_average_tracker import MovingAverageTracker
 
 GOLI_PRETRAINED_MODELS = {
     "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
@@ -135,6 +137,12 @@ class PredictorModule(pl.LightningModule):
 
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
         self._set_hparams(recursive_config_reformating(self.hparams))
+
+        # throughput estimation
+        self.train_batch_start_time = 0
+        self.validation_batch_start_time = 0
+        self.mean_val_time_tracker = MovingAverageTracker()
+        self.mean_val_tput_tracker = MovingAverageTracker()
 
     def forward(
         self, inputs: Dict
@@ -386,7 +394,15 @@ class PredictorModule(pl.LightningModule):
         step_dict["task_losses"] = task_losses
         return step_dict
 
+    def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
+        self.train_batch_start_time = time.time()
+        return super().on_train_batch_start(batch, batch_idx)
+
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
+        train_batch_time = time.time() - self.train_batch_start_time
+        num_graphs = self.get_num_graphs(batch)
+        tput = num_graphs / train_batch_time
+
         # this code is likely repeated for validation and testing, this should be moved to a function
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
@@ -404,6 +420,8 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs["loss"] = outputs["loss"]
         outputs["grad_norm"] = self.get_gradient_norm()
         concatenated_metrics_logs["train/grad_norm"] = outputs["grad_norm"]
+        concatenated_metrics_logs["train/batch_time"] = train_batch_time
+        concatenated_metrics_logs["train/batch_tput"] = tput
 
         if self.logger is not None:
             self.logger.log_metrics(
@@ -481,10 +499,29 @@ class PredictorModule(pl.LightningModule):
         """
         pass
 
+    def on_validation_epoch_start(self) -> None:
+        self.mean_val_time_tracker.reset()
+        self.mean_val_tput_tracker.reset()
+        return super().on_validation_epoch_start()
+
+    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
+        self.validation_batch_start_time = time.time()
+        return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
+
+    def on_validation_batch_end(self, outputs, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
+        val_batch_time = time.time() - self.validation_batch_start_time
+        self.mean_val_time_tracker.update(val_batch_time)
+        num_graphs = self.get_num_graphs(batch)
+        self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
+        return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
+
+
     def validation_epoch_end(self, outputs: Dict[str, Any]):
 
         metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        concatenated_metrics_logs["val/mean_time"] = self.mean_val_time_tracker.mean_value
+        concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
         lr = self.optimizers().param_groups[0]["lr"]
         metrics_logs["lr"] = lr
@@ -561,3 +598,16 @@ class PredictorModule(pl.LightningModule):
         max_edges = datamodule.get_max_num_edges_datamodule(stages)
 
         self.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
+
+    def get_num_graphs(self, data: Union[Batch, List, str]):
+
+        if isinstance(data, Batch):
+            data = data["mol_ids"]
+
+        num_graphs = 0
+        for mol_id in data:
+            if type(mol_id) == list:
+                num_graphs += self.get_num_graphs(mol_id)
+            else:
+                num_graphs += 1
+        return num_graphs
