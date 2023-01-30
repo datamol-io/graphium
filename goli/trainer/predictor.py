@@ -598,6 +598,7 @@ class PredictorModule(pl.LightningModule):
 
     def get_num_graphs(self, data: Batch):
         """
-            Method to compute number of graphs in a Batch. Essential to estimate throughput in graphs/s.
+        Method to compute number of graphs in a Batch.
+        Essential to estimate throughput in graphs/s.
         """
         return torch.max(data.batch) + 1
