@@ -399,7 +399,7 @@ class PredictorModule(pl.LightningModule):
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
         train_batch_time = time.time() - self.train_batch_start_time
-        num_graphs = self.get_num_graphs(batch)
+        num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
 
         # this code is likely repeated for validation and testing, this should be moved to a function
@@ -512,7 +512,7 @@ class PredictorModule(pl.LightningModule):
     def on_validation_batch_end(self, outputs, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
         val_batch_time = time.time() - self.validation_batch_start_time
         self.mean_val_time_tracker.update(val_batch_time)
-        num_graphs = self.get_num_graphs(batch)
+        num_graphs = self.get_num_graphs(batch["features"])
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
         return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
 
@@ -596,14 +596,8 @@ class PredictorModule(pl.LightningModule):
 
         self.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
-    def get_num_graphs(self, data: Union[Batch, List, str]):
-        if isinstance(data, Batch):
-            data = data["mol_ids"]
-
-        num_graphs = 0
-        for mol_id in data:
-            if type(mol_id) == list:
-                num_graphs += self.get_num_graphs(mol_id)
-            else:
-                num_graphs += 1
-        return num_graphs
+    def get_num_graphs(self, data: Batch):
+        """
+            Method to compute number of graphs in a Batch. Essential to estimate throughput in graphs/s.
+        """
+        return torch.max(data.batch) + 1
