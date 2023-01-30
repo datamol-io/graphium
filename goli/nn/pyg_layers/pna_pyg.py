@@ -107,6 +107,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         # Allow int32 as edge index
@@ -128,9 +129,9 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         # MLP used on each pair of nodes with their edge MLP(h_u, h_v, e_uv)
         self.pretrans = MLP(
             in_dim=2 * in_dim + in_dim_edges,
-            hidden_dim=in_dim,
+            hidden_dims=in_dim,
             out_dim=in_dim,
-            layers=pretrans_layers,
+            depth=pretrans_layers,
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
@@ -141,9 +142,9 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         # MLP used on the aggregated messages of the neighbours
         self.posttrans = MLP(
             in_dim=(len(aggregators) * len(scalers)) * self.in_dim,
-            hidden_dim=self.out_dim,
+            hidden_dims=self.out_dim,
             out_dim=self.out_dim,
-            layers=posttrans_layers,
+            depth=posttrans_layers,
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,

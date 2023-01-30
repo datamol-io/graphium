@@ -22,6 +22,7 @@ class GCNDgl(BaseGraphModule):
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         Graph convolutional network (GCN) layer from
@@ -57,6 +58,7 @@ class GCNDgl(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         self.conv = GraphConv(

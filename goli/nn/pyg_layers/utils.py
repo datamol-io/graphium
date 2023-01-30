@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 from torch_geometric.data import Batch
@@ -45,9 +46,9 @@ class PreprocessPositions(nn.Module):
         self.gaussian = GaussianLayer(self.num_kernel, in_dim=in_dim)
         self.gaussian_proj = MLP(
             in_dim=self.num_kernel,
-            hidden_dim=self.num_kernel,
+            hidden_dims=self.num_kernel,
             out_dim=self.num_heads,
-            layers=num_layers,
+            depth=num_layers,
             activation=activation,
             last_layer_is_readout=True,  # Since the output is not proportional to the hidden dim, but to the number of heads
         )
@@ -142,8 +143,7 @@ class GaussianLayer(nn.Module):
         mean = self.means.weight.float().view(-1)
         # [num_kernels]
         std = self.stds.weight.float().view(-1).abs() + 0.01  # epsilon is 0.01 that matches gps++ value
-        pi = 3.141592653
-        pre_exp_factor = (2 * pi) ** 0.5
+        pre_exp_factor = (2 * math.pi) ** 0.5
         # [batch, nodes, nodes, num_kernels]
         tensor_with_kernel = torch.exp(-0.5 * (((expanded_input - mean) / std) ** 2)) / (pre_exp_factor * std)
         return tensor_with_kernel

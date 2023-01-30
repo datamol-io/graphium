@@ -2,7 +2,7 @@ from typing import Union, Callable, List, Dict, Any, Optional
 from torch_geometric.data import Batch
 
 from goli.nn.pyg_layers.utils import PreprocessPositions
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_utils import is_running_on_ipu
 from goli.nn.encoders.base_encoder import BaseEncoder
 
 
@@ -15,7 +15,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
         out_dim: int,
         embed_dim: int,
         num_layers: int,
-        max_num_nodes_per_graph: int,
+        max_num_nodes_per_graph: Optional[int] = None,
         activation: Union[str, Callable] = "gelu",
         first_normalization="none",
         use_input_keys_prefix: bool = True,
@@ -112,8 +112,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
         """
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
-        poptorch = import_poptorch(raise_error=False)  # TODO: Change to `is_running_on_ipu` after merge
-        on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+        on_ipu = is_running_on_ipu()
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph

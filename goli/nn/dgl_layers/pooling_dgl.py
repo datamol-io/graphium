@@ -36,9 +36,9 @@ class S2SReadoutDgl(nn.Module):
         # fully connected layers
         self.mlp = MLP(
             in_dim=2 * in_dim,
-            hidden_dim=hidden_dim,
+            hidden_dims=hidden_dim,
             out_dim=out_dim,
-            layers=fc_layers,
+            depth=fc_layers,
             activation="relu",
             last_activation=final_activation,
             normalization="batch_norm",
@@ -247,13 +247,17 @@ def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], **kwarg
 class VirtualNodeDgl(nn.Module):
     def __init__(
         self,
-        dim: int,
+        in_dim: int,
+        out_dim: int,
+        in_dim_edges: int,
+        out_dim_edges: int,
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
         residual: bool = True,
+        use_edges: bool = False,
     ):
         r"""
         The VirtualNode is a layer that pool the features of the graph,
@@ -262,7 +266,7 @@ class VirtualNodeDgl(nn.Module):
 
         Parameters:
 
-            dim:
+            in_dim:
                 Input and output feature dimensions of the virtual node layer
 
             activation:
@@ -286,6 +290,17 @@ class VirtualNodeDgl(nn.Module):
                 Whether all virtual nodes should be connected together
                 via a residual connection
 
+            out_dim:
+                NOT USED: Out node dimmension for virtual node pooling
+            in_dim_edges:
+                NOT USED: Edge dimmension for virtual node pooling
+            out_dim_edges:
+                NOT USED: Edge dimmension for virtual node pooling
+
+            use_edges:
+                NOT USED: boolean to choose using edges or not in virtual node
+
+
         """
         super().__init__()
         if (vn_type is None) or (vn_type.lower() == "none"):
@@ -297,8 +312,8 @@ class VirtualNodeDgl(nn.Module):
         self.vn_type = vn_type.lower()
         self.residual = residual
         self.fc_layer = FCLayer(
-            in_dim=dim,
-            out_dim=dim,
+            in_dim=in_dim,
+            out_dim=in_dim,
             activation=activation,
             dropout=dropout,
             normalization=normalization,
@@ -306,7 +321,7 @@ class VirtualNodeDgl(nn.Module):
         )
 
     def forward(
-        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor
+        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor, e: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the virtual node layer.
@@ -341,7 +356,7 @@ class VirtualNodeDgl(nn.Module):
 
         # Pool the features
         if self.vn_type is None:
-            return h, vn_h
+            return h, vn_h, e
         elif self.vn_type == "mean":
             pool = mean_nodes(g, "h")
         elif self.vn_type == "max":
@@ -371,4 +386,4 @@ class VirtualNodeDgl(nn.Module):
         )
         h = h + temp_h
 
-        return h, vn_h
+        return h, vn_h, e

@@ -839,7 +839,7 @@ class GraphDict(dict):
 
         # Convert adjacency matrix into edge_index and edge_weight
         edge_index = torch.Tensor(np.stack((self.adj.row, self.adj.col))).to(dtype=torch.int16)
-        edge_weight = torch.Tensor(self.adj.data)
+        edge_weight = torch.from_numpy(self.adj.data)
         num_nodes = self.adj.shape[0]
 
         # Get the node and edge data

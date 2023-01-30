@@ -26,6 +26,7 @@ class MPNNPlusPyg(BaseGraphModule):
         out_dim_edges: Optional[int] = 32,
         aggregation_method: Optional[List[Union[str, Aggregation]]] = ["sum"],
         num_edge_mlp: Optional[int] = 2,
+        use_globals: bool = True,
         edge_dropout_rate: Optional[float] = 0.0035,
         **kwargs,
     ):
@@ -111,6 +112,7 @@ class MPNNPlusPyg(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         self.gather_from = gather_from
@@ -131,9 +133,9 @@ class MPNNPlusPyg(BaseGraphModule):
         node_model_hidden_dim = 4 * self.in_dim
         self.node_model = MLP(
             in_dim=node_model_in_dim,
-            hidden_dim=node_model_hidden_dim,
+            hidden_dims=node_model_hidden_dim,
             out_dim=self.out_dim,
-            layers=self.num_node_mlp,
+            depth=self.num_node_mlp,
             activation=self.activation_layer,
             normalization=self.normalization,
         )
@@ -143,13 +145,15 @@ class MPNNPlusPyg(BaseGraphModule):
         edge_model_hidden_dim = 4 * self.in_dim_edges
         self.edge_model = MLP(
             in_dim=edge_model_in_dim,
-            hidden_dim=edge_model_hidden_dim,
+            hidden_dims=edge_model_hidden_dim,
             out_dim=self.out_dim_edges,
-            layers=self.num_edge_mlp,
+            depth=self.num_edge_mlp,
             activation=self.activation_layer,
             last_dropout=self.edge_dropout_rate,
             normalization=self.normalization,
         )
+
+        self.use_globals = use_globals
 
     def gather_features(
         self,
@@ -269,7 +273,6 @@ class MPNNPlusPyg(BaseGraphModule):
         """
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
-
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
 
@@ -293,7 +296,9 @@ class MPNNPlusPyg(BaseGraphModule):
 
         # ---------------Apply norm activation and dropout---------------
         # use dropout value of the layer (default 0.3)
-        batch.h = self.apply_norm_activation_dropout(batch.h, normalization=False, activation=False)
+        batch.h = self.apply_norm_activation_dropout(
+            batch.h, normalization=False, activation=False, batch_idx=batch.batch, batch_size=batch.num_graphs
+        )
 
         return batch
 

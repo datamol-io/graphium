@@ -1,4 +1,4 @@
-from typing import Dict, Mapping, Type, Union, Any
+from typing import Dict, Mapping, Tuple, Type, Union, Any
 
 # Misc
 import os
@@ -7,6 +7,8 @@ from copy import deepcopy
 from loguru import logger
 import yaml
 import joblib
+import pathlib
+import warnings
 
 # Torch
 import torch
@@ -76,6 +78,48 @@ def get_accelerator(
     return acc_type
 
 
+def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
+    r"""
+    Get the paths of the IPU-specific config files from the main YAML config
+    """
+
+    accelerator_options = config.get("accelerator_options", None)
+
+    if accelerator_options is None:
+        ipu_training_config_path = "expts/configs/ipu.config"
+        ipu_inference_config_overrides_path = None
+    else:
+        ipu_training_config_path = accelerator_options.get("ipu_options_file")
+        ipu_inference_config_overrides_path = accelerator_options.get("ipu_inference_overrides_file", None)
+
+    if pathlib.Path(ipu_training_config_path).is_file():
+        ipu_training_config_filename = ipu_training_config_path
+    else:
+        raise ValueError(
+            "IPU configuration path must be specified "
+            "and must be a file, instead got "
+            f'"{ipu_training_config_path}"'
+        )
+
+    if ipu_inference_config_overrides_path is not None:
+        if pathlib.Path(ipu_inference_config_overrides_path).is_file():
+            ipu_inference_config_overrides_filename = ipu_inference_config_overrides_path
+        else:
+            raise ValueError(
+                "IPU inference override config must be a file if specified, "
+                f'instead got "{ipu_training_config_path}"'
+            )
+
+    else:
+        warnings.warn(
+            "IPU inference overrides configuration either not specified "
+            "or not a file, using same options for training and inference"
+        )
+        ipu_inference_config_overrides_filename = None
+
+    return ipu_training_config_filename, ipu_inference_config_overrides_filename
+
+
 def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> BaseDataModule:
     """
     Load the datamodule from the specified configurations at the key
@@ -90,15 +134,27 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
 
     cfg_data = config["datamodule"]["args"]
 
-    # Default empty values for the IPU configurations
-    ipu_training_opts, ipu_inference_opts = None, None
-    ipu_file = "expts/configs/ipu.config"
-    ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
-    ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
+    # Instanciate the datamodule
+    module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
 
-    if get_accelerator(config) == "ipu":
+    if get_accelerator(config) != "ipu":
+        datamodule = module_class(
+            **config["datamodule"]["args"],
+        )
+        return datamodule
+
+    # IPU specific adjustments
+    else:
+        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+
+        # Default empty values for the IPU configurations
+        ipu_training_opts, ipu_inference_opts = None, None
+
+        ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
+        ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
         ipu_training_opts, ipu_inference_opts = load_ipu_options(
-            ipu_file=ipu_file,
+            ipu_file=ipu_training_config_file,
+            ipu_inference_overrides=ipu_inference_config_overrides_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
@@ -118,17 +174,15 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         )
         ipu_dataloader_inference_opts.set_kwargs()
 
-    # Instanciate the datamodule
-    module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
-    datamodule = module_class(
-        ipu_training_opts=ipu_training_opts,
-        ipu_inference_opts=ipu_inference_opts,
-        ipu_dataloader_training_opts=ipu_dataloader_training_opts,
-        ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
-        **config["datamodule"]["args"],
-    )
+        datamodule = module_class(
+            ipu_training_opts=ipu_training_opts,
+            ipu_inference_opts=ipu_inference_opts,
+            ipu_dataloader_training_opts=ipu_dataloader_training_opts,
+            ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
+            **config["datamodule"]["args"],
+        )
 
-    return datamodule
+        return datamodule
 
 
 def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, MetricWrapper]:
@@ -306,14 +360,17 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     # Define the IPU plugin if required
     strategy = None
     accelerator = get_accelerator(config)
-    ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
+        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+
         training_opts, inference_opts = load_ipu_options(
-            ipu_file=ipu_file,
+            ipu_file=ipu_training_config_file,
+            ipu_inference_overrides=ipu_inference_config_overrides_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
+
         from goli.ipu.ipu_wrapper import DictIPUStrategy
 
         strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)

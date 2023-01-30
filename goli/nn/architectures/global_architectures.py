@@ -22,20 +22,9 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
-from goli.nn.encoders import (
-    laplace_pos_encoder,
-    mlp_encoder,
-    signnet_pos_encoder,
-    gaussian_kernel_pos_encoder,
-)
 
 
-PE_ENCODERS_DICT = {
-    "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
-    "mlp": mlp_encoder.MLPEncoder,
-    "signnet": signnet_pos_encoder.SignNetNodeEncoder,
-    "gaussian_kernel": gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
-}
+import collections
 
 
 class FeedForwardNN(nn.Module):
@@ -80,8 +69,9 @@ class FeedForwardNN(nn.Module):
 
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
-                hidden layers to use. If `hidden_dims` is a `list`, `depth` must
-                be `None`.
+                hidden layers to use.
+                If `hidden_dims` is a list, then
+                `depth` must be `None` or equal to `len(hidden_dims) + 1`
 
             activation:
                 activation function to use in the hidden layers.
@@ -152,7 +142,9 @@ class FeedForwardNN(nn.Module):
             self.hidden_dims = [hidden_dims] * (depth - 1)
         else:
             self.hidden_dims = list(hidden_dims)
-            assert depth is None
+            assert (depth is None) or (
+                depth == len(self.hidden_dims) + 1
+            ), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
         self.depth = len(self.hidden_dims) + 1
         self.activation = get_activation(activation)
         self.last_activation = get_activation(last_activation)
@@ -385,6 +377,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
+        use_virtual_edges: bool = False,
         last_layer_is_readout: bool = False,
     ):
         r"""
@@ -526,6 +519,9 @@ class FeedForwardGraphBase(FeedForwardNN):
                 is "none". Otherwise, it will use a simple ResNet like residual
                 connection.
 
+            use_virtual_edges:
+                A bool flag used to select if the virtual node should use the edges or not
+
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
@@ -547,6 +543,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
         self.pooling = pooling
 
+        self.use_virtual_edges = use_virtual_edges
         self.virtual_node_class = self._parse_virtual_node_class()
 
         # Initialize the parent `FeedForwardNN`
@@ -649,6 +646,8 @@ class FeedForwardGraphBase(FeedForwardNN):
                     activation=this_activation,
                     dropout=this_dropout,
                     normalization=this_norm,
+                    layer_idx=ii,
+                    layer_depth=self.depth,
                     **self.layer_kwargs,
                     **this_edge_kwargs,
                 )
@@ -658,13 +657,17 @@ class FeedForwardGraphBase(FeedForwardNN):
             if ii < len(residual_out_dims):
                 self.virtual_node_layers.append(
                     self.virtual_node_class(
-                        dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        in_dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        out_dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        in_dim_edges=this_out_dim_edges,
+                        out_dim_edges=this_out_dim_edges,
                         activation=this_activation,
                         dropout=this_dropout,
                         normalization=this_norm,
                         bias=True,
                         vn_type=self.virtual_node,
                         residual=self.residual_type is not None,
+                        use_edges=self.use_virtual_edges,
                     )
                 )
 
@@ -825,7 +828,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _virtual_node_forward(
-        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
+        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int, e: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -858,13 +861,10 @@ class FeedForwardGraphBase(FeedForwardNN):
                 `M` is the number of graphs, `Dout` is the output features
 
         """
-
-        if step_idx == 0:
-            vn_h = 0.0
         if step_idx < len(self.virtual_node_layers):
-            h, vn_h = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h)
+            h, vn_h, e = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h, e=e)
 
-        return h, vn_h
+        return h, vn_h, e
 
     def forward(self, g: Batch) -> torch.Tensor:
         r"""
@@ -898,10 +898,9 @@ class FeedForwardGraphBase(FeedForwardNN):
         # Initialize values of the residuals and virtual node
         h_prev = None
         e_prev = None
-        vn_h = 0
+        vn_h = 0.0
         h = self._get_node_feats(g, key="h")
         e = self._get_edge_feats(g, key="edge_attr")
-
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
             h = self.first_normalization(h)
@@ -913,7 +912,7 @@ class FeedForwardGraphBase(FeedForwardNN):
             h, e, h_prev, e_prev = self._graph_layer_forward(
                 layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
-            h, vn_h = self._virtual_node_forward(g=g, h=h, vn_h=vn_h, step_idx=ii)
+            h, vn_h, e = self._virtual_node_forward(g=g, h=h, e=e, vn_h=vn_h, step_idx=ii)
 
         pooled_h = self._pool_layer_forward(g=g, h=h)
 
@@ -987,9 +986,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         kwargs.update(new_kwargs)
         return deepcopy(kwargs)
 
-    def make_mup_base_kwargs(
-        self, divide_factor: float = 2.0, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
-    ) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -998,7 +995,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension for the nodes
-            factor_in_dim: Whether to factor the input dimension for the edges
 
         Returns:
             kwargs: Dictionary of parameters to be used to instanciate the base model divided by the factor
@@ -1008,10 +1004,19 @@ class FeedForwardGraphBase(FeedForwardNN):
         kwargs["hidden_dims_edges"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
         if factor_in_dim:
             kwargs["in_dim"] = round(kwargs["in_dim"] / divide_factor)
-        if factor_in_dim_edges:
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+
+        def _recursive_divide_dim(x: collections.abc.Mapping):
+            for k, v in x.items():
+                if isinstance(v, collections.abc.Mapping):
+                    _recursive_divide_dim(v)
+                elif k in ["in_dim", "out_dim", "in_dim_edges", "out_dim_edges"]:
+                    x[k] = round(v / divide_factor)
+
+        _recursive_divide_dim(kwargs["layer_kwargs"])
+
         return kwargs
 
     def __repr__(self):
@@ -1053,8 +1058,8 @@ class FullGraphNetwork(nn.Module):
                 - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
 
             pe_encoders_kwargs:
-                key-word arguments to use for the initialization of all positional encoding encoders
-                can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)
+                key-word arguments to use for the initialization of all positional encoding encoders.
+                See the class `EncoderManager` for more details.
 
             pre_nn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
@@ -1380,18 +1385,16 @@ class FullGraphNetwork(nn.Module):
         # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
             factor_in_dim = self.pre_nn is not None
-            factor_in_dim_edges = self.pre_nn_edges is not None
             kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(
                 divide_factor=divide_factor,
                 factor_in_dim=factor_in_dim,
-                factor_in_dim_edges=factor_in_dim_edges,
             )
 
         return kwargs
 
     def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
-        Set the maximum number of nodes and edges for all gnn layers
+        Set the maximum number of nodes and edges for all gnn layers and encoder layers
 
         Parameters:
             max_nodes: Maximum number of nodes in the dataset.
@@ -1400,6 +1403,10 @@ class FullGraphNetwork(nn.Module):
             max_edges: Maximum number of edges in the dataset.
                 This will be useful for certain architecture, but ignored by others.
         """
+        if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
+            for encoder in self.encoder_manager.pe_encoders.values():
+                encoder.max_num_nodes_per_graph = max_nodes
+                encoder.max_num_edges_per_graph = max_edges
         if self.gnn is not None:
             for layer in self.gnn.layers:
                 if isinstance(layer, BaseGraphStructure):
@@ -1564,7 +1571,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
-        last_layer_is_readout: bool = False,
+        last_layer_is_readout: bool = True,
         name: str = "Multitask_GNN",
     ):
         r"""
@@ -1617,6 +1624,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 purposes.
         """
 
+        # Use last_layer_is_readout=False since readout layers are in task heads
         super().__init__(
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,

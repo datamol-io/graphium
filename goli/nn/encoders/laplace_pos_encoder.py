@@ -82,9 +82,9 @@ class LapPENodeEncoder(BaseEncoder):
             # DeepSet model for LapPE (this will be followed by a sum pooling)
             self.pe_encoder = MLP(
                 in_dim=hidden_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=hidden_dim,
-                layers=num_layers,
+                depth=num_layers,
                 dropout=dropout,
                 **model_kwargs,
             )
@@ -92,9 +92,9 @@ class LapPENodeEncoder(BaseEncoder):
             # MLP that will mix all eigenvalues and eigenvectors
             self.pe_encoder = MLP(
                 in_dim=self.in_dim * hidden_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=hidden_dim,
-                layers=num_layers_post,
+                depth=num_layers_post,
                 dropout=dropout,
                 activation=activation,
                 last_activation="none",
@@ -108,9 +108,9 @@ class LapPENodeEncoder(BaseEncoder):
             # MLP to apply post pooling
             self.post_mlp = MLP(
                 in_dim=hidden_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=out_dim,
-                layers=num_layers_post,
+                depth=num_layers_post,
                 dropout=dropout,
                 activation=activation,
                 last_activation="none",
@@ -176,7 +176,7 @@ class LapPENodeEncoder(BaseEncoder):
 
         # Random flipping to the Laplacian encoder
         if self.training:
-            sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device)
+            sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device, dtype=eigvecs.dtype)
             sign_flip[sign_flip >= 0.5] = 1.0
             sign_flip[sign_flip < 0.5] = -1.0
             eigvecs = eigvecs * sign_flip.unsqueeze(0)

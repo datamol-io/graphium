@@ -24,6 +24,7 @@ class GatedGCNDgl(BaseGraphModule):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         ResGatedGCN: Residual Gated Graph ConvNets
@@ -63,6 +64,7 @@ class GatedGCNDgl(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         self.out_dim_edges = out_dim_edges
