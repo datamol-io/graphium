@@ -5,7 +5,7 @@ from typing import Tuple, Union, List, Optional
 from torch_geometric.data import Data, Batch
 
 from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
+from goli.nn.pyg_layers import GlobalNodePyg, VirtualNodePyg, parse_pooling_layer_pyg
 from goli.nn.architectures.global_architectures import FeedForwardGraphBase
 
 
@@ -100,6 +100,7 @@ class FeedForwardPyg(FeedForwardGraphBase):
 
     def _parse_virtual_node_class(self) -> type:
         return VirtualNodePyg
+        # return GlobalNodePyg
 
     def _parse_pooling_layer(
         self, in_dim: int, pooling: Union[str, List[str]], **kwargs

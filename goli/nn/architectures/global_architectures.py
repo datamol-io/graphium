@@ -811,7 +811,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _virtual_node_forward(
-        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
+        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int, e: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -844,7 +844,10 @@ class FeedForwardGraphBase(FeedForwardNN):
                 `M` is the number of graphs, `Dout` is the output features
 
         """
-
+        # if hasattr(g, "edge_attr"):
+        # edge = g.edge_attr
+        # else:
+        #     import ipdb; ipdb.set_trace()
         if step_idx == 0:
             vn_h = 0.0
         if step_idx < len(self.virtual_node_layers):
@@ -899,7 +902,7 @@ class FeedForwardGraphBase(FeedForwardNN):
             h, e, h_prev, e_prev = self._graph_layer_forward(
                 layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
-            h, vn_h = self._virtual_node_forward(g=g, h=h, vn_h=vn_h, step_idx=ii)
+            h, vn_h = self._virtual_node_forward(g=g, h=h, e=e, vn_h=vn_h, step_idx=ii)
 
         pooled_h = self._pool_layer_forward(g=g, h=h)
 
