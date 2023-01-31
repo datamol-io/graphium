@@ -5,6 +5,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
 from loguru import logger
+from torch import Tensor
 
 import torch
 from torch_geometric.data import Data, Batch, Dataset
@@ -138,7 +139,7 @@ class CombinedBatchingCollator:
                 dataset_max_edges_per_graph=self.dataset_max_edges_per_graph,
             )
 
-            local_batch["features"], local_batch["_types_conversion"] = transform(local_batch["features"])
+            local_batch["features"] = transform(local_batch["features"])
             all_batches.append(local_batch)
 
         out_batch = {}
@@ -156,11 +157,16 @@ class CombinedBatchingCollator:
 
         # TODO: Make this more robust, instead of hard-coding the keys
         out_batch["features"] = stacked_features
-        out_batch["_types_conversion"] = [this_batch["_types_conversion"] for this_batch in all_batches]
-        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int64).unsqueeze(-1)
+        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int32).unsqueeze(-1)
         for key in all_batches[0].keys():
             if key not in ("features", "labels", "_types_conversion"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
+
+        for data_key, data_val in out_batch.items():
+            if isinstance(data_val, Batch):
+                for sub_key, sub_val in data_val.items():
+                    if isinstance(sub_val, Tensor) and sub_val.dtype == torch.int64:
+                        out_batch[data_key][sub_key] = sub_val.to(torch.int32)
 
         return out_batch
 
@@ -371,33 +377,7 @@ class Pad(BaseTransform):
         if "num_nodes" in new_batch:
             new_batch.num_nodes = self.max_num_nodes
 
-        new_batch.dataset_max_nodes_per_graph = torch.as_tensor(
-            [self.dataset_max_nodes_per_graph], dtype=torch.int32
-        )
-        new_batch.dataset_max_edges_per_graph = torch.as_tensor(
-            [self.dataset_max_edges_per_graph], dtype=torch.int32
-        )
-
-        # Convert integer types to smaller integers for faster transfer of data to IPUs
-        _types_conversion = {}
-        int_types = [torch.int16, torch.int32, torch.int64]
-        for key, val in new_batch.items():
-            if isinstance(val, torch.Tensor) and (val.dtype in int_types[1:]):
-                for this_int_type in int_types:
-                    if (val.max() <= torch.iinfo(this_int_type).max) and (
-                        val.min() >= torch.iinfo(this_int_type).min
-                    ):
-                        _types_conversion[key] = val.dtype
-                        new_batch[key] = val.to(this_int_type)
-                        break
-
-        # Convert float types to smaller floats for faster transfer of data to IPUs
-        float_types = [torch.float16, torch.float32, torch.float64]
-        for key, val in new_batch.items():
-            if isinstance(val, torch.Tensor) and (val.dtype in float_types[1:]):
-                new_batch[key] = val.to(torch.float16)
-
-        return new_batch, _types_conversion
+        return new_batch
 
     def __repr__(self) -> str:
         s = f"{self.__class__.__name__}("

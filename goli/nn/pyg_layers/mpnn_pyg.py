@@ -1,11 +1,12 @@
 from typing import Callable, Optional, Union, Tuple, List
 
 import torch
-from torch import Tensor
+from torch import Tensor, IntTensor, LongTensor
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
-from torch_geometric.nn.aggr import MultiAggregation
+from torch_geometric.nn.aggr import MultiAggregation, Aggregation
+from torch_geometric.data import Batch
 
 
 class MPNNPlusPyg(BaseGraphModule):
@@ -23,7 +24,7 @@ class MPNNPlusPyg(BaseGraphModule):
         use_edges: bool = True,
         in_dim_edges: Optional[int] = 32,
         out_dim_edges: Optional[int] = 32,
-        aggregation_method: Optional[List[str]] = ["add"],
+        aggregation_method: Optional[List[Union[str, Aggregation]]] = ["sum"],
         num_edge_mlp: Optional[int] = 2,
         edge_dropout_rate: Optional[float] = 0.0035,
         **kwargs,
@@ -69,6 +70,20 @@ class MPNNPlusPyg(BaseGraphModule):
             node_combine_method:
                 The method to combine the node features, Could choose from:
                 "sum" and "concat".
+
+            aggregation_method:
+                Methods for aggregating (scatter) messages built from node and edge features.
+                Provide a list of `Aggregation` or strings.
+                supported strings are:
+
+                - "sum" / "add" (Default)
+                - "mean"
+                - "max"
+                - "min"
+                - "softmax"
+                - "median"
+                - "std"
+                - "var"
 
             num_node_mlp:
                 Number of mlp layer used for node model
@@ -137,7 +152,10 @@ class MPNNPlusPyg(BaseGraphModule):
         )
 
     def gather_features(
-        self, input_features: Tensor, senders: Tensor, receivers: Tensor
+        self,
+        input_features: Tensor,
+        senders: Union[IntTensor, LongTensor],
+        receivers: Union[IntTensor, LongTensor],
     ) -> Tuple[Tensor, Tensor, Tensor]:
         r"""
             Function to gather node features based on the senders and receivers of the edge indices.
@@ -184,8 +202,8 @@ class MPNNPlusPyg(BaseGraphModule):
     def aggregate_features(
         self,
         input_features: Tensor,
-        senders: Tensor,
-        receivers: Tensor,
+        senders: Union[IntTensor, LongTensor],
+        receivers: Union[IntTensor, LongTensor],
         sender_features: Tensor,
         receiver_features: Tensor,
         size: int,
@@ -242,7 +260,7 @@ class MPNNPlusPyg(BaseGraphModule):
 
         return out
 
-    def forward(self, batch: Tensor) -> Tensor:
+    def forward(self, batch: Batch) -> Batch:
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
 

@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Mapping, Type, Union, Any
+from typing import Dict, Mapping, Type, Union, Any
 
 # Misc
 import os
@@ -15,7 +15,7 @@ import mup
 # Lightning
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger, LightningLoggerBase
+from pytorch_lightning.loggers import WandbLogger, Logger
 
 # Goli
 from goli.utils.mup import set_base_shapes
@@ -24,9 +24,12 @@ from goli.trainer.metrics import MetricWrapper
 from goli.nn.architectures import FullGraphNetwork, FullGraphMultiTaskNetwork
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
-from goli.ipu.ipu_wrapper import PredictorModuleIPU, IPUPluginGoli
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
 from goli.data.datamodule import MultitaskFromSmilesDataModule
+from goli.data.datamodule import BaseDataModule
+
+# Weights and Biases
+from pytorch_lightning import Trainer
 
 
 def get_accelerator(
@@ -73,7 +76,7 @@ def get_accelerator(
     return acc_type
 
 
-def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> "goli.datamodule.BaseDataModule":
+def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> BaseDataModule:
     """
     Load the datamodule from the specified configurations at the key
     `datamodule: args`.
@@ -250,6 +253,8 @@ def load_predictor(
     """
 
     if get_accelerator(config) == "ipu":
+        from goli.ipu.ipu_wrapper import PredictorModuleIPU
+
         predictor_class = PredictorModuleIPU
     else:
         predictor_class = PredictorModule
@@ -263,7 +268,7 @@ def load_predictor(
     )
 
     # mup base shapes
-    mup_base_path = config["architecture"].pop("mup_base_path")
+    mup_base_path = config["architecture"].pop("mup_base_path", None)
     predictor = load_mup(mup_base_path, predictor)
 
     return predictor
@@ -299,7 +304,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    plugins = []
+    strategy = None
     accelerator = get_accelerator(config)
     ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
@@ -309,7 +314,9 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
-        plugins = IPUPluginGoli(training_opts=training_opts, inference_opts=inference_opts)
+        from goli.ipu.ipu_wrapper import DictIPUStrategy
+
+        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     # Set the number of gpus to 0 if no GPU is available
     _ = cfg_trainer["trainer"].pop("accelerator", None)
@@ -347,7 +354,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
     trainer = Trainer(
         detect_anomaly=True,
-        plugins=plugins,
+        strategy=strategy,
         accelerator=accelerator,
         ipus=ipus,
         gpus=gpus,
@@ -359,7 +366,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
 
 def save_params_to_wandb(
-    logger: LightningLoggerBase,
+    logger: Logger,
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     predictor: PredictorModule,
     datamodule: MultitaskFromSmilesDataModule,
