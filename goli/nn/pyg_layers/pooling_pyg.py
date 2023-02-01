@@ -291,9 +291,18 @@ class VirtualNodePyg(nn.Module):
         else:
             vn_h = vn_h_temp
 
-        # TODO: This isn't in the global node step is it?
         # Add the virtual node value to the graph features
+        #TODO: In the GPS++ global nodes the adding of the latent to the nodes
+        # (and edges) happens before MPNN MLPs - do we want that version, 
+        # or to have the globals added like this as they are used. 
+        # This would mean the first layer doesn't know about the global connection
+        # My concern is this will potentially break things if this type of combination is expected
+        # and instead is added in the layer specifically
+        import ipdb; ipdb.set_trace()
         h = h + vn_h[g.batch]
+        # NOTE: Adding the edge update in the same format for quick solution
+        if self.use_edges:
+            e = e + vn_h
 
         return h, vn_h
     
