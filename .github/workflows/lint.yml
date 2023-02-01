@@ -24,7 +24,7 @@ jobs:
 
       - name: Install black
         run: |
-          pip install black>=22
+          pip install black==22.12
 
       - name: Lint
         run: |
