@@ -105,8 +105,8 @@ architecture:
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 32
-    hidden_dims: 32
+    out_dim: 64
+    hidden_dims: 64
     depth: 1
     activation: relu
     last_activation: none

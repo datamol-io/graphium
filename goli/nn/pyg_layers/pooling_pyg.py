@@ -223,17 +223,8 @@ class VirtualNodePyg(nn.Module):
         self.use_edges = use_edges
 
         if self.use_edges:
-            self.edge_layer, out_pool_dim = parse_pooling_layer_pyg(
+            self.edge_layer, out_edge_pool_dim = parse_pooling_layer_pyg(
                 in_dim=dim_edges, pooling=self.vn_type, feat_type="edge"
-            )
-            # self.residual = residual
-            self.fc_edge_layer = FCLayer(
-                in_dim=out_pool_dim,
-                out_dim=dim,
-                activation=activation,
-                dropout=dropout,
-                normalization=normalization,
-                bias=bias,
             )
 
     def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
