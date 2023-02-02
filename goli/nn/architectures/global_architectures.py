@@ -897,7 +897,8 @@ class FeedForwardGraphBase(FeedForwardNN):
         vn_h = 0
         h = self._get_node_feats(g, key="h")
         e = self._get_edge_feats(g, key="edge_attr")
-
+        # Add the virtual node into the DataBatch object
+        g["vn_h"] = vn_h
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
             h = self.first_normalization(h)

@@ -269,7 +269,6 @@ class VirtualNodePyg(nn.Module):
         else:
             pool = self.layer(g, h)
         if self.use_edges:
-            # import ipdb; ipdb.set_trace()
             e = g.edge_attr
             edge_pool = self.edge_layer(g, e)  # TODO: What are the shapes needed here?
             pool = torch.cat((pool, edge_pool), 0)
@@ -299,4 +298,6 @@ class VirtualNodePyg(nn.Module):
         if self.use_edges:
             g.edge_attr = g.edge_attr + vn_h[g.batch[g.edge_index][0]]
 
+        # Updating the vn_h in the DataBatch object
+        g.vn_h = vn_h
         return h, vn_h
