@@ -74,6 +74,7 @@ class PoolingWrapperPyg(ModuleWrap):
     def __init__(self, func, feat_type, *args, **kwargs) -> None:
         super().__init__(func, *args, **kwargs)
         self.feat_type = feat_type
+
     def forward(self, g, feature, *args, **kwargs):
         # TODO: Is this where the index issue comes from, is this the line that needs doubling?
         # NOTE: This may not be the est way to pass this selection to the scatter, but this retains current function while extending
@@ -154,7 +155,7 @@ class VirtualNodePyg(nn.Module):
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
         residual: bool = True,
-        use_edges: bool = False
+        use_edges: bool = False,
     ):
         r"""
         The VirtualNode is a layer that pool the features of the graph,
@@ -219,10 +220,12 @@ class VirtualNodePyg(nn.Module):
         )
 
         # TODO: Make this a proper argument
-        self.use_edges = use_edges 
-  
+        self.use_edges = use_edges
+
         if self.use_edges:
-            self.edge_layer, out_pool_dim = parse_pooling_layer_pyg(in_dim=dim_edges, pooling=self.vn_type, feat_type="edge")
+            self.edge_layer, out_pool_dim = parse_pooling_layer_pyg(
+                in_dim=dim_edges, pooling=self.vn_type, feat_type="edge"
+            )
             # self.residual = residual
             self.fc_edge_layer = FCLayer(
                 in_dim=out_pool_dim,
@@ -232,7 +235,6 @@ class VirtualNodePyg(nn.Module):
                 normalization=normalization,
                 bias=bias,
             )
-
 
     def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
         r"""
@@ -246,7 +248,7 @@ class VirtualNodePyg(nn.Module):
             h (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
-            
+
             e (torch.Tensor[..., E, Din]):
                 Edge feature tensor, before convolution.
                 `E` is the number of edges, `Din` is the input features
@@ -269,7 +271,7 @@ class VirtualNodePyg(nn.Module):
                 `M` is the number of graphs, `Dout` is the output features
 
         """
-        
+
         # Pool the features
         if self.vn_type is None:
             return h, vn_h
@@ -282,21 +284,21 @@ class VirtualNodePyg(nn.Module):
             pool = torch.cat((pool, edge_pool), 0)
 
         # Compute the new virtual node features
-        
+
         # if self.use_edges:
-            
-            # vn_h + pool + edge_pool
-            # vn_h_temp = self.fc_edge_layer.forward(vn_h_temp + edge_pool)
-        vn_h_temp = self.fc_layer.forward(vn_h + pool)    
+
+        # vn_h + pool + edge_pool
+        # vn_h_temp = self.fc_edge_layer.forward(vn_h_temp + edge_pool)
+        vn_h_temp = self.fc_layer.forward(vn_h + pool)
         if self.residual:
             vn_h = vn_h + vn_h_temp
         else:
             vn_h = vn_h_temp
 
         # Add the virtual node value to the graph features
-        #TODO: In the GPS++ global nodes the adding of the latent to the nodes
-        # (and edges) happens before MPNN MLPs - do we want that version, 
-        # or to have the globals added like this as they are used. 
+        # TODO: In the GPS++ global nodes the adding of the latent to the nodes
+        # (and edges) happens before MPNN MLPs - do we want that version,
+        # or to have the globals added like this as they are used.
         # This would mean the first layer doesn't know about the global connection
         # My concern is this will potentially break things if this type of combination is expected
         # and instead is added in the layer specifically
@@ -307,4 +309,3 @@ class VirtualNodePyg(nn.Module):
             g.edge_attr = g.edge_attr + vn_h[g.batch[g.edge_index][0]]
 
         return h, vn_h
-    

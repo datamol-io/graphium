@@ -514,7 +514,7 @@ class FeedForwardGraphBase(FeedForwardNN):
                 The virtual node will not use any residual connection if `residual_type`
                 is "none". Otherwise, it will use a simple ResNet like residual
                 connection.
-            
+
             use_virtual_edges:
                 A bool flag used to select if the virtual node should use the edges or not
 
@@ -659,7 +659,7 @@ class FeedForwardGraphBase(FeedForwardNN):
                         bias=True,
                         vn_type=self.virtual_node,
                         residual=self.residual_type is not None,
-                        use_edges=self.use_virtual_edges
+                        use_edges=self.use_virtual_edges,
                     )
                 )
 
