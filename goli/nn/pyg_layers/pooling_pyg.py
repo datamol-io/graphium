@@ -147,12 +147,14 @@ class VirtualNodePyg(nn.Module):
     def __init__(
         self,
         dim: int,
+        dim_edges: Optional[int],
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
         residual: bool = True,
+        use_edges: bool = False
     ):
         r"""
         The VirtualNode is a layer that pool the features of the graph,
@@ -204,7 +206,6 @@ class VirtualNodePyg(nn.Module):
             self.fc_layer = None
             self.residual = None
             return
-        # import ipdb; ipdb.set_trace()
         self.vn_type = vn_type.lower()
         self.layer, out_pool_dim = parse_pooling_layer_pyg(in_dim=dim, pooling=self.vn_type, feat_type="node")
         self.residual = residual
@@ -218,9 +219,10 @@ class VirtualNodePyg(nn.Module):
         )
 
         # TODO: Make this a proper argument
-        self.use_edges = True
+        self.use_edges = use_edges 
+  
         if self.use_edges:
-            self.edge_layer, out_pool_dim = parse_pooling_layer_pyg(in_dim=64, pooling=self.vn_type, feat_type="edge")
+            self.edge_layer, out_pool_dim = parse_pooling_layer_pyg(in_dim=dim_edges, pooling=self.vn_type, feat_type="edge")
             # self.residual = residual
             self.fc_edge_layer = FCLayer(
                 in_dim=out_pool_dim,
@@ -298,147 +300,11 @@ class VirtualNodePyg(nn.Module):
         # This would mean the first layer doesn't know about the global connection
         # My concern is this will potentially break things if this type of combination is expected
         # and instead is added in the layer specifically
-        import ipdb; ipdb.set_trace()
+
         h = h + vn_h[g.batch]
         # NOTE: Adding the edge update in the same format for quick solution
         if self.use_edges:
-            e = e + vn_h
+            g.edge_attr = g.edge_attr + vn_h[g.batch[g.edge_index][0]]
 
         return h, vn_h
     
-class GlobalNodePyg(VirtualNodePyg):
-    def __init__(
-        self,
-        dim: int,
-        vn_type: Union[type(None), str] = "sum",
-        activation: Union[str, Callable] = "relu",
-        dropout: float = 0.0,
-        normalization: Union[str, Callable] = "none",
-        bias: bool = True,
-        residual: bool = True,
-    ):
-        r"""
-        The VirtualNode is a layer that pool the features of the graph,
-        applies a neural network layer on the pooled features,
-        then add the result back to the node features of every node.
-
-        Parameters:
-
-            dim:
-                Input and output feature dimensions of the virtual node layer
-
-            vn_type:
-                The type of the virtual node. Choices are:
-
-                - "none": No pooling
-                - "sum": Sum all the nodes for each graph
-                - "mean": Mean all the nodes for each graph
-                - "logsum": Mean all the nodes then multiply by log(num_nodes) for each graph
-                - "max": Max all the nodes for each graph
-                - "min": Min all the nodes for each graph
-                - "std": Standard deviation of all the nodes for each graph
-
-
-            activation:
-                activation function to use in the neural network layer.
-
-            dropout:
-                The ratio of units to dropout. Must be between 0 and 1
-
-            normalization:
-                Normalization to use. Choices:
-
-                - "none" or `None`: No normalization
-                - "batch_norm": Batch normalization
-                - "layer_norm": Layer normalization
-                - `Callable`: Any callable function
-
-            bias:
-                Whether to add a bias to the neural network
-
-            residual:
-                Whether all virtual nodes should be connected together
-                via a residual connection
-
-        """
-        super().__init__(dim=dim, vn_type=vn_type, activation=activation, dropout=dropout, normalization=normalization, bias=bias, residual=residual)
-        # if (vn_type is None) or (vn_type.lower() == "none"):
-        #     self.vn_type = None
-        #     self.fc_layer = None
-        #     self.residual = None
-        #     return
-
-        # TODO: This is the same as the one in the super class
-        # import ipdb; ipdb.set_trace()
-        self.vn_type = vn_type.lower()
-        # Edges are 720, 32
-        # import ipdb; ipdb.set_trace()
-        edge_dim = 360
-        self.edge_layer, out_pool_dim = parse_pooling_layer_pyg(in_dim=edge_dim, pooling=self.vn_type)
-        # self.residual = residual
-        self.fc_edge_layer = FCLayer(
-            in_dim=out_pool_dim,
-            out_dim=dim,
-            activation=activation,
-            dropout=dropout,
-            normalization=normalization,
-            bias=bias,
-        )
-
-    def forward(self, g: Union[Data, Batch], h: Tensor, e: Tensor, vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
-        r"""
-        Apply the virtual node layer.
-
-        Parameters:
-
-            g:
-                PyG Graphs or Batched graphs.
-
-            h (torch.Tensor[..., N, Din]):
-                Node feature tensor, before convolution.
-                `N` is the number of nodes, `Din` is the input features
-            
-            e (torch.Tensor[..., E, Din]):
-                Edge feature tensor, before convolution.
-                `E` is the number of edges, `Din` is the input features
-
-            vn_h (torch.Tensor[..., M, Din]):
-                Graph feature of the previous virtual node, or `None`
-                `M` is the number of graphs, `Din` is the input features.
-                It is added to the result after the MLP, as a residual connection
-
-            batch
-
-        Returns:
-
-            `h = torch.Tensor[..., N, Dout]`:
-                Node feature tensor, after convolution and residual.
-                `N` is the number of nodes, `Dout` is the output features of the layer and residual
-
-            `vn_h = torch.Tensor[..., M, Dout]`:
-                Graph feature tensor to be used at the next virtual node, or `None`
-                `M` is the number of graphs, `Dout` is the output features
-
-        """
-
-        # Pool the features
-        if self.vn_type is None:
-            return h, vn_h
-        else:
-            pool = self.layer(g, h)
-            _h = h
-            import ipdb; ipdb.set_trace()
-            edge_pool = self.edge_layer(g, e)
-
-        # Compute the new virtual node features
-        vn_h_temp = self.fc_layer.forward(vn_h + pool)
-        # vn_h_temp = self.fc_edge_layer.forward(vn_h_temp + edge_pool)
-        if self.residual:
-            vn_h = vn_h + vn_h_temp
-        else:
-            vn_h = vn_h_temp
-
-        # Add the virtual node value to the graph features
-        h = h + vn_h[g.batch]
-
-        return h, vn_h

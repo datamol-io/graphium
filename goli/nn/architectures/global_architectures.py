@@ -376,6 +376,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
+        use_virtual_edges: bool = False,
         last_layer_is_readout: bool = False,
     ):
         r"""
@@ -513,6 +514,9 @@ class FeedForwardGraphBase(FeedForwardNN):
                 The virtual node will not use any residual connection if `residual_type`
                 is "none". Otherwise, it will use a simple ResNet like residual
                 connection.
+            
+            use_virtual_edges:
+                A bool flag used to select if the virtual node should use the edges or not
 
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
@@ -535,6 +539,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
         self.pooling = pooling
 
+        self.use_virtual_edges = use_virtual_edges
         self.virtual_node_class = self._parse_virtual_node_class()
 
         # Initialize the parent `FeedForwardNN`
@@ -647,12 +652,14 @@ class FeedForwardGraphBase(FeedForwardNN):
                 self.virtual_node_layers.append(
                     self.virtual_node_class(
                         dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        dim_edges=this_out_dim_edges,
                         activation=this_activation,
                         dropout=this_dropout,
                         normalization=this_norm,
                         bias=True,
                         vn_type=self.virtual_node,
                         residual=self.residual_type is not None,
+                        use_edges=self.use_virtual_edges
                     )
                 )
 
