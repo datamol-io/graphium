@@ -254,6 +254,8 @@ class VirtualNodeDgl(nn.Module):
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
         residual: bool = True,
+        dim_edges: int = None,
+        use_edges: bool = False,
     ):
         r"""
         The VirtualNode is a layer that pool the features of the graph,

@@ -851,10 +851,6 @@ class FeedForwardGraphBase(FeedForwardNN):
                 `M` is the number of graphs, `Dout` is the output features
 
         """
-        # if hasattr(g, "edge_attr"):
-        # edge = g.edge_attr
-        # else:
-        #     import ipdb; ipdb.set_trace()
         if step_idx == 0:
             vn_h = 0.0
         if step_idx < len(self.virtual_node_layers):
@@ -898,7 +894,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         h = self._get_node_feats(g, key="h")
         e = self._get_edge_feats(g, key="edge_attr")
         # Add the virtual node into the DataBatch object
-        g["vn_h"] = vn_h
+        # g["vn_h"] = vn_h
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
             h = self.first_normalization(h)

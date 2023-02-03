@@ -289,7 +289,7 @@ class MPNNPlusPyg(BaseGraphModule):
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
 
         # Get the global latent from the DataBatch
-        global_latent_input = batch.vn_h
+        # global_latent_input = batch.vn_h
         if self.use_edges:
             edge_model_input.append(batch.edge_attr)
             edge_model_input = torch.cat([edge_model_input[0], edge_model_input[1]], dim=-1)

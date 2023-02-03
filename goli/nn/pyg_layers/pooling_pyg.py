@@ -148,7 +148,6 @@ class VirtualNodePyg(nn.Module):
     def __init__(
         self,
         dim: int,
-        dim_edges: Optional[int],
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
@@ -156,6 +155,7 @@ class VirtualNodePyg(nn.Module):
         bias: bool = True,
         residual: bool = True,
         use_edges: bool = False,
+        dim_edges: Optional[int] = None,
     ):
         r"""
         The VirtualNode is a layer that pool the features of the graph,
@@ -219,7 +219,6 @@ class VirtualNodePyg(nn.Module):
             bias=bias,
         )
 
-        # TODO: Make this a proper argument
         self.use_edges = use_edges
 
         if self.use_edges:
@@ -274,11 +273,6 @@ class VirtualNodePyg(nn.Module):
             pool = torch.cat((pool, edge_pool), 0)
 
         # Compute the new virtual node features
-
-        # if self.use_edges:
-
-        # vn_h + pool + edge_pool
-        # vn_h_temp = self.fc_edge_layer.forward(vn_h_temp + edge_pool)
         vn_h_temp = self.fc_layer.forward(vn_h + pool)
         if self.residual:
             vn_h = vn_h + vn_h_temp
@@ -286,18 +280,10 @@ class VirtualNodePyg(nn.Module):
             vn_h = vn_h_temp
 
         # Add the virtual node value to the graph features
-        # TODO: In the GPS++ global nodes the adding of the latent to the nodes
-        # (and edges) happens before MPNN MLPs - do we want that version,
-        # or to have the globals added like this as they are used.
-        # This would mean the first layer doesn't know about the global connection
-        # My concern is this will potentially break things if this type of combination is expected
-        # and instead is added in the layer specifically
-
         h = h + vn_h[g.batch]
-        # NOTE: Adding the edge update in the same format for quick solution
+        
+        # Add the virtual node to the edge features
         if self.use_edges:
             g.edge_attr = g.edge_attr + vn_h[g.batch[g.edge_index][0]]
 
-        # Updating the vn_h in the DataBatch object
-        g.vn_h = vn_h
         return h, vn_h
