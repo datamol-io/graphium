@@ -281,7 +281,7 @@ class VirtualNodePyg(nn.Module):
 
         # Add the virtual node value to the graph features
         h = h + vn_h[g.batch]
-        
+
         # Add the virtual node to the edge features
         if self.use_edges:
             g.edge_attr = g.edge_attr + vn_h[g.batch[g.edge_index][0]]
