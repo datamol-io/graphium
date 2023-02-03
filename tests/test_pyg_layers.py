@@ -19,6 +19,7 @@ from goli.nn.pyg_layers import (
     GatedGCNPyg,
     PNAMessagePassingPyg,
     GPSLayerPyg,
+    VirtualNodePyg,
 )
 
 
@@ -201,6 +202,24 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg2.h.shape[0], h_in.shape[0])
         self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
         self.assertTrue((bg2.edge_attr == self.bg.edge_attr).all)
+
+    def test_pooling_virtual_node(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        e_in = bg.edge_attr
+        vn_h = 0
+
+        vn_types = ["sum", "mean"]
+        expected_vn_out = [(2, 21), (2, 21)]
+        for vn_type, expected_shape in zip(vn_types, expected_vn_out):
+            with self.subTest(vn_type=vn_type, expected_shape=expected_shape):
+                layer = VirtualNodePyg(
+                    dim=self.in_dim,
+                    vn_type=vn_type,
+                    **self.kwargs,
+                )
+                h_out, vn_out = layer.forward(bg, h_in, vn_h)
+                assert vn_out.shape == expected_shape
 
 
 if __name__ == "__main__":
