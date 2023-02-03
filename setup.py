@@ -18,7 +18,7 @@ install_requires = [
     "torch>=1.7,<1.9",
     "torchvision",
     "tensorboard",
-    "pytorch-lightning>=1.3",
+    "pytorch-lightning>=1.9",
     "torchmetrics>=0.2",
     "dgl>=0.5.2",
     "ogb",

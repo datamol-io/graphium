@@ -1,10 +1,10 @@
 # Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
 constants:
-  name: &name qm9_full_ipu
+  name: &name qm9_micro
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  #cpu or ipu or gpu
+    type: cpu  #cpu or ipu or gpu
 
 
 datamodule:
@@ -76,36 +76,37 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 15
-    batch_size_inference: 15
-    cache_data_path: "datacache"
+    batch_size_training: 30
+    batch_size_inference: 30
+    # cache_data_path: null
 
     num_workers: -1
 
     ipu_dataloader_training_opts:
-      max_num_nodes_per_graph: 9
+      max_num_nodes_per_graph: 12
       max_num_edges_per_graph: 24
 
     ipu_dataloader_inference_opts:
-      max_num_nodes_per_graph: 9
+      max_num_nodes_per_graph: 12
       max_num_edges_per_graph: 24
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
+  mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 32
-    hidden_dims: 32
+    out_dim: 64
+    hidden_dims: 64
     depth: 1
     activation: relu
     last_activation: none
     dropout: &dropout 0.1
-    normalization: &normalization batch_norm
+    normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 16
-    hidden_dims: 16
+    out_dim: 32
+    hidden_dims: 32
     depth: 1
     activation: relu
     last_activation: none
@@ -136,26 +137,30 @@ architecture:
         num_layers: 1
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
-        first_normalization: "batch_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 400
-    hidden_dims: 400
+    out_dim: 64
+    hidden_dims: 64
     depth: 16
-    activation: relu
+    activation: gelu
     last_activation: none
-    dropout: *dropout
-    normalization: *normalization
+    dropout: 0.0
+    normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
-    pooling: [sum, mean, max]
+    pooling: [sum]
     virtual_node: 'none'
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
-      mpnn_type: 'pyg:gine'
-      mpnn_kwargs: null
-        #out_dim_edges: 10
+      node_residual: false
+      mpnn_type: 'pyg:mpnnplus'
+      mpnn_kwargs:
+        in_dim: 64
+        out_dim: 64
+        in_dim_edges: 32
+        out_dim_edges: 32
       attn_type: "full-attention" # "full-attention", "none"
       attn_kwargs: null
 
@@ -316,4 +321,4 @@ trainer:
     precision: 32
     max_epochs: 50 #50
     min_epochs: 1 #5
-    accumulate_grad_batches: 4
+    accumulate_grad_batches: 1

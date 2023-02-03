@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Mapping, Type, Union, Any, Optional, List, Tuple
+from typing import Dict, Mapping, Type, Union, Any
 
 # Misc
 import os
@@ -15,7 +15,7 @@ import mup
 # Lightning
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger, LightningLoggerBase
+from pytorch_lightning.loggers import WandbLogger, Logger
 
 # Goli
 from goli.utils.mup import set_base_shapes
@@ -366,7 +366,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
 
 
 def save_params_to_wandb(
-    logger: LightningLoggerBase,
+    logger: Logger,
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     predictor: PredictorModule,
     datamodule: MultitaskFromSmilesDataModule,

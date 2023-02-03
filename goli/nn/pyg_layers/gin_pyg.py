@@ -28,6 +28,7 @@ class GINConvPyg(BaseGraphModule):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         GIN: Graph Isomorphism Networks
@@ -166,6 +167,7 @@ class GINEConvPyg(BaseGraphModule):
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         GINE: Graph Isomorphism Networks with Edges
