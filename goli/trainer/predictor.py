@@ -139,8 +139,6 @@ class PredictorModule(pl.LightningModule):
         self._set_hparams(recursive_config_reformating(self.hparams))
 
         # throughput estimation
-        self.train_batch_start_time = 0
-        self.validation_batch_start_time = 0
         self.mean_val_time_tracker = MovingAverageTracker()
         self.mean_val_tput_tracker = MovingAverageTracker()
 

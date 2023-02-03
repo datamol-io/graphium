@@ -20,7 +20,7 @@ mordred
 umap-learn
 pytest >==6.0
 pytest-cov
-black ==22.12
+black >=22,<23
 jupyterlab
 ipywidgets
 anaconda-client
