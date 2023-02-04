@@ -4,7 +4,8 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 
 from copy import deepcopy
 from typing import Callable, Union, Optional
-
+import torch
+import torch.nn as nn
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
@@ -41,6 +42,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
+        biased_attention: Optional[bool] = False,
         attn_kwargs=None,
     ):
         r"""
@@ -105,6 +107,10 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_ff = self._parse_norm(self.normalization)
 
+        self.biased_attention = biased_attention
+        if self.biased_attention:
+            self.preprocess_3d_positions = Preprocess3DPositions()
+
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
             mpnn_kwargs = {}
@@ -128,9 +134,12 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("batch_first", True)
 
         # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, biased_attention, **attn_kwargs)
 
     def forward(self, batch):
+
+        if self.biased_attention:
+            attn_bias_3d, node_feature_3d, edge_feature_3d = self.preprocess_3d_positions(batch)
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
 
@@ -146,7 +155,6 @@ class GPSLayerPyg(BaseGraphModule):
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
         h = h_local
-
         # Multi-head attention.
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
         # * h_dense
@@ -167,7 +175,8 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph=max_num_nodes_per_graph,
                 drop_nodes_last_graph=on_ipu,
             )
-            h_attn = self._sa_block(h_dense, None, ~mask)
+            # TODO: how does the dense batch look like? No attention mask is passed here? batch, nodes, hidden?
+            h_attn = self._sa_block(h_dense, attn_bias_3d if self.biased_attention else None, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)
 
             # Dropout, residual, norm
@@ -187,12 +196,12 @@ class GPSLayerPyg(BaseGraphModule):
 
         return batch_out
 
-    def _parse_attn_layer(self, attn_type, **attn_kwargs):
+    def _parse_attn_layer(self, attn_type, biased_attention, **attn_kwargs):
         attn_layer, attn_class = None, None
         if attn_type is not None:
             attn_class = ATTENTION_LAYERS_DICT[attn_type]
         if attn_class is not None:
-            attn_layer = attn_class(**attn_kwargs)
+            attn_layer = attn_class(biased_attention, **attn_kwargs)
         return attn_layer
 
     def _ff_block(self, h):
@@ -219,10 +228,10 @@ class GPSLayerPyg(BaseGraphModule):
             h = self.norm_layer_ff(h)
         return h
 
-    def _sa_block(self, x, attn_mask, key_padding_mask):
+    def _sa_block(self, x, attn_bias, attn_mask, key_padding_mask):
         """Self-attention block."""
         x = self.attn_layer(
-            x, x, x, attn_mask=attn_mask, key_padding_mask=key_padding_mask, need_weights=False
+            x, x, x, attn_bias=attn_bias, attn_mask=attn_mask, key_padding_mask=key_padding_mask, need_weights=False
         )[0]
         return x
 
@@ -287,3 +296,91 @@ class GPSLayerPyg(BaseGraphModule):
                 Always ``1`` for the current class
         """
         return 1
+
+
+class Preprocess3DPositions(nn.Module):
+    """
+        Compute 3D attention bias according to the position information for each head.
+        """
+
+    def __init__(self, num_heads, num_edges, n_layers, embed_dim, num_kernel, no_share_rpe=False):
+        super().__init__()
+        self.num_heads = num_heads
+        self.num_edges = num_edges
+        self.n_layers = n_layers
+        self.no_share_rpe = no_share_rpe
+        self.num_kernel = num_kernel
+        self.embed_dim = embed_dim
+
+        self.gaussian = GaussianLayer(self.num_kernel)
+        self.gaussian_proj = NonLinear(self.num_kernel, self.num_heads)
+
+        if self.num_kernel != self.embed_dim:
+            self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
+        else:
+            self.node_proj = None
+
+    def forward(self, batch):
+
+        pos, h = batch.positions_3d, batch.h
+
+        padding_mask = h.eq(0).all(dim=-1)
+        n_graph, n_node, _ = pos.shape
+        delta_pos = pos.unsqueeze(1) - pos.unsqueeze(2)
+        # [batch, nodes, nodes]
+        distance = delta_pos.norm(dim=-1).view(-1, n_node, n_node)
+        distance /= distance.unsqueeze(-1) + 1e-5 # epsilon which can be a hyperparameter
+        # [batch, nodes, nodes, num_kernel]
+        distance_feature = self.gaussian(distance)
+        # [batch, nodes, nodes, num_heads]
+        attn_bias = self.gaussian_proj(distance_feature)
+        # [batch, num_heads, nodes, nodes]
+        attn_bias = attn_bias.permute(0, 3, 1, 2).contiguous()
+        attn_bias.masked_fill_(
+            padding_mask.unsqueeze(1).unsqueeze(2), float('-inf')
+        )
+
+        distance_feature.masked_fill(
+            padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0
+        )
+
+        distance_feature_sum = distance_feature.sum(dim=-2)
+        node_feature = self.node_proj(distance_feature_sum)
+
+        return attn_bias, node_feature
+
+class GaussianLayer(nn.Module):
+    def __init__(self, K=128):
+        super().__init__()
+        self.K = K
+        self.means = nn.Embedding(1, K)
+        self.stds = nn.Embedding(1, K)
+        nn.init.uniform_(self.means.weight, 0, 3)
+        nn.init.uniform_(self.stds.weight, 0, 3)
+        nn.init.constant_(self.bias.weight, 0)
+        nn.init.constant_(self.mul.weight, 1)
+
+    def forward(self, x, edge_types):
+        x = x.expand(-1, -1, -1, self.K)
+        mean = self.means.weight.float().view(-1)
+        std = self.stds.weight.float().view(-1).abs() + 1e-2
+        pi = 3.14159
+        a = (2*pi) ** 0.5   
+        out = torch.exp(-0.5 * (((x - mean) / std) ** 2)) / (a * std)
+        return out
+
+# TODO: could be replaced with MLP
+class NonLinear(nn.Module):
+    def __init__(self, input, output_size, hidden=None):
+        super(NonLinear, self).__init__()
+
+        if hidden is None:
+            hidden = input
+        self.layer1 = nn.Linear(input, hidden)
+        self.layer2 = nn.Linear(hidden, output_size)
+
+    def forward(self, x):
+        x = self.layer1(x)
+        x = F.gelu(x)
+        x = self.layer2(x)
+        return x

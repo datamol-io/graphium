@@ -1309,7 +1309,8 @@ class FullGraphNetwork(nn.Module):
             else:
                 e = self.pre_nn_edges.forward(e)
             g = self.gnn._set_edge_feats(g, e, key="edge_attr")
-
+        # TODO: get the 3D positions in the shape of [num_nodes, 3] and pass to g named positions_3d
+        # so that it can be called using: batch.positions_3d later in the gnn module.
         # Run the graph neural network
         h = self.gnn.forward(g)
 
