@@ -19,7 +19,7 @@
         <link rel="next" href="goli.utils.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.6">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.11">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.558e4712.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.0d440cfe.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.2505c338.min.css">
@@ -238,16 +238,16 @@
       
         
       
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" data-md-toggle="__nav_2" type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
       
       
       
-        <label class="md-nav__link" for="__nav_2" tabindex="0" aria-expanded="false">
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
           Tutorials
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="Tutorials" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
           Tutorials
@@ -420,16 +420,16 @@
       
       
       
-      <input class="md-nav__toggle md-toggle " data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
       
       
       
-        <label class="md-nav__link" for="__nav_8" tabindex="0" aria-expanded="true">
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
           API
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" aria-label="API" data-md-level="1">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_8">
           <span class="md-nav__icon md-icon"></span>
           API
@@ -487,7 +487,7 @@
   
     <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
       
@@ -798,8 +798,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="md-nav__link">
-    get_dummy_graph()
+  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="md-nav__link">
+    get_first_graph()
   </a>
   
 </li>
@@ -1312,8 +1312,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="md-nav__link">
-    get_dummy_graph()
+  <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="md-nav__link">
+    get_first_graph()
   </a>
   
 </li>
@@ -2969,15 +2969,18 @@ Useful to cache the pre-processed data.</p>
 
 
 
-<h5 id="goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_dummy_graph</span><span class="p">()</span></code>
+<h5 id="goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_first_graph</span><span class="p">()</span></code>
 
-<a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_dummy_graph" class="headerlink" title="Permanent link">&para;</a></h5>
+<a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.get_first_graph" class="headerlink" title="Permanent link">&para;</a></h5>
 
 
   <div class="doc doc-contents ">
   
-      <p>Return a dummy graph for the smiles 'C1=C(C)[N]=CC=C1'</p>
+      <p>Low memory footprint method to get the first datapoint DGL graph.
+The first 10 rows of the data are read in case the first one has a featurization
+error. If all 20 first element, then <code>None</code> is returned, otherwise the first
+graph to not fail is returned.</p>
 
   </div>
 
@@ -3575,10 +3578,10 @@ different tautomeric forms of the same molecule.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand"], "search": "../assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand"], "search": "../assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.51d95adb.min.js"></script>
+      <script src="../assets/javascripts/bundle.6df46069.min.js"></script>
       
         <script src="../javascripts/config.js"></script>
       
