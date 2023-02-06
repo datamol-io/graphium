@@ -156,9 +156,9 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             # [batch, num_heads, nodes, nodes] * [batch, num_heads, nodes, head_size] -> [batch, num_heads, nodes, head_size]
             attn = attn_probs @ v
             # [batch, nodes, embd_dim]
-            attn = attn.transpose(1, 2).contiguous().view(batch, nodes, self.embd_dim)
+            attn = attn.transpose(1, 2).contiguous().view(batch, nodes, self.embed_dim)
             # [batch, nodes, embd_dim]
-            out = self.out_proj(attn)
+            out = (self.out_proj(attn), None)
         else:
             out = super().forward(query=query, key=key, value=value, *args, **kwargs)
         F._scaled_dot_product_attention = prev_fn
