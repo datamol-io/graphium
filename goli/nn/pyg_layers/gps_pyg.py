@@ -107,6 +107,14 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_ff = self._parse_norm(self.normalization)
 
+        # Set the default values for the Attention layer
+        if attn_kwargs is None:
+            attn_kwargs = {}
+        attn_kwargs.setdefault("embed_dim", in_dim)
+        attn_kwargs.setdefault("num_heads", 1)
+        attn_kwargs.setdefault("dropout", dropout)
+        attn_kwargs.setdefault("batch_first", True)
+
         # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
         poptorch = import_poptorch(raise_error=False)
         self.on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
@@ -135,25 +143,18 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_class = PYG_LAYERS_DICT[mpnn_type]
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
-        # Set the default values for the Attention layer
-        if attn_kwargs is None:
-            attn_kwargs = {}
-        attn_kwargs.setdefault("embed_dim", in_dim)
-        attn_kwargs.setdefault("num_heads", 1)
-        attn_kwargs.setdefault("dropout", dropout)
-        attn_kwargs.setdefault("batch_first", True)
-
         # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, biased_attention, **attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
 
     def forward(self, batch):
-        # TODO: make sure here 3D conformers can be obtained by: batch.positions_3d and in the shape of [num_nodes, 3]
+        # TODO: make sure here 3D positions can be obtained by: batch.positions_3d and in the shape of [num_nodes, 3]
         if self.biased_attention:
             attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(batch)
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
-        # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
-        h = h + node_feature_3d
+        if self.biased_attention:
+            # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
+            h = h + node_feature_3d
 
         h_in = h  # for first residual connection
 
@@ -180,7 +181,7 @@ class GPSLayerPyg(BaseGraphModule):
             h_dense, mask, idx = to_dense_batch(
                 h,
                 batch=batch.batch,
-                batch_size=self.batch_size,
+                batch_size=batch_size,
                 max_num_nodes_per_graph=max_num_nodes_per_graph,
                 drop_nodes_last_graph=self.on_ipu,
             )
@@ -205,12 +206,12 @@ class GPSLayerPyg(BaseGraphModule):
 
         return batch_out
 
-    def _parse_attn_layer(self, attn_type, biased_attention, **attn_kwargs):
+    def _parse_attn_layer(self, attn_type, **attn_kwargs):
         attn_layer, attn_class = None, None
         if attn_type is not None:
             attn_class = ATTENTION_LAYERS_DICT[attn_type]
         if attn_class is not None:
-            attn_layer = attn_class(biased_attention, **attn_kwargs)
+            attn_layer = attn_class(**attn_kwargs)
         return attn_layer
 
     def _ff_block(self, h):

@@ -103,18 +103,24 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         if self.bias_v is not None:
             mupi.xavier_normal_(self.bias_v)
 
-    def forward(self, query: Tensor, key: Tensor, value: Tensor, attn_bias: Optional[Tensor], *args, **kwargs) -> Tuple[Tensor, Optional[Tensor]]:
+    def forward(
+        self, query: Tensor, key: Tensor, value: Tensor, attn_bias: Optional[Tensor], *args, **kwargs
+    ) -> Tuple[Tensor, Optional[Tensor]]:
         # Patching the forward to use a different scaling for the dot-product
         prev_fn = F._scaled_dot_product_attention
         F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
         if attn_bias:
             # assuming source and target have the same sequence length (homogeneous graph attention)
             batch, nodes, hidden = query.size()
-            assert hidden == self.embed_dim, f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
+            assert (
+                hidden == self.embed_dim
+            ), f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
             head_dim = self.embed_dim // self.num_heads
             assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
             scaling_factor = float(head_dim) ** -0.5
-            q, k, v = nn.Linear(query, self.in_proj_weight, self.in_proj_bias).chunk(3, dim=-1) # self-attention, use merged projection weight
+            q, k, v = nn.Linear(query, self.in_proj_weight, self.in_proj_bias).chunk(
+                3, dim=-1
+            )  # self-attention, use merged projection weight
             q = q * scaling_factor
             q = q.contiguous().view(nodes, batch * self.num_heads, head_dim).transpose(0, 1)
             k = k.contiguous().view(-1, batch * self.num_heads, head_dim).transpose(0, 1)
@@ -122,7 +128,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             attn_weights = torch.bmm(q, k.transpose(1, 2))
             assert list(attn_weights.size()) == [batch * self.num_heads, nodes, nodes]
             attn_weights += attn_bias.view(batch * self.num_heads, nodes, nodes)
-            if attn_mask is not None: # need to define mask properly here
+            if attn_mask is not None:  # need to define mask properly here
                 attn_mask = attn_mask.unsqueeze(0)
                 attn_weights += attn_mask
             attn_weights = F.softmax(attn_weights, dim=-1)

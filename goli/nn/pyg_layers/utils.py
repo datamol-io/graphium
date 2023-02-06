@@ -30,7 +30,8 @@ class Preprocess3DPositions(nn.Module):
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
 
     def forward(self, batch):
-        pos = batch.positions_3d
+        # pos = batch.positions_3d # uncomment this when 3D positions are available
+        pos = torch.rand(batch.h.size[0], 3) # remove this when 3D positions are available
         batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0]
         pos, mask, idx = to_dense_batch(
             pos,
@@ -39,21 +40,23 @@ class Preprocess3DPositions(nn.Module):
             max_num_nodes_per_graph=self.max_num_nodes_per_graph,
             drop_nodes_last_graph=self.on_ipu,
         )
+        # [batch, nodes]
         padding_mask = mask
-        batch, n_node, _ = pos.shape  # TODO: figure out if there is an extra dimension for pos
+        batch, n_node, _ = pos.shape
         delta_pos = pos.unsqueeze(1) - pos.unsqueeze(2)
-        # [batch, nodes, nodes] we may not have the batch dimension here as it is a sparse batch
+        # [batch, nodes, nodes]
         distance = delta_pos.norm(dim=-1).view(-1, n_node, n_node)
-        distance /= distance.unsqueeze(-1) + 1e-5  # in order to avoid nans, change to 1e-3 with FP16
+        distance /= distance.unsqueeze(-1) + 1e-5  # in order to avoid nans, may need to change to 1e-3 with FP16
         # [batch, nodes, nodes, num_kernel]
         distance_feature = self.gaussian(distance)
         # [batch, nodes, nodes, num_heads]
         attn_bias = self.gaussian_proj(distance_feature)
         # [batch, num_heads, nodes, nodes]
         attn_bias = attn_bias.permute(0, 3, 1, 2).contiguous()
+        
         attn_bias.masked_fill_(
             padding_mask.unsqueeze(1).unsqueeze(2),
-            float("-inf"),  # in order to avoid nans, change -inf to -1000 for FP16
+            float("-inf"),  # in order to avoid nans, may ned to change -inf to -1000 for FP16
         )
         distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
         distance_feature_sum = distance_feature.sum(dim=-2)
@@ -71,8 +74,6 @@ class GaussianLayer(nn.Module):
         self.stds = nn.Embedding(1, K)
         nn.init.uniform_(self.means.weight, 0, 3)
         nn.init.uniform_(self.stds.weight, 0, 3)
-        nn.init.constant_(self.bias.weight, 0)
-        nn.init.constant_(self.mul.weight, 1)
 
     def forward(self, x):
         x = x.expand(-1, -1, -1, self.K)
