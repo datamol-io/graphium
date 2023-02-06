@@ -113,8 +113,13 @@ class GPSLayerPyg(BaseGraphModule):
         self.num_gaussian_kernels = num_gaussian_kernels
         self.biased_attention = biased_attention
         if self.biased_attention:
-            self.preprocess_3d_positions = Preprocess3DPositions(attn_kwargs["num_heads"], attn_kwargs["embed_dim"], self.max_num_nodes_per_graph, self.num_gaussian_kernels, self.on_ipu)
-
+            self.preprocess_3d_positions = Preprocess3DPositions(
+                attn_kwargs["num_heads"],
+                attn_kwargs["embed_dim"],
+                self.max_num_nodes_per_graph,
+                self.num_gaussian_kernels,
+                self.on_ipu,
+            )
 
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
@@ -142,7 +147,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.attn_layer = self._parse_attn_layer(attn_type, biased_attention, **attn_kwargs)
 
     def forward(self, batch):
-        # TODO: make sure here 3D conformers can be obtained by: batch.positions_3d and in the shape of [num_nodes, 3]
+        # TODO: make sure here 3D conformers can be obtained by: batch.positions_3d and in the shape of [num_nodes, 3]
         if self.biased_attention:
             attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(batch)
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
@@ -235,7 +240,13 @@ class GPSLayerPyg(BaseGraphModule):
     def _sa_block(self, x, attn_bias, attn_mask, key_padding_mask):
         """Self-attention block."""
         x = self.attn_layer(
-            x, x, x, attn_bias=attn_bias, attn_mask=attn_mask, key_padding_mask=key_padding_mask, need_weights=False
+            x,
+            x,
+            x,
+            attn_bias=attn_bias,
+            attn_mask=attn_mask,
+            key_padding_mask=key_padding_mask,
+            need_weights=False,
         )[0]
         return x
 
