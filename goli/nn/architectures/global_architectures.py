@@ -23,7 +23,6 @@ from goli.nn.residual_connections import (
 )
 
 
-
 import collections
 
 

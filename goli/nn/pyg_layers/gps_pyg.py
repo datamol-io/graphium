@@ -249,10 +249,8 @@ class GPSLayerPyg(BaseGraphModule):
         return mpnn_layer
 
     def _parse_attn_layer(
-        self, attn_type, 
-        biased_attention_key: str, 
-        attn_kwargs: Dict[str, Any]
-        ) -> Optional[Module]:
+        self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]
+    ) -> Optional[Module]:
         """
         parse the input attention layer and check if it is valid
         Parameters:

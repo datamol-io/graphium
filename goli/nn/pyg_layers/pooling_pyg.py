@@ -77,11 +77,7 @@ class PoolingWrapperPyg(ModuleWrap):
         super().__init__(func, *args, **kwargs)
         self.feat_type = feat_type
 
-    def forward(self, 
-                g: Batch, 
-                feature: Tensor, 
-                *args, 
-                **kwargs):
+    def forward(self, g: Batch, feature: Tensor, *args, **kwargs):
         """
         forward function
         Parameters:
