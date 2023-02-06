@@ -144,7 +144,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
         # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention, **attn_kwargs)
 
     def forward(self, batch):
         # TODO: make sure here 3D positions can be obtained by: batch.positions_3d and in the shape of [num_nodes, 3]
@@ -205,12 +205,12 @@ class GPSLayerPyg(BaseGraphModule):
 
         return batch_out
 
-    def _parse_attn_layer(self, attn_type, **attn_kwargs):
+    def _parse_attn_layer(self, attn_type, biased_attention, **attn_kwargs):
         attn_layer, attn_class = None, None
         if attn_type is not None:
             attn_class = ATTENTION_LAYERS_DICT[attn_type]
         if attn_class is not None:
-            attn_layer = attn_class(**attn_kwargs)
+            attn_layer = attn_class(biased_attention, **attn_kwargs)
         return attn_layer
 
     def _ff_block(self, h):

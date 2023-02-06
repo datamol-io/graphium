@@ -84,8 +84,15 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
     Modifying the MultiheadAttention to work with the muTransfer paradigm.
     The layers are initialized using the mup package.
     The `_scaled_dot_product_attention` normalizes the attention matrix with `1/d` instead of `1/sqrt(d)`
-    The biased self-attention option is added.
+    The biased self-attention option is added to have 3D attention bias.
     """
+
+    def __init__(self, biased_attention, **kwargs):
+        super().__init__(**kwargs)
+        self.biased_attention = biased_attention
+        self.q_proj = nn.Linear(self.embed_dim, self.embed_dim)
+        self.k_proj = nn.Linear(self.embed_dim, self.embed_dim)
+        self.v_proj = nn.Linear(self.embed_dim, self.embed_dim)
 
     def _reset_parameters(self):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
@@ -105,13 +112,20 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             mupi.xavier_normal_(self.bias_v)
 
     def forward(
-        self, query: Tensor, key: Tensor, value: Tensor, attn_bias: Optional[Tensor], *args, **kwargs
+        self,
+        query: Tensor,
+        key: Tensor,
+        value: Tensor,
+        key_padding_mask: Optional[Tensor] = None,
+        attn_bias: Optional[Tensor] = None,
+        *args,
+        **kwargs,
     ) -> Tuple[Tensor, Optional[Tensor]]:
         # Patching the forward to use a different scaling for the dot-product
         prev_fn = F._scaled_dot_product_attention
         F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
         # attn_bias [batch, num_heads, nodes, nodes]
-        if attn_bias is not None:
+        if self.biased_attention and attn_bias is not None:
             # assuming source and target have the same sequence length (homogeneous graph attention)
             batch, nodes, hidden = query.size()
             assert (
@@ -120,24 +134,30 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             head_dim = self.embed_dim // self.num_heads
             assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
             scaling_factor = float(head_dim) ** -0.5
-            q, k, v = nn.Linear(query, self.in_proj_weight, self.in_proj_bias).chunk(
-                3, dim=-1
-            )  # self-attention, use merged projection weight
+            # [batch, num_heads, nodes, head_size]
+            q = self.q_proj(query).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            # [batch, num_heads, nodes, head_size]
+            k = self.k_proj(key).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            # [batch, num_heads, nodes, head_size]
+            v = self.v_proj(value).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
             q = q * scaling_factor
-            q = q.contiguous().view(nodes, batch * self.num_heads, head_dim).transpose(0, 1)
-            k = k.contiguous().view(-1, batch * self.num_heads, head_dim).transpose(0, 1)
-            v = v.contiguous().view(-1, batch * self.num_heads, head_dim).transpose(0, 1)
-            attn_weights = torch.bmm(q, k.transpose(1, 2))
-            assert list(attn_weights.size()) == [batch * self.num_heads, nodes, nodes]
-            attn_weights += attn_bias.view(batch * self.num_heads, nodes, nodes)
-            if attn_mask is not None:
-                attn_mask = attn_mask.unsqueeze(0)
-                attn_weights += attn_mask
-            attn_weights = F.softmax(attn_weights, dim=-1)
-            attn_probs = F.dropout(attn_weights, p=self.dropout, training=self.training)
-            attn = torch.bmm(attn_probs, v)
-            assert list(attn.size()) == [batch * self.num_heads, nodes, head_dim]
-            attn = attn.transpose(0, 1).contiguous().view(nodes, batch, self.embd_dim)
+            # [batch, num_heads, nodes, nodes]
+            attn_weights = q @ k.transpose(-1, -2)
+            # [batch, num_heads, nodes, nodes]
+            attn_weights += attn_bias
+            # key_padding_mask: [batch, 1, 1, nodes]
+            if key_padding_mask is not None:
+                masked_attn_weights = attn_weights.masked_fill(
+                    key_padding_mask.unsqueeze(1).unsqueeze(2),
+                    float("-inf"),  # in order to avoid nans, may ned to change -inf to -1000 for FP16
+                )
+            masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
+            attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
+            # [batch, num_heads, nodes, nodes] * [batch, num_heads, nodes, head_size] -> [batch, num_heads, nodes, head_size]
+            attn = attn_probs @ v
+            # [batch, nodes, embd_dim]
+            attn = attn.transpose(1, 2).contiguous().view(batch, nodes, self.embd_dim)
+            # [batch, nodes, embd_dim]
             out = self.out_proj(attn)
         else:
             out = super().forward(query=query, key=key, value=value, *args, **kwargs)

@@ -6,9 +6,24 @@ gnn.layers.0.attn_layer.in_proj_bias:
 gnn.layers.0.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.0.attn_layer.k_proj.bias:
+- 32
+gnn.layers.0.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.0.attn_layer.out_proj.bias:
 - 32
 gnn.layers.0.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.0.attn_layer.q_proj.bias:
+- 32
+gnn.layers.0.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.0.attn_layer.v_proj.bias:
+- 32
+gnn.layers.0.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.0.ff_linear1.linear.bias:
@@ -84,9 +99,24 @@ gnn.layers.1.attn_layer.in_proj_bias:
 gnn.layers.1.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.1.attn_layer.k_proj.bias:
+- 32
+gnn.layers.1.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.1.attn_layer.out_proj.bias:
 - 32
 gnn.layers.1.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.1.attn_layer.q_proj.bias:
+- 32
+gnn.layers.1.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.1.attn_layer.v_proj.bias:
+- 32
+gnn.layers.1.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.1.ff_linear1.linear.bias:
@@ -162,9 +192,24 @@ gnn.layers.10.attn_layer.in_proj_bias:
 gnn.layers.10.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.10.attn_layer.k_proj.bias:
+- 32
+gnn.layers.10.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.10.attn_layer.out_proj.bias:
 - 32
 gnn.layers.10.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.10.attn_layer.q_proj.bias:
+- 32
+gnn.layers.10.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.10.attn_layer.v_proj.bias:
+- 32
+gnn.layers.10.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.10.ff_linear1.linear.bias:
@@ -240,9 +285,24 @@ gnn.layers.11.attn_layer.in_proj_bias:
 gnn.layers.11.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.11.attn_layer.k_proj.bias:
+- 32
+gnn.layers.11.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.11.attn_layer.out_proj.bias:
 - 32
 gnn.layers.11.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.11.attn_layer.q_proj.bias:
+- 32
+gnn.layers.11.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.11.attn_layer.v_proj.bias:
+- 32
+gnn.layers.11.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.11.ff_linear1.linear.bias:
@@ -318,9 +378,24 @@ gnn.layers.12.attn_layer.in_proj_bias:
 gnn.layers.12.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.12.attn_layer.k_proj.bias:
+- 32
+gnn.layers.12.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.12.attn_layer.out_proj.bias:
 - 32
 gnn.layers.12.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.12.attn_layer.q_proj.bias:
+- 32
+gnn.layers.12.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.12.attn_layer.v_proj.bias:
+- 32
+gnn.layers.12.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.12.ff_linear1.linear.bias:
@@ -396,9 +471,24 @@ gnn.layers.13.attn_layer.in_proj_bias:
 gnn.layers.13.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.13.attn_layer.k_proj.bias:
+- 32
+gnn.layers.13.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.13.attn_layer.out_proj.bias:
 - 32
 gnn.layers.13.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.13.attn_layer.q_proj.bias:
+- 32
+gnn.layers.13.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.13.attn_layer.v_proj.bias:
+- 32
+gnn.layers.13.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.13.ff_linear1.linear.bias:
@@ -474,9 +564,24 @@ gnn.layers.14.attn_layer.in_proj_bias:
 gnn.layers.14.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.14.attn_layer.k_proj.bias:
+- 32
+gnn.layers.14.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.14.attn_layer.out_proj.bias:
 - 32
 gnn.layers.14.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.14.attn_layer.q_proj.bias:
+- 32
+gnn.layers.14.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.14.attn_layer.v_proj.bias:
+- 32
+gnn.layers.14.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.14.ff_linear1.linear.bias:
@@ -552,9 +657,24 @@ gnn.layers.15.attn_layer.in_proj_bias:
 gnn.layers.15.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.15.attn_layer.k_proj.bias:
+- 32
+gnn.layers.15.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.15.attn_layer.out_proj.bias:
 - 32
 gnn.layers.15.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.15.attn_layer.q_proj.bias:
+- 32
+gnn.layers.15.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.15.attn_layer.v_proj.bias:
+- 32
+gnn.layers.15.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.15.ff_linear1.linear.bias:
@@ -630,9 +750,24 @@ gnn.layers.2.attn_layer.in_proj_bias:
 gnn.layers.2.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.2.attn_layer.k_proj.bias:
+- 32
+gnn.layers.2.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.2.attn_layer.out_proj.bias:
 - 32
 gnn.layers.2.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.2.attn_layer.q_proj.bias:
+- 32
+gnn.layers.2.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.2.attn_layer.v_proj.bias:
+- 32
+gnn.layers.2.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.2.ff_linear1.linear.bias:
@@ -708,9 +843,24 @@ gnn.layers.3.attn_layer.in_proj_bias:
 gnn.layers.3.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.3.attn_layer.k_proj.bias:
+- 32
+gnn.layers.3.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.3.attn_layer.out_proj.bias:
 - 32
 gnn.layers.3.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.3.attn_layer.q_proj.bias:
+- 32
+gnn.layers.3.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.3.attn_layer.v_proj.bias:
+- 32
+gnn.layers.3.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.3.ff_linear1.linear.bias:
@@ -786,9 +936,24 @@ gnn.layers.4.attn_layer.in_proj_bias:
 gnn.layers.4.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.4.attn_layer.k_proj.bias:
+- 32
+gnn.layers.4.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.4.attn_layer.out_proj.bias:
 - 32
 gnn.layers.4.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.4.attn_layer.q_proj.bias:
+- 32
+gnn.layers.4.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.4.attn_layer.v_proj.bias:
+- 32
+gnn.layers.4.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.4.ff_linear1.linear.bias:
@@ -864,9 +1029,24 @@ gnn.layers.5.attn_layer.in_proj_bias:
 gnn.layers.5.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.5.attn_layer.k_proj.bias:
+- 32
+gnn.layers.5.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.5.attn_layer.out_proj.bias:
 - 32
 gnn.layers.5.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.5.attn_layer.q_proj.bias:
+- 32
+gnn.layers.5.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.5.attn_layer.v_proj.bias:
+- 32
+gnn.layers.5.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.5.ff_linear1.linear.bias:
@@ -942,9 +1122,24 @@ gnn.layers.6.attn_layer.in_proj_bias:
 gnn.layers.6.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.6.attn_layer.k_proj.bias:
+- 32
+gnn.layers.6.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.6.attn_layer.out_proj.bias:
 - 32
 gnn.layers.6.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.6.attn_layer.q_proj.bias:
+- 32
+gnn.layers.6.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.6.attn_layer.v_proj.bias:
+- 32
+gnn.layers.6.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.6.ff_linear1.linear.bias:
@@ -1020,9 +1215,24 @@ gnn.layers.7.attn_layer.in_proj_bias:
 gnn.layers.7.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.7.attn_layer.k_proj.bias:
+- 32
+gnn.layers.7.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.7.attn_layer.out_proj.bias:
 - 32
 gnn.layers.7.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.7.attn_layer.q_proj.bias:
+- 32
+gnn.layers.7.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.7.attn_layer.v_proj.bias:
+- 32
+gnn.layers.7.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.7.ff_linear1.linear.bias:
@@ -1098,9 +1308,24 @@ gnn.layers.8.attn_layer.in_proj_bias:
 gnn.layers.8.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.8.attn_layer.k_proj.bias:
+- 32
+gnn.layers.8.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.8.attn_layer.out_proj.bias:
 - 32
 gnn.layers.8.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.8.attn_layer.q_proj.bias:
+- 32
+gnn.layers.8.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.8.attn_layer.v_proj.bias:
+- 32
+gnn.layers.8.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.8.ff_linear1.linear.bias:
@@ -1176,9 +1401,24 @@ gnn.layers.9.attn_layer.in_proj_bias:
 gnn.layers.9.attn_layer.in_proj_weight:
 - 96
 - 32
+gnn.layers.9.attn_layer.k_proj.bias:
+- 32
+gnn.layers.9.attn_layer.k_proj.weight:
+- 32
+- 32
 gnn.layers.9.attn_layer.out_proj.bias:
 - 32
 gnn.layers.9.attn_layer.out_proj.weight:
+- 32
+- 32
+gnn.layers.9.attn_layer.q_proj.bias:
+- 32
+gnn.layers.9.attn_layer.q_proj.weight:
+- 32
+- 32
+gnn.layers.9.attn_layer.v_proj.bias:
+- 32
+gnn.layers.9.attn_layer.v_proj.weight:
 - 32
 - 32
 gnn.layers.9.ff_linear1.linear.bias:
