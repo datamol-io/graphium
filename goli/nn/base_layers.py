@@ -84,6 +84,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
     Modifying the MultiheadAttention to work with the muTransfer paradigm.
     The layers are initialized using the mup package.
     The `_scaled_dot_product_attention` normalizes the attention matrix with `1/d` instead of `1/sqrt(d)`
+    The biased self-attention option is added.
     """
 
     def _reset_parameters(self):
@@ -109,7 +110,8 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         # Patching the forward to use a different scaling for the dot-product
         prev_fn = F._scaled_dot_product_attention
         F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
-        if attn_bias:
+        # attn_bias [batch, num_heads, nodes, nodes]
+        if attn_bias is not None:
             # assuming source and target have the same sequence length (homogeneous graph attention)
             batch, nodes, hidden = query.size()
             assert (
@@ -128,7 +130,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             attn_weights = torch.bmm(q, k.transpose(1, 2))
             assert list(attn_weights.size()) == [batch * self.num_heads, nodes, nodes]
             attn_weights += attn_bias.view(batch * self.num_heads, nodes, nodes)
-            if attn_mask is not None:  # need to define mask properly here
+            if attn_mask is not None:
                 attn_mask = attn_mask.unsqueeze(0)
                 attn_weights += attn_mask
             attn_weights = F.softmax(attn_weights, dim=-1)

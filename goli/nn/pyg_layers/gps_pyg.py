@@ -185,7 +185,6 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph=max_num_nodes_per_graph,
                 drop_nodes_last_graph=self.on_ipu,
             )
-            # TODO: how does the dense batch look like? No attention mask is passed here? batch, nodes, hidden?
             h_attn = self._sa_block(h_dense, attn_bias_3d if self.biased_attention else None, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)
 
