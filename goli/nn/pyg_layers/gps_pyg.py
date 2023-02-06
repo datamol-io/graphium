@@ -4,8 +4,6 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 
 from copy import deepcopy
 from typing import Callable, Union, Optional
-import torch
-import torch.nn as nn
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
@@ -13,6 +11,7 @@ from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessageP
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 from goli.ipu.ipu_utils import import_poptorch
+from goli.nn.pyg_layers.utils import Preprocess3DPositions
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -39,6 +38,7 @@ class GPSLayerPyg(BaseGraphModule):
         dropout: float = 0.0,
         node_residual: Optional[bool] = True,
         normalization: Union[str, Callable] = "none",
+        num_gaussian_kernels: Optional[int] = 128,
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
@@ -107,9 +107,14 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_ff = self._parse_norm(self.normalization)
 
+        # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
+        poptorch = import_poptorch(raise_error=False)
+        self.on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+        self.num_gaussian_kernels = num_gaussian_kernels
         self.biased_attention = biased_attention
         if self.biased_attention:
-            self.preprocess_3d_positions = Preprocess3DPositions()
+            self.preprocess_3d_positions = Preprocess3DPositions(attn_kwargs["num_heads"], attn_kwargs["embed_dim"], self.max_num_nodes_per_graph, self.num_gaussian_kernels, self.on_ipu)
+
 
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
@@ -137,11 +142,13 @@ class GPSLayerPyg(BaseGraphModule):
         self.attn_layer = self._parse_attn_layer(attn_type, biased_attention, **attn_kwargs)
 
     def forward(self, batch):
-
+        # TODO: make sure here 3D conformers can be obtained by: batch.positions_3d and in the shape of [num_nodes, 3]
         if self.biased_attention:
-            attn_bias_3d, node_feature_3d, edge_feature_3d = self.preprocess_3d_positions(batch)
+            attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(batch)
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
+        # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
+        h = h + node_feature_3d
 
         h_in = h  # for first residual connection
 
@@ -159,11 +166,8 @@ class GPSLayerPyg(BaseGraphModule):
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
         # * h_dense
         if self.attn_layer is not None:
-            # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
-            poptorch = import_poptorch(raise_error=False)
-            on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
             max_num_nodes_per_graph = None
-            if on_ipu:
+            if self.on_ipu:
                 max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
             # Convert the tensor to a dense batch, then back to a sparse batch
@@ -171,9 +175,9 @@ class GPSLayerPyg(BaseGraphModule):
             h_dense, mask, idx = to_dense_batch(
                 h,
                 batch=batch.batch,
-                batch_size=batch_size,
+                batch_size=self.batch_size,
                 max_num_nodes_per_graph=max_num_nodes_per_graph,
-                drop_nodes_last_graph=on_ipu,
+                drop_nodes_last_graph=self.on_ipu,
             )
             # TODO: how does the dense batch look like? No attention mask is passed here? batch, nodes, hidden?
             h_attn = self._sa_block(h_dense, attn_bias_3d if self.biased_attention else None, None, ~mask)
@@ -296,91 +300,3 @@ class GPSLayerPyg(BaseGraphModule):
                 Always ``1`` for the current class
         """
         return 1
-
-
-class Preprocess3DPositions(nn.Module):
-    """
-        Compute 3D attention bias according to the position information for each head.
-        """
-
-    def __init__(self, num_heads, num_edges, n_layers, embed_dim, num_kernel, no_share_rpe=False):
-        super().__init__()
-        self.num_heads = num_heads
-        self.num_edges = num_edges
-        self.n_layers = n_layers
-        self.no_share_rpe = no_share_rpe
-        self.num_kernel = num_kernel
-        self.embed_dim = embed_dim
-
-        self.gaussian = GaussianLayer(self.num_kernel)
-        self.gaussian_proj = NonLinear(self.num_kernel, self.num_heads)
-
-        if self.num_kernel != self.embed_dim:
-            self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
-        else:
-            self.node_proj = None
-
-    def forward(self, batch):
-
-        pos, h = batch.positions_3d, batch.h
-
-        padding_mask = h.eq(0).all(dim=-1)
-        n_graph, n_node, _ = pos.shape
-        delta_pos = pos.unsqueeze(1) - pos.unsqueeze(2)
-        # [batch, nodes, nodes]
-        distance = delta_pos.norm(dim=-1).view(-1, n_node, n_node)
-        distance /= distance.unsqueeze(-1) + 1e-5 # epsilon which can be a hyperparameter
-        # [batch, nodes, nodes, num_kernel]
-        distance_feature = self.gaussian(distance)
-        # [batch, nodes, nodes, num_heads]
-        attn_bias = self.gaussian_proj(distance_feature)
-        # [batch, num_heads, nodes, nodes]
-        attn_bias = attn_bias.permute(0, 3, 1, 2).contiguous()
-        attn_bias.masked_fill_(
-            padding_mask.unsqueeze(1).unsqueeze(2), float('-inf')
-        )
-
-        distance_feature.masked_fill(
-            padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0
-        )
-
-        distance_feature_sum = distance_feature.sum(dim=-2)
-        node_feature = self.node_proj(distance_feature_sum)
-
-        return attn_bias, node_feature
-
-class GaussianLayer(nn.Module):
-    def __init__(self, K=128):
-        super().__init__()
-        self.K = K
-        self.means = nn.Embedding(1, K)
-        self.stds = nn.Embedding(1, K)
-        nn.init.uniform_(self.means.weight, 0, 3)
-        nn.init.uniform_(self.stds.weight, 0, 3)
-        nn.init.constant_(self.bias.weight, 0)
-        nn.init.constant_(self.mul.weight, 1)
-
-    def forward(self, x, edge_types):
-        x = x.expand(-1, -1, -1, self.K)
-        mean = self.means.weight.float().view(-1)
-        std = self.stds.weight.float().view(-1).abs() + 1e-2
-        pi = 3.14159
-        a = (2*pi) ** 0.5   
-        out = torch.exp(-0.5 * (((x - mean) / std) ** 2)) / (a * std)
-        return out
-
-# TODO: could be replaced with MLP
-class NonLinear(nn.Module):
-    def __init__(self, input, output_size, hidden=None):
-        super(NonLinear, self).__init__()
-
-        if hidden is None:
-            hidden = input
-        self.layer1 = nn.Linear(input, hidden)
-        self.layer2 = nn.Linear(hidden, output_size)
-
-    def forward(self, x):
-        x = self.layer1(x)
-        x = F.gelu(x)
-        x = self.layer2(x)
-        return x

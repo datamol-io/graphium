@@ -162,6 +162,7 @@ architecture:
         in_dim_edges: 32
         out_dim_edges: 32
       attn_type: "full-attention" # "full-attention", "none"
+      biased_attention: true
       attn_kwargs: null
 
 
