@@ -121,9 +121,6 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         *args,
         **kwargs,
     ) -> Tuple[Tensor, Optional[Tensor]]:
-        # Patching the forward to use a different scaling for the dot-product
-        prev_fn = F._scaled_dot_product_attention
-        F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
         # attn_bias [batch, num_heads, nodes, nodes]
         if self.biased_attention and attn_bias is not None:
             # assuming source and target have the same sequence length (homogeneous graph attention)
@@ -133,7 +130,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             ), f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
             head_dim = self.embed_dim // self.num_heads
             assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
-            scaling_factor = head_dim  # use scaling factor without square root for mup
+            scaling_factor = 1 / head_dim  # use scaling factor without square root for mup
             # [batch, num_heads, nodes, head_size]
             q = self.q_proj(query).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
             # [batch, num_heads, nodes, head_size]
@@ -160,8 +157,11 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             # [batch, nodes, embd_dim]
             out = (self.out_proj(attn), None)
         else:
+            # Patching the forward to use a different scaling for the dot-product
+            prev_fn = F._scaled_dot_product_attention
+            F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
             out = super().forward(query=query, key=key, value=value, *args, **kwargs)
-        F._scaled_dot_product_attention = prev_fn
+            F._scaled_dot_product_attention = prev_fn
         return out
 
 
