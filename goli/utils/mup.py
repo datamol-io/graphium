@@ -2,13 +2,7 @@
 
 from torch.nn import Linear
 from torch.nn.modules.conv import _ConvNd
-from mup import (
-    get_shapes,
-    assert_hidden_size_inf,
-    MuReadout,
-    rescale_linear_bias,
-    save_base_shapes,
-)
+from mup import get_shapes, assert_hidden_size_inf, MuReadout, rescale_linear_bias, save_base_shapes
 from mup.shape import _zip_infshape_dict, _extract_shapes
 
 from goli.nn.base_layers import MuReadoutGoli

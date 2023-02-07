@@ -75,11 +75,7 @@ class GatedGCNDgl(BaseGraphModule):
         self.E = FCLayer(in_dim, out_dim, activation=None, bias=True)
 
         self.edge_out = FCLayer(
-            in_dim=out_dim,
-            out_dim=out_dim_edges,
-            activation=None,
-            dropout=dropout,
-            bias=True,
+            in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True
         )
 
     def message_func(self, edges):

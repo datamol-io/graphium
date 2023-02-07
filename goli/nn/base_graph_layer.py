@@ -374,9 +374,7 @@ def get_node_feats(
 
 
 def set_node_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping],
-    node_feats: Tensor,
-    key: str = "h",
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], node_feats: Tensor, key: str = "h"
 ) -> Tensor:
     """
     Set the node features of a graph `g`.
@@ -422,9 +420,7 @@ def get_edge_feats(
 
 
 def set_edge_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping],
-    edge_feats: Tensor,
-    key: str = "h",
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], edge_feats: Tensor, key: str = "h"
 ) -> Tensor:
     """
     Set the node features of a graph `g`.

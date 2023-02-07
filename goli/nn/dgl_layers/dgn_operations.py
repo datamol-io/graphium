@@ -7,10 +7,7 @@ EPS = 1e-8
 
 
 def get_grad_of_pos(
-    source_pos: Tensor,
-    dest_pos: Tensor,
-    dir_idx: int,
-    temperature: Optional[float] = None,
+    source_pos: Tensor, dest_pos: Tensor, dir_idx: int, temperature: Optional[float] = None
 ) -> Tensor:
     r"""
     Get the vector field associated to the gradient of the positional
@@ -86,12 +83,7 @@ def aggregate_dir_smooth(
         h_mod: The aggregated features $y^{(l)}$
 
     """
-    grad = get_grad_of_pos(
-        source_pos=source_pos,
-        dest_pos=dest_pos,
-        dir_idx=dir_idx,
-        temperature=temperature,
-    )
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     h_mod = h * (grad.abs() / (torch.sum(grad.abs(), keepdim=True, dim=1) + EPS)).unsqueeze(-1)
     return torch.sum(h_mod, dim=1)
 
@@ -167,12 +159,7 @@ def aggregate_dir_dx_no_abs(
         h_mod: The aggregated features $y^{(l)}$
 
     """
-    grad = get_grad_of_pos(
-        source_pos=source_pos,
-        dest_pos=dest_pos,
-        dir_idx=dir_idx,
-        temperature=temperature,
-    )
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     dir_weight = (grad / (torch.sum(grad.abs(), keepdim=True, dim=1) + EPS)).unsqueeze(-1)
     h_mod = h * dir_weight
 
@@ -213,12 +200,7 @@ def aggregate_dir_dx_abs_balanced(
         h_mod: The aggregated features $y^{(l)}$
 
     """
-    grad = get_grad_of_pos(
-        source_pos=source_pos,
-        dest_pos=dest_pos,
-        dir_idx=dir_idx,
-        temperature=temperature,
-    )
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
     eig_back = torch.relu(-grad) / (torch.sum(torch.relu(-grad), keepdim=True, dim=1) + EPS)
 
@@ -265,12 +247,7 @@ def aggregate_dir_forward(
     Returns:
         h_mod: The aggregated features $y^{(l)}$
     """
-    grad = get_grad_of_pos(
-        source_pos=source_pos,
-        dest_pos=dest_pos,
-        dir_idx=dir_idx,
-        temperature=temperature,
-    )
+    grad = get_grad_of_pos(source_pos=source_pos, dest_pos=dest_pos, dir_idx=dir_idx, temperature=temperature)
     eig_front = torch.relu(grad) / (torch.sum(torch.relu(grad), keepdim=True, dim=1) + EPS)
     h_mod = h * eig_front.unsqueeze(-1)
     return torch.sum(h_mod, dim=1)

@@ -69,11 +69,7 @@ class BaseDGNDgl:
                 temperature = None
                 if len(agg_split) > 2:
                     temperature = float(agg_split[2])
-                this_agg = partial(
-                    DGN_AGGREGATORS[agg_fn_name],
-                    dir_idx=dir_idx,
-                    temperature=temperature,
-                )
+                this_agg = partial(DGN_AGGREGATORS[agg_fn_name], dir_idx=dir_idx, temperature=temperature)
 
             if this_agg is None:
                 raise ValueError(f"aggregator `{agg_name}` not a valid choice.")
