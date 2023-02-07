@@ -29,7 +29,11 @@ class test_positional_encoder(ut.TestCase):
 
     def test_laplacian_eigvec(self):
         for ii, adj in enumerate(deepcopy(self.adjs)):
-            for num_pos in [1, 2, 4]:  # Can't test too much eigs because of multiplicities
+            for num_pos in [
+                1,
+                2,
+                4,
+            ]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
@@ -44,7 +48,11 @@ class test_positional_encoder(ut.TestCase):
                     pos_enc_sign_flip = pe_dict["eigvecs"]
                     pos_enc_no_flip = pe_dict["eigvals"]
 
-                    self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
+                    self.assertEqual(
+                        list(pos_enc_sign_flip.shape),
+                        [adj.shape[0], num_pos],
+                        msg=err_msg,
+                    )
                     self.assertIsNone(pos_enc_no_flip)
 
                     # Compute eigvals and eigvecs
@@ -64,12 +72,19 @@ class test_positional_encoder(ut.TestCase):
                         self.assertGreater(np.max(np.abs(eigvecs - pos_enc_sign_flip)), 1e-3)
                     elif not ("." in self.smiles[ii]):
                         np.testing.assert_array_almost_equal(
-                            eigvecs, pos_enc_sign_flip[:, :true_num_pos], decimal=6, err_msg=err_msg
+                            eigvecs,
+                            pos_enc_sign_flip[:, :true_num_pos],
+                            decimal=6,
+                            err_msg=err_msg,
                         )
 
     def test_laplacian_eigvec_eigval(self):
         for ii, adj in enumerate(deepcopy(self.adjs)):
-            for num_pos in [1, 2, 4]:  # Can't test too much eigs because of multiplicities
+            for num_pos in [
+                1,
+                2,
+                4,
+            ]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
@@ -84,8 +99,16 @@ class test_positional_encoder(ut.TestCase):
                     pos_enc_sign_flip = pe_dict["eigvecs"]
                     pos_enc_no_flip = pe_dict["eigvals"]
 
-                    self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
-                    self.assertEqual(list(pos_enc_no_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
+                    self.assertEqual(
+                        list(pos_enc_sign_flip.shape),
+                        [adj.shape[0], num_pos],
+                        msg=err_msg,
+                    )
+                    self.assertEqual(
+                        list(pos_enc_no_flip.shape),
+                        [adj.shape[0], num_pos],
+                        msg=err_msg,
+                    )
 
                     # Compute eigvals and eigvecs
                     lap = np.diag(np.sum(adj, axis=1)) - adj
@@ -101,10 +124,16 @@ class test_positional_encoder(ut.TestCase):
 
                     if not ("." in self.smiles[ii]):
                         np.testing.assert_array_almost_equal(
-                            eigvecs, pos_enc_sign_flip[:, :true_num_pos], decimal=6, err_msg=err_msg
+                            eigvecs,
+                            pos_enc_sign_flip[:, :true_num_pos],
+                            decimal=6,
+                            err_msg=err_msg,
                         )
                         np.testing.assert_array_almost_equal(
-                            eigvals, pos_enc_no_flip[0, :true_num_pos], decimal=6, err_msg=err_msg
+                            eigvals,
+                            pos_enc_no_flip[0, :true_num_pos],
+                            decimal=6,
+                            err_msg=err_msg,
                         )
 
     # didn't actually check the exact computation result because the code was adapted
@@ -128,7 +157,11 @@ class test_positional_encoder(ut.TestCase):
 
     def test_laplacian_eigvec_with_encoder(self):
         for ii, adj in enumerate(deepcopy(self.adjs)):
-            for num_pos in [2, 4, 8]:  # Can't test too much eigs because of multiplicities
+            for num_pos in [
+                2,
+                4,
+                8,
+            ]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 

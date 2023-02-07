@@ -57,7 +57,11 @@ class LapPENodeEncoder(torch.nn.Module):
         if model_type == "Transformer":
             # Transformer model for LapPE
             encoder_layer = nn.TransformerEncoderLayer(
-                d_model=in_dim, nhead=1, batch_first=True, dropout=dropout, **model_kwargs
+                d_model=in_dim,
+                nhead=1,
+                batch_first=True,
+                dropout=dropout,
+                **model_kwargs,
             )
             self.pe_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         else:

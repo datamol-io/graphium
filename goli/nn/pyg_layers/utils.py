@@ -12,28 +12,21 @@ class Preprocess3DPositions(nn.Module):
     Compute 3D attention bias and 3D node features according to the 3D position information.
     """
 
-    def __init__(self, num_heads, embed_dim, max_num_nodes_per_graph, num_kernel, on_ipu):
+    def __init__(self, num_heads, embed_dim, num_kernel):
         r"""
-            Function to process 3D positions and output 3D bias tensor and 3D node feature.
         Parameters:
             num_heads:
                 Number of attention heads used in self-attention.
             embed_dim:
                 Hidden dimension of node features.
-            max_num_nodes_per_graph:
-                Maximum number of nodes in one graph with the dense batch.
             num_kernel:
                 Number of gaussian kernels.
-            on_ipu:
-                If the application is run on IPU.
 
         """
         super().__init__()
         self.num_heads = num_heads
         self.num_kernel = num_kernel
         self.embed_dim = embed_dim
-        self.on_ipu = on_ipu
-        self.max_num_nodes_per_graph = max_num_nodes_per_graph
 
         self.gaussian = GaussianLayer(self.num_kernel)
         self.gaussian_proj = MLP(
@@ -47,7 +40,17 @@ class Preprocess3DPositions(nn.Module):
         # so that it can be added to the original node features
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
 
-    def forward(self, batch: Batch) -> Tuple[Tensor, Tensor]:
+    def forward(self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool) -> Tuple[Tensor, Tensor]:
+        r"""
+        Inputs:
+            batch:
+                Batch object.
+            max_num_nodes_per_graph:
+                Maximum number of nodes per graph.
+            on_ipu:
+                If model rus on IPU.
+        """
+
         # pos = batch.positions_3d # uncomment this when 3D positions are available
         pos = torch.rand(batch.h.size()[0], 3)  # remove this when 3D positions are available
         batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0]
@@ -58,8 +61,8 @@ class Preprocess3DPositions(nn.Module):
             pos,
             batch=batch.batch,
             batch_size=batch_size,
-            max_num_nodes_per_graph=self.max_num_nodes_per_graph,
-            drop_nodes_last_graph=self.on_ipu,
+            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            drop_nodes_last_graph=on_ipu,
         )
         # [batch, nodes]
         batch, n_node, _ = pos.shape
@@ -76,7 +79,7 @@ class Preprocess3DPositions(nn.Module):
         # unsqueezed mask size: [batch, 1, 1, nodes] apply on tensor [batch, num_heads, nodes, nodes]
         attn_bias.masked_fill_(
             padding_mask.unsqueeze(1).unsqueeze(2),
-            float("-inf"),  # in order to avoid nans, may ned to change -inf to -1000 for FP16
+            float("-10000"),
         )
         # unsqueezed mask size: [batch, 1, nodes, 1] apply on tensor [batch, nodes, nodes, num_kernel]
         distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)

@@ -12,7 +12,12 @@ import torch
 from torch.utils.data.dataloader import default_collate
 
 # Current library imports
-from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing, hybrid_packing
+from goli.ipu.ipu_dataloader import (
+    smart_packing,
+    get_pack_sizes,
+    fast_packing,
+    hybrid_packing,
+)
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
 from goli.ipu.ipu_utils import import_poptorch
 
@@ -67,7 +72,8 @@ class test_Packing(ut.TestCase):
 
                 # Assert that all index are there
                 self.assertListEqual(
-                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
+                    np.sort(np.asarray(packed_indices).flatten()).tolist(),
+                    np.arange(len(num_nodes)).tolist(),
                 )
                 self.assertListEqual(
                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
@@ -107,7 +113,8 @@ class test_Packing(ut.TestCase):
 
                 # Assert that all index are there
                 self.assertListEqual(
-                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
+                    np.sort(np.asarray(packed_indices).flatten()).tolist(),
+                    np.arange(len(num_nodes)).tolist(),
                 )
                 self.assertListEqual(
                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
@@ -146,7 +153,8 @@ class test_Packing(ut.TestCase):
 
                 # Assert that all index are there
                 self.assertListEqual(
-                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
+                    np.sort(np.asarray(packed_indices).flatten()).tolist(),
+                    np.arange(len(num_nodes)).tolist(),
                 )
                 self.assertListEqual(
                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
@@ -218,7 +226,10 @@ class test_DataLoading(ut.TestCase):
 
         def __getitem__(self, idx):
             # [label, [feat1, feat2]]
-            return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
+            return [
+                self.labels[idx],
+                [self.node_features[idx], self.edge_features[idx]],
+            ]
 
     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
         """
@@ -283,7 +294,11 @@ class test_DataLoading(ut.TestCase):
             num_sanity_val_steps=0,
             ipus=1,
         )
-        trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+        trainer.fit(
+            model=model,
+            train_dataloaders=train_dataloader,
+            val_dataloaders=val_dataloader,
+        )
 
     def test_poptorch_goli_deviceiterations_gradient_accumulation(self):
         """
@@ -319,7 +334,11 @@ class test_DataLoading(ut.TestCase):
                 self.assert_shapes(dict_input, "val")
                 preds = self.forward(dict_input)["preds"]
                 loss = self.compute_loss(
-                    preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None
+                    preds,
+                    dict_input["labels"],
+                    weights=None,
+                    loss_fun=self.loss_fun,
+                    target_nan_mask=None,
                 )
                 loss = loss[0]
                 return loss
@@ -329,7 +348,11 @@ class test_DataLoading(ut.TestCase):
                 dict_input = {"features": features, "labels": labels}
                 preds = self.forward(dict_input)["preds"]
                 loss = self.compute_loss(
-                    preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None
+                    preds,
+                    dict_input["labels"],
+                    weights=None,
+                    loss_fun=self.loss_fun,
+                    target_nan_mask=None,
                 )
                 loss = self.pop.identity_loss(loss[0], reduction="mean")
                 return loss
@@ -429,7 +452,11 @@ class test_DataLoading(ut.TestCase):
         )
         strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
         trainer = Trainer(
-            logger=False, enable_checkpointing=False, max_epochs=2, strategy=strategy, num_sanity_val_steps=0
+            logger=False,
+            enable_checkpointing=False,
+            max_epochs=2,
+            strategy=strategy,
+            num_sanity_val_steps=0,
         )
         trainer.fit(model=predictor, datamodule=datamodule)
 

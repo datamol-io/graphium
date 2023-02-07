@@ -9,7 +9,12 @@ import unittest as ut
 import dgl
 from copy import deepcopy
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardDGL, FeedForwardPyg, FullGraphNetwork
+from goli.nn.architectures import (
+    FeedForwardNN,
+    FeedForwardDGL,
+    FeedForwardPyg,
+    FullGraphNetwork,
+)
 from goli.nn.architectures.global_architectures import FeedForwardGraphBase
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
@@ -357,18 +362,27 @@ class test_FeedForwardGraph(ut.TestCase):
 
     virtual_nodes = ["none", "mean", "sum"]
     norms = ["none", "batch_norm", "layer_norm"]
-    pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
+    pna_kwargs = {
+        "aggregators": ["mean", "max", "sum"],
+        "scalers": ["identity", "amplification"],
+    }
 
     layers_kwargs = {
         "pyg:gin": {},
         "pyg:gine": {"in_dim_edges": in_dim_edges},
-        "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "pyg:gated-gcn": {
+            "in_dim_edges": in_dim_edges,
+            "hidden_dims_edges": hidden_dims,
+        },
         "pyg:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
         "pyg:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
         "dgl:gcn": {},
         "dgl:gin": {},
         "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
-        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "dgl:gated-gcn": {
+            "in_dim_edges": in_dim_edges,
+            "hidden_dims_edges": hidden_dims,
+        },
         "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
         "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
         "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
@@ -416,11 +430,31 @@ class test_FeedForwardGraph(ut.TestCase):
 
                             f = gnn.layers[0].out_dim_factor
                             self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+                            self.assertEqual(
+                                gnn.layers[1].in_dim,
+                                f * self.hidden_dims[0],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[2].in_dim,
+                                f * self.hidden_dims[1],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[3].in_dim,
+                                f * self.hidden_dims[2],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[4].in_dim,
+                                f * self.hidden_dims[3],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[5].in_dim,
+                                f * self.hidden_dims[4],
+                                msg=err_msg,
+                            )
 
                             h_out = gnn.forward(bg)
 
@@ -468,11 +502,31 @@ class test_FeedForwardGraph(ut.TestCase):
 
                             f = gnn.layers[0].out_dim_factor
                             self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+                            self.assertEqual(
+                                gnn.layers[1].in_dim,
+                                f * self.hidden_dims[0],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[2].in_dim,
+                                f * self.hidden_dims[1],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[3].in_dim,
+                                f * self.hidden_dims[2],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[4].in_dim,
+                                f * self.hidden_dims[3],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[5].in_dim,
+                                f * self.hidden_dims[4],
+                                msg=err_msg,
+                            )
 
                             h_out = gnn.forward(bg)
 
@@ -520,11 +574,31 @@ class test_FeedForwardGraph(ut.TestCase):
 
                             f = gnn.layers[0].out_dim_factor
                             self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+                            self.assertEqual(
+                                gnn.layers[1].in_dim,
+                                f * self.hidden_dims[0],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[2].in_dim,
+                                f * self.hidden_dims[1],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[3].in_dim,
+                                f * self.hidden_dims[2],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[4].in_dim,
+                                f * self.hidden_dims[3],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[5].in_dim,
+                                f * self.hidden_dims[4],
+                                msg=err_msg,
+                            )
 
                             h_out = gnn.forward(bg)
 
@@ -576,11 +650,31 @@ class test_FeedForwardGraph(ut.TestCase):
                                 for ii in range(6)
                             ]
                             self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
+                            self.assertEqual(
+                                gnn.layers[1].in_dim,
+                                f2[0] * self.hidden_dims[0],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[2].in_dim,
+                                f2[1] * self.hidden_dims[1],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[3].in_dim,
+                                f2[2] * self.hidden_dims[2],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[4].in_dim,
+                                f2[3] * self.hidden_dims[3],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[5].in_dim,
+                                f2[4] * self.hidden_dims[4],
+                                msg=err_msg,
+                            )
 
                             h_out = gnn.forward(bg)
 
@@ -634,11 +728,31 @@ class test_FeedForwardGraph(ut.TestCase):
                                 for ii in range(6)
                             ]
                             self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
+                            self.assertEqual(
+                                gnn.layers[1].in_dim,
+                                f2[0] * self.hidden_dims[0],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[2].in_dim,
+                                f2[1] * self.hidden_dims[1],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[3].in_dim,
+                                f2[2] * self.hidden_dims[2],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[4].in_dim,
+                                f2[3] * self.hidden_dims[3],
+                                msg=err_msg,
+                            )
+                            self.assertEqual(
+                                gnn.layers[5].in_dim,
+                                f2[4] * self.hidden_dims[4],
+                                msg=err_msg,
+                            )
 
                             h_out = gnn.forward(bg)
 
@@ -685,18 +799,27 @@ class test_FullGraphNetwork(ut.TestCase):
 
     virtual_nodes = ["none", "mean"]
     norms = ["none", "batch_norm", "layer_norm"]
-    pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
+    pna_kwargs = {
+        "aggregators": ["mean", "max", "sum"],
+        "scalers": ["identity", "amplification"],
+    }
 
     gnn_layers_kwargs = {
         "pyg:gin": {},
         "pyg:gine": {"in_dim_edges": in_dim_edges},
-        "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "pyg:gated-gcn": {
+            "in_dim_edges": in_dim_edges,
+            "hidden_dims_edges": hidden_dims,
+        },
         "pyg:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
         "pyg:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
         "dgl:gcn": {},
         "dgl:gin": {},
         "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
-        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "dgl:gated-gcn": {
+            "in_dim_edges": in_dim_edges,
+            "hidden_dims_edges": hidden_dims,
+        },
         "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
         "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
         "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
@@ -707,7 +830,10 @@ class test_FullGraphNetwork(ut.TestCase):
         temp_dim_2 = 17
         temp_dim_edges = 21
 
-        pre_nn_kwargs_all = [None, dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4])]
+        pre_nn_kwargs_all = [
+            None,
+            dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4]),
+        ]
         pre_nn_edges_kwargs_all = [
             None,
             dict(in_dim=self.in_dim_edges, out_dim=temp_dim_edges, hidden_dims=[4, 4]),
@@ -772,7 +898,9 @@ class test_FullGraphNetwork(ut.TestCase):
 
                                     dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                                     self.assertListEqual(
-                                        list(h_out.shape), [dim_1, self.out_dim], msg=err_msg
+                                        list(h_out.shape),
+                                        [dim_1, self.out_dim],
+                                        msg=err_msg,
                                     )
 
 

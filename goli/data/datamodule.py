@@ -562,7 +562,11 @@ class BaseDataModule(pl.LightningDataModule):
             loader_kwargs["batch_size"] = self.batch_size_training
 
         # Get batch size and IPU options for validation / testing sets
-        elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
+        elif stage in [
+            RunningStage.VALIDATING,
+            RunningStage.TESTING,
+            RunningStage.PREDICTING,
+        ]:
             loader_kwargs["batch_size"] = self.batch_size_inference
         else:
             raise ValueError(f"Wrong value for `stage`. Provided `{stage}`")
@@ -945,7 +949,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
                 label_cols = self._parse_label_cols(
-                    df=None, df_path=args.df_path, label_cols=args.label_cols, smiles_col=args.smiles_col
+                    df=None,
+                    df_path=args.df_path,
+                    label_cols=args.label_cols,
+                    smiles_col=args.smiles_col,
                 )
                 usecols = (
                     check_arg_iterator(args.smiles_col, enforce_type=list)
@@ -958,7 +965,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
             else:
                 label_cols = self._parse_label_cols(
-                    df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
+                    df=args.df,
+                    df_path=None,
+                    label_cols=args.label_cols,
+                    smiles_col=args.smiles_col,
                 )
                 task_df[task] = args.df
             args.label_cols = label_cols
@@ -1008,7 +1018,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 all_tasks.append(task)
         # Get all unique mol ids
         all_mol_ids = smiles_to_unique_mol_ids(
-            all_smiles, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend
+            all_smiles,
+            n_jobs=self.featurization_n_jobs,
+            backend=self.featurization_backend,
         )
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
@@ -1037,7 +1049,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
         for task, args in task_dataset_args.items():
-            df, features, smiles, labels, sample_idx, extras = self._filter_none_molecules(
+            (
+                df,
+                features,
+                smiles,
+                labels,
+                sample_idx,
+                extras,
+            ) = self._filter_none_molecules(
                 args["idx_none"],
                 task_df[task],
                 args["features"],
@@ -1086,7 +1105,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.val_singletask_datasets,
             self.test_singletask_datasets,
         ) = self.get_subsets_of_datasets(
-            self.single_task_datasets, self.task_train_indices, self.task_val_indices, self.task_test_indices
+            self.single_task_datasets,
+            self.task_train_indices,
+            self.task_val_indices,
+            self.task_test_indices,
         )
 
         # When a path is provided but no cache is found, save to cache
@@ -1145,7 +1167,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             loader_kwargs["ipu_options"] = self.ipu_training_opts
 
         # Get batch size and IPU options for validation / testing sets
-        elif stage in [RunningStage.VALIDATING, RunningStage.TESTING, RunningStage.PREDICTING]:
+        elif stage in [
+            RunningStage.VALIDATING,
+            RunningStage.TESTING,
+            RunningStage.PREDICTING,
+        ]:
             loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_inference_opts
             loader_kwargs["ipu_options"] = self.ipu_inference_opts
         else:
@@ -1238,8 +1264,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     @staticmethod
     def _filter_none_molecules(
         idx_none: Iterable,
-        *args: Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]],
-    ) -> List[Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable]]]:
+        *args: Union[
+            pd.DataFrame,
+            pd.Series,
+            np.ndarray,
+            torch.Tensor,
+            list,
+            tuple,
+            Dict[Any, Iterable],
+        ],
+    ) -> List[Union[pd.DataFrame, pd.Series, np.ndarray, torch.Tensor, list, tuple, Dict[Any, Iterable],]]:
         """
         Filter the molecules, labels, etc. for the molecules that failed featurization.
 
@@ -1428,7 +1462,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         weights_col: str = None,
         weights_type: str = None,
     ) -> Tuple[
-        np.ndarray, np.ndarray, Union[Type[None], np.ndarray], Dict[str, Union[Type[None], np.ndarray]]
+        np.ndarray,
+        np.ndarray,
+        Union[Type[None], np.ndarray],
+        Dict[str, Union[Type[None], np.ndarray]],
     ]:
         """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
@@ -1686,7 +1723,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             train_singletask_datasets[task] = Subset(single_task_datasets[task], task_train_indices[task])
             val_singletask_datasets[task] = Subset(single_task_datasets[task], task_val_indices[task])
             test_singletask_datasets[task] = Subset(single_task_datasets[task], task_test_indices[task])
-        return train_singletask_datasets, val_singletask_datasets, test_singletask_datasets
+        return (
+            train_singletask_datasets,
+            val_singletask_datasets,
+            test_singletask_datasets,
+        )
 
     def __len__(self) -> int:
         r"""

@@ -54,7 +54,11 @@ class test_TaskHeads(ut.TestCase):
         in_dim = 4  # Dimension of the incoming data
         batch = 2
 
-        task_heads_params = {"task_1": task_1_params, "task_2": task_2_params, "task_3": task_3_params}
+        task_heads_params = {
+            "task_1": task_1_params,
+            "task_2": task_2_params,
+            "task_3": task_3_params,
+        }
 
         # Create the "multitask" network. Really it's just an input going to various FFNNs since there's nothing shared.
         multi_head_nn = TaskHeads(in_dim=in_dim, task_heads_kwargs=task_heads_params)
@@ -125,13 +129,19 @@ class test_Multitask_NN(ut.TestCase):
 
     virtual_nodes = ["none", "mean", "sum"]
     norms = ["none", None, "batch_norm", "layer_norm"]
-    pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
+    pna_kwargs = {
+        "aggregators": ["mean", "max", "sum"],
+        "scalers": ["identity", "amplification"],
+    }
 
     gnn_layers_kwargs = {
         "dgl:gcn": {},
         "dgl:gin": {},
         "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
-        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
+        "dgl:gated-gcn": {
+            "in_dim_edges": in_dim_edges,
+            "hidden_dims_edges": hidden_dims,
+        },
         "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
         "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
         "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
@@ -139,7 +149,11 @@ class test_Multitask_NN(ut.TestCase):
 
     def test_fulldgl_multitask_forward(self):
         # Task heads
-        task_heads_params = {"task_1": task_1_params, "task_2": task_2_params, "task_3": task_3_params}
+        task_heads_params = {
+            "task_1": task_1_params,
+            "task_2": task_2_params,
+            "task_3": task_3_params,
+        }
 
         # Params for the FullDGLNetwork
         temp_dim_1 = 5

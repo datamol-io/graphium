@@ -4,7 +4,13 @@ import torch.nn as nn
 from typing import List, Union, Callable, Tuple
 
 import dgl
-from dgl.nn.pytorch.glob import SumPooling, AvgPooling, MaxPooling, Set2Set, GlobalAttentionPooling
+from dgl.nn.pytorch.glob import (
+    SumPooling,
+    AvgPooling,
+    MaxPooling,
+    Set2Set,
+    GlobalAttentionPooling,
+)
 from dgl import mean_nodes, sum_nodes, max_nodes
 
 from goli.nn.base_layers import MLP, FCLayer

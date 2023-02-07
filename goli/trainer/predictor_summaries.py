@@ -143,7 +143,8 @@ class Summary(SummaryInterface):
         r"""
         Get the data about metrics to log.
 
-        Note: This function requires that self.update_predictor_state() be called before it."""
+        Note: This function requires that self.update_predictor_state() be called before it.
+        """
         targets = self.targets.to(dtype=self.predictions.dtype, device=self.predictions.device)
 
         # Compute the metrics always used in regression tasks

@@ -31,7 +31,8 @@ class Test_Multitask_Dataset(ut.TestCase):
         # We need to turn these dataframes into single-task datasets.
         # We don't need to do featurization yet.
         ds_micro_zinc_SA = SingleTaskDataset(
-            smiles=df_micro_zinc_SA.loc[:, "SMILES"].tolist(), labels=df_micro_zinc_SA.loc[:, "SA"].tolist()
+            smiles=df_micro_zinc_SA.loc[:, "SMILES"].tolist(),
+            labels=df_micro_zinc_SA.loc[:, "SA"].tolist(),
         )
 
         ds_micro_zinc_logp = SingleTaskDataset(
@@ -44,7 +45,11 @@ class Test_Multitask_Dataset(ut.TestCase):
         )
 
         # Create the multitask dataset
-        datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
+        datasets_dict = {
+            "SA": ds_micro_zinc_SA,
+            "logp": ds_micro_zinc_logp,
+            "score": ds_micro_zinc_score,
+        }
         multitask_microzinc = MultitaskDataset(datasets_dict)  # Can optionally have features
 
         # Check: The number of unique molecules equals the number of datapoints in the multitask dataset.
@@ -92,7 +97,8 @@ class Test_Multitask_Dataset(ut.TestCase):
         # We need to turn these dataframes into single-task datasets.
         # We don't need to do featurization yet.
         ds_micro_zinc_SA = SingleTaskDataset(
-            smiles=df_micro_zinc_SA.loc[:, "SMILES"].tolist(), labels=df_micro_zinc_SA.loc[:, "SA"].tolist()
+            smiles=df_micro_zinc_SA.loc[:, "SMILES"].tolist(),
+            labels=df_micro_zinc_SA.loc[:, "SA"].tolist(),
         )
         ds_micro_zinc_logp = SingleTaskDataset(
             smiles=df_micro_zinc_logp.loc[:, "SMILES"].tolist(),
@@ -104,7 +110,11 @@ class Test_Multitask_Dataset(ut.TestCase):
         )
 
         # Create the multitask dataset
-        datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
+        datasets_dict = {
+            "SA": ds_micro_zinc_SA,
+            "logp": ds_micro_zinc_logp,
+            "score": ds_micro_zinc_score,
+        }
         multitask_microzinc = MultitaskDataset(datasets_dict)  # Can optionally have features
 
         # The total dataset has as many molecules as there are smiles in all tasks put together
@@ -170,7 +180,8 @@ class Test_Multitask_Dataset(ut.TestCase):
         # We need to turn these dataframes into single-task datasets.
         # We don't need to do featurization yet.
         ds_micro_zinc_SA = SingleTaskDataset(
-            smiles=df_micro_zinc_SA.loc[:, "SMILES"].tolist(), labels=df_micro_zinc_SA.loc[:, "SA"].tolist()
+            smiles=df_micro_zinc_SA.loc[:, "SMILES"].tolist(),
+            labels=df_micro_zinc_SA.loc[:, "SA"].tolist(),
         )
         ds_micro_zinc_logp = SingleTaskDataset(
             smiles=df_micro_zinc_logp.loc[:, "SMILES"].tolist(),
@@ -182,7 +193,11 @@ class Test_Multitask_Dataset(ut.TestCase):
         )
 
         # Create the multitask dataset
-        datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
+        datasets_dict = {
+            "SA": ds_micro_zinc_SA,
+            "logp": ds_micro_zinc_logp,
+            "score": ds_micro_zinc_score,
+        }
         multitask_microzinc = MultitaskDataset(datasets_dict)  # Can optionally have features
 
         # The multitask dataset has as many molecules as there are unique smiles across the single task datasets.

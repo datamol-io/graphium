@@ -450,7 +450,9 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: dm.Mol) -> float:
 
 
 def get_mol_edge_features(
-    mol: dm.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = "raise"
+    mol: dm.Mol,
+    property_list: List[str],
+    mask_nan: Union[str, float, type(None)] = "raise",
 ):
     r"""
     Get the following set of features for any given bond
@@ -788,7 +790,12 @@ class GraphDict(dict):
                 data_dict[key] = torch.as_tensor(val)
 
         # Create the PyG graph object `Data`
-        data = Data(edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes, **data_dict)
+        data = Data(
+            edge_index=edge_index,
+            edge_weight=edge_weight,
+            num_nodes=num_nodes,
+            **data_dict,
+        )
         return deepcopy(data)
 
     @property
@@ -1267,13 +1274,21 @@ def graph_dict_to_dgl(
     if ndata is not None:
         for key, val in ndata.items():
             graph.ndata[key] = torch.as_tensor(
-                _mask_nans_inf(mask_nan=mask_nan, array=to_dense_array(val, dtype=dtype), array_name="ndata")
+                _mask_nans_inf(
+                    mask_nan=mask_nan,
+                    array=to_dense_array(val, dtype=dtype),
+                    array_name="ndata",
+                )
             )
 
     if edata is not None:
         for key, val in edata.items():
             graph.edata[key] = torch.as_tensor(
-                _mask_nans_inf(mask_nan=mask_nan, array=to_dense_array(val, dtype=dtype), array_name="edata")
+                _mask_nans_inf(
+                    mask_nan=mask_nan,
+                    array=to_dense_array(val, dtype=dtype),
+                    array_name="edata",
+                )
             )
 
     return graph
@@ -1289,7 +1304,12 @@ def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None):
     signature = inspect.signature(mol_to_graph_dict)
 
     # Filter out empty arguments (without default value)
-    parameters = list(filter(lambda param: param.default is not param.empty, signature.parameters.values()))
+    parameters = list(
+        filter(
+            lambda param: param.default is not param.empty,
+            signature.parameters.values(),
+        )
+    )
 
     # Convert to dict
     parameters = {param.name: param.default for param in parameters}

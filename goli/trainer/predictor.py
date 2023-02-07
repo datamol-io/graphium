@@ -11,7 +11,12 @@ from dgl import DGLHeteroGraph
 from mup.optim import MuAdam
 
 from goli.config.config_convert import recursive_config_reformating
-from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
+from goli.trainer.predictor_options import (
+    EvalOptions,
+    FlagOptions,
+    ModelOptions,
+    OptimOptions,
+)
 from goli.trainer.predictor_summaries import TaskSummaries
 from goli.nn.base_graph_layer import get_node_feats, set_node_feats
 from goli.data.datamodule import BaseDataModule

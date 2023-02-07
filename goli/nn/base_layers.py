@@ -149,7 +149,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             if key_padding_mask is not None:
                 masked_attn_weights = attn_weights.masked_fill(
                     key_padding_mask.unsqueeze(1).unsqueeze(2),
-                    float("-inf"),  # in order to avoid nans, may ned to change -inf to -1000 for FP16
+                    float("-10000"),
                 )
             masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
             attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
@@ -415,7 +415,11 @@ class FCLayer(nn.Module):
         """
 
         if torch.prod(torch.as_tensor(h.shape[:-1])) == 0:
-            h = torch.zeros(list(h.shape[:-1]) + [self.linear.out_features], device=h.device, dtype=h.dtype)
+            h = torch.zeros(
+                list(h.shape[:-1]) + [self.linear.out_features],
+                device=h.device,
+                dtype=h.dtype,
+            )
             return h
 
         h = self.linear(h)
@@ -636,7 +640,12 @@ class GRU(nn.Module):
         if x.shape[-1] < self.in_dim:
             x = F.pad(input=x, pad=[0, self.in_dim - x.shape[-1]], mode="constant", value=0)
         if y.shape[-1] < self.hidden_dim:
-            y = F.pad(input=y, pad=[0, self.hidden_dim - y.shape[-1]], mode="constant", value=0)
+            y = F.pad(
+                input=y,
+                pad=[0, self.hidden_dim - y.shape[-1]],
+                mode="constant",
+                value=0,
+            )
 
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)

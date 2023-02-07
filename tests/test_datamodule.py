@@ -14,7 +14,12 @@ class Test_DataModule(ut.TestCase):
     # TODO: Add this test once the OGB Datamodule is fixed
     def test_ogb_datamodule(self):
         # other datasets are too large to be tested
-        dataset_names = ["ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv"]
+        dataset_names = [
+            "ogbg-molhiv",
+            "ogbg-molpcba",
+            "ogbg-moltox21",
+            "ogbg-molfreesolv",
+        ]
         dataset_name = dataset_names[3]
 
         # Setup the featurization
@@ -77,7 +82,12 @@ class Test_DataModule(ut.TestCase):
         series_num_shuffled = df_shuffled["num"]
 
         # Create different indexes to use for filtering
-        all_idx_none = [[3, 17, 88], [22, 33, 44, 55, 66, 77, 88], [], np.arange(len(list_of_num))]
+        all_idx_none = [
+            [3, 17, 88],
+            [22, 33, 44, 55, 66, 77, 88],
+            [],
+            np.arange(len(list_of_num)),
+        ]
 
         # Loop all the indexes and filter the objects.
         for ii, idx_none in enumerate(all_idx_none):

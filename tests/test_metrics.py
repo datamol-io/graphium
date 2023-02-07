@@ -30,7 +30,10 @@ class test_Metrics(ut.TestCase):
         for th_on_preds in [True, False]:
             for th_on_target in [True, False]:
                 thresholder = Thresholder(
-                    threshold=th, operator="greater", th_on_target=th_on_target, th_on_preds=th_on_preds
+                    threshold=th,
+                    operator="greater",
+                    th_on_target=th_on_target,
+                    th_on_preds=th_on_preds,
                 )
                 preds2, target2 = thresholder(preds, target)
                 if th_on_preds:
@@ -46,7 +49,10 @@ class test_Metrics(ut.TestCase):
         for th_on_preds in [True, False]:
             for th_on_target in [True, False]:
                 thresholder = Thresholder(
-                    threshold=th, operator="lower", th_on_target=th_on_target, th_on_preds=th_on_preds
+                    threshold=th,
+                    operator="lower",
+                    th_on_target=th_on_target,
+                    th_on_preds=th_on_preds,
                 )
                 preds2, target2 = thresholder(preds, target)
                 if th_on_preds:
@@ -106,7 +112,9 @@ class test_MetricWrapper(ut.TestCase):
 
             # Ignore NaNs in each column and average the score
             metric = MetricWrapper(
-                metric="mse", target_nan_mask="ignore", multitask_handling="mean-per-label"
+                metric="mse",
+                target_nan_mask="ignore",
+                multitask_handling="mean-per-label",
             )
             score5 = metric(preds, target)
 
@@ -137,7 +145,12 @@ class test_MetricWrapper(ut.TestCase):
             {"threshold": 0.2, "operator": "greater"},
             {"threshold": 0.3, "operator": op.lt},
             {"threshold": 0.4, "operator": "lower"},
-            {"threshold": 0.5, "operator": "lower", "th_on_preds": False, "th_on_target": True},
+            {
+                "threshold": 0.5,
+                "operator": "lower",
+                "th_on_preds": False,
+                "th_on_target": True,
+            },
             {"threshold": 0.6, "operator": "lower", "target_to_int": True},
         ]
 

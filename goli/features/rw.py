@@ -33,7 +33,10 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix], ksteps: int, num_nodes: int) 
     # Compute the random-walk landing probability
     ksteps_range = range(1, ksteps + 1)
     rw_landing = get_rw_landing_probs(
-        ksteps=ksteps_range, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes
+        ksteps=ksteps_range,
+        edge_index=edge_index,
+        edge_weight=edge_weight,
+        num_nodes=num_nodes,
     )
     rw_landing = rw_landing.numpy()
 

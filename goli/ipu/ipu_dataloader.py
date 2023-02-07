@@ -593,7 +593,12 @@ def hybrid_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     big_n_small_sort = np.argsort(np.sum(np.stack(big_n_small_nodes, axis=1), axis=0))
     medium_sort = np.argsort(np.sum(np.stack(medium_nodes, axis=1), axis=0))
     packed_indices = [
-        np.concatenate([medium_indices[medium_sort[ii]], big_n_small_indices[big_n_small_sort[-ii]]])
+        np.concatenate(
+            [
+                medium_indices[medium_sort[ii]],
+                big_n_small_indices[big_n_small_sort[-ii]],
+            ]
+        )
         for ii in range(len(medium_indices))
     ]
 
@@ -635,7 +640,10 @@ def estimate_max_pack_node_size(num_nodes: Iterable[int], batch_size: int, combi
         choice = num_nodes[this_indices]
         if len(choice) == combined_batch_size:
             packed_indices = hybrid_packing(choice, batch_size)
-            max_pack_size = max(max_pack_size, max(get_pack_sizes(packed_indices, num_nodes[this_indices])))
+            max_pack_size = max(
+                max_pack_size,
+                max(get_pack_sizes(packed_indices, num_nodes[this_indices])),
+            )
     max_pack_size_per_graph = max_pack_size / batch_size
 
     return max_pack_size, max_pack_size_per_graph

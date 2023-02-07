@@ -35,7 +35,13 @@ from goli.nn.dgl_layers import (
     DGNMessagePassingDgl,
 )
 
-from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg, GPSLayerPyg
+from goli.nn.pyg_layers import (
+    PNAMessagePassingPyg,
+    GINConvPyg,
+    GINEConvPyg,
+    GatedGCNPyg,
+    GPSLayerPyg,
+)
 
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,

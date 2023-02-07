@@ -75,7 +75,9 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
 
     if pos_type == "laplacian_eigvec":
         _, eigvecs = compute_laplacian_positional_eigvecs(
-            adj=adj, num_pos=pos_arg["num_pos"], disconnected_comp=pos_arg["disconnected_comp"]
+            adj=adj,
+            num_pos=pos_arg["num_pos"],
+            disconnected_comp=pos_arg["disconnected_comp"],
         )
         eigvecs = np.real(eigvecs).astype(np.float32)
         pe_dict["eigvecs"] = eigvecs
@@ -83,7 +85,9 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
 
     elif pos_type == "laplacian_eigvec_eigval":
         eigvals_tile, eigvecs = compute_laplacian_positional_eigvecs(
-            adj=adj, num_pos=pos_arg["num_pos"], disconnected_comp=pos_arg["disconnected_comp"]
+            adj=adj,
+            num_pos=pos_arg["num_pos"],
+            disconnected_comp=pos_arg["disconnected_comp"],
         )
         eigvecs = np.real(eigvecs).astype(np.float32)
         eigvals_tile = np.real(eigvals_tile).astype(np.float32)
