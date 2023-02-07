@@ -18,11 +18,7 @@ for dep in data["dependencies"]:
             package, package_version = outputs[0], outputs[1]
             requirements.append(package + "==" + package_version)
         elif len(outputs) == 3:
-            package, package_version, python_version = (
-                outputs[0],
-                outputs[1],
-                outputs[2],
-            )
+            package, package_version, python_version = outputs[0], outputs[1], outputs[2]
             requirements.append(package + "==" + package_version)
     elif isinstance(dep, dict):
         for preq in dep.get("pip", []):

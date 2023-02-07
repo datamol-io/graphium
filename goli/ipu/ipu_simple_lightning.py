@@ -64,10 +64,7 @@ class SimpleLightning(pl.LightningModule):
     def __init__(self, in_dim, hidden_dim, kernel_size, num_classes, on_ipu):
         super().__init__()
         self.model = SimpleTorchModel(
-            in_dim=in_dim,
-            hidden_dim=hidden_dim,
-            kernel_size=kernel_size,
-            num_classes=num_classes,
+            in_dim=in_dim, hidden_dim=hidden_dim, kernel_size=kernel_size, num_classes=num_classes
         )
         self.on_ipu = on_ipu
 
@@ -121,16 +118,10 @@ if __name__ == "__main__":
     torch.manual_seed(SEED)
     # Normal PyTorch dataset.
     train_set = torchvision.datasets.FashionMNIST(
-        "out/FashionMNIST",
-        train=True,
-        download=True,
-        transform=transforms.Compose([transforms.ToTensor()]),
+        "out/FashionMNIST", train=True, download=True, transform=transforms.Compose([transforms.ToTensor()])
     )
     val_set = torchvision.datasets.FashionMNIST(
-        "out/FashionMNIST",
-        train=False,
-        download=True,
-        transform=transforms.Compose([transforms.ToTensor()]),
+        "out/FashionMNIST", train=False, download=True, transform=transforms.Compose([transforms.ToTensor()])
     )
 
     # Normal PyTorch dataloader.

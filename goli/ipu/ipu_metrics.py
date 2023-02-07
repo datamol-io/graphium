@@ -10,10 +10,7 @@ from torchmetrics.functional.classification.accuracy import (
     _accuracy_compute,
     _accuracy_update,
 )
-from torchmetrics.functional.classification.precision_recall import (
-    _precision_compute,
-    _recall_compute,
-)
+from torchmetrics.functional.classification.precision_recall import _precision_compute, _recall_compute
 from torchmetrics.functional.classification.f_beta import _fbeta_compute
 from torchmetrics.functional import mean_squared_error, mean_absolute_error
 from torchmetrics.utilities.checks import _input_squeeze
@@ -415,16 +412,7 @@ def get_confusion_matrix(
         # return _subset_accuracy_compute(correct, total)
         raise NotImplementedError("subset_accuracy not implemented")
     tp, fp, tn, fn = _accuracy_update(
-        preds,
-        target,
-        reduce,
-        mdmc_average,
-        threshold,
-        num_classes,
-        top_k,
-        multiclass,
-        ignore_index,
-        mode,
+        preds, target, reduce, mdmc_average, threshold, num_classes, top_k, multiclass, ignore_index, mode
     )
 
     #### ADDED ####

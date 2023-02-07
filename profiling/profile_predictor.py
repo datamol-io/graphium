@@ -4,13 +4,7 @@ from time import time
 import yaml
 import fsspec
 
-from goli.config._loader import (
-    load_datamodule,
-    load_metrics,
-    load_trainer,
-    load_predictor,
-    load_architecture,
-)
+from goli.config._loader import load_datamodule, load_metrics, load_trainer, load_predictor, load_architecture
 from pytorch_lightning import Trainer
 
 

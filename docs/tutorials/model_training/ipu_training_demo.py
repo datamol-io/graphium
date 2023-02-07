@@ -10,13 +10,7 @@ from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
-from goli.config._loader import (
-    load_datamodule,
-    load_metrics,
-    load_architecture,
-    load_predictor,
-    load_trainer,
-)
+from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
 from goli.utils.safe_run import SafeRun
 
 # from torch_geometric.nn.aggr import Aggregation

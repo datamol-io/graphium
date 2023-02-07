@@ -62,10 +62,7 @@ class test_ResidualConnectionSimple(ut.TestCase):
 
                 if ((ii % skip_steps) == 0) and (ii > 0):
                     h_expected = (
-                        torch.sum(
-                            torch.stack(h_original[0 : ii + 1 : skip_steps], dim=0),
-                            dim=0,
-                        )
+                        torch.sum(torch.stack(h_original[0 : ii + 1 : skip_steps], dim=0), dim=0)
                     ).numpy()
                     h_expected_prev = h_expected
                 else:
@@ -74,14 +71,10 @@ class test_ResidualConnectionSimple(ut.TestCase):
                     h_expected_prev = h_expected
 
                 np.testing.assert_array_equal(
-                    h.numpy(),
-                    h_expected,
-                    err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}",
+                    h.numpy(), h_expected, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
                 np.testing.assert_array_equal(
-                    h_prev.numpy(),
-                    h_expected_prev,
-                    err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}",
+                    h_prev.numpy(), h_expected_prev, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
 
 
@@ -167,9 +160,7 @@ class test_ResidualConnectionWeighted(ut.TestCase):
                     h_expected_prev = h_expected
 
                 np.testing.assert_array_equal(
-                    h.detach().numpy(),
-                    h_expected,
-                    err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}",
+                    h.detach().numpy(), h_expected, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
                 np.testing.assert_array_equal(
                     h_prev.detach().numpy(),
@@ -214,10 +205,7 @@ class test_ResidualConnectionConcat(ut.TestCase):
 
                 if ((ii % skip_steps) == 0) and (ii > 0):
                     h_expected = (
-                        torch.cat(
-                            h_original[ii - skip_steps : ii + 1 : skip_steps][::-1],
-                            dim=-1,
-                        )
+                        torch.cat(h_original[ii - skip_steps : ii + 1 : skip_steps][::-1], dim=-1)
                     ).numpy()
                     h_expected_prev = h_original[ii].numpy()
                 else:
@@ -226,14 +214,10 @@ class test_ResidualConnectionConcat(ut.TestCase):
                     h_expected_prev = h_expected
 
                 np.testing.assert_array_equal(
-                    h.numpy(),
-                    h_expected,
-                    err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}",
+                    h.numpy(), h_expected, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
                 np.testing.assert_array_equal(
-                    h_prev.numpy(),
-                    h_expected_prev,
-                    err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}",
+                    h_prev.numpy(), h_expected_prev, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
 
 
@@ -280,14 +264,10 @@ class test_ResidualConnectionDenseNet(ut.TestCase):
                     h_expected_prev = h_expected
 
                 np.testing.assert_array_equal(
-                    h.numpy(),
-                    h_expected,
-                    err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}",
+                    h.numpy(), h_expected, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
                 np.testing.assert_array_equal(
-                    h_prev.numpy(),
-                    h_expected_prev,
-                    err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}",
+                    h_prev.numpy(), h_expected_prev, err_msg=f"Error at: skip_steps={skip_steps}, ii={ii}"
                 )
 
 

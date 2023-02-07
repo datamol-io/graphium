@@ -36,29 +36,19 @@ class test_dict_tensor(ut.TestCase):
         # Check `DictTensor.func` returns right value
         self.assertDictEqual(dict_ten.shape, {k: v.shape for k, v in dict_ten.items()})
         self._assert_dict_tensor_equal(
-            dict_ten.pinverse(),
-            {k: v.pinverse() for k, v in dict_ten.items()},
-            msg="dict_ten.pinverse()",
+            dict_ten.pinverse(), {k: v.pinverse() for k, v in dict_ten.items()}, msg="dict_ten.pinverse()"
         )
         self._assert_dict_tensor_equal(
-            dict_ten.sum(),
-            {k: v.sum() for k, v in dict_ten.items()},
-            msg="dict_ten.sum()",
+            dict_ten.sum(), {k: v.sum() for k, v in dict_ten.items()}, msg="dict_ten.sum()"
         )
         self._assert_dict_tensor_equal(
-            dict_ten.sum(axis=0),
-            {k: v.sum(axis=0) for k, v in dict_ten.items()},
-            msg="dict_ten.sum(axis=0)",
+            dict_ten.sum(axis=0), {k: v.sum(axis=0) for k, v in dict_ten.items()}, msg="dict_ten.sum(axis=0)"
         )
         self._assert_dict_tensor_equal(
-            dict_ten.sum(0),
-            {k: v.sum(0) for k, v in dict_ten.items()},
-            msg="dict_ten.sum(0)",
+            dict_ten.sum(0), {k: v.sum(0) for k, v in dict_ten.items()}, msg="dict_ten.sum(0)"
         )
         self._assert_dict_tensor_equal(
-            dict_ten.sum(axis=1),
-            {k: v.sum(axis=1) for k, v in dict_ten.items()},
-            msg="dict_ten.sum(axis=1)",
+            dict_ten.sum(axis=1), {k: v.sum(axis=1) for k, v in dict_ten.items()}, msg="dict_ten.sum(axis=1)"
         )
         self._assert_dict_tensor_equal(
             dict_ten.to(dtype=int),
@@ -248,130 +238,82 @@ class test_dict_tensor(ut.TestCase):
         # Check product, division, sum, subtraction by a constant
         FACTOR = 0.5
         self._assert_dict_tensor_equal(
-            dict_ten * FACTOR,
-            {k: FACTOR * v for k, v in dict_ten.items()},
-            msg="DT * factor",
+            dict_ten * FACTOR, {k: FACTOR * v for k, v in dict_ten.items()}, msg="DT * factor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR * dict_ten,
-            {k: FACTOR * v for k, v in dict_ten.items()},
-            msg="factor * DT",
+            FACTOR * dict_ten, {k: FACTOR * v for k, v in dict_ten.items()}, msg="factor * DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten + FACTOR,
-            {k: FACTOR + v for k, v in dict_ten.items()},
-            msg="DT + factor",
+            dict_ten + FACTOR, {k: FACTOR + v for k, v in dict_ten.items()}, msg="DT + factor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR + dict_ten,
-            {k: FACTOR + v for k, v in dict_ten.items()},
-            msg="factor + DT",
+            FACTOR + dict_ten, {k: FACTOR + v for k, v in dict_ten.items()}, msg="factor + DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten - FACTOR,
-            {k: v - FACTOR for k, v in dict_ten.items()},
-            msg="DT - factor",
+            dict_ten - FACTOR, {k: v - FACTOR for k, v in dict_ten.items()}, msg="DT - factor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR - dict_ten,
-            {k: FACTOR - v for k, v in dict_ten.items()},
-            msg="factor - DT",
+            FACTOR - dict_ten, {k: FACTOR - v for k, v in dict_ten.items()}, msg="factor - DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten / FACTOR,
-            {k: v / FACTOR for k, v in dict_ten.items()},
-            msg="DT / factor",
+            dict_ten / FACTOR, {k: v / FACTOR for k, v in dict_ten.items()}, msg="DT / factor"
         )
         self._assert_dict_tensor_equal(
-            dict_ten // FACTOR,
-            {k: v // FACTOR for k, v in dict_ten.items()},
-            msg="DT // factor",
+            dict_ten // FACTOR, {k: v // FACTOR for k, v in dict_ten.items()}, msg="DT // factor"
         )
 
         # Check product, division, sum, subtraction by a Tensor of shape [6]
         FACTOR = torch.rand(6)
         self._assert_dict_tensor_equal(
-            dict_ten * FACTOR,
-            {k: FACTOR * v for k, v in dict_ten.items()},
-            msg="DT * tensor",
+            dict_ten * FACTOR, {k: FACTOR * v for k, v in dict_ten.items()}, msg="DT * tensor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR * dict_ten,
-            {k: FACTOR * v for k, v in dict_ten.items()},
-            msg="tensor * DT",
+            FACTOR * dict_ten, {k: FACTOR * v for k, v in dict_ten.items()}, msg="tensor * DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten + FACTOR,
-            {k: FACTOR + v for k, v in dict_ten.items()},
-            msg="DT + tensor",
+            dict_ten + FACTOR, {k: FACTOR + v for k, v in dict_ten.items()}, msg="DT + tensor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR + dict_ten,
-            {k: FACTOR + v for k, v in dict_ten.items()},
-            msg="tensor + DT",
+            FACTOR + dict_ten, {k: FACTOR + v for k, v in dict_ten.items()}, msg="tensor + DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten - FACTOR,
-            {k: v - FACTOR for k, v in dict_ten.items()},
-            msg="DT - tensor",
+            dict_ten - FACTOR, {k: v - FACTOR for k, v in dict_ten.items()}, msg="DT - tensor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR - dict_ten,
-            {k: FACTOR - v for k, v in dict_ten.items()},
-            msg="tensor - DT",
+            FACTOR - dict_ten, {k: FACTOR - v for k, v in dict_ten.items()}, msg="tensor - DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten / FACTOR,
-            {k: v / FACTOR for k, v in dict_ten.items()},
-            msg="DT / tensor",
+            dict_ten / FACTOR, {k: v / FACTOR for k, v in dict_ten.items()}, msg="DT / tensor"
         )
         self._assert_dict_tensor_equal(
-            dict_ten // FACTOR,
-            {k: v // FACTOR for k, v in dict_ten.items()},
-            msg="DT // tensor",
+            dict_ten // FACTOR, {k: v // FACTOR for k, v in dict_ten.items()}, msg="DT // tensor"
         )
 
         # Check product, division, sum, subtraction by a Tensor of shape [5, 6]
         FACTOR = torch.rand(5, 6)
         self._assert_dict_tensor_equal(
-            dict_ten * FACTOR,
-            {k: FACTOR * v for k, v in dict_ten.items()},
-            msg="DT * tensor",
+            dict_ten * FACTOR, {k: FACTOR * v for k, v in dict_ten.items()}, msg="DT * tensor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR * dict_ten,
-            {k: FACTOR * v for k, v in dict_ten.items()},
-            msg="tensor * DT",
+            FACTOR * dict_ten, {k: FACTOR * v for k, v in dict_ten.items()}, msg="tensor * DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten + FACTOR,
-            {k: FACTOR + v for k, v in dict_ten.items()},
-            msg="DT + tensor",
+            dict_ten + FACTOR, {k: FACTOR + v for k, v in dict_ten.items()}, msg="DT + tensor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR + dict_ten,
-            {k: FACTOR + v for k, v in dict_ten.items()},
-            msg="tensor + DT",
+            FACTOR + dict_ten, {k: FACTOR + v for k, v in dict_ten.items()}, msg="tensor + DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten - FACTOR,
-            {k: v - FACTOR for k, v in dict_ten.items()},
-            msg="DT - tensor",
+            dict_ten - FACTOR, {k: v - FACTOR for k, v in dict_ten.items()}, msg="DT - tensor"
         )
         self._assert_dict_tensor_equal(
-            FACTOR - dict_ten,
-            {k: FACTOR - v for k, v in dict_ten.items()},
-            msg="tensor - DT",
+            FACTOR - dict_ten, {k: FACTOR - v for k, v in dict_ten.items()}, msg="tensor - DT"
         )
         self._assert_dict_tensor_equal(
-            dict_ten / FACTOR,
-            {k: v / FACTOR for k, v in dict_ten.items()},
-            msg="DT / tensor",
+            dict_ten / FACTOR, {k: v / FACTOR for k, v in dict_ten.items()}, msg="DT / tensor"
         )
         self._assert_dict_tensor_equal(
-            dict_ten // FACTOR,
-            {k: v // FACTOR for k, v in dict_ten.items()},
-            msg="DT // tensor",
+            dict_ten // FACTOR, {k: v // FACTOR for k, v in dict_ten.items()}, msg="DT // tensor"
         )
 
     def test_comparison_operators(self):
@@ -398,37 +340,25 @@ class test_dict_tensor(ut.TestCase):
             dict_ten <= 0.2, {k: v <= 0.2 for k, v in dict_ten.items()}, msg="DT <= 0.2"
         )
         self._assert_dict_tensor_equal(
-            dict_ten.to(int) == 0,
-            {k: v.to(int) == 0 for k, v in dict_ten.items()},
-            msg="DT.int == 0",
+            dict_ten.to(int) == 0, {k: v.to(int) == 0 for k, v in dict_ten.items()}, msg="DT.int == 0"
         )
         self._assert_dict_tensor_equal(
-            dict_ten.to(int) != 0,
-            {k: v.to(int) != 0 for k, v in dict_ten.items()},
-            msg="DT.int != 0",
+            dict_ten.to(int) != 0, {k: v.to(int) != 0 for k, v in dict_ten.items()}, msg="DT.int != 0"
         )
 
         # Comparison operators with Tensor
         tensor = torch.rand(5, 6)
         self._assert_dict_tensor_equal(
-            dict_ten > tensor,
-            {k: v > tensor for k, v in dict_ten.items()},
-            msg="DT > DT2",
+            dict_ten > tensor, {k: v > tensor for k, v in dict_ten.items()}, msg="DT > DT2"
         )
         self._assert_dict_tensor_equal(
-            dict_ten < tensor,
-            {k: v < tensor for k, v in dict_ten.items()},
-            msg="DT < DT2",
+            dict_ten < tensor, {k: v < tensor for k, v in dict_ten.items()}, msg="DT < DT2"
         )
         self._assert_dict_tensor_equal(
-            dict_ten >= tensor,
-            {k: v >= tensor for k, v in dict_ten.items()},
-            msg="DT >= DT2",
+            dict_ten >= tensor, {k: v >= tensor for k, v in dict_ten.items()}, msg="DT >= DT2"
         )
         self._assert_dict_tensor_equal(
-            dict_ten <= tensor,
-            {k: v <= tensor for k, v in dict_ten.items()},
-            msg="DT <= DT2",
+            dict_ten <= tensor, {k: v <= tensor for k, v in dict_ten.items()}, msg="DT <= DT2"
         )
         self._assert_dict_tensor_equal(
             dict_ten.to(int) == tensor,
@@ -443,24 +373,16 @@ class test_dict_tensor(ut.TestCase):
 
         # Comparison operators with DictTensor
         self._assert_dict_tensor_equal(
-            dict_ten > dict_ten2,
-            {k: v > dict_ten2[k] for k, v in dict_ten.items()},
-            msg="DT > DT2",
+            dict_ten > dict_ten2, {k: v > dict_ten2[k] for k, v in dict_ten.items()}, msg="DT > DT2"
         )
         self._assert_dict_tensor_equal(
-            dict_ten < dict_ten2,
-            {k: v < dict_ten2[k] for k, v in dict_ten.items()},
-            msg="DT < DT2",
+            dict_ten < dict_ten2, {k: v < dict_ten2[k] for k, v in dict_ten.items()}, msg="DT < DT2"
         )
         self._assert_dict_tensor_equal(
-            dict_ten >= dict_ten2,
-            {k: v >= dict_ten2[k] for k, v in dict_ten.items()},
-            msg="DT >= DT2",
+            dict_ten >= dict_ten2, {k: v >= dict_ten2[k] for k, v in dict_ten.items()}, msg="DT >= DT2"
         )
         self._assert_dict_tensor_equal(
-            dict_ten <= dict_ten2,
-            {k: v <= dict_ten2[k] for k, v in dict_ten.items()},
-            msg="DT <= DT2",
+            dict_ten <= dict_ten2, {k: v <= dict_ten2[k] for k, v in dict_ten.items()}, msg="DT <= DT2"
         )
         self._assert_dict_tensor_equal(
             dict_ten.to(int) == dict_ten2,

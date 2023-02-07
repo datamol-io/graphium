@@ -63,10 +63,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = auroc_ipu(preds, target, num_classes=1)
         self.assertFalse(score_true.isnan(), "Regular AUROC score is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Regular AUROC score is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Regular AUROC score is different"
         )
 
         # Weighted loss (As in BCE)
@@ -83,20 +80,13 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Regular AUROC score with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Regular AUROCIPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Regular AUROC score with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Regular AUROC score with NaN is different"
         )
 
         # Weighted loss with NaNs in target (As in BCE)
         not_nan = ~target_nan.isnan()
         sample_weights = torch.rand(preds.shape, dtype=torch.float32)
-        loss_true = auroc(
-            preds[not_nan],
-            target_nan[not_nan].to(int),
-            sample_weights=sample_weights[not_nan],
-        )
+        loss_true = auroc(preds[not_nan], target_nan[not_nan].to(int), sample_weights=sample_weights[not_nan])
         loss_ipu = auroc_ipu(preds, target_nan, sample_weights=sample_weights)
         self.assertFalse(loss_true.isnan(), "Weighted AUROC score with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Weighted AUROC IPU score with target_nan is NaN")
@@ -124,10 +114,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = average_precision_ipu(preds, target, num_classes=1)
         self.assertFalse(score_true.isnan(), "Regular Average Precision is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Regular Average Precision is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Regular Average Precision is different"
         )
 
         # Regular average precision with NaNs in target
@@ -135,10 +122,7 @@ class test_Metrics(ut.TestCase):
         score_true = average_precision(preds[not_nan], target[not_nan].to(int), num_classes=1)
         score_ipu = average_precision_ipu(preds, target_nan, num_classes=1)
         self.assertFalse(score_true.isnan(), "Regular Average Precision with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Regular Average Precision IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Regular Average Precision IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -166,10 +150,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = precision_ipu(preds[:, 0], target > 0, average="micro")
         self.assertFalse(score_true.isnan(), "Micro Precision binary is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Precision binary is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Precision binary is different"
         )
 
         # Micro precision binary with NaNs in target
@@ -179,10 +160,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Precision binary with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Precision binary IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Precision with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Precision with NaN is different"
         )
 
         # Micro precision
@@ -190,10 +168,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = precision_ipu(preds, target, average="micro")
         self.assertFalse(score_true.isnan(), "Micro Precision is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Precision is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Precision is different"
         )
 
         # Micro precision with NaNs in target
@@ -203,10 +178,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Precision with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Precision IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Precision with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Precision with NaN is different"
         )
 
         # Macro precision
@@ -214,10 +186,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = precision_ipu(preds, target, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro Precision is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Macro Precision is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Precision is different"
         )
 
         # Macro precision multiclass with NaNs in target
@@ -225,10 +194,7 @@ class test_Metrics(ut.TestCase):
         score_true = precision(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
         score_ipu = precision_ipu(preds, target_nan, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro Precision multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Macro Precision multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Macro Precision multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -241,10 +207,7 @@ class test_Metrics(ut.TestCase):
         score_true = precision(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
         score_ipu = precision_ipu(preds, target_nan, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro Precision multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Macro Precision multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Macro Precision multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -257,10 +220,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = precision_ipu(preds, target, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Precision multiclass is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Weighted Precision multiclass is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted Precision multiclass is different"
         )
 
         # Weighted precision multiclass with NaNs in target
@@ -268,10 +228,7 @@ class test_Metrics(ut.TestCase):
         score_true = precision(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4)
         score_ipu = precision_ipu(preds, target_nan, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Precision multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Weighted Precision multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Weighted Precision multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -299,10 +256,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = accuracy_ipu(preds[:, 0], target > 0, average="micro")
         self.assertFalse(score_true.isnan(), "Micro Accuracy binary is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Accuracy binary is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy binary is different"
         )
 
         # Micro accuracy binary with NaNs in target
@@ -312,10 +266,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Accuracy binary with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Accuracy binary IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Accuracy with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy with NaN is different"
         )
 
         # Micro accuracy
@@ -323,10 +274,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = accuracy_ipu(preds, target, average="micro")
         self.assertFalse(score_true.isnan(), "Micro Accuracy is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Accuracy is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy is different"
         )
 
         # Micro accuracy with NaNs in target
@@ -336,10 +284,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Accuracy with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Accuracy with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Accuracy with NaN is different"
         )
 
         # Macro accuracy
@@ -347,10 +292,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = accuracy_ipu(preds, target, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro Accuracy is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Macro Accuracy is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Accuracy is different"
         )
 
         # Macro accuracy with NaNs in target
@@ -360,10 +302,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Macro Accuracy with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Macro Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Macro Accuracy with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Accuracy with NaN is different"
         )
 
         # Weighted accuracy
@@ -371,10 +310,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = accuracy_ipu(preds, target, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Accuracy is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Weighted Accuracy is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted Accuracy is different"
         )
 
         # Weighted accuracy with NaNs in target
@@ -384,10 +320,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Weighted Accuracy with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Weighted Accuracy IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Regular Accuracy with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Regular Accuracy with NaN is different"
         )
 
     def test_recall(self):
@@ -410,10 +343,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = recall_ipu(preds[:, 0], target > 0, average="micro")
         self.assertFalse(score_true.isnan(), "Micro Recall binary is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Recall binary is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Recall binary is different"
         )
 
         # Micro recall binary with NaNs in target
@@ -423,22 +353,14 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Recall binary with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Recall binary IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Recall binary with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Recall binary with NaN is different"
         )
 
         # Micro recall
         score_true = recall(preds, target.to(int), average="micro")
         score_ipu = recall_ipu(preds, target, average="micro")
         self.assertFalse(score_true.isnan(), "Micro Recall is NaN")
-        self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Recall is different",
-        )
+        self.assertAlmostEqual(score_true.item(), score_ipu.item(), places=6, msg="Micro Recall is different")
 
         # Micro recall with NaNs in target
         not_nan = ~target_nan.isnan()
@@ -447,10 +369,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro Recall with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro Recall IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro Recall with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro Recall with NaN is different"
         )
 
         # Macro recall multiclass
@@ -458,10 +377,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = recall_ipu(preds, target, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro Recall is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Macro Recall multiclass is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Recall multiclass is different"
         )
 
         # Macro recall multiclass with NaNs in target
@@ -469,15 +385,9 @@ class test_Metrics(ut.TestCase):
         score_true = recall(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
         score_ipu = recall_ipu(preds, target_nan, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro Recall multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Macro Recall multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Macro Recall multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Macro Recall multiclass with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Macro Recall multiclass with NaN is different"
         )
 
         # Weighted recallmulticlass
@@ -485,10 +395,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = recall_ipu(preds, target, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Recall is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Weighted Recall is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted Recall is different"
         )
 
         # Weighted recall multiclass with NaNs in target
@@ -496,10 +403,7 @@ class test_Metrics(ut.TestCase):
         score_true = recall(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4)
         score_ipu = recall_ipu(preds, target_nan, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted Recall multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Weighted Recall multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Weighted Recall multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -526,10 +430,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Regular PearsonR with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "IPU PearsonR score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=4,
-            msg="Pearson with NaN is different",
+            score_true.item(), score_ipu.item(), places=4, msg="Pearson with NaN is different"
         )
 
     def test_spearmanr(self):
@@ -551,10 +452,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Regular Spearman with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "IPU Spearman score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=4,
-            msg="Spearman with NaN is different",
+            score_true.item(), score_ipu.item(), places=4, msg="Spearman with NaN is different"
         )
 
     def test_r2_score(self):
@@ -574,20 +472,12 @@ class test_Metrics(ut.TestCase):
         score_ipu = r2_score_ipu(preds, target_nan, multioutput="raw_values")
         for ii in range(preds.shape[1]):
             score_true = r2_score(
-                preds[:, ii][not_nan[:, ii]],
-                target_nan[:, ii][not_nan[:, ii]],
-                multioutput="raw_values",
+                preds[:, ii][not_nan[:, ii]], target_nan[:, ii][not_nan[:, ii]], multioutput="raw_values"
             )
             self.assertFalse(score_true.isnan().any(), f"{ii}: r2_score with target_nan is NaN")
-            self.assertFalse(
-                score_ipu[ii].isnan().any(),
-                f"{ii}: IPU r2_score with target_nan is NaN",
-            )
+            self.assertFalse(score_ipu[ii].isnan().any(), f"{ii}: IPU r2_score with target_nan is NaN")
             self.assertAlmostEqual(
-                score_true.item(),
-                score_ipu[ii].item(),
-                places=4,
-                msg=f"{ii}: r2_score with NaN is different",
+                score_true.item(), score_ipu[ii].item(), places=4, msg=f"{ii}: r2_score with NaN is different"
             )
 
     def test_fbeta_score(self):
@@ -610,26 +500,17 @@ class test_Metrics(ut.TestCase):
         score_ipu = fbeta_score_ipu(preds[:, 0], target > 0, average="micro", beta=0.5)
         self.assertFalse(score_true.isnan(), "Micro FBETA_score binary is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro FBETA_score binary is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro FBETA_score binary is different"
         )
 
         # Micro fbeta_score binary with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = fbeta_score(
-            preds[:, 0][not_nan],
-            target_nan_bin[not_nan].to(int),
-            average="micro",
-            beta=0.5,
+            preds[:, 0][not_nan], target_nan_bin[not_nan].to(int), average="micro", beta=0.5
         )
         score_ipu = fbeta_score_ipu(preds[:, 0], target_nan_bin, average="micro", beta=0.5)
         self.assertFalse(score_true.isnan(), "Micro FBETA_score binary with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Micro FBETA_score binary IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Micro FBETA_score binary IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -642,10 +523,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = fbeta_score_ipu(preds, target, average="micro", beta=0.5)
         self.assertFalse(score_true.isnan(), "Micro FBETA_score is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro FBETA_score is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro FBETA_score is different"
         )
 
         # Micro fbeta_score with NaNs in target
@@ -655,10 +533,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro FBETA_score with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro FBETA_score IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro FBETA_score with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro FBETA_score with NaN is different"
         )
 
         # Macro fbeta_score multiclass
@@ -666,27 +541,17 @@ class test_Metrics(ut.TestCase):
         score_ipu = fbeta_score_ipu(preds, target, average="macro", num_classes=4, beta=0.5)
         self.assertFalse(score_true.isnan(), "Macro FBETA_score is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Macro FBETA_score multiclass is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Macro FBETA_score multiclass is different"
         )
 
         # Macro fbeta_score multiclass with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = fbeta_score(
-            preds[not_nan],
-            target[not_nan].to(int),
-            average="macro",
-            num_classes=4,
-            beta=0.5,
+            preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4, beta=0.5
         )
         score_ipu = fbeta_score_ipu(preds, target_nan, average="macro", num_classes=4, beta=0.5)
         self.assertFalse(score_true.isnan(), "Macro FBETA_score multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Macro FBETA_score multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Macro FBETA_score multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -699,26 +564,18 @@ class test_Metrics(ut.TestCase):
         score_ipu = fbeta_score_ipu(preds, target, average="weighted", num_classes=4, beta=0.5)
         self.assertFalse(score_true.isnan(), "Weighted FBETA_score is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Weighted FBETA_score is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted FBETA_score is different"
         )
 
         # Weighted fbeta_score multiclass with NaNs in target
         not_nan = ~target_nan.isnan()
         score_true = fbeta_score(
-            preds[not_nan],
-            target[not_nan].to(int),
-            average="weighted",
-            num_classes=4,
-            beta=0.5,
+            preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4, beta=0.5
         )
         score_ipu = fbeta_score_ipu(preds, target_nan, average="weighted", num_classes=4, beta=0.5)
         self.assertFalse(score_true.isnan(), "Weighted FBETA_score multiclass with target_nan is NaN")
         self.assertFalse(
-            score_ipu.isnan(),
-            "Weighted FBETA_score multiclass IPU score with target_nan is NaN",
+            score_ipu.isnan(), "Weighted FBETA_score multiclass IPU score with target_nan is NaN"
         )
         self.assertAlmostEqual(
             score_true.item(),
@@ -747,10 +604,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = f1_score_ipu(preds[:, 0], target > 0, average="micro")
         self.assertFalse(score_true.isnan(), "Micro F1_score binary is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro F1_score binary is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score binary is different"
         )
 
         # Micro f1_score binary with NaNs in target
@@ -760,10 +614,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro F1_score binary with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro F1_score binary IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro F1_score binary with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score binary with NaN is different"
         )
 
         # Micro f1_score
@@ -771,10 +622,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = f1_score_ipu(preds, target, average="micro")
         self.assertFalse(score_true.isnan(), "Micro F1_score is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro F1_score is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score is different"
         )
 
         # Micro f1_score with NaNs in target
@@ -784,10 +632,7 @@ class test_Metrics(ut.TestCase):
         self.assertFalse(score_true.isnan(), "Micro F1_score with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Micro F1_score IPU score with target_nan is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Micro F1_score with NaN is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Micro F1_score with NaN is different"
         )
 
         # Macro f1_score multiclass
@@ -795,10 +640,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = f1_score_ipu(preds, target, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro F1_score is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Macro F1_score multiclass is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Macro F1_score multiclass is different"
         )
 
         # Macro f1_score multiclass with NaNs in target
@@ -806,10 +648,7 @@ class test_Metrics(ut.TestCase):
         score_true = f1_score(preds[not_nan], target[not_nan].to(int), average="macro", num_classes=4)
         score_ipu = f1_score_ipu(preds, target_nan, average="macro", num_classes=4)
         self.assertFalse(score_true.isnan(), "Macro F1_score multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Macro F1_score multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Macro F1_score multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -822,10 +661,7 @@ class test_Metrics(ut.TestCase):
         score_ipu = f1_score_ipu(preds, target, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted F1_score is NaN")
         self.assertAlmostEqual(
-            score_true.item(),
-            score_ipu.item(),
-            places=6,
-            msg="Weighted F1_score is different",
+            score_true.item(), score_ipu.item(), places=6, msg="Weighted F1_score is different"
         )
 
         # Weighted f1_score multiclass with NaNs in target
@@ -833,10 +669,7 @@ class test_Metrics(ut.TestCase):
         score_true = f1_score(preds[not_nan], target[not_nan].to(int), average="weighted", num_classes=4)
         score_ipu = f1_score_ipu(preds, target_nan, average="weighted", num_classes=4)
         self.assertFalse(score_true.isnan(), "Weighted F1_score multiclass with target_nan is NaN")
-        self.assertFalse(
-            score_ipu.isnan(),
-            "Weighted F1_score multiclass IPU score with target_nan is NaN",
-        )
+        self.assertFalse(score_ipu.isnan(), "Weighted F1_score multiclass IPU score with target_nan is NaN")
         self.assertAlmostEqual(
             score_true.item(),
             score_ipu.item(),
@@ -855,10 +688,7 @@ class test_Metrics(ut.TestCase):
         loss_ipu = mean_squared_error_ipu(preds=preds, target=target, squared=squared)
         self.assertFalse(loss_true.isnan(), "Regular Mean Squared Error is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular Mean Squared Error is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular Mean Squared Error is different"
         )
 
         # Regular loss with NaNs in target
@@ -881,10 +711,7 @@ class test_Metrics(ut.TestCase):
         loss_ipu = mean_squared_error_ipu(preds=preds, target=target, squared=squared)
         self.assertFalse(loss_true.isnan(), "Regular Mean Squared Error is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular Mean Squared Error is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular Mean Squared Error is different"
         )
 
         # Regular loss with NaNs in target
@@ -910,10 +737,7 @@ class test_Metrics(ut.TestCase):
         loss_ipu = mean_absolute_error_ipu(preds=preds, target=target)
         self.assertFalse(loss_true.isnan(), "Regular Mean Absolute Error is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular Mean Absolute Error is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular Mean Absolute Error is different"
         )
 
         # Regular loss with NaNs in target

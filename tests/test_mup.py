@@ -10,12 +10,7 @@ import yaml
 
 from torch_geometric.data import Batch, Data
 
-from goli.nn.architectures import (
-    FeedForwardNN,
-    FeedForwardPyg,
-    FullGraphNetwork,
-    FullGraphMultiTaskNetwork,
-)
+from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphNetwork, FullGraphMultiTaskNetwork
 
 
 def get_pyg_graphs(in_dim, in_dim_edges):
@@ -78,11 +73,7 @@ class test_mup(ut.TestCase):
         for key in kwargs_2_lastreadout.keys():
             if isinstance(kwargs_2_lastreadout[key], nn.Module):
                 # Can't match the random weights
-                self.assertEqual(
-                    str(kwargs_2_lastreadout[key]),
-                    str(base_2_lastreadout[key]),
-                    msg=key,
-                )
+                self.assertEqual(str(kwargs_2_lastreadout[key]), str(base_2_lastreadout[key]), msg=key)
             else:
                 self.assertEqual(kwargs_2_lastreadout[key], base_2_lastreadout[key], msg=key)
 
@@ -127,11 +118,7 @@ class test_mup(ut.TestCase):
         for key in kwargs_2_lastreadout.keys():
             if isinstance(kwargs_2_lastreadout[key], nn.Module):
                 # Can't match the random weights
-                self.assertEqual(
-                    str(kwargs_2_lastreadout[key]),
-                    str(base_2_lastreadout[key]),
-                    msg=key,
-                )
+                self.assertEqual(str(kwargs_2_lastreadout[key]), str(base_2_lastreadout[key]), msg=key)
             else:
                 self.assertEqual(kwargs_2_lastreadout[key], base_2_lastreadout[key], msg=key)
 
@@ -315,11 +302,7 @@ class test_mup(ut.TestCase):
                             "task_heads_kwargs:in_dim",
                         ]:
                             # Divide by 2
-                            self.assertEqual(
-                                round(subsubelem / 2),
-                                kw_2[key][subkey][subsubkey],
-                                msg=match,
-                            )
+                            self.assertEqual(round(subsubelem / 2), kw_2[key][subkey][subsubkey], msg=match)
                         elif match in [
                             "task_heads_kwargs:hidden_dims",
                             "task_heads_kwargs:hidden_dims",

@@ -30,12 +30,7 @@ def main():
         "double-bond",
         "radical-electron",
     ]
-    atom_property_list_float2 = [
-        "electronegativity",
-        "vdw-radius",
-        "covalent-radius",
-        "metal",
-    ]
+    atom_property_list_float2 = ["electronegativity", "vdw-radius", "covalent-radius", "metal"]
 
     featurizer = {
         "atom_property_list_onehot": ["atomic-number", "valence"],

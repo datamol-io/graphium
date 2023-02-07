@@ -131,11 +131,7 @@ class test_DGL_Layers(ut.TestCase):
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = PNAConvolutionalDgl(
-            in_dim=self.in_dim,
-            out_dim=self.out_dim,
-            aggregators=aggregators,
-            scalers=scalers,
-            **self.kwargs,
+            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
         # Check the re-implementation of abstract methods
@@ -183,11 +179,7 @@ class test_DGL_Layers(ut.TestCase):
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = PNAMessagePassingDgl(
-            in_dim=self.in_dim,
-            out_dim=self.out_dim,
-            aggregators=aggregators,
-            scalers=scalers,
-            **self.kwargs,
+            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
         # Check the re-implementation of abstract methods
@@ -252,11 +244,7 @@ class test_DGL_Layers(ut.TestCase):
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = DGNConvolutionalDgl(
-            in_dim=self.in_dim,
-            out_dim=self.out_dim,
-            aggregators=aggregators,
-            scalers=scalers,
-            **self.kwargs,
+            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
         # Check the re-implementation of abstract methods
@@ -320,11 +308,7 @@ class test_DGL_Layers(ut.TestCase):
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = DGNMessagePassingDgl(
-            in_dim=self.in_dim,
-            out_dim=self.out_dim,
-            aggregators=aggregators,
-            scalers=scalers,
-            **self.kwargs,
+            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         ).to(float)
 
         # Check the re-implementation of abstract methods

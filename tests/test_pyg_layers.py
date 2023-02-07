@@ -163,11 +163,7 @@ class test_Pyg_Layers(ut.TestCase):
         scalers = ["identity", "amplification", "attenuation"]
 
         layer = PNAMessagePassingPyg(
-            in_dim=self.in_dim,
-            out_dim=self.out_dim,
-            aggregators=aggregators,
-            scalers=scalers,
-            **self.kwargs,
+            in_dim=self.in_dim, out_dim=self.out_dim, aggregators=aggregators, scalers=scalers, **self.kwargs
         )
 
         # Check the re-implementation of abstract methods

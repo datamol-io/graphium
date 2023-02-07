@@ -60,16 +60,8 @@ class test_nan_statistics(ut.TestCase):
 
                     # Prepare the arguments for numpy vs torch
                     if dim is not None:
-                        torch_kwargs = {
-                            "dim": dim,
-                            "keepdim": keepdim,
-                            "unbiased": unbiased,
-                        }
-                        numpy_kwargs = {
-                            "axis": dim,
-                            "keepdims": keepdim,
-                            "ddof": float(unbiased),
-                        }
+                        torch_kwargs = {"dim": dim, "keepdim": keepdim, "unbiased": unbiased}
+                        numpy_kwargs = {"axis": dim, "keepdims": keepdim, "ddof": float(unbiased)}
                     else:
                         torch_kwargs = {"unbiased": unbiased}
                         numpy_kwargs = {"ddof": float(unbiased)}
@@ -122,18 +114,10 @@ class test_nan_statistics(ut.TestCase):
                 # Prepare the arguments for numpy vs torch
                 if dim is not None:
                     torch_kwargs = {"dim": dim, "keepdim": False, "normal": normal}
-                    numpy_kwargs = {
-                        "axis": dim,
-                        "nan_policy": "omit",
-                        "scale": 1 / 1.4826 if normal else 1.0,
-                    }
+                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1 / 1.4826 if normal else 1.0}
                 else:
                     torch_kwargs = {"normal": normal}
-                    numpy_kwargs = {
-                        "axis": dim,
-                        "nan_policy": "omit",
-                        "scale": 1 / 1.4826 if normal else 1.0,
-                    }
+                    numpy_kwargs = {"axis": dim, "nan_policy": "omit", "scale": 1 / 1.4826 if normal else 1.0}
 
                 # Compare the nan-median
                 torch_mad = nan_mad(tensor, **torch_kwargs)

@@ -31,10 +31,7 @@ class test_Losses(ut.TestCase):
         loss_ipu = BCELossIPU()(preds, target)
         self.assertFalse(loss_true.isnan(), "Regular BCELoss is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular BCELoss is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular BCELoss is different"
         )
 
         # Weighted loss
@@ -51,10 +48,7 @@ class test_Losses(ut.TestCase):
         self.assertFalse(loss_true.isnan(), "Regular BCELoss with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Regular BCELossIPU with target_nan is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular BCELoss with NaN is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular BCELoss with NaN is different"
         )
 
         # Weighted loss with NaNs in target
@@ -65,10 +59,7 @@ class test_Losses(ut.TestCase):
         self.assertFalse(loss_true.isnan(), "Weighted BCELoss with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Weighted BCELossIPU with target_nan is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Weighted BCELoss with NaN is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Weighted BCELoss with NaN is different"
         )
 
     def test_mse(self):
@@ -81,10 +72,7 @@ class test_Losses(ut.TestCase):
         loss_ipu = MSELossIPU()(preds, target)
         self.assertFalse(loss_true.isnan(), "Regular MSELoss is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular MSELoss is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss is different"
         )
 
         # Regular loss with NaNs in target
@@ -94,10 +82,7 @@ class test_Losses(ut.TestCase):
         self.assertFalse(loss_true.isnan(), "Regular MSELoss with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Regular MSELossIPU with target_nan is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular MSELoss with NaN is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss with NaN is different"
         )
 
     def test_l1(self):
@@ -110,10 +95,7 @@ class test_Losses(ut.TestCase):
         loss_ipu = L1LossIPU()(preds, target)
         self.assertFalse(loss_true.isnan(), "Regular MSELoss is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular MSELoss is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss is different"
         )
 
         # Regular loss with NaNs in target
@@ -123,8 +105,5 @@ class test_Losses(ut.TestCase):
         self.assertFalse(loss_true.isnan(), "Regular MSELoss with target_nan is NaN")
         self.assertFalse(loss_ipu.isnan(), "Regular MSELossIPU with target_nan is NaN")
         self.assertAlmostEqual(
-            loss_true.item(),
-            loss_ipu.item(),
-            places=6,
-            msg="Regular MSELoss with NaN is different",
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss with NaN is different"
         )
