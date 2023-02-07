@@ -279,12 +279,7 @@ class MPNNPlusPyg(BaseGraphModule):
         # message + aggregate
         node_count_per_pack = batch.h.shape[-2]
         node_model_input = self.aggregate_features(
-            batch.edge_attr,
-            senders,
-            receivers,
-            sender_nodes,
-            receiver_nodes,
-            node_count_per_pack,
+            batch.edge_attr, senders, receivers, sender_nodes, receiver_nodes, node_count_per_pack
         )
         node_model_input.append(batch.h)
         batch.h = torch.cat([node_model_input[0], node_model_input[1]], dim=-1)

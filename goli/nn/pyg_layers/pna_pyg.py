@@ -173,11 +173,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         return self.pretrans(h)  # No more towers
 
     def aggregate(
-        self,
-        inputs: Tensor,
-        index: Tensor,
-        edge_index: Tensor,
-        dim_size: Optional[int] = None,
+        self, inputs: Tensor, index: Tensor, edge_index: Tensor, dim_size: Optional[int] = None
     ) -> Tensor:
         outs = []
 

@@ -89,11 +89,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.E = FCLayer(in_dim, out_dim, activation=None, bias=True)
 
         self.edge_out = FCLayer(
-            in_dim=out_dim,
-            out_dim=out_dim_edges,
-            activation=None,
-            dropout=dropout,
-            bias=True,
+            in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True
         )
 
     def forward(self, batch: Union[Data, Batch]):
