@@ -7,5 +7,3 @@ torch-sparse==0.6.15
 dgl
 torchvision==0.14.0+cpu
 git+https://github.com/joao-alex-cunha/lightning
-
--r ./requirements.txt
