@@ -66,9 +66,6 @@ source PATH_TO_SDK/enable
 # Install the IPU specific and goli requirements
 PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
 
-# Install the requirements
-pip install -r requirements.txt
-
 # Install Goli in dev mode
 pip install -e .
 ```

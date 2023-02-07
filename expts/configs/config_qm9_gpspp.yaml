@@ -76,8 +76,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 30
-    batch_size_inference: 30
+    batch_size_training: 6
+    batch_size_inference: 6
     # cache_data_path: null
 
     num_workers: -1
@@ -143,7 +143,7 @@ architecture:
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 64
     hidden_dims: 64
-    depth: 16
+    depth: 4
     activation: gelu
     last_activation: none
     dropout: 0.0
