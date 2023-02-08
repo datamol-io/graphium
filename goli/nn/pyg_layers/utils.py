@@ -51,10 +51,10 @@ class Preprocess3DPositions(nn.Module):
                 If model rus on IPU.
         """
 
-        pos = batch.positions_3d # uncomment this when 3D positions are available
-        #pos = torch.rand(
+        pos = batch.positions_3d  # uncomment this when 3D positions are available
+        # pos = torch.rand(
         #    batch.h.size()[0], 3, device=batch.h.device.type
-        #)  # remove this when 3D positions are available
+        # )  # remove this when 3D positions are available
         batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0]
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
