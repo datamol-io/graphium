@@ -147,6 +147,47 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
     return prop_dict
 
 
+def get_mol_conformer_features(
+    mol: dm.Mol,
+    property_list: Union[List[str], List[Callable]],
+    mask_nan: Union[str, float, type(None)] = "raise",
+) -> Dict[str, np.ndarray]:
+    """
+    Parameters:
+
+        mol:
+            molecule from which to extract the properties
+
+        property_list:
+            A list of conformer property to get from the molecule
+            Accepted properties are:
+            - "positions_3d"
+    """
+    has_conf = True
+    try:
+        mol.GetConformer()
+    except:
+        has_conf = False
+
+    prop_name = property_list[0]  # currently only supports positions_3d
+    # if (prop_name not in ["positions_3d"]):
+    #     print ("conformer property not found, ", prop_name)
+    positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
+
+    # * shape of 3d positions = num atom * 3
+    if has_conf:
+        for i in range(mol.GetNumAtoms()):
+            pos = mol.GetConformer().GetAtomPosition(i)
+            positions[i][0] = pos.x
+            positions[i][1] = pos.y
+            positions[i][2] = pos.z
+
+    prop_dict = {}
+    prop_dict[prop_name] = positions
+
+    return prop_dict
+
+
 def get_mol_atomic_features_float(
     mol: dm.Mol,
     property_list: Union[List[str], List[Callable]],
@@ -543,6 +584,7 @@ def mol_to_adj_and_features(
     mol: Union[str, dm.Mol],
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
+    conformer_property_list: List[str] = [],
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
@@ -557,6 +599,7 @@ def mol_to_adj_and_features(
     Union[np.ndarray, None],
     Dict[str, np.ndarray],
     Union[np.ndarray, None],
+    Dict[str, np.ndarray],
 ]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
@@ -578,6 +621,9 @@ def mol_to_adj_and_features(
             List of the properties used to get floating-point encoding of the atom type,
             such as the atomic mass or electronegativity.
             See function `get_mol_atomic_features_float`
+
+        conformer_property_list:
+            list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"
 
         edge_property_list:
             List of the properties used to encode the edges, such as the edge type
@@ -650,6 +696,9 @@ def mol_to_adj_and_features(
             This is used, for example, by `DGNConvolutionalLayer` to define
             the direction of the messages.
 
+        conf_dict:
+            contains the 3d positions of a conformer of the molecule or 0s if none is found
+
     """
 
     if isinstance(mol, str):
@@ -671,6 +720,7 @@ def mol_to_adj_and_features(
     # Get the node features
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
     atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float, mask_nan=mask_nan)
+    conf_dict = get_mol_conformer_features(mol, conformer_property_list, mask_nan=mask_nan)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
     ndata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in ndata]
 
@@ -701,7 +751,7 @@ def mol_to_adj_and_features(
     for pe_key in pe_dir_dict.keys():
         pe_dir_dict[pe_key] = _mask_nans_inf(mask_nan, pe_dir_dict[pe_key], pe_key)
 
-    return adj, ndata, edata, pe_dict, pe_dir_dict
+    return adj, ndata, edata, pe_dict, pe_dir_dict, conf_dict
 
 
 class GraphDict(dict):
@@ -816,6 +866,7 @@ def mol_to_graph_dict(
     mol: dm.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
+    conformer_property_list: List[str] = [],
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
@@ -849,6 +900,9 @@ def mol_to_graph_dict(
             List of the properties used to get floating-point encoding of the atom type,
             such as the atomic mass or electronegativity.
             See function `get_mol_atomic_features_float`
+
+        conformer_property_list:
+            list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"
 
         edge_property_list:
             List of the properties used to encode the edges, such as the edge type
@@ -933,10 +987,12 @@ def mol_to_graph_dict(
             edata,
             pe_dict,
             pe_dir_dict,
+            conf_dict,
         ) = mol_to_adj_and_features(
             mol=mol,
             atom_property_list_onehot=atom_property_list_onehot,
             atom_property_list_float=atom_property_list_float,
+            conformer_property_list=conformer_property_list,
             edge_property_list=edge_property_list,
             add_self_loop=add_self_loop,
             explicit_H=explicit_H,
@@ -958,6 +1014,7 @@ def mol_to_graph_dict(
         elif on_error.lower() == "ignore":
             return None
 
+    # dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
     dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
 
     # Assign the node data
@@ -985,6 +1042,10 @@ def mol_to_graph_dict(
     for key, pe in pe_dict.items():
         dgl_dict["ndata"][key] = pe
 
+    # put the conformer positions here
+    for key, val in conf_dict.items():
+        dgl_dict["ndata"][key] = val
+
     # Add positional encoding for directional use
     if (pe_dir_dict is not None) and (len(pe_dir_dict) > 0):
         pos_dir = np.concatenate(pe_dir_dict.values(), dim=-1)
@@ -998,6 +1059,7 @@ def mol_to_dglgraph(
     mol: dm.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
+    conformer_property_list: List[str] = [],
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
@@ -1030,6 +1092,10 @@ def mol_to_dglgraph(
             List of the properties used to get floating-point encoding of the atom type,
             such as the atomic mass or electronegativity.
             See function `get_mol_atomic_features_float`
+
+        conformer_property_list:
+            list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"
+
 
         edge_property_list:
             List of the properties used to encode the edges, such as the edge type
@@ -1091,6 +1157,7 @@ def mol_to_dglgraph(
         mol=mol,
         atom_property_list_onehot=atom_property_list_onehot,
         atom_property_list_float=atom_property_list_float,
+        conformer_property_list=conformer_property_list,
         edge_property_list=edge_property_list,
         add_self_loop=add_self_loop,
         explicit_H=explicit_H,
@@ -1115,6 +1182,7 @@ def mol_to_pyggraph(
     mol: dm.Mol,
     atom_property_list_onehot: List[str] = [],
     atom_property_list_float: List[Union[str, Callable]] = [],
+    conformer_property_list: List[str] = [],
     edge_property_list: List[str] = [],
     add_self_loop: bool = False,
     explicit_H: bool = False,
@@ -1147,6 +1215,9 @@ def mol_to_pyggraph(
             List of the properties used to get floating-point encoding of the atom type,
             such as the atomic mass or electronegativity.
             See function `get_mol_atomic_features_float`
+
+        conformer_property_list:
+            list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"
 
         edge_property_list:
             List of the properties used to encode the edges, such as the edge type
@@ -1207,6 +1278,7 @@ def mol_to_pyggraph(
         mol=mol,
         atom_property_list_onehot=atom_property_list_onehot,
         atom_property_list_float=atom_property_list_float,
+        conformer_property_list=conformer_property_list,
         edge_property_list=edge_property_list,
         add_self_loop=add_self_loop,
         explicit_H=explicit_H,
