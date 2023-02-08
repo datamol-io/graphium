@@ -723,12 +723,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         h_prev: Union[torch.Tensor, None],
         e_prev: Union[torch.Tensor, None],
         step_idx: int,
-    ) -> Tuple[
-        torch.Tensor,
-        Union[torch.Tensor, None],
-        Union[torch.Tensor, None],
-        Union[torch.Tensor, None],
-    ]:
+    ) -> Tuple[torch.Tensor, Union[torch.Tensor, None], Union[torch.Tensor, None], Union[torch.Tensor, None]]:
         r"""
         Apply the *i-th* graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.
@@ -816,11 +811,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _virtual_node_forward(
-        self,
-        g: Union[DGLGraph, Data],
-        h: torch.Tensor,
-        vn_h: torch.Tensor,
-        step_idx: int,
+        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -975,10 +966,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         return deepcopy(kwargs)
 
     def make_mup_base_kwargs(
-        self,
-        divide_factor: float = 2.0,
-        factor_in_dim: bool = False,
-        factor_in_dim_edges: bool = False,
+        self, divide_factor: float = 2.0, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
     ) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
@@ -1102,8 +1090,7 @@ class FullGraphNetwork(nn.Module):
         name = gnn_kwargs.pop("name", "GNN")
         gnn_class = self._parse_feed_forward_gnn(gnn_kwargs)
         gnn_kwargs.setdefault(
-            "last_layer_is_readout",
-            self.last_layer_is_readout and (post_nn_kwargs is None),
+            "last_layer_is_readout", self.last_layer_is_readout and (post_nn_kwargs is None)
         )
         self.gnn = gnn_class(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
@@ -1317,15 +1304,12 @@ class FullGraphNetwork(nn.Module):
             e = self.gnn._get_edge_feats(g, key="edge_attr")
             if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
                 e = torch.zeros(
-                    list(e.shape[:-1]) + [self.pre_nn_edges.out_dim],
-                    device=e.device,
-                    dtype=e.dtype,
+                    list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype
                 )
             else:
                 e = self.pre_nn_edges.forward(e)
             g = self.gnn._set_edge_feats(g, e, key="edge_attr")
-        # TODO: get the 3D positions in the shape of [num_nodes, 3] and pass to g named positions_3d
-        # so that it can be called using: batch.positions_3d later in the gnn module.
+
         # Run the graph neural network
         h = self.gnn.forward(g)
 
