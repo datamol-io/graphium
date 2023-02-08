@@ -154,7 +154,6 @@ class GPSLayerPyg(BaseGraphModule):
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
-        # TODO: make sure here 3D positions can be obtained by: batch.positions_3d and in the shape of [num_nodes, 3]
         if self.biased_attention:
             attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
                 batch, max_num_nodes_per_graph, on_ipu
