@@ -668,7 +668,8 @@ class BaseDataModule(pl.LightningDataModule):
         loader_kwargs = {}
 
         # Get batch size and IPU options for training set
-        if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        # if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        if stage in [RunningStage.TRAINING]:
             loader_kwargs["batch_size"] = self.batch_size_training
 
         # Get batch size and IPU options for validation / testing sets
@@ -1284,7 +1285,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         loader_kwargs = super().get_dataloader_kwargs(stage=stage, shuffle=shuffle, **kwargs)
 
         # Get batch size and IPU options for training set
-        if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        # if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        if stage in [RunningStage.TRAINING]:
             loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_training_opts
             loader_kwargs["ipu_options"] = self.ipu_training_opts
 
