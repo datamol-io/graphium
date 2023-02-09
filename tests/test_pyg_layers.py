@@ -218,7 +218,7 @@ class test_Pyg_Layers(ut.TestCase):
                     vn_type=vn_type,
                     **self.kwargs,
                 )
-                h_out, vn_out = layer.forward(bg, h_in, vn_h)
+                h_out, vn_out, e_out = layer.forward(bg, h_in, vn_h, e=e_in)
                 assert vn_out.shape == expected_shape
 
 
