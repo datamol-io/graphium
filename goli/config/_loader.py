@@ -98,9 +98,11 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         if pathlib.Path(ipu_inference_path).isfile():
             ipu_training_config_file = ipu_training_config_path
         else:
-            raise ValueError(f"IPU configuration path must be specified "
-                             "and must be a file, instead got "
-                             "\"{ipu_training_config_file}\"")
+            raise ValueError(
+                f"IPU configuration path must be specified "
+                "and must be a file, instead got "
+                '"{ipu_training_config_file}"'
+            )
 
         ipu_inference_config_overrides_path = "expts/configs/ipu_inference.config"
         if pathlib.Path(ipu_inference_path).isfile():
