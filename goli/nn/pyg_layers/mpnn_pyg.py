@@ -263,40 +263,15 @@ class MPNNPlusPyg(BaseGraphModule):
 
         return out
 
-    def get_global_features(self, global_latent, idx, case):
-        if self.use_globals:
-            accepted_cases = ["nodes", "edges"]
-            if case not in accepted_cases:
-                raise ValueError(f"{case} not in {accepted_cases}")
-            # incorrect_vals = set(self.concat_globals_to) - set(accepted_cases)
-            # if len(incorrect_vals) == 0:
-            #    if case in self.concat_globals_to:
-            if type(global_latent) == int:
-                global_latent = torch.tensor([global_latent] * len(idx))
-            return global_latent[idx]
-            # return gather(global_latent, idx, gather_scatter_method=self.gather_scatter)
-            # else:
-            # return None
-            # else:
-            # raise ValueError(f"{incorrect_vals} not a valid entry for concat_to_globals")
-        else:
-            return None
-
     def forward(self, batch: Batch) -> Batch:
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
 
-        # Get the global latent from the DataBatch
-        # global_latent_input = batch.vn_h
         if self.use_edges:
             edge_model_input.append(batch.edge_attr)
             edge_model_input = torch.cat([edge_model_input[0], edge_model_input[1]], dim=-1)
-            # if self.use_globals:
-            #     edge_graph_idx = batch.batch[batch.edge_index[0]]
-            #     global_latent_edge = self.get_global_features(global_latent_input, edge_graph_idx, 'edges')
-            #     edge_model_input = torch.cat([edge_model_input, global_latent_edge], dim=-1)
             # edge dropout included in the edge_model
             batch.edge_attr = self.edge_model(edge_model_input)
         else:
@@ -310,10 +285,6 @@ class MPNNPlusPyg(BaseGraphModule):
         )
         node_model_input.append(batch.h)
         batch.h = torch.cat([node_model_input[0], node_model_input[1]], dim=-1)
-        # if self.use_globals:
-        #     node_graph_idx = batch.batch
-        #     global_latent_node = self.get_global_features(global_latent_input, node_graph_idx, 'nodes')
-        #     edge_model_input = torch.cat([batch.h, global_latent_node], dim=-1)
         batch.h = self.node_model(batch.h)
 
         # ---------------Apply norm activation and dropout---------------

@@ -199,6 +199,14 @@ class VirtualNodePyg(nn.Module):
             residual:
                 Whether all virtual nodes should be connected together
                 via a residual connection
+            
+            use_edges:
+                Boolean flag to select if edges are used in the global node 
+                aggregation and update of features
+
+            dim_edges:
+                The dimmension of the edges, if edges are used, for the edge
+                pooling layer
 
         """
         super().__init__()
@@ -226,7 +234,7 @@ class VirtualNodePyg(nn.Module):
                 in_dim=dim_edges, pooling=self.vn_type, feat_type="edge"
             )
 
-    def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor) -> Tuple[Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
 
@@ -264,12 +272,11 @@ class VirtualNodePyg(nn.Module):
 
         # Pool the features
         if self.vn_type is None:
-            return h, vn_h
+            return h, vn_h, e
         else:
             pool = self.layer(g, h)
         if self.use_edges:
-            e = g.edge_attr
-            edge_pool = self.edge_layer(g, e)  # TODO: What are the shapes needed here?
+            edge_pool = self.edge_layer(g, e) 
             pool = torch.cat((pool, edge_pool), 0)
 
         # Compute the new virtual node features
@@ -284,6 +291,6 @@ class VirtualNodePyg(nn.Module):
 
         # Add the virtual node to the edge features
         if self.use_edges:
-            g.edge_attr = g.edge_attr + vn_h[g.batch[g.edge_index][0]]
+            e = e + vn_h[g.batch[g.edge_index][0]]
 
-        return h, vn_h
+        return h, vn_h, e

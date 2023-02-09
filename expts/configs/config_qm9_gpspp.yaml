@@ -151,7 +151,7 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     pooling: [sum]
-    virtual_node: 'sum'
+    virtual_node: "sum"
     use_virtual_edges: True
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1

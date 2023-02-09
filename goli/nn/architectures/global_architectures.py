@@ -854,9 +854,9 @@ class FeedForwardGraphBase(FeedForwardNN):
         if step_idx == 0:
             vn_h = 0.0
         if step_idx < len(self.virtual_node_layers):
-            h, vn_h = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h)
+            h, vn_h, e = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h, e=e)
 
-        return h, vn_h
+        return h, vn_h, e
 
     def forward(self, g) -> torch.Tensor:
         r"""
@@ -906,7 +906,8 @@ class FeedForwardGraphBase(FeedForwardNN):
             h, e, h_prev, e_prev = self._graph_layer_forward(
                 layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
-            h, vn_h = self._virtual_node_forward(g=g, h=h, e=e, vn_h=vn_h, step_idx=ii)
+            # import ipdb; ipdb.set_trace()
+            h, vn_h, e = self._virtual_node_forward(g=g, h=h, e=e, vn_h=vn_h, step_idx=ii)
 
         pooled_h = self._pool_layer_forward(g=g, h=h)
 

@@ -308,7 +308,7 @@ class VirtualNodeDgl(nn.Module):
         )
 
     def forward(
-        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor
+        self, g: dgl.DGLGraph, h: torch.Tensor, vn_h: torch.Tensor, e: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the virtual node layer.
@@ -343,7 +343,7 @@ class VirtualNodeDgl(nn.Module):
 
         # Pool the features
         if self.vn_type is None:
-            return h, vn_h
+            return h, vn_h, e
         elif self.vn_type == "mean":
             pool = mean_nodes(g, "h")
         elif self.vn_type == "max":
@@ -373,4 +373,4 @@ class VirtualNodeDgl(nn.Module):
         )
         h = h + temp_h
 
-        return h, vn_h
+        return h, vn_h, e
