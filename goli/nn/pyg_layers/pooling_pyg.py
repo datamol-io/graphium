@@ -199,9 +199,9 @@ class VirtualNodePyg(nn.Module):
             residual:
                 Whether all virtual nodes should be connected together
                 via a residual connection
-            
+
             use_edges:
-                Boolean flag to select if edges are used in the global node 
+                Boolean flag to select if edges are used in the global node
                 aggregation and update of features
 
             dim_edges:
@@ -276,7 +276,7 @@ class VirtualNodePyg(nn.Module):
         else:
             pool = self.layer(g, h)
         if self.use_edges:
-            edge_pool = self.edge_layer(g, e) 
+            edge_pool = self.edge_layer(g, e)
             pool = torch.cat((pool, edge_pool), 0)
 
         # Compute the new virtual node features
