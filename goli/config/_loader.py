@@ -7,6 +7,7 @@ from copy import deepcopy
 from loguru import logger
 import yaml
 import joblib
+import pathlib
 
 # Torch
 import torch
@@ -93,12 +94,20 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
     # Default empty values for the IPU configurations
     ipu_training_opts, ipu_inference_opts = None, None
     ipu_file = "expts/configs/ipu.config"
+
+    ipu_inference_path = "expts/configs/ipu_inference.config"
+    if pathlib.Path(ipu_inference_path).isfile():
+        ipu_inference_file = ipu_inference_path
+    else:
+        ipu_inference_file = None
+
     ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
     ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
 
     if get_accelerator(config) == "ipu":
         ipu_training_opts, ipu_inference_opts = load_ipu_options(
             ipu_file=ipu_file,
+            ipu_inference_file=ipu_inference_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),

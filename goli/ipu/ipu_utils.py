@@ -34,6 +34,7 @@ def load_ipu_options(
     seed: Optional[int] = None,
     model_name: Optional[str] = None,
     gradient_accumulation: Optional[int] = None,
+    ipu_inference_file: Optional[str] = None,
 ) -> Tuple["poptorch.Options", "poptorch.Options"]:
     """
     Load the IPU options from the config file.
@@ -69,13 +70,15 @@ def load_ipu_options(
 
         seed: random seed for the IPU
         model_name: Name of the model, to be used for ipu profiling
+        ipu_inference_file: file path containing IPU configurations for inference
 
     Returns:
 
         training_opts: IPU options for the training set.
 
         inference_opts: IPU options for inference.
-            It differs from the `training_opts` by enforcing `gradientAccumulation` to 1
+            It differs from the `training_opts` by enforcing `gradientAccumulation` to 1,
+            and applying any overrides in `ipu_inference_file` if provided
 
     """
 
@@ -103,5 +106,7 @@ def load_ipu_options(
     inference_opts.Training.gradientAccumulation(1)
     if model_name is not None:
         inference_opts.modelName(f"{model_name}_inference")
+    if ipu_inference_file is not None:
+        inference_opts.loadFromFile(ipu_inference_file)
 
     return training_opts, inference_opts
