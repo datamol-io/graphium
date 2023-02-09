@@ -170,8 +170,6 @@ def get_mol_conformer_features(
         has_conf = False
 
     prop_name = property_list[0]  # currently only supports positions_3d
-    # if (prop_name not in ["positions_3d"]):
-    #     print ("conformer property not found, ", prop_name)
     positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
 
     # * shape of 3d positions = num atom * 3
