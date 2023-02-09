@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: gpu #ipu  #cpu or ipu or gpu
+    type: ipu #ipu  #cpu or ipu or gpu
 
 
 datamodule:
