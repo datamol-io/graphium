@@ -78,7 +78,7 @@ class Preprocess3DPositions(nn.Module):
         # unsqueezed mask size: [batch, 1, 1, nodes] apply on tensor [batch, num_heads, nodes, nodes]
         attn_bias.masked_fill_(
             padding_mask.unsqueeze(1).unsqueeze(2),
-            float("-10000"),
+            float("-1000"),
         )
         # unsqueezed mask size: [batch, 1, nodes, 1] apply on tensor [batch, nodes, nodes, num_kernel]
         distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)

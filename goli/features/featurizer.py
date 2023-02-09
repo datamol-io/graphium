@@ -1012,7 +1012,6 @@ def mol_to_graph_dict(
         elif on_error.lower() == "ignore":
             return None
 
-    # dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
     dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
 
     # Assign the node data
