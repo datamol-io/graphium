@@ -1,6 +1,6 @@
-# Testing the multitask pipeline with the QM9 dataset on IPU, by splitting it up into three tasks: homo, alpha and cv.
+# Testing the multitask pipeline with the PCQMv2 dataset on IPU.
 constants:
-  name: &name qm9_full_ipu
+  name: &name pcqm
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -51,8 +51,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 50
-    batch_size_inference: 50
+    batch_size_training: 6
+    batch_size_inference: 6
     #cache_data_path: "datacache"
 
     num_workers: -1
@@ -123,9 +123,9 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 400
-    hidden_dims: 400
-    depth: 16
+    out_dim: 64
+    hidden_dims: 64
+    depth: 4
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -140,6 +140,7 @@ architecture:
       mpnn_kwargs: null
         #out_dim_edges: 10
       attn_type: "full-attention" # "full-attention", "none"
+      biased_attention: true
       attn_kwargs: null
 
 
@@ -233,7 +234,7 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/QM9
+    save_dir: logs/PCQMv2
     name: *name
   #early_stopping:
   #  monitor: *monitor
@@ -241,7 +242,7 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/QM9/
+    dirpath: models_checkpoints/PCQMv2/
     filename: *name
     #monitor: *monitor
     #mode: *mode
