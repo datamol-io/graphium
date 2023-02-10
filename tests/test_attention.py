@@ -1,7 +1,5 @@
 """
-Unit tests for the different layers of goli/nn/dgl_layers/...
-
-The layers are not thoroughly tested due to the difficulty of testing them
+Unit tests for the attention layer
 """
 
 from ast import Assert

@@ -5,6 +5,7 @@
 * 3D bias by applying gaussian kernels
 * node features from 3D positions
 * config for PCQM test dataset with a small gps++ model
+* a test for biased self attention
 
 **Changed:**
 
