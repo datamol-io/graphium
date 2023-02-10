@@ -56,13 +56,15 @@ class Preprocess3DPositions(nn.Module):
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
         # idx: [totoal_nodes]
-        pos, padding_mask, idx = to_dense_batch(
+        pos, mask, idx = to_dense_batch(
             pos,
             batch=batch.batch,
             batch_size=batch_size,
             max_num_nodes_per_graph=max_num_nodes_per_graph,
             drop_nodes_last_graph=on_ipu,
         )
+        # we need the opposite of mask output
+        padding_mask = ~mask
         # [batch, nodes]
         batch, n_node, _ = pos.shape
         # [batch, nodes, nodes, 3]

@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch import Tensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
+from torch.nn.functional import linear
 
 from goli.ipu.ipu_utils import import_poptorch
 
@@ -90,9 +91,6 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
     def __init__(self, biased_attention, **kwargs):
         super().__init__(**kwargs)
         self.biased_attention = biased_attention
-        self.q_proj = nn.Linear(self.embed_dim, self.embed_dim)
-        self.k_proj = nn.Linear(self.embed_dim, self.embed_dim)
-        self.v_proj = nn.Linear(self.embed_dim, self.embed_dim)
 
     def _reset_parameters(self):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
@@ -130,13 +128,15 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             ), f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
             head_dim = self.embed_dim // self.num_heads
             assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
-            scaling_factor = 1 / head_dim  # use scaling factor without square root for mup
+            scaling_factor = 1 / (head_dim**0.5)
+            b_q, b_k, b_v = self.in_proj_bias.chunk(3)
+            q_proj_weight, k_proj_weight, v_proj_weight = self.in_proj_weight.chunk(3)
             # [batch, num_heads, nodes, head_size]
-            q = self.q_proj(query).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            q = linear(query, q_proj_weight, b_q).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
             # [batch, num_heads, nodes, head_size]
-            k = self.k_proj(key).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            k = linear(key, k_proj_weight, b_k).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
             # [batch, num_heads, nodes, head_size]
-            v = self.v_proj(value).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            v = linear(value, v_proj_weight, b_v).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
             q = q * scaling_factor
             # [batch, num_heads, nodes, nodes]
             attn_weights = q @ k.transpose(-1, -2)
@@ -160,7 +160,9 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             # Patching the forward to use a different scaling for the dot-product
             prev_fn = F._scaled_dot_product_attention
             F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
-            out = super().forward(query=query, key=key, value=value, *args, **kwargs)
+            out = super().forward(
+                query=query, key=key, value=value, key_padding_mask=key_padding_mask, *args, **kwargs
+            )
             F._scaled_dot_product_attention = prev_fn
         return out
 
@@ -170,6 +172,7 @@ def _mup_scaled_dot_product_attention(
     k: Tensor,
     v: Tensor,
     attn_mask: Optional[Tensor] = None,
+    key_padding_mask: Optional[Tensor] = None,
     dropout_p: float = 0.0,
 ) -> Tuple[Tensor, Tensor]:
     r"""
