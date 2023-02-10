@@ -19,7 +19,7 @@
         <link rel="next" href="../cli_references.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.11">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.12">
     
     
       
@@ -4394,7 +4394,7 @@ If <code>False</code>, return <code>None</code></p></td>
 
 
 <h4 id="goli.ipu.ipu_utils.load_ipu_options" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_file</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient_accumulation</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_file</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient_accumulation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ipu_inference_overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_utils.load_ipu_options" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4464,6 +4464,17 @@ We call this total number of samples processed for one optimiser step the global
                 <code>None</code>
           </td>
         </tr>
+        <tr>
+          <td><code>ipu_inference_overrides</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>optional file path containing IPU configuration overrides for inference.
+If this file is provided, options in this file override those in <code>ipu_file</code> for inference.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -4487,7 +4498,8 @@ We call this total number of samples processed for one optimiser step the global
                 <code><span title="poptorch.Options">Options</span></code>
           </td>
           <td><p>IPU options for inference.
-It differs from the <code>training_opts</code> by enforcing <code>gradientAccumulation</code> to 1</p></td>
+It differs from the <code>training_opts</code> by enforcing <code>gradientAccumulation</code> to 1,
+and applying any overrides in <code>ipu_inference_overrides</code> if provided</p></td>
         </tr>
     </tbody>
   </table>
@@ -4919,7 +4931,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.expand"], "search": "../assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.6df46069.min.js"></script>
+      <script src="../assets/javascripts/bundle.4b2c34cd.min.js"></script>
       
         <script src="../javascripts/config.js"></script>
       
