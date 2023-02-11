@@ -81,8 +81,12 @@ class test_MultiHeadAttention(ut.TestCase):
             need_weights=False,
         )[0]
         self.assertEqual(h_attn_output.size(), h_attn_output_biased.size())
+        print(h_attn_output.detach())
+        print(h_attn_output_biased.detach())
         self.assertTrue(
-            torch.allclose(h_attn_output, h_attn_output_biased, rtol=0.1, atol=1e-03, equal_nan=False)
+            torch.allclose(
+                h_attn_output.detach(), h_attn_output_biased.detach(), rtol=0.1, atol=1e-03, equal_nan=False
+            )
         )
 
 

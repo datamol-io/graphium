@@ -49,6 +49,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
         biased_attention: Optional[bool] = False,
+        layer_idx: Optional[int] = 0,
         attn_kwargs=None,
     ):
         r"""
@@ -123,8 +124,9 @@ class GPSLayerPyg(BaseGraphModule):
 
         self.num_gaussian_kernels = num_gaussian_kernels
         self.biased_attention = biased_attention
+        self.layer_idx = layer_idx
         self.preprocess_3d_positions = None
-        if self.biased_attention:
+        if self.biased_attention and self.layer_idx == 0:
             self.preprocess_3d_positions = Preprocess3DPositions(
                 attn_kwargs["num_heads"],
                 attn_kwargs["embed_dim"],
@@ -148,14 +150,14 @@ class GPSLayerPyg(BaseGraphModule):
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention, **attn_kwargs)
 
-    def forward(self, batch, step_idx=None):
+    def forward(self, batch):
         # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
         poptorch = import_poptorch(raise_error=False)
         on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
-        if self.biased_attention and step_idx == 0:
+        if self.biased_attention and self.layer_idx == 0:
             attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
                 batch, max_num_nodes_per_graph, on_ipu
             )

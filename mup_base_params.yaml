@@ -136,27 +136,6 @@ gnn.layers.1.mpnn.norm_layer.bias:
 - null
 gnn.layers.1.mpnn.norm_layer.weight:
 - null
-gnn.layers.1.preprocess_3d_positions.gaussian.means.weight:
-- null
-- null
-gnn.layers.1.preprocess_3d_positions.gaussian.stds.weight:
-- null
-- null
-gnn.layers.1.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.bias:
-- null
-gnn.layers.1.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.weight:
-- null
-- null
-gnn.layers.1.preprocess_3d_positions.gaussian_proj.fully_connected.1.linear.bias:
-- null
-gnn.layers.1.preprocess_3d_positions.gaussian_proj.fully_connected.1.linear.weight:
-- null
-- null
-gnn.layers.1.preprocess_3d_positions.node_proj.bias:
-- 32
-gnn.layers.1.preprocess_3d_positions.node_proj.weight:
-- 32
-- null
 gnn.layers.2.attn_layer.in_proj_bias:
 - 96
 gnn.layers.2.attn_layer.in_proj_weight:
@@ -214,27 +193,6 @@ gnn.layers.2.mpnn.norm_layer.bias:
 - null
 gnn.layers.2.mpnn.norm_layer.weight:
 - null
-gnn.layers.2.preprocess_3d_positions.gaussian.means.weight:
-- null
-- null
-gnn.layers.2.preprocess_3d_positions.gaussian.stds.weight:
-- null
-- null
-gnn.layers.2.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.bias:
-- null
-gnn.layers.2.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.weight:
-- null
-- null
-gnn.layers.2.preprocess_3d_positions.gaussian_proj.fully_connected.1.linear.bias:
-- null
-gnn.layers.2.preprocess_3d_positions.gaussian_proj.fully_connected.1.linear.weight:
-- null
-- null
-gnn.layers.2.preprocess_3d_positions.node_proj.bias:
-- 32
-gnn.layers.2.preprocess_3d_positions.node_proj.weight:
-- 32
-- null
 gnn.layers.3.attn_layer.in_proj_bias:
 - 96
 gnn.layers.3.attn_layer.in_proj_weight:
@@ -291,27 +249,6 @@ gnn.layers.3.mpnn.node_model.fully_connected.1.linear.weight:
 gnn.layers.3.mpnn.norm_layer.bias:
 - null
 gnn.layers.3.mpnn.norm_layer.weight:
-- null
-gnn.layers.3.preprocess_3d_positions.gaussian.means.weight:
-- null
-- null
-gnn.layers.3.preprocess_3d_positions.gaussian.stds.weight:
-- null
-- null
-gnn.layers.3.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.bias:
-- null
-gnn.layers.3.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.weight:
-- null
-- null
-gnn.layers.3.preprocess_3d_positions.gaussian_proj.fully_connected.1.linear.bias:
-- null
-gnn.layers.3.preprocess_3d_positions.gaussian_proj.fully_connected.1.linear.weight:
-- null
-- null
-gnn.layers.3.preprocess_3d_positions.node_proj.bias:
-- 32
-gnn.layers.3.preprocess_3d_positions.node_proj.weight:
-- 32
 - null
 gnn.out_linear.linear.bias:
 - 32
