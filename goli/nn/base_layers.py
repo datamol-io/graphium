@@ -128,7 +128,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             ), f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
             head_dim = self.embed_dim // self.num_heads
             assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
-            scaling_factor = 1 / (head_dim**0.5)
+            scaling_factor = 1 / head_dim  # use head_dim instead of (head_dim**0.5) for mup
             b_q, b_k, b_v = self.in_proj_bias.chunk(3)
             q_proj_weight, k_proj_weight, v_proj_weight = self.in_proj_weight.chunk(3)
             # [batch, num_heads, nodes, head_size]
