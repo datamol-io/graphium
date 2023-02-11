@@ -84,7 +84,7 @@ class FeedForwardPyg(FeedForwardGraphBase):
         g = self._set_edge_feats(g, e, key="edge_attr")
 
         # Apply the GNN layer
-        g = layer(g)
+        g = layer(g, step_idx)
 
         # Get the node / edge features from the graph
         h = self._get_node_feats(g, key="h")

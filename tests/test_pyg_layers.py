@@ -21,6 +21,11 @@ from goli.nn.pyg_layers import (
     GPSLayerPyg,
 )
 
+from goli.nn.pyg_layers.utils import (
+    Preprocess3DPositions,
+    GaussianLayer,
+)
+
 
 class test_Pyg_Layers(ut.TestCase):
     in_dim = 21
@@ -201,6 +206,26 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg2.h.shape[0], h_in.shape[0])
         self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
         self.assertTrue((bg2.edge_attr == self.bg.edge_attr).all)
+
+    def test_preprocess3Dfeaturelayer(self):
+        bg = deepcopy(self.bg)
+        num_heads = 2
+        num_kernel = 2
+        bg.positions_3d = torch.zeros(bg.h.size()[0], 3)
+        layer = Preprocess3DPositions(num_heads=num_heads, embed_dim=self.out_dim, num_kernel=num_kernel)
+        # bias: [batch, num_heads, nodes, nodes]
+        # node_feature: [total_nodes, embed_dim]
+        bias, node_feature = layer.forward(bg, max_num_nodes_per_graph=4, on_ipu=False)
+        self.assertEqual(bias.size(), torch.Size([2, num_heads, 4, 4]))
+        self.assertEqual(node_feature.size(), torch.Size([7, self.out_dim]))
+
+    def test_gaussianlayer(self):
+        num_kernels = 3
+        input = torch.zeros(2, 4, 4)
+        layer = GaussianLayer(num_kernels=num_kernels)
+        # tensor_with_kernel: [batch, nodes, nodes, num_kernel]
+        tensor_with_kernel = layer.forward(input)
+        self.assertEqual(tensor_with_kernel.size(), torch.Size([2, 4, 4, 3]))
 
 
 if __name__ == "__main__":

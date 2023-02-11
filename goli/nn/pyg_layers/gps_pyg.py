@@ -148,22 +148,22 @@ class GPSLayerPyg(BaseGraphModule):
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention, **attn_kwargs)
 
-    def forward(self, batch):
+    def forward(self, batch, step_idx=None):
         # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
         poptorch = import_poptorch(raise_error=False)
         on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
-        if self.biased_attention:
+        if self.biased_attention and step_idx == 0:
             attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
                 batch, max_num_nodes_per_graph, on_ipu
             )
+            # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
+            batch.h = batch.h + node_feature_3d
+            batch.attn_bias_3d = attn_bias_3d
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
-        if self.biased_attention:
-            # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
-            h = h + node_feature_3d
 
         h_in = h  # for first residual connection
 
@@ -190,7 +190,9 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph=max_num_nodes_per_graph,
                 drop_nodes_last_graph=on_ipu,
             )
-            h_attn = self._sa_block(h_dense, attn_bias_3d if self.biased_attention else None, None, ~mask)
+            h_attn = self._sa_block(
+                h_dense, batch.attn_bias_3d if self.biased_attention else None, None, ~mask
+            )
             h_attn = to_sparse_batch(h_attn, idx)
 
             # Dropout, residual, norm
