@@ -7,7 +7,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch_sparse import SparseTensor
 
-from goli.nn.base_layers import get_activation
+from goli.nn.base_layers import get_activation, DropPath
 from goli.utils.decorators import classproperty
 
 try:
@@ -86,6 +86,11 @@ class BaseGraphStructure:
             return deepcopy(dropout)
         elif dropout > 0:
             return nn.Dropout(p=dropout)
+        return
+
+    def _parse_droppath(self, drop_rate):
+        if drop_rate > 0:
+            return DropPath(drop_rate=drop_rate)
         return
 
     def _parse_norm(self, normalization, dim=None):

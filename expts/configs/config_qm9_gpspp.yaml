@@ -162,7 +162,9 @@ architecture:
         in_dim_edges: 32
         out_dim_edges: 32
       attn_type: "full-attention" # "full-attention", "none"
-      attn_kwargs: null
+      attn_kwargs:
+        droppath_rate_attn: 0.3
+      droppath_rate_ffn: 0.3
 
 
       # out_dim_edges: 16

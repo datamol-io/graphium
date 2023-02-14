@@ -588,3 +588,41 @@ class GRU(nn.Module):
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)
         return x
+
+
+class DropPath(nn.Module):
+    def __init__(self, drop_rate: float):
+        r"""
+        DropPath class for stochastic depth
+        Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger: Deep Networks with Stochastic Depth
+
+        Parameters:
+            drop_rate:
+                Drop out probability
+        """
+
+        super().__init__()
+        self.drop_rate = drop_rate
+
+    def forward(self, input: Tensor, batch: Tensor, on_ipu: bool) -> Tensor:
+        r"""
+        Parameters:
+            input:  `torch.Tensor[total_num_nodes, hidden]`
+            batch: batch attribute of the batch object, batch.batch
+            on_ipu: flag indicating if the model is running on IPU
+
+        Returns:
+            torch.Tensor: `torch.Tensor[total_num_nodes, hidde ]`
+
+        """
+        keep_prob = 1 - self.drop_rate
+        # mask shape: [num_graphs, 1]
+        mask = input.new_empty(input.shape[0], 1).bernoulli_(keep_prob)
+        # if on_ipu, the last graph is a padded fake graph
+        if on_ipu:
+            mask[-1] = 0
+        # using gather to extend mask to [num_nodes, 1]
+        node_mask = mask[batch]
+        input_scaled = input / keep_prob
+        out = input_scaled * node_mask
+        return out

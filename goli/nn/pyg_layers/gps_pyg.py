@@ -42,6 +42,9 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
         attn_kwargs=None,
+        droppath_rate_ffn: Optional[float] = 0.0,
+        layer_idx: Optional[int] = 0,
+        layer_depth: Optional[int] = 0,
     ):
         r"""
         GINE: Graph Isomorphism Networks with Edges
@@ -126,6 +129,14 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("num_heads", 1)
         attn_kwargs.setdefault("dropout", dropout)
         attn_kwargs.setdefault("batch_first", True)
+        attn_kwargs.setdefault("droppath_rate", 0.0)
+
+        # Drop path layers
+        layer_depth_frac = (layer_idx / (layer_depth - 1)) if layer_idx > 0 else 0.0
+        droppath_rate_attn = attn_kwargs["droppath_rate"] * layer_depth_frac
+        droppath_rate_ffn *= layer_depth_frac
+        self.droppath_attn = self._parse_droppath(drop_rate=droppath_rate_attn)
+        self.droppath_ffn = self._parse_droppath(drop_rate=droppath_rate_ffn)
 
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
@@ -169,6 +180,7 @@ class GPSLayerPyg(BaseGraphModule):
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)
+            self.droppath_attn(h_attn, batch.batch, on_ipu)
 
             # Dropout, residual, norm
             if self.dropout_attn is not None:
@@ -181,7 +193,7 @@ class GPSLayerPyg(BaseGraphModule):
             h = h + h_attn
 
         # Feed Forward block.
-        h = self._ff_block(h)
+        h = self._ff_block(h, batch.batch, on_ipu)
 
         batch_out.h = h
 
@@ -195,7 +207,7 @@ class GPSLayerPyg(BaseGraphModule):
             attn_layer = attn_class(**attn_kwargs)
         return attn_layer
 
-    def _ff_block(self, h):
+    def _ff_block(self, h, batch, on_ipu):
         """Feed Forward block."""
         h_in = h
         # First linear layer + activation + dropout
@@ -209,6 +221,8 @@ class GPSLayerPyg(BaseGraphModule):
         h = self.ff_linear2(h)
         if self.ff_dropout2 is not None:
             h = self.ff_dropout2(h)
+
+        self.droppath_ffn(h, batch, on_ipu)
 
         # Residual
         h = h + h_in
