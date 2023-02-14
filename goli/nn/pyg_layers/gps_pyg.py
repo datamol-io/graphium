@@ -42,6 +42,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
         attn_kwargs=None,
+        droppath_rate_attn: Optional[float] = 0.0,
         droppath_rate_ffn: Optional[float] = 0.0,
         layer_idx: Optional[int] = 0,
         layer_depth: Optional[int] = 0,
@@ -129,11 +130,10 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("num_heads", 1)
         attn_kwargs.setdefault("dropout", dropout)
         attn_kwargs.setdefault("batch_first", True)
-        attn_kwargs.setdefault("droppath_rate", 0.0)
 
         # Drop path layers
         layer_depth_frac = (layer_idx / (layer_depth - 1)) if layer_idx > 0 else 0.0
-        droppath_rate_attn = attn_kwargs["droppath_rate"] * layer_depth_frac
+        droppath_rate_attn *= layer_depth_frac
         droppath_rate_ffn *= layer_depth_frac
         self.droppath_attn = self._parse_droppath(drop_rate=droppath_rate_attn)
         self.droppath_ffn = self._parse_droppath(drop_rate=droppath_rate_ffn)
