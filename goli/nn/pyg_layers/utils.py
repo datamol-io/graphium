@@ -28,14 +28,15 @@ class Preprocess3DPositions(nn.Module):
         self.num_kernel = num_kernel
         self.embed_dim = embed_dim
 
-        self.gaussian = GaussianLayer(self.num_kernel)
+        self.gaussian = GaussianLayer(self.num_kernel) #! Andy remove that
         self.gaussian_proj = MLP(
             in_dim=self.num_kernel,
             hidden_dim=self.num_kernel,
             out_dim=self.num_heads,
             layers=2,
             activation="gelu",
-        )
+        ) #! Andy remove that
+
         # make sure the 3D node feature has the same dimension as the embedding size
         # so that it can be added to the original node features
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
@@ -92,35 +93,3 @@ class Preprocess3DPositions(nn.Module):
         node_feature = to_sparse_batch(node_feature, idx)
 
         return attn_bias, node_feature
-
-
-class GaussianLayer(nn.Module):
-    def __init__(self, num_kernels=128):
-        r"""
-            Gaussian kernel function that applied on the all-to-all 3D distances.
-        Parameters:
-            num_kernels:
-                Number of gaussian kernel used.
-
-        """
-        super().__init__()
-        self.num_kernels = num_kernels
-        self.means = nn.Embedding(1, num_kernels)
-        self.stds = nn.Embedding(1, num_kernels)
-        nn.init.uniform_(self.means.weight, 0, 3)
-        nn.init.uniform_(self.stds.weight, 0, 3)
-
-    def forward(self, input: Tensor) -> Tensor:
-        # [batch, nodes, nodes, 1]
-        input = input.unsqueeze(-1)
-        # [batch, nodes, nodes, num_kernels]
-        expanded_input = input.expand(-1, -1, -1, self.num_kernels)
-        # [num_kernels]
-        mean = self.means.weight.float().view(-1)
-        # [num_kernels]
-        std = self.stds.weight.float().view(-1).abs() + 0.01  # epsilon is 0.01 that matches gps++ value
-        pi = 3.141592653
-        pre_exp_factor = (2 * pi) ** 0.5
-        # [batch, nodes, nodes, num_kernels]
-        tensor_with_kernel = torch.exp(-0.5 * (((expanded_input - mean) / std) ** 2)) / (pre_exp_factor * std)
-        return tensor_with_kernel

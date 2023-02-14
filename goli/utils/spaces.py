@@ -52,6 +52,7 @@ PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
     "signnet": signnet_pos_encoder.SignNetNodeEncoder,
+    #! Andy add the gaussian kernels here
 }
 
 
