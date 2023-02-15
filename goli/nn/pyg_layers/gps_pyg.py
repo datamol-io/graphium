@@ -184,7 +184,9 @@ class GPSLayerPyg(BaseGraphModule):
         # Enforce the value of embed_dim
         embed_dim = attn_kwargs.get("embed_dim", None)
         if embed_dim is not None:
-            assert embed_dim == self.in_dim, f"Dimension mismatch between `embed_dim={embed_dim}` and `in_dim={self.in_dim}`"
+            assert (
+                embed_dim == self.in_dim
+            ), f"Dimension mismatch between `embed_dim={embed_dim}` and `in_dim={self.in_dim}`"
         attn_kwargs["embed_dim"] = self.in_dim
 
         # Set the default values for the self-Attention layer
@@ -194,7 +196,6 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("batch_first", True)
 
         return attn_kwargs
-
 
     def _self_attention_block(self, h: Tensor, h_in: Tensor, batch: Batch) -> Tensor:
         """
@@ -217,7 +218,7 @@ class GPSLayerPyg(BaseGraphModule):
         # h[num_nodes, hidden_dim] -> h_dense[num_graphs, max_num_nodes, hidden_dim]
         h_dense, mask, idx = to_dense_batch(
             h,
-            batch=batch.batch, # The batch index as a vector that indicates for nodes of which graph it belongs to
+            batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
             max_num_nodes_per_graph=max_num_nodes_per_graph,
             drop_nodes_last_graph=on_ipu,
@@ -237,7 +238,6 @@ class GPSLayerPyg(BaseGraphModule):
 
         # Combine local and global outputs.
         return h + h_attn
-
 
     def _parse_attn_layer(self, attn_type, **attn_kwargs):
         attn_layer, attn_class = None, None
