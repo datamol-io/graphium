@@ -164,13 +164,13 @@ class GPSLayerPyg(BaseGraphModule):
         # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
         poptorch = import_poptorch(raise_error=False)
         on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+        batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
         if self.attn_layer is not None:
             max_num_nodes_per_graph = None
             if on_ipu:
                 max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
             # Convert the tensor to a dense batch, then back to a sparse batch
-            batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
             h_dense, mask, idx = to_dense_batch(
                 h,
                 batch=batch.batch,
@@ -180,7 +180,7 @@ class GPSLayerPyg(BaseGraphModule):
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)
-            self.droppath_attn(h_attn, batch.batch, on_ipu)
+            self.droppath_attn(h_attn, batch.batch, batch_size, on_ipu)
 
             # Dropout, residual, norm
             if self.dropout_attn is not None:
@@ -193,7 +193,7 @@ class GPSLayerPyg(BaseGraphModule):
             h = h + h_attn
 
         # Feed Forward block.
-        h = self._ff_block(h, batch.batch, on_ipu)
+        h = self._ff_block(h, batch.batch, batch_size, on_ipu)
 
         batch_out.h = h
 
@@ -207,7 +207,7 @@ class GPSLayerPyg(BaseGraphModule):
             attn_layer = attn_class(**attn_kwargs)
         return attn_layer
 
-    def _ff_block(self, h, batch, on_ipu):
+    def _ff_block(self, h, batch, batch_size, on_ipu):
         """Feed Forward block."""
         h_in = h
         # First linear layer + activation + dropout
@@ -222,7 +222,7 @@ class GPSLayerPyg(BaseGraphModule):
         if self.ff_dropout2 is not None:
             h = self.ff_dropout2(h)
 
-        self.droppath_ffn(h, batch, on_ipu)
+        self.droppath_ffn(h, batch, batch_size, on_ipu)
 
         # Residual
         h = h + h_in

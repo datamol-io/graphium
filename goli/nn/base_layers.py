@@ -594,7 +594,9 @@ class DropPath(nn.Module):
     def __init__(self, drop_rate: float):
         r"""
         DropPath class for stochastic depth
-        Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger: Deep Networks with Stochastic Depth
+        Deep Networks with Stochastic Depth
+        Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
+        https://arxiv.org/abs/1603.09382
 
         Parameters:
             drop_rate:
@@ -604,7 +606,9 @@ class DropPath(nn.Module):
         super().__init__()
         self.drop_rate = drop_rate
 
-    def forward(self, input: Tensor, batch: Tensor, on_ipu: bool) -> Tensor:
+    def forward(
+        self, input: Tensor, batch: Tensor, batch_size: Optional[int] = None, on_ipu: Optional[bool] = False
+    ) -> Tensor:
         r"""
         Parameters:
             input:  `torch.Tensor[total_num_nodes, hidden]`
@@ -612,19 +616,29 @@ class DropPath(nn.Module):
             on_ipu: flag indicating if the model is running on IPU
 
         Returns:
-            torch.Tensor: `torch.Tensor[total_num_nodes, hidde ]`
+            torch.Tensor: `torch.Tensor[total_num_nodes, hidde]`
 
         """
         if self.drop_rate > 0:
             keep_prob = 1 - self.drop_rate
+            if batch_size is None:
+                assert input.device.type != "ipu", (
+                    "When using the IPU the batch size must be "
+                    "provided during compilation instead of determined at runtime"
+                )
+                batch_size = int(batch.max()) + 1
             # mask shape: [num_graphs, 1]
-            mask = input.new_empty(input.shape[0], 1).bernoulli_(keep_prob)
+            mask = input.new_empty(batch_size, 1).bernoulli_(keep_prob)
             # if on_ipu, the last graph is a padded fake graph
             if on_ipu:
                 mask[-1] = 0
             # using gather to extend mask to [total_num_nodes, 1]
             node_mask = mask[batch]
-            input_scaled = input / keep_prob
+            if keep_prob == 0:
+                # avoid dividing by 0
+                input_scaled = input
+            else:
+                input_scaled = input / keep_prob
             out = input_scaled * node_mask
         else:
             out = input
