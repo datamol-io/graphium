@@ -48,20 +48,27 @@ class GPSLayerPyg(BaseGraphModule):
         layer_depth: Optional[int] = 0,
     ):
         r"""
-        GINE: Graph Isomorphism Networks with Edges
-        Strategies for Pre-training Graph Neural Networks
-        Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Jure Leskovec
-        https://arxiv.org/abs/1905.12265
+        GPS: Recipe for a General, Powerful, Scalable Graph Transformer
+        Ladislav Rampášek, Mikhail Galkin, Vijay Prakash Dwivedi, Anh Tuan Luu, Guy Wolf, Dominique Beaini
+        https://arxiv.org/abs/2205.12454
 
-        [!] code uses the pytorch-geometric implementation of GINEConv
+        GPS++: An Optimised Hybrid MPNN/Transformer for Molecular Property Prediction
+        Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam Sanders, Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
+        https://arxiv.org/abs/2212.02229
 
         Parameters:
 
             in_dim:
-                Input feature dimensions of the layer
+                Input node feature dimensions of the layer
 
             out_dim:
-                Output feature dimensions of the layer
+                Output node feature dimensions of the layer
+
+            in_dim:
+                Input edge feature dimensions of the layer
+
+            out_dim:
+                Output edge feature dimensions of the layer
 
             activation:
                 activation function to use in the layer
@@ -79,6 +86,31 @@ class GPSLayerPyg(BaseGraphModule):
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
+
+            mpnn_type:
+                type of mpnn used, choose from "pyg:gin", "pyg:gine", "pyg:gated-gcn", "pyg:pna-msgpass" and "pyg:mpnnplus"
+
+            mpnn_kwargs:
+                kwargs for mpnn layer
+
+            attn_type:
+                type of attention used, choose from "full-attention" and "none"
+
+            attn_kwargs:
+                kwargs for attention layer
+
+            droppath_rate_attn:
+                stochastic depth drop rate for attention layer
+
+            droppath_rate_ffn:
+                stochastic depth drop rate for ffn layer
+
+            layer_idx:
+                layer index starting from 0
+
+            layer_depth:
+                total number of layers used
+
 
         """
 
@@ -180,7 +212,7 @@ class GPSLayerPyg(BaseGraphModule):
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)
-            self.droppath_attn(h_attn, batch.batch, batch_size, on_ipu)
+            h_attn = self.droppath_attn(h_attn, batch.batch, batch_size, on_ipu)
 
             # Dropout, residual, norm
             if self.dropout_attn is not None:
@@ -222,7 +254,7 @@ class GPSLayerPyg(BaseGraphModule):
         if self.ff_dropout2 is not None:
             h = self.ff_dropout2(h)
 
-        self.droppath_ffn(h, batch, batch_size, on_ipu)
+        h = self.droppath_ffn(h, batch, batch_size, on_ipu)
 
         # Residual
         h = h + h_in

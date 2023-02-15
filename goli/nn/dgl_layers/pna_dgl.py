@@ -438,7 +438,6 @@ class PNAMessagePassingDgl(BasePNADgl):
         posttrans_layers: int = 1,
         pretrans_layers: int = 1,
         in_dim_edges: int = 0,
-        **kwargs,
     ):
         r"""
 

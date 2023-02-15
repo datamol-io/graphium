@@ -607,7 +607,11 @@ class DropPath(nn.Module):
         self.drop_rate = drop_rate
 
     def forward(
-        self, input: Tensor, batch: Tensor, batch_size: Optional[int] = None, on_ipu: Optional[bool] = False
+        self,
+        input: Tensor,
+        batch_idx: Tensor,
+        batch_size: Optional[int] = None,
+        on_ipu: Optional[bool] = False,
     ) -> Tensor:
         r"""
         Parameters:
@@ -626,14 +630,14 @@ class DropPath(nn.Module):
                     "When using the IPU the batch size must be "
                     "provided during compilation instead of determined at runtime"
                 )
-                batch_size = int(batch.max()) + 1
+                batch_size = int(batch_idx.max()) + 1
             # mask shape: [num_graphs, 1]
             mask = input.new_empty(batch_size, 1).bernoulli_(keep_prob)
             # if on_ipu, the last graph is a padded fake graph
             if on_ipu:
                 mask[-1] = 0
             # using gather to extend mask to [total_num_nodes, 1]
-            node_mask = mask[batch]
+            node_mask = mask[batch_idx]
             if keep_prob == 0:
                 # avoid dividing by 0
                 input_scaled = input

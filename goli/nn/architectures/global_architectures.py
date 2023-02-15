@@ -252,11 +252,6 @@ class FeedForwardNN(nn.Module):
                 if self.last_layer_is_readout and ("is_readout_layer" in key_args):
                     other_kwargs["is_readout_layer"] = self.last_layer_is_readout
 
-            # pass layer index and depth to gnn layer kwargs
-            if self.name == "GNN":
-                self.layer_kwargs["layer_idx"] = ii
-                self.layer_kwargs["layer_depth"] = self.depth
-
             # Create the layer
             self.layers.append(
                 self.layer_class(
@@ -380,6 +375,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
+        stochastic_depth: Optional[bool] = False,
         virtual_node: str = "none",
         last_layer_is_readout: bool = False,
     ):
@@ -539,6 +535,7 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
         self.pooling = pooling
+        self.stochastic_depth = stochastic_depth
 
         self.virtual_node_class = self._parse_virtual_node_class()
 
@@ -634,10 +631,11 @@ class FeedForwardGraphBase(FeedForwardNN):
                         this_out_dim_edges = self.layer_kwargs.get("out_dim_edges")
                     layer_out_dims_edges.append(this_out_dim_edges)
 
-            # pass layer index and depth to gnn layer kwargs
-            if self.name == "GNN":
-                self.layer_kwargs["layer_idx"] = ii
-                self.layer_kwargs["layer_depth"] = self.depth
+            # Pass layer index and depth to gnn layer kwargs if stochastic depth is used
+            drop_path_kwargs = {}
+            if self.stochastic_depth:
+                drop_path_kwargs["layer_idx"] = ii
+                drop_path_kwargs["layer_depth"] = self.depth
 
             # Create the GNN layer
             self.layers.append(
@@ -649,6 +647,7 @@ class FeedForwardGraphBase(FeedForwardNN):
                     normalization=this_norm,
                     **self.layer_kwargs,
                     **this_edge_kwargs,
+                    **drop_path_kwargs,
                 )
             )
 

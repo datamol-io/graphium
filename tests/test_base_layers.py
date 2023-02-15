@@ -29,9 +29,27 @@ class test_Base_Layers(ut.TestCase):
     g2 = Data(h=x2, edge_index=edge_idx2, edge_attr=e2)
     bg = Batch.from_data_list([g1, g2])
 
-    def test_droppath_layer(self):
+    # for drop_rate=0.5, test if the output shape is correct
+    def test_droppath_layer_0p5(self):
         bg = deepcopy(self.bg)
         h_in = bg.h
         layer = DropPath(drop_rate=0.5)
         h_out = layer.forward(h_in, bg.batch, on_ipu=False)
         self.assertEqual(h_out.shape, h_in.shape)
+
+    # for drop_rate=1.0, test if the output are all zeros
+    def test_droppath_layer_1p0(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        zero_tesor = torch.zeros(h_in.shape)
+        layer = DropPath(drop_rate=1.0)
+        h_out = layer.forward(h_in, bg.batch, on_ipu=False)
+        self.assertTrue(torch.allclose(zero_tesor, h_out.detach()))
+
+    # for drop_rate=0.0, test if the output matches the original output
+    def test_droppath_layer_0p0(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        layer = DropPath(drop_rate=0.0)
+        h_out = layer.forward(h_in, bg.batch, on_ipu=False)
+        self.assertTrue(torch.allclose(h_in.detach(), h_out.detach()))
