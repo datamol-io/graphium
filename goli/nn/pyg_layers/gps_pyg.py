@@ -181,6 +181,12 @@ class GPSLayerPyg(BaseGraphModule):
         if attn_kwargs is None:
             attn_kwargs = {}
 
+        # Enforce the value of embed_dim
+        embed_dim = attn_kwargs.get("embed_dim", None)
+        if embed_dim is not None:
+            assert embed_dim == self.in_dim, f"Dimension mismatch between `embed_dim={embed_dim}` and `in_dim={self.in_dim}`"
+        attn_kwargs["embed_dim"] = self.in_dim
+
         # Set the default values for the self-Attention layer
         attn_kwargs.setdefault("embed_dim", self.in_dim)
         attn_kwargs.setdefault("num_heads", 1)
