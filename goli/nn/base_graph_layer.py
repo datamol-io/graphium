@@ -89,9 +89,7 @@ class BaseGraphStructure:
         return
 
     def _parse_droppath(self, drop_rate):
-        if drop_rate > 0:
-            return DropPath(drop_rate=drop_rate)
-        return
+        return DropPath(drop_rate=drop_rate)
 
     def _parse_norm(self, normalization, dim=None):
         if dim is None:

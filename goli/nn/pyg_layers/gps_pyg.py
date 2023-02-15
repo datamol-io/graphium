@@ -161,10 +161,10 @@ class GPSLayerPyg(BaseGraphModule):
         # Multi-head attention.
         # * batch.batch is the indicator vector for nodes of which graph it belongs to
         # * h_dense
+        # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
+        poptorch = import_poptorch(raise_error=False)
+        on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
         if self.attn_layer is not None:
-            # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
-            poptorch = import_poptorch(raise_error=False)
-            on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
             max_num_nodes_per_graph = None
             if on_ipu:
                 max_num_nodes_per_graph = self.max_num_nodes_per_graph

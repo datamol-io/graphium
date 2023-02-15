@@ -615,14 +615,17 @@ class DropPath(nn.Module):
             torch.Tensor: `torch.Tensor[total_num_nodes, hidde ]`
 
         """
-        keep_prob = 1 - self.drop_rate
-        # mask shape: [num_graphs, 1]
-        mask = input.new_empty(input.shape[0], 1).bernoulli_(keep_prob)
-        # if on_ipu, the last graph is a padded fake graph
-        if on_ipu:
-            mask[-1] = 0
-        # using gather to extend mask to [num_nodes, 1]
-        node_mask = mask[batch]
-        input_scaled = input / keep_prob
-        out = input_scaled * node_mask
+        if self.drop_rate > 0:
+            keep_prob = 1 - self.drop_rate
+            # mask shape: [num_graphs, 1]
+            mask = input.new_empty(input.shape[0], 1).bernoulli_(keep_prob)
+            # if on_ipu, the last graph is a padded fake graph
+            if on_ipu:
+                mask[-1] = 0
+            # using gather to extend mask to [total_num_nodes, 1]
+            node_mask = mask[batch]
+            input_scaled = input / keep_prob
+            out = input_scaled * node_mask
+        else:
+            out = input
         return out
