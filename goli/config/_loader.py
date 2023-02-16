@@ -91,7 +91,17 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
 
     cfg_data = config["datamodule"]["args"]
 
-    if get_accelerator(config) == "ipu":
+    # Instanciate the datamodule
+    module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
+
+    if get_accelerator(config) != "ipu":
+        datamodule = module_class(
+            **config["datamodule"]["args"],
+        )
+        return datamodule
+
+    # IPU specific adjustments
+    else:
         # Default empty values for the IPU configurations
         ipu_training_opts, ipu_inference_opts = None, None
         ipu_training_config_path = "expts/configs/ipu.config"
@@ -134,17 +144,15 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         )
         ipu_dataloader_inference_opts.set_kwargs()
 
-    # Instanciate the datamodule
-    module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
-    datamodule = module_class(
-        ipu_training_opts=ipu_training_opts,
-        ipu_inference_opts=ipu_inference_opts,
-        ipu_dataloader_training_opts=ipu_dataloader_training_opts,
-        ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
-        **config["datamodule"]["args"],
-    )
+        datamodule = module_class(
+            ipu_training_opts=ipu_training_opts,
+            ipu_inference_opts=ipu_inference_opts,
+            ipu_dataloader_training_opts=ipu_dataloader_training_opts,
+            ipu_dataloader_inference_opts=ipu_dataloader_inference_opts,
+            **config["datamodule"]["args"],
+        )
 
-    return datamodule
+        return datamodule
 
 
 def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, MetricWrapper]:
