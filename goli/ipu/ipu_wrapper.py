@@ -173,7 +173,12 @@ class PredictorModuleIPU(PredictorModule):
     def configure_optimizers(self, impl=None):
         if impl is None:
             dtype = torch.float if self.trainer.precision == 32 else torch.half
-            impl = functools.partial(self.poptorch.optim.Adam, accum_type=dtype, first_order_momentum_accum_type=dtype, second_order_momentum_accum_type=torch.float)
+            impl = functools.partial(
+                self.poptorch.optim.Adam,
+                accum_type=dtype,
+                first_order_momentum_accum_type=dtype,
+                second_order_momentum_accum_type=torch.float,
+            )
         return super().configure_optimizers(impl=impl)
 
     def squeeze_input_dims(self, features, labels):
