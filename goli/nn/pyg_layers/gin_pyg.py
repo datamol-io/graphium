@@ -73,6 +73,7 @@ class GINConvPyg(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         gin_nn = MLP(
@@ -91,7 +92,7 @@ class GINConvPyg(BaseGraphModule):
 
     def forward(self, batch: Union[Data, Batch]):
         batch.h = self.model(batch.h, batch.edge_index)
-        batch.h = self.apply_norm_activation_dropout(batch.h)
+        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
 
         return batch
 

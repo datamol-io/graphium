@@ -42,10 +42,9 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
         attn_kwargs=None,
-        droppath_rate_attn: Optional[float] = 0.0,
-        droppath_rate_ffn: Optional[float] = 0.0,
-        layer_idx: Optional[int] = 0,
-        layer_depth: Optional[int] = 0,
+        droppath_rate_attn: float = 0.0,
+        droppath_rate_ffn: float = 0.0,
+        **kwargs
     ):
         r"""
         GPS: Recipe for a General, Powerful, Scalable Graph Transformer
@@ -105,13 +104,6 @@ class GPSLayerPyg(BaseGraphModule):
             droppath_rate_ffn:
                 stochastic depth drop rate for ffn layer
 
-            layer_idx:
-                layer index starting from 0
-
-            layer_depth:
-                total number of layers used
-
-
         """
 
         super().__init__(
@@ -119,7 +111,9 @@ class GPSLayerPyg(BaseGraphModule):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            normalization=None,
+            normalization=normalization,
+            droppath_rate=droppath_rate_attn,
+            **kwargs
         )
 
         # Dropout layers
@@ -164,11 +158,8 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("batch_first", True)
 
         # Drop path layers
-        layer_depth_frac = (layer_idx / (layer_depth - 1)) if layer_idx > 0 else 0.0
-        droppath_rate_attn *= layer_depth_frac
-        droppath_rate_ffn *= layer_depth_frac
-        self.droppath_attn = self._parse_droppath(drop_rate=droppath_rate_attn)
-        self.droppath_ffn = self._parse_droppath(drop_rate=droppath_rate_ffn)
+        self.droppath_attn = self._parse_droppath(droppath_rate_attn)
+        self.droppath_ffn = self.droppath_layer
 
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
@@ -212,7 +203,8 @@ class GPSLayerPyg(BaseGraphModule):
             )
             h_attn = self._sa_block(h_dense, None, ~mask)
             h_attn = to_sparse_batch(h_attn, idx)
-            h_attn = self.droppath_attn(h_attn, batch.batch, batch_size, on_ipu)
+            if self.droppath_attn is not None:
+                h_attn = self.droppath_attn(h_attn, batch.batch, batch_size)
 
             # Dropout, residual, norm
             if self.dropout_attn is not None:
@@ -225,7 +217,7 @@ class GPSLayerPyg(BaseGraphModule):
             h = h + h_attn
 
         # Feed Forward block.
-        h = self._ff_block(h, batch.batch, batch_size, on_ipu)
+        h = self._ff_block(h, batch.batch, batch_size)
 
         batch_out.h = h
 
@@ -239,7 +231,7 @@ class GPSLayerPyg(BaseGraphModule):
             attn_layer = attn_class(**attn_kwargs)
         return attn_layer
 
-    def _ff_block(self, h, batch, batch_size, on_ipu):
+    def _ff_block(self, h, batch, batch_size):
         """Feed Forward block."""
         h_in = h
         # First linear layer + activation + dropout
@@ -254,7 +246,8 @@ class GPSLayerPyg(BaseGraphModule):
         if self.ff_dropout2 is not None:
             h = self.ff_dropout2(h)
 
-        h = self.droppath_ffn(h, batch, batch_size, on_ipu)
+        if self.droppath_ffn is not None:
+            h = self.droppath_ffn(h, batch, batch_size)
 
         # Residual
         h = h + h_in

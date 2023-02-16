@@ -111,6 +111,7 @@ class MPNNPlusPyg(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs
         )
 
         self.gather_from = gather_from
@@ -287,7 +288,7 @@ class MPNNPlusPyg(BaseGraphModule):
 
         # ---------------Apply norm activation and dropout---------------
         # use dropout value of the layer (default 0.3)
-        batch.h = self.apply_norm_activation_dropout(batch.h, normalization=False, activation=False)
+        batch.h = self.apply_norm_activation_dropout(batch.h, normalization=False, activation=False, batch_idx=batch.batch)
 
         return batch
 

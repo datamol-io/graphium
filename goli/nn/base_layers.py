@@ -5,7 +5,7 @@ from loguru import logger
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
+from torch import Tensor, IntTensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
 
@@ -609,28 +609,35 @@ class DropPath(nn.Module):
     def forward(
         self,
         input: Tensor,
-        batch_idx: Tensor,
+        batch_idx: IntTensor,
         batch_size: Optional[int] = None,
-        on_ipu: Optional[bool] = False,
     ) -> Tensor:
         r"""
         Parameters:
             input:  `torch.Tensor[total_num_nodes, hidden]`
             batch: batch attribute of the batch object, batch.batch
-            on_ipu: flag indicating if the model is running on IPU
+            batch_size: The batch size. Must be provided when working on IPU
 
         Returns:
             torch.Tensor: `torch.Tensor[total_num_nodes, hidde]`
 
         """
+        poptorch = import_poptorch(raise_error=False)
+        on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+
         if self.drop_rate > 0:
             keep_prob = 1 - self.drop_rate
+
+            # Parse the batch size
             if batch_size is None:
-                assert input.device.type != "ipu", (
-                    "When using the IPU the batch size must be "
-                    "provided during compilation instead of determined at runtime"
-                )
-                batch_size = int(batch_idx.max()) + 1
+                if on_ipu:
+                    raise ValueError(
+                        "When using the IPU the batch size must be "
+                        "provided during compilation instead of determined at runtime"
+                    )
+                else:
+                    batch_size = int(batch_idx.max()) + 1
+
             # mask shape: [num_graphs, 1]
             mask = input.new_empty(batch_size, 1).bernoulli_(keep_prob)
             # if on_ipu, the last graph is a padded fake graph

@@ -110,6 +110,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs
         )
 
         # Allow int32 as edge index
