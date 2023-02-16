@@ -55,7 +55,6 @@ class test_Pyg_Layers(ut.TestCase):
         kwargs["droppath_rate_ffn"] = 0.3
         kwargs["mpnn_kwargs"] = {"droppath_rate_ffn": 0.4}
 
-
         layer = GPSLayerPyg(in_dim=self.in_dim, out_dim=self.out_dim, **kwargs)
 
         # Check the re-implementation of abstract methods

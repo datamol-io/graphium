@@ -30,7 +30,7 @@ class BaseGraphStructure:
         normalization: Union[str, Callable] = "none",
         layer_idx: Optional[int] = None,
         layer_depth: Optional[int] = None,
-        droppath_rate: float = 0.,
+        droppath_rate: float = 0.0,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -108,7 +108,9 @@ class BaseGraphStructure:
         if droppath_rate == 0:
             return
         else:
-            assert (self.layer_idx is not None) and (self.layer_depth is not None), f"layer_idx={self.layer_idx} and layer_depth={self.layer_depth} should be integers when `droppath_rate>0`"
+            assert (self.layer_idx is not None) and (
+                self.layer_depth is not None
+            ), f"layer_idx={self.layer_idx} and layer_depth={self.layer_depth} should be integers when `droppath_rate>0`"
             layer_depth_frac = (self.layer_idx / (self.layer_depth - 1)) if self.layer_idx > 0 else 0.0
             droppath_rate *= layer_depth_frac
             return DropPath(drop_rate=droppath_rate)
@@ -302,7 +304,7 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
         normalization: Union[str, Callable] = "none",
         layer_idx: Optional[int] = None,
         layer_depth: Optional[int] = None,
-        droppath_rate: float = 0.,
+        droppath_rate: float = 0.0,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers

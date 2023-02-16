@@ -44,7 +44,7 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs=None,
         droppath_rate_attn: float = 0.0,
         droppath_rate_ffn: float = 0.0,
-        **kwargs
+        **kwargs,
     ):
         r"""
         GPS: Recipe for a General, Powerful, Scalable Graph Transformer
@@ -113,7 +113,7 @@ class GPSLayerPyg(BaseGraphModule):
             dropout=dropout,
             normalization=normalization,
             droppath_rate=droppath_rate_attn,
-            **kwargs
+            **kwargs,
         )
 
         # Dropout layers

@@ -72,7 +72,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
-            **kwargs
+            **kwargs,
         )
 
         self._initialize_activation_dropout_norm()
