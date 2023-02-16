@@ -111,7 +111,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
 
         # Propagate, and apply norm, activation, dropout
         x, e = self.propagate(edge_index, Bx=Bx, Dx=Dx, Ex=Ex, Ce=Ce, e=e, Ax=Ax)
-        x = self.apply_norm_activation_dropout(x, batch_idx=batch.batch)
+        x = self.apply_norm_activation_dropout(x, droppath=True, batch_idx=batch.batch)
         e = self.edge_out(e)
 
         # Output

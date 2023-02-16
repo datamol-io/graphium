@@ -138,6 +138,7 @@ class BaseGraphStructure:
         normalization: bool = True,
         activation: bool = True,
         dropout: bool = True,
+        droppath: bool = True,
         batch_idx: Optional[IntTensor] = None,
         batch_size: Optional[int] = None,
     ):
@@ -161,6 +162,9 @@ class BaseGraphStructure:
             dropout:
                 Whether to apply the dropout layer
 
+            droppath:
+                Whether to apply the DropPath layer
+
         Returns:
 
             h:
@@ -177,7 +181,7 @@ class BaseGraphStructure:
         if dropout and (self.dropout_layer is not None):
             h = self.dropout_layer(h)
 
-        if self.droppath_rate and (self.droppath_layer is not None):
+        if droppath and (self.droppath_layer is not None):
             h = self.droppath_layer(h, batch_idx=batch_idx, batch_size=batch_size)
 
         return h
