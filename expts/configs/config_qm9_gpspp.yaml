@@ -153,7 +153,6 @@ architecture:
     pooling: [sum]
     virtual_node: 'none'
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    stochastic_depth: true
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
       node_residual: false
       mpnn_type: 'pyg:mpnnplus'
@@ -162,6 +161,7 @@ architecture:
         out_dim: 64
         in_dim_edges: 32
         out_dim_edges: 32
+        droppath_rate: 0.3
       attn_type: "full-attention" # "full-attention", "none"
       attn_kwargs: null
       droppath_rate_attn: 0.3
