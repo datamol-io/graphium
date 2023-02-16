@@ -8,6 +8,7 @@ from loguru import logger
 import yaml
 import joblib
 import pathlib
+import warnings
 
 # Torch
 import torch
@@ -105,19 +106,23 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         # Default empty values for the IPU configurations
         ipu_training_opts, ipu_inference_opts = None, None
         ipu_training_config_path = "expts/configs/ipu.config"
-        if pathlib.Path(ipu_inference_path).isfile():
+        if pathlib.Path(ipu_training_config_path).isfile():
             ipu_training_config_file = ipu_training_config_path
         else:
             raise ValueError(
                 f"IPU configuration path must be specified "
                 "and must be a file, instead got "
-                '"{ipu_training_config_file}"'
+                '"{ipu_training_config_path}"'
             )
 
         ipu_inference_config_overrides_path = "expts/configs/ipu_inference.config"
-        if pathlib.Path(ipu_inference_path).isfile():
-            ipu_inference_config_overrides_file = ipu_inference_path
+        if pathlib.Path(ipu_inference_config_overrides_path).isfile():
+            ipu_inference_config_overrides_file = ipu_inference_config_overrides_path
         else:
+            warnings.warn(
+                "IPU inference overrides configuration either not specified "
+                "or not a file, using same options for training and inference"
+            )
             ipu_inference_config_overrides_file = None
 
         ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
