@@ -24,6 +24,7 @@ class GINDgl(BaseGraphModule):
         normalization: Union[str, Callable] = "none",
         init_eps: float = 0.0,
         learn_eps: bool = True,
+        **kwargs,
     ):
         r"""
         GIN: Graph Isomorphism Networks
@@ -68,6 +69,7 @@ class GINDgl(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         # Specify to consider the edges weight in the aggregation

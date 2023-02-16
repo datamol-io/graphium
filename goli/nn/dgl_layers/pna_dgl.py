@@ -29,6 +29,7 @@ class BasePNADgl(BaseGraphModule):
         avg_d: float = 1.0,
         last_activation: Union[Callable, str] = "none",
         in_dim_edges: int = 0,
+        **kwargs,
     ):
         r"""
         Abstract class used to standardize the implementation of PNA layers
@@ -89,6 +90,7 @@ class BasePNADgl(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         # Edge dimensions
@@ -273,6 +275,7 @@ class PNAConvolutionalDgl(BasePNADgl):
         last_activation: Union[Callable, str] = "none",
         posttrans_layers: int = 1,
         in_dim_edges: int = 0,
+        **kwargs,
     ):
         r"""
 
@@ -333,6 +336,7 @@ class PNAConvolutionalDgl(BasePNADgl):
             normalization="none",
             last_activation=last_activation,
             in_dim_edges=in_dim_edges,
+            **kwargs,
         )
 
         # MLP used on the aggregated messages of the neighbours
@@ -438,6 +442,7 @@ class PNAMessagePassingDgl(BasePNADgl):
         posttrans_layers: int = 1,
         pretrans_layers: int = 1,
         in_dim_edges: int = 0,
+        **kwargs,
     ):
         r"""
 
@@ -501,6 +506,7 @@ class PNAMessagePassingDgl(BasePNADgl):
             normalization="none",
             last_activation=last_activation,
             in_dim_edges=in_dim_edges,
+            **kwargs,
         )
 
         # MLP used on each pair of nodes with their edge MLP(h_u, h_v, e_uv)

@@ -23,6 +23,7 @@ class GATDgl(BaseGraphModule):
         activation="elu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        **kwargs,
     ):
         r"""
         GAT: Graph Attention Network
@@ -65,6 +66,7 @@ class GATDgl(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         self.gatconv = GATConv(
