@@ -92,7 +92,7 @@ class GINConvPyg(BaseGraphModule):
 
     def forward(self, batch: Union[Data, Batch]):
         batch.h = self.model(batch.h, batch.edge_index)
-        batch.h = self.apply_norm_activation_dropout(batch.h, droppath=True, batch_idx=batch.batch)
+        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
 
         return batch
 
@@ -232,7 +232,7 @@ class GINEConvPyg(BaseGraphModule):
 
     def forward(self, batch):
         batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
-        batch.h = self.apply_norm_activation_dropout(batch.h, droppath=True, batch_idx=batch.batch)
+        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
 
         return batch
 
