@@ -273,6 +273,7 @@ class MPNNPlusPyg(BaseGraphModule):
             edge_model_input.append(batch.edge_attr)
             edge_model_input = torch.cat([edge_model_input[0], edge_model_input[1]], dim=-1)
             # edge dropout included in the edge_model
+            # import ipdb; ipdb.set_trace()
             batch.edge_attr = self.edge_model(edge_model_input)
         else:
             batch.edge_attr = edge_model_input

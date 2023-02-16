@@ -377,6 +377,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
         use_virtual_edges: bool = False,
+        global_latent: Optional[int] = 128,
         last_layer_is_readout: bool = False,
     ):
         r"""
@@ -518,6 +519,9 @@ class FeedForwardGraphBase(FeedForwardNN):
             use_virtual_edges:
                 A bool flag used to select if the virtual node should use the edges or not
 
+            global_latent:
+                Size of the global latent size for the virtual node
+
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
@@ -540,6 +544,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.pooling = pooling
 
         self.use_virtual_edges = use_virtual_edges
+        self.global_latent = global_latent
         self.virtual_node_class = self._parse_virtual_node_class()
 
         # Initialize the parent `FeedForwardNN`
@@ -649,10 +654,12 @@ class FeedForwardGraphBase(FeedForwardNN):
 
             # Create the Virtual Node layer, except at the last layer
             if ii < len(residual_out_dims):
+                # import ipdb; ipdb.set_trace()
                 self.virtual_node_layers.append(
                     self.virtual_node_class(
                         dim=this_out_dim * self.layers[-1].out_dim_factor,
-                        dim_edges=this_out_dim_edges,
+                        dim_edges=this_out_dim_edges * self.layers[-1].out_dim_factor,
+                        global_latent=self.global_latent,
                         activation=this_activation,
                         dropout=this_dropout,
                         normalization=this_norm,
@@ -851,8 +858,9 @@ class FeedForwardGraphBase(FeedForwardNN):
                 `M` is the number of graphs, `Dout` is the output features
 
         """
-        if step_idx == 0:
-            vn_h = 0.0
+        # if step_idx == 0:
+        #     # TODO: Tile the vn_h across each graph in the pack
+        #     vn_h = torch.tile(vn_h, (g.num_graphs,1))
         if step_idx < len(self.virtual_node_layers):
             h, vn_h, e = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h, e=e)
 
@@ -890,7 +898,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         # Initialize values of the residuals and virtual node
         h_prev = None
         e_prev = None
-        vn_h = 0
+        vn_h = 0.0
         h = self._get_node_feats(g, key="h")
         e = self._get_edge_feats(g, key="edge_attr")
         # Add the virtual node into the DataBatch object
@@ -984,7 +992,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension for the nodes
-            factor_in_dim: Whether to factor the input dimension for the edges
+            factor_in_dim_edges: Whether to factor the input dimension for the edges
         """
         kwargs = self.get_init_kwargs()
         kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
@@ -1481,11 +1489,15 @@ class FullGraphNetwork(nn.Module):
         if self.gnn is not None:
             factor_in_dim = self.pre_nn is not None
             factor_in_dim_edges = self.pre_nn_edges is not None
+            import ipdb; ipdb.set_trace()
             kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(
                 divide_factor=divide_factor,
                 factor_in_dim=factor_in_dim,
                 factor_in_dim_edges=factor_in_dim_edges,
             )
+        import ipdb; ipdb.set_trace()
+
+        print("")
 
         return kwargs
 

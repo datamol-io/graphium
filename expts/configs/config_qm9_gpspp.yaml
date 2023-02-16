@@ -105,8 +105,8 @@ architecture:
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 64
-    hidden_dims: 64
+    out_dim: 32
+    hidden_dims: 32
     depth: 1
     activation: relu
     last_activation: none
@@ -153,16 +153,17 @@ architecture:
     pooling: [sum]
     virtual_node: "sum"
     use_virtual_edges: True
+    global_latent: 16
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
-      out_dim_edges: 64
+      out_dim_edges: 32
       node_residual: false
       mpnn_type: 'pyg:mpnnplus'
       mpnn_kwargs:
         in_dim: 64
         out_dim: 64
-        in_dim_edges: 64
-        out_dim_edges: 64
+        in_dim_edges: 32
+        out_dim_edges: 32
       attn_type: "full-attention" # "full-attention", "none"
       attn_kwargs: null
 

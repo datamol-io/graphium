@@ -248,6 +248,7 @@ class VirtualNodeDgl(nn.Module):
     def __init__(
         self,
         dim: int,
+        global_latent=None,
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
@@ -287,6 +288,16 @@ class VirtualNodeDgl(nn.Module):
             residual:
                 Whether all virtual nodes should be connected together
                 via a residual connection
+
+            global_latent:
+                NOT USED: Size for the output of feed forward layer
+
+            dim_edges:
+                NOT USED: Edge dimmension for virtual node pooling
+
+            use_edges:
+                NOT USED: boolean to choose using edges or not in virtual node
+
 
         """
         super().__init__()
