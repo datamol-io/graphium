@@ -106,7 +106,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         # Default empty values for the IPU configurations
         ipu_training_opts, ipu_inference_opts = None, None
         ipu_training_config_path = "expts/configs/ipu.config"
-        if pathlib.Path(ipu_training_config_path).isfile():
+        if pathlib.Path(ipu_training_config_path).is_file():
             ipu_training_config_file = ipu_training_config_path
         else:
             raise ValueError(
@@ -116,7 +116,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
             )
 
         ipu_inference_config_overrides_path = "expts/configs/ipu_inference.config"
-        if pathlib.Path(ipu_inference_config_overrides_path).isfile():
+        if pathlib.Path(ipu_inference_config_overrides_path).is_file():
             ipu_inference_config_overrides_file = ipu_inference_config_overrides_path
         else:
             warnings.warn(
@@ -129,7 +129,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
         ipu_training_opts, ipu_inference_opts = load_ipu_options(
             ipu_file=ipu_training_config_file,
-            ipu_inference_file=ipu_inference_config_overrides_file,
+            ipu_inference_overrides=ipu_inference_config_overrides_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
