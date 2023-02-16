@@ -173,3 +173,14 @@ class PredictorModuleIPU(PredictorModule):
             labels[key] = labels[key].squeeze(0)
 
         return features, labels
+
+    def get_num_graphs(self, data: Batch):
+        """
+        IPU specific method to compute the number of graphs in a Batch,
+        that considers gradient accumulation, multiple IPUs and multiple
+        device iterations. Essential to estimate throughput in graphs/s.
+        """
+        num_graphs = torch.max(data.batch, dim=-1).values
+        num_graphs = torch.sum(num_graphs)
+
+        return num_graphs

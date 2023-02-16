@@ -4,14 +4,11 @@ Unit tests for the different layers of goli/nn/dgl_layers/...
 The layers are not thoroughly tested due to the difficulty of testing them
 """
 
-from ast import Assert
-import numpy as np
 import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
 
-from goli.ipu.to_dense_batch import to_dense_batch
 from goli.nn.pyg_layers import (
     GINConvPyg,
     GINEConvPyg,
