@@ -67,7 +67,7 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
             - laplacian_eigvec
             - laplacian_eigvec_eigval
             - rwse
-            - positions_3d
+            - gaussian_kernel
 
 
     """
@@ -97,9 +97,8 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
         rwse_pe = rwse_pe.astype(np.float32)
         pe_dict["rwse"] = rwse_pe
     
-    elif pos_type == "positions_3d":
-        pe_dict["positions_3d"] = np.zeros(3).astype(np.float32)
-        #pe_dict["positions_3d"] = None
+    elif pos_type == "gaussian_kernel":
+        pe_dict["gaussian_kernel"] = np.zeros((num_nodes, 3)).astype(np.float32)
     else:
         raise ValueError(f"Unknown `pos_type`: {pos_type}")
 

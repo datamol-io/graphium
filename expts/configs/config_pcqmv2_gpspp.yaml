@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  #cpu or ipu or gpu
+    type: ipu  #cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -47,7 +47,7 @@ datamodule:
             pos_type: rwse
             ksteps: 16
           gaussian_pos: #gaussian_kernel_pe
-            pos_type: positions_3d
+            pos_type: gaussian_kernel
 
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
@@ -116,7 +116,7 @@ architecture:
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
       gaussian_pos:
         encoder_type: "gaussian_kernel"
-        on_keys: ["positions_3d"]
+        on_keys: ["gaussian_kernel"] #["positions_3d"]
         out_level: "node"
         num_kernel: 64 #same as hidden_dim of other pe
         num_heads: 1 
