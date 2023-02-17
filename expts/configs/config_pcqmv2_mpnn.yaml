@@ -24,20 +24,25 @@ datamodule:
     featurization_n_jobs: 32
     featurization_progress: True
     featurization:
-      atom_property_list_onehot: [atomic-number, valence]
-      atom_property_list_float: [mass, electronegativity, in-ring]
+    # QQQ ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (no match),
+    # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
+    # 'num_chiral_centers (chirality found but are they the same)']
+      atom_property_list_onehot: [atomic-number, group, period]
+      atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
       # conformer_property_list: [positions_3d]
+      # QQQ ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
-      explicit_H: False
+      explicit_H: False #QQQ is possible_numH related to this?
       use_bonds_weights: False
-      pos_encoding_as_features:
+      # QQQ there should be an embedding with size 64 for the atom and edge property, where to set this?
+      pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          la_pos: &pos_enc  #use same name as pe_encoder
+          la_pos: &pos_enc
             pos_type: laplacian_eigvec_eigval #laplacian_eigvec
-            num_pos: 3
-            normalization: "none"
-            disconnected_comp: True
+            num_pos: 8 # QQQ max_freqs? remove_first is not applied here
+            normalization: "none" # QQQ we need L2 norm
+            disconnected_comp: True # QQQ what is this?
           rw_pos: #use same name as pe_encoder
             pos_type: rwse
             ksteps: 16
@@ -48,7 +53,7 @@ datamodule:
     batch_size_inference: 6
     # cache_data_path: null
 
-    num_workers: 4
+    num_workers: 16
 
     ipu_dataloader_training_opts:
       max_num_nodes_per_graph: &max_nodes 50
@@ -84,14 +89,14 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: 100
+    out_dim: 64
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
         on_keys: ["eigvecs", "eigvals"]
-        hidden_dim: 64
+        hidden_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
         num_layers_post: 0 # Num. layers to apply after pooling
@@ -101,7 +106,7 @@ architecture:
         encoder_type: "mlp"
         on_keys: ["rwse"]
         out_level: "node"
-        hidden_dim: 64
+        hidden_dim: 32
         num_layers: 1
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
@@ -156,20 +161,20 @@ predictor:
     homolumo: mse_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-5
+    lr: 4.e-4 # QQQ: warmup fpr 10 epochs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
-    #module_type: ReduceLROnPlateau
-    #factor: 0.5
-    #patience: 7
+    # module_type: ReduceLROnPlateau
+    # factor: 0.5
+    # patience: 7
   scheduler_kwargs: null
   #  monitor: &monitor loss/val
   #  mode: min
   #  frequency: 1
   target_nan_mask: null # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
   flag_kwargs:
-    n_steps: 0 #1
-    alpha: 0.0 #0.01
+    n_steps: 0 # 1
+    alpha: 0.0 # 0.01
 
 # Task-specific
 metrics:
