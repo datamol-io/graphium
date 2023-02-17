@@ -2,112 +2,112 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://github.com/valence-discovery/goli/index.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/cli_references.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/contribute.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/datasets.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/design.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/license.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/pretrained_models.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.config.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.data.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.features.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.ipu.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.nn.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.trainer.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.utils.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/basics/csv_to_parquet.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/basics/implementing_gnn_layers.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/basics/making_gnn_networks.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/basics/parquet_reader.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/basics/using_gnn_layers.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/model_training/ipu_training.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/model_training/ipu_training_demo.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://github.com/valence-discovery/goli/tutorials/model_training/simple-molecular-model.html</loc>
-         <lastmod>2023-02-16</lastmod>
+         <lastmod>2023-02-17</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
