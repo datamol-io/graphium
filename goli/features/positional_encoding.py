@@ -96,7 +96,7 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
         rwse_pe = compute_rwse(adj=adj, ksteps=pos_arg["ksteps"], num_nodes=num_nodes)
         rwse_pe = rwse_pe.astype(np.float32)
         pe_dict["rwse"] = rwse_pe
-    
+
     elif pos_type == "gaussian_kernel":
         pe_dict["gaussian_kernel"] = np.zeros((num_nodes, 3)).astype(np.float32)
     else:

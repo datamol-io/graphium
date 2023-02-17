@@ -28,14 +28,14 @@ class Preprocess3DPositions(nn.Module):
         self.num_kernel = num_kernel
         self.embed_dim = embed_dim
 
-        self.gaussian = GaussianLayer(self.num_kernel)  
+        self.gaussian = GaussianLayer(self.num_kernel)
         self.gaussian_proj = MLP(
             in_dim=self.num_kernel,
             hidden_dim=self.num_kernel,
             out_dim=self.num_heads,
             layers=2,
             activation="gelu",
-        ) 
+        )
 
         # make sure the 3D node feature has the same dimension as the embedding size
         # so that it can be added to the original node features
@@ -54,7 +54,7 @@ class Preprocess3DPositions(nn.Module):
 
         pos = batch.positions_3d
         batch_size = None if pos.device.type != "ipu" else batch.graph_is_true.shape[0]
-        #batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.h is only available after passing through layers, not a good attribute to check
+        # batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.h is only available after passing through layers, not a good attribute to check
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
         # idx: [totoal_nodes]
@@ -94,7 +94,6 @@ class Preprocess3DPositions(nn.Module):
         node_feature = to_sparse_batch(node_feature, idx)
 
         return attn_bias, node_feature
-
 
 
 class GaussianLayer(nn.Module):
