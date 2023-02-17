@@ -245,6 +245,7 @@ class FCLayer(nn.Module):
         bias: bool = True,
         init_fn: Optional[Callable] = None,
         is_readout_layer: bool = False,
+        droppath_rate: float = 0.,
     ):
         r"""
         A simple fully connected and customizable layer. This layer is centered around a `torch.nn.Linear` module.
@@ -279,6 +280,8 @@ class FCLayer(nn.Module):
             is_readout_layer: Whether the layer should be treated as a readout layer by replacing of `torch.nn.Linear`
                 by `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
+            droppath_rate:
+                stochastic depth drop rate, between 0 and 1, see https://arxiv.org/abs/1603.09382
         Attributes:
             dropout (int):
                 The ratio of units to dropout.
@@ -313,6 +316,10 @@ class FCLayer(nn.Module):
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
+
+        self.drop_path = None
+        if droppath_rate > 0:
+            self.drop_path = DropPath(droppath_rate)
 
         # Linear layer, or MuReadout layer
         if not is_readout_layer:
@@ -377,6 +384,9 @@ class FCLayer(nn.Module):
             h = self.dropout(h)
         if self.activation is not None:
             h = self.activation(h)
+        if self.drop_path is not None:
+            h = self.drop_path(h)
+
         return h
 
     @property
@@ -413,6 +423,7 @@ class MLP(nn.Module):
         first_normalization: Union[Type[None], str, Callable] = "none",
         last_layer_is_readout: bool = False,
         droppath_rate: float = 0.0,
+        constant_droppath_rate: bool = True,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -455,7 +466,12 @@ class MLP(nn.Module):
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
             droppath_rate:
-                stochastic depth drop rate, between 0 and 1, see https://arxiv.org/abs/1603.09382
+                stochastic depth drop rate, between 0 and 1.
+                See https://arxiv.org/abs/1603.09382
+            constant_droppath_rate:
+                If `True`, drop rates will remain constant accross layers.
+                Otherwise, drop rates will vary stochastically.
+                See `DropPath.get_stochastic_drop_rate`
         """
 
         super().__init__()
@@ -496,6 +512,11 @@ class MLP(nn.Module):
                     this_dropout = last_dropout
                     is_readout_layer = last_layer_is_readout
 
+                if constant_droppath_rate:
+                    this_drop_rate = droppath_rate
+                else:
+                    this_drop_rate = DropPath.get_stochastic_drop_rate(droppath_rate, ii, depth)
+
                 # Add a fully-connected layer
                 fully_connected.append(
                     FCLayer(
@@ -505,15 +526,10 @@ class MLP(nn.Module):
                         normalization=this_normalization,
                         dropout=this_dropout,
                         is_readout_layer=is_readout_layer,
+                        droppath_rate=this_drop_rate,
                     )
                 )
 
-                # Add the DropPath
-                if droppath_rate > 0:
-                    this_drop_rate = DropPath.get_stochastic_drop_rate(drop_rate=droppath_rate, layer_idx=ii, layer_depth=depth)
-                    fully_connected.append(
-                        DropPath(drop_rate=this_drop_rate)
-                    )
         self.fully_connected = nn.Sequential(*fully_connected)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
