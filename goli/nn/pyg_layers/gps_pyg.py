@@ -125,6 +125,9 @@ class GPSLayerPyg(BaseGraphModule):
         self.dropout_local = self.dropout_layer
         self.dropout_attn = self._parse_dropout(dropout=self.dropout)
 
+        # DropPath layers
+        self.droppath_ffn = self._parse_droppath(droppath_rate_ffn)
+
         # Residual connections
         self.node_residual = node_residual
 
@@ -180,8 +183,8 @@ class GPSLayerPyg(BaseGraphModule):
 
         # Add the droppath to the output of the MLP
         batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
-        if self.droppath_layer is not None:
-            h = self.droppath_layer(h, batch.batch, batch_size)
+        if self.self.droppath_ffn is not None:
+            h = self.self.droppath_ffn(h, batch.batch, batch_size)
 
         batch_out.h = h
 
@@ -271,6 +274,8 @@ class GPSLayerPyg(BaseGraphModule):
         h_attn = h_in + h_attn
         if self.norm_layer_attn is not None:
             h_attn = self.norm_layer_attn(h_attn)
+        if self.droppath_layer is not None:
+            self.droppath_layer(h_attn, batch.batch, batch_size)
 
         # Combine local and global outputs.
         return h + h_attn
