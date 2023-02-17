@@ -172,36 +172,54 @@ pe_encoders.la_pos.linear_A.linear.weight:
 - null
 - null
 pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.bias:
-- 32
+- 128
 pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.weight:
-- 32
+- 128
 - null
 pe_encoders.rw_pos.pe_encoder.first_normalization.bias:
 - null
 pe_encoders.rw_pos.pe_encoder.first_normalization.weight:
 - null
 pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.bias:
-- 32
+- 128
 pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.weight:
-- 32
+- 128
 - null
 pre_nn.layers.0.linear.bias:
-- 128
+- 512
 pre_nn.layers.0.linear.weight:
-- 128
-- 109
+- 512
+- 205
 pre_nn.layers.0.normalization.bias:
-- 128
+- 512
 pre_nn.layers.0.normalization.weight:
+- 512
+pre_nn.layers.1.linear.bias:
+- 128
+pre_nn.layers.1.linear.weight:
+- 128
+- 512
+pre_nn.layers.1.normalization.bias:
+- 128
+pre_nn.layers.1.normalization.weight:
 - 128
 pre_nn_edges.layers.0.linear.bias:
-- 64
+- 256
 pre_nn_edges.layers.0.linear.weight:
-- 64
+- 256
 - null
 pre_nn_edges.layers.0.normalization.bias:
-- 64
+- 256
 pre_nn_edges.layers.0.normalization.weight:
+- 256
+pre_nn_edges.layers.1.linear.bias:
+- 64
+pre_nn_edges.layers.1.linear.weight:
+- 64
+- 256
+pre_nn_edges.layers.1.normalization.bias:
+- 64
+pre_nn_edges.layers.1.normalization.weight:
 - 64
 task_heads.task_heads.homolumo.layers.0.linear.bias:
 - 16

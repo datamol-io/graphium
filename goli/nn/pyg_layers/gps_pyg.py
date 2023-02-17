@@ -107,6 +107,9 @@ class GPSLayerPyg(BaseGraphModule):
             activation=activation,
             dropout=self.dropout,
         )
+        # QQQ: to follow gps++ strictly, we may not need this FCLayer, but normalization is needed
+        # as out_dim=in_dim in MLP, maybe out_dim=out_dim would be a solution?
+        # we need to consider droppath as well (not important right now for 4 layers)
         self.f_out = FCLayer(in_dim, out_dim, normalization=normalization)
 
         # Normalization layers
