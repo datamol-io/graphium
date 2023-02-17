@@ -3,11 +3,13 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 """
 
 from copy import deepcopy
-from typing import Callable, Union, Optional
+from typing import Callable, Union, Optional, Dict, Any
+from torch import Tensor
+from torch_geometric.data import Batch
 
 
 from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
+from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg, MPNNPlusPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
@@ -85,53 +87,43 @@ class GPSLayerPyg(BaseGraphModule):
             dropout=dropout,
             normalization=None,
         )
+        self.in_dim_edges = in_dim_edges
+        self.out_dim_edges = out_dim_edges
 
         # Dropout layers
         self.dropout_local = self.dropout_layer
         self.dropout_attn = self._parse_dropout(dropout=self.dropout)
-        self.ff_dropout1 = self._parse_dropout(dropout=self.dropout)
-        self.ff_dropout2 = self._parse_dropout(dropout=self.dropout)
 
         # Residual connections
         self.node_residual = node_residual
 
-        # linear layers
+        # MLP applied at the end of the GPS layer
         # GPS++: ffn_dim = 1024, in_dim = 256.
-        self.ff_linear1 = FCLayer(in_dim, in_dim * 4, activation=None)
-        self.ff_linear2 = FCLayer(in_dim * 4, in_dim, activation=None)
-        self.ff_out = FCLayer(in_dim, out_dim, activation=None)
+        self.mlp = MLP(
+            in_dim=in_dim,
+            hidden_dim=4 * in_dim,
+            out_dim=in_dim,
+            layers=2,
+            activation=activation,
+            dropout=self.dropout,
+        )
+        self.f_out = FCLayer(in_dim, out_dim, normalization=normalization)
 
         # Normalization layers
         self.norm_layer_local = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
-        self.norm_layer_ff = self._parse_norm(self.normalization)
 
-        # Set the default values for the MPNN layer
-        if mpnn_kwargs is None:
-            mpnn_kwargs = {}
-        mpnn_kwargs = deepcopy(mpnn_kwargs)
-        mpnn_kwargs.setdefault("in_dim", in_dim)
-        mpnn_kwargs.setdefault("out_dim", in_dim)
-        mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
-        mpnn_kwargs.setdefault("out_dim_edges", out_dim_edges)
-        # TODO: The rest of default values
+        mpnn_kwargs = self._parse_mpnn_kwargs(mpnn_kwargs)
+        attn_kwargs = self._parse_attn_kwargs(attn_kwargs)
 
         # Initialize the MPNN layer
         mpnn_class = PYG_LAYERS_DICT[mpnn_type]
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
-        # Set the default values for the Attention layer
-        if attn_kwargs is None:
-            attn_kwargs = {}
-        attn_kwargs.setdefault("embed_dim", in_dim)
-        attn_kwargs.setdefault("num_heads", 1)
-        attn_kwargs.setdefault("dropout", dropout)
-        attn_kwargs.setdefault("batch_first", True)
-
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
 
-    def forward(self, batch):
+    def forward(self, batch: Batch) -> Batch:
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
 
@@ -148,45 +140,105 @@ class GPSLayerPyg(BaseGraphModule):
             h_local = self.norm_layer_local(h_local)
         h = h_local
 
-        # Multi-head attention.
-        # * batch.batch is the indicator vector for nodes of which graph it belongs to
-        # * h_dense
+        # Multi-head attention
         if self.attn_layer is not None:
-            # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
-            poptorch = import_poptorch(raise_error=False)
-            on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
-            max_num_nodes_per_graph = None
-            if on_ipu:
-                max_num_nodes_per_graph = self.max_num_nodes_per_graph
+            h = self._self_attention_block(h, h_in, batch)
 
-            # Convert the tensor to a dense batch, then back to a sparse batch
-            batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
-            h_dense, mask, idx = to_dense_batch(
-                h,
-                batch=batch.batch,
-                batch_size=batch_size,
-                max_num_nodes_per_graph=max_num_nodes_per_graph,
-                drop_nodes_last_graph=on_ipu,
-            )
-            h_attn = self._sa_block(h_dense, None, ~mask)
-            h_attn = to_sparse_batch(h_attn, idx)
-
-            # Dropout, residual, norm
-            if self.dropout_attn is not None:
-                h_attn = self.dropout_attn(h_attn)
-            h_attn = h_in + h_attn
-            if self.norm_layer_attn is not None:
-                h_attn = self.norm_layer_attn(h_attn)
-
-            # Combine local and global outputs.
-            h = h + h_attn
-
-        # Feed Forward block.
-        h = self._ff_block(h)
+        # MLP block, with skip connection
+        h = h + self.mlp(h)
+        h = self.f_out(h)
 
         batch_out.h = h
 
         return batch_out
+
+    def _parse_mpnn_kwargs(self, mpnn_kwargs: Union[type(None), Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Parsing the MPNN key-word arguments, and setting the default values to the same
+        as the current layer if not provided
+        """
+
+        if mpnn_kwargs is None:
+            mpnn_kwargs = {}
+
+        # Set the default values for the MPNN layer
+        mpnn_kwargs = deepcopy(mpnn_kwargs)
+        mpnn_kwargs.setdefault("in_dim", self.in_dim)
+        mpnn_kwargs.setdefault("out_dim", self.in_dim)
+        mpnn_kwargs.setdefault("in_dim_edges", self.in_dim_edges)
+        mpnn_kwargs.setdefault("out_dim_edges", self.out_dim_edges)
+        mpnn_kwargs.setdefault("activation", self.activation)
+        mpnn_kwargs.setdefault("dropout", self.dropout)
+        mpnn_kwargs.setdefault("normalization", self.normalization)
+
+        return mpnn_kwargs
+
+    def _parse_attn_kwargs(self, attn_kwargs: Union[type(None), Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Parsing the Attention key-word arguments, and setting the default values to the same
+        as the current layer if not provided
+        """
+
+        if attn_kwargs is None:
+            attn_kwargs = {}
+
+        # Enforce the value of embed_dim
+        embed_dim = attn_kwargs.get("embed_dim", None)
+        if embed_dim is not None:
+            assert (
+                embed_dim == self.in_dim
+            ), f"Dimension mismatch between `embed_dim={embed_dim}` and `in_dim={self.in_dim}`"
+        attn_kwargs["embed_dim"] = self.in_dim
+
+        # Set the default values for the self-Attention layer
+        attn_kwargs.setdefault("embed_dim", self.in_dim)
+        attn_kwargs.setdefault("num_heads", 1)
+        attn_kwargs.setdefault("dropout", self.dropout)
+        attn_kwargs.setdefault("batch_first", True)
+
+        return attn_kwargs
+
+    def _self_attention_block(self, h: Tensor, h_in: Tensor, batch: Batch) -> Tensor:
+        """
+        Applying the multi-head self-attention to the batch of graphs.
+        First the batch is converted from [num_nodes, hidden_dim] to [num_graphs, max_num_nodes, hidden_dim]
+        Then the self-attention is applied on each graph
+        Then the batch is converted again to [num_nodes, hidden_dim]
+        """
+
+        # Multi-head attention.
+        poptorch = import_poptorch(raise_error=False)
+        on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+        max_num_nodes_per_graph = None
+        if on_ipu:
+            max_num_nodes_per_graph = self.max_num_nodes_per_graph
+
+        # Convert the tensor to a dense batch, then back to a sparse batch
+        batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
+
+        # h[num_nodes, hidden_dim] -> h_dense[num_graphs, max_num_nodes, hidden_dim]
+        h_dense, mask, idx = to_dense_batch(
+            h,
+            batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
+            batch_size=batch_size,
+            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            drop_nodes_last_graph=on_ipu,
+        )
+        # h_dense[num_graphs, max_num_nodes, hidden_dim] -> h_attn[num_graphs, max_num_nodes, hidden_dim]
+        h_attn = self._sa_block(h_dense, None, ~mask)
+
+        # h_attn[num_graphs, max_num_nodes, hidden_dim] -> h_attn[num_nodes, hidden_dim]
+        h_attn = to_sparse_batch(h_attn, idx)
+
+        # Dropout, residual, norm
+        if self.dropout_attn is not None:
+            h_attn = self.dropout_attn(h_attn)
+        h_attn = h_in + h_attn
+        if self.norm_layer_attn is not None:
+            h_attn = self.norm_layer_attn(h_attn)
+
+        # Combine local and global outputs.
+        return h + h_attn
 
     def _parse_attn_layer(self, attn_type, **attn_kwargs):
         attn_layer, attn_class = None, None
@@ -195,30 +247,6 @@ class GPSLayerPyg(BaseGraphModule):
         if attn_class is not None:
             attn_layer = attn_class(**attn_kwargs)
         return attn_layer
-
-    def _ff_block(self, h):
-        """Feed Forward block."""
-        h_in = h
-        # First linear layer + activation + dropout
-        h = self.ff_linear1(h)
-        if self.activation_layer is not None:
-            h = self.activation_layer(h)
-        if self.ff_dropout1 is not None:
-            h = self.ff_dropout1(h)
-
-        # Second linear layer + dropout
-        h = self.ff_linear2(h)
-        if self.ff_dropout2 is not None:
-            h = self.ff_dropout2(h)
-
-        # Residual
-        h = h + h_in
-
-        # Third linear layer + norm
-        h = self.ff_out(h)
-        if self.norm_layer_ff is not None:
-            h = self.norm_layer_ff(h)
-        return h
 
     def _sa_block(self, x, attn_mask, key_padding_mask):
         """Self-attention block."""
