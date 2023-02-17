@@ -20,13 +20,13 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
-from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
+from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder, gaussian_kernel_pos_encoder
 
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
     "signnet": signnet_pos_encoder.SignNetNodeEncoder,
-    #! Andy add the gaussian kernels here
+    "gaussian_kernel": gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
 }
 
 
@@ -1354,13 +1354,17 @@ class FullGraphNetwork(nn.Module):
         # Run every node positional-encoder
         for name, encoder in self.pe_encoders.items():
             keys = encoder.on_keys
-            encoder_inputs = {}
-            for key in keys:
-                encoder_inputs[key] = self.gnn._get_node_feats(g, key=f"{name}/{key}").to(self.dtype)
-            encoder_outs.append(
-                encoder(**encoder_inputs)["node"]
-            )  # TODO: Avoid repeated call to encoder when using edges
-
+            if (name in ["gaussian_pos"]):
+                encoder_outs.append(
+                    encoder(g)["node"]
+                )
+            else:
+                encoder_inputs = {}
+                for key in keys:
+                    encoder_inputs[key] = self.gnn._get_node_feats(g, key=f"{name}/{key}").to(self.dtype)
+                encoder_outs.append(
+                    encoder(**encoder_inputs)["node"]
+                )  # TODO: Avoid repeated call to encoder when using edges
         # Pool the node positional encodings
         pe_outs = torch.stack(encoder_outs, dim=-1)
         pe_node_pooled = self.forward_simple_pooling(pe_outs, pooling=self.pe_pool, dim=-1)

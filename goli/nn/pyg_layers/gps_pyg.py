@@ -124,9 +124,9 @@ class GPSLayerPyg(BaseGraphModule):
 
         self.num_gaussian_kernels = num_gaussian_kernels
         self.biased_attention = biased_attention
-        self.layer_idx = layer_idx
+        self.layer_idx = layer_idx  
         self.preprocess_3d_positions = None
-        if self.biased_attention and self.layer_idx == 0:
+        if self.biased_attention and self.layer_idx == 0:  
             self.preprocess_3d_positions = Preprocess3DPositions(
                 attn_kwargs["num_heads"],
                 attn_kwargs["embed_dim"],

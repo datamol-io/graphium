@@ -64,12 +64,14 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
 
         pos_type: The type of positional encoding to use. Supported types are:
 
-            - laplacian_eigvec: the
+            - laplacian_eigvec
             - laplacian_eigvec_eigval
+            - rwse
+            - positions_3d
+
 
     """
     pos_type = pos_arg["pos_type"]
-
     pos_type = pos_type.lower()
     pe_dict = {}
 
@@ -94,7 +96,10 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
         rwse_pe = compute_rwse(adj=adj, ksteps=pos_arg["ksteps"], num_nodes=num_nodes)
         rwse_pe = rwse_pe.astype(np.float32)
         pe_dict["rwse"] = rwse_pe
-
+    
+    elif pos_type == "positions_3d":
+        pe_dict["positions_3d"] = np.zeros(3).astype(np.float32)
+        #pe_dict["positions_3d"] = None
     else:
         raise ValueError(f"Unknown `pos_type`: {pos_type}")
 

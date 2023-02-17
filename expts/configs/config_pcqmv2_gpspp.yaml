@@ -46,6 +46,9 @@ datamodule:
           rw_pos: #use same name as pe_encoder
             pos_type: rwse
             ksteps: 16
+          gaussian_pos: #gaussian_kernel_pe
+            pos_type: positions_3d
+
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
@@ -56,7 +59,7 @@ datamodule:
     num_workers: -1
 
     ipu_dataloader_training_opts:
-      max_num_nodes_per_graph: 50
+      max_num_nodes_per_graph: &max_num_nodes 50
       max_num_edges_per_graph: 150
 
     ipu_dataloader_inference_opts:
@@ -92,7 +95,7 @@ architecture:
     out_dim: 64
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
-    encoders: #la_pos |  rw_pos
+    encoders: #la_pos |  rw_pos | gaussian_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
         on_keys: ["eigvecs", "eigvals"]
@@ -111,6 +114,15 @@ architecture:
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      gaussian_pos:
+        encoder_type: "gaussian_kernel"
+        on_keys: ["positions_3d"]
+        out_level: "node"
+        num_kernel: 64 #same as hidden_dim of other pe
+        num_heads: 1 
+        num_layers: 1 #2
+        max_num_nodes_per_graph: *max_num_nodes
+
 
 
   gnn:  # Set as null to avoid a post-nn network
@@ -137,8 +149,6 @@ architecture:
       attn_type: "full-attention" # "full-attention", "none"
       biased_attention: true
       attn_kwargs: null
-
-
       # out_dim_edges: 16
       # aggregators: [mean, max]
       # scalers: [identity, amplification, attenuation]
@@ -245,6 +255,6 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 50 #50
+    max_epochs: 5 #50
     min_epochs: 1 #5
     accumulate_grad_batches: 1

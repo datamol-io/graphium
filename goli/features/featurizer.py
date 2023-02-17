@@ -163,26 +163,32 @@ def get_mol_conformer_features(
             Accepted properties are:
             - "positions_3d"
     """
+    prop_dict = {}
     has_conf = True
+
     try:
         mol.GetConformer()
     except:
         has_conf = False
-
-    prop_name = property_list[0]  # currently only supports positions_3d
-    positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
-
-    # * shape of 3d positions = num atom * 3
-    if has_conf:
-        for i in range(mol.GetNumAtoms()):
-            pos = mol.GetConformer().GetAtomPosition(i)
-            positions[i][0] = pos.x
-            positions[i][1] = pos.y
-            positions[i][2] = pos.z
-
-    prop_dict = {}
-    prop_dict[prop_name] = positions
-
+    #* currently only accepts "positions_3d", raise errors otherwise
+    '''
+    #! Andy continue debugging here
+    '''
+    for prop in property_list:
+        if isinstance(prop, str):
+            if prop in ["positions_3d"]:  #locating 3d conformer coordinates
+                positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
+                if has_conf:
+                    for i in range(mol.GetNumAtoms()):
+                        pos = mol.GetConformer().GetAtomPosition(i)
+                        positions[i][0] = pos.x
+                        positions[i][1] = pos.y
+                        positions[i][2] = pos.z
+                prop_dict[prop] = positions
+            else:
+                ValueError(str(prop) + " is not currently supported as a conformer property in `property_list`")
+        else:
+            ValueError(f"Elements in `property_list` must be str or callable, provided `{type(prop)}`") 
     return prop_dict
 
 
