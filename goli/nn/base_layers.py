@@ -31,7 +31,7 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
 
     Parameters:
         activation: Callable, `None`, or string with value:
-            "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"
+            "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GELU", "GLU", "LeakyReLU", "Softplus"
 
     Returns:
         Callable or None: The activation function

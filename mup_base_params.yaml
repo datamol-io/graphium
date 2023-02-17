@@ -1,29 +1,29 @@
 # This is a base shape file encoded in yaml
 # - `null` indicates a dimension is "finite", i.e. a non-"width" dimension
 # - a number indicates the base dimension of an "infinite" dimension, i.e. some notion of "width"
-gnn.layers.0.ff_linear1.linear.bias:
+gnn.layers.0.f_out.linear.bias:
+- 128
+gnn.layers.0.f_out.linear.weight:
+- 128
+- 128
+gnn.layers.0.f_out.normalization.bias:
+- 128
+gnn.layers.0.f_out.normalization.weight:
+- 128
+gnn.layers.0.mlp.fully_connected.0.linear.bias:
 - 512
-gnn.layers.0.ff_linear1.linear.weight:
+gnn.layers.0.mlp.fully_connected.0.linear.weight:
 - 512
 - 128
-gnn.layers.0.ff_linear2.linear.bias:
+gnn.layers.0.mlp.fully_connected.1.linear.bias:
 - 128
-gnn.layers.0.ff_linear2.linear.weight:
+gnn.layers.0.mlp.fully_connected.1.linear.weight:
 - 128
 - 512
-gnn.layers.0.ff_out.linear.bias:
-- 128
-gnn.layers.0.ff_out.linear.weight:
-- 128
-- 128
 gnn.layers.0.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.0.mpnn.edge_model.fully_connected.0.linear.weight:
 - null
-- null
-gnn.layers.0.mpnn.edge_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.0.mpnn.edge_model.fully_connected.0.normalization.weight:
 - null
 gnn.layers.0.mpnn.edge_model.fully_connected.1.linear.bias:
 - null
@@ -35,42 +35,34 @@ gnn.layers.0.mpnn.node_model.fully_connected.0.linear.bias:
 gnn.layers.0.mpnn.node_model.fully_connected.0.linear.weight:
 - null
 - null
-gnn.layers.0.mpnn.node_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.0.mpnn.node_model.fully_connected.0.normalization.weight:
-- null
 gnn.layers.0.mpnn.node_model.fully_connected.1.linear.bias:
 - null
 gnn.layers.0.mpnn.node_model.fully_connected.1.linear.weight:
 - null
 - null
-gnn.layers.0.mpnn.norm_layer.bias:
-- null
-gnn.layers.0.mpnn.norm_layer.weight:
-- null
-gnn.layers.1.ff_linear1.linear.bias:
+gnn.layers.1.f_out.linear.bias:
+- 128
+gnn.layers.1.f_out.linear.weight:
+- 128
+- 128
+gnn.layers.1.f_out.normalization.bias:
+- 128
+gnn.layers.1.f_out.normalization.weight:
+- 128
+gnn.layers.1.mlp.fully_connected.0.linear.bias:
 - 512
-gnn.layers.1.ff_linear1.linear.weight:
+gnn.layers.1.mlp.fully_connected.0.linear.weight:
 - 512
 - 128
-gnn.layers.1.ff_linear2.linear.bias:
+gnn.layers.1.mlp.fully_connected.1.linear.bias:
 - 128
-gnn.layers.1.ff_linear2.linear.weight:
+gnn.layers.1.mlp.fully_connected.1.linear.weight:
 - 128
 - 512
-gnn.layers.1.ff_out.linear.bias:
-- 128
-gnn.layers.1.ff_out.linear.weight:
-- 128
-- 128
 gnn.layers.1.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.1.mpnn.edge_model.fully_connected.0.linear.weight:
 - null
-- null
-gnn.layers.1.mpnn.edge_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.1.mpnn.edge_model.fully_connected.0.normalization.weight:
 - null
 gnn.layers.1.mpnn.edge_model.fully_connected.1.linear.bias:
 - null
@@ -82,42 +74,34 @@ gnn.layers.1.mpnn.node_model.fully_connected.0.linear.bias:
 gnn.layers.1.mpnn.node_model.fully_connected.0.linear.weight:
 - null
 - null
-gnn.layers.1.mpnn.node_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.1.mpnn.node_model.fully_connected.0.normalization.weight:
-- null
 gnn.layers.1.mpnn.node_model.fully_connected.1.linear.bias:
 - null
 gnn.layers.1.mpnn.node_model.fully_connected.1.linear.weight:
 - null
 - null
-gnn.layers.1.mpnn.norm_layer.bias:
-- null
-gnn.layers.1.mpnn.norm_layer.weight:
-- null
-gnn.layers.2.ff_linear1.linear.bias:
+gnn.layers.2.f_out.linear.bias:
+- 128
+gnn.layers.2.f_out.linear.weight:
+- 128
+- 128
+gnn.layers.2.f_out.normalization.bias:
+- 128
+gnn.layers.2.f_out.normalization.weight:
+- 128
+gnn.layers.2.mlp.fully_connected.0.linear.bias:
 - 512
-gnn.layers.2.ff_linear1.linear.weight:
+gnn.layers.2.mlp.fully_connected.0.linear.weight:
 - 512
 - 128
-gnn.layers.2.ff_linear2.linear.bias:
+gnn.layers.2.mlp.fully_connected.1.linear.bias:
 - 128
-gnn.layers.2.ff_linear2.linear.weight:
+gnn.layers.2.mlp.fully_connected.1.linear.weight:
 - 128
 - 512
-gnn.layers.2.ff_out.linear.bias:
-- 128
-gnn.layers.2.ff_out.linear.weight:
-- 128
-- 128
 gnn.layers.2.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.2.mpnn.edge_model.fully_connected.0.linear.weight:
 - null
-- null
-gnn.layers.2.mpnn.edge_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.2.mpnn.edge_model.fully_connected.0.normalization.weight:
 - null
 gnn.layers.2.mpnn.edge_model.fully_connected.1.linear.bias:
 - null
@@ -129,42 +113,34 @@ gnn.layers.2.mpnn.node_model.fully_connected.0.linear.bias:
 gnn.layers.2.mpnn.node_model.fully_connected.0.linear.weight:
 - null
 - null
-gnn.layers.2.mpnn.node_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.2.mpnn.node_model.fully_connected.0.normalization.weight:
-- null
 gnn.layers.2.mpnn.node_model.fully_connected.1.linear.bias:
 - null
 gnn.layers.2.mpnn.node_model.fully_connected.1.linear.weight:
 - null
 - null
-gnn.layers.2.mpnn.norm_layer.bias:
-- null
-gnn.layers.2.mpnn.norm_layer.weight:
-- null
-gnn.layers.3.ff_linear1.linear.bias:
+gnn.layers.3.f_out.linear.bias:
+- 128
+gnn.layers.3.f_out.linear.weight:
+- 128
+- 128
+gnn.layers.3.f_out.normalization.bias:
+- 128
+gnn.layers.3.f_out.normalization.weight:
+- 128
+gnn.layers.3.mlp.fully_connected.0.linear.bias:
 - 512
-gnn.layers.3.ff_linear1.linear.weight:
+gnn.layers.3.mlp.fully_connected.0.linear.weight:
 - 512
 - 128
-gnn.layers.3.ff_linear2.linear.bias:
+gnn.layers.3.mlp.fully_connected.1.linear.bias:
 - 128
-gnn.layers.3.ff_linear2.linear.weight:
+gnn.layers.3.mlp.fully_connected.1.linear.weight:
 - 128
 - 512
-gnn.layers.3.ff_out.linear.bias:
-- 128
-gnn.layers.3.ff_out.linear.weight:
-- 128
-- 128
 gnn.layers.3.mpnn.edge_model.fully_connected.0.linear.bias:
 - null
 gnn.layers.3.mpnn.edge_model.fully_connected.0.linear.weight:
 - null
-- null
-gnn.layers.3.mpnn.edge_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.3.mpnn.edge_model.fully_connected.0.normalization.weight:
 - null
 gnn.layers.3.mpnn.edge_model.fully_connected.1.linear.bias:
 - null
@@ -176,18 +152,10 @@ gnn.layers.3.mpnn.node_model.fully_connected.0.linear.bias:
 gnn.layers.3.mpnn.node_model.fully_connected.0.linear.weight:
 - null
 - null
-gnn.layers.3.mpnn.node_model.fully_connected.0.normalization.bias:
-- null
-gnn.layers.3.mpnn.node_model.fully_connected.0.normalization.weight:
-- null
 gnn.layers.3.mpnn.node_model.fully_connected.1.linear.bias:
 - null
 gnn.layers.3.mpnn.node_model.fully_connected.1.linear.weight:
 - null
-- null
-gnn.layers.3.mpnn.norm_layer.bias:
-- null
-gnn.layers.3.mpnn.norm_layer.weight:
 - null
 gnn.out_linear.linear.bias:
 - 128

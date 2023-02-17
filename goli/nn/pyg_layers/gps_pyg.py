@@ -167,7 +167,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs.setdefault("out_dim", self.in_dim)
         mpnn_kwargs.setdefault("in_dim_edges", self.in_dim_edges)
         mpnn_kwargs.setdefault("out_dim_edges", self.out_dim_edges)
-        mpnn_kwargs.setdefault("activation", self.activation)
+        mpnn_kwargs.setdefault("activation", "relu") # raise error: Value 'GELU' is not a supported primitive type if using self.activation
         mpnn_kwargs.setdefault("dropout", self.dropout)
         mpnn_kwargs.setdefault("normalization", self.normalization)
 
