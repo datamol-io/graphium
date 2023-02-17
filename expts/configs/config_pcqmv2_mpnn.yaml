@@ -146,7 +146,7 @@ architecture:
   task_heads:
     homolumo:
       out_dim: 1
-      hidden_dims: 32
+      hidden_dims: 256
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none

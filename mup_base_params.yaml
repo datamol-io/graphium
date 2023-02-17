@@ -222,16 +222,16 @@ pre_nn_edges.layers.1.normalization.bias:
 pre_nn_edges.layers.1.normalization.weight:
 - 64
 task_heads.task_heads.homolumo.layers.0.linear.bias:
-- 16
+- 128
 task_heads.task_heads.homolumo.layers.0.linear.weight:
-- 16
+- 128
 - 128
 task_heads.task_heads.homolumo.layers.0.normalization.bias:
-- 16
+- 128
 task_heads.task_heads.homolumo.layers.0.normalization.weight:
-- 16
+- 128
 task_heads.task_heads.homolumo.layers.1.linear.bias:
 - 0
 task_heads.task_heads.homolumo.layers.1.linear.weight:
 - 0
-- 16
+- 128
