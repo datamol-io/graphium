@@ -96,8 +96,9 @@ class GPSLayerPyg(BaseGraphModule):
         self.node_residual = node_residual
 
         # linear layers
-        self.ff_linear1 = FCLayer(in_dim, in_dim * 2, activation=None)
-        self.ff_linear2 = FCLayer(in_dim * 2, in_dim, activation=None)
+        # GPS++: ffn_dim = 1024, in_dim = 256.
+        self.ff_linear1 = FCLayer(in_dim, in_dim * 4, activation=None)
+        self.ff_linear2 = FCLayer(in_dim * 4, in_dim, activation=None)
         self.ff_out = FCLayer(in_dim, out_dim, activation=None)
 
         # Normalization layers
