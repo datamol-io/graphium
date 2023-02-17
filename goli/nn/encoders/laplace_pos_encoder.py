@@ -64,9 +64,9 @@ class LapPENodeEncoder(torch.nn.Module):
             # DeepSet model for LapPE
             self.pe_encoder = MLP(
                 in_dim=in_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=out_dim,
-                layers=num_layers,
+                depth=num_layers,
                 dropout=dropout,
                 **model_kwargs,
             )
@@ -76,9 +76,9 @@ class LapPENodeEncoder(torch.nn.Module):
             # MLP to apply post pooling
             self.post_mlp = MLP(
                 in_dim=in_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=in_dim,
-                layers=num_layers_post,
+                depth=num_layers_post,
                 dropout=dropout,
                 **model_kwargs,
             )

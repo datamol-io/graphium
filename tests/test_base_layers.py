@@ -2,8 +2,6 @@
 Unit tests for the different layers of goli/nn/base_layers
 """
 
-from ast import Assert
-import numpy as np
 import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch

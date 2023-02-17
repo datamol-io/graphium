@@ -107,13 +107,9 @@ class BaseGraphStructure:
     def _parse_droppath(self, droppath_rate):
         if droppath_rate == 0:
             return
-        else:
-            assert (self.layer_idx is not None) and (
-                self.layer_depth is not None
-            ), f"layer_idx={self.layer_idx} and layer_depth={self.layer_depth} should be integers when `droppath_rate>0`"
-            layer_depth_frac = (self.layer_idx / (self.layer_depth - 1)) if self.layer_idx > 0 else 0.0
-            droppath_rate *= layer_depth_frac
-            return DropPath(drop_rate=droppath_rate)
+
+        droppath_rate = DropPath.get_stochastic_drop_rate(droppath_rate, self.layer_idx, self.layer_depth)
+        return DropPath(drop_rate=droppath_rate)
 
     def _parse_norm(self, normalization, dim=None):
         if dim is None:

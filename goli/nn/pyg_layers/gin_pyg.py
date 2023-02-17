@@ -78,9 +78,9 @@ class GINConvPyg(BaseGraphModule):
 
         gin_nn = MLP(
             in_dim=self.in_dim,
-            hidden_dim=self.in_dim,
+            hidden_dims=self.in_dim,
             out_dim=self.out_dim,
-            layers=2,
+            depth=2,
             activation=self.activation_layer,
             last_activation="none",
             normalization=self.normalization,
@@ -218,9 +218,9 @@ class GINEConvPyg(BaseGraphModule):
 
         gin_nn = MLP(
             in_dim=self.in_dim,
-            hidden_dim=self.in_dim,
+            hidden_dims=self.in_dim,
             out_dim=self.out_dim,
-            layers=2,
+            depth=2,
             activation=self.activation_layer,
             last_activation="none",
             normalization=self.normalization,

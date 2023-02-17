@@ -1,4 +1,4 @@
-from typing import Union, Callable, Optional, Type, Tuple
+from typing import Union, Callable, Optional, Type, Tuple, Iterable
 from copy import deepcopy
 from loguru import logger
 
@@ -401,9 +401,9 @@ class MLP(nn.Module):
     def __init__(
         self,
         in_dim: int,
-        hidden_dim: int,
+        hidden_dims: Union[Iterable[int], int],
         out_dim: int,
-        layers: int,
+        depth: int,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
@@ -412,6 +412,7 @@ class MLP(nn.Module):
         last_normalization: Union[Type[None], str, Callable] = "none",
         first_normalization: Union[Type[None], str, Callable] = "none",
         last_layer_is_readout: bool = False,
+        droppath_rate: float = 0.0,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -419,13 +420,16 @@ class MLP(nn.Module):
         Parameters:
             in_dim:
                 Input dimension of the MLP
-            hidden_dim:
-                Hidden dimension of the MLP. All hidden dimensions will have
-                the same number of parameters
+            hidden_dims:
+                Either an integer specifying all the hidden dimensions,
+                or a list of dimensions in the hidden layers.
             out_dim:
                 Output dimension of the MLP.
-            layers:
-                Number of hidden layers
+            depth:
+                If `hidden_dims` is an integer, `depth` is 1 + the number of
+                hidden layers to use.
+                If `hidden_dims` is a list, then
+                `depth` must be `None` or equal to `len(hidden_dims) + 1`
             activation:
                 Activation function to use in all the layers except the last.
                 if `layers==1`, this parameter is ignored
@@ -450,61 +454,66 @@ class MLP(nn.Module):
                 The ratio of units to dropout at the last layer.
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
+            droppath_rate:
+                stochastic depth drop rate, between 0 and 1, see https://arxiv.org/abs/1603.09382
         """
 
         super().__init__()
 
         self.in_dim = in_dim
-        self.hidden_dim = hidden_dim
         self.out_dim = out_dim
+
+        # Parse the hidden dimensions and depth
+        if isinstance(hidden_dims, int):
+            self.hidden_dims = [hidden_dims] * (depth - 1)
+        else:
+            self.hidden_dims = list(hidden_dims)
+            assert (depth is None) or (depth == len(self.hidden_dims) + 1), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
+        self.depth = len(self.hidden_dims) + 1
+
+        # Parse the normalization
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
+
+        all_dims = [in_dim] + self.hidden_dims + [out_dim]
         fully_connected = []
-        if layers == 0:
+        if depth == 0:
             self.fully_connected = None
             return
-        elif layers == 1:
-            fully_connected.append(
-                FCLayer(
-                    in_dim,
-                    out_dim,
-                    activation=last_activation,
-                    normalization=last_normalization,
-                    dropout=last_dropout,
-                    is_readout_layer=last_layer_is_readout,
-                )
-            )
-        elif layers > 1:
-            fully_connected.append(
-                FCLayer(
-                    in_dim,
-                    hidden_dim,
-                    activation=activation,
-                    normalization=normalization,
-                    dropout=dropout,
-                )
-            )
-            for _ in range(layers - 2):
+        else:
+            for ii in range(depth):
+
+                if ii < (depth - 1):
+                    # Define the parameters for all intermediate layers
+                    this_activation = activation
+                    this_normalization = normalization
+                    this_dropout = dropout
+                    is_readout_layer = False
+                else:
+                    # Define the parameters for the last layer
+                    this_activation = last_activation
+                    this_normalization = last_normalization
+                    this_dropout = last_dropout
+                    is_readout_layer = last_layer_is_readout
+
+                # Add a fully-connected layer
                 fully_connected.append(
                     FCLayer(
-                        hidden_dim,
-                        hidden_dim,
-                        activation=activation,
-                        normalization=normalization,
-                        dropout=dropout,
+                        all_dims[ii],
+                        all_dims[ii+1],
+                        activation=this_activation,
+                        normalization=this_normalization,
+                        dropout=this_dropout,
+                        is_readout_layer=is_readout_layer,
                     )
                 )
-            fully_connected.append(
-                FCLayer(
-                    hidden_dim,
-                    out_dim,
-                    activation=last_activation,
-                    normalization=last_normalization,
-                    dropout=last_dropout,
-                    is_readout_layer=last_layer_is_readout,
-                )
-            )
+
+                # Add the DropPath
+                if droppath_rate > 0:
+                    this_drop_rate = DropPath.get_stochastic_drop_rate(drop_rate=droppath_rate, layer_idx=ii, layer_depth=depth)
+                    fully_connected.append(
+                        DropPath(drop_rate=this_drop_rate)
+                    )
         self.fully_connected = nn.Sequential(*fully_connected)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
@@ -605,6 +614,30 @@ class DropPath(nn.Module):
 
         super().__init__()
         self.drop_rate = drop_rate
+
+    @staticmethod
+    def get_stochastic_drop_rate(drop_rate: float, layer_idx: Optional[int] = None, layer_depth: Optional[int] = None):
+        """
+        Get the stochastic drop rate from the nominal drop rate, the layer index, and the layer depth.
+
+        `return drop_rate * (layer_idx / (layer_depth - 1))`
+
+        Parameters:
+            drop_rate:
+                Drop out nominal probability
+
+            layer_idx:
+                The index of the current layer
+
+            layer_depth:
+                The total depth (number of layers) associated to this specific layer
+
+        """
+        if drop_rate == 0:
+            return 0
+        else:
+            assert (layer_idx is not None) and (layer_depth is not None), f"layer_idx={layer_idx} and layer_depth={layer_depth} should be integers when `droppath_rate>0`"
+            return drop_rate * (layer_idx / (layer_depth - 1))
 
     def forward(
         self,

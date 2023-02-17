@@ -46,6 +46,7 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs=None,
         droppath_rate_attn: float = 0.0,
         droppath_rate_ffn: float = 0.0,
+        hidden_dim_scaling: float = 4.,
         **kwargs,
     ):
         r"""
@@ -101,10 +102,10 @@ class GPSLayerPyg(BaseGraphModule):
                 kwargs for attention layer
 
             droppath_rate_attn:
-                stochastic depth drop rate for attention layer
+                stochastic depth drop rate for attention layer https://arxiv.org/abs/1603.09382
 
             droppath_rate_ffn:
-                stochastic depth drop rate for ffn layer
+                stochastic depth drop rate for ffn layer https://arxiv.org/abs/1603.09382
 
         """
 
@@ -130,9 +131,9 @@ class GPSLayerPyg(BaseGraphModule):
         # MLP applied at the end of the GPS layer
         self.mlp = MLP(
             in_dim=in_dim,
-            hidden_dim=2 * in_dim,
+            hidden_dims=int(hidden_dim_scaling * in_dim),
             out_dim=in_dim,
-            layers=2,
+            depth=2,
             activation=activation,
             dropout=self.dropout,
         )
