@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  # cpu or ipu or gpu
+    type: cpu  # cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -12,15 +12,15 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        # df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
         # QQQ: can we parallize featuring_smiles step (1 hour right now)
         # QQQ: how are the train/valid/test splits get handled?
         # QQQ: warning unrecognized chirality tag (8) on atom 7 is ignored.
-        smiles_col: "cxsmiles"
-        label_cols: ["homo_lumo_gap"]
-        # df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
-        # smiles_col: "smiles"
-        # label_cols: ["homo"]
+        # smiles_col: "cxsmiles"
+        # label_cols: ["homo_lumo_gap"]
+        df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
+        smiles_col: "smiles"
+        label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph

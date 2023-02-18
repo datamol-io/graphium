@@ -127,6 +127,9 @@ class MPNNPlusPyg(BaseGraphModule):
         self.aggregator = MultiAggregation(aggregation_method)
 
         # node_model:
+        # technically should be --> edge_model_in_dim = 3 * self.in_dim + 2 * self.out_dim_edges if use_edges
+        # else edge_model_in_dim = 3 * self.in_dim + 2 * self.in_dim_edges
+        # the node_model_in_dim and edge_model_in_dim also depend on the node_combine_method, gather_from, scatter_to methods used.
         node_model_in_dim = 3 * self.in_dim + 2 * self.in_dim_edges
         node_model_hidden_dim = 4 * self.in_dim
         self.node_model = MLP(

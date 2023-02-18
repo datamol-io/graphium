@@ -61,7 +61,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
 
     logger.info(predictor.model)
-    logger.info(ModelSummary(predictor, max_depth=4))
+    logger.info(ModelSummary(predictor, max_depth=-1))
 
     trainer = load_trainer(cfg, run_name)
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
