@@ -144,7 +144,9 @@ class FeedForwardNN(nn.Module):
             self.hidden_dims = [hidden_dims] * (depth - 1)
         else:
             self.hidden_dims = list(hidden_dims)
-            assert (depth is None) or (depth == len(self.hidden_dims) + 1), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
+            assert (depth is None) or (
+                depth == len(self.hidden_dims) + 1
+            ), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
         self.depth = len(self.hidden_dims) + 1
         self.activation = get_activation(activation)
         self.last_activation = get_activation(last_activation)

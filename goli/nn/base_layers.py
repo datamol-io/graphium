@@ -245,7 +245,7 @@ class FCLayer(nn.Module):
         bias: bool = True,
         init_fn: Optional[Callable] = None,
         is_readout_layer: bool = False,
-        droppath_rate: float = 0.,
+        droppath_rate: float = 0.0,
     ):
         r"""
         A simple fully connected and customizable layer. This layer is centered around a `torch.nn.Linear` module.
@@ -484,12 +484,13 @@ class MLP(nn.Module):
             self.hidden_dims = [hidden_dims] * (depth - 1)
         else:
             self.hidden_dims = list(hidden_dims)
-            assert (depth is None) or (depth == len(self.hidden_dims) + 1), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
+            assert (depth is None) or (
+                depth == len(self.hidden_dims) + 1
+            ), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
         self.depth = len(self.hidden_dims) + 1
 
         # Parse the normalization
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
-
 
         all_dims = [in_dim] + self.hidden_dims + [out_dim]
         fully_connected = []
@@ -498,7 +499,6 @@ class MLP(nn.Module):
             return
         else:
             for ii in range(depth):
-
                 if ii < (depth - 1):
                     # Define the parameters for all intermediate layers
                     this_activation = activation
@@ -521,7 +521,7 @@ class MLP(nn.Module):
                 fully_connected.append(
                     FCLayer(
                         all_dims[ii],
-                        all_dims[ii+1],
+                        all_dims[ii + 1],
                         activation=this_activation,
                         normalization=this_normalization,
                         dropout=this_dropout,
@@ -632,7 +632,9 @@ class DropPath(nn.Module):
         self.drop_rate = drop_rate
 
     @staticmethod
-    def get_stochastic_drop_rate(drop_rate: float, layer_idx: Optional[int] = None, layer_depth: Optional[int] = None):
+    def get_stochastic_drop_rate(
+        drop_rate: float, layer_idx: Optional[int] = None, layer_depth: Optional[int] = None
+    ):
         """
         Get the stochastic drop rate from the nominal drop rate, the layer index, and the layer depth.
 
@@ -652,7 +654,9 @@ class DropPath(nn.Module):
         if drop_rate == 0:
             return 0
         else:
-            assert (layer_idx is not None) and (layer_depth is not None), f"layer_idx={layer_idx} and layer_depth={layer_depth} should be integers when `droppath_rate>0`"
+            assert (layer_idx is not None) and (
+                layer_depth is not None
+            ), f"layer_idx={layer_idx} and layer_depth={layer_depth} should be integers when `droppath_rate>0`"
             return drop_rate * (layer_idx / (layer_depth - 1))
 
     def forward(

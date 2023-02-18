@@ -46,7 +46,7 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs=None,
         droppath_rate_attn: float = 0.0,
         droppath_rate_ffn: float = 0.0,
-        hidden_dim_scaling: float = 4.,
+        hidden_dim_scaling: float = 4.0,
         **kwargs,
     ):
         r"""
