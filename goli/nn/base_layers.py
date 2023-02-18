@@ -9,7 +9,7 @@ from torch import Tensor, IntTensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
 
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_utils import is_running_on_ipu
 
 SUPPORTED_ACTIVATION_MAP = {
     "ReLU",
@@ -675,8 +675,7 @@ class DropPath(nn.Module):
             torch.Tensor: `torch.Tensor[total_num_nodes, hidde]`
 
         """
-        poptorch = import_poptorch(raise_error=False)
-        on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+        on_ipu = is_running_on_ipu()
 
         if self.drop_rate > 0:
             keep_prob = 1 - self.drop_rate

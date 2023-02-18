@@ -13,7 +13,7 @@ from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg, MPNNPlusPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_utils import is_running_on_ipu
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -245,8 +245,7 @@ class GPSLayerPyg(BaseGraphModule):
         """
 
         # Multi-head attention.
-        poptorch = import_poptorch(raise_error=False)
-        on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+        on_ipu = is_running_on_ipu()
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
