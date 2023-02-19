@@ -24,7 +24,7 @@ class GaussianKernelPosEncoder(torch.nn.Module):
         out_level: List[str],  # Whether to return on the nodes, edges, or both
         in_dim: int,
         out_dim: int,
-        num_kernel: int,  # replaces hidden_dim, Number of gaussian kernel used.
+        num_kernel: int,  # replaces hidden_dim and out_dim, Number of gaussian kernel used.
         num_layers: int,
         num_heads: int,
         max_num_nodes_per_graph: int,

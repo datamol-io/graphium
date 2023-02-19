@@ -46,8 +46,6 @@ datamodule:
           rw_pos: #use same name as pe_encoder
             pos_type: rwse
             ksteps: 16
-          gaussian_pos: #gaussian_kernel_pe
-            pos_type: gaussian_kernel
 
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
@@ -116,10 +114,10 @@ architecture:
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
       gaussian_pos:
         encoder_type: "gaussian_kernel"
-        on_keys: ["gaussian_kernel"] #["positions_3d"]
+        on_keys: ["positions_3d"]
         out_level: "node"
         num_kernel: 64 #same as hidden_dim of other pe
-        num_heads: 1 
+        num_heads: 1
         num_layers: 1 #2
         max_num_nodes_per_graph: *max_num_nodes
 

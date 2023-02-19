@@ -1135,15 +1135,21 @@ class FullGraphNetwork(nn.Module):
                 encoder_type = encoder_kwargs.pop("encoder_type")
                 encoder = PE_ENCODERS_DICT[encoder_type]
 
-                # Get the keys associated to in_dim
+                # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name/`
+                # Then check for the exact key
                 this_in_dims = {}
                 for key, dim in in_dim_dict.items():
                     if isinstance(key, str) and key.startswith(f"{encoder_name}/"):
                         key_name = "in_dim_" + key[len(encoder_name) + 1 :]
                         this_in_dims[key_name] = dim
-                assert (
-                    len(this_in_dims) > 0
-                ), f"Non-matching in_dim. Provided: '{encoder_name}/'. Available keys: {in_dim_dict.keys()}"
+                if len(this_in_dims) == 0:
+                    for key in encoder_kwargs.on_keys:
+                        if key in in_dim_dict:
+                            this_in_dims[key] = in_dim_dict[key]
+                        else:
+                            raise ValueError(
+                                f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}/' is also not found.\n Available keys: {in_dim_dict.keys()}"
+                            )
 
                 # Parse the in_dims based on Encoder's signature
                 accepted_keys = inspect.signature(encoder).parameters.keys()
