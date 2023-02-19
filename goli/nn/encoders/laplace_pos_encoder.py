@@ -1,7 +1,7 @@
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import torch
 import torch.nn as nn
-
+from torch_geometric.data import Batch
 
 from goli.nn.base_layers import MLP, get_norm, FCLayer
 
@@ -27,6 +27,7 @@ class LapPENodeEncoder(torch.nn.Module):
         num_layers_post=0,  # Num. layers to apply after pooling
         dropout=0.0,
         first_normalization=None,
+        use_prefix: bool = True,
         **model_kwargs,
     ):
         super().__init__()
@@ -89,8 +90,14 @@ class LapPENodeEncoder(torch.nn.Module):
 
         return on_keys
 
-    def forward(self, eigvals, eigvecs):
-        # TODO Dom: add random flipping to the Laplacian encoder
+    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
+
+        on_keys = self.on_keys
+        if (key_prefix is not None) and (self.use_prefix):
+            on_keys = [f"{key_prefix}/{k}" for k in on_keys]
+        eigvals, eigvecs = batch[on_keys[0]], batch[on_keys[1]]
+
+        # Random flipping to the Laplacian encoder
         if self.training:
             sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device)
             sign_flip[sign_flip >= 0.5] = 1.0
@@ -102,8 +109,6 @@ class LapPENodeEncoder(torch.nn.Module):
         )  # (Num nodes) x (Num Eigenvectors) x 2
         empty_mask = torch.isnan(pos_enc)  # (Num nodes) x (Num Eigenvectors) x 2
 
-        #! TODO Dom: check why IPU crash here
-        # ? error message: RuntimeError: Cannot insert a Tensor that requires grad as a constant. Consider making it a parameter or input, or detaching the gradient
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 2
         if self.first_normalization:
             pos_enc = self.first_normalization(pos_enc)

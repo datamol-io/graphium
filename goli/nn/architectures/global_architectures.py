@@ -1299,9 +1299,6 @@ class FullGraphNetwork(nn.Module):
         if pe_node is not None:
             h = torch.cat((h, pe_node), dim=-1)
 
-        # TODO: Add edge-wise positional encoding
-        # pe_node = self.forward_edge_positional_encoding(g)
-
         # Set the node and edge features before running the GNN
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
         if e is not None:
@@ -1363,17 +1360,9 @@ class FullGraphNetwork(nn.Module):
 
         encoder_outs = []
         # Run every node positional-encoder
-        for name, encoder in self.pe_encoders.items():
-            keys = encoder.on_keys
-            if name in ["gaussian_pos"]:
-                encoder_outs.append(encoder(g)["node"])
-            else:
-                encoder_inputs = {}
-                for key in keys:
-                    encoder_inputs[key] = self.gnn._get_node_feats(g, key=f"{name}/{key}").to(self.dtype)
-                encoder_outs.append(
-                    encoder(**encoder_inputs)["node"]
-                )  # TODO: Avoid repeated call to encoder when using edges
+        for encoder_name, encoder in self.pe_encoders.items():
+            encoder_outs.append(encoder(g, key_prefix=encoder_name)["node"]) # TODO: Avoid repeated call to encoder when using edges
+
         # Pool the node positional encodings
         pe_outs = torch.stack(encoder_outs, dim=-1)
         pe_node_pooled = self.forward_simple_pooling(pe_outs, pooling=self.pe_pool, dim=-1)

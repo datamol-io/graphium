@@ -159,7 +159,7 @@ class GPSLayerPyg(BaseGraphModule):
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
         if self.biased_attention and self.layer_idx == 0:
             attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
-                batch, max_num_nodes_per_graph, on_ipu
+                batch, max_num_nodes_per_graph, on_ipu, position_3d_key="positions_3d"
             )
             # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
             batch.h = batch.h + node_feature_3d

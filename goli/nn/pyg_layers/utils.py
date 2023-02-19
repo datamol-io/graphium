@@ -41,7 +41,7 @@ class Preprocess3DPositions(nn.Module):
         # so that it can be added to the original node features
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
 
-    def forward(self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool) -> Tuple[Tensor, Tensor]:
+    def forward(self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool, positions_3d_key: str) -> Tuple[Tensor, Tensor]:
         r"""
         Inputs:
             batch:
@@ -50,9 +50,12 @@ class Preprocess3DPositions(nn.Module):
                 Maximum number of nodes per graph.
             on_ipu:
                 If model rus on IPU.
+            positions_3d_key:
+                The key of the pyg graph object that contains the 3D positions.
+
         """
 
-        pos = batch.positions_3d
+        pos = batch[positions_3d_key]
         batch_size = None if pos.device.type != "ipu" else batch.graph_is_true.shape[0]
         # batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.h is only available after passing through layers, not a good attribute to check
         # pos: [batch, nodes, 3]

@@ -2,12 +2,13 @@
 SignNet https://arxiv.org/abs/2202.13013
 based on https://github.com/cptq/SignNet-BasisNet
 """
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 import torch
 import torch.nn as nn
 from torch_geometric.nn import GINConv
 from torch_scatter import scatter
+from torch_geometric.data import Batch
 
 from goli.nn.base_layers import MLP
 
@@ -211,6 +212,7 @@ class SignNetNodeEncoder(torch.nn.Module):
         activation="relu",
         dropout=0.0,
         normalization="none",
+        use_prefix: bool = True,
     ):
         # TODO: Not sure this works? Needs updating.
         super().__init__()
@@ -275,12 +277,14 @@ class SignNetNodeEncoder(torch.nn.Module):
         if "eigvecs" not in on_keys.keys():
             raise ValueError(f"`on_keys` must contain the key eigvecs. Provided {on_keys}")
 
-        on_keys["edge_index"] = "edge_index"
-        on_keys["batch_index"] = "batch_index"
-
         return on_keys
 
-    def forward(self, eigvecs, edge_index, batch_index):
+    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
+
+        on_keys = self.on_keys
+        if (key_prefix is not None) and (self.use_prefix):
+            on_keys = [f"{key_prefix}/{k}" for k in on_keys]
+        eigvecs, edge_index, batch_index = batch[on_keys[0]], batch["edge_index"], batch["batch_index"]
         pos_enc = eigvecs.unsqueeze(-1)  # (Num nodes) x (Num Eigenvectors) x 1
 
         empty_mask = torch.isnan(pos_enc)

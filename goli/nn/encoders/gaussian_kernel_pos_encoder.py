@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from typing import Union, Callable, List, Dict, Any
+from typing import Union, Callable, List, Dict, Any, Optional
 from torch_geometric.data import Batch
 
 from goli.nn.base_layers import MLP
@@ -32,6 +32,7 @@ class GaussianKernelPosEncoder(torch.nn.Module):
         dropout=0.0,
         normalization="none",
         first_normalization="none",
+        use_prefix: bool = True,
     ):
         super().__init__()
 
@@ -68,14 +69,18 @@ class GaussianKernelPosEncoder(torch.nn.Module):
             raise ValueError(f"`{self.__class__}` only supports one key")
         return on_keys
 
-    def forward(self, batch: Batch) -> Dict[str, Any]:
+    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
+        on_keys = self.on_keys
+        if (key_prefix is not None) and (self.use_prefix):
+            on_keys = [f"{key_prefix}/{k}" for k in on_keys]
+
         poptorch = import_poptorch(raise_error=False)
         on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
-        attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(batch, max_num_nodes_per_graph, on_ipu)
+        attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(batch, max_num_nodes_per_graph, on_ipu, position_3d_key=on_keys[0])
 
         output = {self.out_level: node_feature_3d}  #! Andy, change the out_level to use both node and edge
         return output

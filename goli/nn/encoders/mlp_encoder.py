@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
-from typing import Union, Callable, List, Dict, Any
+from typing import Union, Callable, List, Dict, Any, Optional
+from torch_geometric.data import Batch
 
 from goli.nn.base_layers import MLP
 
@@ -34,6 +35,7 @@ class MLPEncoder(torch.nn.Module):
         dropout=0.0,
         normalization="none",
         first_normalization="none",
+        use_prefix: bool = True,
     ):
         super().__init__()
 
@@ -73,12 +75,14 @@ class MLPEncoder(torch.nn.Module):
         # Parse the `on_keys`.
         if len(on_keys) != 1:
             raise ValueError(f"`{self.__class__}` only supports one key")
-        # if list(on_keys.keys())[0] != "encoding":
-        #     raise ValueError(f"`on_keys` must contain the key 'encoding'")
         return on_keys
 
-    def forward(self, **encoding):
-        encoding = encoding[self.on_keys[0]]
+    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
+
+        on_keys = self.on_keys
+        if (key_prefix is not None) and (self.use_prefix):
+            on_keys = [f"{key_prefix}/{k}" for k in on_keys]
+        encoding = batch[on_keys[0]]
         # Run the MLP
         encoding = self.pe_encoder(encoding)  # (Num nodes) x dim_pe
 
