@@ -1653,7 +1653,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
-        last_layer_is_readout: bool = False,
+        last_layer_is_readout: bool = True,
         name: str = "Multitask_GNN",
     ):
         r"""
@@ -1706,6 +1706,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 purposes.
         """
 
+        # Use last_layer_is_readout=False since readout layers are in task heads
         super().__init__(
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,
