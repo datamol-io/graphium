@@ -991,7 +991,6 @@ class FeedForwardGraphBase(FeedForwardNN):
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
 
         def _recursive_divide_dim(x: collections.abc.Mapping):
-
             for k, v in x.items():
                 if isinstance(v, collections.abc.Mapping):
                     _recursive_divide_dim(v)
@@ -999,7 +998,7 @@ class FeedForwardGraphBase(FeedForwardNN):
                     x[k] = round(v / divide_factor)
 
         _recursive_divide_dim(kwargs["layer_kwargs"])
-            
+
         return kwargs
 
     def __repr__(self):
