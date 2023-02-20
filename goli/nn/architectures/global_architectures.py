@@ -22,6 +22,8 @@ from goli.nn.residual_connections import (
 
 from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
 
+import collections
+
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
@@ -987,6 +989,16 @@ class FeedForwardGraphBase(FeedForwardNN):
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+
+        def _recursive_divide_dim(x: collections.abc.Mapping):
+            for k, v in x.items():
+                if isinstance(v, collections.abc.Mapping):
+                    _recursive_divide_dim(v)
+                elif k in ["in_dim", "out_dim", "in_dim_edges", "out_dim_edges"]:
+                    x[k] = round(v / divide_factor)
+
+        _recursive_divide_dim(kwargs["layer_kwargs"])
+
         return kwargs
 
     def __repr__(self):
