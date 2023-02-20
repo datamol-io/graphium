@@ -215,7 +215,7 @@ class test_Pyg_Layers(ut.TestCase):
         layer = Preprocess3DPositions(num_heads=num_heads, embed_dim=self.out_dim, num_kernel=num_kernel)
         # bias: [batch, num_heads, nodes, nodes]
         # node_feature: [total_nodes, embed_dim]
-        bias, node_feature = layer.forward(bg, max_num_nodes_per_graph=4, on_ipu=False)
+        bias, node_feature = layer.forward(bg, max_num_nodes_per_graph=4, on_ipu=False, positions_3d_key="positions_3d")
         self.assertEqual(bias.size(), torch.Size([2, num_heads, 4, 4]))
         self.assertEqual(node_feature.size(), torch.Size([7, self.out_dim]))
 

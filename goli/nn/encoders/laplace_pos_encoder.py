@@ -43,6 +43,7 @@ class LapPENodeEncoder(torch.nn.Module):
         self.dropout = dropout
         self.first_normalization = first_normalization
         self.model_kwargs = model_kwargs
+        self.use_prefix = use_prefix
 
         if model_type not in ["Transformer", "DeepSet"]:
             raise ValueError(f"Unexpected PE model {model_type}")
@@ -52,19 +53,19 @@ class LapPENodeEncoder(torch.nn.Module):
             raise ValueError(f"LapPE size {in_dim} is too large for " f"desired embedding size of {out_dim}.")
 
         # Initial projection of eigenvalue and the node's eigenvector value
-        self.linear_A = FCLayer(2, in_dim, activation="none")
+        self.linear_A = FCLayer(2, out_dim, activation="none")
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
         if model_type == "Transformer":
             # Transformer model for LapPE
             encoder_layer = nn.TransformerEncoderLayer(
-                d_model=in_dim, nhead=1, batch_first=True, dropout=dropout, **model_kwargs
+                d_model=out_dim, nhead=1, batch_first=True, dropout=dropout, **model_kwargs
             )
             self.pe_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         else:
             # DeepSet model for LapPE
             self.pe_encoder = MLP(
-                in_dim=in_dim,
+                in_dim=out_dim,
                 hidden_dim=hidden_dim,
                 out_dim=out_dim,
                 layers=num_layers,

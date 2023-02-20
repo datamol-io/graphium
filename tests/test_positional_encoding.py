@@ -3,12 +3,14 @@ Unit tests for the different datasets of goli/features/featurizer.py
 """
 
 import numpy as np
+from scipy.sparse import coo_matrix
 import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
 import torch
 
+from goli.features.featurizer import GraphDict
 from goli.features.positional_encoding import graph_positional_encoder
 from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
 
@@ -141,7 +143,7 @@ class test_positional_encoder(ut.TestCase):
                     num_nodes = adj.shape[0]
                     pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
 
-                    on_keys = {"eigvals": 1, "eigvecs": 1}
+                    on_keys = ["eigvecs", "eigvals"]
                     in_dim = num_pos
                     hidden_dim = 64
                     out_dim = 64
@@ -154,6 +156,8 @@ class test_positional_encoder(ut.TestCase):
 
                     eigvecs = pos_enc_sign_flip
                     eigvals = pos_enc_no_flip
+                    g = GraphDict({"adj": coo_matrix(adj), "ndata": {"eigvals": eigvals, "eigvecs": eigvecs}, "edata": {}})
+                    batch = g.make_pyg_graph()
 
                     encoder = laplace_pos_encoder.LapPENodeEncoder(
                         on_keys=on_keys,
@@ -167,8 +171,9 @@ class test_positional_encoder(ut.TestCase):
                         first_normalization=None,
                     )
 
-                    hidden_embed = encoder(eigvals, eigvecs)
-                    print(hidden_embed)
+                    hidden_embed = encoder(batch, key_prefix=None)
+                    assert "node" in hidden_embed.keys()
+                    self.assertEqual(list(hidden_embed["node"].shape), [num_nodes, out_dim], msg=err_msg)
 
 
 if __name__ == "__main__":
