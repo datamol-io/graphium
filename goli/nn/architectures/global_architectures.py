@@ -1435,9 +1435,6 @@ class FullGraphNetwork(nn.Module):
         Parameter:
             divide_factor: Factor by which to divide the width.
         """
-
-        #breakpoint()
-        
         kwargs = dict(
             gnn_kwargs=None,
             pre_nn_kwargs=None,
