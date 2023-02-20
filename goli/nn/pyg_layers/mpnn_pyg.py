@@ -130,7 +130,11 @@ class MPNNPlusPyg(BaseGraphModule):
         # technically should be --> edge_model_in_dim = 3 * self.in_dim + 2 * self.out_dim_edges if use_edges
         # else edge_model_in_dim = 3 * self.in_dim + 2 * self.in_dim_edges
         # the node_model_in_dim and edge_model_in_dim also depend on the node_combine_method, gather_from, scatter_to methods used.
-        node_model_in_dim = 3 * self.in_dim + 2 * self.in_dim_edges
+        edge_dim = self.out_dim_edges if use_edges else self.in_dim_edges
+        if self.node_combine_method == "concat":
+            node_model_in_dim = 3 * self.in_dim + 2 * edge_dim
+        elif self.node_combine_method == "sum":
+            node_model_in_dim = 2 * self.in_dim + edge_dim
         node_model_hidden_dim = 4 * self.in_dim
         self.node_model = MLP(
             in_dim=node_model_in_dim,
@@ -142,7 +146,10 @@ class MPNNPlusPyg(BaseGraphModule):
         )
 
         # edge_model:
-        edge_model_in_dim = 2 * self.in_dim + self.in_dim_edges
+        if self.node_combine_method == "concat":
+            edge_model_in_dim = 2 * self.in_dim + self.in_dim_edges
+        elif self.node_combine_method == "sum":
+            edge_model_in_dim = self.in_dim + self.in_dim_edges
         edge_model_hidden_dim = 4 * self.in_dim_edges
         self.edge_model = MLP(
             in_dim=edge_model_in_dim,
