@@ -1143,7 +1143,7 @@ class FullGraphNetwork(nn.Module):
                         key_name = "in_dim_" + key[len(encoder_name) + 1 :]
                         this_in_dims[key_name] = dim
                 if len(this_in_dims) == 0:
-                    for key in encoder_kwargs.input_keys:
+                    for key in encoder_kwargs.get("input_keys", []):
                         if key in in_dim_dict:
                             this_in_dims[key] = in_dim_dict[key]
                         else:

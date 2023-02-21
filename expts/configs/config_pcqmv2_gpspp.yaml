@@ -12,7 +12,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv #goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.sdf.zip
+        df_path: &df_path goli/data/PCQM4Mv2/pcqm4mv2-2k.csv
         smiles_col: "smiles"
         label_cols: ["homo"]
         split_val: 0.2

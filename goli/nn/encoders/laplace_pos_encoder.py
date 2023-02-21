@@ -160,7 +160,8 @@ class LapPENodeEncoder(BaseEncoder):
             pos_enc = torch.sum(pos_enc, 1, keepdim=False)  # (Num nodes) x hidden_dim
 
         # MLP post pooling
-        pos_enc = self.post_mlp(pos_enc)  # (Num nodes) x out_dim
+        if self.post_mlp is not None:
+            pos_enc = self.post_mlp(pos_enc)  # (Num nodes) x out_dim
 
         output = {key: pos_enc for key in self.output_keys}
 
