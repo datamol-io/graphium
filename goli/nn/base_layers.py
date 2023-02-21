@@ -51,16 +51,16 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
     return vars(torch.nn.modules.activation)[activation]()
 
 
-def get_activation_str(activation: Union[type(None), str, Callable]) -> Optional[Callable]:
+def get_activation_str(activation: Union[type(None), str, Callable]) -> str:
     r"""
-    returns the activation function represented by the input string
+    returns the string related to the activation function
 
     Parameters:
         activation: Callable, `None`, or string with value:
             "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"
 
     Returns:
-        Callable or None: The activation function
+        The name of the activation function
     """
 
     if isinstance(activation, str):
