@@ -205,42 +205,31 @@ class test_Pyg_Layers(ut.TestCase):
         h_in = bg.h
         e_in = bg.edge_attr
         vn_h = 0
-        edge_dim = bg.edge_attr.size()[1]
 
         vn_types = ["sum", "mean"]
-        expected_vn_out = [(2, 10), (2, 10)]
-
-        expected_h_out = [(), ()]
-        expected_e_out = [(), ()]
-        for vn_type, expected_shape, use_edges, global_latent in zip(
-            vn_types, expected_vn_out, [False, True], [10, 10]
-        ):
+        for vn_type, use_edges in zip(
+            vn_types, [False, True]
+            ):
             with self.subTest(
                 vn_type=vn_type,
-                expected_shape=expected_shape,
                 use_edges=use_edges,
-                global_latent=global_latent,
             ):
-                if global_latent is not None:
-                    vn_h = torch.zeros(global_latent)
-                    vn_h = torch.tile(vn_h, (bg.num_graphs, 1))
-                else:
-                    vn_h = 0.0
+                vn_h = 0.0
+                print(vn_h, self.out_dim, h_in.size())
                 layer = VirtualNodePyg(
-                    dim=self.in_dim,
-                    global_latent=global_latent,
+                    in_dim=self.in_dim,
+                    out_dim=self.in_dim,
+                    in_dim_edges=self.in_dim_edges,
+                    out_dim_edges=self.in_dim_edges,
                     vn_type=vn_type,
                     use_edges=use_edges,
-                    dim_edges=edge_dim,
                     **self.kwargs,
                 )
-                print(
-                    expected_shape,
-                    use_edges,
-                    global_latent,
-                )
+
                 h_out, vn_out, e_out = layer.forward(bg, h_in, vn_h, e=e_in)
-                assert vn_out.shape == expected_shape
+                assert vn_out.shape == (2, 21)
+                assert h_out.shape == (7, 21)
+                assert e_out.shape == (9, 13)
                 if use_edges is False:
                     # i.e. that the node features have been updated
                     assert torch.equal(h_out, h_in) == False
