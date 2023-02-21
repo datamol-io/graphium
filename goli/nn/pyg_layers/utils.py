@@ -7,12 +7,22 @@ from torch import Tensor
 from goli.nn.base_layers import MLP, get_norm
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
+
 class PreprocessPositions(nn.Module):
     """
     Compute 3D attention bias and 3D node features according to the 3D position information.
     """
 
-    def __init__(self, num_heads, embed_dim, num_kernel, in_dim=3, num_layers=2, activation="gelu", first_normalization="none"):
+    def __init__(
+        self,
+        num_heads,
+        embed_dim,
+        num_kernel,
+        in_dim=3,
+        num_layers=2,
+        activation="gelu",
+        first_normalization="none",
+    ):
         r"""
         Parameters:
             num_heads:
@@ -39,14 +49,16 @@ class PreprocessPositions(nn.Module):
             out_dim=self.num_heads,
             layers=num_layers,
             activation=activation,
-            last_layer_is_readout=True, # Since the output is not proportional to the hidden dim, but to the number of heads
+            last_layer_is_readout=True,  # Since the output is not proportional to the hidden dim, but to the number of heads
         )
 
         # make sure the 3D node feature has the same dimension as the embedding size
         # so that it can be added to the original node features
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
 
-    def forward(self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool, positions_3d_key: str) -> Tuple[Tensor, Tensor]:
+    def forward(
+        self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool, positions_3d_key: str
+    ) -> Tuple[Tensor, Tensor]:
         r"""
         Inputs:
             batch:

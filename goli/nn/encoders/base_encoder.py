@@ -4,6 +4,7 @@ import torch
 
 from goli.nn.base_layers import get_norm
 
+
 class BaseEncoder(torch.nn.Module):
 
     """

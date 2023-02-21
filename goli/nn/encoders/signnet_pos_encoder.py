@@ -280,18 +280,25 @@ class SignNetNodeEncoder(BaseEncoder):
         if len(input_keys) != 1:
             raise ValueError(f"`{self.__class__}` only supports 1 key")
         for key in input_keys:
-            assert not key.startswith("edge_"), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
-            assert not key.startswith("graph_"), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
+            assert not key.startswith(
+                "edge_"
+            ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
+            assert not key.startswith(
+                "graph_"
+            ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
     def parse_output_keys(self, output_keys):
         for key in output_keys:
-            assert not key.startswith("edge_"), f"Edge encodings are not supported for encoder {self.__class__}"
-            assert not key.startswith("graph_"), f"Graph encodings are not supported for encoder {self.__class__}"
+            assert not key.startswith(
+                "edge_"
+            ), f"Edge encodings are not supported for encoder {self.__class__}"
+            assert not key.startswith(
+                "graph_"
+            ), f"Graph encodings are not supported for encoder {self.__class__}"
         return output_keys
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
-
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
         eigvecs, edge_index, batch_index = batch[input_keys[0]], batch["edge_index"], batch["batch_index"]
         pos_enc = eigvecs.unsqueeze(-1)  # (Num nodes) x (Num Eigenvectors) x 1
@@ -319,12 +326,14 @@ class SignNetNodeEncoder(BaseEncoder):
             factor_in_dim: Whether to factor the input dimension
         """
         base_kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
-        base_kwargs.update(dict(
-            hidden_dim=round(self.hidden_dim / divide_factor),
-            model_type=self.model_type,
-            max_freqs=self.max_freqs,
-            num_layers_post=self.num_layers_post,
-            dropout=self.dropout,
-            normalization=type(self.normalization).__name__,
-        ))
+        base_kwargs.update(
+            dict(
+                hidden_dim=round(self.hidden_dim / divide_factor),
+                model_type=self.model_type,
+                max_freqs=self.max_freqs,
+                num_layers_post=self.num_layers_post,
+                dropout=self.dropout,
+                normalization=type(self.normalization).__name__,
+            )
+        )
         return base_kwargs

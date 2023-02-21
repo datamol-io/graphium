@@ -156,7 +156,13 @@ class test_positional_encoder(ut.TestCase):
 
                         eigvecs = pos_enc_sign_flip
                         eigvals = pos_enc_no_flip
-                        g = GraphDict({"adj": coo_matrix(adj), "ndata": {"eigvals": eigvals, "eigvecs": eigvecs}, "edata": {}})
+                        g = GraphDict(
+                            {
+                                "adj": coo_matrix(adj),
+                                "ndata": {"eigvals": eigvals, "eigvecs": eigvecs},
+                                "edata": {},
+                            }
+                        )
                         batch = g.make_pyg_graph()
 
                         encoder = laplace_pos_encoder.LapPENodeEncoder(

@@ -1297,21 +1297,27 @@ class FullGraphNetwork(nn.Module):
             if pe_key.startswith("edge_"):
                 feat = this_pe
                 if pe_key in g.keys:
-                    feat = torch.cat((feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
-                self.gnn._set_edge_feats(g, feat, key=pe_key) # g[pe_key] = feat
+                    feat = torch.cat(
+                        (feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1
+                    )  # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_edge_feats(g, feat, key=pe_key)  # g[pe_key] = feat
             elif pe_key.startswith("graph_"):
                 feat = this_pe
                 if pe_key in g.keys:
-                    feat = torch.cat((feat, self.gnn._get_graph_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
-                self.gnn._set_graph_feats(g, feat, key=pe_key) # g[pe_key] = feat
+                    feat = torch.cat(
+                        (feat, self.gnn._get_graph_feats(g, key=pe_key)), dim=-1
+                    )  # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_graph_feats(g, feat, key=pe_key)  # g[pe_key] = feat
             else:
                 feat = this_pe
                 if pe_key in g.keys:
-                    feat = torch.cat((feat, self.gnn._get_node_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
-                self.gnn._set_node_feats(g, feat, key=pe_key) # g[pe_key] = feat
+                    feat = torch.cat(
+                        (feat, self.gnn._get_node_feats(g, key=pe_key)), dim=-1
+                    )  # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_node_feats(g, feat, key=pe_key)  # g[pe_key] = feat
 
-        h = self.gnn._get_node_feats(g, key="feat") # h = g["feat"]
-        e = self.gnn._get_edge_feats(g, key="edge_feat") # e = g["edge_feat"]
+        h = self.gnn._get_node_feats(g, key="feat")  # h = g["feat"]
+        e = self.gnn._get_edge_feats(g, key="edge_feat")  # e = g["edge_feat"]
 
         # Set the node and edge features before running the GNN
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
@@ -1380,10 +1386,10 @@ class FullGraphNetwork(nn.Module):
             encoder_outs.append(encoder(g, key_prefix=encoder_name))
 
         # list of dict to dict of list, with concatenation of the tensors
-        pe_cats = {key: torch.stack(
-            [d[key] for d in encoder_outs if key in d],
-            dim=-1
-            ) for key in set().union(*encoder_outs)}
+        pe_cats = {
+            key: torch.stack([d[key] for d in encoder_outs if key in d], dim=-1)
+            for key in set().union(*encoder_outs)
+        }
 
         # Pool the node positional encodings
         pe_pooled = {}
@@ -1391,7 +1397,6 @@ class FullGraphNetwork(nn.Module):
             pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pe_pool, dim=-1)
 
         return pe_pooled
-
 
     def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
         """

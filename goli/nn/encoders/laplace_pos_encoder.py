@@ -63,7 +63,11 @@ class LapPENodeEncoder(BaseEncoder):
             # Transformer model for LapPE
             model_kwargs.setdefault("nhead", 1)
             encoder_layer = nn.TransformerEncoderLayer(
-                d_model=hidden_dim, batch_first=True, dropout=dropout, activation=self.activation, **model_kwargs
+                d_model=hidden_dim,
+                batch_first=True,
+                dropout=dropout,
+                activation=self.activation,
+                **model_kwargs,
             )
             self.pe_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         elif self.model_type == "DeepSet":
@@ -79,15 +83,15 @@ class LapPENodeEncoder(BaseEncoder):
         elif self.model_type == "MLP":
             # MLP that will mix all eigenvalues and eigenvectors
             self.pe_encoder = MLP(
-            in_dim=self.in_dim * hidden_dim,
-            hidden_dim=hidden_dim,
-            out_dim=hidden_dim,
-            layers=num_layers_post,
-            dropout=dropout,
-            activation=activation,
-            last_activation="none",
-            **model_kwargs,
-        )
+                in_dim=self.in_dim * hidden_dim,
+                hidden_dim=hidden_dim,
+                out_dim=hidden_dim,
+                layers=num_layers_post,
+                dropout=dropout,
+                activation=activation,
+                last_activation="none",
+                **model_kwargs,
+            )
         else:
             raise ValueError(f"Unexpected PE model {self.model_type}")
 
@@ -108,18 +112,25 @@ class LapPENodeEncoder(BaseEncoder):
         if len(input_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
         for key in input_keys:
-            assert not key.startswith("edge_"), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
-            assert not key.startswith("graph_"), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
+            assert not key.startswith(
+                "edge_"
+            ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
+            assert not key.startswith(
+                "graph_"
+            ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
     def parse_output_keys(self, output_keys):
         for key in output_keys:
-            assert not key.startswith("edge_"), f"Edge encodings are not supported for encoder {self.__class__}"
-            assert not key.startswith("graph_"), f"Graph encodings are not supported for encoder {self.__class__}"
+            assert not key.startswith(
+                "edge_"
+            ), f"Edge encodings are not supported for encoder {self.__class__}"
+            assert not key.startswith(
+                "graph_"
+            ), f"Graph encodings are not supported for encoder {self.__class__}"
         return output_keys
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
-
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
         eigvals, eigvecs = batch[input_keys[0]], batch[input_keys[1]]
 
@@ -178,11 +189,13 @@ class LapPENodeEncoder(BaseEncoder):
             factor_in_dim: Whether to factor the input dimension
         """
         base_kwargs = super().make_mup_base_kwargs(divide_factor, factor_in_dim)
-        base_kwargs.update(dict(
-            hidden_dim=round(self.hidden_dim / divide_factor),
-            model_type=self.model_type,
-            num_layers_post=self.num_layers_post,
-            dropout=self.dropout,
-            **self.model_kwargs,
-        ))
+        base_kwargs.update(
+            dict(
+                hidden_dim=round(self.hidden_dim / divide_factor),
+                model_type=self.model_type,
+                num_layers_post=self.num_layers_post,
+                dropout=self.dropout,
+                **self.model_kwargs,
+            )
+        )
         return base_kwargs

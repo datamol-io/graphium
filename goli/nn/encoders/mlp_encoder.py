@@ -74,16 +74,21 @@ class MLPEncoder(BaseEncoder):
         return input_keys
 
     def parse_output_keys(self, output_keys):
-        assert len(output_keys) == len(self.input_keys), f"The number of input keys {len(self.input_keys)} and output keys {len(output_keys)} must be the same for the class {self.__class__.__name__}"
+        assert len(output_keys) == len(
+            self.input_keys
+        ), f"The number of input keys {len(self.input_keys)} and output keys {len(output_keys)} must be the same for the class {self.__class__.__name__}"
         for in_key, out_key in zip(self.input_keys, output_keys):
             if in_key.startswith("edge_") or out_key.startswith("edge_"):
-                assert out_key.startswith("edge_") and in_key.startswith("edge_"), f"The output key {out_key} and input key {in_key} must match the 'edge_' prefix for the class {self.__class__.__name__}"
+                assert out_key.startswith("edge_") and in_key.startswith(
+                    "edge_"
+                ), f"The output key {out_key} and input key {in_key} must match the 'edge_' prefix for the class {self.__class__.__name__}"
             if in_key.startswith("graph_") or out_key.startswith("graph_"):
-                assert out_key.startswith("graph_") and in_key.startswith("graph_"), f"The output key {out_key} and input key {in_key} must match the 'graph_' prefix for the class {self.__class__.__name__}"
+                assert out_key.startswith("graph_") and in_key.startswith(
+                    "graph_"
+                ), f"The output key {out_key} and input key {in_key} must match the 'graph_' prefix for the class {self.__class__.__name__}"
         return output_keys
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
-
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
         # Run the MLP for each input key
@@ -104,9 +109,11 @@ class MLPEncoder(BaseEncoder):
             factor_in_dim: Whether to factor the input dimension
         """
         base_kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
-        base_kwargs.update(dict(
-            hidden_dim=round(self.hidden_dim / divide_factor),
-            dropout=self.dropout,
-            normalization=type(self.normalization).__name__,
-        ))
+        base_kwargs.update(
+            dict(
+                hidden_dim=round(self.hidden_dim / divide_factor),
+                dropout=self.dropout,
+                normalization=type(self.normalization).__name__,
+            )
+        )
         return base_kwargs

@@ -55,8 +55,12 @@ class GaussianKernelPosEncoder(BaseEncoder):
         if len(input_keys) != 1:
             raise ValueError(f"`{self.__class__}` only supports one key")
         for key in input_keys:
-            assert not key.startswith("edge_"), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
-            assert not key.startswith("graph_"), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
+            assert not key.startswith(
+                "edge_"
+            ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
+            assert not key.startswith(
+                "graph_"
+            ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
     def parse_output_keys(self, output_keys):
@@ -67,13 +71,15 @@ class GaussianKernelPosEncoder(BaseEncoder):
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
-        poptorch = import_poptorch(raise_error=False) # TODO: Change to `is_running_on_ipu` after merge
+        poptorch = import_poptorch(raise_error=False)  # TODO: Change to `is_running_on_ipu` after merge
         on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
-        attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(batch, max_num_nodes_per_graph, on_ipu, positions_3d_key=input_keys[0])
+        attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
+            batch, max_num_nodes_per_graph, on_ipu, positions_3d_key=input_keys[0]
+        )
 
         # Return `attn_bias_3d` if the key starts with 'graph_'
         # Crash if the key starts with 'edge_'
@@ -99,8 +105,10 @@ class GaussianKernelPosEncoder(BaseEncoder):
             factor_in_dim: Whether to factor the input dimension
         """
         base_kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
-        base_kwargs.update(dict(
-            num_heads=self.num_heads,
-            max_num_nodes_per_graph=self.max_num_nodes_per_graph,
-        ))
+        base_kwargs.update(
+            dict(
+                num_heads=self.num_heads,
+                max_num_nodes_per_graph=self.max_num_nodes_per_graph,
+            )
+        )
         return base_kwargs
