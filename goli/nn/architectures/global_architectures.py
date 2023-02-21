@@ -1292,26 +1292,26 @@ class FullGraphNetwork(nn.Module):
         pe_pooled = self.forward_positional_encoding(g)
 
         # Add the processed positional encodings to the graphs.
-        # If they are already present, concatenate them.
+        # If the key is already present, concatenate the pe_pooled to the pre-existing feature.
         for pe_key, this_pe in pe_pooled.items():
             if pe_key.startswith("edge_"):
                 feat = this_pe
                 if pe_key in g.keys:
-                    feat = torch.cat((feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1)
-                self.gnn._set_edge_feats(g, feat, key=pe_key)
+                    feat = torch.cat((feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_edge_feats(g, feat, key=pe_key) # g[pe_key] = feat
             elif pe_key.startswith("graph_"):
                 feat = this_pe
                 if pe_key in g.keys:
-                    feat = torch.cat((feat, self.gnn._get_graph_feats(g, key=pe_key)), dim=-1)
-                self.gnn._set_graph_feats(g, feat, key=pe_key)
+                    feat = torch.cat((feat, self.gnn._get_graph_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_graph_feats(g, feat, key=pe_key) # g[pe_key] = feat
             else:
                 feat = this_pe
                 if pe_key in g.keys:
-                    feat = torch.cat((feat, self.gnn._get_node_feats(g, key=pe_key)), dim=-1)
-                self.gnn._set_node_feats(g, feat, key=pe_key)
+                    feat = torch.cat((feat, self.gnn._get_node_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_node_feats(g, feat, key=pe_key) # g[pe_key] = feat
 
-        h = self.gnn._get_node_feats(g, key="feat")
-        e = self.gnn._get_edge_feats(g, key="edge_feat")
+        h = self.gnn._get_node_feats(g, key="feat") # h = g["feat"]
+        e = self.gnn._get_edge_feats(g, key="edge_feat") # e = g["edge_feat"]
 
         # Set the node and edge features before running the GNN
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")

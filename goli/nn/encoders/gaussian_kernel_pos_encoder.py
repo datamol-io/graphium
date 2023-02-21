@@ -75,11 +75,15 @@ class GaussianKernelPosEncoder(BaseEncoder):
 
         attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(batch, max_num_nodes_per_graph, on_ipu, positions_3d_key=input_keys[0])
 
-        # Return the output features for both the nodes and the edges
+        # Return `attn_bias_3d` if the key starts with 'graph_'
+        # Crash if the key starts with 'edge_'
+        # Return `node_feature_3d` otherwise
         output = {}
         for key in self.output_keys:
             if isinstance(key, str) and key.startswith("graph_"):
                 output[key] = attn_bias_3d
+            elif isinstance(key, str) and key.startswith("edge_"):
+                raise ValueError("Edge encodings are not supported for this encoder")
             else:
                 output[key] = node_feature_3d
         return output

@@ -58,12 +58,19 @@ class BaseEncoder(torch.nn.Module):
         return input_keys
 
     @abc.abstractmethod
-    def parse_input_keys(self, input_keys):
+    def forward(self, graph, key_prefix=None) -> Dict[str, torch.Tensor]:
+        """
+        Forward pass of the encoder on a graph.
+        """
+        raise ValueError("This method must be implemented by the child class")
+
+    @abc.abstractmethod
+    def parse_input_keys(self, input_keys: List[str]) -> List[str]:
         """Parse the `input_keys` argument. This is a method to be implemented by the child class."""
         raise ValueError("This method must be implemented by the child class")
 
     @abc.abstractmethod
-    def parse_output_keys(self, output_keys):
+    def parse_output_keys(self, output_keys: List[str]) -> List[str]:
         """Parse the `output_keys` argument.  This is a method to be implemented by the child class."""
         raise ValueError("This method must be implemented by the child class")
 
