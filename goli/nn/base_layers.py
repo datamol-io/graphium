@@ -45,10 +45,34 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
 
     # search in SUPPORTED_ACTIVATION_MAP a torch.nn.modules.activation
     activation = [x for x in SUPPORTED_ACTIVATION_MAP if activation.lower() == x.lower()]
-    assert len(activation) == 1 and isinstance(activation[0], str), "Unhandled activation function"
+    assert len(activation) == 1 and isinstance(activation[0], str), f"Unhandled activation function {activation} of type {type(activation)}"
     activation = activation[0]
 
     return vars(torch.nn.modules.activation)[activation]()
+
+
+def get_activation_str(activation: Union[type(None), str, Callable]) -> Optional[Callable]:
+    r"""
+    returns the activation function represented by the input string
+
+    Parameters:
+        activation: Callable, `None`, or string with value:
+            "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"
+
+    Returns:
+        Callable or None: The activation function
+    """
+
+    if isinstance(activation, str):
+        return activation
+
+    if activation is None:
+        return "None"
+
+    if isinstance(activation, Callable):
+        return activation.__class__._get_name(activation)
+    else:
+        raise ValueError(f"Unhandled activation function {activation} of type {type(activation)}")
 
 
 def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int] = None):

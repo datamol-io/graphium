@@ -9,7 +9,7 @@ from torch_geometric.data import Batch
 
 
 from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
+from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP, get_activation_str
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg, MPNNPlusPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
@@ -118,8 +118,11 @@ class GPSLayerPyg(BaseGraphModule):
             droppath_rate=droppath_rate_attn,
             **kwargs,
         )
+        # Set the other attributes
         self.in_dim_edges = in_dim_edges
         self.out_dim_edges = out_dim_edges
+        self.mpnn_kwargs = self._parse_mpnn_kwargs(mpnn_kwargs)
+        self.attn_kwargs = self._parse_attn_kwargs(attn_kwargs)
 
         # Dropout layers
         self.dropout_local = self.dropout_layer
@@ -146,15 +149,12 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_local = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
 
-        mpnn_kwargs = self._parse_mpnn_kwargs(mpnn_kwargs)
-        attn_kwargs = self._parse_attn_kwargs(attn_kwargs)
-
         # Initialize the MPNN layer
         mpnn_class = PYG_LAYERS_DICT[mpnn_type]
-        self.mpnn = mpnn_class(**mpnn_kwargs)
+        self.mpnn = mpnn_class(**self.mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
 
         # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, **self.attn_kwargs)
 
     def forward(self, batch: Batch) -> Batch:
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
@@ -205,7 +205,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs.setdefault("out_dim", self.in_dim)
         mpnn_kwargs.setdefault("in_dim_edges", self.in_dim_edges)
         mpnn_kwargs.setdefault("out_dim_edges", self.out_dim_edges)
-        mpnn_kwargs.setdefault("activation", self.activation)
+        mpnn_kwargs.setdefault("activation", get_activation_str(self.activation))
         mpnn_kwargs.setdefault("dropout", self.dropout)
         mpnn_kwargs.setdefault("normalization", self.normalization)
 
