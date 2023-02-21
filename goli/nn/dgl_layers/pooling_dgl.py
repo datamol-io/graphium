@@ -247,15 +247,16 @@ def parse_pooling_layer_dgl(in_dim: int, pooling: Union[str, List[str]], **kwarg
 class VirtualNodeDgl(nn.Module):
     def __init__(
         self,
-        dim: int,
-        global_latent=None,
+        in_dim: int,
+        out_dim: int,
+        in_dim_edges: int,
+        out_dim_edges: int,
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
         bias: bool = True,
         residual: bool = True,
-        dim_edges: int = None,
         use_edges: bool = False,
     ):
         r"""
@@ -265,7 +266,7 @@ class VirtualNodeDgl(nn.Module):
 
         Parameters:
 
-            dim:
+            in_dim:
                 Input and output feature dimensions of the virtual node layer
 
             activation:
@@ -292,7 +293,11 @@ class VirtualNodeDgl(nn.Module):
             global_latent:
                 NOT USED: Size for the output of feed forward layer
 
-            dim_edges:
+            out_dim_nodes:
+                NOT USED: Out node dimmension for virtual node pooling
+            in_dim_edges:
+                NOT USED: Edge dimmension for virtual node pooling
+            out_dim_edges:
                 NOT USED: Edge dimmension for virtual node pooling
 
             use_edges:
@@ -310,8 +315,8 @@ class VirtualNodeDgl(nn.Module):
         self.vn_type = vn_type.lower()
         self.residual = residual
         self.fc_layer = FCLayer(
-            in_dim=dim,
-            out_dim=dim,
+            in_dim=in_dim,
+            out_dim=in_dim,
             activation=activation,
             dropout=dropout,
             normalization=normalization,

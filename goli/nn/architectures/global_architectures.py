@@ -660,8 +660,8 @@ class FeedForwardGraphBase(FeedForwardNN):
                     self.virtual_node_class(
                         in_dim=this_out_dim * self.layers[-1].out_dim_factor,
                         out_dim=this_out_dim * self.layers[-1].out_dim_factor,
-                        in_dim_edges=this_out_dim_edges * self.layers[-1].out_dim_factor,
-                        out_dim_edges=this_out_dim_edges * self.layers[-1].out_dim_factor,
+                        in_dim_edges=this_out_dim_edges,
+                        out_dim_edges=this_out_dim_edges,
                         activation=this_activation,
                         dropout=this_dropout,
                         normalization=this_norm,
