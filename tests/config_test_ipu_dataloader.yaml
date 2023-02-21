@@ -81,8 +81,8 @@ architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 32
-    hidden_dims: 32
+    out_dim: 16
+    hidden_dims: 16
     depth: 1
     activation: relu
     last_activation: none
@@ -103,14 +103,14 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: 64
+    out_dim: 16
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
         input_keys: ["eigvecs", "eigvals"]
-        hidden_dim: 64
+        hidden_dim: 16
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
         num_layers_post: 0 # Num. layers to apply after pooling
@@ -122,7 +122,7 @@ architecture:
         encoder_type: "mlp"
         input_keys: ["rwse"]
         output_keys: "node"
-        hidden_dim: 64
+        hidden_dim: 16
         num_layers: 1
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
@@ -134,14 +134,14 @@ architecture:
         input_keys: ["positions_3d"]
         output_keys: ["feat", "gaussian_3d", "graph_gaussian_bias_3d"]
         num_heads: 2
-        num_layers: 3
+        num_layers: 2
         max_num_nodes_per_graph: 30
         use_input_keys_prefix: False
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 32
-    hidden_dims: 64
-    depth: 16
+    out_dim: 8
+    hidden_dims: 16
+    depth: 2
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -159,9 +159,9 @@ architecture:
       attn_kwargs: null
 
   post_nn:
-    out_dim: 32
-    hidden_dims: 32
-    depth: 2
+    out_dim: 8
+    hidden_dims: 8
+    depth: 1
     activation: relu
     last_activation: none
     dropout: *dropout
@@ -172,8 +172,8 @@ architecture:
   task_heads:
     homo:
       out_dim: 2
-      hidden_dims: 32
-      depth: 2                          # Not needed if we have hidden_dims
+      hidden_dims: 8
+      depth: 1                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
       dropout: *dropout
@@ -182,8 +182,8 @@ architecture:
       residual_type: none
     alpha:
       out_dim: 1
-      hidden_dims: 32
-      depth: 2                          # Not needed if we have hidden_dims
+      hidden_dims: 8
+      depth: 1                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
       dropout: *dropout
@@ -192,7 +192,7 @@ architecture:
       residual_type: none
     cv:
       out_dim: 1
-      hidden_dims: 32
+      hidden_dims: 8
       depth: 2                          # Not needed if we have hidden_dims
       activation: relu
       last_activation: none
