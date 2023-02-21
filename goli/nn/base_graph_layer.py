@@ -4,10 +4,10 @@ from copy import deepcopy
 
 import torch
 import torch.nn as nn
-from torch import Tensor
+from torch import Tensor, IntTensor
 from torch_sparse import SparseTensor
 
-from goli.nn.base_layers import get_activation
+from goli.nn.base_layers import get_activation, DropPath
 from goli.utils.decorators import classproperty
 
 try:
@@ -28,6 +28,9 @@ class BaseGraphStructure:
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        layer_idx: Optional[int] = None,
+        layer_depth: Optional[int] = None,
+        droppath_rate: float = 0.0,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -56,6 +59,15 @@ class BaseGraphStructure:
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
+
+            layer_idx:
+                The index of the current layer
+
+            layer_depth:
+                The total depth (number of layers) associated to this specific layer
+
+            droppath_rate:
+                stochastic depth drop rate, between 0 and 1, see https://arxiv.org/abs/1603.09382
         """
 
         super().__init__()
@@ -66,6 +78,9 @@ class BaseGraphStructure:
         self.normalization = normalization
         self.dropout = dropout
         self.activation = activation
+        self.layer_idx = layer_idx
+        self.layer_depth = layer_depth
+        self.droppath_rate = droppath_rate
         self._max_num_nodes_per_graph = None
         self._max_num_edges_per_graph = None
 
@@ -80,6 +95,7 @@ class BaseGraphStructure:
         self.dropout_layer = self._parse_dropout(self.dropout)
 
         self.norm_layer = self._parse_norm(self.normalization)
+        self.droppath_layer = self._parse_droppath(self.droppath_rate)
 
     def _parse_dropout(self, dropout):
         if callable(dropout):
@@ -87,6 +103,13 @@ class BaseGraphStructure:
         elif dropout > 0:
             return nn.Dropout(p=dropout)
         return
+
+    def _parse_droppath(self, droppath_rate):
+        if droppath_rate == 0:
+            return
+
+        droppath_rate = DropPath.get_stochastic_drop_rate(droppath_rate, self.layer_idx, self.layer_depth)
+        return DropPath(drop_rate=droppath_rate)
 
     def _parse_norm(self, normalization, dim=None):
         if dim is None:
@@ -111,6 +134,9 @@ class BaseGraphStructure:
         normalization: bool = True,
         activation: bool = True,
         dropout: bool = True,
+        droppath: bool = True,
+        batch_idx: Optional[IntTensor] = None,
+        batch_size: Optional[int] = None,
     ):
         r"""
         Apply the different normalization and the dropout to the
@@ -121,6 +147,8 @@ class BaseGraphStructure:
             h:
                 Feature tensor, to be normalized
 
+            batch_idx
+
             normalization:
                 Whether to apply the normalization
 
@@ -129,6 +157,9 @@ class BaseGraphStructure:
 
             dropout:
                 Whether to apply the dropout layer
+
+            droppath:
+                Whether to apply the DropPath layer
 
         Returns:
 
@@ -145,6 +176,9 @@ class BaseGraphStructure:
 
         if dropout and (self.dropout_layer is not None):
             h = self.dropout_layer(h)
+
+        if droppath and (self.droppath_layer is not None):
+            h = self.droppath_layer(h, batch_idx=batch_idx, batch_size=batch_size)
 
         return h
 
@@ -268,6 +302,9 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
+        layer_idx: Optional[int] = None,
+        layer_depth: Optional[int] = None,
+        droppath_rate: float = 0.0,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -296,6 +333,15 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
+
+            layer_idx:
+                The index of the current layer
+
+            layer_depth:
+                The total depth (number of layers) associated to this specific layer
+
+            droppath_rate:
+                stochastic depth drop rate, between 0 and 1, see https://arxiv.org/abs/1603.09382
         """
 
         super().__init__(
@@ -304,6 +350,9 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
             normalization=normalization,
             dropout=dropout,
             activation=activation,
+            layer_idx=layer_idx,
+            layer_depth=layer_depth,
+            droppath_rate=droppath_rate,
         )
 
         self._initialize_activation_dropout_norm()
