@@ -116,7 +116,7 @@ architecture:
       gaussian_pos:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
-        output_keys: ["feat", "guassian_3d", "graph_guassian_bias_3d"]
+        output_keys: ["feat", "gaussian_3d", "graph_gaussian_bias_3d"]
         num_heads: 1
         num_layers: 1 #2
         max_num_nodes_per_graph: *max_num_nodes
