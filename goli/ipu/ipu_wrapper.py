@@ -14,7 +14,6 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.data.data import BaseData
 from loguru import logger
 import functools
-from dgl import DGLHeteroGraph
 
 poptorch = import_poptorch()
 
@@ -195,15 +194,16 @@ class PredictorModuleIPU(PredictorModule):
         """
         Converts tensors from FP16 to FP32. Useful to convert the IPU program output data
         """
-        if type(data) == list:
+        if isinstance(data, collections.Sequence):
             for idx in range(len(data)):
                 data[idx] = self.convert_from_fp16(data[idx])
-        if type(data) == dict:
+        elif isinstance(data, collections.Mapping):
             for key in data:
                 data[key] = self.convert_from_fp16(data[key])
         elif isinstance(data, torch.Tensor) and data.dtype == torch.float16:
             data = data.float()
-
+        else:
+            raise ValueError(f"Unsupported data type `{type(data)}` : {data}")
         return data
 
     def _convert_features_dtype(self, feats):
@@ -217,15 +217,10 @@ class PredictorModuleIPU(PredictorModule):
         # Convert features to dtype
         if isinstance(feats, torch.Tensor):
             feats = feats.to(dtype)
-        elif isinstance(feats, DGLHeteroGraph):
-            for key, val in feats.ndata.items():
-                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
-                    feats.ndata[key] = val.to(dtype=dtype)
-            for key, val in feats.edata.items():
-                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
-                    feats.edata[key] = val.to(dtype=dtype)
         elif isinstance(feats, (Data, Batch, dict)):
             for key, val in feats.items():
                 if isinstance(val, torch.Tensor) and (val.is_floating_point()):
                     feats[key] = val.to(dtype=dtype)
-        return feats
+        else:
+	    raise ValueError(f"Unsupported feats type `{type(feats)}` : {feats}")
+	return feats
