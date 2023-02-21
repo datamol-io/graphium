@@ -153,7 +153,6 @@ architecture:
     pooling: [sum]
     virtual_node: "sum"
     use_virtual_edges: True
-    global_latent: 16
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
       out_dim_edges: 32

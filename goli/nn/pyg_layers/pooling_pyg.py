@@ -1,14 +1,15 @@
 import torch
 import torch.nn as nn
 from torch import Tensor, LongTensor
-from typing import List, Union, Callable, Tuple, Optional
+from typing import List, Union, Callable, Tuple, Optional, Dict
+from copy import deepcopy
 
 from torch_scatter import scatter
 from torch_geometric.data import Data, Batch
 
 from goli.nn.base_layers import MLP, FCLayer
 from goli.utils.tensor import ModuleListConcat, ModuleWrap
-
+from goli.nn.base_layers import MuReadoutGoli
 
 EPS = 1e-6
 
@@ -141,9 +142,10 @@ def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]], feat_ty
 class VirtualNodePyg(nn.Module):
     def __init__(
         self,
-        dim: int,
-        dim_edges: int,
-        global_latent: int,
+        in_dim: int,
+        out_dim: int,
+        in_dim_edges: int,
+        out_dim_edges: int,
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
@@ -151,7 +153,6 @@ class VirtualNodePyg(nn.Module):
         bias: bool = True,
         residual: bool = True,
         use_edges: bool = False,
-        
     ):
         r"""
         The VirtualNode is a layer that pool the features of the graph,
@@ -214,85 +215,40 @@ class VirtualNodePyg(nn.Module):
             self.fc_layer = None
             self.residual = None
             return
+        # Layer sizes stored here
+        self.in_dim_edges = in_dim_edges
+        self.out_dim_edges = out_dim_edges
+        self.in_dim_nodes = in_dim
+        self.out_dim_nodes = out_dim
+
+        # Use edge features in pooling
+        self.use_edges = use_edges
         self.vn_type = vn_type.lower()
-        self.layer, out_pool_dim = parse_pooling_layer_pyg(in_dim=dim, pooling=self.vn_type, feat_type="node")
+        self.layer, out_pool_dim = parse_pooling_layer_pyg(
+            in_dim=self.in_dim_nodes, pooling=self.vn_type, feat_type="node"
+        )
         self.residual = residual
 
-        self.use_edges = use_edges
+        if self.use_edges:
+            self.edge_layer, out_edge_pool_dim = parse_pooling_layer_pyg(
+                in_dim=self.in_dim_edges, pooling=self.vn_type, feat_type="edge"
+            )
 
-        # If global latent not provided, default to output size of dim
-        self.global_latent = global_latent
-        # if global_latent is None:
-        #     global_latent = dim
+            out_pool_dim = out_pool_dim + out_edge_pool_dim
 
-        # if self.use_edges:
-        self.edge_layer, out_edge_pool_dim = parse_pooling_layer_pyg(
-            in_dim=dim_edges, pooling=self.vn_type, feat_type="edge"
-        )
-
-        out_pool_dim = out_pool_dim + out_edge_pool_dim
-            # TODO: Is it this? Are the edges being called even when they aren't
-        #     dim += dim_edges
-        # import ipdb; ipdb.set_trace()
-        # if self.global_latent is not None:
-        #     out_pool_dim += self.global_latent
-
-        # import ipdb; ipdb.set_trace()
         self.fc_layer = FCLayer(
             in_dim=out_pool_dim,
-            out_dim=dim,
-            activation=activation,
-            dropout=dropout,
-            normalization=normalization,
-            bias=bias,
-        )
-        # node_proj_in_dim = global_latent + dim
-        self.node_projection = FCLayer(
-            in_dim=dim,
-            out_dim=dim,
+            out_dim=out_pool_dim,
             activation=activation,
             dropout=dropout,
             normalization=normalization,
             bias=bias,
         )
 
-        # import ipdb; ipdb.set_trace()
-        # if self.use_edges and self.global_latent:
-        #     # edge_proj_in_dim = dim_edges #self.fc_layer.out_dim #+ dim_edges
-
-        #     # if self.global_latent is not None:
-        #     #     edge_proj_in_dim = global_latent + dim_edges
-        #     #     dim_out_edges = 16
-        #     # else:
-        #     # edge_proj_in_dim = 32 
-        #     #     dim_out_edges = 16
-        #     # import ipdb; ipdb.set_trace()
-        #     # dim_edges = 32
-        #     # NOTE: This is unhappy because the mup can't tell what to do when there are options
-        #     # This is true even if the exact same format as above. 
-        #     edge_proj_in_dim = global_latent + dim_edges
-        # import ipdb; ipdb.set_trace()
-        
-        """
-        What is known about the issue:
-            - The issue is only to do with this edges projection layer
-            - If the shapes and sizes are set by hand it works perfectly
-            - Despite the passed values being equal to the hardcoded values desired
-            - The infinite projection thing means that the output is suggesting that it thinks the output is an OUTPUT 
-                where the muP scaling should keep it fixed, however it is infinite
-            - 'Change fan out to infinite dimmension?'
-                - 
-        """
-        tmp_dim_edges = dim_edges
-        tmp_in_pool_dim = out_pool_dim
-        self.edge_projection = FCLayer(
-            in_dim=dim,
-            out_dim=dim_edges,
-            activation=activation,
-            dropout=dropout,
-            normalization=normalization,
-            bias=bias,
-        )
+        # Projection layers from the pooling layer to node and edge feature sizes
+        self.node_projection = MuReadoutGoli(out_pool_dim, self.out_dim_nodes)
+        if self.use_edges:
+            self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
 
     def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor) -> Tuple[Tensor, Tensor]:
         r"""
@@ -307,14 +263,14 @@ class VirtualNodePyg(nn.Module):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
 
-            e (torch.Tensor[..., E, Din]):
-                Edge feature tensor, before convolution.
-                `E` is the number of edges, `Din` is the input features
-
             vn_h (torch.Tensor[..., M, Din]):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features.
                 It is added to the result after the MLP, as a residual connection
+
+            e (torch.Tensor[..., E, Din]):
+                Edge feature tensor, before convolution.
+                `E` is the number of edges, `Din` is the input features
 
             batch
 
@@ -328,58 +284,31 @@ class VirtualNodePyg(nn.Module):
                 Graph feature tensor to be used at the next virtual node, or `None`
                 `M` is the number of graphs, `Dout` is the output features
 
+            `e = torch.Tensor[..., N, Dout]`:
+                Edge feature tensor, after convolution and residual - if edges are used, otherwise returned unchanged.
+                `N` is the number of edges, `Dout` is the output features of the layer and residual
+
         """
 
         # Pool the features
         if self.vn_type is None:
             return h, vn_h, e
-        else:
-            pool = self.layer(g, h)
+        pool = self.layer(g, h)
         if self.use_edges:
-            # import ipdb; ipdb.set_trace()
             edge_pool = self.edge_layer(g, e)
             pool = torch.cat((pool, edge_pool), -1)
 
-        # Compute the new virtual node features
-        # import ipdb; ipdb.set_trace()
-        # TODO: Need to pick the pooling size so that the pool output is the same as the global latent size
-        # import ipdb; ipdb.set_trace()
-        # if self.global_latent is None:
-        # import ipdb; ipdb.set_trace()
-        if type(vn_h) is not float:
-            print(f"V NODE: {vn_h.size(), pool.size()}")
         vn_h_temp = self.fc_layer.forward(vn_h + pool)
-        # else:
-            # vn_h_temp = torch.cat((vn_h, pool), -1)
-            # vn_h_temp = self.fc_layer.forward(vn_h_temp)
 
         if self.residual:
             vn_h = vn_h + vn_h_temp
         else:
             vn_h = vn_h_temp
 
-        # Add the virtual node value to the graph features
-        # import ipdb; ipdb.set_trace()
-        # h = h + vn_h[g.batch]
-        # NOTE: Do we actually need the
-        # if self.global_latent is not None:
-            # h = torch.cat([h, vn_h[g.batch]], -1)
-            # h = self.node_projection.forward(h)
-        # else:
-        print("nodes", (vn_h[g.batch]).size(), h.size(), self._node_projection(self.node_projection(vn_h[g.batch])).size())
+        # Add the virtual node projections to the node features
         h = h + self.node_projection(vn_h[g.batch])
 
-        print("edges", (vn_h[g.batch[g.edge_index][0]]).size(), e.size(), self.edge_projection(vn_h[g.batch[g.edge_index][0]]).size())
-        e = e + self.edge_projection(vn_h[g.batch[g.edge_index][0]])
-        # Add the virtual node to the edge features
-        # if self.use_edges:
-        #     if self.global_latent:
-        #         # import ipdb; ipdb.set_trace()
-        #         e = torch.cat([e, vn_h[g.batch[g.edge_index][0]]], -1)
-        #         # import ipdb; ipdb.set_trace()
-        # e = self.edge_projection.forward(e)
-        #     else:
-        # else:
-        #     e = e
-
+        if self.use_edges:
+            # Add the virtual node projections to the edge features
+            e = e + self.edge_projection(vn_h[g.batch[g.edge_index][0]])
         return h, vn_h, e

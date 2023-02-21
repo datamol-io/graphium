@@ -654,12 +654,12 @@ class FeedForwardGraphBase(FeedForwardNN):
 
             # Create the Virtual Node layer, except at the last layer
             if ii < len(residual_out_dims):
-                # import ipdb; ipdb.set_trace()
                 self.virtual_node_layers.append(
                     self.virtual_node_class(
-                        dim=this_out_dim * self.layers[-1].out_dim_factor,
-                        dim_edges=this_out_dim_edges * self.layers[-1].out_dim_factor,
-                        global_latent=self.global_latent,
+                        in_dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        out_dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        in_dim_edges=this_out_dim_edges * self.layers[-1].out_dim_factor,
+                        out_dim_edges=this_out_dim_edges * self.layers[-1].out_dim_factor,
                         activation=this_activation,
                         dropout=this_dropout,
                         normalization=this_norm,
@@ -901,8 +901,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         vn_h = 0.0
         h = self._get_node_feats(g, key="h")
         e = self._get_edge_feats(g, key="edge_attr")
-        # Add the virtual node into the DataBatch object
-        # g["vn_h"] = vn_h
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
             h = self.first_normalization(h)
@@ -914,7 +912,6 @@ class FeedForwardGraphBase(FeedForwardNN):
             h, e, h_prev, e_prev = self._graph_layer_forward(
                 layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
-            # import ipdb; ipdb.set_trace()
             h, vn_h, e = self._virtual_node_forward(g=g, h=h, e=e, vn_h=vn_h, step_idx=ii)
 
         pooled_h = self._pool_layer_forward(g=g, h=h)
@@ -1085,7 +1082,6 @@ class FullGraphNetwork(nn.Module):
 
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
-
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
             name = pre_nn_kwargs.pop("name", "pre-NN")
@@ -1489,15 +1485,11 @@ class FullGraphNetwork(nn.Module):
         if self.gnn is not None:
             factor_in_dim = self.pre_nn is not None
             factor_in_dim_edges = self.pre_nn_edges is not None
-            import ipdb; ipdb.set_trace()
             kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(
                 divide_factor=divide_factor,
                 factor_in_dim=factor_in_dim,
                 factor_in_dim_edges=factor_in_dim_edges,
             )
-        import ipdb; ipdb.set_trace()
-
-        print("")
 
         return kwargs
 

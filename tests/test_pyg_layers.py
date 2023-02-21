@@ -212,8 +212,15 @@ class test_Pyg_Layers(ut.TestCase):
 
         expected_h_out = [(), ()]
         expected_e_out = [(), ()]
-        for vn_type, expected_shape, use_edges, global_latent in zip(vn_types, expected_vn_out, [False, True], [10, 10]):
-            with self.subTest(vn_type=vn_type, expected_shape=expected_shape, use_edges=use_edges, global_latent=global_latent):
+        for vn_type, expected_shape, use_edges, global_latent in zip(
+            vn_types, expected_vn_out, [False, True], [10, 10]
+        ):
+            with self.subTest(
+                vn_type=vn_type,
+                expected_shape=expected_shape,
+                use_edges=use_edges,
+                global_latent=global_latent,
+            ):
                 if global_latent is not None:
                     vn_h = torch.zeros(global_latent)
                     vn_h = torch.tile(vn_h, (bg.num_graphs, 1))
@@ -227,7 +234,11 @@ class test_Pyg_Layers(ut.TestCase):
                     dim_edges=edge_dim,
                     **self.kwargs,
                 )
-                print(expected_shape, use_edges, global_latent, )
+                print(
+                    expected_shape,
+                    use_edges,
+                    global_latent,
+                )
                 h_out, vn_out, e_out = layer.forward(bg, h_in, vn_h, e=e_in)
                 assert vn_out.shape == expected_shape
                 if use_edges is False:
