@@ -2153,6 +2153,40 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath" class="md-nav__link">
+    DropPath
+  </a>
+  
+    <nav class="md-nav" aria-label="DropPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath.get_stochastic_drop_rate" class="md-nav__link">
+    get_stochastic_drop_rate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.base_layers.FCLayer" class="md-nav__link">
     FCLayer
   </a>
@@ -2278,6 +2312,13 @@
           <li class="md-nav__item">
   <a href="#goli.nn.base_layers.get_activation" class="md-nav__link">
     get_activation()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.get_activation_str" class="md-nav__link">
+    get_activation_str()
   </a>
   
 </li>
@@ -4414,6 +4455,40 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath" class="md-nav__link">
+    DropPath
+  </a>
+  
+    <nav class="md-nav" aria-label="DropPath">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.DropPath.get_stochastic_drop_rate" class="md-nav__link">
+    get_stochastic_drop_rate()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.base_layers.FCLayer" class="md-nav__link">
     FCLayer
   </a>
@@ -4539,6 +4614,13 @@
           <li class="md-nav__item">
   <a href="#goli.nn.base_layers.get_activation" class="md-nav__link">
     get_activation()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.base_layers.get_activation_str" class="md-nav__link">
+    get_activation_str()
   </a>
   
 </li>
@@ -5561,8 +5643,9 @@ hidden dimensions of the same value.</p></td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
           <td><p>If <code>hidden_dims</code> is an integer, <code>depth</code> is 1 + the number of
-hidden layers to use. If <code>hidden_dims</code> is a <code>list</code>, <code>depth</code> must
-be <code>None</code>.</p></td>
+hidden layers to use.
+If <code>hidden_dims</code> is a list, then
+<code>depth</code> must be <code>None</code> or equal to <code>len(hidden_dims) + 1</code></p></td>
           <td>
                 <code>None</code>
           </td>
@@ -6171,8 +6254,8 @@ This will be useful for certain architecture, but ignored by others.</p></td>
 <code class="highlight language-python"><span class="n">concat_last_layers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.concat_last_layers" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -8301,7 +8384,7 @@ Always <code>self.num_heads</code> for the current class</p></td>
 
 
 <h5 id="goli.nn.dgl_layers.gat_dgl.GATDgl.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;elu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">num_heads</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;elu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.dgl_layers.gat_dgl.GATDgl.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -8718,7 +8801,7 @@ of heads.</p>
 
 
 <h5 id="goli.nn.dgl_layers.gated_gcn_dgl.GatedGCNDgl.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.dgl_layers.gated_gcn_dgl.GatedGCNDgl.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -9148,7 +9231,7 @@ of heads.</p>
 
 
 <h5 id="goli.nn.dgl_layers.gcn_dgl.GCNDgl.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.dgl_layers.gcn_dgl.GCNDgl.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -9549,7 +9632,7 @@ of heads.</p>
 
 
 <h5 id="goli.nn.dgl_layers.gin_dgl.GINDgl.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">init_eps</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">learn_eps</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">init_eps</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">learn_eps</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.dgl_layers.gin_dgl.GINDgl.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -9987,7 +10070,7 @@ of heads.</p>
 
 
 <h5 id="goli.nn.dgl_layers.pna_dgl.BasePNADgl.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.dgl_layers.pna_dgl.BasePNADgl.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -10399,7 +10482,7 @@ Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
 
 
 <h5 id="goli.nn.dgl_layers.pna_dgl.PNAConvolutionalDgl.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">posttrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">posttrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.dgl_layers.pna_dgl.PNAConvolutionalDgl.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -10708,7 +10791,7 @@ Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
 
 
 <h5 id="goli.nn.dgl_layers.pna_dgl.PNAMessagePassingDgl.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">posttrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pretrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">aggregators</span><span class="p">,</span> <span class="n">scalers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">avg_d</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">},</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">posttrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">pretrans_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.dgl_layers.pna_dgl.PNAMessagePassingDgl.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -13575,18 +13658,19 @@ of heads.</p>
 
 
 <h5 id="goli.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
 
   <div class="doc doc-contents ">
   
-      <p>GINE: Graph Isomorphism Networks with Edges
-Strategies for Pre-training Graph Neural Networks
-Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Jure Leskovec
-<a href="https://arxiv.org/abs/1905.12265">https://arxiv.org/abs/1905.12265</a></p>
-<p>[!] code uses the pytorch-geometric implementation of GINEConv</p>
+      <p>GPS: Recipe for a General, Powerful, Scalable Graph Transformer
+Ladislav Rampášek, Mikhail Galkin, Vijay Prakash Dwivedi, Anh Tuan Luu, Guy Wolf, Dominique Beaini
+<a href="https://arxiv.org/abs/2205.12454">https://arxiv.org/abs/2205.12454</a></p>
+<p>GPS++: An Optimised Hybrid MPNN/Transformer for Molecular Property Prediction
+Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam Sanders, Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
+<a href="https://arxiv.org/abs/2212.02229">https://arxiv.org/abs/2212.02229</a></p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -13604,7 +13688,7 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
           <td>
                 <code>int</code>
           </td>
-          <td><p>Input feature dimensions of the layer</p></td>
+          <td><p>Input node feature dimensions of the layer</p></td>
           <td>
               <em>required</em>
           </td>
@@ -13614,7 +13698,27 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
           <td>
                 <code>int</code>
           </td>
-          <td><p>Output feature dimensions of the layer</p></td>
+          <td><p>Output node feature dimensions of the layer</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>in_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Input edge feature dimensions of the layer</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>out_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Output edge feature dimensions of the layer</p></td>
           <td>
               <em>required</em>
           </td>
@@ -13663,6 +13767,64 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
 </ul></td>
           <td>
                 <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mpnn_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>type of mpnn used, choose from "pyg:gin", "pyg:gine", "pyg:gated-gcn", "pyg:pna-msgpass" and "pyg:mpnnplus"</p></td>
+          <td>
+                <code>&#39;pyg:gine&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mpnn_kwargs</code></td>
+          <td>
+          </td>
+          <td><p>kwargs for mpnn layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>attn_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>type of attention used, choose from "full-attention" and "none"</p></td>
+          <td>
+                <code>&#39;full-attention&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>attn_kwargs</code></td>
+          <td>
+          </td>
+          <td><p>kwargs for attention layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>droppath_rate_attn</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>stochastic depth drop rate for attention layer <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>droppath_rate_ffn</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>stochastic depth drop rate for ffn layer <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+                <code>0.0</code>
           </td>
         </tr>
     </tbody>
@@ -14679,7 +14841,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p></td
 
 
 <h5 id="goli.nn.base_graph_layer.BaseGraphModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -14756,6 +14918,36 @@ and outputs.</p>
 </ul></td>
           <td>
                 <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_idx</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The index of the current layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_depth</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The total depth (number of layers) associated to this specific layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>droppath_rate</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+                <code>0.0</code>
           </td>
         </tr>
     </tbody>
@@ -14893,8 +15085,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_edges_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -14915,8 +15107,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_nodes_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_nodes_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -14983,7 +15175,7 @@ of heads.</p>
 
 
 <h5 id="goli.nn.base_graph_layer.BaseGraphStructure.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -15062,6 +15254,36 @@ and outputs.</p>
                 <code>&#39;none&#39;</code>
           </td>
         </tr>
+        <tr>
+          <td><code>layer_idx</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The index of the current layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_depth</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The total depth (number of layers) associated to this specific layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>droppath_rate</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -15092,7 +15314,7 @@ and outputs.</p>
 
 
 <h5 id="goli.nn.base_graph_layer.BaseGraphStructure.apply_norm_activation_dropout" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">droppath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">batch_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.apply_norm_activation_dropout" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -15149,6 +15371,16 @@ output layer.</p>
                 <code>bool</code>
           </td>
           <td><p>Whether to apply the dropout layer</p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>droppath</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether to apply the DropPath layer</p></td>
           <td>
                 <code>True</code>
           </td>
@@ -15485,6 +15717,234 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
 
 
+<h4 id="goli.nn.base_layers.DropPath" class="doc doc-heading">
+        <code>DropPath</code>
+
+
+<a href="#goli.nn.base_layers.DropPath" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.base_layers.DropPath.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">)</span></code>
+
+<a href="#goli.nn.base_layers.DropPath.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>DropPath class for stochastic depth
+Deep Networks with Stochastic Depth
+Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
+<a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>drop_rate</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Drop out probability</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.base_layers.DropPath.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">batch_idx</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.nn.base_layers.DropPath.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p><code>torch.Tensor[total_num_nodes, hidden]</code></p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch</code></td>
+          <td>
+          </td>
+          <td><p>batch attribute of the batch object, batch.batch</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The batch size. Must be provided when working on IPU</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>torch.Tensor: <code>torch.Tensor[total_num_nodes, hidde]</code></p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.base_layers.DropPath.get_stochastic_drop_rate" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_stochastic_drop_rate</span><span class="p">(</span><span class="n">drop_rate</span><span class="p">,</span> <span class="n">layer_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">layer_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#goli.nn.base_layers.DropPath.get_stochastic_drop_rate" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the stochastic drop rate from the nominal drop rate, the layer index, and the layer depth.</p>
+<p><code>return drop_rate * (layer_idx / (layer_depth - 1))</code></p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>drop_rate</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>Drop out nominal probability</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_idx</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The index of the current layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_depth</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The total depth (number of layers) associated to this specific layer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h4 id="goli.nn.base_layers.FCLayer" class="doc doc-heading">
         <code>FCLayer</code>
 
@@ -15558,7 +16018,7 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
 
 <h5 id="goli.nn.base_layers.FCLayer.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_readout_layer</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">init_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_readout_layer</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
 
 <a href="#goli.nn.base_layers.FCLayer.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -15671,6 +16131,16 @@ The order in which transformations are applied is:</p>
 by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
           <td>
                 <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>droppath_rate</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+                <code>0.0</code>
           </td>
         </tr>
     </tbody>
@@ -16025,7 +16495,7 @@ where Dh &lt;= hidden_dim (difference is padded)</p></td>
 
 
 <h5 id="goli.nn.base_layers.MLP.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">layers</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">droppath_rate</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">constant_droppath_rate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
 
 <a href="#goli.nn.base_layers.MLP.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -16056,12 +16526,12 @@ where Dh &lt;= hidden_dim (difference is padded)</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>hidden_dim</code></td>
+          <td><code>hidden_dims</code></td>
           <td>
-                <code>int</code>
+                <code><span title="typing.Union">Union</span>[<span title="typing.Iterable">Iterable</span>[int], int]</code>
           </td>
-          <td><p>Hidden dimension of the MLP. All hidden dimensions will have
-the same number of parameters</p></td>
+          <td><p>Either an integer specifying all the hidden dimensions,
+or a list of dimensions in the hidden layers.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -16077,11 +16547,14 @@ the same number of parameters</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>layers</code></td>
+          <td><code>depth</code></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Number of hidden layers</p></td>
+          <td><p>If <code>hidden_dims</code> is an integer, <code>depth</code> is 1 + the number of
+hidden layers to use.
+If <code>hidden_dims</code> is a list, then
+<code>depth</code> must be <code>None</code> or equal to <code>len(hidden_dims) + 1</code></p></td>
           <td>
               <em>required</em>
           </td>
@@ -16173,6 +16646,29 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
 Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
           <td>
                 <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>droppath_rate</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>stochastic depth drop rate, between 0 and 1.
+See <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>constant_droppath_rate</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>If <code>True</code>, drop rates will remain constant accross layers.
+Otherwise, drop rates will vary stochastically.
+See <code>DropPath.get_stochastic_drop_rate</code></p></td>
+          <td>
+                <code>True</code>
           </td>
         </tr>
     </tbody>
@@ -16413,6 +16909,67 @@ The <code>_scaled_dot_product_attention</code> normalizes the attention matrix w
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>]</code>
           </td>
           <td><p>Callable or None: The activation function</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.nn.base_layers.get_activation_str" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_activation_str</span><span class="p">(</span><span class="n">activation</span><span class="p">)</span></code>
+
+<a href="#goli.nn.base_layers.get_activation_str" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>returns the string related to the activation function</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>activation</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[type(None), str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Callable, <code>None</code>, or string with value:
+"none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The name of the activation function</p></td>
         </tr>
     </tbody>
   </table>
