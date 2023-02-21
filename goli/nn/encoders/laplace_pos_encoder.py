@@ -63,8 +63,9 @@ class LapPENodeEncoder(BaseEncoder):
 
         if model_type == "Transformer":
             # Transformer model for LapPE
+            model_kwargs.setdefault("nhead", 1)
             encoder_layer = nn.TransformerEncoderLayer(
-                d_model=out_dim, nhead=1, batch_first=True, dropout=dropout, activation=self.activation, **model_kwargs
+                d_model=out_dim, batch_first=True, dropout=dropout, activation=self.activation, **model_kwargs
             )
             self.pe_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         else:
