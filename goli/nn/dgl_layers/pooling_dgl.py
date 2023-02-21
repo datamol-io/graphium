@@ -290,10 +290,7 @@ class VirtualNodeDgl(nn.Module):
                 Whether all virtual nodes should be connected together
                 via a residual connection
 
-            global_latent:
-                NOT USED: Size for the output of feed forward layer
-
-            out_dim_nodes:
+            out_dim:
                 NOT USED: Out node dimmension for virtual node pooling
             in_dim_edges:
                 NOT USED: Edge dimmension for virtual node pooling

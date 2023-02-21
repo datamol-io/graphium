@@ -144,8 +144,8 @@ class VirtualNodePyg(nn.Module):
         self,
         in_dim: int,
         out_dim: int,
-        in_dim_edges: int,
-        out_dim_edges: int,
+        in_dim_edges: Optional[int],
+        out_dim_edges: Optional[int],
         vn_type: Union[type(None), str] = "sum",
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
@@ -161,8 +161,17 @@ class VirtualNodePyg(nn.Module):
 
         Parameters:
 
-            dim:
-                Input and output feature dimensions of the virtual node layer
+            in_dim:
+                Input feature dimensions of the virtual node layer.
+
+            out_dim:
+                Output feature dimensions of the virtual node layer.
+
+            in_dim_edges:
+                Input feature dimensions of the virtual node layer for the edges.
+
+            out_dim_edges:
+                Output feature dimensions of the virtual node layer for the edges.
 
             vn_type:
                 The type of the virtual node. Choices are:
@@ -200,13 +209,6 @@ class VirtualNodePyg(nn.Module):
             use_edges:
                 Boolean flag to select if edges are used in the global node
                 aggregation and update of features
-
-            dim_edges:
-                The dimmension of the edges, if edges are used, for the edge
-                pooling layer
-
-            global_latent:
-                The global node latent size - the output dimmension for the FF layer
 
         """
         super().__init__()
@@ -270,8 +272,6 @@ class VirtualNodePyg(nn.Module):
             e (torch.Tensor[..., E, Din]):
                 Edge feature tensor, before convolution.
                 `E` is the number of edges, `Din` is the input features
-
-            batch
 
         Returns:
 
