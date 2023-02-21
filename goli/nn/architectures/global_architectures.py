@@ -1299,6 +1299,11 @@ class FullGraphNetwork(nn.Module):
                 if pe_key in g.keys:
                     feat = torch.cat((feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1)
                 self.gnn._set_edge_feats(g, feat, key=pe_key)
+            elif pe_key.startswith("graph_"):
+                feat = this_pe
+                if pe_key in g.keys:
+                    feat = torch.cat((feat, self.gnn._get_graph_feats(g, key=pe_key)), dim=-1)
+                self.gnn._set_graph_feats(g, feat, key=pe_key)
             else:
                 feat = this_pe
                 if pe_key in g.keys:
