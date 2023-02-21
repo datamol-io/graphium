@@ -207,12 +207,13 @@ class test_Pyg_Layers(ut.TestCase):
         vn_h = 0
 
         vn_types = ["sum", "mean"]
-        for vn_type, use_edges in zip(
-            vn_types, [False, True]
+        for vn_type, use_edges, expected_v_node in zip(
+            vn_types, [False, True], [(2, 21), (2, 34)]
             ):
             with self.subTest(
                 vn_type=vn_type,
                 use_edges=use_edges,
+                expected_v_node=expected_v_node,
             ):
                 vn_h = 0.0
                 print(vn_h, self.out_dim, h_in.size())
@@ -227,7 +228,7 @@ class test_Pyg_Layers(ut.TestCase):
                 )
 
                 h_out, vn_out, e_out = layer.forward(bg, h_in, vn_h, e=e_in)
-                assert vn_out.shape == (2, 21)
+                assert vn_out.shape == expected_v_node
                 assert h_out.shape == (7, 21)
                 assert e_out.shape == (9, 13)
                 if use_edges is False:
