@@ -22,6 +22,8 @@ from goli.nn.residual_connections import (
 
 from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
 
+import collections
+
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
@@ -1000,6 +1002,16 @@ class FeedForwardGraphBase(FeedForwardNN):
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
+
+        def _recursive_divide_dim(x: collections.abc.Mapping):
+            for k, v in x.items():
+                if isinstance(v, collections.abc.Mapping):
+                    _recursive_divide_dim(v)
+                elif k in ["in_dim", "out_dim", "in_dim_edges", "out_dim_edges"]:
+                    x[k] = round(v / divide_factor)
+
+        _recursive_divide_dim(kwargs["layer_kwargs"])
+
         return kwargs
 
     def __repr__(self):
@@ -1665,7 +1677,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
-        last_layer_is_readout: bool = False,
+        last_layer_is_readout: bool = True,
         name: str = "Multitask_GNN",
     ):
         r"""
@@ -1718,6 +1730,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 purposes.
         """
 
+        # Use last_layer_is_readout=False since readout layers are in task heads
         super().__init__(
             gnn_kwargs=gnn_kwargs,
             pre_nn_kwargs=pre_nn_kwargs,
