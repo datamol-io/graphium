@@ -153,6 +153,8 @@ def get_mol_conformer_features(
     mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Dict[str, np.ndarray]:
     """
+    # TODO: Need to implement proper nan masking when conformer is not present, or raise an error if mask_nan is "raise"
+
     Parameters:
 
         mol:
@@ -171,9 +173,6 @@ def get_mol_conformer_features(
     except:
         has_conf = False
     # * currently only accepts "positions_3d", raise errors otherwise
-    """
-    #! Andy continue debugging here
-    """
     for prop in property_list:
         if isinstance(prop, str):
             if prop in ["positions_3d"]:  # locating 3d conformer coordinates
