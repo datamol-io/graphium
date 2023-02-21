@@ -1354,7 +1354,7 @@ class FullGraphNetwork(nn.Module):
 
         return h
 
-    def forward_positional_encoding(self, g: Any) -> Optional[Tensor]:
+    def forward_positional_encoding(self, g: Any) -> Dict[str, Tensor]:
         """
         Forward pass for the positional encodings (PE),
         with each PE having it's own encoder defined in `self.pe_encoders`.
@@ -1366,13 +1366,13 @@ class FullGraphNetwork(nn.Module):
 
         Returns:
             pe_node_pooled: The positional / structural encodings go through
-            encoders, then are pooled together
+            encoders, then are pooled together according to their keys.
 
         """
 
         # Return None if no positional encoders
         if (self.pe_encoders is None) or len(self.pe_encoders) == 0:
-            return None
+            return {}
 
         encoder_outs = []
         # Run every node positional-encoder
