@@ -207,9 +207,7 @@ class test_Pyg_Layers(ut.TestCase):
         vn_h = 0
 
         vn_types = ["sum", "mean"]
-        for vn_type, use_edges, expected_v_node in zip(
-            vn_types, [False, True], [(2, 21), (2, 34)]
-            ):
+        for vn_type, use_edges, expected_v_node in zip(vn_types, [False, True], [(2, 21), (2, 34)]):
             with self.subTest(
                 vn_type=vn_type,
                 use_edges=use_edges,
