@@ -22,7 +22,7 @@ from goli.nn.pyg_layers import (
 )
 
 from goli.nn.pyg_layers.utils import (
-    Preprocess3DPositions,
+    PreprocessPositions,
     GaussianLayer,
 )
 
@@ -211,8 +211,9 @@ class test_Pyg_Layers(ut.TestCase):
         bg = deepcopy(self.bg)
         num_heads = 2
         num_kernel = 2
-        bg.positions_3d = torch.zeros(bg.h.size()[0], 3)
-        layer = Preprocess3DPositions(num_heads=num_heads, embed_dim=self.out_dim, num_kernel=num_kernel)
+        in_dim = 3
+        bg.positions_3d = torch.zeros(bg.h.size()[0], in_dim)
+        layer = PreprocessPositions(num_heads=num_heads, embed_dim=self.out_dim, num_kernel=num_kernel, in_dim=in_dim, first_normalization="layer_norm")
         # bias: [batch, num_heads, nodes, nodes]
         # node_feature: [total_nodes, embed_dim]
         bias, node_feature = layer.forward(bg, max_num_nodes_per_graph=4, on_ipu=False, positions_3d_key="positions_3d")

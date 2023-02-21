@@ -96,7 +96,8 @@ architecture:
     encoders: #la_pos |  rw_pos | gaussian_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        on_keys: ["eigvecs", "eigvals"]
+        input_keys: ["eigvecs", "eigvals"]
+        output_keys: ["feat"]
         hidden_dim: 64
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
@@ -105,8 +106,8 @@ architecture:
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        on_keys: ["rwse"]
-        out_level: "node"
+        input_keys: ["rwse"]
+        output_keys: ["feat"]
         hidden_dim: 64
         num_layers: 1
         dropout: 0.1
@@ -114,13 +115,12 @@ architecture:
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
       gaussian_pos:
         encoder_type: "gaussian_kernel"
-        on_keys: ["positions_3d"]
-        out_level: "node"
-        num_kernel: 64 #same as hidden_dim of other pe
+        input_keys: ["positions_3d"]
+        output_keys: ["feat", "guassian_3d", "graph_guassian_bias_3d"]
         num_heads: 1
         num_layers: 1 #2
         max_num_nodes_per_graph: *max_num_nodes
-        use_prefix: False
+        use_input_keys_prefix: False
 
 
 

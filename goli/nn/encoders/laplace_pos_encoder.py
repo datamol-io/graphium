@@ -1,12 +1,13 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union, Callable
 import torch
 import torch.nn as nn
 from torch_geometric.data import Batch
 
 from goli.nn.base_layers import MLP, get_norm, FCLayer
+from goli.nn.encoders.base_encoder import BaseEncoder
 
 
-class LapPENodeEncoder(torch.nn.Module):
+class LapPENodeEncoder(BaseEncoder):
     """Laplace Positional Embedding node encoder.
 
     LapPE of size dim_pe will get appended to each node feature vector.
@@ -18,32 +19,37 @@ class LapPENodeEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        on_keys: List[str],
+        input_keys: List[str],
+        output_keys: List[str],
         in_dim: int,  # Size of Laplace PE embedding
         hidden_dim: int,
         out_dim: int,
         num_layers: int,
+        activation: Optional[Union[str, Callable]] = "relu",
         model_type: str = "DeepSet",  # 'Transformer' or 'DeepSet'
         num_layers_post=0,  # Num. layers to apply after pooling
         dropout=0.0,
         first_normalization=None,
-        use_prefix: bool = True,
+        use_input_keys_prefix: bool = True,
         **model_kwargs,
     ):
-        super().__init__()
+        super().__init__(
+            input_keys=input_keys,
+            output_keys=output_keys,
+            in_dim=in_dim,
+            out_dim=out_dim,
+            num_layers=num_layers,
+            activation=activation,
+            first_normalization=first_normalization,
+            use_input_keys_prefix=use_input_keys_prefix,
+        )
 
-        # Parse the `on_keys`.
-        self.on_keys = self.parse_on_keys(on_keys)
-        self.in_dim = in_dim
+        # Parse the `input_keys`.
         self.hidden_dim = hidden_dim
-        self.out_dim = out_dim
-        self.num_layers = num_layers
         self.model_type = model_type
         self.num_layers_post = num_layers_post
         self.dropout = dropout
-        self.first_normalization = first_normalization
         self.model_kwargs = model_kwargs
-        self.use_prefix = use_prefix
 
         if model_type not in ["Transformer", "DeepSet"]:
             raise ValueError(f"Unexpected PE model {model_type}")
@@ -54,12 +60,11 @@ class LapPENodeEncoder(torch.nn.Module):
 
         # Initial projection of eigenvalue and the node's eigenvector value
         self.linear_A = FCLayer(2, out_dim, activation="none")
-        self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
         if model_type == "Transformer":
             # Transformer model for LapPE
             encoder_layer = nn.TransformerEncoderLayer(
-                d_model=out_dim, nhead=1, batch_first=True, dropout=dropout, **model_kwargs
+                d_model=out_dim, nhead=1, batch_first=True, dropout=dropout, activation=self.activation, **model_kwargs
             )
             self.pe_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         else:
@@ -82,21 +87,24 @@ class LapPENodeEncoder(torch.nn.Module):
                 out_dim=in_dim,
                 layers=num_layers_post,
                 dropout=dropout,
+                activation=activation,
+                last_activation="none",
                 **model_kwargs,
             )
 
-    def parse_on_keys(self, on_keys):
-        if len(on_keys) != 2:
+    def parse_input_keys(self, input_keys):
+        if len(input_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
 
-        return on_keys
+        return input_keys
+
+    def parse_output_keys(self, output_keys):
+        return output_keys
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
 
-        on_keys = self.on_keys
-        if (key_prefix is not None) and (self.use_prefix):
-            on_keys = [f"{key_prefix}/{k}" for k in on_keys]
-        eigvals, eigvecs = batch[on_keys[0]], batch[on_keys[1]]
+        input_keys = self.parse_input_keys_with_prefix(key_prefix)
+        eigvals, eigvecs = batch[input_keys[0]], batch[input_keys[1]]
 
         # Random flipping to the Laplacian encoder
         if self.training:
@@ -131,7 +139,7 @@ class LapPENodeEncoder(torch.nn.Module):
         if self.post_mlp is not None:
             pos_enc = self.post_mlp(pos_enc)  # (Num nodes) x dim_pe
 
-        output = {"node": pos_enc}
+        output = {key: pos_enc for key in self.output_keys}
 
         return output
 
@@ -145,15 +153,12 @@ class LapPENodeEncoder(torch.nn.Module):
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
         """
-        return dict(
-            on_keys=self.on_keys,
-            in_dim=round(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
+        base_kwargs = super().make_mup_base_kwargs(divide_factor, factor_in_dim)
+        base_kwargs.update(dict(
             hidden_dim=round(self.hidden_dim / divide_factor),
-            out_dim=round(self.out_dim / divide_factor),
-            num_layers=self.num_layers,
             model_type=self.model_type,
             num_layers_post=self.num_layers_post,
             dropout=self.dropout,
-            first_normalization=self.first_normalization,
             **self.model_kwargs,
-        )
+        ))
+        return base_kwargs

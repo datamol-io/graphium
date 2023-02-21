@@ -109,7 +109,7 @@ architecture:
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        on_keys: ["eigvecs", "eigvals"]
+        input_keys: ["eigvecs", "eigvals"]
         hidden_dim: 64
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
@@ -118,8 +118,8 @@ architecture:
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        on_keys: ["rwse"]
-        out_level: "node"
+        input_keys: ["rwse"]
+        output_keys: "node"
         hidden_dim: 64
         num_layers: 1
         dropout: 0.1

@@ -3,10 +3,11 @@ import torch.nn as nn
 from typing import Union, Callable, List, Dict, Any, Optional
 from torch_geometric.data import Batch
 
-from goli.nn.base_layers import MLP
+from goli.nn.base_layers import MLP, get_norm
+from goli.nn.encoders.base_encoder import BaseEncoder
 
 
-class MLPEncoder(torch.nn.Module):
+class MLPEncoder(BaseEncoder):
     """Configurable kernel-based Positional Encoding node encoder.
 
     The choice of which kernel-based statistics to use is configurable through
@@ -25,8 +26,8 @@ class MLPEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        on_keys: List[str],
-        out_level: str,
+        input_keys: List[str],
+        output_keys: str,
         in_dim: int,
         hidden_dim: int,
         out_dim: int,
@@ -35,26 +36,23 @@ class MLPEncoder(torch.nn.Module):
         dropout=0.0,
         normalization="none",
         first_normalization="none",
-        use_prefix: bool = True,
+        use_input_keys_prefix: bool = True,
     ):
-        super().__init__()
+        super().__init__(
+            input_keys=input_keys,
+            output_keys=output_keys,
+            in_dim=in_dim,
+            out_dim=out_dim,
+            num_layers=num_layers,
+            activation=activation,
+            first_normalization=first_normalization,
+            use_input_keys_prefix=use_input_keys_prefix,
+        )
 
-        # Check the out_level
-        self.out_level = out_level.lower()
-        accepted_out_levels = ["node", "edge"]
-        if not (self.out_level in accepted_out_levels):
-            raise ValueError(f"`out_level` must be in {accepted_out_levels}, provided {out_level}")
-
-        self.on_keys = self.parse_on_keys(on_keys)
-        self.out_level = out_level
-        self.in_dim = in_dim
+        # Check the output_keys
         self.hidden_dim = hidden_dim
-        self.out_dim = out_dim
-        self.num_layers = num_layers
-        self.activation = activation
         self.dropout = dropout
-        self.normalization = normalization
-        self.first_normalization = first_normalization
+        self.normalization = get_norm(normalization)
 
         # Initialize the MLP
         self.pe_encoder = MLP(
@@ -65,29 +63,28 @@ class MLPEncoder(torch.nn.Module):
             dropout=dropout,
             activation=activation,
             last_activation=activation,
-            first_normalization=first_normalization,
+            first_normalization=self.first_normalization,
             normalization=normalization,
             last_normalization=normalization,
             last_dropout=dropout,
         )
 
-    def parse_on_keys(self, on_keys):
-        # Parse the `on_keys`.
-        if len(on_keys) != 1:
-            raise ValueError(f"`{self.__class__}` only supports one key")
-        return on_keys
+    def parse_input_keys(self, input_keys):
+        # Parse the `input_keys`.
+        return input_keys
+
+    def parse_output_keys(self, output_keys):
+        assert len(output_keys) == len(self.input_keys), f"The number of input keys {len(self.input_keys)} and output keys {len(output_keys)} must be the same for the class {self.__class__.__name__}"
+        return output_keys
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
 
-        on_keys = self.on_keys
-        if (key_prefix is not None) and (self.use_prefix):
-            on_keys = [f"{key_prefix}/{k}" for k in on_keys]
-        encoding = batch[on_keys[0]]
-        # Run the MLP
-        encoding = self.pe_encoder(encoding)  # (Num nodes) x dim_pe
+        input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
-        # Set the level (node vs edge)
-        output = {self.out_level: encoding}
+        # Run the MLP for each input key
+        output = {}
+        for key in input_keys:
+            output[key] = self.pe_encoder(batch[key])  # (Num nodes) x dim_pe
 
         return output
 
@@ -101,15 +98,10 @@ class MLPEncoder(torch.nn.Module):
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
         """
-        return dict(
-            on_keys=self.on_keys,
-            out_level=self.out_level,
-            in_dim=round(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
+        base_kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
+        base_kwargs.update(dict(
             hidden_dim=round(self.hidden_dim / divide_factor),
-            out_dim=round(self.out_dim / divide_factor),
-            num_layers=self.num_layers,
-            activation=self.activation,
             dropout=self.dropout,
-            normalization=self.normalization,
-            first_normalization=self.first_normalization,
-        )
+            normalization=type(self.normalization).__name__,
+        ))
+        return base_kwargs

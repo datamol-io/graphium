@@ -1,18 +1,18 @@
 import torch
 import torch.nn as nn
-from goli.nn.base_layers import MLP
-from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 from torch_geometric.data import Batch
 from typing import Tuple
 from torch import Tensor
 
+from goli.nn.base_layers import MLP, get_norm
+from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
-class Preprocess3DPositions(nn.Module):
+class PreprocessPositions(nn.Module):
     """
     Compute 3D attention bias and 3D node features according to the 3D position information.
     """
 
-    def __init__(self, num_heads, embed_dim, num_kernel):
+    def __init__(self, num_heads, embed_dim, num_kernel, in_dim=3, num_layers=2, activation="gelu", first_normalization="none"):
         r"""
         Parameters:
             num_heads:
@@ -21,20 +21,25 @@ class Preprocess3DPositions(nn.Module):
                 Hidden dimension of node features.
             num_kernel:
                 Number of gaussian kernels.
+            num_layers: The number of layers in the MLP.
+            activation: The activation function used in the MLP.
+            first_normalization: The normalization function used before the gaussian kernel.
 
         """
         super().__init__()
         self.num_heads = num_heads
         self.num_kernel = num_kernel
         self.embed_dim = embed_dim
+        self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
-        self.gaussian = GaussianLayer(self.num_kernel)
+        self.gaussian = GaussianLayer(self.num_kernel, in_dim=in_dim)
         self.gaussian_proj = MLP(
             in_dim=self.num_kernel,
             hidden_dim=self.num_kernel,
             out_dim=self.num_heads,
-            layers=2,
-            activation="gelu",
+            layers=num_layers,
+            activation=activation,
+            last_layer_is_readout=True, # Since the output is not proportional to the hidden dim, but to the number of heads
         )
 
         # make sure the 3D node feature has the same dimension as the embedding size
@@ -56,6 +61,8 @@ class Preprocess3DPositions(nn.Module):
         """
 
         pos = batch[positions_3d_key]
+        if self.first_normalization is not None:
+            pos = self.first_normalization(pos)
         batch_size = None if pos.device.type != "ipu" else batch.graph_is_true.shape[0]
         # batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.h is only available after passing through layers, not a good attribute to check
         # pos: [batch, nodes, 3]
@@ -100,7 +107,7 @@ class Preprocess3DPositions(nn.Module):
 
 
 class GaussianLayer(nn.Module):
-    def __init__(self, num_kernels=128):
+    def __init__(self, num_kernels=128, in_dim=3):
         r"""
             Gaussian kernel function that applied on the all-to-all 3D distances.
         Parameters:
@@ -111,8 +118,8 @@ class GaussianLayer(nn.Module):
         self.num_kernels = num_kernels
         self.means = nn.Embedding(1, num_kernels)
         self.stds = nn.Embedding(1, num_kernels)
-        nn.init.uniform_(self.means.weight, 0, 3)
-        nn.init.uniform_(self.stds.weight, 0, 3)
+        nn.init.uniform_(self.means.weight, 0, in_dim)
+        nn.init.uniform_(self.stds.weight, 0, in_dim)
 
     def forward(self, input: Tensor) -> Tensor:
         # [batch, nodes, nodes, 1]

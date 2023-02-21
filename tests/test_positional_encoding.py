@@ -144,7 +144,7 @@ class test_positional_encoder(ut.TestCase):
                         num_nodes = adj.shape[0]
                         pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
 
-                        on_keys = ["eigvecs", "eigvals"]
+                        input_keys = ["eigvecs", "eigvals"]
                         in_dim = num_pos
                         hidden_dim = 64
                         out_dim = 64
@@ -160,7 +160,8 @@ class test_positional_encoder(ut.TestCase):
                         batch = g.make_pyg_graph()
 
                         encoder = laplace_pos_encoder.LapPENodeEncoder(
-                            on_keys=on_keys,
+                            input_keys=input_keys,
+                            output_keys=["node"],
                             in_dim=in_dim,  # Size of Laplace PE embedding
                             hidden_dim=hidden_dim,
                             out_dim=out_dim,
