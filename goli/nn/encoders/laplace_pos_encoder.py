@@ -21,13 +21,13 @@ class LapPENodeEncoder(BaseEncoder):
         self,
         input_keys: List[str],
         output_keys: List[str],
-        in_dim: int,  # Size of Laplace PE embedding
+        in_dim: int,  # Size of Laplace PE embedding. Only used by the MLP model
         hidden_dim: int,
         out_dim: int,
         num_layers: int,
         activation: Optional[Union[str, Callable]] = "relu",
-        model_type: str = "DeepSet",  # 'Transformer' or 'DeepSet'
-        num_layers_post=0,  # Num. layers to apply after pooling
+        model_type: str = "DeepSet",  # 'Transformer' or 'DeepSet' or 'MLP'
+        num_layers_post=1,  # Num. layers to apply after pooling
         dropout=0.0,
         first_normalization=None,
         use_input_keys_prefix: bool = True,
@@ -47,50 +47,61 @@ class LapPENodeEncoder(BaseEncoder):
         # Parse the `input_keys`.
         self.hidden_dim = hidden_dim
         self.model_type = model_type
+        if num_layers_post == 0:
+            assert hidden_dim == out_dim, "Hidden dim must be equal to out dim if num_layers_post == 0"
         self.num_layers_post = num_layers_post
         self.dropout = dropout
         self.model_kwargs = model_kwargs
-
-        if model_type not in ["Transformer", "DeepSet"]:
-            raise ValueError(f"Unexpected PE model {model_type}")
-        self.model_type = model_type
 
         if out_dim - in_dim < 1:
             raise ValueError(f"LapPE size {in_dim} is too large for " f"desired embedding size of {out_dim}.")
 
         # Initial projection of eigenvalue and the node's eigenvector value
-        self.linear_A = FCLayer(2, out_dim, activation="none")
+        self.linear_in = FCLayer(2, hidden_dim, activation="none")
 
-        if model_type == "Transformer":
+        if self.model_type == "Transformer":
             # Transformer model for LapPE
             model_kwargs.setdefault("nhead", 1)
             encoder_layer = nn.TransformerEncoderLayer(
-                d_model=out_dim, batch_first=True, dropout=dropout, activation=self.activation, **model_kwargs
+                d_model=hidden_dim, batch_first=True, dropout=dropout, activation=self.activation, **model_kwargs
             )
             self.pe_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
-        else:
-            # DeepSet model for LapPE
+        elif self.model_type == "DeepSet":
+            # DeepSet model for LapPE (this will be followed by a sum pooling)
             self.pe_encoder = MLP(
-                in_dim=out_dim,
+                in_dim=hidden_dim,
                 hidden_dim=hidden_dim,
-                out_dim=out_dim,
+                out_dim=hidden_dim,
                 layers=num_layers,
                 dropout=dropout,
                 **model_kwargs,
             )
+        elif self.model_type == "MLP":
+            # MLP that will mix all eigenvalues and eigenvectors
+            self.pe_encoder = MLP(
+            in_dim=self.in_dim * hidden_dim,
+            hidden_dim=hidden_dim,
+            out_dim=hidden_dim,
+            layers=num_layers_post,
+            dropout=dropout,
+            activation=activation,
+            last_activation="none",
+            **model_kwargs,
+        )
+        else:
+            raise ValueError(f"Unexpected PE model {self.model_type}")
 
         self.post_mlp = None
         if num_layers_post > 0:
             # MLP to apply post pooling
             self.post_mlp = MLP(
-                in_dim=in_dim,
+                in_dim=hidden_dim,
                 hidden_dim=hidden_dim,
-                out_dim=in_dim,
+                out_dim=out_dim,
                 layers=num_layers_post,
                 dropout=dropout,
                 activation=activation,
                 last_activation="none",
-                **model_kwargs,
             )
 
     def parse_input_keys(self, input_keys):
@@ -127,23 +138,29 @@ class LapPENodeEncoder(BaseEncoder):
         pos_enc[empty_mask] = 0  # (Num nodes) x (Num Eigenvectors) x 2
         if self.first_normalization:
             pos_enc = self.first_normalization(pos_enc)
-        pos_enc = self.linear_A(pos_enc)  # (Num nodes) x (Num Eigenvectors) x dim_pe
+        pos_enc = self.linear_in(pos_enc)  # (Num nodes) x (Num Eigenvectors) x hidden_dim
 
         # PE encoder: a Transformer or DeepSet model
         if self.model_type == "Transformer":
             pos_enc = self.pe_encoder(src=pos_enc, src_key_padding_mask=empty_mask[:, :, 0])
-        else:
+            # (Num nodes) x (Num Eigenvectors) x hidden_dim
+        elif self.model_type == "DeepSet":
             pos_enc = self.pe_encoder(pos_enc)
+            # (Num nodes) x (Num Eigenvectors) x hidden_dim
+        elif self.model_type == "MLP":
+            pos_enc = torch.flatten(pos_enc, start_dim=-2, end_dim=-1)
+            pos_enc = self.pe_encoder(pos_enc)
+            # (Num nodes) x hidden_dim
+        else:
+            raise ValueError(f"Unexpected PE model {self.model_type}")
 
-        # Remove masked sequences; must clone before overwriting masked elements
-        pos_enc = pos_enc.clone().masked_fill_(empty_mask[:, :, 0].unsqueeze(2), 0.0)
-
-        # Sum pooling
-        pos_enc = torch.sum(pos_enc, 1, keepdim=False)  # (Num nodes) x dim_pe
+        if self.model_type in ["Transformer", "DeepSet"]:
+            # Mask out padded nodes
+            pos_enc[empty_mask[..., 0]] = 0  # (Num nodes) x (Num Eigenvectors) x hidden_dim
+            pos_enc = torch.sum(pos_enc, 1, keepdim=False)  # (Num nodes) x hidden_dim
 
         # MLP post pooling
-        if self.post_mlp is not None:
-            pos_enc = self.post_mlp(pos_enc)  # (Num nodes) x dim_pe
+        pos_enc = self.post_mlp(pos_enc)  # (Num nodes) x out_dim
 
         output = {key: pos_enc for key in self.output_keys}
 

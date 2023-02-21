@@ -132,7 +132,7 @@ class test_positional_encoder(ut.TestCase):
         for ii, adj in enumerate(deepcopy(self.adjs)):
             for num_pos in [2, 4, 8]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
-                    for model_type in ["Transformer", "DeepSet"]:
+                    for model_type in ["Transformer", "DeepSet", "MLP"]:
                         err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
                         # returns a dictionary of computed pe
@@ -167,7 +167,7 @@ class test_positional_encoder(ut.TestCase):
                             out_dim=out_dim,
                             model_type=model_type,  # 'Transformer' or 'DeepSet'
                             num_layers=num_layers,
-                            num_layers_post=0,  # Num. layers to apply after pooling
+                            num_layers_post=2,  # Num. layers to apply after pooling
                             dropout=0.1,
                             first_normalization=None,
                         )
