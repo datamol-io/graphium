@@ -14,6 +14,7 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.data.data import BaseData
 from loguru import logger
 import functools
+from collections.abc import Sequence, Mapping
 
 poptorch = import_poptorch()
 
