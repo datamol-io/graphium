@@ -1,9 +1,7 @@
-import torch
 from typing import Union, Callable, List, Dict, Any, Optional
 from torch_geometric.data import Batch
 
 from goli.nn.pyg_layers.utils import PreprocessPositions
-from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 from goli.ipu.ipu_utils import import_poptorch
 from goli.nn.encoders.base_encoder import BaseEncoder
 
