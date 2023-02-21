@@ -45,7 +45,9 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
 
     # search in SUPPORTED_ACTIVATION_MAP a torch.nn.modules.activation
     activation = [x for x in SUPPORTED_ACTIVATION_MAP if activation.lower() == x.lower()]
-    assert len(activation) == 1 and isinstance(activation[0], str), f"Unhandled activation function {activation} of type {type(activation)}"
+    assert len(activation) == 1 and isinstance(
+        activation[0], str
+    ), f"Unhandled activation function {activation} of type {type(activation)}"
     activation = activation[0]
 
     return vars(torch.nn.modules.activation)[activation]()
