@@ -247,8 +247,7 @@ class VirtualNodePyg(nn.Module):
 
         # Projection layers from the pooling layer to node and edge feature sizes
         self.node_projection = MuReadoutGoli(out_pool_dim, self.out_dim_nodes)
-        if self.use_edges:
-            self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
+        self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
 
     def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor) -> Tuple[Tensor, Tensor]:
         r"""
