@@ -259,15 +259,35 @@ gnn.out_linear.normalization.bias:
 - 32
 gnn.out_linear.normalization.weight:
 - 32
+pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian.means.weight:
+- null
+- 32
+pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian.stds.weight:
+- null
+- 32
+pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.bias:
+- null
+pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.weight:
+- null
+- 32
+pe_encoders.gaussian_pos.preprocess_3d_positions.node_proj.bias:
+- 32
+pe_encoders.gaussian_pos.preprocess_3d_positions.node_proj.weight:
+- 32
+- 32
 pe_encoders.la_pos.linear_A.linear.bias:
-- null
+- 32
 pe_encoders.la_pos.linear_A.linear.weight:
-- null
+- 32
 - null
 pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.bias:
 - 32
 pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.weight:
 - 32
+- 32
+pe_encoders.rw_pos.first_normalization.bias:
+- null
+pe_encoders.rw_pos.first_normalization.weight:
 - null
 pe_encoders.rw_pos.pe_encoder.first_normalization.bias:
 - null

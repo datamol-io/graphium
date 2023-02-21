@@ -12,7 +12,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv #goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.sdf.zip
+        df_path: &df_path goli/data/PCQM4Mv2/pcqm4mv2-2k.csv
         smiles_col: "smiles"
         label_cols: ["homo"]
         split_val: 0.2
@@ -46,17 +46,18 @@ datamodule:
           rw_pos: #use same name as pe_encoder
             pos_type: rwse
             ksteps: 16
+
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
     batch_size_training: 6
     batch_size_inference: 6
-    # cache_data_path: null
+    cache_data_path: temp_cache
 
     num_workers: -1
 
     ipu_dataloader_training_opts:
-      max_num_nodes_per_graph: 50
+      max_num_nodes_per_graph: &max_num_nodes 50
       max_num_edges_per_graph: 150
 
     ipu_dataloader_inference_opts:
@@ -92,10 +93,11 @@ architecture:
     out_dim: 64
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
-    encoders: #la_pos |  rw_pos
+    encoders: #la_pos |  rw_pos | gaussian_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        on_keys: ["eigvecs", "eigvals"]
+        input_keys: ["eigvecs", "eigvals"]
+        output_keys: ["feat"]
         hidden_dim: 64
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
@@ -104,13 +106,22 @@ architecture:
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        on_keys: ["rwse"]
-        out_level: "node"
+        input_keys: ["rwse"]
+        output_keys: ["feat"]
         hidden_dim: 64
         num_layers: 1
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      gaussian_pos:
+        encoder_type: "gaussian_kernel"
+        input_keys: ["positions_3d"]
+        output_keys: ["feat", "gaussian_3d", "graph_gaussian_bias_3d"]
+        num_heads: 1
+        num_layers: 1 #2
+        max_num_nodes_per_graph: *max_num_nodes
+        use_input_keys_prefix: False
+
 
 
   gnn:  # Set as null to avoid a post-nn network
@@ -137,8 +148,6 @@ architecture:
       attn_type: "full-attention" # "full-attention", "none"
       biased_attention: true
       attn_kwargs: null
-
-
       # out_dim_edges: 16
       # aggregators: [mean, max]
       # scalers: [identity, amplification, attenuation]
@@ -245,6 +254,6 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 50 #50
+    max_epochs: 5 #50
     min_epochs: 1 #5
     accumulate_grad_batches: 1

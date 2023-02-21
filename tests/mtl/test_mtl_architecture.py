@@ -169,7 +169,7 @@ class test_Multitask_NN(ut.TestCase):
                                 **self.fulldgl_kwargs,
                             )
 
-                            multitask_fulldgl_nn = FullGraphMultiTaskNetwork(
+                            multitask_graph_nn = FullGraphMultiTaskNetwork(
                                 task_heads_kwargs=task_heads_params,
                                 gnn_kwargs=gnn_kwargs,
                                 pre_nn_kwargs=pre_nn_kwargs,
@@ -177,7 +177,7 @@ class test_Multitask_NN(ut.TestCase):
                             )
 
                             bg = deepcopy(self.bg)
-                            h_out = multitask_fulldgl_nn.forward(bg)
+                            h_out = multitask_graph_nn.forward(bg)
 
                             dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
                             # self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
