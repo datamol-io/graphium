@@ -116,6 +116,8 @@ architecture:
         num_layers_post: 0 # Num. layers to apply after pooling
         dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
+        output_keys: ["feat"]
+
       rw_pos:
         encoder_type: "mlp"
         input_keys: ["rwse"]
@@ -125,6 +127,8 @@ architecture:
         dropout: 0.1
         normalization: "none" #"batch_norm" or "layer_norm"
         first_normalization: "batch_norm" #"batch_norm" or "layer_norm"
+        output_keys: ["feat"]
+
 
 
   gnn:  # Set as null to avoid a post-nn network
