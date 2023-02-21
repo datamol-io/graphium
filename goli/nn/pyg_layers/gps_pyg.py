@@ -17,7 +17,7 @@ from goli.nn.pyg_layers import (
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 from goli.ipu.ipu_utils import import_poptorch
-from goli.nn.pyg_layers.utils import Preprocess3DPositions
+from goli.nn.pyg_layers.utils import PreprocessPositions
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -127,7 +127,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.layer_idx = layer_idx
         self.preprocess_3d_positions = None
         if self.biased_attention and self.layer_idx == 0:
-            self.preprocess_3d_positions = Preprocess3DPositions(
+            self.preprocess_3d_positions = PreprocessPositions(
                 attn_kwargs["num_heads"],
                 attn_kwargs["embed_dim"],
                 self.num_gaussian_kernels,
@@ -159,7 +159,7 @@ class GPSLayerPyg(BaseGraphModule):
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
         if self.biased_attention and self.layer_idx == 0:
             attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
-                batch, max_num_nodes_per_graph, on_ipu
+                batch, max_num_nodes_per_graph, on_ipu, positions_3d_key="positions_3d"
             )
             # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
             batch.h = batch.h + node_feature_3d

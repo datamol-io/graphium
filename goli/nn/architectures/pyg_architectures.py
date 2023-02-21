@@ -126,6 +126,16 @@ class FeedForwardPyg(FeedForwardGraphBase):
         """
         return g.get(key, None) if (self.in_dim_edges > 0) else None
 
+    def _get_graph_feats(self, g: Union[Data, Batch], key: str = "graph_attr") -> Tensor:
+        """
+        Get the graph features of a PyG graph `g`.
+
+        Parameters:
+            g: graph
+            key: key associated to the edge features
+        """
+        return g.get(key, None)
+
     def _set_node_feats(
         self, g: Union[Data, Batch], node_feats: Tensor, key: str = "h"
     ) -> Union[Data, Batch]:
@@ -153,4 +163,19 @@ class FeedForwardPyg(FeedForwardGraphBase):
         if (self.in_dim_edges > 0) and (edge_feats is not None):
             assert edge_feats.shape[0] == g.num_edges
             g[key] = edge_feats
+        return g
+
+    def _set_graph_feats(
+        self, g: Union[Data, Batch], graph_feats: Tensor, key: str = "h"
+    ) -> Union[Data, Batch]:
+        """
+        Set the graph features of a PyG graph `g`, and return the graph.
+
+        Parameters:
+            g: graph
+            key: key associated to the node features
+        """
+        if isinstance(g, Batch):
+            assert graph_feats.shape[0] == g.num_graphs
+        g[key] = graph_feats
         return g

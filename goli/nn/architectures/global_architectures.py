@@ -1135,15 +1135,21 @@ class FullGraphNetwork(nn.Module):
                 encoder_type = encoder_kwargs.pop("encoder_type")
                 encoder = PE_ENCODERS_DICT[encoder_type]
 
-                # Get the keys associated to in_dim
+                # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name/`
+                # Then check for the exact key
                 this_in_dims = {}
                 for key, dim in in_dim_dict.items():
                     if isinstance(key, str) and key.startswith(f"{encoder_name}/"):
                         key_name = "in_dim_" + key[len(encoder_name) + 1 :]
                         this_in_dims[key_name] = dim
-                assert (
-                    len(this_in_dims) > 0
-                ), f"Non-matching in_dim. Provided: '{encoder_name}/'. Available keys: {in_dim_dict.keys()}"
+                if len(this_in_dims) == 0:
+                    for key in encoder_kwargs.get("input_keys", []):
+                        if key in in_dim_dict:
+                            this_in_dims[key] = in_dim_dict[key]
+                        else:
+                            raise ValueError(
+                                f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}/' is also not found.\n Available keys: {in_dim_dict.keys()}"
+                            )
 
                 # Parse the in_dims based on Encoder's signature
                 accepted_keys = inspect.signature(encoder).parameters.keys()
@@ -1282,19 +1288,30 @@ class FullGraphNetwork(nn.Module):
 
         """
 
-        return self._forward(g)
+        # Apply the positional encoders
+        pe_pooled = self.forward_positional_encoding(g)
 
-    def _forward(self, g: Any) -> Tensor:
-        h = self.gnn._get_node_feats(g, key="feat")
-        e = self.gnn._get_edge_feats(g, key="edge_feat")
+        # Add the processed positional encodings to the graphs.
+        # If the key is already present, concatenate the pe_pooled to the pre-existing feature.
+        for pe_key, this_pe in pe_pooled.items():
+            if pe_key.startswith("edge_"):
+                feat = this_pe
+                if pe_key in g.keys:
+                    feat = torch.cat((feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_edge_feats(g, feat, key=pe_key) # g[pe_key] = feat
+            elif pe_key.startswith("graph_"):
+                feat = this_pe
+                if pe_key in g.keys:
+                    feat = torch.cat((feat, self.gnn._get_graph_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_graph_feats(g, feat, key=pe_key) # g[pe_key] = feat
+            else:
+                feat = this_pe
+                if pe_key in g.keys:
+                    feat = torch.cat((feat, self.gnn._get_node_feats(g, key=pe_key)), dim=-1) # feat = torch.cat([feat, g[pe_key]], dim=-1)
+                self.gnn._set_node_feats(g, feat, key=pe_key) # g[pe_key] = feat
 
-        # Node-wise positional encoding, concatenated to node features.
-        pe_node = self.forward_node_positional_encoding(g)
-        if pe_node is not None:
-            h = torch.cat((h, pe_node), dim=-1)
-
-        # TODO: Add edge-wise positional encoding
-        # pe_node = self.forward_edge_positional_encoding(g)
+        h = self.gnn._get_node_feats(g, key="feat") # h = g["feat"]
+        e = self.gnn._get_edge_feats(g, key="edge_feat") # e = g["edge_feat"]
 
         # Set the node and edge features before running the GNN
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
@@ -1337,46 +1354,44 @@ class FullGraphNetwork(nn.Module):
 
         return h
 
-    def forward_node_positional_encoding(self, g: Any) -> Optional[Tensor]:
+    def forward_positional_encoding(self, g: Any) -> Dict[str, Tensor]:
         """
-        Forward pass for the positional encodings (PE) on the nodes,
+        Forward pass for the positional encodings (PE),
         with each PE having it's own encoder defined in `self.pe_encoders`.
+        All the positional encodings with the same keys are pooled together
+        using `self.pe_pooling`.
 
         Parameters:
             g: graph containing the node positional encodings
 
         Returns:
             pe_node_pooled: The positional / structural encodings go through
-            encoders, then are pooled together
+            encoders, then are pooled together according to their keys.
 
         """
 
         # Return None if no positional encoders
         if (self.pe_encoders is None) or len(self.pe_encoders) == 0:
-            return None
+            return {}
 
         encoder_outs = []
         # Run every node positional-encoder
-        for name, encoder in self.pe_encoders.items():
-            keys = encoder.on_keys
-            if name in ["gaussian_pos"]:
-                encoder_outs.append(encoder(g)["node"])
-            else:
-                encoder_inputs = {}
-                for key in keys:
-                    encoder_inputs[key] = self.gnn._get_node_feats(g, key=f"{name}/{key}").to(self.dtype)
-                encoder_outs.append(
-                    encoder(**encoder_inputs)["node"]
-                )  # TODO: Avoid repeated call to encoder when using edges
+        for encoder_name, encoder in self.pe_encoders.items():
+            encoder_outs.append(encoder(g, key_prefix=encoder_name))
+
+        # list of dict to dict of list, with concatenation of the tensors
+        pe_cats = {key: torch.stack(
+            [d[key] for d in encoder_outs if key in d],
+            dim=-1
+            ) for key in set().union(*encoder_outs)}
+
         # Pool the node positional encodings
-        pe_outs = torch.stack(encoder_outs, dim=-1)
-        pe_node_pooled = self.forward_simple_pooling(pe_outs, pooling=self.pe_pool, dim=-1)
+        pe_pooled = {}
+        for key, pe_cat in pe_cats.items():
+            pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pe_pool, dim=-1)
 
-        return pe_node_pooled
+        return pe_pooled
 
-    def forward_edge_positional_encoding(self, g):
-        # TODO: Implement edge-wise positional encoding
-        raise NotImplementedError("Not yet implemented")
 
     def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
         """

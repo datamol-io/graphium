@@ -65,13 +65,13 @@ def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]
         Callable or None: The normalization function
     """
     parsed_norm = None
-    if normalization is None or normalization == "none":
+    if (normalization is None) or (normalization in ["none", "NoneType"]):
         pass
     elif callable(normalization):
         parsed_norm = normalization
-    elif normalization == "batch_norm":
+    elif normalization in ["batch_norm", "BatchNorm1d"]:
         parsed_norm = nn.BatchNorm1d(dim)
-    elif normalization == "layer_norm":
+    elif normalization in ["layer_norm", "LayerNorm"]:
         parsed_norm = nn.LayerNorm(dim)
     else:
         raise ValueError(
