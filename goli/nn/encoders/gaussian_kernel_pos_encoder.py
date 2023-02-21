@@ -56,9 +56,14 @@ class GaussianKernelPosEncoder(BaseEncoder):
         # Parse the `input_keys`.
         if len(input_keys) != 1:
             raise ValueError(f"`{self.__class__}` only supports one key")
+        for key in input_keys:
+            assert not key.startswith("edge_"), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
+            assert not key.startswith("graph_"), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
     def parse_output_keys(self, output_keys):
+        for key in output_keys:
+            assert not key.startswith("edge_"), "Edge encodings are not supported for this encoder"
         return output_keys
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
