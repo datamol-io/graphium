@@ -17,7 +17,6 @@ from goli.nn.pyg_layers import (
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 from goli.ipu.ipu_utils import import_poptorch
-from goli.nn.pyg_layers.utils import PreprocessPositions
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -48,7 +47,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
-        biased_attention: Optional[bool] = False,
+        biased_attention_key: Optional[str] = None,
         layer_idx: Optional[int] = 0,
         attn_kwargs=None,
     ):
@@ -84,6 +83,16 @@ class GPSLayerPyg(BaseGraphModule):
                 - "batch_norm": Batch normalization
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
+
+            num_gaussian_kernels
+                Number of Gaussian kernels to use for the attention layer
+
+            mpnn_type:
+                Type of MPNN layer to use. Choices specified in PYG_LAYERS_DICT
+
+            biased_attention_key:
+                indicates if biased attention is used by specifying a key corresponding to the pyg attribute in the batch (processed by the gaussian kernel encoder)
+                default: None means biased attention is not used
 
         """
 
@@ -123,16 +132,8 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs.setdefault("batch_first", True)
 
         self.num_gaussian_kernels = num_gaussian_kernels
-        self.biased_attention = biased_attention
+        self.biased_attention_key = biased_attention_key
         self.layer_idx = layer_idx
-        self.preprocess_3d_positions = None
-        if self.biased_attention and self.layer_idx == 0:
-            self.preprocess_3d_positions = PreprocessPositions(
-                attn_kwargs["num_heads"],
-                attn_kwargs["embed_dim"],
-                self.num_gaussian_kernels,
-            )
-
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
             mpnn_kwargs = {}
@@ -148,7 +149,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.mpnn = mpnn_class(**mpnn_kwargs)
 
         # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention, **attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, **attn_kwargs)
 
     def forward(self, batch):
         # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
@@ -157,13 +158,7 @@ class GPSLayerPyg(BaseGraphModule):
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
-        if self.biased_attention and self.layer_idx == 0:
-            attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
-                batch, max_num_nodes_per_graph, on_ipu, positions_3d_key="positions_3d"
-            )
-            # adding the original node feature to the 3D node feature (can also concatenate them and pass through a projection layer)
-            batch.h = batch.h + node_feature_3d
-            batch.attn_bias_3d = attn_bias_3d
+
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
 
@@ -193,7 +188,7 @@ class GPSLayerPyg(BaseGraphModule):
                 drop_nodes_last_graph=on_ipu,
             )
             h_attn = self._sa_block(
-                h_dense, batch.attn_bias_3d if self.biased_attention else None, None, ~mask
+                h_dense, batch.graph_gaussian_bias_3d if self.biased_attention_key else None, None, ~mask
             )
             h_attn = to_sparse_batch(h_attn, idx)
 
@@ -214,12 +209,12 @@ class GPSLayerPyg(BaseGraphModule):
 
         return batch_out
 
-    def _parse_attn_layer(self, attn_type, biased_attention, **attn_kwargs):
+    def _parse_attn_layer(self, attn_type, biased_attention_key, **attn_kwargs):
         attn_layer, attn_class = None, None
         if attn_type is not None:
             attn_class = ATTENTION_LAYERS_DICT[attn_type]
         if attn_class is not None:
-            attn_layer = attn_class(biased_attention, **attn_kwargs)
+            attn_layer = attn_class(biased_attention_key, **attn_kwargs)
         return attn_layer
 
     def _ff_block(self, h):
