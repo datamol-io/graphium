@@ -14,7 +14,7 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.data.data import BaseData
 from loguru import logger
 import functools
-from collections.abc import Sequence, Mapping
+from collections
 
 poptorch = import_poptorch()
 
@@ -223,5 +223,6 @@ class PredictorModuleIPU(PredictorModule):
                 if isinstance(val, torch.Tensor) and (val.is_floating_point()):
                     feats[key] = val.to(dtype=dtype)
         else:
-	    raise ValueError(f"Unsupported feats type `{type(feats)}` : {feats}")
-	return feats
+	        raise ValueError(f"Unsupported feats type `{type(feats)}` : {feats}")
+            
+        return feats
