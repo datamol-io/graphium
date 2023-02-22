@@ -163,14 +163,11 @@ architecture:
         out_dim: 64
         in_dim_edges: 32
         out_dim_edges: 32
+        droppath_rate: 0.3
       attn_type: "full-attention" # "full-attention", "none"
       attn_kwargs: null
-
-
-      # out_dim_edges: 16
-      # aggregators: [mean, max]
-      # scalers: [identity, amplification, attenuation]
-      # num_heads: 3
+      droppath_rate_attn: 0.3
+      droppath_rate_ffn: 0.3
 
   post_nn:
     out_dim: 32

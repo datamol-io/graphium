@@ -57,9 +57,9 @@ class MLPEncoder(torch.nn.Module):
         # Initialize the MLP
         self.pe_encoder = MLP(
             in_dim=in_dim,
-            hidden_dim=hidden_dim,
+            hidden_dims=hidden_dim,
             out_dim=out_dim,
-            layers=num_layers,
+            depth=num_layers,
             dropout=dropout,
             activation=activation,
             last_activation=activation,
