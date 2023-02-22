@@ -73,8 +73,9 @@ class FeedForwardNN(nn.Module):
 
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
-                hidden layers to use. If `hidden_dims` is a `list`, `depth` must
-                be `None`.
+                hidden layers to use.
+                If `hidden_dims` is a list, then
+                `depth` must be `None` or equal to `len(hidden_dims) + 1`
 
             activation:
                 activation function to use in the hidden layers.
@@ -145,7 +146,9 @@ class FeedForwardNN(nn.Module):
             self.hidden_dims = [hidden_dims] * (depth - 1)
         else:
             self.hidden_dims = list(hidden_dims)
-            assert depth is None
+            assert (depth is None) or (
+                depth == len(self.hidden_dims) + 1
+            ), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
         self.depth = len(self.hidden_dims) + 1
         self.activation = get_activation(activation)
         self.last_activation = get_activation(last_activation)
@@ -649,6 +652,8 @@ class FeedForwardGraphBase(FeedForwardNN):
                     activation=this_activation,
                     dropout=this_dropout,
                     normalization=this_norm,
+                    layer_idx=ii,
+                    layer_depth=self.depth,
                     **self.layer_kwargs,
                     **this_edge_kwargs,
                 )

@@ -36,9 +36,9 @@ class S2SReadoutDgl(nn.Module):
         # fully connected layers
         self.mlp = MLP(
             in_dim=2 * in_dim,
-            hidden_dim=hidden_dim,
+            hidden_dims=hidden_dim,
             out_dim=out_dim,
-            layers=fc_layers,
+            depth=fc_layers,
             activation="relu",
             last_activation=final_activation,
             normalization="batch_norm",
