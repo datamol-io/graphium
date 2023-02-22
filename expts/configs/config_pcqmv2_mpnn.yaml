@@ -1,10 +1,10 @@
 # Testing the multitask pipeline with the PCQMv2 dataset on IPU.
 constants:
-  name: &name pcqm4mv2_goli_ipu
+  name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  # cpu or ipu or gpu
+    type: ipu  # cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -12,12 +12,9 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        # df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
-        # QQQ: can we parallize featuring_smiles step (1 hour right now)
-        # QQQ: how are the train/valid/test splits get handled?
-        # QQQ: warning unrecognized chirality tag (8) on atom 7 is ignored.
-        # smiles_col: "cxsmiles"
-        # label_cols: ["homo_lumo_gap"]
+        #df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        #smiles_col: "cxsmiles"
+        #label_cols: ["homo_lumo_gap"]
         df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
         smiles_col: "smiles"
         label_cols: ["homo"]
@@ -27,36 +24,34 @@ datamodule:
     featurization_n_jobs: 32
     featurization_progress: True
     featurization:
-    # QQQ ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (no match),
+    # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total_valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
-    # 'num_chiral_centers (chirality found but are they the same)']
+    # 'num_chiral_centers (need graph property, properties for the full molecule are not supported now)']
       atom_property_list_onehot: [atomic-number, group, period]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
-      # conformer_property_list: [positions_3d]
-      # QQQ ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
+      # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
-      explicit_H: False #QQQ is possible_numH related to this?
+      explicit_H: False # if H is included
       use_bonds_weights: False
-      # QQQ there should be an embedding with size 64 for the atom and edge property, where to set this?
       pos_encoding_as_features: # encoder dropout 0.18
-        pos_types: # QQQ: these embedding needs extra 2 layer MLP to encode
+        pos_types:
           la_pos: &pos_enc
             pos_type: laplacian_eigvec_eigval #laplacian_eigvec
-            num_pos: 8 # QQQ max_freqs? remove_first is not applied here
-            normalization: "none" # QQQ we need L2 norm
-            disconnected_comp: True # QQQ what is this?
-          rw_pos: #use same name as pe_encoder
+            num_pos: 8
+            normalization: "none" # nomrlization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          rw_pos: # use same name as pe_encoder
             pos_type: rwse
             ksteps: 16
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 8
-    batch_size_inference: 8
+    batch_size_training: 16
+    batch_size_inference: 16
     # cache_data_path: null
 
-    num_workers: 16
+    num_workers: -1 # -1 to use all
 
     ipu_dataloader_training_opts:
       max_num_nodes_per_graph: 25 # train max nodes: 20, max_edges: 54
@@ -168,12 +163,13 @@ predictor:
     homolumo: mse_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 4.e-4 # QQQ: warmup fpr 10 epochs
+    lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
-  torch_scheduler_kwargs:
-    # module_type: ReduceLROnPlateau
-    # factor: 0.5
-    # patience: 7
+  #torch_scheduler_kwargs:
+  #  module_type: MultiStepLR
+  #  milestones: [10]
+  #  gamma: 0.1
+  #  last_epoch: 100
   scheduler_kwargs: null
   #  monitor: &monitor loss/val
   #  mode: min
@@ -215,6 +211,6 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 20 #50
-    min_epochs: 1 #5
+    max_epochs: 100
+    min_epochs: 1
     accumulate_grad_batches: 100

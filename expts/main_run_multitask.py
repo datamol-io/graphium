@@ -31,8 +31,8 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/configs/config_ipu_pcqm4m.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"
 # CONFIG_FILE = "expts/configs/config_gpu_qm9.yaml"
-# CONFIG_FILE = "expts/configs/config_qm9_gpspp.yaml"
-CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
+CONFIG_FILE = "expts/configs/config_qm9_gpspp.yaml"
+# CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
 
 # CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
 os.chdir(MAIN_DIR)
@@ -61,7 +61,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
 
     logger.info(predictor.model)
-    logger.info(ModelSummary(predictor, max_depth=-1))
+    logger.info(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg, run_name)
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
