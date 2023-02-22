@@ -45,7 +45,7 @@ class test_MultiHeadAttention(ut.TestCase):
     def test_attention_class(self):
         bg = deepcopy(self.bg)
         seed_everything(42)
-        attention_layer = MultiheadAttentionMup(biased_attention=None, **self.attn_kwargs)
+        attention_layer = MultiheadAttentionMup(biased_attention=False, **self.attn_kwargs)
         attention_layer.eval()
         seed_everything(42)
         attention_layer_bias = MultiheadAttentionMup(
