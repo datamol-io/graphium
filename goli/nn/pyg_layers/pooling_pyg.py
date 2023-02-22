@@ -184,7 +184,6 @@ class VirtualNodePyg(nn.Module):
                 - "min": Min all the nodes for each graph
                 - "std": Standard deviation of all the nodes for each graph
 
-
             activation:
                 activation function to use in the neural network layer.
 
@@ -251,7 +250,7 @@ class VirtualNodePyg(nn.Module):
         self.node_projection = MuReadoutGoli(out_pool_dim, self.out_dim_nodes)
         self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
 
-    def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor) -> Tuple[Tensor, Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
 
