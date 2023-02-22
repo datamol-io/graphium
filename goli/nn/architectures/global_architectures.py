@@ -379,7 +379,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
         use_virtual_edges: bool = False,
-        global_latent: Optional[int] = 128,
         last_layer_is_readout: bool = False,
     ):
         r"""
@@ -521,9 +520,6 @@ class FeedForwardGraphBase(FeedForwardNN):
             use_virtual_edges:
                 A bool flag used to select if the virtual node should use the edges or not
 
-            global_latent:
-                Size of the global latent size for the virtual node
-
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
@@ -546,7 +542,6 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.pooling = pooling
 
         self.use_virtual_edges = use_virtual_edges
-        self.global_latent = global_latent
         self.virtual_node_class = self._parse_virtual_node_class()
 
         # Initialize the parent `FeedForwardNN`
@@ -860,9 +855,6 @@ class FeedForwardGraphBase(FeedForwardNN):
                 `M` is the number of graphs, `Dout` is the output features
 
         """
-        # if step_idx == 0:
-        #     # TODO: Tile the vn_h across each graph in the pack
-        #     vn_h = torch.tile(vn_h, (g.num_graphs,1))
         if step_idx < len(self.virtual_node_layers):
             h, vn_h, e = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h, e=e)
 
