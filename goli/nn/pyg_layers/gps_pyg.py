@@ -9,11 +9,11 @@ from torch_geometric.data import Batch
 
 
 from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
+from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP, get_activation_str
 from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg, MPNNPlusPyg
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_utils import is_running_on_ipu
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
@@ -44,22 +44,33 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
         attn_kwargs=None,
+        droppath_rate_attn: float = 0.0,
+        droppath_rate_ffn: float = 0.0,
+        hidden_dim_scaling: float = 4.0,
+        **kwargs,
     ):
         r"""
-        GINE: Graph Isomorphism Networks with Edges
-        Strategies for Pre-training Graph Neural Networks
-        Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Jure Leskovec
-        https://arxiv.org/abs/1905.12265
+        GPS: Recipe for a General, Powerful, Scalable Graph Transformer
+        Ladislav Rampášek, Mikhail Galkin, Vijay Prakash Dwivedi, Anh Tuan Luu, Guy Wolf, Dominique Beaini
+        https://arxiv.org/abs/2205.12454
 
-        [!] code uses the pytorch-geometric implementation of GINEConv
+        GPS++: An Optimised Hybrid MPNN/Transformer for Molecular Property Prediction
+        Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam Sanders, Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
+        https://arxiv.org/abs/2212.02229
 
         Parameters:
 
             in_dim:
-                Input feature dimensions of the layer
+                Input node feature dimensions of the layer
 
             out_dim:
-                Output feature dimensions of the layer
+                Output node feature dimensions of the layer
+
+            in_dim:
+                Input edge feature dimensions of the layer
+
+            out_dim:
+                Output edge feature dimensions of the layer
 
             activation:
                 activation function to use in the layer
@@ -78,6 +89,24 @@ class GPSLayerPyg(BaseGraphModule):
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
 
+            mpnn_type:
+                type of mpnn used, choose from "pyg:gin", "pyg:gine", "pyg:gated-gcn", "pyg:pna-msgpass" and "pyg:mpnnplus"
+
+            mpnn_kwargs:
+                kwargs for mpnn layer
+
+            attn_type:
+                type of attention used, choose from "full-attention" and "none"
+
+            attn_kwargs:
+                kwargs for attention layer
+
+            droppath_rate_attn:
+                stochastic depth drop rate for attention layer https://arxiv.org/abs/1603.09382
+
+            droppath_rate_ffn:
+                stochastic depth drop rate for ffn layer https://arxiv.org/abs/1603.09382
+
         """
 
         super().__init__(
@@ -85,14 +114,22 @@ class GPSLayerPyg(BaseGraphModule):
             out_dim=out_dim,
             activation=activation,
             dropout=dropout,
-            normalization=None,
+            normalization=normalization,
+            droppath_rate=droppath_rate_attn,
+            **kwargs,
         )
+        # Set the other attributes
         self.in_dim_edges = in_dim_edges
         self.out_dim_edges = out_dim_edges
+        self.mpnn_kwargs = self._parse_mpnn_kwargs(mpnn_kwargs)
+        self.attn_kwargs = self._parse_attn_kwargs(attn_kwargs)
 
         # Dropout layers
         self.dropout_local = self.dropout_layer
         self.dropout_attn = self._parse_dropout(dropout=self.dropout)
+
+        # DropPath layers
+        self.droppath_ffn = self._parse_droppath(droppath_rate_ffn)
 
         # Residual connections
         self.node_residual = node_residual
@@ -101,9 +138,9 @@ class GPSLayerPyg(BaseGraphModule):
         # GPS++: ffn_dim = 1024, in_dim = 256.
         self.mlp = MLP(
             in_dim=in_dim,
-            hidden_dim=4 * in_dim,
+            hidden_dims=int(hidden_dim_scaling * in_dim),
             out_dim=in_dim,
-            layers=2,
+            depth=2,
             activation=activation,
             dropout=self.dropout,
         )
@@ -116,15 +153,12 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_local = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
 
-        mpnn_kwargs = self._parse_mpnn_kwargs(mpnn_kwargs)
-        attn_kwargs = self._parse_attn_kwargs(attn_kwargs)
-
         # Initialize the MPNN layer
         mpnn_class = PYG_LAYERS_DICT[mpnn_type]
-        self.mpnn = mpnn_class(**mpnn_kwargs)
+        self.mpnn = mpnn_class(**self.mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
 
         # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, **attn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, **self.attn_kwargs)
 
     def forward(self, batch: Batch) -> Batch:
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
@@ -151,6 +185,11 @@ class GPSLayerPyg(BaseGraphModule):
         h = h + self.mlp(h)
         h = self.f_out(h)
 
+        # Add the droppath to the output of the MLP
+        batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
+        if self.droppath_ffn is not None:
+            h = self.droppath_ffn(h, batch.batch, batch_size)
+
         batch_out.h = h
 
         return batch_out
@@ -170,9 +209,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs.setdefault("out_dim", self.in_dim)
         mpnn_kwargs.setdefault("in_dim_edges", self.in_dim_edges)
         mpnn_kwargs.setdefault("out_dim_edges", self.out_dim_edges)
-        mpnn_kwargs.setdefault(
-            "activation", "relu"
-        )  # raise error: Value 'GELU' is not a supported primitive type if using self.activation
+        mpnn_kwargs.setdefault("activation", get_activation_str(self.activation))
         mpnn_kwargs.setdefault("dropout", self.dropout)
         mpnn_kwargs.setdefault("normalization", self.normalization)
 
@@ -212,8 +249,7 @@ class GPSLayerPyg(BaseGraphModule):
         """
 
         # Multi-head attention.
-        poptorch = import_poptorch(raise_error=False)
-        on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+        on_ipu = is_running_on_ipu()
         max_num_nodes_per_graph = None
         if on_ipu:
             max_num_nodes_per_graph = self.max_num_nodes_per_graph
@@ -241,6 +277,8 @@ class GPSLayerPyg(BaseGraphModule):
         h_attn = h_in + h_attn
         if self.norm_layer_attn is not None:
             h_attn = self.norm_layer_attn(h_attn)
+        if self.droppath_layer is not None:
+            self.droppath_layer(h_attn, batch.batch, batch_size)
 
         # Combine local and global outputs.
         return h + h_attn

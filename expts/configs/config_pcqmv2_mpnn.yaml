@@ -12,22 +12,22 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        #df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
-        #smiles_col: "cxsmiles"
-        #label_cols: ["homo_lumo_gap"]
-        df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
-        smiles_col: "smiles"
-        label_cols: ["homo"]
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        smiles_col: "cxsmiles"
+        label_cols: ["homo_lumo_gap"]
+        # df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
+        # smiles_col: "smiles"
+        # label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
     featurization_n_jobs: 32
     featurization_progress: True
     featurization:
-    # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total_valence),
+    # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
     # 'num_chiral_centers (need graph property, properties for the full molecule are not supported now)']
-      atom_property_list_onehot: [atomic-number, group, period]
+      atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
@@ -47,8 +47,8 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 16
-    batch_size_inference: 16
+    batch_size_training: 32
+    batch_size_inference: 32
     # cache_data_path: null
 
     num_workers: -1 # -1 to use all
@@ -211,6 +211,6 @@ trainer:
     every_n_epochs: 1
   trainer:
     precision: 32
-    max_epochs: 100
+    max_epochs: 10
     min_epochs: 1
     accumulate_grad_batches: 100

@@ -73,13 +73,14 @@ class GINConvPyg(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         gin_nn = MLP(
             in_dim=self.in_dim,
-            hidden_dim=self.in_dim,
+            hidden_dims=self.in_dim,
             out_dim=self.out_dim,
-            layers=2,
+            depth=2,
             activation=self.activation_layer,
             last_activation="none",
             normalization=self.normalization,
@@ -91,7 +92,7 @@ class GINConvPyg(BaseGraphModule):
 
     def forward(self, batch: Union[Data, Batch]):
         batch.h = self.model(batch.h, batch.edge_index)
-        batch.h = self.apply_norm_activation_dropout(batch.h)
+        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
 
         return batch
 
@@ -217,9 +218,9 @@ class GINEConvPyg(BaseGraphModule):
 
         gin_nn = MLP(
             in_dim=self.in_dim,
-            hidden_dim=self.in_dim,
+            hidden_dims=self.in_dim,
             out_dim=self.out_dim,
-            layers=2,
+            depth=2,
             activation=self.activation_layer,
             last_activation="none",
             normalization=self.normalization,
@@ -231,7 +232,7 @@ class GINEConvPyg(BaseGraphModule):
 
     def forward(self, batch):
         batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
-        batch.h = self.apply_norm_activation_dropout(batch.h)
+        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
 
         return batch
 

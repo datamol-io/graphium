@@ -41,12 +41,21 @@ class test_Pyg_Layers(ut.TestCase):
         "activation": "relu",
         "dropout": 0.1,
         "normalization": "batch_norm",
+        "droppath_rate": 0.1,
+        "layer_idx": 1,
+        "layer_depth": 10,
     }
 
     def test_gpslayer(self):
         bg = deepcopy(self.bg)
         h_in = bg.h
-        layer = GPSLayerPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
+        kwargs = deepcopy(self.kwargs)
+        kwargs.pop("droppath_rate")
+        kwargs["droppath_rate_attn"] = 0.2
+        kwargs["droppath_rate_ffn"] = 0.3
+        kwargs["mpnn_kwargs"] = {"droppath_rate_ffn": 0.4}
+
+        layer = GPSLayerPyg(in_dim=self.in_dim, out_dim=self.out_dim, **kwargs)
 
         # Check the re-implementation of abstract methods
         self.assertTrue(layer.layer_supports_edges)
