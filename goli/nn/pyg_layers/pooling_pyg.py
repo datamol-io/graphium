@@ -153,7 +153,7 @@ class VirtualNodePyg(nn.Module):
         bias: bool = True,
         residual: bool = True,
         use_edges: bool = False,
-        **kwargs
+        **kwargs,
     ):
         r"""
         The VirtualNode is a layer that pool the features of the graph,
