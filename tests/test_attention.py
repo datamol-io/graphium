@@ -85,10 +85,8 @@ class test_MultiHeadAttention(ut.TestCase):
         )[0]
         self.assertEqual(h_attn_output.size(), h_attn_output_biased.size())
         np.testing.assert_array_almost_equal(
-            h_attn_output.detach().numpy(), h_attn_output_biased.detach().numpy(),
-            decimal=2
+            h_attn_output.detach().numpy(), h_attn_output_biased.detach().numpy(), decimal=2
         )
-
 
 
 if __name__ == "__main__":
