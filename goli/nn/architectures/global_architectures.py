@@ -381,6 +381,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
+        use_virtual_edges: bool = False,
         last_layer_is_readout: bool = False,
     ):
         r"""
@@ -519,6 +520,9 @@ class FeedForwardGraphBase(FeedForwardNN):
                 is "none". Otherwise, it will use a simple ResNet like residual
                 connection.
 
+            use_virtual_edges:
+                A bool flag used to select if the virtual node should use the edges or not
+
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
@@ -540,6 +544,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
         self.pooling = pooling
 
+        self.use_virtual_edges = use_virtual_edges
         self.virtual_node_class = self._parse_virtual_node_class()
 
         # Initialize the parent `FeedForwardNN`
@@ -653,13 +658,17 @@ class FeedForwardGraphBase(FeedForwardNN):
             if ii < len(residual_out_dims):
                 self.virtual_node_layers.append(
                     self.virtual_node_class(
-                        dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        in_dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        out_dim=this_out_dim * self.layers[-1].out_dim_factor,
+                        in_dim_edges=this_out_dim_edges,
+                        out_dim_edges=this_out_dim_edges,
                         activation=this_activation,
                         dropout=this_dropout,
                         normalization=this_norm,
                         bias=True,
                         vn_type=self.virtual_node,
                         residual=self.residual_type is not None,
+                        use_edges=self.use_virtual_edges,
                     )
                 )
 
@@ -818,7 +827,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _virtual_node_forward(
-        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
+        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int, e: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -851,13 +860,10 @@ class FeedForwardGraphBase(FeedForwardNN):
                 `M` is the number of graphs, `Dout` is the output features
 
         """
-
-        if step_idx == 0:
-            vn_h = 0.0
         if step_idx < len(self.virtual_node_layers):
-            h, vn_h = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h)
+            h, vn_h, e = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h, e=e)
 
-        return h, vn_h
+        return h, vn_h, e
 
     def forward(self, g) -> torch.Tensor:
         r"""
@@ -891,10 +897,9 @@ class FeedForwardGraphBase(FeedForwardNN):
         # Initialize values of the residuals and virtual node
         h_prev = None
         e_prev = None
-        vn_h = 0
+        vn_h = 0.0
         h = self._get_node_feats(g, key="h")
         e = self._get_edge_feats(g, key="edge_attr")
-
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
             h = self.first_normalization(h)
@@ -906,7 +911,7 @@ class FeedForwardGraphBase(FeedForwardNN):
             h, e, h_prev, e_prev = self._graph_layer_forward(
                 layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
             )
-            h, vn_h = self._virtual_node_forward(g=g, h=h, vn_h=vn_h, step_idx=ii)
+            h, vn_h, e = self._virtual_node_forward(g=g, h=h, e=e, vn_h=vn_h, step_idx=ii)
 
         pooled_h = self._pool_layer_forward(g=g, h=h)
 
@@ -972,9 +977,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         kwargs.update(new_kwargs)
         return deepcopy(kwargs)
 
-    def make_mup_base_kwargs(
-        self, divide_factor: float = 2.0, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
-    ) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -983,14 +986,12 @@ class FeedForwardGraphBase(FeedForwardNN):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension for the nodes
-            factor_in_dim: Whether to factor the input dimension for the edges
         """
         kwargs = self.get_init_kwargs()
         kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
         kwargs["hidden_dims_edges"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
         if factor_in_dim:
             kwargs["in_dim"] = round(kwargs["in_dim"] / divide_factor)
-        if factor_in_dim_edges:
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
@@ -1086,7 +1087,6 @@ class FullGraphNetwork(nn.Module):
 
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
-
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
             name = pre_nn_kwargs.pop("name", "pre-NN")
@@ -1489,11 +1489,9 @@ class FullGraphNetwork(nn.Module):
         # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
             factor_in_dim = self.pre_nn is not None
-            factor_in_dim_edges = self.pre_nn_edges is not None
             kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(
                 divide_factor=divide_factor,
                 factor_in_dim=factor_in_dim,
-                factor_in_dim_edges=factor_in_dim_edges,
             )
 
         return kwargs
