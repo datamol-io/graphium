@@ -1,6 +1,7 @@
 from copy import deepcopy
 from types import ModuleType
 from typing import Optional, Tuple
+import torch
 
 
 def import_poptorch(raise_error=True) -> Optional[ModuleType]:
@@ -44,6 +45,7 @@ def load_ipu_options(
     seed: Optional[int] = None,
     model_name: Optional[str] = None,
     gradient_accumulation: Optional[int] = None,
+    precision: Optional[int] = None,
     ipu_inference_overrides: Optional[str] = None,
 ) -> Tuple["poptorch.Options", "poptorch.Options"]:
     """
@@ -108,7 +110,9 @@ def load_ipu_options(
         ipu_options.Training.gradientAccumulation(gradient_accumulation)
 
     ipu_options.anchorTensor("input", "input")
-
+    if precision == 16:
+        # IPUOptions.loadFromFile currently doesn't support setting half partials, doing it here
+        ipu_options.Precision.setPartialsType(torch.half)
     training_opts = ipu_options
 
     # Change the inference options to remove gradient accumulation
