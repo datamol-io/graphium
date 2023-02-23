@@ -51,7 +51,7 @@ datamodule:
     batch_size_inference: 32
     # cache_data_path: null
 
-    num_workers: 60 # -1 to use all
+    num_workers: -1 # -1 to use all
 
     ipu_dataloader_training_opts:
       max_num_nodes_per_graph: 25 # train max nodes: 20, max_edges: 54
