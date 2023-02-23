@@ -188,7 +188,7 @@ class GPSLayerPyg(BaseGraphModule):
                 drop_nodes_last_graph=on_ipu,
             )
             h_attn = self._sa_block(
-                h_dense, batch.graph_gaussian_bias_3d if self.biased_attention_key else None, None, ~mask
+                h_dense, getattr(batch, self.biased_attention_key)        
             )
             h_attn = to_sparse_batch(h_attn, idx)
 

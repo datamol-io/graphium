@@ -119,6 +119,7 @@ architecture:
         output_keys: ["feat", "graph_gaussian_bias_3d"] 
         num_heads: 1
         num_layers: 1 #2
+        embed_dim: 64
         max_num_nodes_per_graph: *max_num_nodes
         use_input_keys_prefix: False
 

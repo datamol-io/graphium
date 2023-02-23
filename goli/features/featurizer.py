@@ -178,7 +178,7 @@ def get_mol_conformer_features(
         if isinstance(prop, str):
             if prop in ["positions_3d"]:  # locating 3d conformer coordinates
                 #positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
-                positions = np.full((mol.GetNumAtoms(), 3), np.inf)
+                positions = np.full((mol.GetNumAtoms(), 3), np.nan)
                 if has_conf:
                     for i in range(mol.GetNumAtoms()):
                         pos = mol.GetConformer().GetAtomPosition(i)
