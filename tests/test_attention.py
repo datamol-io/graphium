@@ -48,9 +48,7 @@ class test_MultiHeadAttention(ut.TestCase):
         attention_layer = MultiheadAttentionMup(biased_attention=False, **self.attn_kwargs)
         attention_layer.eval()
         seed_everything(42)
-        attention_layer_bias = MultiheadAttentionMup(
-            biased_attention=True, **self.attn_kwargs
-        )
+        attention_layer_bias = MultiheadAttentionMup(biased_attention=True, **self.attn_kwargs)
         attention_layer_bias.eval()
 
         h_dense, mask, _ = to_dense_batch(
