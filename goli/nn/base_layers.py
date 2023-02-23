@@ -88,9 +88,9 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
     The biased self-attention option is added to have 3D attention bias.
     """
 
-    def __init__(self, biased_attention_key, **kwargs):
+    def __init__(self, biased_attention, **kwargs):
         super().__init__(**kwargs)
-        self.biased_attention_key = biased_attention_key
+        self.biased_attention = biased_attention
 
     def _reset_parameters(self):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
@@ -120,7 +120,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         **kwargs,
     ) -> Tuple[Tensor, Optional[Tensor]]:
         # attn_bias [batch, num_heads, nodes, nodes]
-        if self.biased_attention_key and attn_bias is not None:
+        if self.biased_attention and attn_bias is not None:
             # assuming source and target have the same sequence length (homogeneous graph attention)
             batch, nodes, hidden = query.size()
             assert (
