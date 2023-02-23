@@ -977,9 +977,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         kwargs.update(new_kwargs)
         return deepcopy(kwargs)
 
-    def make_mup_base_kwargs(
-        self, divide_factor: float = 2.0, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
-    ) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -988,14 +986,12 @@ class FeedForwardGraphBase(FeedForwardNN):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension for the nodes
-            factor_in_dim_edges: Whether to factor the input dimension for the edges
         """
         kwargs = self.get_init_kwargs()
         kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
         kwargs["hidden_dims_edges"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims_edges"]]
         if factor_in_dim:
             kwargs["in_dim"] = round(kwargs["in_dim"] / divide_factor)
-        if factor_in_dim_edges:
             kwargs["in_dim_edges"] = round(kwargs["in_dim_edges"] / divide_factor)
         if not self.last_layer_is_readout:
             kwargs["out_dim"] = round(kwargs["out_dim"] / divide_factor)
@@ -1493,11 +1489,9 @@ class FullGraphNetwork(nn.Module):
         # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
             factor_in_dim = self.pre_nn is not None
-            factor_in_dim_edges = self.pre_nn_edges is not None
             kwargs["gnn_kwargs"] = self.gnn.make_mup_base_kwargs(
                 divide_factor=divide_factor,
                 factor_in_dim=factor_in_dim,
-                factor_in_dim_edges=factor_in_dim_edges,
             )
 
         return kwargs
