@@ -187,8 +187,11 @@ class GPSLayerPyg(BaseGraphModule):
                 max_num_nodes_per_graph=max_num_nodes_per_graph,
                 drop_nodes_last_graph=on_ipu,
             )
+            attn_bias = None
+            if self.biased_attention_key is not None:
+                attn_bias = getattr(batch, self.biased_attention_key)
             h_attn = self._sa_block(
-                h_dense, getattr(batch, self.biased_attention_key)        
+                h_dense, attn_bias
             )
             h_attn = to_sparse_batch(h_attn, idx)
 
@@ -241,7 +244,7 @@ class GPSLayerPyg(BaseGraphModule):
             h = self.norm_layer_ff(h)
         return h
 
-    def _sa_block(self, x, attn_bias, attn_mask, key_padding_mask):
+    def _sa_block(self, x, attn_bias, attn_mask=None, key_padding_mask=None):
         """Self-attention block."""
         x = self.attn_layer(
             x,
