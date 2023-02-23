@@ -29,6 +29,7 @@ class BasePNADgl(BaseGraphModule):
         avg_d: float = 1.0,
         last_activation: Union[Callable, str] = "none",
         in_dim_edges: int = 0,
+        **kwargs,
     ):
         r"""
         Abstract class used to standardize the implementation of PNA layers
@@ -89,6 +90,7 @@ class BasePNADgl(BaseGraphModule):
             activation=activation,
             dropout=dropout,
             normalization=normalization,
+            **kwargs,
         )
 
         # Edge dimensions
@@ -273,6 +275,7 @@ class PNAConvolutionalDgl(BasePNADgl):
         last_activation: Union[Callable, str] = "none",
         posttrans_layers: int = 1,
         in_dim_edges: int = 0,
+        **kwargs,
     ):
         r"""
 
@@ -333,14 +336,15 @@ class PNAConvolutionalDgl(BasePNADgl):
             normalization="none",
             last_activation=last_activation,
             in_dim_edges=in_dim_edges,
+            **kwargs,
         )
 
         # MLP used on the aggregated messages of the neighbours
         self.posttrans = MLP(
             in_dim=(len(aggregators) * len(scalers)) * (self.in_dim + self.in_dim_edges),
-            hidden_dim=self.out_dim,
+            hidden_dims=self.out_dim,
             out_dim=self.out_dim,
-            layers=posttrans_layers,
+            depth=posttrans_layers,
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
@@ -438,6 +442,7 @@ class PNAMessagePassingDgl(BasePNADgl):
         posttrans_layers: int = 1,
         pretrans_layers: int = 1,
         in_dim_edges: int = 0,
+        **kwargs,
     ):
         r"""
 
@@ -501,14 +506,15 @@ class PNAMessagePassingDgl(BasePNADgl):
             normalization="none",
             last_activation=last_activation,
             in_dim_edges=in_dim_edges,
+            **kwargs,
         )
 
         # MLP used on each pair of nodes with their edge MLP(h_u, h_v, e_uv)
         self.pretrans = MLP(
             in_dim=2 * in_dim + in_dim_edges,
-            hidden_dim=in_dim,
+            hidden_dims=in_dim,
             out_dim=in_dim,
-            layers=pretrans_layers,
+            depth=pretrans_layers,
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,
@@ -519,9 +525,9 @@ class PNAMessagePassingDgl(BasePNADgl):
         # MLP used on the aggregated messages MLP(h'_u)
         self.posttrans = MLP(
             in_dim=(len(self.aggregators) * len(self.scalers) + 1) * in_dim,
-            hidden_dim=out_dim,
+            hidden_dims=out_dim,
             out_dim=out_dim,
-            layers=posttrans_layers,
+            depth=posttrans_layers,
             activation=self.activation,
             last_activation=self.last_activation,
             dropout=dropout,

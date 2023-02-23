@@ -214,7 +214,6 @@ class PredictorModuleIPU(PredictorModule):
         Converts features to trainer precision rather than model precision.
         Necessary to run IPU on FP16.
         """
-
         dtype = self.precision_to_dtype(self.trainer.precision)
 
         # Convert features to dtype
@@ -229,5 +228,15 @@ class PredictorModuleIPU(PredictorModule):
         return feats
 
     def precision_to_dtype(self, precision):
-
         return torch.half if precision in (16, "16") else torch.float
+
+    def get_num_graphs(self, data: Batch):
+        """
+        IPU specific method to compute the number of graphs in a Batch,
+        that considers gradient accumulation, multiple IPUs and multiple
+        device iterations. Essential to estimate throughput in graphs/s.
+        """
+        num_graphs = torch.max(data.batch, dim=-1).values
+        num_graphs = torch.sum(num_graphs)
+
+        return num_graphs

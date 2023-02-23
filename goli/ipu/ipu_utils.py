@@ -30,6 +30,16 @@ def import_poptorch(raise_error=True) -> Optional[ModuleType]:
         return
 
 
+def is_running_on_ipu() -> bool:
+    """
+    Returns whether the current module is running on ipu.
+    Needs to be used in the `forward` or `backward` pass.
+    """
+    poptorch = import_poptorch(raise_error=False)
+    on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+    return on_ipu
+
+
 def load_ipu_options(
     ipu_file: str,
     seed: Optional[int] = None,
