@@ -16,6 +16,7 @@ from goli.nn.pyg_layers import (
     GatedGCNPyg,
     PNAMessagePassingPyg,
     GPSLayerPyg,
+    VirtualNodePyg,
 )
 
 
@@ -207,6 +208,44 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg2.h.shape[0], h_in.shape[0])
         self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
         self.assertTrue((bg2.edge_attr == self.bg.edge_attr).all)
+
+    def test_pooling_virtual_node(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        e_in = bg.edge_attr
+        vn_h = 0
+
+        vn_types = ["sum", "mean"]
+        for vn_type, use_edges, expected_v_node in zip(vn_types, [False, True], [(2, 21), (2, 34)]):
+            with self.subTest(
+                vn_type=vn_type,
+                use_edges=use_edges,
+                expected_v_node=expected_v_node,
+            ):
+                vn_h = 0.0
+                print(vn_h, self.out_dim, h_in.size())
+                layer = VirtualNodePyg(
+                    in_dim=self.in_dim,
+                    out_dim=self.in_dim,
+                    in_dim_edges=self.in_dim_edges,
+                    out_dim_edges=self.in_dim_edges,
+                    vn_type=vn_type,
+                    use_edges=use_edges,
+                    **self.kwargs,
+                )
+
+                h_out, vn_out, e_out = layer.forward(bg, h_in, vn_h, e=e_in)
+                assert vn_out.shape == expected_v_node
+                assert h_out.shape == (7, 21)
+                assert e_out.shape == (9, 13)
+                if use_edges is False:
+                    # i.e. that the node features have been updated
+                    assert torch.equal(h_out, h_in) == False
+                    # And that the edge features have not
+                    assert torch.equal(e_out, e_in) == True
+                else:
+                    assert torch.equal(h_out, h_in) == False
+                    assert torch.equal(e_out, e_in) == False
 
 
 if __name__ == "__main__":
