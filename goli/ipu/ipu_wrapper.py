@@ -170,6 +170,10 @@ class PredictorModuleIPU(PredictorModule):
         outputs = self.convert_from_fp16(outputs)
         super().evaluation_epoch_end(outputs)
 
+    def test_epoch_end(self, outputs: Dict[str, Any]):
+        outputs = self.convert_from_fp16(outputs)
+        super().test_epoch_end(outputs)
+
     def configure_optimizers(self, impl=None):
         if impl is None:
             dtype = self.precision_to_dtype(self.trainer.precision)
