@@ -4426,7 +4426,7 @@ Needs to be used in the <code>forward</code> or <code>backward</code> pass.</p>
 
 
 <h4 id="goli.ipu.ipu_utils.load_ipu_options" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_file</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient_accumulation</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_file</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient_accumulation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ipu_inference_overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_utils.load_ipu_options" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4492,6 +4492,17 @@ We call this total number of samples processed for one optimiser step the global
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td><p>Name of the model, to be used for ipu profiling</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ipu_inference_overrides</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>optional file path containing IPU configuration overrides for inference.
+If this file is provided, options in this file override those in <code>ipu_file</code> for inference.</p></td>
           <td>
                 <code>None</code>
           </td>
