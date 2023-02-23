@@ -313,7 +313,7 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
-            cfg_trainer["trainer"].get("precision", None)
+            precision=cfg_trainer["trainer"].get("precision", None),
         )
         from goli.ipu.ipu_wrapper import DictIPUStrategy
 

@@ -14,7 +14,7 @@ from torch_geometric.data import Data, Batch
 from torch_geometric.data.data import BaseData
 from loguru import logger
 import functools
-from collections
+import collections
 
 poptorch = import_poptorch()
 
@@ -172,7 +172,7 @@ class PredictorModuleIPU(PredictorModule):
 
     def configure_optimizers(self, impl=None):
         if impl is None:
-            dtype = torch.float if self.trainer.precision == 32 else torch.half
+            dtype = self.precision_to_dtype(self.trainer.precision)
             impl = functools.partial(
                 self.poptorch.optim.Adam,
                 accum_type=dtype,
@@ -203,8 +203,6 @@ class PredictorModuleIPU(PredictorModule):
                 data[key] = self.convert_from_fp16(data[key])
         elif isinstance(data, torch.Tensor) and data.dtype == torch.float16:
             data = data.float()
-        else:
-            raise ValueError(f"Unsupported data type `{type(data)}` : {data}")
         return data
 
     def _convert_features_dtype(self, feats):
@@ -213,7 +211,7 @@ class PredictorModuleIPU(PredictorModule):
         Necessary to run IPU on FP16.
         """
 
-        dtype = torch.float if self.trainer.precision == 32 else torch.half
+        dtype = self.precision_to_dtype(self.trainer.precision)
 
         # Convert features to dtype
         if isinstance(feats, torch.Tensor):
@@ -223,6 +221,9 @@ class PredictorModuleIPU(PredictorModule):
                 if isinstance(val, torch.Tensor) and (val.is_floating_point()):
                     feats[key] = val.to(dtype=dtype)
         else:
-	        raise ValueError(f"Unsupported feats type `{type(feats)}` : {feats}")
-            
+            raise ValueError(f"Unsupported feats type `{type(feats)}` : {feats}")
         return feats
+
+    def precision_to_dtype(self, precision):
+
+        return torch.half if precision in (16, "16") else torch.float
