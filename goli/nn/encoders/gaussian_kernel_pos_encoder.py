@@ -110,6 +110,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
         base_kwargs.update(
             dict(
                 num_heads=self.num_heads,
+                embed_dim=round(self.embed_dim / divide_factor),
                 max_num_nodes_per_graph=self.max_num_nodes_per_graph,
             )
         )
