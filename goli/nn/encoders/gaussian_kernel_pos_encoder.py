@@ -19,6 +19,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
         output_keys: List[str],  # The keys to return
         in_dim: int,
         out_dim: int,
+        embed_dim: int,
         num_layers: int,
         max_num_nodes_per_graph: int,
         activation: Union[str, Callable] = "gelu",
@@ -37,13 +38,14 @@ class GaussianKernelPosEncoder(BaseEncoder):
             use_input_keys_prefix=use_input_keys_prefix,
         )
 
+        self.embed_dim = embed_dim
         self.num_heads = num_heads
         self.max_num_nodes_per_graph = max_num_nodes_per_graph
 
         # parameters for preprocessing 3d positions
         self.preprocess_3d_positions = PreprocessPositions(
             num_heads=self.num_heads,
-            embed_dim=self.out_dim,
+            embed_dim=self.embed_dim,
             num_kernel=self.out_dim,
             num_layers=self.num_layers,
             activation=self.activation,
