@@ -1300,7 +1300,9 @@ class FullGraphNetwork(nn.Module):
                     feat = torch.cat(
                         (feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1
                     )  # feat = torch.cat([feat, g[pe_key]], dim=-1)
-                self.gnn._set_edge_feats(g, feat, key=pe_key)  # g[pe_key] = feat
+                self.gnn._set_edge_feats(
+                    g, feat, key=pe_key
+                )  # g[pe_key] = feat  #! Andy, pass self.gnn in the forward of positinal encoder manager
             elif pe_key.startswith("graph_"):
                 feat = this_pe
                 if pe_key in g.keys:
@@ -1493,7 +1495,7 @@ class FullGraphNetwork(nn.Module):
                 new_pe_kw[key].pop("in_dim", None)
                 new_pe_kw[key].pop("in_dim_edges", None)
                 enc.update(new_pe_kw[key])
-            kwargs["pe_encoders_kwargs"] = pe_kw
+            kwargs["pe_encoders_kwargs"] = pe_kw  #! Andy get this from encoder manager
 
         # For the post-nn network, all the dimension are divided
         if self.post_nn is not None:

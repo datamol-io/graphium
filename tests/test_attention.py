@@ -61,6 +61,7 @@ class test_MultiHeadAttention(ut.TestCase):
         # attn_bias [batch, num_heads, nodes, nodes]
         nodes = h_dense.size()[1]
         attn_bias_3d = torch.zeros(2, 2, nodes, nodes)
+        h_dense.graph_gaussian_bias_3d = attn_bias_3d
         # Apply attention layer and attention layer with bias.
         h_attn_output = attention_layer(
             h_dense,
@@ -81,10 +82,8 @@ class test_MultiHeadAttention(ut.TestCase):
             need_weights=False,
         )[0]
         self.assertEqual(h_attn_output.size(), h_attn_output_biased.size())
-        self.assertTrue(
-            torch.allclose(
-                h_attn_output.detach(), h_attn_output_biased.detach(), rtol=0.1, atol=1e-03, equal_nan=False
-            )
+        np.testing.assert_array_almost_equal(
+            h_attn_output.detach().numpy(), h_attn_output_biased.detach().numpy(), decimal=2
         )
 
 

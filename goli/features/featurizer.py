@@ -152,9 +152,7 @@ def get_mol_conformer_features(
     property_list: Union[List[str], List[Callable]],
     mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Dict[str, np.ndarray]:
-    """
-    # TODO: Need to implement proper nan masking when conformer is not present, or raise an error if mask_nan is "raise"
-
+    r"""obtain the conformer features of a molecule
     Parameters:
 
         mol:
@@ -164,6 +162,9 @@ def get_mol_conformer_features(
             A list of conformer property to get from the molecule
             Accepted properties are:
             - "positions_3d"
+
+        mask_nan:
+            Whether to mask NaNs in the output array. If "raise", raise a ValueError.
     """
     prop_dict = {}
     has_conf = True
@@ -176,14 +177,15 @@ def get_mol_conformer_features(
     for prop in property_list:
         if isinstance(prop, str):
             if prop in ["positions_3d"]:  # locating 3d conformer coordinates
-                positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
+                # positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
+                positions = np.full((mol.GetNumAtoms(), 3), np.nan)
                 if has_conf:
                     for i in range(mol.GetNumAtoms()):
                         pos = mol.GetConformer().GetAtomPosition(i)
                         positions[i][0] = pos.x
                         positions[i][1] = pos.y
                         positions[i][2] = pos.z
-                prop_dict[prop] = positions
+                prop_dict[prop] = _mask_nans_inf(mask_nan, positions, "molecule conformer 3d positions")
             else:
                 ValueError(
                     str(prop) + " is not currently supported as a conformer property in `property_list`"
