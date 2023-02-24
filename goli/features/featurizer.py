@@ -162,7 +162,7 @@ def get_mol_conformer_features(
             A list of conformer property to get from the molecule
             Accepted properties are:
             - "positions_3d"
-        
+
         mask_nan:
             Whether to mask NaNs in the output array. If "raise", raise a ValueError.
     """
@@ -177,7 +177,7 @@ def get_mol_conformer_features(
     for prop in property_list:
         if isinstance(prop, str):
             if prop in ["positions_3d"]:  # locating 3d conformer coordinates
-                #positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
+                # positions = np.zeros((mol.GetNumAtoms(), 3), dtype=np.float16)
                 positions = np.full((mol.GetNumAtoms(), 3), np.nan)
                 if has_conf:
                     for i in range(mol.GetNumAtoms()):

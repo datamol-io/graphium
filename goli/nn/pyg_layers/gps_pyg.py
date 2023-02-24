@@ -190,9 +190,7 @@ class GPSLayerPyg(BaseGraphModule):
             attn_bias = None
             if self.biased_attention_key is not None:
                 attn_bias = getattr(batch, self.biased_attention_key)
-            h_attn = self._sa_block(
-                h_dense, attn_bias
-            )
+            h_attn = self._sa_block(h_dense, attn_bias)
             h_attn = to_sparse_batch(h_attn, idx)
 
             # Dropout, residual, norm
