@@ -1,4 +1,3 @@
-
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 
 # Misc imports
@@ -36,8 +35,6 @@ PE_ENCODERS_DICT = {
 }
 
 
-
-
 class EncoderManager(nn.Module):
     def __init__(
         self,
@@ -62,7 +59,6 @@ class EncoderManager(nn.Module):
         self.name = name
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
-
 
     def _initialize_positional_encoders(self, pe_encoders_kwargs: Dict[str, Any]) -> Optional[nn.ModuleDict]:
         r"""Initialize the positional encoders for each positional/structural encodings.
@@ -128,7 +124,6 @@ class EncoderManager(nn.Module):
 
         return pe_encoders
 
-
     def forward(self, g: Any) -> Tensor:
         r"""
         forward pass of the pe encoders and pooling
@@ -153,7 +148,7 @@ class EncoderManager(nn.Module):
 
         Returns:
 
-            g: 
+            g:
                 graph with the positional encodings added to the graph
         """
 
@@ -166,11 +161,10 @@ class EncoderManager(nn.Module):
             feat = this_pe
             if pe_key in g.keys:
                 feat = torch.cat(
-                        (feat, getattr(g, pe_key)), dim=-1  #@Dom, can you check if this is alright to do? 
-                    )  
+                    (feat, getattr(g, pe_key)), dim=-1  # @Dom, can you check if this is alright to do?
+                )
             setattr(g, pe_key, feat)
         return g
-    
 
     def forward_positional_encoding(self, g: Any) -> Dict[str, Tensor]:
         """
@@ -209,8 +203,6 @@ class EncoderManager(nn.Module):
             pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pe_pool, dim=-1)
 
         return pe_pooled
-    
-
 
     def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
         """
@@ -227,7 +219,6 @@ class EncoderManager(nn.Module):
             raise Exception(f"Pooling method `{self.pe_pool}` is not defined")
         return pooled
 
-    
     def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
@@ -261,8 +252,6 @@ class EncoderManager(nn.Module):
         else:
             raise ValueError("pe_encoders is not initialized, so there are no input keys.")
 
-
-
     @property
     def in_dims(self) -> Iterable[int]:
         r"""
@@ -273,8 +262,6 @@ class EncoderManager(nn.Module):
         else:
             raise ValueError("pe_encoders is not initialized, so there are no input dimensions.")
 
-
-
     @property
     def out_dim(self) -> int:
         r"""
@@ -284,9 +271,8 @@ class EncoderManager(nn.Module):
             return self.pe_encoders_kwargs["out_dim"]
         else:
             raise ValueError("pe_encoders is not initialized, so there is no output dimension.")
-        
 
-    #TODO Andy: this should be defined in individual encoders and then pooled here
+    # TODO Andy: this should be defined in individual encoders and then pooled here
     # @property
     # def in_dim_edges(self) -> int:
     #     r"""

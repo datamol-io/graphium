@@ -1077,9 +1077,8 @@ class FullGraphNetwork(nn.Module):
         self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
-
+        self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.encoder_manager = EncoderManager(pe_encoders_kwargs)
-
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
@@ -1114,7 +1113,6 @@ class FullGraphNetwork(nn.Module):
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
 
-    
     @staticmethod
     def _parse_feed_forward_gnn(gnn_kwargs):
         """
@@ -1275,8 +1273,6 @@ class FullGraphNetwork(nn.Module):
 
         return h
 
-    
-
     def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
         """
         Apply sum, mean, or max pooling on a Tensor.
@@ -1344,20 +1340,13 @@ class FullGraphNetwork(nn.Module):
             name=self.name,
         )
 
-        # For the pe-encoders, don't factor the in_dim and in_dim_edges
-        if self.encoder_manager is not None:
-            kwargs["pe_encoders_kwargs"] = self.encoder_manager.make_mup_base_kwargs(
-                divide_factor=divide_factor
-            )
-
-
         # For the pre-nn network, get the smaller dimensions.
         # For the input dim, only divide the features coming from the pe-encoders
         if self.pre_nn is not None:
             kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=False
             )
-            pe_enc_outdim = 0 if self.encoder_manager is None else kwargs["pe_encoders_kwargs"]["out_dim"]
+            pe_enc_outdim = 0 if self.encoder_manager is None else self.pe_encoders_kwargs["out_dim"]
             pre_nn_indim = kwargs["pre_nn_kwargs"]["in_dim"] - pe_enc_outdim
             kwargs["pre_nn_kwargs"]["in_dim"] = round(pre_nn_indim + (pe_enc_outdim / divide_factor))
 
@@ -1367,7 +1356,12 @@ class FullGraphNetwork(nn.Module):
                 divide_factor=divide_factor, factor_in_dim=False
             )
 
-        
+        # For the pe-encoders, don't factor the in_dim and in_dim_edges
+        if self.encoder_manager is not None:
+            kwargs["pe_encoders_kwargs"] = self.encoder_manager.make_mup_base_kwargs(
+                divide_factor=divide_factor
+            )
+
         # For the post-nn network, all the dimension are divided
         if self.post_nn is not None:
             kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(
