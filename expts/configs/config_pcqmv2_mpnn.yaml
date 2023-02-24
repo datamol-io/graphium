@@ -15,13 +15,10 @@ datamodule:
         df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
-        # smiles_col: "smiles"
-        # label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 230
+    featurization_n_jobs: 30
     featurization_progress: True
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
@@ -51,7 +48,7 @@ datamodule:
     batch_size_inference: 32
     # cache_data_path: null
 
-    num_workers: -1 # -1 to use all
+    num_workers: 30 # -1 to use all
 
     ipu_dataloader_training_opts:
       max_num_nodes_per_graph: 15 # train max nodes: 20, max_edges: 54

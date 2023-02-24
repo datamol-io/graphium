@@ -734,6 +734,7 @@ class IPUDataModuleModifier:
         ipu_training_opts: Optional["poptorch.Options"] = None,
         ipu_dataloader_training_opts: Optional["IPUDataloaderOptions"] = None,
         ipu_dataloader_inference_opts: Optional["IPUDataloaderOptions"] = None,
+        num_workers: Optional[int] = 0,
         *args,
         **kwargs,
     ) -> None:
@@ -747,6 +748,7 @@ class IPUDataModuleModifier:
         self.ipu_training_opts = ipu_training_opts
         self.ipu_dataloader_training_opts = ipu_dataloader_training_opts
         self.ipu_dataloader_inference_opts = ipu_dataloader_inference_opts
+        self.num_workers = num_workers
 
     def _dataloader(self, dataset: Dataset, **kwargs) -> "poptorch.DataLoader":
         """Get a dataloader for a given dataset"""
@@ -760,6 +762,7 @@ class IPUDataModuleModifier:
 
         loader = create_ipu_dataloader(
             dataset=dataset,
+            num_workers=self.num_workers
             **kwargs,
         )
 
@@ -871,7 +874,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
         )
-        IPUDataModuleModifier.__init__(self, **kwargs)
+        IPUDataModuleModifier.__init__(self, num_workers=num_workers, **kwargs)
 
         self.task_specific_args = task_specific_args
         # TODO: Have the input argument to the Data Module be of type DatasetParams

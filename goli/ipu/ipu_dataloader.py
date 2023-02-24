@@ -177,6 +177,7 @@ def create_ipu_dataloader(
     ipu_options: Optional["poptorch.Options"] = None,
     batch_size: Optional[int] = 1,
     collate_fn=None,
+    num_workers: Optional[int] = 0,
     **kwargs,
 ) -> "poptorch.DataLoader":
     """
@@ -253,6 +254,7 @@ def create_ipu_dataloader(
         options=deepcopy(ipu_options),
         dataset=dataset,
         batch_size=batch_size,
+        num_workers=num_workers,
         collate_fn=collater,
         async_options={"early_preload": True},  # TODO: keep?
         **kwargs,
