@@ -1,6 +1,45 @@
 # This is a base shape file encoded in yaml
 # - `null` indicates a dimension is "finite", i.e. a non-"width" dimension
 # - a number indicates the base dimension of an "infinite" dimension, i.e. some notion of "width"
+encoder_manager.pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian.means.weight:
+- null
+- 32
+encoder_manager.pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian.stds.weight:
+- null
+- 32
+encoder_manager.pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.bias:
+- null
+encoder_manager.pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.weight:
+- null
+- 32
+encoder_manager.pe_encoders.gaussian_pos.preprocess_3d_positions.node_proj.bias:
+- 32
+encoder_manager.pe_encoders.gaussian_pos.preprocess_3d_positions.node_proj.weight:
+- 32
+- 32
+encoder_manager.pe_encoders.la_pos.linear_in.linear.bias:
+- 32
+encoder_manager.pe_encoders.la_pos.linear_in.linear.weight:
+- 32
+- null
+encoder_manager.pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.bias:
+- 32
+encoder_manager.pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.weight:
+- 32
+- 32
+encoder_manager.pe_encoders.rw_pos.first_normalization.bias:
+- null
+encoder_manager.pe_encoders.rw_pos.first_normalization.weight:
+- null
+encoder_manager.pe_encoders.rw_pos.pe_encoder.first_normalization.bias:
+- null
+encoder_manager.pe_encoders.rw_pos.pe_encoder.first_normalization.weight:
+- null
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.bias:
+- 32
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.weight:
+- 32
+- null
 gnn.layers.0.attn_layer.in_proj_bias:
 - 96
 gnn.layers.0.attn_layer.in_proj_weight:
@@ -238,45 +277,6 @@ gnn.out_linear.normalization.bias:
 - 32
 gnn.out_linear.normalization.weight:
 - 32
-pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian.means.weight:
-- null
-- 32
-pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian.stds.weight:
-- null
-- 32
-pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.bias:
-- null
-pe_encoders.gaussian_pos.preprocess_3d_positions.gaussian_proj.fully_connected.0.linear.weight:
-- null
-- 32
-pe_encoders.gaussian_pos.preprocess_3d_positions.node_proj.bias:
-- 32
-pe_encoders.gaussian_pos.preprocess_3d_positions.node_proj.weight:
-- 32
-- 32
-pe_encoders.la_pos.linear_in.linear.bias:
-- 32
-pe_encoders.la_pos.linear_in.linear.weight:
-- 32
-- null
-pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.bias:
-- 32
-pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.weight:
-- 32
-- 32
-pe_encoders.rw_pos.first_normalization.bias:
-- null
-pe_encoders.rw_pos.first_normalization.weight:
-- null
-pe_encoders.rw_pos.pe_encoder.first_normalization.bias:
-- null
-pe_encoders.rw_pos.pe_encoder.first_normalization.weight:
-- null
-pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.bias:
-- 32
-pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.weight:
-- 32
-- null
 post_nn.layers.0.linear.bias:
 - 200
 post_nn.layers.0.linear.weight:
@@ -295,7 +295,7 @@ pre_nn.layers.0.linear.bias:
 - 32
 pre_nn.layers.0.linear.weight:
 - 32
-- 87
+- 103
 pre_nn.layers.0.normalization.bias:
 - 32
 pre_nn.layers.0.normalization.weight:
