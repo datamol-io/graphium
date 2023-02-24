@@ -15,6 +15,9 @@ datamodule:
         df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
+        #df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
+        #smiles_col: "smiles"
+        #label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
