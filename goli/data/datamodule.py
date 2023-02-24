@@ -219,7 +219,7 @@ class MultitaskDataset(Dataset):
         self.about = about
 
         task = next(iter(self.datasets))
-        if "features" in datasets[task][0]:
+        if "features" in self.datasets[task][0]:
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(self.datasets)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
