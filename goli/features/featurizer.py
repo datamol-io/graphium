@@ -150,7 +150,6 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
 def get_mol_conformer_features(
     mol: dm.Mol,
     property_list: Union[List[str], List[Callable]],
-    mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Dict[str, np.ndarray]:
     r"""obtain the conformer features of a molecule
     Parameters:
@@ -163,8 +162,6 @@ def get_mol_conformer_features(
             Accepted properties are:
             - "positions_3d"
 
-        mask_nan:
-            Whether to mask NaNs in the output array. If "raise", raise a ValueError.
     """
     prop_dict = {}
     has_conf = True
@@ -185,7 +182,7 @@ def get_mol_conformer_features(
                         positions[i][0] = pos.x
                         positions[i][1] = pos.y
                         positions[i][2] = pos.z
-                prop_dict[prop] = _mask_nans_inf(mask_nan, positions, "molecule conformer 3d positions")
+                prop_dict[prop] = positions
             else:
                 ValueError(
                     str(prop) + " is not currently supported as a conformer property in `property_list`"
@@ -727,7 +724,7 @@ def mol_to_adj_and_features(
     # Get the node features
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
     atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float, mask_nan=mask_nan)
-    conf_dict = get_mol_conformer_features(mol, conformer_property_list, mask_nan=mask_nan)
+    conf_dict = get_mol_conformer_features(mol, conformer_property_list)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
     ndata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in ndata]
 
