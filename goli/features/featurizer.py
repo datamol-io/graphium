@@ -884,7 +884,7 @@ def mol_to_graph_dict(
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
     max_num_atoms: Optional[int] = None,
-) -> GraphDict:
+) -> Union[GraphDict, str]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features, and re-organizes them into a dictionary
@@ -940,8 +940,8 @@ def mol_to_graph_dict(
             behavior of `mask_nan`.
 
             - "raise": Raise an error
-            - "warn": Raise a warning and return None
-            - "ignore": Ignore the error and return None
+            - "warn": Raise a warning and return a string of the error
+            - "ignore": Ignore the error and return a string of the error
 
         mask_nan:
             Deal with molecules that fail a part of the featurization.
@@ -962,7 +962,8 @@ def mol_to_graph_dict(
 
         graph_dict:
             A dictionary `GraphDict` containing the keys required to build a graph,
-            and which can be used to build a DGL or PyG graph.
+            and which can be used to build a DGL or PyG graph. If it fails
+            to featurize the molecule, it returns a string with the error.
 
             - "adj": A sparse int-array containing the adjacency matrix
 
@@ -1017,9 +1018,9 @@ def mol_to_graph_dict(
                 smiles = Chem.MolToSmiles(input_mol)
             msg = str(e) + "\nIgnoring following molecule:" + smiles
             logger.warning(msg)
-            return None
+            return str(e)
         elif on_error.lower() == "ignore":
-            return None
+            return str(e)
 
     dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
 
@@ -1199,7 +1200,7 @@ def mol_to_pyggraph(
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
     max_num_atoms: Optional[int] = None,
-) -> Data:
+) -> Union[Data, str]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
@@ -1254,8 +1255,8 @@ def mol_to_pyggraph(
             behavior of `mask_nan`.
 
             - "raise": Raise an error
-            - "warn": Raise a warning and return None
-            - "ignore": Ignore the error and return None
+            - "warn": Raise a warning and return a string of the error
+            - "ignore": Ignore the error and return a string of the error
 
         mask_nan:
             Deal with molecules that fail a part of the featurization.
@@ -1297,10 +1298,10 @@ def mol_to_pyggraph(
         max_num_atoms=max_num_atoms,
     )
 
-    if graph_dict is not None:
+    if (graph_dict is not None) and not isinstance(graph_dict, str):
         return graph_dict.make_pyg_graph()
-
-    return None
+    else:
+        return graph_dict
 
 
 def graph_dict_to_dgl(
