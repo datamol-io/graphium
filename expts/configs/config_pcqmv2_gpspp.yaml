@@ -116,7 +116,7 @@ architecture:
       gaussian_pos:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
-        output_keys: ["feat", "graph_gaussian_bias_3d"] 
+        output_keys: ["feat", "graph_gaussian_bias_3d"]
         num_heads: 1
         num_layers: 1 #2
         embed_dim: 64
@@ -136,9 +136,11 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     pooling: [sum]
-    virtual_node: 'none'
+    virtual_node: "sum"
+    use_virtual_edges: True
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      out_dim_edges: 32
       node_residual: false
       mpnn_type: 'pyg:mpnnplus'
       mpnn_kwargs:
@@ -146,13 +148,12 @@ architecture:
         out_dim: 64
         in_dim_edges: 32
         out_dim_edges: 32
+        droppath_rate: 0.3
       attn_type: "full-attention" # "full-attention", "none"
       #biased_attention_key: "graph_gaussian_bias_3d" #same key from gaussian_pos/output_keys/"graph_xxx"
       attn_kwargs: null
-      # out_dim_edges: 16
-      # aggregators: [mean, max]
-      # scalers: [identity, amplification, attenuation]
-      # num_heads: 3
+      droppath_rate_attn: 0.3
+      droppath_rate_ffn: 0.3
 
   post_nn:
     out_dim: 32

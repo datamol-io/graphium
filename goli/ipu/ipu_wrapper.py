@@ -13,6 +13,8 @@ import torch
 from torch_geometric.data import Data, Batch
 from torch_geometric.data.data import BaseData
 from loguru import logger
+import functools
+import collections
 
 poptorch = import_poptorch()
 
@@ -125,7 +127,8 @@ class PredictorModuleIPU(PredictorModule):
         )
 
     def on_train_batch_end(self, outputs, batch, batch_idx):
-        outputs["loss/train"] = outputs["loss"].mean()
+        outputs = self.convert_from_fp16(outputs)
+        outputs["loss"] = outputs["loss"].mean()
         super().on_train_batch_end(outputs, batch, batch_idx)
 
     def training_step(self, features, labels) -> Dict[str, Any]:
@@ -159,9 +162,27 @@ class PredictorModuleIPU(PredictorModule):
 
         return step_dict
 
+    def validation_epoch_end(self, outputs: Dict[str, Any]):
+        outputs = self.convert_from_fp16(outputs)
+        super().validation_epoch_end(outputs)
+
+    def evaluation_epoch_end(self, outputs: Dict[str, Any]):
+        outputs = self.convert_from_fp16(outputs)
+        super().evaluation_epoch_end(outputs)
+
+    def test_epoch_end(self, outputs: Dict[str, Any]):
+        outputs = self.convert_from_fp16(outputs)
+        super().test_epoch_end(outputs)
+
     def configure_optimizers(self, impl=None):
         if impl is None:
-            impl = self.poptorch.optim.Adam
+            dtype = self.precision_to_dtype(self.trainer.precision)
+            impl = functools.partial(
+                self.poptorch.optim.Adam,
+                accum_type=dtype,
+                first_order_momentum_accum_type=dtype,
+                second_order_momentum_accum_type=torch.float,
+            )
         return super().configure_optimizers(impl=impl)
 
     def squeeze_input_dims(self, features, labels):
@@ -173,6 +194,41 @@ class PredictorModuleIPU(PredictorModule):
             labels[key] = labels[key].squeeze(0)
 
         return features, labels
+
+    def convert_from_fp16(self, data: Any) -> Any:
+        """
+        Converts tensors from FP16 to FP32. Useful to convert the IPU program output data
+        """
+        if isinstance(data, collections.Sequence):
+            for idx in range(len(data)):
+                data[idx] = self.convert_from_fp16(data[idx])
+        elif isinstance(data, collections.Mapping):
+            for key in data:
+                data[key] = self.convert_from_fp16(data[key])
+        elif isinstance(data, torch.Tensor) and data.dtype == torch.float16:
+            data = data.float()
+        return data
+
+    def _convert_features_dtype(self, feats):
+        """
+        Converts features to trainer precision rather than model precision.
+        Necessary to run IPU on FP16.
+        """
+        dtype = self.precision_to_dtype(self.trainer.precision)
+
+        # Convert features to dtype
+        if isinstance(feats, torch.Tensor):
+            feats = feats.to(dtype)
+        elif isinstance(feats, (Data, Batch, dict)):
+            for key, val in feats.items():
+                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
+                    feats[key] = val.to(dtype=dtype)
+        else:
+            raise ValueError(f"Unsupported feats type `{type(feats)}` : {feats}")
+        return feats
+
+    def precision_to_dtype(self, precision):
+        return torch.half if precision in (16, "16") else torch.float
 
     def get_num_graphs(self, data: Batch):
         """

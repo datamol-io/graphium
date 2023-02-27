@@ -76,7 +76,7 @@ class LapPENodeEncoder(BaseEncoder):
                 in_dim=hidden_dim,
                 hidden_dim=hidden_dim,
                 out_dim=hidden_dim,
-                layers=num_layers,
+                depth=num_layers,
                 dropout=dropout,
                 **model_kwargs,
             )
@@ -102,7 +102,7 @@ class LapPENodeEncoder(BaseEncoder):
                 in_dim=hidden_dim,
                 hidden_dim=hidden_dim,
                 out_dim=out_dim,
-                layers=num_layers_post,
+                depth=num_layers_post,
                 dropout=dropout,
                 activation=activation,
                 last_activation="none",
@@ -136,7 +136,7 @@ class LapPENodeEncoder(BaseEncoder):
 
         # Random flipping to the Laplacian encoder
         if self.training:
-            sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device)
+            sign_flip = torch.rand(eigvecs.size(1), device=eigvecs.device, dtype=eigvecs.dtype)
             sign_flip[sign_flip >= 0.5] = 1.0
             sign_flip[sign_flip < 0.5] = -1.0
             eigvecs = eigvecs * sign_flip.unsqueeze(0)

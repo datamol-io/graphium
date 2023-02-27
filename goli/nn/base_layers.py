@@ -1,16 +1,16 @@
-from typing import Union, Callable, Optional, Type, Tuple
+from typing import Union, Callable, Optional, Type, Tuple, Iterable
 from copy import deepcopy
 from loguru import logger
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch import Tensor
+from torch import Tensor, IntTensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
 from torch.nn.functional import linear
 
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_utils import is_running_on_ipu
 
 SUPPORTED_ACTIVATION_MAP = {
     "ReLU",
@@ -46,10 +46,36 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
 
     # search in SUPPORTED_ACTIVATION_MAP a torch.nn.modules.activation
     activation = [x for x in SUPPORTED_ACTIVATION_MAP if activation.lower() == x.lower()]
-    assert len(activation) == 1 and isinstance(activation[0], str), "Unhandled activation function"
+    assert len(activation) == 1 and isinstance(
+        activation[0], str
+    ), f"Unhandled activation function {activation} of type {type(activation)}"
     activation = activation[0]
 
     return vars(torch.nn.modules.activation)[activation]()
+
+
+def get_activation_str(activation: Union[type(None), str, Callable]) -> str:
+    r"""
+    returns the string related to the activation function
+
+    Parameters:
+        activation: Callable, `None`, or string with value:
+            "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"
+
+    Returns:
+        The name of the activation function
+    """
+
+    if isinstance(activation, str):
+        return activation
+
+    if activation is None:
+        return "None"
+
+    if isinstance(activation, Callable):
+        return activation.__class__._get_name(activation)
+    else:
+        raise ValueError(f"Unhandled activation function {activation} of type {type(activation)}")
 
 
 def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int] = None):
@@ -301,6 +327,7 @@ class FCLayer(nn.Module):
         bias: bool = True,
         init_fn: Optional[Callable] = None,
         is_readout_layer: bool = False,
+        droppath_rate: float = 0.0,
     ):
         r"""
         A simple fully connected and customizable layer. This layer is centered around a `torch.nn.Linear` module.
@@ -335,6 +362,8 @@ class FCLayer(nn.Module):
             is_readout_layer: Whether the layer should be treated as a readout layer by replacing of `torch.nn.Linear`
                 by `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
+            droppath_rate:
+                stochastic depth drop rate, between 0 and 1, see https://arxiv.org/abs/1603.09382
         Attributes:
             dropout (int):
                 The ratio of units to dropout.
@@ -369,6 +398,10 @@ class FCLayer(nn.Module):
         if dropout:
             self.dropout = nn.Dropout(p=dropout)
         self.activation = get_activation(activation)
+
+        self.drop_path = None
+        if droppath_rate > 0:
+            self.drop_path = DropPath(droppath_rate)
 
         # Linear layer, or MuReadout layer
         if not is_readout_layer:
@@ -437,6 +470,9 @@ class FCLayer(nn.Module):
             h = self.dropout(h)
         if self.activation is not None:
             h = self.activation(h)
+        if self.drop_path is not None:
+            h = self.drop_path(h)
+
         return h
 
     @property
@@ -461,9 +497,9 @@ class MLP(nn.Module):
     def __init__(
         self,
         in_dim: int,
-        hidden_dim: int,
+        hidden_dims: Union[Iterable[int], int],
         out_dim: int,
-        layers: int,
+        depth: int,
         activation: Union[str, Callable] = "relu",
         last_activation: Union[str, Callable] = "none",
         dropout: float = 0.0,
@@ -472,6 +508,8 @@ class MLP(nn.Module):
         last_normalization: Union[Type[None], str, Callable] = "none",
         first_normalization: Union[Type[None], str, Callable] = "none",
         last_layer_is_readout: bool = False,
+        droppath_rate: float = 0.0,
+        constant_droppath_rate: bool = True,
     ):
         r"""
         Simple multi-layer perceptron, built of a series of FCLayers
@@ -479,13 +517,16 @@ class MLP(nn.Module):
         Parameters:
             in_dim:
                 Input dimension of the MLP
-            hidden_dim:
-                Hidden dimension of the MLP. All hidden dimensions will have
-                the same number of parameters
+            hidden_dims:
+                Either an integer specifying all the hidden dimensions,
+                or a list of dimensions in the hidden layers.
             out_dim:
                 Output dimension of the MLP.
-            layers:
-                Number of hidden layers
+            depth:
+                If `hidden_dims` is an integer, `depth` is 1 + the number of
+                hidden layers to use.
+                If `hidden_dims` is a list, then
+                `depth` must be `None` or equal to `len(hidden_dims) + 1`
             activation:
                 Activation function to use in all the layers except the last.
                 if `layers==1`, this parameter is ignored
@@ -510,61 +551,71 @@ class MLP(nn.Module):
                 The ratio of units to dropout at the last layer.
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
+            droppath_rate:
+                stochastic depth drop rate, between 0 and 1.
+                See https://arxiv.org/abs/1603.09382
+            constant_droppath_rate:
+                If `True`, drop rates will remain constant accross layers.
+                Otherwise, drop rates will vary stochastically.
+                See `DropPath.get_stochastic_drop_rate`
         """
 
         super().__init__()
 
         self.in_dim = in_dim
-        self.hidden_dim = hidden_dim
         self.out_dim = out_dim
+
+        # Parse the hidden dimensions and depth
+        if isinstance(hidden_dims, int):
+            self.hidden_dims = [hidden_dims] * (depth - 1)
+        else:
+            self.hidden_dims = list(hidden_dims)
+            assert (depth is None) or (
+                depth == len(self.hidden_dims) + 1
+            ), "Mismatch between the provided network depth from `hidden_dims` and `depth`"
+        self.depth = len(self.hidden_dims) + 1
+
+        # Parse the normalization
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
+        all_dims = [in_dim] + self.hidden_dims + [out_dim]
         fully_connected = []
-        if layers == 0:
+        if depth == 0:
             self.fully_connected = None
             return
-        elif layers == 1:
-            fully_connected.append(
-                FCLayer(
-                    in_dim,
-                    out_dim,
-                    activation=last_activation,
-                    normalization=last_normalization,
-                    dropout=last_dropout,
-                    is_readout_layer=last_layer_is_readout,
-                )
-            )
-        elif layers > 1:
-            fully_connected.append(
-                FCLayer(
-                    in_dim,
-                    hidden_dim,
-                    activation=activation,
-                    normalization=normalization,
-                    dropout=dropout,
-                )
-            )
-            for _ in range(layers - 2):
+        else:
+            for ii in range(depth):
+                if ii < (depth - 1):
+                    # Define the parameters for all intermediate layers
+                    this_activation = activation
+                    this_normalization = normalization
+                    this_dropout = dropout
+                    is_readout_layer = False
+                else:
+                    # Define the parameters for the last layer
+                    this_activation = last_activation
+                    this_normalization = last_normalization
+                    this_dropout = last_dropout
+                    is_readout_layer = last_layer_is_readout
+
+                if constant_droppath_rate:
+                    this_drop_rate = droppath_rate
+                else:
+                    this_drop_rate = DropPath.get_stochastic_drop_rate(droppath_rate, ii, depth)
+
+                # Add a fully-connected layer
                 fully_connected.append(
                     FCLayer(
-                        hidden_dim,
-                        hidden_dim,
-                        activation=activation,
-                        normalization=normalization,
-                        dropout=dropout,
+                        all_dims[ii],
+                        all_dims[ii + 1],
+                        activation=this_activation,
+                        normalization=this_normalization,
+                        dropout=this_dropout,
+                        is_readout_layer=is_readout_layer,
+                        droppath_rate=this_drop_rate,
                     )
                 )
-            fully_connected.append(
-                FCLayer(
-                    hidden_dim,
-                    out_dim,
-                    activation=last_activation,
-                    normalization=last_normalization,
-                    dropout=last_dropout,
-                    is_readout_layer=last_layer_is_readout,
-                )
-            )
+
         self.fully_connected = nn.Sequential(*fully_connected)
 
     def forward(self, h: torch.Tensor) -> torch.Tensor:
@@ -653,3 +704,96 @@ class GRU(nn.Module):
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)
         return x
+
+
+class DropPath(nn.Module):
+    def __init__(self, drop_rate: float):
+        r"""
+        DropPath class for stochastic depth
+        Deep Networks with Stochastic Depth
+        Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
+        https://arxiv.org/abs/1603.09382
+
+        Parameters:
+            drop_rate:
+                Drop out probability
+        """
+
+        super().__init__()
+        self.drop_rate = drop_rate
+
+    @staticmethod
+    def get_stochastic_drop_rate(
+        drop_rate: float, layer_idx: Optional[int] = None, layer_depth: Optional[int] = None
+    ):
+        """
+        Get the stochastic drop rate from the nominal drop rate, the layer index, and the layer depth.
+
+        `return drop_rate * (layer_idx / (layer_depth - 1))`
+
+        Parameters:
+            drop_rate:
+                Drop out nominal probability
+
+            layer_idx:
+                The index of the current layer
+
+            layer_depth:
+                The total depth (number of layers) associated to this specific layer
+
+        """
+        if drop_rate == 0:
+            return 0
+        else:
+            assert (layer_idx is not None) and (
+                layer_depth is not None
+            ), f"layer_idx={layer_idx} and layer_depth={layer_depth} should be integers when `droppath_rate>0`"
+            return drop_rate * (layer_idx / (layer_depth - 1))
+
+    def forward(
+        self,
+        input: Tensor,
+        batch_idx: IntTensor,
+        batch_size: Optional[int] = None,
+    ) -> Tensor:
+        r"""
+        Parameters:
+            input:  `torch.Tensor[total_num_nodes, hidden]`
+            batch: batch attribute of the batch object, batch.batch
+            batch_size: The batch size. Must be provided when working on IPU
+
+        Returns:
+            torch.Tensor: `torch.Tensor[total_num_nodes, hidde]`
+
+        """
+        on_ipu = is_running_on_ipu()
+
+        if self.drop_rate > 0:
+            keep_prob = 1 - self.drop_rate
+
+            # Parse the batch size
+            if batch_size is None:
+                if on_ipu:
+                    raise ValueError(
+                        "When using the IPU the batch size must be "
+                        "provided during compilation instead of determined at runtime"
+                    )
+                else:
+                    batch_size = int(batch_idx.max()) + 1
+
+            # mask shape: [num_graphs, 1]
+            mask = input.new_empty(batch_size, 1).bernoulli_(keep_prob)
+            # if on_ipu, the last graph is a padded fake graph
+            if on_ipu:
+                mask[-1] = 0
+            # using gather to extend mask to [total_num_nodes, 1]
+            node_mask = mask[batch_idx]
+            if keep_prob == 0:
+                # avoid dividing by 0
+                input_scaled = input
+            else:
+                input_scaled = input / keep_prob
+            out = input_scaled * node_mask
+        else:
+            out = input
+        return out

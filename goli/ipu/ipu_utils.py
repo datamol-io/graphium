@@ -1,6 +1,7 @@
 from copy import deepcopy
 from types import ModuleType
 from typing import Optional, Tuple
+import torch
 
 
 def import_poptorch(raise_error=True) -> Optional[ModuleType]:
@@ -29,11 +30,23 @@ def import_poptorch(raise_error=True) -> Optional[ModuleType]:
         return
 
 
+def is_running_on_ipu() -> bool:
+    """
+    Returns whether the current module is running on ipu.
+    Needs to be used in the `forward` or `backward` pass.
+    """
+    poptorch = import_poptorch(raise_error=False)
+    on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
+    return on_ipu
+
+
 def load_ipu_options(
     ipu_file: str,
     seed: Optional[int] = None,
     model_name: Optional[str] = None,
     gradient_accumulation: Optional[int] = None,
+    precision: Optional[int] = None,
+    ipu_inference_overrides: Optional[str] = None,
 ) -> Tuple["poptorch.Options", "poptorch.Options"]:
     """
     Load the IPU options from the config file.
@@ -69,6 +82,8 @@ def load_ipu_options(
 
         seed: random seed for the IPU
         model_name: Name of the model, to be used for ipu profiling
+        ipu_inference_overrides: optional file path containing IPU configuration overrides for inference.
+            If this file is provided, options in this file override those in `ipu_file` for inference.
 
     Returns:
 
@@ -95,7 +110,9 @@ def load_ipu_options(
         ipu_options.Training.gradientAccumulation(gradient_accumulation)
 
     ipu_options.anchorTensor("input", "input")
-
+    if precision == 16:
+        # IPUOptions.loadFromFile currently doesn't support setting half partials, doing it here
+        ipu_options.Precision.setPartialsType(torch.half)
     training_opts = ipu_options
 
     # Change the inference options to remove gradient accumulation
@@ -103,5 +120,7 @@ def load_ipu_options(
     inference_opts.Training.gradientAccumulation(1)
     if model_name is not None:
         inference_opts.modelName(f"{model_name}_inference")
+    if ipu_inference_overrides is not None:
+        inference_opts.loadFromFile(ipu_inference_overrides)
 
     return training_opts, inference_opts

@@ -50,14 +50,23 @@ gnn.layers.0.attn_layer.out_proj.bias:
 gnn.layers.0.attn_layer.out_proj.weight:
 - 32
 - 32
-gnn.layers.0.ff_linear1.linear.bias:
+gnn.layers.0.f_out.linear.bias:
+- 32
+gnn.layers.0.f_out.linear.weight:
+- 32
+- 32
+gnn.layers.0.f_out.normalization.bias:
+- 32
+gnn.layers.0.f_out.normalization.weight:
+- 32
+gnn.layers.0.mlp.fully_connected.0.linear.bias:
 - 64
-gnn.layers.0.ff_linear1.linear.weight:
+gnn.layers.0.mlp.fully_connected.0.linear.weight:
 - 64
 - 32
-gnn.layers.0.ff_linear2.linear.bias:
+gnn.layers.0.mlp.fully_connected.1.linear.bias:
 - 32
-gnn.layers.0.ff_linear2.linear.weight:
+gnn.layers.0.mlp.fully_connected.1.linear.weight:
 - 32
 - 64
 gnn.layers.0.ff_out.linear.bias:
