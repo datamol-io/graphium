@@ -74,7 +74,7 @@ class LapPENodeEncoder(BaseEncoder):
             # DeepSet model for LapPE (this will be followed by a sum pooling)
             self.pe_encoder = MLP(
                 in_dim=hidden_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=hidden_dim,
                 depth=num_layers,
                 dropout=dropout,
