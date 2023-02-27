@@ -13,6 +13,7 @@ from torch_geometric.data import Data
 
 # goli imports
 from goli.nn.base_layers import FCLayer, get_activation, get_norm
+from goli.nn.architectures.encoder_manager import EncoderManager
 from goli.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
@@ -1072,9 +1073,8 @@ class FullGraphNetwork(nn.Module):
         self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
-
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
-        self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
+        self.encoder_manager = EncoderManager(pe_encoders_kwargs)
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
@@ -1108,68 +1108,6 @@ class FullGraphNetwork(nn.Module):
             post_nn_kwargs.setdefault("last_layer_is_readout", self.last_layer_is_readout)
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
-
-    def _initialize_positional_encoders(self, pe_encoders_kwargs: Dict[str, Any]) -> Optional[nn.ModuleDict]:
-        """
-        Initialize the positional encoders for each positional/structural encodings.
-
-        TODO: Currently only supports PE/SE on the nodes. Need to add edges.
-        """
-        pe_encoders = None
-
-        if pe_encoders_kwargs is not None:
-            pe_encoders = nn.ModuleDict()
-
-            # Pooling options here for pe encoders
-            self.pe_pool = pe_encoders_kwargs["pool"]
-            pe_out_dim = pe_encoders_kwargs["out_dim"]
-            in_dim_dict = pe_encoders_kwargs["in_dims"]
-
-            # Loop every positional encoding to assign it
-            for encoder_name, encoder_kwargs in pe_encoders_kwargs["encoders"].items():
-                encoder_kwargs = deepcopy(encoder_kwargs)
-                encoder_type = encoder_kwargs.pop("encoder_type")
-                encoder = PE_ENCODERS_DICT[encoder_type]
-
-                # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name/`
-                # Then check for the exact key
-                this_in_dims = {}
-                for key, dim in in_dim_dict.items():
-                    if isinstance(key, str) and key.startswith(f"{encoder_name}/"):
-                        key_name = "in_dim_" + key[len(encoder_name) + 1 :]
-                        this_in_dims[key_name] = dim
-                if len(this_in_dims) == 0:
-                    for key in encoder_kwargs.get("input_keys", []):
-                        if key in in_dim_dict:
-                            this_in_dims[key] = in_dim_dict[key]
-                        else:
-                            raise ValueError(
-                                f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}/' is also not found.\n Available keys: {in_dim_dict.keys()}"
-                            )
-
-                # Parse the in_dims based on Encoder's signature
-                accepted_keys = inspect.signature(encoder).parameters.keys()
-                if all([key in accepted_keys for key in this_in_dims.keys()]):
-                    pass
-                elif "in_dim" in accepted_keys:
-                    if len(set(this_in_dims.values())) == 1:
-                        this_in_dims = {"in_dim": list(this_in_dims.values())[0]}
-                    else:
-                        raise ValueError(
-                            f"All `in_dims` must be equal for encoder {encoder_name}. Provided: {this_in_dims}"
-                        )
-                else:
-                    raise ValueError(
-                        f"`in_dim` not understood for encoder {encoder_name}. Provided: {this_in_dims}. Accepted keys are: {accepted_keys}"
-                    )
-
-                # Initialize the pe_encoder layer
-                pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
-                if pe_out_dim2 is not None:
-                    assert pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
-                pe_encoders[encoder_name] = encoder(out_dim=pe_out_dim, **this_in_dims, **encoder_kwargs)
-
-        return pe_encoders
 
     @staticmethod
     def _parse_feed_forward_gnn(gnn_kwargs):
@@ -1285,34 +1223,7 @@ class FullGraphNetwork(nn.Module):
         """
 
         # Apply the positional encoders
-        pe_pooled = self.forward_positional_encoding(g)
-
-        # Add the processed positional encodings to the graphs.
-        # If the key is already present, concatenate the pe_pooled to the pre-existing feature.
-        for pe_key, this_pe in pe_pooled.items():
-            if pe_key.startswith("edge_"):
-                feat = this_pe
-                if pe_key in g.keys:
-                    feat = torch.cat(
-                        (feat, self.gnn._get_edge_feats(g, key=pe_key)), dim=-1
-                    )  # feat = torch.cat([feat, g[pe_key]], dim=-1)
-                self.gnn._set_edge_feats(
-                    g, feat, key=pe_key
-                )  # g[pe_key] = feat  #! Andy, pass self.gnn in the forward of positinal encoder manager
-            elif pe_key.startswith("graph_"):
-                feat = this_pe
-                if pe_key in g.keys:
-                    feat = torch.cat(
-                        (feat, self.gnn._get_graph_feats(g, key=pe_key)), dim=-1
-                    )  # feat = torch.cat([feat, g[pe_key]], dim=-1)
-                self.gnn._set_graph_feats(g, feat, key=pe_key)  # g[pe_key] = feat
-            else:
-                feat = this_pe
-                if pe_key in g.keys:
-                    feat = torch.cat(
-                        (feat, self.gnn._get_node_feats(g, key=pe_key)), dim=-1
-                    )  # feat = torch.cat([feat, g[pe_key]], dim=-1)
-                self.gnn._set_node_feats(g, feat, key=pe_key)  # g[pe_key] = feat
+        g = self.encoder_manager(g)
 
         h = self.gnn._get_node_feats(g, key="feat")  # h = g["feat"]
         e = self.gnn._get_edge_feats(g, key="edge_feat")  # e = g["edge_feat"]
@@ -1357,59 +1268,6 @@ class FullGraphNetwork(nn.Module):
                 h = torch.cat([h[ii] for ii in self._concat_last_layers], dim=-1)
 
         return h
-
-    def forward_positional_encoding(self, g: Any) -> Dict[str, Tensor]:
-        """
-        Forward pass for the positional encodings (PE),
-        with each PE having it's own encoder defined in `self.pe_encoders`.
-        All the positional encodings with the same keys are pooled together
-        using `self.pe_pooling`.
-
-        Parameters:
-            g: graph containing the node positional encodings
-
-        Returns:
-            pe_node_pooled: The positional / structural encodings go through
-            encoders, then are pooled together according to their keys.
-
-        """
-
-        # Return None if no positional encoders
-        if (self.pe_encoders is None) or len(self.pe_encoders) == 0:
-            return {}
-
-        encoder_outs = []
-        # Run every node positional-encoder
-        for encoder_name, encoder in self.pe_encoders.items():
-            encoder_outs.append(encoder(g, key_prefix=encoder_name))
-
-        # list of dict to dict of list, with concatenation of the tensors
-        pe_cats = {
-            key: torch.stack([d[key] for d in encoder_outs if key in d], dim=-1)
-            for key in set().union(*encoder_outs)
-        }
-
-        # Pool the node positional encodings
-        pe_pooled = {}
-        for key, pe_cat in pe_cats.items():
-            pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pe_pool, dim=-1)
-
-        return pe_pooled
-
-    def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
-        """
-        Apply sum, mean, or max pooling on a Tensor.
-        """
-
-        if pooling == "sum":
-            pooled = torch.sum(h, dim=dim)
-        elif pooling == "mean":
-            pooled = torch.mean(h, dim=dim)
-        elif pooling == "max":
-            pooled = torch.max(h, dim=dim).values
-        else:
-            raise Exception(f"Pooling method `{self.pe_pool}` is not defined")
-        return pooled
 
     @property
     def concat_last_layers(self) -> Optional[Iterable[int]]:
@@ -1469,7 +1327,7 @@ class FullGraphNetwork(nn.Module):
             kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=False
             )
-            pe_enc_outdim = 0 if self.pe_encoders is None else self.pe_encoders_kwargs["out_dim"]
+            pe_enc_outdim = 0 if self.encoder_manager is None else self.pe_encoders_kwargs["out_dim"]
             pre_nn_indim = kwargs["pre_nn_kwargs"]["in_dim"] - pe_enc_outdim
             kwargs["pre_nn_kwargs"]["in_dim"] = round(pre_nn_indim + (pe_enc_outdim / divide_factor))
 
@@ -1480,18 +1338,10 @@ class FullGraphNetwork(nn.Module):
             )
 
         # For the pe-encoders, don't factor the in_dim and in_dim_edges
-        if self.pe_encoders is not None:
-            pe_kw = deepcopy(self.pe_encoders_kwargs)
-            new_pe_kw = {
-                key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
-                for key, encoder in self.pe_encoders.items()
-            }
-            pe_kw["out_dim"] = round(pe_kw["out_dim"] / divide_factor)
-            for key, enc in pe_kw["encoders"].items():
-                new_pe_kw[key].pop("in_dim", None)
-                new_pe_kw[key].pop("in_dim_edges", None)
-                enc.update(new_pe_kw[key])
-            kwargs["pe_encoders_kwargs"] = pe_kw  #! Andy get this from encoder manager
+        if self.encoder_manager is not None:
+            kwargs["pe_encoders_kwargs"] = self.encoder_manager.make_mup_base_kwargs(
+                divide_factor=divide_factor
+            )
 
         # For the post-nn network, all the dimension are divided
         if self.post_nn is not None:

@@ -1225,9 +1225,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         )
 
         # Warn about None molecules
-        idx_none = [ii for ii, feat in enumerate(features) if feat is None]
+        idx_none = [ii for ii, feat in enumerate(features) if isinstance(feat, str)]
         if len(idx_none) > 0:
-            mols_to_msg = [f"{smiles[idx]}" for idx in idx_none]
+            mols_to_msg = [f"{idx} - {smiles[idx]} - {str(features[idx])[:-200]}" for idx in idx_none]
             msg = "\n".join(mols_to_msg)
             logger.warning(
                 (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)

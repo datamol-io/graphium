@@ -150,7 +150,6 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
 def get_mol_conformer_features(
     mol: dm.Mol,
     property_list: Union[List[str], List[Callable]],
-    mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Dict[str, np.ndarray]:
     r"""obtain the conformer features of a molecule
     Parameters:
@@ -163,8 +162,6 @@ def get_mol_conformer_features(
             Accepted properties are:
             - "positions_3d"
 
-        mask_nan:
-            Whether to mask NaNs in the output array. If "raise", raise a ValueError.
     """
     prop_dict = {}
     has_conf = True
@@ -185,7 +182,7 @@ def get_mol_conformer_features(
                         positions[i][0] = pos.x
                         positions[i][1] = pos.y
                         positions[i][2] = pos.z
-                prop_dict[prop] = _mask_nans_inf(mask_nan, positions, "molecule conformer 3d positions")
+                prop_dict[prop] = positions
             else:
                 ValueError(
                     str(prop) + " is not currently supported as a conformer property in `property_list`"
@@ -727,7 +724,7 @@ def mol_to_adj_and_features(
     # Get the node features
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
     atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float, mask_nan=mask_nan)
-    conf_dict = get_mol_conformer_features(mol, conformer_property_list, mask_nan=mask_nan)
+    conf_dict = get_mol_conformer_features(mol, conformer_property_list)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
     ndata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in ndata]
 
@@ -884,7 +881,7 @@ def mol_to_graph_dict(
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
     max_num_atoms: Optional[int] = None,
-) -> GraphDict:
+) -> Union[GraphDict, str]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features, and re-organizes them into a dictionary
@@ -940,8 +937,8 @@ def mol_to_graph_dict(
             behavior of `mask_nan`.
 
             - "raise": Raise an error
-            - "warn": Raise a warning and return None
-            - "ignore": Ignore the error and return None
+            - "warn": Raise a warning and return a string of the error
+            - "ignore": Ignore the error and return a string of the error
 
         mask_nan:
             Deal with molecules that fail a part of the featurization.
@@ -962,7 +959,8 @@ def mol_to_graph_dict(
 
         graph_dict:
             A dictionary `GraphDict` containing the keys required to build a graph,
-            and which can be used to build a DGL or PyG graph.
+            and which can be used to build a DGL or PyG graph. If it fails
+            to featurize the molecule, it returns a string with the error.
 
             - "adj": A sparse int-array containing the adjacency matrix
 
@@ -1017,9 +1015,9 @@ def mol_to_graph_dict(
                 smiles = Chem.MolToSmiles(input_mol)
             msg = str(e) + "\nIgnoring following molecule:" + smiles
             logger.warning(msg)
-            return None
+            return str(e)
         elif on_error.lower() == "ignore":
-            return None
+            return str(e)
 
     dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
 
@@ -1199,7 +1197,7 @@ def mol_to_pyggraph(
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
     max_num_atoms: Optional[int] = None,
-) -> Data:
+) -> Union[Data, str]:
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features.
@@ -1254,8 +1252,8 @@ def mol_to_pyggraph(
             behavior of `mask_nan`.
 
             - "raise": Raise an error
-            - "warn": Raise a warning and return None
-            - "ignore": Ignore the error and return None
+            - "warn": Raise a warning and return a string of the error
+            - "ignore": Ignore the error and return a string of the error
 
         mask_nan:
             Deal with molecules that fail a part of the featurization.
@@ -1297,10 +1295,10 @@ def mol_to_pyggraph(
         max_num_atoms=max_num_atoms,
     )
 
-    if graph_dict is not None:
+    if (graph_dict is not None) and not isinstance(graph_dict, str):
         return graph_dict.make_pyg_graph()
-
-    return None
+    else:
+        return graph_dict
 
 
 def graph_dict_to_dgl(
