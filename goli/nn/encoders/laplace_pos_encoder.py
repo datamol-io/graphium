@@ -84,9 +84,9 @@ class LapPENodeEncoder(BaseEncoder):
             # MLP that will mix all eigenvalues and eigenvectors
             self.pe_encoder = MLP(
                 in_dim=self.in_dim * hidden_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=hidden_dim,
-                layers=num_layers_post,
+                depth=num_layers_post,
                 dropout=dropout,
                 activation=activation,
                 last_activation="none",
@@ -100,7 +100,7 @@ class LapPENodeEncoder(BaseEncoder):
             # MLP to apply post pooling
             self.post_mlp = MLP(
                 in_dim=hidden_dim,
-                hidden_dim=hidden_dim,
+                hidden_dims=hidden_dim,
                 out_dim=out_dim,
                 depth=num_layers_post,
                 dropout=dropout,
