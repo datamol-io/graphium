@@ -226,6 +226,7 @@ class test_Pyg_Layers(ut.TestCase):
             bg, max_num_nodes_per_graph=4, on_ipu=False, positions_3d_key="positions_3d"
         )
         self.assertEqual(bias.size(), torch.Size([2, num_heads, 4, 4]))
+        self.assertFalse(np.isnan(bias.detach().numpy()).any())
         self.assertEqual(node_feature.size(), torch.Size([7, self.out_dim]))
 
     def test_gaussianlayer(self):

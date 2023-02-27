@@ -28,7 +28,6 @@ class BaseGraphStructure:
         activation: Union[str, Callable] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
-        layer_idx: Optional[int] = 0,
     ):
         r"""
         Abstract class used to standardize the implementation of DGL layers
@@ -58,8 +57,6 @@ class BaseGraphStructure:
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
 
-            layer_idx:
-                The layer index, starting from 0.
         """
 
         super().__init__()
@@ -70,7 +67,6 @@ class BaseGraphStructure:
         self.normalization = normalization
         self.dropout = dropout
         self.activation = activation
-        self.layer_idx = layer_idx
         self._max_num_nodes_per_graph = None
         self._max_num_edges_per_graph = None
 

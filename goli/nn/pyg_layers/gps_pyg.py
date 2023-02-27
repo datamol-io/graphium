@@ -48,7 +48,6 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
         biased_attention_key: Optional[str] = None,
-        layer_idx: Optional[int] = 0,
         attn_kwargs=None,
     ):
         r"""
@@ -133,7 +132,6 @@ class GPSLayerPyg(BaseGraphModule):
 
         self.num_gaussian_kernels = num_gaussian_kernels
         self.biased_attention_key = biased_attention_key
-        self.layer_idx = layer_idx
         # Set the default values for the MPNN layer
         if mpnn_kwargs is None:
             mpnn_kwargs = {}

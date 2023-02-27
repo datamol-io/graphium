@@ -257,9 +257,7 @@ class FeedForwardNN(nn.Module):
                 this_dropout = self.last_dropout
                 if self.last_layer_is_readout and ("is_readout_layer" in key_args):
                     other_kwargs["is_readout_layer"] = self.last_layer_is_readout
-            # pass layer index to gnn layer kwargs
-            if self.name == "GNN":
-                self.layer_kwargs["layer_idx"] = ii
+
             # Create the layer
             self.layers.append(
                 self.layer_class(
@@ -636,9 +634,7 @@ class FeedForwardGraphBase(FeedForwardNN):
                     else:
                         this_out_dim_edges = self.layer_kwargs.get("out_dim_edges")
                     layer_out_dims_edges.append(this_out_dim_edges)
-            # pass layer index to gnn layer kwargs
-            if self.name == "GNN":
-                self.layer_kwargs["layer_idx"] = ii
+
             # Create the GNN layer
             self.layers.append(
                 self.layer_class(
