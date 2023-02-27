@@ -200,7 +200,6 @@ class GPSLayerPyg(BaseGraphModule):
         if self.droppath_ffn is not None:
             h = self.droppath_ffn(h, batch.batch, batch_size)
 
-
         batch_out.h = h
 
         return batch_out
@@ -227,7 +226,9 @@ class GPSLayerPyg(BaseGraphModule):
 
         return mpnn_layer
 
-    def _parse_attn_layer(self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]) -> Optional[Module]:
+    def _parse_attn_layer(
+        self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]
+    ) -> Optional[Module]:
         """Parse the attention layer."""
 
         # Set the default values for the Attention layer
@@ -246,8 +247,6 @@ class GPSLayerPyg(BaseGraphModule):
         if attn_class is not None:
             attn_layer = attn_class(biased_attention_key, **attn_kwargs)
         return attn_layer
-
-
 
     def _self_attention_block(self, h: Tensor, h_in: Tensor, batch: Batch) -> Tensor:
         """
