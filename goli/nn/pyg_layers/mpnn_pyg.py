@@ -26,6 +26,7 @@ class MPNNPlusPyg(BaseGraphModule):
         out_dim_edges: Optional[int] = 32,
         aggregation_method: Optional[List[Union[str, Aggregation]]] = ["sum"],
         num_edge_mlp: Optional[int] = 2,
+        use_globals: bool = True,
         edge_dropout_rate: Optional[float] = 0.0035,
         **kwargs,
     ):
@@ -162,6 +163,8 @@ class MPNNPlusPyg(BaseGraphModule):
             normalization=self.normalization,
         )
 
+        self.use_globals = use_globals
+
     def gather_features(
         self,
         input_features: Tensor,
@@ -274,7 +277,6 @@ class MPNNPlusPyg(BaseGraphModule):
     def forward(self, batch: Batch) -> Batch:
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
-
         # ---------------EDGE step---------------
         edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
 
