@@ -15,9 +15,9 @@ datamodule:
         df_path: goli/data/PCQM4Mv2/pcqm4mv2_medium.csv # 1M training samples
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        #df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
-        #smiles_col: "smiles"
-        #label_cols: ["homo"]
+       # df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
+       # smiles_col: "smiles"
+       # label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -213,7 +213,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 50
   trainer:
-    precision: 32
+    precision: 16
     max_epochs: 100
     min_epochs: 1
     accumulate_grad_batches: 225
