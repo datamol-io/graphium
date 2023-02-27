@@ -45,9 +45,9 @@ class PreprocessPositions(nn.Module):
         self.gaussian = GaussianLayer(self.num_kernel, in_dim=in_dim)
         self.gaussian_proj = MLP(
             in_dim=self.num_kernel,
-            hidden_dim=self.num_kernel,
+            hidden_dims=self.num_kernel,
             out_dim=self.num_heads,
-            layers=num_layers,
+            depth=num_layers,
             activation=activation,
             last_layer_is_readout=True,  # Since the output is not proportional to the hidden dim, but to the number of heads
         )

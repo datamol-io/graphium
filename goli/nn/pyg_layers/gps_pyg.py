@@ -4,6 +4,7 @@ adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_
 
 from copy import deepcopy
 from typing import Callable, Union, Optional, Dict, Any
+from torch.nn import Module
 from torch import Tensor
 from torch_geometric.data import Batch
 
@@ -134,8 +135,6 @@ class GPSLayerPyg(BaseGraphModule):
         # Set the other attributes
         self.in_dim_edges = in_dim_edges
         self.out_dim_edges = out_dim_edges
-        self.mpnn_kwargs = self._parse_mpnn_kwargs(mpnn_kwargs)
-        self.attn_kwargs = self._parse_attn_kwargs(attn_kwargs)
 
         # Dropout layers
         self.dropout_local = self.dropout_layer
@@ -166,7 +165,7 @@ class GPSLayerPyg(BaseGraphModule):
         self.biased_attention_key = biased_attention_key
 
         # Initialize the MPNN and Attention layers
-        self.mpnn = self._parse_mpnn_layer(mpnn_kwargs)
+        self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
 
     def forward(self, batch: Batch) -> Batch:
@@ -184,28 +183,107 @@ class GPSLayerPyg(BaseGraphModule):
             h_local = h_in + h_local  # Residual connection for nodes, not used in gps++.
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
-        h = h_local
-        # Multi-head attention.
-        # * batch.batch is the indicator vector for nodes of which graph it belongs to
-        # * h_dense
-        if self.attn_layer is not None:
-            # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
-            on_ipu = is_running_on_ipu()
-            max_num_nodes_per_graph = None
-            if on_ipu:
-                max_num_nodes_per_graph = self.max_num_nodes_per_graph
 
-            # Convert the tensor to a dense batch, then back to a sparse batch
-            batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
-            h_dense, mask, idx = to_dense_batch(
-                h,
-                batch=batch.batch,
-                batch_size=batch_size,
-                max_num_nodes_per_graph=max_num_nodes_per_graph,
-                drop_nodes_last_graph=on_ipu,
-            )
-            h_attn = self._sa_block(h_dense, None, ~mask)
-            h_attn = to_sparse_batch(h_attn, idx)
+        # Multi-head attention.
+        if self.attn_layer is not None:
+            h_attn = self._self_attention_block(h, h_in, batch)
+            # Combine local and global outputs.
+            h = h_local + h_attn
+        else:
+            h = h_local
+
+        # MLP block, with skip connection
+        h = h + self.mlp(h)
+        h = self.f_out(h)
+        # Add the droppath to the output of the MLP
+        batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
+        if self.droppath_ffn is not None:
+            h = self.droppath_ffn(h, batch.batch, batch_size)
+
+
+        batch_out.h = h
+
+        return batch_out
+
+    def _parse_mpnn_layer(self, mpnn_type, mpnn_kwargs: Dict[str, Any]) -> Optional[Module]:
+        """Parse the MPNN layer."""
+
+        mpnn_kwargs = deepcopy(mpnn_kwargs)
+        if mpnn_kwargs is None:
+            mpnn_kwargs = {}
+
+        # Set the default values
+        mpnn_kwargs = deepcopy(mpnn_kwargs)
+        mpnn_kwargs.setdefault("in_dim", self.in_dim)
+        mpnn_kwargs.setdefault("out_dim", self.in_dim)
+        mpnn_kwargs.setdefault("in_dim_edges", self.in_dim_edges)
+        mpnn_kwargs.setdefault("out_dim_edges", self.out_dim_edges)
+        # TODO: The rest of default values
+        self.mpnn_kwargs = mpnn_kwargs
+
+        # Initialize the MPNN layer
+        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
+        mpnn_layer = mpnn_class(**mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
+
+        return mpnn_layer
+
+    def _parse_attn_layer(self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]) -> Optional[Module]:
+        """Parse the attention layer."""
+
+        # Set the default values for the Attention layer
+        if attn_kwargs is None:
+            attn_kwargs = {}
+        attn_kwargs.setdefault("embed_dim", self.in_dim)
+        attn_kwargs.setdefault("num_heads", 1)
+        attn_kwargs.setdefault("dropout", self.dropout)
+        attn_kwargs.setdefault("batch_first", True)
+        self.attn_kwargs = attn_kwargs
+
+        # Initialize the Attention layer
+        attn_layer, attn_class = None, None
+        if attn_type is not None:
+            attn_class = ATTENTION_LAYERS_DICT[attn_type]
+        if attn_class is not None:
+            attn_layer = attn_class(biased_attention_key, **attn_kwargs)
+        return attn_layer
+
+
+
+    def _self_attention_block(self, h: Tensor, h_in: Tensor, batch: Batch) -> Tensor:
+        """
+        Applying the multi-head self-attention to the batch of graphs.
+        First the batch is converted from [num_nodes, hidden_dim] to [num_graphs, max_num_nodes, hidden_dim]
+        Then the self-attention is applied on each graph
+        Then the batch is converted again to [num_nodes, hidden_dim]
+        """
+
+        # Multi-head attention.
+        on_ipu = is_running_on_ipu()
+        max_num_nodes_per_graph = None
+        if on_ipu:
+            max_num_nodes_per_graph = self.max_num_nodes_per_graph
+
+        # Convert the tensor to a dense batch, then back to a sparse batch
+        batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
+
+        # h[num_nodes, hidden_dim] -> h_dense[num_graphs, max_num_nodes, hidden_dim]
+        h_dense, mask, idx = to_dense_batch(
+            h,
+            batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
+            batch_size=batch_size,
+            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            drop_nodes_last_graph=on_ipu,
+        )
+
+        attn_bias = None
+        if self.biased_attention_key is not None:
+            attn_bias = batch[self.biased_attention_key]
+
+        # h_dense[num_graphs, max_num_nodes, hidden_dim] -> h_attn[num_graphs, max_num_nodes, hidden_dim]
+        h_attn = self._sa_block(h_dense, attn_bias=attn_bias, attn_mask=None, key_padding_mask=~mask)
+
+        # h_attn[num_graphs, max_num_nodes, hidden_dim] -> h_attn[num_nodes, hidden_dim]
+        h_attn = to_sparse_batch(h_attn, idx)
 
         # Dropout, residual, norm
         if self.dropout_attn is not None:
@@ -216,79 +294,8 @@ class GPSLayerPyg(BaseGraphModule):
         if self.droppath_layer is not None:
             self.droppath_layer(h_attn, batch.batch, batch_size)
 
-            # Combine local and global outputs.
-            h = h + h_attn
-
-        # Feed Forward block.
-        h = self._ff_block(h)
-
-        batch_out.h = h
-
-        return batch_out
-
-    def _parse_mpnn_layer(self, mpnn_kwargs: Dict[str, Any]) -> Optional[nn.Module]:
-        """Parse the MPNN layer."""
-
-        mpnn_kwargs = deepcopy(mpnn_kwargs)
-        if mpnn_kwargs is None:
-            mpnn_kwargs = {}
-
-        # Set the default values
-        mpnn_kwargs = deepcopy(mpnn_kwargs)
-        mpnn_kwargs.setdefault("in_dim", in_dim)
-        mpnn_kwargs.setdefault("out_dim", in_dim)
-        mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
-        mpnn_kwargs.setdefault("out_dim_edges", out_dim_edges)
-        # TODO: The rest of default values
-
-        # Initialize the MPNN layer
-        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
-        mpnn_layer = mpnn_class(**mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
-
-        return mpnn_layer
-
-    def _parse_attn_layer(self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]) -> Optional[nn.Module]:
-        """Parse the attention layer."""
-
-        # Set the default values for the Attention layer
-        if attn_kwargs is None:
-            attn_kwargs = {}
-        attn_kwargs.setdefault("embed_dim", in_dim)
-        attn_kwargs.setdefault("num_heads", 1)
-        attn_kwargs.setdefault("dropout", dropout)
-        attn_kwargs.setdefault("batch_first", True)
-
-        # Initialize the Attention layer
-        attn_layer, attn_class = None, None
-        if attn_type is not None:
-            attn_class = ATTENTION_LAYERS_DICT[attn_type]
-        if attn_class is not None:
-            attn_layer = attn_class(biased_attention_key, **attn_kwargs)
-        return attn_layer
-
-    def _ff_block(self, h):
-        """Feed Forward block."""
-        h_in = h
-        # First linear layer + activation + dropout
-        h = self.ff_linear1(h)
-        if self.activation_layer is not None:
-            h = self.activation_layer(h)
-        if self.ff_dropout1 is not None:
-            h = self.ff_dropout1(h)
-
-        # Second linear layer + dropout
-        h = self.ff_linear2(h)
-        if self.ff_dropout2 is not None:
-            h = self.ff_dropout2(h)
-
-        # Residual
-        h = h + h_in
-
-        # Third linear layer + norm
-        h = self.ff_out(h)
-        if self.norm_layer_ff is not None:
-            h = self.norm_layer_ff(h)
-        return h
+        # Combine local and global outputs.
+        return h + h_attn
 
     def _sa_block(self, x, attn_bias, attn_mask=None, key_padding_mask=None):
         """Self-attention block."""
