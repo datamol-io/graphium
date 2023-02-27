@@ -163,31 +163,11 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_ff = self._parse_norm(self.normalization)
 
-        # Set the default values for the Attention layer
-        if attn_kwargs is None:
-            attn_kwargs = {}
-        attn_kwargs.setdefault("embed_dim", in_dim)
-        attn_kwargs.setdefault("num_heads", 1)
-        attn_kwargs.setdefault("dropout", dropout)
-        attn_kwargs.setdefault("batch_first", True)
-
         self.biased_attention_key = biased_attention_key
-        # Set the default values for the MPNN layer
-        if mpnn_kwargs is None:
-            mpnn_kwargs = {}
-        mpnn_kwargs = deepcopy(mpnn_kwargs)
-        mpnn_kwargs.setdefault("in_dim", in_dim)
-        mpnn_kwargs.setdefault("out_dim", in_dim)
-        mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
-        mpnn_kwargs.setdefault("out_dim_edges", out_dim_edges)
-        # TODO: The rest of default values
 
-        # Initialize the MPNN layer
-        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
-        self.mpnn = mpnn_class(**mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
-
-        # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, **self.attn_kwargs)
+        # Initialize the MPNN and Attention layers
+        self.mpnn = self._parse_mpnn_layer(mpnn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
 
     def forward(self, batch: Batch) -> Batch:
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
@@ -246,7 +226,39 @@ class GPSLayerPyg(BaseGraphModule):
 
         return batch_out
 
-    def _parse_attn_layer(self, attn_type, biased_attention_key, **attn_kwargs):
+    def _parse_mpnn_layer(self, mpnn_kwargs: Dict[str, Any]) -> Optional[nn.Module]:
+        """Parse the MPNN layer."""
+
+        mpnn_kwargs = deepcopy(mpnn_kwargs)
+        if mpnn_kwargs is None:
+            mpnn_kwargs = {}
+
+        # Set the default values
+        mpnn_kwargs = deepcopy(mpnn_kwargs)
+        mpnn_kwargs.setdefault("in_dim", in_dim)
+        mpnn_kwargs.setdefault("out_dim", in_dim)
+        mpnn_kwargs.setdefault("in_dim_edges", in_dim_edges)
+        mpnn_kwargs.setdefault("out_dim_edges", out_dim_edges)
+        # TODO: The rest of default values
+
+        # Initialize the MPNN layer
+        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
+        mpnn_layer = mpnn_class(**mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
+
+        return mpnn_layer
+
+    def _parse_attn_layer(self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]) -> Optional[nn.Module]:
+        """Parse the attention layer."""
+
+        # Set the default values for the Attention layer
+        if attn_kwargs is None:
+            attn_kwargs = {}
+        attn_kwargs.setdefault("embed_dim", in_dim)
+        attn_kwargs.setdefault("num_heads", 1)
+        attn_kwargs.setdefault("dropout", dropout)
+        attn_kwargs.setdefault("batch_first", True)
+
+        # Initialize the Attention layer
         attn_layer, attn_class = None, None
         if attn_type is not None:
             attn_class = ATTENTION_LAYERS_DICT[attn_type]
