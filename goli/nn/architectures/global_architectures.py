@@ -1273,21 +1273,6 @@ class FullGraphNetwork(nn.Module):
 
         return h
 
-    def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
-        """
-        Apply sum, mean, or max pooling on a Tensor.
-        """
-
-        if pooling == "sum":
-            pooled = torch.sum(h, dim=dim)
-        elif pooling == "mean":
-            pooled = torch.mean(h, dim=dim)
-        elif pooling == "max":
-            pooled = torch.max(h, dim=dim).values
-        else:
-            raise Exception(f"Pooling method `{self.pe_pool}` is not defined")
-        return pooled
-
     @property
     def concat_last_layers(self) -> Optional[Iterable[int]]:
         """

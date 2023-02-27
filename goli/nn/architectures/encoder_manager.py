@@ -1,4 +1,4 @@
-from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
+from typing import Iterable, Dict, Any, Optional
 
 # Misc imports
 import inspect
@@ -7,18 +7,6 @@ from copy import deepcopy
 # Torch imports
 from torch import Tensor, nn
 import torch
-import mup
-from dgl import DGLGraph
-from torch_geometric.data import Data
-
-# goli imports
-from goli.nn.base_layers import FCLayer, get_activation, get_norm
-from goli.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
-from goli.nn.residual_connections import (
-    ResidualConnectionBase,
-    ResidualConnectionWeighted,
-    ResidualConnectionRandom,
-)
 
 from goli.nn.encoders import (
     laplace_pos_encoder,
@@ -160,10 +148,8 @@ class EncoderManager(nn.Module):
         for pe_key, this_pe in pe_pooled.items():
             feat = this_pe
             if pe_key in g.keys:
-                feat = torch.cat(
-                    (feat, getattr(g, pe_key)), dim=-1  # @Dom, can you check if this is alright to do?
-                )
-            setattr(g, pe_key, feat)
+                feat = torch.cat((feat, g[pe_key]), dim=-1)
+            g[pe_key] = feat
         return g
 
     def forward_positional_encoding(self, g: Any) -> Dict[str, Tensor]:
@@ -272,7 +258,6 @@ class EncoderManager(nn.Module):
         else:
             raise ValueError("pe_encoders is not initialized, so there is no output dimension.")
 
-    # TODO Andy: this should be defined in individual encoders and then pooled here
     # @property
     # def in_dim_edges(self) -> int:
     #     r"""

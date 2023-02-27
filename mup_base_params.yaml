@@ -295,7 +295,7 @@ pre_nn.layers.0.linear.bias:
 - 32
 pre_nn.layers.0.linear.weight:
 - 32
-- 103
+- 87
 pre_nn.layers.0.normalization.bias:
 - 32
 pre_nn.layers.0.normalization.weight:
