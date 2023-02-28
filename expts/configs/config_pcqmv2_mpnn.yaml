@@ -12,12 +12,12 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2_medium.csv # 1M training samples
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv # 1M training samples
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-       # df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
-       # smiles_col: "smiles"
-       # label_cols: ["homo"]
+        #df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
+        #smiles_col: "smiles"
+        #label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -168,13 +168,11 @@ predictor:
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
-  #torch_scheduler_kwargs:
-  #  module_type: MultiStepLR
-  #  milestones: [10]
-  #  gamma: 0.1
-  #  last_epoch: 100
-  scheduler_kwargs: null
-  #  monitor: &monitor loss/val
+  torch_scheduler_kwargs:
+    module_type: ConstantLR
+    last_epoch: -1
+  scheduler_kwargs:
+  #  monitor: &monitor homolumo/mae/train
   #  mode: min
   #  frequency: 1
   target_nan_mask: null # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
@@ -216,4 +214,5 @@ trainer:
     precision: 16
     max_epochs: 100
     min_epochs: 1
-    accumulate_grad_batches: 225
+    accumulate_grad_batches: 112
+    check_val_every_n_epoch: 50

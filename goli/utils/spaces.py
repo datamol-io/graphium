@@ -113,6 +113,7 @@ SCHEDULER_DICT = {
     "MultiStepLR": sc.MultiStepLR,
     "ReduceLROnPlateau": sc.ReduceLROnPlateau,
     "StepLR": sc.StepLR,
+    "ConstantLR": sc.ConstantLR,
 }
 
 METRICS_CLASSIFICATION = {
