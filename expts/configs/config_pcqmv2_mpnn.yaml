@@ -47,7 +47,7 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 32
+    batch_size_training: 152
     batch_size_inference: 8
     # cache_data_path: null
 
@@ -212,7 +212,7 @@ trainer:
     every_n_epochs: 50
   trainer:
     precision: 16
-    max_epochs: 100
+    max_epochs: 10
     min_epochs: 1
-    accumulate_grad_batches: 112
+    accumulate_grad_batches: 2
     check_val_every_n_epoch: 50
