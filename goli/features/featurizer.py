@@ -1047,6 +1047,7 @@ def mol_to_graph_dict(
         dgl_dict["ndata"][key] = pe
 
     # put the conformer positions here
+    # TODO: pool the keys based on node or edge prefix like "edge_"
     for key, val in conf_dict.items():
         dgl_dict["ndata"][key] = val
 
