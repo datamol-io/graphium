@@ -167,6 +167,8 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             # [batch, num_heads, nodes, nodes]
             attn_weights = q @ k.transpose(-1, -2)
             # [batch, num_heads, nodes, nodes]
+            print("attn_bias", attn_bias.shape) # TODO: Remove
+            print("attn_weights", attn_weights.shape) # TODO: Remove
             attn_weights += attn_bias
             # key_padding_mask: [batch, 1, 1, nodes]
             if key_padding_mask is not None:
