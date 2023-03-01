@@ -30,13 +30,6 @@ from goli.nn.encoders import (
 
 import collections
 
-PE_ENCODERS_DICT = {
-    "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
-    "mlp": mlp_encoder.MLPEncoder,
-    "signnet": signnet_pos_encoder.SignNetNodeEncoder,
-    "gaussian_kernel": gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
-}
-
 
 class FeedForwardNN(nn.Module):
     def __init__(
@@ -1053,8 +1046,8 @@ class FullGraphNetwork(nn.Module):
                 - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
 
             pe_encoders_kwargs:
-                key-word arguments to use for the initialization of all positional encoding encoders
-                can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)
+                key-word arguments to use for the initialization of all positional encoding encoders.
+                See the class `EncoderManager` for more details.
 
             pre_nn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
