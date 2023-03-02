@@ -19,7 +19,7 @@
         <link rel="next" href="goli.features.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.13">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.15">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ffa9267a.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.113286f1.min.css">
       
         
         <link rel="stylesheet" href="../assets/stylesheets/palette.a0c5b2b5.min.css">
@@ -710,20 +710,6 @@
           <li class="md-nav__item">
   <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward" class="md-nav__link">
     forward()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward_node_positional_encoding" class="md-nav__link">
-    forward_node_positional_encoding()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward_simple_pooling" class="md-nav__link">
-    forward_simple_pooling()
   </a>
   
 </li>
@@ -1613,6 +1599,19 @@
   <a href="#goli.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs" class="md-nav__link">
     make_mup_base_kwargs()
   </a>
+  
+    <nav class="md-nav" aria-label="make_mup_base_kwargs()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs--todo-update-this-it-is-broken" class="md-nav__link">
+    TODO: Update this. It is broken
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -3092,20 +3091,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward_node_positional_encoding" class="md-nav__link">
-    forward_node_positional_encoding()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward_simple_pooling" class="md-nav__link">
-    forward_simple_pooling()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.make_mup_base_kwargs" class="md-nav__link">
     make_mup_base_kwargs()
   </a>
@@ -3990,6 +3975,19 @@
   <a href="#goli.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs" class="md-nav__link">
     make_mup_base_kwargs()
   </a>
+  
+    <nav class="md-nav" aria-label="make_mup_base_kwargs()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs--todo-update-this-it-is-broken" class="md-nav__link">
+    TODO: Update this. It is broken
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -6413,8 +6411,8 @@ This will be useful for certain architecture, but ignored by others.</p></td>
 <code class="highlight language-python"><span class="n">concat_last_layers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.concat_last_layers" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -6564,8 +6562,8 @@ It must respect the following criteria:</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>key-word arguments to use for the initialization of all positional encoding encoders
-can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)</p></td>
+          <td><p>key-word arguments to use for the initialization of all positional encoding encoders.
+See the class <code>EncoderManager</code> for more details.</p></td>
           <td>
                 <code>None</code>
           </td>
@@ -6838,91 +6836,6 @@ otherwise it returns graph features and the output dimension is <code>M</code></
 
 
 
-<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.forward_node_positional_encoding" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward_node_positional_encoding</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
-
-<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward_node_positional_encoding" class="headerlink" title="Permanent link">&para;</a></h5>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Forward pass for the positional encodings (PE) on the nodes,
-with each PE having it's own encoder defined in <code>self.pe_encoders</code>.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>g</code></td>
-          <td>
-                <code><span title="typing.Any">Any</span></code>
-          </td>
-          <td><p>graph containing the node positional encodings</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>pe_node_pooled</code></td>          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
-          </td>
-          <td><p>The positional / structural encodings go through</p></td>
-        </tr>
-        <tr>
-<td></td>          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
-          </td>
-          <td><p>encoders, then are pooled together</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.forward_simple_pooling" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward_simple_pooling</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">pooling</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span></code>
-
-<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward_simple_pooling" class="headerlink" title="Permanent link">&para;</a></h5>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Apply sum, mean, or max pooling on a Tensor.</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.make_mup_base_kwargs" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
 
@@ -6955,7 +6868,7 @@ layers width divided by a given factor (2 by default)</p>
 
   <div class="doc doc-contents ">
   
-      <p>Set the maximum number of nodes and edges for all gnn layers</p>
+      <p>Set the maximum number of nodes and edges for all gnn layers and encoder layers</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -12198,7 +12111,7 @@ in a Module that concatenates their outputs.</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="goli.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</span></code></p>
 
   
       <p>Laplace Positional Embedding node encoder.</p>
@@ -12328,7 +12241,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="goli.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</span></code></p>
 
   
       <p>Configurable kernel-based Positional Encoding node encoder.</p>
@@ -12518,7 +12431,7 @@ f(v1, ..., vk) = rho(enc(v1) + enc(-v1), ..., enc(vk) + enc(-vk))</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="goli.nn.encoders.base_encoder.BaseEncoder">BaseEncoder</span></code></p>
 
   
       <p>SignNet Positional Embedding node encoder.
@@ -12584,6 +12497,7 @@ where \phi is GIN network applied to k first non-trivial eigenvectors, and
       <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
 The base model is usually identical to the regular model, but with the
 layers width divided by a given factor (2 by default)</p>
+<h6 id="goli.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs--todo-update-this-it-is-broken">TODO: Update this. It is broken<a class="headerlink" href="#goli.nn.encoders.signnet_pos_encoder.SignNetNodeEncoder.make_mup_base_kwargs--todo-update-this-it-is-broken" title="Permanent link">&para;</a></h6>
 
 <details class="parameter">
   <summary>Parameter</summary>
@@ -13857,7 +13771,7 @@ of heads.</p>
 
 
 <h5 id="goli.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">node_residual</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">mpnn_type</span><span class="o">=</span><span class="s1">&#39;pyg:gine&#39;</span><span class="p">,</span> <span class="n">mpnn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_type</span><span class="o">=</span><span class="s1">&#39;full-attention&#39;</span><span class="p">,</span> <span class="n">biased_attention_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">attn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">droppath_rate_attn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">droppath_rate_ffn</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">hidden_dim_scaling</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.nn.pyg_layers.gps_pyg.GPSLayerPyg.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -14024,6 +13938,27 @@ Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam
           <td><p>stochastic depth drop rate for ffn layer <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
           <td>
                 <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mpnn_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Type of MPNN layer to use. Choices specified in PYG_LAYERS_DICT</p></td>
+          <td>
+                <code>&#39;pyg:gine&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>biased_attention_key</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>indicates if biased attention is used by specifying a key corresponding to the pyg attribute in the batch (processed by the gaussian kernel encoder)
+default: None means biased attention is not used</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -15955,8 +15890,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_edges_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -15977,8 +15912,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_nodes_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_nodes_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -17701,7 +17636,8 @@ value, but won't give the same results as CPU</p>
   
       <p>Modifying the MultiheadAttention to work with the muTransfer paradigm.
 The layers are initialized using the mup package.
-The <code>_scaled_dot_product_attention</code> normalizes the attention matrix with <code>1/d</code> instead of <code>1/sqrt(d)</code></p>
+The <code>_scaled_dot_product_attention</code> normalizes the attention matrix with <code>1/d</code> instead of <code>1/sqrt(d)</code>
+The biased self-attention option is added to have 3D attention bias.</p>
 
 
 
@@ -17757,7 +17693,7 @@ The <code>_scaled_dot_product_attention</code> normalizes the attention matrix w
                 <code><span title="typing.Union">Union</span>[type(None), str, <span title="typing.Callable">Callable</span>]</code>
           </td>
           <td><p>Callable, <code>None</code>, or string with value:
-"none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"</p></td>
+"none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "GELU", "LeakyReLU", "Softplus"</p></td>
           <td>
               <em>required</em>
           </td>
