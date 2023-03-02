@@ -4,14 +4,12 @@ Unit tests for the different layers of goli/nn/dgl_layers/...
 The layers are not thoroughly tested due to the difficulty of testing them
 """
 
-from ast import Assert
 import numpy as np
 import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
 
-from goli.ipu.to_dense_batch import to_dense_batch
 from goli.nn.pyg_layers import (
     GINConvPyg,
     GINEConvPyg,
@@ -19,6 +17,7 @@ from goli.nn.pyg_layers import (
     GatedGCNPyg,
     PNAMessagePassingPyg,
     GPSLayerPyg,
+    VirtualNodePyg,
 )
 
 from goli.nn.pyg_layers.utils import (
@@ -49,12 +48,21 @@ class test_Pyg_Layers(ut.TestCase):
         "activation": "relu",
         "dropout": 0.1,
         "normalization": "batch_norm",
+        "droppath_rate": 0.1,
+        "layer_idx": 1,
+        "layer_depth": 10,
     }
 
     def test_gpslayer(self):
         bg = deepcopy(self.bg)
         h_in = bg.h
-        layer = GPSLayerPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
+        kwargs = deepcopy(self.kwargs)
+        kwargs.pop("droppath_rate")
+        kwargs["droppath_rate_attn"] = 0.2
+        kwargs["droppath_rate_ffn"] = 0.3
+        kwargs["mpnn_kwargs"] = {"droppath_rate_ffn": 0.4}
+
+        layer = GPSLayerPyg(in_dim=self.in_dim, out_dim=self.out_dim, **kwargs)
 
         # Check the re-implementation of abstract methods
         self.assertTrue(layer.layer_supports_edges)
@@ -236,6 +244,44 @@ class test_Pyg_Layers(ut.TestCase):
         # tensor_with_kernel: [batch, nodes, nodes, num_kernel]
         tensor_with_kernel = layer.forward(input)
         self.assertEqual(tensor_with_kernel.size(), torch.Size([2, 4, 4, 3]))
+
+    def test_pooling_virtual_node(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        e_in = bg.edge_attr
+        vn_h = 0
+
+        vn_types = ["sum", "mean"]
+        for vn_type, use_edges, expected_v_node in zip(vn_types, [False, True], [(2, 21), (2, 34)]):
+            with self.subTest(
+                vn_type=vn_type,
+                use_edges=use_edges,
+                expected_v_node=expected_v_node,
+            ):
+                vn_h = 0.0
+                print(vn_h, self.out_dim, h_in.size())
+                layer = VirtualNodePyg(
+                    in_dim=self.in_dim,
+                    out_dim=self.in_dim,
+                    in_dim_edges=self.in_dim_edges,
+                    out_dim_edges=self.in_dim_edges,
+                    vn_type=vn_type,
+                    use_edges=use_edges,
+                    **self.kwargs,
+                )
+
+                h_out, vn_out, e_out = layer.forward(bg, h_in, vn_h, e=e_in)
+                assert vn_out.shape == expected_v_node
+                assert h_out.shape == (7, 21)
+                assert e_out.shape == (9, 13)
+                if use_edges is False:
+                    # i.e. that the node features have been updated
+                    assert torch.equal(h_out, h_in) == False
+                    # And that the edge features have not
+                    assert torch.equal(e_out, e_in) == True
+                else:
+                    assert torch.equal(h_out, h_in) == False
+                    assert torch.equal(e_out, e_in) == False
 
 
 if __name__ == "__main__":
