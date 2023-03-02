@@ -12,12 +12,12 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv # 1M training samples
-        smiles_col: "cxsmiles"
-        label_cols: ["homo_lumo_gap"]
-        #df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
-        #smiles_col: "smiles"
-        #label_cols: ["homo"]
+        #df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv # 1M training samples
+        #smiles_col: "cxsmiles"
+        #label_cols: ["homo_lumo_gap"]
+        df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
+        smiles_col: "smiles"
+        label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -209,7 +209,7 @@ trainer:
     #monitor: *monitor
     #mode: *mode
     save_top_k: 1
-    every_n_epochs: 50
+    every_n_epochs: 2
   trainer:
     precision: 16
     max_epochs: 10
