@@ -142,8 +142,7 @@ class GaussianLayer(nn.Module):
         mean = self.means.weight.float().view(-1)
         # [num_kernels]
         std = self.stds.weight.float().view(-1).abs() + 0.01  # epsilon is 0.01 that matches gps++ value
-        pi = 3.141592653
-        pre_exp_factor = (2 * pi) ** 0.5
+        pre_exp_factor = (2 * math.pi) ** 0.5
         # [batch, nodes, nodes, num_kernels]
         tensor_with_kernel = torch.exp(-0.5 * (((expanded_input - mean) / std) ** 2)) / (pre_exp_factor * std)
         return tensor_with_kernel
