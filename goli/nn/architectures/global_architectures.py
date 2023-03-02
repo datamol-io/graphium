@@ -1372,7 +1372,7 @@ class FullGraphNetwork(nn.Module):
 
     def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
-        Set the maximum number of nodes and edges for all gnn layers
+        Set the maximum number of nodes and edges for all gnn layers and encoder layers
 
         Parameters:
             max_nodes: Maximum number of nodes in the dataset.
@@ -1381,6 +1381,10 @@ class FullGraphNetwork(nn.Module):
             max_edges: Maximum number of edges in the dataset.
                 This will be useful for certain architecture, but ignored by others.
         """
+        if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
+            for encoder in self.encoder_manager.pe_encoders.values():
+                encoder.max_num_nodes_per_graph = max_nodes
+                encoder.max_num_edges_per_graph = max_edges
         if self.gnn is not None:
             for layer in self.gnn.layers:
                 if isinstance(layer, BaseGraphStructure):
