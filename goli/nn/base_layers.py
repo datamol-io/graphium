@@ -186,6 +186,49 @@ def _mup_scaled_dot_product_attention(
     return output, attn
 
 
+class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
+    r"""
+    Modified version of ``torch.nn.TransformerEncoderLayer`` that uses :math:`1/n`-scaled attention
+    for compatibility with muP (as opposed to the original :math:`1/\sqrt{n}` scaling factor)
+
+    Arguments are the same as ``torch.nn.TransformerEncoderLayer``.
+
+    Args:
+        d_model: the number of expected features in the input (required).
+        nhead: the number of heads in the multiheadattention models (required).
+        dim_feedforward: the dimension of the feedforward network model (default=2048).
+        dropout: the dropout value (default=0.1).
+        activation: the activation function of the intermediate layer, can be a string
+            ("relu" or "gelu") or a unary callable. Default: relu
+        layer_norm_eps: the eps value in layer normalization components (default=1e-5).
+        batch_first: If ``True``, then the input and output tensors are provided
+            as (batch, seq, feature). Default: ``False`` (seq, batch, feature).
+        norm_first: if ``True``, layer norm is done prior to attention and feedforward
+            operations, respectively. Otherwise it's done after. Default: ``False`` (after).
+
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        nhead: int,
+        dim_feedforward: int = 2048,
+        dropout: float = 0.1,
+        activation: Union[str, Callable[[Tensor], Tensor]] = F.relu,
+        layer_norm_eps: float = 1e-5,
+        batch_first: bool = False,
+        norm_first: bool = False,
+        device=None,
+        dtype=None,
+    ) -> None:
+        super().__init__()
+        factory_kwargs = {"device": device, "dtype": dtype}
+        # Override self attention to use muP
+        self.self_attn = MultiheadAttentionMup(
+            d_model, nhead, dropout=dropout, batch_first=batch_first, **factory_kwargs
+        )
+
+
 class MuReadoutGoli(MuReadout):
     """
     PopTorch-compatible replacement for `mup.MuReadout`
