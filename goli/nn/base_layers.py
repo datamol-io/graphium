@@ -8,6 +8,7 @@ import torch.nn.functional as F
 from torch import Tensor, IntTensor
 import mup.init as mupi
 from mup import set_base_shapes, MuReadout
+from torch.nn.functional import linear
 
 from goli.ipu.ipu_utils import is_running_on_ipu
 
@@ -31,7 +32,7 @@ def get_activation(activation: Union[type(None), str, Callable]) -> Optional[Cal
 
     Parameters:
         activation: Callable, `None`, or string with value:
-            "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"
+            "none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "GELU", "LeakyReLU", "Softplus"
 
     Returns:
         Callable or None: The activation function
@@ -90,13 +91,13 @@ def get_norm(normalization: Union[Type[None], str, Callable], dim: Optional[int]
         Callable or None: The normalization function
     """
     parsed_norm = None
-    if normalization is None or normalization == "none":
+    if (normalization is None) or (normalization in ["none", "NoneType"]):
         pass
     elif callable(normalization):
         parsed_norm = normalization
-    elif normalization == "batch_norm":
+    elif normalization in ["batch_norm", "BatchNorm1d"]:
         parsed_norm = nn.BatchNorm1d(dim)
-    elif normalization == "layer_norm":
+    elif normalization in ["layer_norm", "LayerNorm"]:
         parsed_norm = nn.LayerNorm(dim)
     else:
         raise ValueError(
@@ -110,7 +111,12 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
     Modifying the MultiheadAttention to work with the muTransfer paradigm.
     The layers are initialized using the mup package.
     The `_scaled_dot_product_attention` normalizes the attention matrix with `1/d` instead of `1/sqrt(d)`
+    The biased self-attention option is added to have 3D attention bias.
     """
+
+    def __init__(self, biased_attention, **kwargs):
+        super().__init__(**kwargs)
+        self.biased_attention = biased_attention
 
     def _reset_parameters(self):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
@@ -129,12 +135,62 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         if self.bias_v is not None:
             mupi.xavier_normal_(self.bias_v)
 
-    def forward(self, *args, **kwargs) -> Tuple[Tensor, Optional[Tensor]]:
-        # Patching the forward to use a different scaling for the dot-product
-        prev_fn = F._scaled_dot_product_attention
-        F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
-        out = super().forward(*args, **kwargs)
-        F._scaled_dot_product_attention = prev_fn
+    def forward(
+        self,
+        query: Tensor,
+        key: Tensor,
+        value: Tensor,
+        key_padding_mask: Optional[Tensor] = None,
+        attn_bias: Optional[Tensor] = None,
+        *args,
+        **kwargs,
+    ) -> Tuple[Tensor, Optional[Tensor]]:
+        # attn_bias [batch, num_heads, nodes, nodes]
+        if self.biased_attention and attn_bias is not None:
+            # assuming source and target have the same sequence length (homogeneous graph attention)
+            batch, nodes, hidden = query.size()
+            assert (
+                hidden == self.embed_dim
+            ), f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
+            head_dim = self.embed_dim // self.num_heads
+            assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
+            scaling_factor = 1 / head_dim  # use head_dim instead of (head_dim**0.5) for mup
+            b_q, b_k, b_v = self.in_proj_bias.chunk(3)
+            q_proj_weight, k_proj_weight, v_proj_weight = self.in_proj_weight.chunk(3)
+            # [batch, num_heads, nodes, head_size]
+            q = linear(query, q_proj_weight, b_q).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            # [batch, num_heads, nodes, head_size]
+            k = linear(key, k_proj_weight, b_k).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            # [batch, num_heads, nodes, head_size]
+            v = linear(value, v_proj_weight, b_v).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+            q = q * scaling_factor
+            # [batch, num_heads, nodes, nodes]
+            attn_weights = q @ k.transpose(-1, -2)
+            # [batch, num_heads, nodes, nodes]
+
+            attn_weights += attn_bias
+            # key_padding_mask: [batch, 1, 1, nodes]
+            if key_padding_mask is not None:
+                masked_attn_weights = attn_weights.masked_fill(
+                    key_padding_mask.unsqueeze(1).unsqueeze(2),
+                    float("-inf"),
+                )
+            masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
+            attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
+            # [batch, num_heads, nodes, nodes] * [batch, num_heads, nodes, head_size] -> [batch, num_heads, nodes, head_size]
+            attn = attn_probs @ v
+            # [batch, nodes, embd_dim]
+            attn = attn.transpose(1, 2).contiguous().view(batch, nodes, self.embed_dim)
+            # [batch, nodes, embd_dim]
+            out = (self.out_proj(attn), None)
+        else:
+            # Patching the forward to use a different scaling for the dot-product
+            prev_fn = F._scaled_dot_product_attention
+            F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
+            out = super().forward(
+                query=query, key=key, value=value, key_padding_mask=key_padding_mask, *args, **kwargs
+            )
+            F._scaled_dot_product_attention = prev_fn
         return out
 
 
@@ -143,6 +199,7 @@ def _mup_scaled_dot_product_attention(
     k: Tensor,
     v: Tensor,
     attn_mask: Optional[Tensor] = None,
+    key_padding_mask: Optional[Tensor] = None,
     dropout_p: float = 0.0,
 ) -> Tuple[Tensor, Tensor]:
     r"""
@@ -395,7 +452,11 @@ class FCLayer(nn.Module):
         """
 
         if torch.prod(torch.as_tensor(h.shape[:-1])) == 0:
-            h = torch.zeros(list(h.shape[:-1]) + [self.linear.out_features], device=h.device, dtype=h.dtype)
+            h = torch.zeros(
+                list(h.shape[:-1]) + [self.linear.out_features],
+                device=h.device,
+                dtype=h.dtype,
+            )
             return h
 
         h = self.linear(h)
@@ -634,7 +695,12 @@ class GRU(nn.Module):
         if x.shape[-1] < self.in_dim:
             x = F.pad(input=x, pad=[0, self.in_dim - x.shape[-1]], mode="constant", value=0)
         if y.shape[-1] < self.hidden_dim:
-            y = F.pad(input=y, pad=[0, self.hidden_dim - y.shape[-1]], mode="constant", value=0)
+            y = F.pad(
+                input=y,
+                pad=[0, self.hidden_dim - y.shape[-1]],
+                mode="constant",
+                value=0,
+            )
 
         x = self.gru(x, y)[1]
         x = x.reshape(B, N, -1)
