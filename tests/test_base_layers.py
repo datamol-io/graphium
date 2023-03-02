@@ -57,9 +57,9 @@ class test_Base_Layers(ut.TestCase):
         bg = deepcopy(self.bg)
         h_in = bg.h
         layer = TransformerEncoderLayerMup(
-            d_model=in_dim,
+            d_model=self.in_dim,
             nhead=1,
-            dim_feedforward=4 * in_dim
+            dim_feedforward=4 * self.in_dim
         )
 
         h_out = layer.forward(h_in)
