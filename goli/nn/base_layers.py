@@ -278,7 +278,7 @@ class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
         device=None,
         dtype=None,
     ) -> None:
-        super().__init__()
+        super(TransformerEncoderLayerMup, self).__init__()
         factory_kwargs = {"device": device, "dtype": dtype}
         # Override self attention to use muP
         self.self_attn = MultiheadAttentionMup(
