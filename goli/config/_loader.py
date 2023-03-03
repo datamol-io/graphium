@@ -79,12 +79,19 @@ def get_accelerator(
 
 
 def _get_ipu_options_files(config):
+    r"""
+    Get the paths of the IPU-specific config files from the main YAML config
+    """
+
     accelerator_options = config.get("accelerator_options", None)
 
     if accelerator_options is None:
         ipu_training_config_path = "expts/config/ipu.config"
+        ipu_inference_config_overrides_path = None
     else:
         ipu_training_config_path = accelerator_options.get("ipu_options_file")
+        ipu_inference_config_overrides_path = accelerator_options.get("ipu_inference_overrides_file", None)
+
     if pathlib.Path(ipu_training_config_path).is_file():
         ipu_training_config_file = ipu_training_config_path
     else:
@@ -94,15 +101,15 @@ def _get_ipu_options_files(config):
             '"{ipu_training_config_path}"'
         )
 
-    if accelerator_options is None:
-        ipu_inference_config_overrides_path = None
-    else:
-        ipu_inference_config_overrides_path = accelerator_options.get("ipu_inference_overrides_file", None)
-    if (
-        ipu_inference_config_overrides_path is not None
-        and pathlib.Path(ipu_inference_config_overrides_path).is_file()
-    ):
-        ipu_inference_config_overrides_file = ipu_inference_config_overrides_path
+    if ipu_inference_config_overrides_path is not None:
+        if pathlib.Path(ipu_inference_config_overrides_path).is_file():
+            ipu_inference_config_overrides_file = ipu_inference_config_overrides_path
+        else:
+            raise ValueError(
+                f'IPU inference override config must be a file if specified, '
+                'instead got "{ipu_training_config_path}"'
+            )
+
     else:
         warnings.warn(
             "IPU inference overrides configuration either not specified "
