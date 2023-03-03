@@ -21,6 +21,7 @@ class Test_DataModule(ut.TestCase):
         featurization_args = {}
         featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
         featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
+        featurization_args["conformer_property_list"] = ["positions_3d"]
         featurization_args["edge_property_list"] = ["bond-type-onehot"]
         featurization_args["add_self_loop"] = False
         featurization_args["use_bonds_weights"] = False
@@ -158,6 +159,7 @@ class Test_DataModule(ut.TestCase):
         featurization_args = {}
         featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
         featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
+        featurization_args["conformer_property_list"] = ["positions_3d"]
         featurization_args["edge_property_list"] = ["bond-type-onehot"]
         featurization_args["add_self_loop"] = False
         featurization_args["use_bonds_weights"] = False

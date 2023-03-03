@@ -64,12 +64,14 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
 
         pos_type: The type of positional encoding to use. Supported types are:
 
-            - laplacian_eigvec: the
+            - laplacian_eigvec
             - laplacian_eigvec_eigval
+            - rwse
+            - gaussian_kernel
+
 
     """
     pos_type = pos_arg["pos_type"]
-
     pos_type = pos_type.lower()
     pe_dict = {}
 
