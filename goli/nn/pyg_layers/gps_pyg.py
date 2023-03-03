@@ -154,7 +154,7 @@ class GPSLayerPyg(BaseGraphModule):
             depth=2,
             activation=activation,
             dropout=self.dropout,
-            last_dropout=self.dropout
+            last_dropout=self.dropout,
         )
         self.f_out = FCLayer(in_dim, out_dim, normalization=normalization)
 
