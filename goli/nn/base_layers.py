@@ -2,6 +2,8 @@ from typing import Union, Callable, Optional, Type, Tuple, Iterable
 from copy import deepcopy
 from loguru import logger
 
+import inspect
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
