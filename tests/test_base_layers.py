@@ -51,3 +51,12 @@ class test_Base_Layers(ut.TestCase):
         layer = DropPath(drop_rate=0.0)
         h_out = layer.forward(h_in, bg.batch)
         self.assertTrue(torch.allclose(h_in.detach(), h_out.detach()))
+
+    # test output shape is correct for TransformerEncoderLayerMup
+    def test_transformer_encoder_layer_mup(self):
+        bg = deepcopy(self.bg)
+        h_in = bg.h
+        layer = TransformerEncoderLayerMup(d_model=self.in_dim, nhead=1, dim_feedforward=4 * self.in_dim)
+
+        h_out = layer.forward(h_in)
+        self.assertEqual(h_out.shape, h_in.shape)
