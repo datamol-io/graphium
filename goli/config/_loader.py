@@ -106,7 +106,7 @@ def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) 
             ipu_inference_config_overrides_file = ipu_inference_config_overrides_path
         else:
             raise ValueError(
-                'IPU inference override config must be a file if specified, '
+                "IPU inference override config must be a file if specified, "
                 f'instead got "{ipu_training_config_path}"'
             )
 
