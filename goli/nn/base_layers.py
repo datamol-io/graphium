@@ -1,6 +1,7 @@
 from typing import Union, Callable, Optional, Type, Tuple, Iterable
 from copy import deepcopy
 from loguru import logger
+import inspect
 
 import torch
 import torch.nn as nn
@@ -249,40 +250,27 @@ class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
     for compatibility with muP (as opposed to the original :math:`1/\sqrt{n}` scaling factor)
 
     Arguments are the same as ``torch.nn.TransformerEncoderLayer``.
-
-    Args:
-        d_model: the number of expected features in the input (required).
-        nhead: the number of heads in the multiheadattention models (required).
-        dim_feedforward: the dimension of the feedforward network model (default=2048).
-        dropout: the dropout value (default=0.1).
-        activation: the activation function of the intermediate layer, can be a string
-            ("relu" or "gelu") or a unary callable. Default: relu
-        layer_norm_eps: the eps value in layer normalization components (default=1e-5).
-        batch_first: If ``True``, then the input and output tensors are provided
-            as (batch, seq, feature). Default: ``False`` (seq, batch, feature).
-        norm_first: if ``True``, layer norm is done prior to attention and feedforward
-            operations, respectively. Otherwise it's done after. Default: ``False`` (after).
-
     """
 
-    def __init__(
-        self,
-        d_model: int,
-        nhead: int,
-        dim_feedforward: int = 2048,
-        dropout: float = 0.1,
-        activation: Union[str, Callable[[Tensor], Tensor]] = F.relu,
-        layer_norm_eps: float = 1e-5,
-        batch_first: bool = False,
-        norm_first: bool = False,
-        device=None,
-        dtype=None,
-    ) -> None:
-        super(TransformerEncoderLayerMup, self).__init__()
-        factory_kwargs = {"device": device, "dtype": dtype}
+    def __init__(self, *args, **kwargs) -> None:
+        super(TransformerEncoderLayerMup, self).__init__(*args, **kwargs)
+
+        # Extract arguments passed to __init__ as a dictionary
+        signature = inspect.signature(nn.TransformerEncoderLayer.__init__)
+
+        # `self` needs to passed, which makes things tricky, but using this object seems fine for now
+        bound_signature = signature.bind(self, *args, **kwargs)
+        bound_signature.apply_defaults()
+
+        mha_names = ["embed_dim", "num_heads", "dropout", "batch_first", "device", "dtype"]
+        transformer_names = ["d_model", "nhead", "dropout", "batch_first", "device", "dtype"]
+
         # Override self attention to use muP
         self.self_attn = MultiheadAttentionMup(
-            d_model, nhead, dropout=dropout, batch_first=batch_first, **factory_kwargs
+            **{
+                mha_name: bound_signature.arguments[transformer_name]
+                for mha_name, transformer_name in zip(mha_names, transformer_names)
+            }
         )
 
 
