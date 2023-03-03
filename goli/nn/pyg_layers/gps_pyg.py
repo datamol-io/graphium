@@ -179,13 +179,16 @@ class GPSLayerPyg(BaseGraphModule):
             h = self._self_attention_block(h, h_in, batch)
 
         # MLP block, with skip connection
-        h = h + self.mlp(h)
-        h = self.f_out(h)
-
+        h_mlp = self.mlp(h)
         # Add the droppath to the output of the MLP
         batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
         if self.droppath_ffn is not None:
-            h = self.droppath_ffn(h, batch.batch, batch_size)
+            h = self.droppath_ffn(h_mlp, batch.batch, batch_size)
+        h = h + h_mlp
+
+        h = self.f_out(h)
+
+
 
         batch_out.h = h
 
