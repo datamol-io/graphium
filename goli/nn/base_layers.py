@@ -252,7 +252,7 @@ class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
     Arguments are the same as ``torch.nn.TransformerEncoderLayer``.
     """
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, biased_attention, *args, **kwargs) -> None:
         super(TransformerEncoderLayerMup, self).__init__(*args, **kwargs)
 
         # Extract arguments passed to __init__ as a dictionary
@@ -267,10 +267,11 @@ class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
 
         # Override self attention to use muP
         self.self_attn = MultiheadAttentionMup(
+            biased_attention,
             **{
                 mha_name: bound_signature.arguments[transformer_name]
                 for mha_name, transformer_name in zip(mha_names, transformer_names)
-            }
+            },
         )
 
 
