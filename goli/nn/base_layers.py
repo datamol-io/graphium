@@ -2,6 +2,8 @@ from typing import Union, Callable, Optional, Type, Tuple, Iterable
 from copy import deepcopy
 from loguru import logger
 
+import inspect
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -241,6 +243,36 @@ def _mup_scaled_dot_product_attention(
     # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
     output = torch.bmm(attn, v)
     return output, attn
+
+
+class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
+    r"""
+    Modified version of ``torch.nn.TransformerEncoderLayer`` that uses :math:`1/n`-scaled attention
+    for compatibility with muP (as opposed to the original :math:`1/\sqrt{n}` scaling factor)
+    Arguments are the same as ``torch.nn.TransformerEncoderLayer``.
+    """
+
+    def __init__(self, biased_attention, *args, **kwargs) -> None:
+        super(TransformerEncoderLayerMup, self).__init__(*args, **kwargs)
+
+        # Extract arguments passed to __init__ as a dictionary
+        signature = inspect.signature(nn.TransformerEncoderLayer.__init__)
+
+        # `self` needs to passed, which makes things tricky, but using this object seems fine for now
+        bound_signature = signature.bind(self, *args, **kwargs)
+        bound_signature.apply_defaults()
+
+        mha_names = ["embed_dim", "num_heads", "dropout", "batch_first", "device", "dtype"]
+        transformer_names = ["d_model", "nhead", "dropout", "batch_first", "device", "dtype"]
+
+        # Override self attention to use muP
+        self.self_attn = MultiheadAttentionMup(
+            biased_attention,
+            **{
+                mha_name: bound_signature.arguments[transformer_name]
+                for mha_name, transformer_name in zip(mha_names, transformer_names)
+            },
+        )
 
 
 class MuReadoutGoli(MuReadout):
