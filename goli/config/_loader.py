@@ -93,7 +93,7 @@ def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) 
         ipu_inference_config_overrides_path = accelerator_options.get("ipu_inference_overrides_file", None)
 
     if pathlib.Path(ipu_training_config_path).is_file():
-        ipu_training_config_file = ipu_training_config_path
+        ipu_training_config_filename = ipu_training_config_path
     else:
         raise ValueError(
             "IPU configuration path must be specified "
@@ -103,7 +103,7 @@ def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) 
 
     if ipu_inference_config_overrides_path is not None:
         if pathlib.Path(ipu_inference_config_overrides_path).is_file():
-            ipu_inference_config_overrides_file = ipu_inference_config_overrides_path
+            ipu_inference_config_overrides_filename = ipu_inference_config_overrides_path
         else:
             raise ValueError(
                 "IPU inference override config must be a file if specified, "
@@ -115,9 +115,9 @@ def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) 
             "IPU inference overrides configuration either not specified "
             "or not a file, using same options for training and inference"
         )
-        ipu_inference_config_overrides_file = None
+        ipu_inference_config_overrides_filename = None
 
-    return ipu_training_config_file, ipu_inference_config_overrides_file
+    return ipu_training_config_filename, ipu_inference_config_overrides_filename
 
 
 def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> BaseDataModule:
