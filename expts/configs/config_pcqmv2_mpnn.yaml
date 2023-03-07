@@ -12,12 +12,12 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        #df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv # 1M training samples
-        #smiles_col: "cxsmiles"
-        #label_cols: ["homo_lumo_gap"]
-        df_path: goli/data/PCQM4Mv2/pcqm4m-v2-train-mini.csv
-        smiles_col: "smiles"
-        label_cols: ["homo"]
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2_medium.csv # 1M training samples
+        smiles_col: "cxsmiles"
+        label_cols: ["homo_lumo_gap"]
+        #df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv
+        #smiles_col: "smiles"
+        #label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -47,7 +47,7 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 152
+    batch_size_training: 16
     batch_size_inference: 8
     # cache_data_path: null
 
@@ -170,7 +170,7 @@ predictor:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
-    module_type: ConstantLR
+    module_type: ConstantLR  
     last_epoch: -1
   scheduler_kwargs:
   #  monitor: &monitor homolumo/mae/train
@@ -210,10 +210,10 @@ trainer:
     #monitor: *monitor
     #mode: *mode
     save_top_k: 1
-    every_n_epochs: 2
+    every_n_epochs: 50
   trainer:
     precision: 16
     max_epochs: 10
     min_epochs: 1
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 225
     check_val_every_n_epoch: 50

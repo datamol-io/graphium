@@ -135,7 +135,6 @@ class GPSLayerPyg(BaseGraphModule):
         self.node_residual = node_residual
 
         # MLP applied at the end of the GPS layer
-        # GPS++: ffn_dim = 1024, in_dim = 256.
         self.mlp = MLP(
             in_dim=in_dim,
             hidden_dims=int(hidden_dim_scaling * in_dim),
@@ -144,9 +143,6 @@ class GPSLayerPyg(BaseGraphModule):
             activation=activation,
             dropout=self.dropout,
         )
-        # QQQ: to follow gps++ strictly, we may not need this FCLayer, but normalization is needed
-        # as out_dim=in_dim in MLP, maybe out_dim=out_dim would be a solution?
-        # we need to consider droppath as well (not important right now for 4 layers)
         self.f_out = FCLayer(in_dim, out_dim, normalization=normalization)
 
         # Normalization layers
