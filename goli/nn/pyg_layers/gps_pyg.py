@@ -277,7 +277,7 @@ class GPSLayerPyg(BaseGraphModule):
         return h
 
     def _sa_block(self, 
-                  x: torch.Tensor,, 
+                  x: torch.Tensor, 
                   attn_bias: torch.Tensor, 
                   attn_mask=None, 
                   key_padding_mask=None) -> torch.Tensor:

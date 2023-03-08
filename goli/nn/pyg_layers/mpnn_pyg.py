@@ -158,7 +158,7 @@ class MPNNPlusPyg(BaseGraphModule):
         receivers: Union[IntTensor, LongTensor],
     ) -> Tuple[Tensor, Tensor, Tensor]:
         r"""
-            Function to gather node features based on the senders and receivers of the edge indices.
+        Function to gather node features based on the senders and receivers of the edge indices.
 
         Parameters:
 
@@ -175,7 +175,6 @@ class MPNNPlusPyg(BaseGraphModule):
             Gathered node features (sender and receiver) summed up or concatenated
             Gathered sender features
             Gathered receiver features
-
         """
 
         out = []
@@ -209,7 +208,7 @@ class MPNNPlusPyg(BaseGraphModule):
         size: int,
     ) -> Tensor:
         r"""
-            Function to aggregate (scatter) messages built from node and edge features.
+        Function to aggregate (scatter) messages built from node and edge features.
 
         Parameters:
 
@@ -260,7 +259,15 @@ class MPNNPlusPyg(BaseGraphModule):
 
         return out
 
-    def forward(self, batch: Batch) -> Batch:
+    def forward(self, 
+                batch: Batch) -> Batch:
+        r"""
+        Forward function of the MPNN Plus layer
+        Parameters:
+            batch: pyg Batch graph to pass through the layer
+        Returns:
+            batch: pyg Batch graph with updated node and edge features
+        """
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
 

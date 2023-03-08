@@ -13,7 +13,10 @@ from goli.utils.tensor import ModuleListConcat, ModuleWrap
 EPS = 1e-6
 
 
-def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None):
+def scatter_logsum_pool(x: Tensor, 
+                        batch: LongTensor, 
+                        dim: int = 0, 
+                        dim_size: Optional[int] = None) -> Tensor:
     r"""
     Apply pooling over the nodes in the graph using a mean aggregation,
     but scaled by the log of the number of nodes. This gives the same
@@ -29,8 +32,8 @@ def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Op
             B-1\}}^N`, which assigns each node to a specific example.
         size (int, optional): Batch-size :math:`B`.
             Automatically calculated if not given. (default: :obj:`None`)
-
-    :rtype: :class:`Tensor`
+    Returns:
+        the pooled features tensor
     """
     dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
     mean_pool = scatter(x, batch, dim=dim, dim_size=dim_size, reduce="mean")
@@ -45,7 +48,10 @@ def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Op
     return mean_pool * lognum.unsqueeze(-1)
 
 
-def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None):
+def scatter_std_pool(x: Tensor, 
+                     batch: LongTensor, 
+                     dim: int = 0, 
+                     dim_size: Optional[int] = None):
     r"""Returns batch-wise graph-level-outputs by taking the channel-wise
     minimum across the node dimension, so that for a single graph
     :math:`\mathcal{G}_i` its output is computed by
@@ -61,7 +67,8 @@ def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optio
         size (int, optional): Batch-size :math:`B`.
             Automatically calculated if not given. (default: :obj:`None`)
 
-    :rtype: :class:`Tensor`
+    Returns:
+        the pooled features tensor
     """
     dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
     mean = scatter(x, batch, dim=dim, out=None, dim_size=dim_size, reduce="mean")
@@ -71,12 +78,26 @@ def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optio
 
 
 class PoolingWrapperPyg(ModuleWrap):
-    def forward(self, g, h, *args, **kwargs):
+    def forward(self, 
+                g: Batch, 
+                h: Tensor, 
+                *args, 
+                **kwargs):
+        """
+        forward function 
+        Parameters:
+            g: the pyg batch graph
+            h: the node features
+        Returns: 
+            the pooled features
+        """
         dim_size = g.num_graphs
         return self.func(h, g.batch, dim_size=dim_size, *args, **kwargs, **self.kwargs)
 
 
-def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]], **kwargs):
+def parse_pooling_layer_pyg(in_dim: int, 
+                            pooling: Union[str, List[str]], 
+                            **kwargs):
     r"""
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
@@ -202,7 +223,10 @@ class VirtualNodePyg(nn.Module):
             bias=bias,
         )
 
-    def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, 
+                g: Union[Data, Batch], 
+                h: Tensor, 
+                vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
 
@@ -219,8 +243,6 @@ class VirtualNodePyg(nn.Module):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features.
                 It is added to the result after the MLP, as a residual connection
-
-            batch
 
         Returns:
 
