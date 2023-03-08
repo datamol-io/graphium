@@ -1,10 +1,8 @@
-"""
-adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
-"""
-
+import torch
 from copy import deepcopy
-from typing import Callable, Union, Optional
+from typing import Callable, Union, Optional, Any
 
+from torch_geometric.data import Batch
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup
 from goli.nn.pyg_layers import (
@@ -51,12 +49,8 @@ class GPSLayerPyg(BaseGraphModule):
         attn_kwargs=None,
     ):
         r"""
-        GINE: Graph Isomorphism Networks with Edges
-        Strategies for Pre-training Graph Neural Networks
-        Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Jure Leskovec
-        https://arxiv.org/abs/1905.12265
-
-        [!] code uses the pytorch-geometric implementation of GINEConv
+        GPS layer implementation in pyg
+        adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
 
         Parameters:
 
@@ -65,6 +59,12 @@ class GPSLayerPyg(BaseGraphModule):
 
             out_dim:
                 Output feature dimensions of the layer
+
+            in_dim_edges:
+                input edge-feature dimensions of the layer
+            
+            out_dim_edges:
+                output edge-feature dimensions of the layer
 
             activation:
                 activation function to use in the layer
@@ -89,9 +89,18 @@ class GPSLayerPyg(BaseGraphModule):
             mpnn_type:
                 Type of MPNN layer to use. Choices specified in PYG_LAYERS_DICT
 
+            mpnn_kwargs:
+                Keyword arguments to pass to the MPNN layer
+            
+            attn_type:
+                Type of attention layer to use. Choices specified in ATTENTION_LAYERS_DICT
+
             biased_attention_key:
                 indicates if biased attention is used by specifying a key corresponding to the pyg attribute in the batch (processed by the gaussian kernel encoder)
                 default: None means biased attention is not used
+            
+            attn_kwargs:
+                Keyword arguments to pass to the attention layer
 
         """
 
@@ -149,7 +158,16 @@ class GPSLayerPyg(BaseGraphModule):
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, **attn_kwargs)
 
-    def forward(self, batch):
+    def forward(self, 
+                batch: Batch,
+                ) -> Batch:
+        r"""
+        forward function of the layer
+        Parameters:
+            batch: pyg Batch graphs to pass through the layer
+        Returns:
+            batch: pyg Batch graphs
+        """
         # Check whether the model runs on IPU, if so define a maximal number of nodes per graph when reshaping
         poptorch = import_poptorch(raise_error=False)
         on_ipu = (poptorch is not None) and (poptorch.isRunningOnIpu())
@@ -208,7 +226,18 @@ class GPSLayerPyg(BaseGraphModule):
 
         return batch_out
 
-    def _parse_attn_layer(self, attn_type, biased_attention_key, **attn_kwargs):
+    def _parse_attn_layer(self, 
+                          attn_type: str, 
+                          biased_attention_key: str, 
+                          **attn_kwargs: Any,) -> Any:
+        r"""
+        parse the input attention layer and check if it is valid
+        Parameters:
+            attn_type: type of the attention layer
+            biased_attention_key: key for the attenion bias
+        Returns:
+            attn_layer: the attention layer
+        """
         attn_layer, attn_class = None, None
         if attn_type is not None:
             attn_class = ATTENTION_LAYERS_DICT[attn_type]
@@ -216,8 +245,15 @@ class GPSLayerPyg(BaseGraphModule):
             attn_layer = attn_class(biased_attention_key, **attn_kwargs)
         return attn_layer
 
-    def _ff_block(self, h):
-        """Feed Forward block."""
+    def _ff_block(self, 
+                  h: torch.Tensor,) -> torch.Tensor:
+        r"""
+        Feed Forward block.
+        Parameters:
+            h: input tensor
+        Returns:
+            h: output tensor
+        """
         h_in = h
         # First linear layer + activation + dropout
         h = self.ff_linear1(h)
@@ -240,8 +276,21 @@ class GPSLayerPyg(BaseGraphModule):
             h = self.norm_layer_ff(h)
         return h
 
-    def _sa_block(self, x, attn_bias, attn_mask=None, key_padding_mask=None):
-        """Self-attention block."""
+    def _sa_block(self, 
+                  x: torch.Tensor,, 
+                  attn_bias: torch.Tensor, 
+                  attn_mask=None, 
+                  key_padding_mask=None) -> torch.Tensor:
+        """
+        Self-attention block.
+        Parameters:
+            x: input tensor
+            attn_bias: attention bias tensor
+            attn_mask: None
+            key_padding_mask: None
+        Returns:
+            x: output tensor
+        """
         x = self.attn_layer(
             x,
             x,

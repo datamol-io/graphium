@@ -92,14 +92,23 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
             in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True
         )
 
-    def forward(self, batch: Union[Data, Batch]):
+    def forward(self, 
+                batch: Union[Data, Batch],
+                ) -> Union[Data, Batch]:
+        r"""
+        Forward pass the Gated GCN layer
+        extract the following from the batch:
+        x, node features with dim [n_nodes, in_dim]
+        e, edge features with dim [n_edges, in_dim]
+        edge_index with dim [2, n_edges]
+        
+        Parameters:
+            batch: pyg Batch graph to pass through the layer
+        Returns:
+            batch: pyg Batch graph
+        """
+        
         x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
-
-        """
-        x               : [n_nodes, in_dim]
-        e               : [n_edges, in_dim]
-        edge_index      : [2, n_edges]
-        """
 
         # Apply the linear layers
         Ax = self.A(x)
@@ -119,11 +128,18 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
 
         return batch
 
-    def message(self, Dx_i, Ex_j, Ce):
+    def message(self, 
+                Dx_i : torch.Tensor, 
+                Ex_j : torch.Tensor, 
+                Ce: torch.Tensor) -> torch.Tensor:
         """
-        {}x_i           : [n_edges, out_dim]
-        {}x_j           : [n_edges, out_dim]
-        {}e             : [n_edges, out_dim]
+        message function
+        Parameters:
+            Dx_i: tensor with dimension [n_edges, out_dim]
+            Ex_j: tensor with dimension [n_edges, out_dim]
+            Ce: tensor with dimension [n_edges, out_dim]
+        Returns:
+            sigma_ij: tensor with dimension [n_edges, out_dim]
         """
         e_ij = Dx_i + Ex_j + Ce
         sigma_ij = torch.sigmoid(e_ij)
@@ -131,11 +147,20 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.e = e_ij
         return sigma_ij
 
-    def aggregate(self, sigma_ij, index, Bx_j, Bx):
-        """
-        sigma_ij        : [n_edges, out_dim]  ; is the output from message() function
-        index           : [n_edges]
-        {}x_j           : [n_edges, out_dim]
+    def aggregate(self, 
+                  sigma_ij: torch.Tensor, 
+                  index: torch.Tensor, 
+                  Bx_j: torch.Tensor, 
+                  Bx: torch.Tensor,) -> torch.Tensor:
+        r"""
+        aggregation function of the layer
+        Parameters:
+            sigma_ij: the output from message() function with dim [n_edges, out_dim]
+            index: dim [n_edges]
+            Bx_j: dim [n_edges, out_dim]
+            Bx: dim [n_nodes, out_dim]
+        Returns:
+            out: dim [n_nodes, out_dim]
         """
         dim_size = Bx.shape[0]  # or None ??   <--- Double check this
 
@@ -148,10 +173,17 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         out = numerator_eta_xj / (denominator_eta_xj + 1e-6)
         return out
 
-    def update(self, aggr_out, Ax):
-        """
-        aggr_out        : [n_nodes, out_dim] ; is the output from aggregate() function after the aggregation
-        {}x             : [n_nodes, out_dim]
+    def update(self, 
+               aggr_out: torch.Tensor, 
+               Ax: torch.Tensor):
+        r"""
+        update function of the layer
+        Parameters:
+            aggr_out: the output from aggregate() function with dim [n_nodes, out_dim]
+            Ax: tensor with dim [n_nodes, out_dim]
+        Returns:
+            x: dim [n_nodes, out_dim]
+            e_out: dim [n_edges, out_dim_edges]
         """
         x = Ax + aggr_out
         e_out = self.e
@@ -164,7 +196,6 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         Return a boolean specifying if the layer type supports edges or not.
 
         Returns:
-
             bool:
                 Always ``True`` for the current class
         """
@@ -179,7 +210,6 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         supports edges can decide to not use them.
 
         Returns:
-
             bool:
                 Always ``True`` for the current class
         """
@@ -194,7 +224,6 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         supports edges can decide to not use them.
 
         Returns:
-
             bool:
                 Always ``True`` for the current class
         """

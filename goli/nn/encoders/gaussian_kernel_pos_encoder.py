@@ -7,12 +7,6 @@ from goli.nn.encoders.base_encoder import BaseEncoder
 
 
 class GaussianKernelPosEncoder(BaseEncoder):
-    """Configurable gaussian kernel-based Positional Encoding node and edge encoder.
-
-    Useful for encoding 3D conformation positions.
-
-    """
-
     def __init__(
         self,
         input_keys: List[str],  # The keys from the pyg graph
@@ -27,6 +21,23 @@ class GaussianKernelPosEncoder(BaseEncoder):
         use_input_keys_prefix: bool = True,
         num_heads: int = 1,
     ):
+        r"""
+        Configurable gaussian kernel-based Positional Encoding node and edge encoder.
+        Useful for encoding 3D conformation positions.
+
+        Parameters:
+            input_keys: The keys from the pyg graph to use as input
+            output_keys: The keys to return corresponding to the output encodings
+            in_dim: The input dimension for the encoder
+            out_dim: The output dimension of the encodings
+            embed_dim: The dimension of the embedding
+            num_layers: The number of layers of the encoder
+            max_num_nodes_per_graph: The maximum number of nodes per graph
+            activation: The activation function to use
+            first_normalization: The normalization to use before the first layer
+            use_input_keys_prefix: Whether to use the `key_prefix` argument in the `forward` method.
+            num_heads: The number of heads to use for the multi-head attention
+        """
         super().__init__(
             input_keys=input_keys,
             output_keys=output_keys,
@@ -52,8 +63,17 @@ class GaussianKernelPosEncoder(BaseEncoder):
             first_normalization=self.first_normalization,
         )
 
-    def parse_input_keys(self, input_keys):
-        # Parse the `input_keys`.
+    def parse_input_keys(self, 
+                         input_keys: List[str],
+                         ) -> List[str]:
+        r"""
+        Parse the `input_keys`.
+        Parameters:
+            input_keys: The input keys to parse
+        Returns:
+            The parsed input keys
+        """
+
         if len(input_keys) != 1:
             raise ValueError(f"`{self.__class__}` only supports one key")
         for key in input_keys:
@@ -65,12 +85,31 @@ class GaussianKernelPosEncoder(BaseEncoder):
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
-    def parse_output_keys(self, output_keys):
+    def parse_output_keys(self, 
+                          output_keys: List[str],
+                          ) -> List[str]:
+        r"""
+        Parse the `output_keys`.
+        Parameters:
+            output_keys: The output keys to parse
+        Returns:
+            The parsed output keys
+        """
         for key in output_keys:
             assert not key.startswith("edge_"), "Edge encodings are not supported for this encoder"
         return output_keys
 
-    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
+    def forward(self, 
+                batch: Batch, 
+                key_prefix: Optional[str] = None) -> Dict[str, Any]:
+        r'''
+        forward function of the GaussianKernelPosEncoder class 
+        Parameters:
+            batch: The batch of pyg graphs
+            key_prefix: The prefix to use for the input keys
+        Returns:
+            A dictionary of the output encodings with keys specified by `output_keys`
+        '''
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
         poptorch = import_poptorch(raise_error=False)  # TODO: Change to `is_running_on_ipu` after merge
@@ -96,7 +135,10 @@ class GaussianKernelPosEncoder(BaseEncoder):
                 output[key] = node_feature_3d
         return output
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, 
+                             divide_factor: float = 2.0, 
+                             factor_in_dim: bool = False,
+                             ) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -105,6 +147,8 @@ class GaussianKernelPosEncoder(BaseEncoder):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
+        Returns:
+            A dictionary of the base model kwargs
         """
         base_kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
         base_kwargs.update(

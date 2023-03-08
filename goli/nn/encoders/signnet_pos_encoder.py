@@ -18,6 +18,9 @@ class SimpleGIN(nn.Module):
     def __init__(
         self, in_dim, hidden_dim, out_dim, num_layers, normalization="none", dropout=0.5, activation="relu"
     ):
+        r"""
+        not supported yet
+        """
         # TODO: Not sure this works? Needs updating.
         super().__init__()
         self.layers = nn.ModuleList()

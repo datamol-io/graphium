@@ -1,16 +1,13 @@
 from typing import List, Dict, Any, Union, Callable
 import abc
 import torch
+from torch_geometric.data import Batch
+
 
 from goli.nn.base_layers import get_norm
 
 
 class BaseEncoder(torch.nn.Module):
-
-    """
-    Base class for all positional and structural encoders.
-    """
-
     def __init__(
         self,
         input_keys: List[str],
@@ -22,9 +19,9 @@ class BaseEncoder(torch.nn.Module):
         first_normalization=None,
         use_input_keys_prefix: bool = True,
     ):
-        """
-        Initialize the encoder.
-
+        r"""
+        Base class for all positional and structural encoders.
+        Initialize the encoder with the following arguments:
         Parameters:
             input_keys: The keys from the graph to use as input
             output_keys: The keys to return as output encodings
@@ -35,7 +32,6 @@ class BaseEncoder(torch.nn.Module):
             first_normalization: The normalization to use before the first layer
             use_input_keys_prefix: Whether to use the `key_prefix` argument in the `forward` method.
                 This is useful when the encodings are categorized by the function `get_all_positional_encoding`
-
         """
         super().__init__()
 
@@ -59,23 +55,39 @@ class BaseEncoder(torch.nn.Module):
         return input_keys
 
     @abc.abstractmethod
-    def forward(self, graph, key_prefix=None) -> Dict[str, torch.Tensor]:
-        """
+    def forward(self, 
+                graph: Batch,
+                key_prefix=None) -> Dict[str, torch.Tensor]:
+        r"""
         Forward pass of the encoder on a graph.
+        This is a method to be implemented by the child class.
+        Prameeters:
+            graph: The input pyg Batch
         """
         raise ValueError("This method must be implemented by the child class")
 
     @abc.abstractmethod
-    def parse_input_keys(self, input_keys: List[str]) -> List[str]:
-        """Parse the `input_keys` argument. This is a method to be implemented by the child class."""
+    def parse_input_keys(self, 
+                         input_keys: List[str]) -> List[str]:
+        r"""
+        Parse the `input_keys` argument. This is a method to be implemented by the child class.
+        Parameters:
+            input_keys: The input keys to parse
+        """
         raise ValueError("This method must be implemented by the child class")
 
     @abc.abstractmethod
     def parse_output_keys(self, output_keys: List[str]) -> List[str]:
-        """Parse the `output_keys` argument.  This is a method to be implemented by the child class."""
+        """
+        Parse the `output_keys` argument.  This is a method to be implemented by the child class.
+        Parameters:
+            output_keys: The output keys to parse
+        """
         raise ValueError("This method must be implemented by the child class")
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, 
+                             divide_factor: float = 2.0, 
+                             factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -84,6 +96,8 @@ class BaseEncoder(torch.nn.Module):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
+        Returns:
+            A dictionary with the base model arguments
         """
 
         base_kwargs = {
