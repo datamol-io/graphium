@@ -63,9 +63,10 @@ class GaussianKernelPosEncoder(BaseEncoder):
             first_normalization=self.first_normalization,
         )
 
-    def parse_input_keys(self, 
-                         input_keys: List[str],
-                         ) -> List[str]:
+    def parse_input_keys(
+        self,
+        input_keys: List[str],
+    ) -> List[str]:
         r"""
         Parse the `input_keys`.
         Parameters:
@@ -85,9 +86,10 @@ class GaussianKernelPosEncoder(BaseEncoder):
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
-    def parse_output_keys(self, 
-                          output_keys: List[str],
-                          ) -> List[str]:
+    def parse_output_keys(
+        self,
+        output_keys: List[str],
+    ) -> List[str]:
         r"""
         Parse the `output_keys`.
         Parameters:
@@ -99,17 +101,15 @@ class GaussianKernelPosEncoder(BaseEncoder):
             assert not key.startswith("edge_"), "Edge encodings are not supported for this encoder"
         return output_keys
 
-    def forward(self, 
-                batch: Batch, 
-                key_prefix: Optional[str] = None) -> Dict[str, Any]:
-        r'''
-        forward function of the GaussianKernelPosEncoder class 
+    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
+        r"""
+        forward function of the GaussianKernelPosEncoder class
         Parameters:
             batch: The batch of pyg graphs
             key_prefix: The prefix to use for the input keys
         Returns:
             A dictionary of the output encodings with keys specified by `output_keys`
-        '''
+        """
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
         poptorch = import_poptorch(raise_error=False)  # TODO: Change to `is_running_on_ipu` after merge
@@ -135,10 +135,11 @@ class GaussianKernelPosEncoder(BaseEncoder):
                 output[key] = node_feature_3d
         return output
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0, 
-                             factor_in_dim: bool = False,
-                             ) -> Dict[str, Any]:
+    def make_mup_base_kwargs(
+        self,
+        divide_factor: float = 2.0,
+        factor_in_dim: bool = False,
+    ) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the

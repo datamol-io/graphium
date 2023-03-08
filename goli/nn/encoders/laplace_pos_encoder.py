@@ -116,9 +116,10 @@ class LapPENodeEncoder(BaseEncoder):
                 last_activation="none",
             )
 
-    def parse_input_keys(self, 
-                         input_keys: List[str],
-                         ) -> List[str]:
+    def parse_input_keys(
+        self,
+        input_keys: List[str],
+    ) -> List[str]:
         r"""
         Parse the input keys and make sure they are supported for this encoder
         Parameters:
@@ -137,11 +138,12 @@ class LapPENodeEncoder(BaseEncoder):
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
-    def parse_output_keys(self, 
-                          output_keys: List[str],
-                          ) -> List[str]:
+    def parse_output_keys(
+        self,
+        output_keys: List[str],
+    ) -> List[str]:
         r"""
-        parse the output keys 
+        parse the output keys
         Parameters:
             output_keys: List of output keys to add to the data object.
         Returns:
@@ -156,10 +158,11 @@ class LapPENodeEncoder(BaseEncoder):
             ), f"Graph encodings are not supported for encoder {self.__class__}"
         return output_keys
 
-    def forward(self, 
-                batch: Batch, 
-                key_prefix: Optional[str] = None,
-                ) -> Dict[str, torch.Tensor]:
+    def forward(
+        self,
+        batch: Batch,
+        key_prefix: Optional[str] = None,
+    ) -> Dict[str, torch.Tensor]:
         r"""
         Forward pass of the encoder.
         Parameters:
@@ -215,10 +218,11 @@ class LapPENodeEncoder(BaseEncoder):
 
         return output
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0, 
-                             factor_in_dim: bool = False,
-                             ) -> Dict[str, Any]:
+    def make_mup_base_kwargs(
+        self,
+        divide_factor: float = 2.0,
+        factor_in_dim: bool = False,
+    ) -> Dict[str, Any]:
         r"""
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the

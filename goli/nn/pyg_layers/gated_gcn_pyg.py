@@ -92,22 +92,23 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
             in_dim=out_dim, out_dim=out_dim_edges, activation=None, dropout=dropout, bias=True
         )
 
-    def forward(self, 
-                batch: Union[Data, Batch],
-                ) -> Union[Data, Batch]:
+    def forward(
+        self,
+        batch: Union[Data, Batch],
+    ) -> Union[Data, Batch]:
         r"""
         Forward pass the Gated GCN layer
         extract the following from the batch:
         x, node features with dim [n_nodes, in_dim]
         e, edge features with dim [n_edges, in_dim]
         edge_index with dim [2, n_edges]
-        
+
         Parameters:
             batch: pyg Batch graph to pass through the layer
         Returns:
             batch: pyg Batch graph
         """
-        
+
         x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
 
         # Apply the linear layers
@@ -128,10 +129,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
 
         return batch
 
-    def message(self, 
-                Dx_i : torch.Tensor, 
-                Ex_j : torch.Tensor, 
-                Ce: torch.Tensor) -> torch.Tensor:
+    def message(self, Dx_i: torch.Tensor, Ex_j: torch.Tensor, Ce: torch.Tensor) -> torch.Tensor:
         """
         message function
         Parameters:
@@ -147,11 +145,13 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         self.e = e_ij
         return sigma_ij
 
-    def aggregate(self, 
-                  sigma_ij: torch.Tensor, 
-                  index: torch.Tensor, 
-                  Bx_j: torch.Tensor, 
-                  Bx: torch.Tensor,) -> torch.Tensor:
+    def aggregate(
+        self,
+        sigma_ij: torch.Tensor,
+        index: torch.Tensor,
+        Bx_j: torch.Tensor,
+        Bx: torch.Tensor,
+    ) -> torch.Tensor:
         r"""
         aggregation function of the layer
         Parameters:
@@ -173,9 +173,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         out = numerator_eta_xj / (denominator_eta_xj + 1e-6)
         return out
 
-    def update(self, 
-               aggr_out: torch.Tensor, 
-               Ax: torch.Tensor):
+    def update(self, aggr_out: torch.Tensor, Ax: torch.Tensor):
         r"""
         update function of the layer
         Parameters:

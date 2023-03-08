@@ -420,7 +420,7 @@ class FeedForwardGraphBase(FeedForwardNN):
 
             layer_type:
                 Type of layer to use. Can be a string or nn.Module.
-            
+
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
                 hidden layers to use. If `hidden_dims` is a `list`, `depth` must
@@ -695,9 +695,11 @@ class FeedForwardGraphBase(FeedForwardNN):
             is_readout_layer=self.last_layer_is_readout,
         )
 
-    def _pool_layer_forward(self, 
-                            g: Batch, 
-                            h: torch.Tensor,):
+    def _pool_layer_forward(
+        self,
+        g: Batch,
+        h: torch.Tensor,
+    ):
         r"""
         Apply the graph pooling layer, followed by the linear output layer.
 
@@ -790,9 +792,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _parse_pooling_layer(
-        self, in_dim: int, 
-        pooling: Union[str, List[str]], 
-        **kwargs
+        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
     ) -> Tuple[nn.Module, int]:
         r"""
         Return the pooling layer
@@ -825,10 +825,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _virtual_node_forward(
-        self, g: Union[DGLGraph, Data], 
-        h: torch.Tensor, 
-        vn_h: torch.Tensor, 
-        step_idx: int
+        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -869,8 +866,7 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         return h, vn_h
 
-    def forward(self, 
-                g: Batch) -> torch.Tensor:
+    def forward(self, g: Batch) -> torch.Tensor:
         r"""
         Apply the full graph neural network on the input graph and node features.
 
@@ -923,36 +919,29 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         return pooled_h
 
-    def _get_node_feats(self, 
-                        g: Batch, 
-                        key: str = "h") -> Tensor:
+    def _get_node_feats(self, g: Batch, key: str = "h") -> Tensor:
         """
         Get the node features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
 
         Parameters:
-            g: pyg Batch 
+            g: pyg Batch
             key: key associated to the node features
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
-    def _get_edge_feats(self, 
-                        g: Batch, 
-                        key: str = "edge_attr") -> Tensor:
+    def _get_edge_feats(self, g: Batch, key: str = "edge_attr") -> Tensor:
         """
         Get the edge features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
 
         Parameters:
-            g: pyg Batch 
+            g: pyg Batch
             key: key associated to the edge features
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
-    def _set_node_feats(self, 
-                        g: Batch, 
-                        node_feats: Tensor, 
-                        key: str = "h") -> Batch:
+    def _set_node_feats(self, g: Batch, node_feats: Tensor, key: str = "h") -> Batch:
         """
         Set the node features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
@@ -968,19 +957,16 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
         return g
 
-    def _set_edge_feats(self, 
-                        g: Batch, 
-                        edge_feats: Tensor, 
-                        key: str = "edge_attr") -> Batch:
+    def _set_edge_feats(self, g: Batch, edge_feats: Tensor, key: str = "edge_attr") -> Batch:
         """
         Set the edge features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
 
         Parameters:
-            g: pyg Batch 
+            g: pyg Batch
             edge_feats: edge features tensor
             key: key associated to the edge features
-        
+
         Returns:
             g: pyg Batch with the edge features set
         """
@@ -1002,10 +988,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         return deepcopy(kwargs)
 
     def make_mup_base_kwargs(
-        self, 
-        divide_factor: float = 2.0, 
-        factor_in_dim: bool = False, 
-        factor_in_dim_edges: bool = False
+        self, divide_factor: float = 2.0, factor_in_dim: bool = False, factor_in_dim_edges: bool = False
     ) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
@@ -1016,9 +999,9 @@ class FeedForwardGraphBase(FeedForwardNN):
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension for the nodes
             factor_in_dim: Whether to factor the input dimension for the edges
-        
+
         Returns:
-            kwargs: Dictionary of parameters to be used to instanciate the base model divided by the factor     
+            kwargs: Dictionary of parameters to be used to instanciate the base model divided by the factor
         """
         kwargs = self.get_init_kwargs()
         kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
@@ -1146,7 +1129,8 @@ class FullGraphNetwork(nn.Module):
 
     @staticmethod
     def _parse_feed_forward_gnn(
-        gnn_kwargs: Dict[str, Any],):
+        gnn_kwargs: Dict[str, Any],
+    ):
         """
         Parse the key-word arguments to determine which `FeedForward` class to use.
         Parameters:
@@ -1199,8 +1183,7 @@ class FullGraphNetwork(nn.Module):
                     + 'Provided" {self.gnn.out_dim} and {self.post_nn.in_dim}'
                 )
 
-    def drop_post_nn_layers(self, 
-                            num_layers_to_drop: int) -> None:
+    def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
         r"""
         Remove the last layers of the model. Useful for Transfer Learning.
 
@@ -1215,8 +1198,7 @@ class FullGraphNetwork(nn.Module):
         if num_layers_to_drop > 0:
             self.post_nn.layers = self.post_nn.layers[:-num_layers_to_drop]
 
-    def extend_post_nn_layers(self, 
-                              layers: nn.ModuleList):
+    def extend_post_nn_layers(self, layers: nn.ModuleList):
         r"""
         Add layers at the end of the model. Useful for Transfer Learning.
 
@@ -1231,8 +1213,7 @@ class FullGraphNetwork(nn.Module):
 
         self.post_nn.extend(layers)
 
-    def forward(self, 
-                g: Batch) -> Tensor:
+    def forward(self, g: Batch) -> Tensor:
         r"""
         Apply the pre-processing neural network, the graph neural network,
         and the post-processing neural network on the graph features.
@@ -1327,8 +1308,7 @@ class FullGraphNetwork(nn.Module):
         return self._concat_last_layers
 
     @concat_last_layers.setter
-    def concat_last_layers(self, 
-                           value: Union[Type[None], int, Iterable[int]]) -> None:
+    def concat_last_layers(self, value: Union[Type[None], int, Iterable[int]]) -> None:
         """
         Set the property to control the output of the `self.forward`.
         If set to a list of integer, the `forward` function will
@@ -1346,8 +1326,7 @@ class FullGraphNetwork(nn.Module):
             value = [value]
         self._concat_last_layers = value
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -1355,7 +1334,7 @@ class FullGraphNetwork(nn.Module):
 
         Parameter:
             divide_factor: Factor by which to divide the width.
-        
+
         Returns:
             Dictionary with the kwargs to create the base model.
         """
@@ -1410,9 +1389,7 @@ class FullGraphNetwork(nn.Module):
 
         return kwargs
 
-    def set_max_num_nodes_edges_per_graph(self, 
-                                          max_nodes: Optional[int], 
-                                          max_edges: Optional[int]) -> None:
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
         Set the maximum number of nodes and edges for all gnn layers
 
@@ -1524,7 +1501,7 @@ class TaskHeads(nn.Module):
         r"""
         forward function of the task head
         Parameters:
-            h: input tensor 
+            h: input tensor
         Returns:
             task_head_outputs: Return a dictionary: Dict[task_name, Tensor]
         """
@@ -1535,9 +1512,7 @@ class TaskHeads(nn.Module):
 
         return task_head_outputs
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0, 
-                             factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -1546,7 +1521,7 @@ class TaskHeads(nn.Module):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
-        
+
         Returns:
             kwargs: Dictionary of arguments to be used to initialize the base model
         """
@@ -1661,12 +1636,12 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         )
 
     def forward(self, g: Batch):
-        r'''
+        r"""
         forward pass of the network
 
         Parameters:
             g: Batch of pyg molecular graphs
-        '''
+        """
         h = super().forward(g)
         return self.task_heads(h)
 
@@ -1677,8 +1652,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         """
         return self.task_heads.out_dim
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -1686,7 +1660,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
         Parameter:
             divide_factor: Factor by which to divide the width.
-        
+
         Returns:
             A dictionary of arguments to be used to initialize the base model.
         """
@@ -1696,9 +1670,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         )["task_heads_kwargs"]
         return kwargs
 
-    def set_max_num_nodes_edges_per_graph(self, 
-                                          max_nodes: Optional[int], 
-                                          max_edges: Optional[int]) -> None:
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
         Set the maximum number of nodes and edges for all gnn layers
 
@@ -1717,9 +1689,9 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                     layer.max_num_edges_per_graph = max_edges
 
     def __repr__(self):
-        r'''
+        r"""
         Print the network architecture
-        '''
+        """
         task_str = self.task_heads.__repr__()
         task_str = "    Task heads:\n    " + "    ".join(task_str.splitlines(True))
 

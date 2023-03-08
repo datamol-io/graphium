@@ -62,7 +62,7 @@ class GPSLayerPyg(BaseGraphModule):
 
             in_dim_edges:
                 input edge-feature dimensions of the layer
-            
+
             out_dim_edges:
                 output edge-feature dimensions of the layer
 
@@ -91,14 +91,14 @@ class GPSLayerPyg(BaseGraphModule):
 
             mpnn_kwargs:
                 Keyword arguments to pass to the MPNN layer
-            
+
             attn_type:
                 Type of attention layer to use. Choices specified in ATTENTION_LAYERS_DICT
 
             biased_attention_key:
                 indicates if biased attention is used by specifying a key corresponding to the pyg attribute in the batch (processed by the gaussian kernel encoder)
                 default: None means biased attention is not used
-            
+
             attn_kwargs:
                 Keyword arguments to pass to the attention layer
 
@@ -158,9 +158,10 @@ class GPSLayerPyg(BaseGraphModule):
         # Initialize the Attention layer
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, **attn_kwargs)
 
-    def forward(self, 
-                batch: Batch,
-                ) -> Batch:
+    def forward(
+        self,
+        batch: Batch,
+    ) -> Batch:
         r"""
         forward function of the layer
         Parameters:
@@ -226,10 +227,12 @@ class GPSLayerPyg(BaseGraphModule):
 
         return batch_out
 
-    def _parse_attn_layer(self, 
-                          attn_type: str, 
-                          biased_attention_key: str, 
-                          **attn_kwargs: Any,) -> Any:
+    def _parse_attn_layer(
+        self,
+        attn_type: str,
+        biased_attention_key: str,
+        **attn_kwargs: Any,
+    ) -> Any:
         r"""
         parse the input attention layer and check if it is valid
         Parameters:
@@ -245,8 +248,10 @@ class GPSLayerPyg(BaseGraphModule):
             attn_layer = attn_class(biased_attention_key, **attn_kwargs)
         return attn_layer
 
-    def _ff_block(self, 
-                  h: torch.Tensor,) -> torch.Tensor:
+    def _ff_block(
+        self,
+        h: torch.Tensor,
+    ) -> torch.Tensor:
         r"""
         Feed Forward block.
         Parameters:
@@ -276,11 +281,9 @@ class GPSLayerPyg(BaseGraphModule):
             h = self.norm_layer_ff(h)
         return h
 
-    def _sa_block(self, 
-                  x: torch.Tensor, 
-                  attn_bias: torch.Tensor, 
-                  attn_mask=None, 
-                  key_padding_mask=None) -> torch.Tensor:
+    def _sa_block(
+        self, x: torch.Tensor, attn_bias: torch.Tensor, attn_mask=None, key_padding_mask=None
+    ) -> torch.Tensor:
         """
         Self-attention block.
         Parameters:

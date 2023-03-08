@@ -55,9 +55,7 @@ class BaseEncoder(torch.nn.Module):
         return input_keys
 
     @abc.abstractmethod
-    def forward(self, 
-                graph: Batch,
-                key_prefix=None) -> Dict[str, torch.Tensor]:
+    def forward(self, graph: Batch, key_prefix=None) -> Dict[str, torch.Tensor]:
         r"""
         Forward pass of the encoder on a graph.
         This is a method to be implemented by the child class.
@@ -67,8 +65,7 @@ class BaseEncoder(torch.nn.Module):
         raise ValueError("This method must be implemented by the child class")
 
     @abc.abstractmethod
-    def parse_input_keys(self, 
-                         input_keys: List[str]) -> List[str]:
+    def parse_input_keys(self, input_keys: List[str]) -> List[str]:
         r"""
         Parse the `input_keys` argument. This is a method to be implemented by the child class.
         Parameters:
@@ -85,9 +82,7 @@ class BaseEncoder(torch.nn.Module):
         """
         raise ValueError("This method must be implemented by the child class")
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0, 
-                             factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the

@@ -219,7 +219,7 @@ class BaseGraphStructure:
     @property
     def max_num_nodes_per_graph(self) -> Optional[int]:
         """
-        Get the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)            
+        Get the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
         """
         return self._max_num_nodes_per_graph
 
@@ -310,9 +310,7 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
         self._initialize_activation_dropout_norm()
 
 
-def check_intpus_allow_int(obj, 
-                           edge_index, 
-                           size):
+def check_intpus_allow_int(obj, edge_index, size):
     """
     Overwrite the __check_input__ to allow for int32 and int16
     TODO: Remove when PyG and pytorch supports int32.
@@ -357,9 +355,9 @@ def check_intpus_allow_int(obj,
 
 
 def get_node_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], 
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping],
     key: str = "h",
-    ) -> Tensor:
+) -> Tensor:
     """
     Get the node features of a graph `g`.
 
@@ -380,9 +378,7 @@ def get_node_feats(
 
 
 def set_node_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], 
-    node_feats: Tensor, 
-    key: str = "h"
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], node_feats: Tensor, key: str = "h"
 ) -> Tensor:
     """
     Set the node features of a graph `g`.
@@ -409,9 +405,9 @@ def set_node_feats(
 
 
 def get_edge_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], 
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping],
     key: str = "h",
-    ) -> Tensor:
+) -> Tensor:
     """
     Get the node features of a graph `g`.
 
@@ -432,9 +428,7 @@ def get_edge_feats(
 
 
 def set_edge_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], 
-    edge_feats: Tensor, 
-    key: str = "h"
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], edge_feats: Tensor, key: str = "h"
 ) -> Tensor:
     """
     Set the node features of a graph `g`.

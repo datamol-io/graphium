@@ -151,9 +151,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
             last_normalization=normalization,
         )
 
-    def forward(self, 
-                batch: Union[Data, Batch]
-                ) -> Union[Data, Batch]:
+    def forward(self, batch: Union[Data, Batch]) -> Union[Data, Batch]:
         r"""
         forward function of the layer
         Parameters:
@@ -168,10 +166,7 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         batch.h = out
         return batch
 
-    def message(self, 
-                x_i: Tensor, 
-                x_j: Tensor, 
-                edge_attr: OptTensor) -> Tensor:
+    def message(self, x_i: Tensor, x_j: Tensor, edge_attr: OptTensor) -> Tensor:
         r"""
         message function
 
@@ -192,15 +187,15 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         return self.pretrans(h)  # No more towers
 
     def aggregate(
-        self, 
-        inputs: Tensor, 
-        index: Tensor, 
-        edge_index: Tensor, 
+        self,
+        inputs: Tensor,
+        index: Tensor,
+        edge_index: Tensor,
         dim_size: Optional[int] = None,
-        ) -> Tensor:
+    ) -> Tensor:
         r"""
         aggregate function
-        
+
         Parameters:
             inputs: input features
             index: index of the nodes

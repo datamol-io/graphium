@@ -13,8 +13,7 @@ from goli.utils.decorators import classproperty
 
 
 class ResidualConnectionBase(nn.Module):
-    def __init__(self, 
-                 skip_steps: int = 1):
+    def __init__(self, skip_steps: int = 1):
         r"""
         Abstract class for the residual connections. Using this class,
         we implement different types of residual connections, such as
@@ -36,8 +35,7 @@ class ResidualConnectionBase(nn.Module):
         super().__init__()
         self.skip_steps = skip_steps
 
-    def _bool_apply_skip_step(self, 
-                              step_idx: int):
+    def _bool_apply_skip_step(self, step_idx: int):
         r"""
         Whether to apply the skip connection, depending on the
         ``step_idx`` and ``self.skip_steps``.
@@ -77,8 +75,7 @@ class ResidualConnectionBase(nn.Module):
         """
         ...
 
-    def get_true_out_dims(self, 
-                          out_dims: List) -> List:
+    def get_true_out_dims(self, out_dims: List) -> List:
         r"""
         find the true output dimensions
         Parameters:
@@ -180,8 +177,7 @@ class ResidualConnectionNone(ResidualConnectionBase):
 
 
 class ResidualConnectionSimple(ResidualConnectionBase):
-    def __init__(self, 
-                 skip_steps: int = 1):
+    def __init__(self, skip_steps: int = 1):
         r"""
         Class for the simple residual connections proposed by ResNet,
         where the current layer output is summed to a
@@ -218,10 +214,7 @@ class ResidualConnectionSimple(ResidualConnectionBase):
         """
         return False
 
-    def forward(self, 
-                h: torch.Tensor, 
-                h_prev: torch.Tensor, 
-                step_idx: int):
+    def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
         r"""
         Add ``h`` with the previous layers with skip connection ``h_prev``,
         similar to ResNet.
@@ -345,10 +338,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
         """
         return True
 
-    def forward(self, 
-                h: torch.Tensor, 
-                h_prev: torch.Tensor, 
-                step_idx: int):
+    def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
         r"""
         Add ``h`` with the previous layers with skip connection ``h_prev``, after
         a feed-forward layer.
@@ -385,8 +375,7 @@ class ResidualConnectionWeighted(ResidualConnectionBase):
 
         return h, h_prev
 
-    def _bool_apply_skip_step(self, 
-                              step_idx: int):
+    def _bool_apply_skip_step(self, step_idx: int):
         return super()._bool_apply_skip_step(step_idx) and self.skip_count < len(self.residual_list)
 
 
@@ -429,10 +418,7 @@ class ResidualConnectionConcat(ResidualConnectionBase):
         """
         return False
 
-    def forward(self, 
-                h: torch.Tensor, 
-                h_prev: torch.Tensor, 
-                step_idx: int):
+    def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
         r"""
         Concatenate ``h`` with the previous layers with skip connection ``h_prev``.
 
@@ -509,10 +495,7 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
         """
         return False
 
-    def forward(self, 
-                h: torch.Tensor, 
-                h_prev: torch.Tensor, 
-                step_idx: int):
+    def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
         r"""
         Concatenate ``h`` with all the previous layers with skip connection ``h_prev``.
 
@@ -551,10 +534,7 @@ class ResidualConnectionDenseNet(ResidualConnectionBase):
 
 
 class ResidualConnectionRandom(ResidualConnectionBase):
-    def __init__(self, 
-                 skip_steps=1, 
-                 out_dims: List[int] = None, 
-                 num_layers: int = None):
+    def __init__(self, skip_steps=1, out_dims: List[int] = None, num_layers: int = None):
         r"""
         Class for the random residual connection, where each layer is connected
         to each following layer with a random weight between 0 and 1.
@@ -603,10 +583,7 @@ class ResidualConnectionRandom(ResidualConnectionBase):
         """
         return False
 
-    def forward(self, 
-                h: torch.Tensor, 
-                h_prev: torch.Tensor, 
-                step_idx: int):
+    def forward(self, h: torch.Tensor, h_prev: torch.Tensor, step_idx: int):
         r"""
         Add ``h`` with the previous layers with skip connection ``h_prev``,
         similar to ResNet.

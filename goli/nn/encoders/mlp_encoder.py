@@ -36,7 +36,7 @@ class MLPEncoder(BaseEncoder):
             dropout : dropout to use
             normalization : normalization to use
             first_normalization : normalization to use before the first layer
-            use_input_keys_prefix: Whether to use the `key_prefix` argument            
+            use_input_keys_prefix: Whether to use the `key_prefix` argument
         """
         super().__init__(
             input_keys=input_keys,
@@ -69,9 +69,10 @@ class MLPEncoder(BaseEncoder):
             last_dropout=dropout,
         )
 
-    def parse_input_keys(self, 
-                         input_keys: List[str],
-                         ) -> List[str]:
+    def parse_input_keys(
+        self,
+        input_keys: List[str],
+    ) -> List[str]:
         r"""
         Parse the `input_keys`.
         Parameters:
@@ -81,9 +82,10 @@ class MLPEncoder(BaseEncoder):
         """
         return input_keys
 
-    def parse_output_keys(self, 
-                          output_keys: List[str],
-                          ) -> List[str]:
+    def parse_output_keys(
+        self,
+        output_keys: List[str],
+    ) -> List[str]:
         r"""
         Parse the `output_keys`.
         Parameters:
@@ -105,10 +107,11 @@ class MLPEncoder(BaseEncoder):
                 ), f"The output key {out_key} and input key {in_key} must match the 'graph_' prefix for the class {self.__class__.__name__}"
         return output_keys
 
-    def forward(self, 
-                batch: Batch, 
-                key_prefix: Optional[str] = None,
-                ) -> Dict[str, torch.Tensor]:
+    def forward(
+        self,
+        batch: Batch,
+        key_prefix: Optional[str] = None,
+    ) -> Dict[str, torch.Tensor]:
         r"""
         forward function of the mlp encoder
         Parameters:
@@ -117,7 +120,7 @@ class MLPEncoder(BaseEncoder):
         Returns:
             output: Dictionary of output embeddings with keys specified by input_keys
         """
-        #TODO: maybe we should also use the output key here? @Dom 
+        # TODO: maybe we should also use the output key here? @Dom
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
         # Run the MLP for each input key
@@ -127,9 +130,7 @@ class MLPEncoder(BaseEncoder):
 
         return output
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0, 
-                             factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the

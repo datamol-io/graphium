@@ -259,8 +259,7 @@ class MPNNPlusPyg(BaseGraphModule):
 
         return out
 
-    def forward(self, 
-                batch: Batch) -> Batch:
+    def forward(self, batch: Batch) -> Batch:
         r"""
         Forward function of the MPNN Plus layer
         Parameters:

@@ -48,18 +48,16 @@ class EncoderManager(nn.Module):
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
 
-    def _initialize_positional_encoders(self, 
-                                        pe_encoders_kwargs: Dict[str, Any]
-                                        ) -> Optional[nn.ModuleDict]:
+    def _initialize_positional_encoders(self, pe_encoders_kwargs: Dict[str, Any]) -> Optional[nn.ModuleDict]:
         r"""Initialize the positional encoders for each positional/structural encodings.
         Parameters:
 
             pe_encoders_kwargs: key-word arguments to use for the initialization of all positional encoding encoders
-        
+
         Returns:
             pe_encoders: a nn.ModuleDict containing all positional encoders specified by encoder_name in pe_encoders_kwargs["encoders"]
         """
-        #TODO: Currently only supports PE/SE on the nodes. Need to add edges.
+        # TODO: Currently only supports PE/SE on the nodes. Need to add edges.
         pe_encoders = None
 
         if pe_encoders_kwargs is not None:
@@ -116,8 +114,7 @@ class EncoderManager(nn.Module):
 
         return pe_encoders
 
-    def forward(self, 
-                g: Batch) -> Batch:
+    def forward(self, g: Batch) -> Batch:
         r"""
         forward pass of the pe encoders and pooling
 
@@ -156,8 +153,7 @@ class EncoderManager(nn.Module):
             g[pe_key] = feat
         return g
 
-    def forward_positional_encoding(self, 
-                                    g: Batch) -> Dict[str, Tensor]:
+    def forward_positional_encoding(self, g: Batch) -> Dict[str, Tensor]:
         """
         Forward pass for the positional encodings (PE),
         with each PE having it's own encoder defined in `self.pe_encoders`.
@@ -195,17 +191,14 @@ class EncoderManager(nn.Module):
 
         return pe_pooled
 
-    def forward_simple_pooling(self, 
-                               h: Tensor, 
-                               pooling: str, 
-                               dim: int) -> Tensor:
+    def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
         """
         Apply sum, mean, or max pooling on a Tensor.
         Parameters:
             h: the Tensor to pool
             pooling: string specifiying the pooling method
             dim: the dimension to pool over
-        
+
         Returns:
             pooled: the pooled Tensor
         """
@@ -220,8 +213,7 @@ class EncoderManager(nn.Module):
             raise Exception(f"Pooling method `{self.pe_pool}` is not defined")
         return pooled
 
-    def make_mup_base_kwargs(self, 
-                             divide_factor: float = 2.0) -> Dict[str, Any]:
+    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -229,7 +221,7 @@ class EncoderManager(nn.Module):
 
         Parameter:
             divide_factor: Factor by which to divide the width.
-        
+
         Returns:
             pe_kw: the model kwargs where the dimensions are divided by the factor
         """
@@ -251,7 +243,7 @@ class EncoderManager(nn.Module):
     def input_keys(self) -> Iterable[str]:
         r"""
         Returns the input keys for all pe-encoders
-        
+
         Returns:
             input_keys: the input keys for all pe-encoders
         """
@@ -264,7 +256,7 @@ class EncoderManager(nn.Module):
     def in_dims(self) -> Iterable[int]:
         r"""
         Returns the input dimensions for all pe-encoders
-        
+
         Returns:
             in_dims: the input dimensions for all pe-encoders
         """

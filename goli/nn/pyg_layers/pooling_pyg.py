@@ -13,10 +13,7 @@ from goli.utils.tensor import ModuleListConcat, ModuleWrap
 EPS = 1e-6
 
 
-def scatter_logsum_pool(x: Tensor, 
-                        batch: LongTensor, 
-                        dim: int = 0, 
-                        dim_size: Optional[int] = None) -> Tensor:
+def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None) -> Tensor:
     r"""
     Apply pooling over the nodes in the graph using a mean aggregation,
     but scaled by the log of the number of nodes. This gives the same
@@ -48,10 +45,7 @@ def scatter_logsum_pool(x: Tensor,
     return mean_pool * lognum.unsqueeze(-1)
 
 
-def scatter_std_pool(x: Tensor, 
-                     batch: LongTensor, 
-                     dim: int = 0, 
-                     dim_size: Optional[int] = None):
+def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None):
     r"""Returns batch-wise graph-level-outputs by taking the channel-wise
     minimum across the node dimension, so that for a single graph
     :math:`\mathcal{G}_i` its output is computed by
@@ -78,26 +72,20 @@ def scatter_std_pool(x: Tensor,
 
 
 class PoolingWrapperPyg(ModuleWrap):
-    def forward(self, 
-                g: Batch, 
-                h: Tensor, 
-                *args, 
-                **kwargs):
+    def forward(self, g: Batch, h: Tensor, *args, **kwargs):
         """
-        forward function 
+        forward function
         Parameters:
             g: the pyg batch graph
             h: the node features
-        Returns: 
+        Returns:
             the pooled features
         """
         dim_size = g.num_graphs
         return self.func(h, g.batch, dim_size=dim_size, *args, **kwargs, **self.kwargs)
 
 
-def parse_pooling_layer_pyg(in_dim: int, 
-                            pooling: Union[str, List[str]], 
-                            **kwargs):
+def parse_pooling_layer_pyg(in_dim: int, pooling: Union[str, List[str]], **kwargs):
     r"""
     Select the pooling layers from a list of strings, and put them
     in a Module that concatenates their outputs.
@@ -223,10 +211,7 @@ class VirtualNodePyg(nn.Module):
             bias=bias,
         )
 
-    def forward(self, 
-                g: Union[Data, Batch], 
-                h: Tensor, 
-                vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
+    def forward(self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor) -> Tuple[Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
 
