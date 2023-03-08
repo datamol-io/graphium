@@ -84,7 +84,7 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
 def smiles_to_unique_mol_ids(
     smiles: Iterable[str],
     n_jobs=-1,
-    backend="loky",
+    backend="processes",
     progress=True,
     progress_desc="mols to ids",
 ) -> List[Optional[str]]:
@@ -110,6 +110,7 @@ def smiles_to_unique_mol_ids(
     unique_mol_ids = dm.parallelized(
         smiles_to_unique_mol_id,
         smiles,
+        batch_size=32,
         progress=progress,
         n_jobs=n_jobs,
         scheduler=backend,
@@ -207,7 +208,7 @@ class MultitaskDataset(Dataset):
         self,
         datasets: Dict[str, SingleTaskDataset],
         n_jobs=-1,
-        backend: str = "loky",
+        backend: str = "processes",
         progress: bool = True,
         about: str = "",
     ):
@@ -286,16 +287,16 @@ class MultitaskDataset(Dataset):
         datum = {}
 
         if self.mol_ids is not None:
-            datum["mol_ids"] = self.mol_ids[idx]
+            datum["mol_ids"] = deepcopy(self.mol_ids[idx])
 
         if self.smiles is not None:
-            datum["smiles"] = self.smiles[idx]
+            datum["smiles"] = deepcopy(self.smiles[idx])
 
         if self.labels is not None:
-            datum["labels"] = self.labels[idx]
+            datum["labels"] = deepcopy(self.labels[idx])
 
         if self.features is not None:
-            datum["features"] = self.features[idx]
+            datum["features"] = deepcopy(self.features[idx])
 
         return datum
 
@@ -779,7 +780,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        featurization_backend: str = "loky",
+        featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
@@ -1219,6 +1220,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         features = dm.parallelized(
             self.smiles_transformer,
             smiles,
+            batch_size=32,
+            scheduler='processes',
             progress=True,
             n_jobs=self.featurization_n_jobs,
             tqdm_kwargs={"desc": "featurizing_smiles"},
@@ -1740,7 +1743,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        featurization_backend: str = "loky",
+        featurization_backend: str = "multiprocessing",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,

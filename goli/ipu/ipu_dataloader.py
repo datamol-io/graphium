@@ -223,6 +223,17 @@ def create_ipu_dataloader(
     repli = ipu_options._values["replication_factor"]
     device_iter = ipu_options._values["device_iterations"]
     combined_batch_size = batch_size * accum * repli * device_iter
+    num_batches = len(dataset) // combined_batch_size
+    num_workers = min(num_batches, num_workers)
+    buffer_size = num_batches // num_workers if num_workers > 0 else None
+    buffer_size = 3 if buffer_size is None else buffer_size
+    async_options = {
+        "sharing_strategy": poptorch.SharingStrategy.ForkServer,
+        "early_preload": True,
+        "buffer_size": buffer_size,
+        "load_indefinitely": True,
+        "miss_sleep_time_in_ms": 0
+    }
 
     # Estimate the packing size needed
     max_pack_size, max_pack_size_per_graph = 0, 0
@@ -255,8 +266,10 @@ def create_ipu_dataloader(
         dataset=dataset,
         batch_size=batch_size,
         num_workers=num_workers,
+        buffer_size=buffer_size,
+        persistent_workers=num_workers > 0,
         collate_fn=collater,
-        async_options={"early_preload": True},  # TODO: keep?
+        async_options=async_options,
         **kwargs,
     )
 
