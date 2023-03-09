@@ -284,17 +284,26 @@ def load_predictor(
     if get_accelerator(config) == "ipu":
         from goli.ipu.ipu_wrapper import PredictorModuleIPU
 
-        predictor_class = PredictorModuleIPU
-    else:
-        predictor_class = PredictorModule
+        cfg_pred = dict(deepcopy(config["predictor"]))
 
-    cfg_pred = dict(deepcopy(config["predictor"]))
-    predictor = predictor_class(
-        model_class=model_class,
-        model_kwargs=model_kwargs,
-        metrics=metrics,
-        **cfg_pred,
-    )
+        accelerator_options = config.get("accelerator_options")
+
+        predictor = PredictorModuleIPU(
+            ipu_options=accelerator_options,
+            model_class=model_class,
+            model_kwargs=model_kwargs,
+            metrics=metrics,
+            **cfg_pred,
+        )
+
+    else:
+        cfg_pred = dict(deepcopy(config["predictor"]))
+        predictor = PredictorModule(
+            model_class=model_class,
+            model_kwargs=model_kwargs,
+            metrics=metrics,
+            **cfg_pred,
+        )
 
     # mup base shapes
     mup_base_path = config["architecture"].pop("mup_base_path", None)

@@ -8,6 +8,7 @@ from pytorch_lightning.trainer.states import RunningStage
 
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
+from goli.nn.architectures import FullGraphNetwork
 
 import torch
 from torch_geometric.data import Data, Batch
@@ -106,10 +107,68 @@ class PredictorModuleIPU(PredictorModule):
     This class wraps around the `PredictorModule` to make it work with IPU and the `IPUPluginGoli`.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, ipu_options, *args, **kwargs):
         # Import poptorch in a safe way that will work when working with cpu/gpu
+
+        self._ipu_options = ipu_options
+
         self.poptorch = import_poptorch()
         super().__init__(*args, **kwargs)
+
+        self._apply_ipu_options()
+
+    def _apply_ipu_options(self):
+        r"""
+        Apply any IPU-relevant options from the config's accelerator_options
+        """
+
+        self._apply_pipeline_split()
+
+    def _apply_pipeline_split(self):
+        r"""
+        Apply pipeline split from accelerator options if applicable
+        """
+
+        model_options = self._ipu_options.get("model")
+
+        if model_options is None:
+            return
+
+        gnn_layers_per_ipu = model_options.get("gnn_layers_per_ipu")
+
+        if gnn_layers_per_ipu is None:
+            return
+
+        if not isinstance(self.model, FullGraphNetwork):
+            raise ValueError("gnn_layers_per_ipu specified but model is not an instance of FullGraphNetwork")
+
+        if not isinstance(gnn_layers_per_ipu, list):
+            raise ValueError("gnn_layers_per_ipu must be a list")
+
+        valid_ipu_pipeline_lengths = [1, 2, 4, 8, 16]
+        pipeline_length = len(gnn_layers_per_ipu)
+
+        if split_size not in valid_ipu_pipeline_lengths:
+            raise ValueError(
+                f"gnn_layers_per_ipu must be one of {valid_ipu_pipeline_lengths}, "
+                f"got {gnn_layers_per_ipu} of length {split_size} instead"
+            )
+
+        model_depth = len(self.model.gnn.layers)
+
+        if sum(gnn_layers_per_ipu) != model_depth:
+            raise ValueError(
+                f"The values in gnn_layers_per_ipu must add up to the depth of the model, "
+                f"got {gnn_layers_per_ipu} with total {sum(gnn_layers_per_ipu)} vs model depth "
+                f"of {model_depth}"
+            )
+
+        begin_block_layer_indices = [sum(gnn_layers_per_ipu[:i]) for i in range(1, pipeline_length)]
+
+        for begin_block_layer_index, ipu_id in zip(begin_block_layers, range(1, pipeline_length)):
+            self.model.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
+                self.model.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
+            )
 
     @staticmethod
     def compute_loss(
