@@ -122,7 +122,8 @@ class PredictorModuleIPU(PredictorModule):
         Apply any IPU-relevant options from the config's accelerator_options
         """
 
-        self._apply_pipeline_split()
+        if self._ipu_options is not None:
+            self._apply_pipeline_split()
 
     def _apply_pipeline_split(self):
         r"""
