@@ -266,8 +266,6 @@ def create_ipu_dataloader(
         dataset=dataset,
         batch_size=batch_size,
         num_workers=num_workers,
-        buffer_size=buffer_size,
-        persistent_workers=num_workers > 0,
         collate_fn=collater,
         async_options=async_options,
         **kwargs,
