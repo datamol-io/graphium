@@ -50,7 +50,7 @@ datamodule:
     # Data handling-related
     batch_size_training: 128
     batch_size_inference: 8
-    # cache_data_path: null
+    cache_data_path: /nethome/zhiyil/git/goli/cache
 
     num_workers: -1 # -1 to use all
     persistent_workers: True # if use persistent worker at the start of each epoch. 
@@ -218,4 +218,4 @@ trainer:
     max_epochs: 100
     min_epochs: 1
     accumulate_grad_batches: 8
-    check_val_every_n_epoch: 50
+    check_val_every_n_epoch: 150
