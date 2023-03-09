@@ -110,7 +110,6 @@ def smiles_to_unique_mol_ids(
     unique_mol_ids = dm.parallelized(
         smiles_to_unique_mol_id,
         smiles,
-        batch_size=32,
         progress=progress,
         n_jobs=n_jobs,
         scheduler=backend,
@@ -1220,7 +1219,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         features = dm.parallelized(
             self.smiles_transformer,
             smiles,
-            batch_size=32,
             scheduler='processes',
             progress=True,
             n_jobs=self.featurization_n_jobs,

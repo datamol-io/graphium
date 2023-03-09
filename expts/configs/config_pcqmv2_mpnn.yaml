@@ -12,12 +12,13 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv # 1M training samples
+        df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
+        # or use wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv and set the local path
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        #df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv
-        #smiles_col: "smiles"
-        #label_cols: ["homo"]
+        # df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv
+        # smiles_col: "smiles"
+        # label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -27,7 +28,7 @@ datamodule:
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
-    # 'num_chiral_centers (need graph property, properties for the full molecule are not supported now)']
+    # 'num_chiral_centers (not included yet)']
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
