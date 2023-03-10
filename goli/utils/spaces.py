@@ -48,6 +48,8 @@ from goli.nn.residual_connections import (
 
 from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
 
+from goli.utils.custom_lr import WarmUpLinearLR
+
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
@@ -114,6 +116,7 @@ SCHEDULER_DICT = {
     "ReduceLROnPlateau": sc.ReduceLROnPlateau,
     "StepLR": sc.StepLR,
     "ConstantLR": sc.ConstantLR,
+    "WarmUpLinearLR": WarmUpLinearLR,
 }
 
 METRICS_CLASSIFICATION = {

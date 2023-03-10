@@ -84,7 +84,7 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
 def smiles_to_unique_mol_ids(
     smiles: Iterable[str],
     n_jobs=-1,
-    backend="processes",
+    backend="loky",
     progress=True,
     progress_desc="mols to ids",
 ) -> List[Optional[str]]:
@@ -207,7 +207,7 @@ class MultitaskDataset(Dataset):
         self,
         datasets: Dict[str, SingleTaskDataset],
         n_jobs=-1,
-        backend: str = "processes",
+        backend: str = "loky",
         progress: bool = True,
         about: str = "",
     ):
@@ -779,7 +779,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        featurization_backend: str = "multiprocessing",
+        featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
@@ -1219,7 +1219,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         features = dm.parallelized(
             self.smiles_transformer,
             smiles,
-            scheduler='processes',
             progress=True,
             n_jobs=self.featurization_n_jobs,
             tqdm_kwargs={"desc": "featurizing_smiles"},
@@ -1741,7 +1740,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         persistent_workers: bool = False,
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
-        featurization_backend: str = "multiprocessing",
+        featurization_backend: str = "loky",
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,

@@ -232,7 +232,7 @@ def create_ipu_dataloader(
         "early_preload": True,
         "buffer_size": buffer_size,
         "load_indefinitely": True,
-        "miss_sleep_time_in_ms": 0
+        "miss_sleep_time_in_ms": 0,
     }
 
     # Estimate the packing size needed
