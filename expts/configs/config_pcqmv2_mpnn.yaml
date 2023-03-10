@@ -177,7 +177,7 @@ predictor:
     module_type: WarmUpLinearLR 
     max_num_epochs: &max_epochs 100
     warmup_epochs: 10
-    verbose: False
+    verbose: True
   scheduler_kwargs:
   #  monitor: &monitor homolumo/mae/train
   #  mode: min

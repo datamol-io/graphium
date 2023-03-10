@@ -19,7 +19,7 @@ class WarmUpLinearLR(_LRScheduler):
         self.max_num_epochs = max_num_epochs
         self.warmup_epochs = warmup_epochs
         self.min_lr = min_lr
-        self.last_epoch = last_epoch
+        self.epoch_num = last_epoch + 1
         super(WarmUpLinearLR, self).__init__(optimizer, last_epoch, verbose)
 
     def get_lr(self):
@@ -28,19 +28,19 @@ class WarmUpLinearLR(_LRScheduler):
                 "To get the last learning rate computed by the scheduler, " "please use `get_last_lr()`.",
                 UserWarning,
             )
-        if self.warmup_epochs > 0 and self.last_epoch < self.warmup_epochs:
-            return [self.last_epoch * base_lr / self.warmup_epochs for base_lr in self.base_lrs]
+        if self.warmup_epochs > 0 and self.epoch_num < self.warmup_epochs:
+            return [self.epoch_num * base_lr / self.warmup_epochs for base_lr in self.base_lrs]
         else:
-            factor = (self.last_epoch - self.warmup_epochs) / (self.max_num_epochs - self.warmup_epochs)
+            factor = (self.epoch_num - self.warmup_epochs) / (self.max_num_epochs - self.warmup_epochs)
             return [factor * self.min_lr + (1 - factor) * base_lr for base_lr in self.base_lrs]
 
     def _get_closed_form_lr(self):
         lr_list = []
         for base_lr in self.base_lrs:
-            if self.warmup_epochs > 0 and self.last_epoch < self.warmup_epochs:
-                lr = self.last_epoch * base_lr / self.warmup_epochs
+            if self.warmup_epochs > 0 and self.epoch_num < self.warmup_epochs:
+                lr = self.epoch_num * base_lr / self.warmup_epochs
             else:
-                factor = (self.last_epoch - self.warmup_epochs) / (self.max_num_epochs - self.warmup_epochs)
+                factor = (self.epoch_num - self.warmup_epochs) / (self.max_num_epochs - self.warmup_epochs)
                 lr = factor * self.min_lr + (1 - factor) * base_lr
             lr_list.append(lr)
         return lr_list
