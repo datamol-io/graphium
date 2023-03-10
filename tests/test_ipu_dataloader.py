@@ -10,12 +10,11 @@ from functools import partial
 
 import torch
 from torch.utils.data.dataloader import default_collate
+from torch_geometric.data import Data, Batch
 
 # Current library imports
-from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing, hybrid_packing
+from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing, hybrid_packing, node_to_pack_indices_mask
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
-from goli.ipu.ipu_utils import import_poptorch
-
 
 def random_packing(num_nodes, batch_size):
     ipu_batch_size = int(len(num_nodes) / batch_size)
@@ -152,6 +151,77 @@ class test_Packing(ut.TestCase):
                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
                     np.arange(len(num_nodes)).tolist(),
                 )
+
+    def test_node_to_pack_indices_mask(self):
+        # Create a dummy batch
+        in_dim = 7
+        in_dim_edges = 11
+        max_num_nodes_per_graph = 20
+        batch_size_per_pack = 5
+        
+        torch.manual_seed(42)
+        
+        # Create a dummy batch of graphs
+        batch, all_num_nodes = [], []
+        for ii in range(100):
+            num_nodes = torch.randint(1, max_num_nodes_per_graph, (1,)).item()
+            all_num_nodes.append(num_nodes)
+            num_edges = abs(round(2.2 * num_nodes) + torch.randint(-2, 2, (1,)).item()) + 1
+            x = torch.randn(num_nodes, in_dim, dtype=torch.float32)
+            edge_idx = torch.randint(0, num_nodes, (2, num_edges))
+            e = torch.randn(edge_idx.shape[-1], in_dim_edges, dtype=torch.float32)
+            g = Data(h=x, edge_index=edge_idx, edge_attr=e)
+            batch.append(g)
+        batch = Batch.from_data_list(batch)
+
+        # Get the packing
+        packed_graph_idx = fast_packing(all_num_nodes, batch_size_per_pack)
+        pack_sizes = get_pack_sizes(packed_graph_idx, all_num_nodes)
+        max_pack_size = max(pack_sizes)
+        num_packs = len(pack_sizes)
+
+        # Get the node to pack indices and the mask
+        node_to_pack_idx, pack_attn_mask = node_to_pack_indices_mask(packed_graph_idx, all_num_nodes)
+
+        # Assert that the nodes to pack indices are correct
+        h = torch.arange(batch.num_nodes, dtype=torch.float32)
+        packed_shape = [num_packs, max_pack_size]
+        h_packed = torch.zeros(packed_shape)
+        h_packed[node_to_pack_idx[:, 0], node_to_pack_idx[:, 1]] = h
+        h_packed_unique = torch.sort(torch.unique(h_packed))[0]
+        np.testing.assert_array_equal(h_packed_unique, torch.arange(batch.num_nodes))
+        self.assertEqual(h_packed.sum(), h.sum())
+        
+        # Test again with additional h dimension
+        h = batch.h
+        packed_shape = [num_packs, max_pack_size] + list(h.shape[1:])
+        h_packed = torch.zeros(packed_shape)
+        h_packed[node_to_pack_idx[:, 0], node_to_pack_idx[:, 1]] = h
+        h_packed_unique = torch.sort(torch.unique(h_packed))[0]
+        h_packed_unique = h_packed_unique[h_packed_unique != 0]
+        np.testing.assert_array_almost_equal(h_packed_unique, torch.unique(h))
+        self.assertAlmostEqual(h_packed.sum().item(), h.sum().item(), places=3)
+        
+        # Assert that the mask is correct by counting the number of False values (the sum of squared number of nodes per pack)
+        num_false = (~pack_attn_mask).sum([1, 2])
+        num_expected = torch.as_tensor([sum([all_num_nodes[graph_idx]**2 for graph_idx in pack]) for pack in packed_graph_idx])
+        np.testing.assert_array_equal(num_false, num_expected)
+
+        # Assert that the mask is correct by counting the number of elements in each row and column
+        num_expected = []
+        for pack in packed_graph_idx:
+            pack_num_expected = []
+            for graph_idx in pack:
+                num_nodes = all_num_nodes[graph_idx]
+                for ii in range(num_nodes):
+                    pack_num_expected.append(num_nodes)
+            pack_num_expected.extend([0] * (max_pack_size - len(pack_num_expected)))
+            num_expected.append(pack_num_expected)
+        num_expected = torch.as_tensor(num_expected)
+        num_false_row = (~pack_attn_mask).sum([2])
+        num_false_col = (~pack_attn_mask).sum([1])
+        np.testing.assert_array_equal(num_false_row, num_expected)
+        np.testing.assert_array_equal(num_false_col, num_expected)
 
 
 class test_DataLoading(ut.TestCase):

@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
-from typing import Callable, Iterable, Optional, List
+from typing import Callable, Iterable, Optional, List, Tuple
 from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
@@ -639,3 +639,60 @@ def estimate_max_pack_node_size(num_nodes: Iterable[int], batch_size: int, combi
     max_pack_size_per_graph = max_pack_size / batch_size
 
     return max_pack_size, max_pack_size_per_graph
+
+def node_to_pack_indices_mask(packed_indices: Iterable[Iterable[int]], all_num_nodes: Iterable[int]) -> Tuple[torch.Tensor, torch.Tensor]:
+    """
+    Given a list of packed indices, and the number of nodes in each graph,
+    return a tensor of shape (sum(all_num_nodes), 2) where the first column
+    is the pack index, and the second column is the node index within the pack.
+
+    Can be used to generate a dense packing of the nodes as follows:
+    ```
+    # node_features: A tensor of shape (num_nodes, num_node_features)
+    # num_packs: The number of packs desired
+    # max_nodes_per_pack: The maximum number of nodes per pack
+    # dense_pack: A tensor of shape (num_packs, max_nodes_per_pack, num_node_features)
+
+    dense_pack = torch.zeros([num_packs, max_nodes_per_pack, num_node_features])
+    dense_pack[node_to_pack_idx[:, 0], node_to_pack_idx[:, 1]] = node_features
+    ```
+
+    This is useful when using a Transformer, to avoid wasteful padding when the
+    the longest sequence is much longer than the average sequence length.
+
+    Parameters:
+        packed_indices: A list of lists of graph indices, where each sub-list
+                        represents a pack of graphs
+        all_num_nodes: The number of nodes in each graph
+
+    Returns:
+        node_to_pack_idx: A tensor of shape (sum(all_num_nodes), 2) where the first column
+                        is the pack index, and the second column is the node index within the pack.
+
+        pack_attn_mask: A tensor of shape (num_packs, max_pack_size, max_pack_size),
+                            that represents the attention masking for each pack,
+                            such that the graphs in the pack are masked out from each other.
+    """
+
+    all_num_nodes = torch.as_tensor(all_num_nodes, dtype=torch.long)
+    pack_sizes = get_pack_sizes(packed_indices, all_num_nodes)
+    max_pack_size = max(pack_sizes)
+    cumsum_num_nodes = torch.cumsum(all_num_nodes, dim=0)
+
+    # Get the node indices associated to the packs, with 0 padding
+    node_to_pack_idx = torch.zeros(sum(all_num_nodes), 2, dtype=torch.long)
+    pack_attn_mask = [] # masks for the attention
+    for ii, pack in enumerate(packed_indices):
+        jj = 0 # Counter for the number of nodes in the pack
+        this_pack_attn_mask = torch.ones((max_pack_size, max_pack_size), dtype=torch.bool)
+        for graph_idx in pack:
+            node_idx = torch.arange(cumsum_num_nodes[graph_idx]-all_num_nodes[graph_idx], cumsum_num_nodes[graph_idx])
+            this_pack_attn_mask[jj:jj+node_idx.shape[0], jj:jj+node_idx.shape[0]] = False
+            for node in node_idx:
+                node_to_pack_idx[node, 0] = ii
+                node_to_pack_idx[node, 1] = jj
+                jj += 1
+        pack_attn_mask.append(this_pack_attn_mask)
+    pack_attn_mask = torch.stack(pack_attn_mask, dim=0)
+
+    return node_to_pack_idx, pack_attn_mask
