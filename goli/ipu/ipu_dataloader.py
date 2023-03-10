@@ -693,14 +693,14 @@ def node_to_pack_indices_mask(
         jj = 0  # Counter for the number of nodes in the pack
         this_pack_attn_mask = torch.ones((max_pack_size, max_pack_size), dtype=torch.bool)
         for graph_idx in pack:
-            this_num_nodes = all_num_nodes[graph_idx]
+            num_nodes = all_num_nodes[graph_idx]
             node_idx = torch.arange(
-                cumsum_num_nodes[graph_idx] - this_num_nodes, cumsum_num_nodes[graph_idx]
+                cumsum_num_nodes[graph_idx] - num_nodes, cumsum_num_nodes[graph_idx]
             )
-            this_pack_attn_mask[jj : jj + this_num_nodes, jj : jj + this_num_nodes] = False
+            this_pack_attn_mask[jj : jj + num_nodes, jj : jj + num_nodes] = False
             node_to_pack_idx[node_idx, 0] = ii
-            node_to_pack_idx[node_idx, 1] = jj + torch.arange(this_num_nodes)
-            jj += this_num_nodes
+            node_to_pack_idx[node_idx, 1] = jj + torch.arange(num_nodes)
+            jj += num_nodes
         pack_attn_mask.append(this_pack_attn_mask)
     pack_attn_mask = torch.stack(pack_attn_mask, dim=0)
 
