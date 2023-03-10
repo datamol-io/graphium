@@ -12,15 +12,15 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        # df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
-        smiles_col: "cxsmiles"
-        label_cols: ["homo_lumo_gap"]
+        # smiles_col: "cxsmiles"
+        # label_cols: ["homo_lumo_gap"]
         # mini dataset for test
-        # df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv
-        # smiles_col: "smiles"
-        # label_cols: ["homo"]
+        df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv
+        smiles_col: "smiles"
+        label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
