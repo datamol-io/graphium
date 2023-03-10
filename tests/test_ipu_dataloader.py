@@ -13,8 +13,15 @@ from torch.utils.data.dataloader import default_collate
 from torch_geometric.data import Data, Batch
 
 # Current library imports
-from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing, hybrid_packing, node_to_pack_indices_mask
+from goli.ipu.ipu_dataloader import (
+    smart_packing,
+    get_pack_sizes,
+    fast_packing,
+    hybrid_packing,
+    node_to_pack_indices_mask,
+)
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
+
 
 def random_packing(num_nodes, batch_size):
     ipu_batch_size = int(len(num_nodes) / batch_size)
@@ -158,9 +165,9 @@ class test_Packing(ut.TestCase):
         in_dim_edges = 11
         max_num_nodes_per_graph = 20
         batch_size_per_pack = 5
-        
+
         torch.manual_seed(42)
-        
+
         # Create a dummy batch of graphs
         batch, all_num_nodes = [], []
         for ii in range(100):
@@ -191,7 +198,7 @@ class test_Packing(ut.TestCase):
         h_packed_unique = torch.sort(torch.unique(h_packed))[0]
         np.testing.assert_array_equal(h_packed_unique, torch.arange(batch.num_nodes))
         self.assertEqual(h_packed.sum(), h.sum())
-        
+
         # Test again with additional h dimension
         h = batch.h
         packed_shape = [num_packs, max_pack_size] + list(h.shape[1:])
@@ -201,10 +208,12 @@ class test_Packing(ut.TestCase):
         h_packed_unique = h_packed_unique[h_packed_unique != 0]
         np.testing.assert_array_almost_equal(h_packed_unique, torch.unique(h))
         self.assertAlmostEqual(h_packed.sum().item(), h.sum().item(), places=3)
-        
+
         # Assert that the mask is correct by counting the number of False values (the sum of squared number of nodes per pack)
         num_false = (~pack_attn_mask).sum([1, 2])
-        num_expected = torch.as_tensor([sum([all_num_nodes[graph_idx]**2 for graph_idx in pack]) for pack in packed_graph_idx])
+        num_expected = torch.as_tensor(
+            [sum([all_num_nodes[graph_idx] ** 2 for graph_idx in pack]) for pack in packed_graph_idx]
+        )
         np.testing.assert_array_equal(num_false, num_expected)
 
         # Assert that the mask is correct by counting the number of elements in each row and column

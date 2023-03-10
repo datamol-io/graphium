@@ -640,7 +640,10 @@ def estimate_max_pack_node_size(num_nodes: Iterable[int], batch_size: int, combi
 
     return max_pack_size, max_pack_size_per_graph
 
-def node_to_pack_indices_mask(packed_indices: Iterable[Iterable[int]], all_num_nodes: Iterable[int], max_pack_size:Optional[int]=None) -> Tuple[torch.Tensor, torch.Tensor]:
+
+def node_to_pack_indices_mask(
+    packed_indices: Iterable[Iterable[int]], all_num_nodes: Iterable[int], max_pack_size: Optional[int] = None
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """
     Given a list of packed indices, and the number of nodes in each graph,
     return a tensor of shape (sum(all_num_nodes), 2) where the first column
@@ -685,13 +688,15 @@ def node_to_pack_indices_mask(packed_indices: Iterable[Iterable[int]], all_num_n
 
     # Get the node indices associated to the packs, with 0 padding
     node_to_pack_idx = torch.zeros(sum(all_num_nodes), 2, dtype=torch.long)
-    pack_attn_mask = [] # masks for the attention
+    pack_attn_mask = []  # masks for the attention
     for ii, pack in enumerate(packed_indices):
-        jj = 0 # Counter for the number of nodes in the pack
+        jj = 0  # Counter for the number of nodes in the pack
         this_pack_attn_mask = torch.ones((max_pack_size, max_pack_size), dtype=torch.bool)
         for graph_idx in pack:
-            node_idx = torch.arange(cumsum_num_nodes[graph_idx]-all_num_nodes[graph_idx], cumsum_num_nodes[graph_idx])
-            this_pack_attn_mask[jj:jj+node_idx.shape[0], jj:jj+node_idx.shape[0]] = False
+            node_idx = torch.arange(
+                cumsum_num_nodes[graph_idx] - all_num_nodes[graph_idx], cumsum_num_nodes[graph_idx]
+            )
+            this_pack_attn_mask[jj : jj + node_idx.shape[0], jj : jj + node_idx.shape[0]] = False
             for node in node_idx:
                 node_to_pack_idx[node, 0] = ii
                 node_to_pack_idx[node, 1] = jj
