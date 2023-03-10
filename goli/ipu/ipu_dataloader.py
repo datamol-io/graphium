@@ -672,7 +672,7 @@ def node_to_pack_indices_mask(
                           Useful to determine the shape of the `pack_attn_mask`.
 
     Returns:
-        node_to_pack_idx: A tensor of shape (sum(all_num_nodes), 2) where the first column
+        node_to_pack_idx: A tensor of shape (num_nodes, 2) where the first column
                         is the pack index, and the second column is the node index within the pack.
 
         pack_attn_mask: A tensor of shape (num_packs, max_pack_size, max_pack_size),
