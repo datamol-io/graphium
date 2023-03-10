@@ -3,7 +3,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 
 
 class WarmUpLinearLR(_LRScheduler):
-    """DCustom linear learning rate with warmup.
+    """Custom linear learning rate with warmup.
 
     Args:
         optimizer (Optimizer): Wrapped optimizer.
@@ -28,7 +28,6 @@ class WarmUpLinearLR(_LRScheduler):
                 "To get the last learning rate computed by the scheduler, " "please use `get_last_lr()`.",
                 UserWarning,
             )
-        print(self.last_epoch)
         if self.warmup_epochs > 0 and self.last_epoch < self.warmup_epochs:
             return [self.last_epoch * base_lr / self.warmup_epochs for base_lr in self.base_lrs]
         else:
@@ -37,7 +36,6 @@ class WarmUpLinearLR(_LRScheduler):
 
     def _get_closed_form_lr(self):
         lr_list = []
-        print(self.last_epoch)
         for base_lr in self.base_lrs:
             if self.warmup_epochs > 0 and self.last_epoch < self.warmup_epochs:
                 lr = self.last_epoch * base_lr / self.warmup_epochs

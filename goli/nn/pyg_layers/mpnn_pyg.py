@@ -134,6 +134,8 @@ class MPNNPlusPyg(BaseGraphModule):
             node_model_in_dim = 3 * self.in_dim + 2 * edge_dim
         elif self.node_combine_method == "sum":
             node_model_in_dim = 2 * self.in_dim + edge_dim
+        else:
+            raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
         node_model_hidden_dim = 4 * self.in_dim
         self.node_model = MLP(
             in_dim=node_model_in_dim,
@@ -149,6 +151,8 @@ class MPNNPlusPyg(BaseGraphModule):
             edge_model_in_dim = 2 * self.in_dim + self.in_dim_edges
         elif self.node_combine_method == "sum":
             edge_model_in_dim = self.in_dim + self.in_dim_edges
+        else:
+            raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
         edge_model_hidden_dim = 4 * self.in_dim_edges
         self.edge_model = MLP(
             in_dim=edge_model_in_dim,
