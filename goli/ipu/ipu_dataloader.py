@@ -1,6 +1,6 @@
 # Copyright (c) 2022 Graphcore Ltd. All rights reserved.
 
-from typing import Callable, Iterable, Optional, List, Tuple
+from typing import Callable, Iterable, Optional, List, Tuple, Dict, Any, Union
 from copy import deepcopy
 from dataclasses import dataclass
 import numpy as np
@@ -33,6 +33,7 @@ class IPUDataloaderOptions:
     max_num_edges: Optional[int] = None
     max_num_edges_per_graph: Optional[int] = None
     mode: "poptorch.DataLoaderMode" = "Sync"
+    graphs_per_mini_pack: Optional[int] = None
 
     def set_kwargs(self):
         # Get the maximum number of nodes
@@ -72,6 +73,10 @@ class IPUDataloaderOptions:
                 self.mode = poptorch.DataLoaderMode.AsyncRebatched
             else:
                 raise ValueError(f"`{self.mode}` not a valid parameter.")
+        
+        if self.graphs_per_mini_pack is not None:
+            assert isinstance(self.graphs_per_mini_pack, int), f"graphs_per_mini_pack must be an integer, provided {type(self.graphs_per_mini_pack)}"
+            assert self.graphs_per_mini_pack > 0, f"graphs_per_mini_pack must be greater than 0, provided {self.graphs_per_mini_pack}"
 
 
 class CombinedBatchingCollator:
@@ -91,6 +96,7 @@ class CombinedBatchingCollator:
         max_num_edges: int,
         dataset_max_nodes_per_graph: int,
         dataset_max_edges_per_graph: int,
+        graphs_per_mini_pack: int,
         collate_fn: Optional[Callable] = None,
     ):
         """
@@ -100,6 +106,7 @@ class CombinedBatchingCollator:
             max_num_edges: Maximum number of edges in the batched padded graph
             dataset_max_nodes_per_graph: Maximum number of nodes per graph in the full dataset
             dataset_max_edges_per_graph: Maximum number of edges per graph in the full dataset
+            graphs_per_mini_pack: Number of graphs to pack together in a mini-pack
             collate_fn: Function used to collate (or batch) the single data or graphs together
         """
         super().__init__()
@@ -109,21 +116,34 @@ class CombinedBatchingCollator:
         self.max_num_edges = max_num_edges
         self.dataset_max_nodes_per_graph = dataset_max_nodes_per_graph
         self.dataset_max_edges_per_graph = dataset_max_edges_per_graph
+        self.graphs_per_mini_pack = graphs_per_mini_pack
 
-    def __call__(self, batch: Batch) -> Batch:
+    def __call__(self, batch: List[Dict[str, Union[Data, Dict[str, Tensor]]]]) -> Dict[str, Union[Batch, Dict[str, Tensor], Any]]:
         """
-        padding option to pad each batch to be same size.
+        Stack tensors, batch the pyg graphs, and pad each tensor to be same size.
 
         Parameters:
-            batch: The batch of pyg-graphs to be padded
+            batch: The batch of data, including pyg-graphs `Data` and labels `Dict[str, Tensor]` to be padded
 
         Returns:
-            batch: The padded batch
+            out_batch: A dictionary where the graphs are batched and the labels or other Tensors are stacked
         """
 
         # Sort the batch such that large graphs are paired with small graphs
         num_nodes = [b["features"].num_nodes for b in batch]
         packed_indices = hybrid_packing(num_nodes, batch_size=self.batch_size)
+
+        # TODO: Move this to the collate_fn so it works on CPU/GPU as well.
+        # Apply the packing again at the mini-batch level. This is useful for using packing with the Transformer,
+        # especially in the case of the large graphs being much larger than the small graphs.
+        for pack in packed_indices:
+            this_num_nodes = [num_nodes[idx] for idx in pack]
+            packed_graph_idx = fast_packing(this_num_nodes, batch_size_per_pack)
+            pack_sizes = get_pack_sizes(packed_graph_idx, this_num_nodes)
+
+            # Get the node to pack indices and the mask
+            node_to_pack_idx, pack_attn_mask = node_to_pack_indices_mask(packed_graph_idx, this_num_nodes)
+
         packs = [[batch[idx] for idx in pack] for pack in packed_indices]
 
         # Loop all mini-batches within the global batch
@@ -155,13 +175,13 @@ class CombinedBatchingCollator:
             if isinstance(val, torch.Tensor):
                 stacked_features[key] = torch.stack([this_graph[key] for this_graph in out_graphs], dim=0)
 
-        # TODO: Make this more robust, instead of hard-coding the keys
+        
         out_batch["features"] = stacked_features
-        out_batch["_batch_idx"] = torch.as_tensor(range(len(all_batches)), dtype=torch.int32).unsqueeze(-1)
         for key in all_batches[0].keys():
-            if key not in ("features", "labels", "_types_conversion"):
+            if key not in ("features", "labels"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
 
+        # 
         for data_key, data_val in out_batch.items():
             if isinstance(data_val, Batch):
                 for sub_key, sub_val in data_val.items():
@@ -214,6 +234,7 @@ def create_ipu_dataloader(
         max_num_edges=ipu_dataloader_options.max_num_edges,
         dataset_max_nodes_per_graph=dataset.max_num_nodes_per_graph,
         dataset_max_edges_per_graph=dataset.max_num_edges_per_graph,
+        graphs_per_mini_pack=ipu_dataloader_options.graphs_per_mini_pack,
     )
 
     # Get the global batch size

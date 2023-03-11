@@ -14,7 +14,7 @@ datamodule:
       homo:
         df: null
         # df_path: &df_path goli/data/QM9/norm_micro_qm9.csv #goli/data/QM9/qm9.csv #goli/data/QM9/norm_micro_qm9.csv #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv #goli/data/QM9/micro_qm9.csv #goli/data/QM9/norm_micro_qm9.csv   #https://storage.googleapis.com/goli-public/datasets/QM9/norm_mini_qm9.csv
-        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv
+        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_micro_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2
@@ -92,6 +92,7 @@ datamodule:
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
+  mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
     out_dim: 32
     hidden_dims: 32
@@ -122,6 +123,7 @@ architecture:
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
         input_keys: ["eigvecs", "eigvals"]
+        output_keys: ["feat"]
         hidden_dim: 64
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 1
@@ -131,7 +133,7 @@ architecture:
       rw_pos:
         encoder_type: "mlp"
         input_keys: ["rwse"]
-        output_keys: "node"
+        output_keys: ["feat"]
         hidden_dim: 64
         num_layers: 1
         dropout: 0.1
@@ -316,4 +318,4 @@ trainer:
     precision: 32
     max_epochs: 50 #50
     min_epochs: 1 #5
-    accumulate_grad_batches: 4
+    accumulate_grad_batches: 2
