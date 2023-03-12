@@ -407,6 +407,7 @@ class BaseDataModule(pl.LightningDataModule):
         self,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
+        batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -416,6 +417,7 @@ class BaseDataModule(pl.LightningDataModule):
 
         self.batch_size_training = batch_size_training
         self.batch_size_inference = batch_size_inference
+        self.batch_size_per_pack = batch_size_per_pack
 
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -468,11 +470,10 @@ class BaseDataModule(pl.LightningDataModule):
             **kwargs,
         )
 
-    @staticmethod
-    def get_collate_fn(collate_fn):
+    def get_collate_fn(self, collate_fn):
         if collate_fn is None:
             # Some values become `inf` when changing data type. `mask_nan` deals with that
-            collate_fn = partial(goli_collate_fn, mask_nan=0)
+            collate_fn = partial(goli_collate_fn, mask_nan=0, batch_size_per_pack=self.batch_size_per_pack)
             collate_fn.__name__ = goli_collate_fn.__name__
 
         return collate_fn
@@ -774,6 +775,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
+        batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -866,6 +868,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,
+            batch_size_per_pack=batch_size_per_pack,
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
@@ -1184,11 +1187,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return loader
 
-    @staticmethod
-    def get_collate_fn(collate_fn):
+    def get_collate_fn(self, collate_fn):
         if collate_fn is None:
             # Some values become `inf` when changing data type. `mask_nan` deals with that
-            collate_fn = partial(goli_collate_fn, mask_nan=0, do_not_collate_keys=["smiles", "mol_ids"])
+            collate_fn = partial(goli_collate_fn, mask_nan=0, do_not_collate_keys=["smiles", "mol_ids"], batch_size_per_pack=self.batch_size_per_pack)
             collate_fn.__name__ = goli_collate_fn.__name__
         return collate_fn
 
@@ -1919,8 +1921,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata.T
 
         # Add metadata related to PCQM4M
-        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"]))
-        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"]))
+        ogb_metadata = pd.concat([ogb_metadata, pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"])])
+        ogb_metadata = pd.concat([ogb_metadata, pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"])])
 
         # Only keep datasets of type 'mol'
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]

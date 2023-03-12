@@ -11,11 +11,11 @@ def to_sparse_batch(x: Tensor, mask_idx: Tensor):
     """
     return torch.index_select(x.reshape(-1, x.shape[-1]), 0, mask_idx)
 
-def to_sparse_batch_from_packed(x: Tensor, node_to_pack_idx: Tensor):
+def to_sparse_batch_from_packed(x: Tensor, pack_from_node_idx: Tensor):
     """
     Reverse function of `to_packed_dense_batch`
     """
-    return x[node_to_pack_idx[:, 0], node_to_pack_idx[:, 1]]
+    return x[pack_from_node_idx[:, 0], pack_from_node_idx[:, 1]]
 
 
 def to_dense_batch(
@@ -113,7 +113,7 @@ def to_dense_batch(
 
 def to_packed_dense_batch(
     x: Tensor,
-    node_to_pack_idx: Tensor,
+    pack_from_node_idx: Tensor,
     pack_attn_mask: Tensor,
     fill_value: float = 0.0,
     max_num_nodes_per_pack: Optional[int] = None,
@@ -151,7 +151,7 @@ def to_packed_dense_batch(
     size = [pack_attn_mask[0], max_num_nodes_per_pack] + list(x.size())[1:]
 
     out = x.new_full(size, fill_value)
-    out[node_to_pack_idx[:, 0], node_to_pack_idx[:, 1]] = x
+    out[pack_from_node_idx[:, 0], pack_from_node_idx[:, 1]] = x
 
     return out
 

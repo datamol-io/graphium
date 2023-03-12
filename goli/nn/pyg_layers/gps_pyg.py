@@ -255,7 +255,7 @@ class GPSLayerPyg(BaseGraphModule):
         """
         Check if we should use packing for the batch of graphs.
         """
-        return "node_to_pack_idx" in batch.keys and "pack_attn_mask" in batch.keys
+        return "pack_from_node_idx" in batch.keys and "pack_attn_mask" in batch.keys
 
     def _to_dense_batch(self, h: Tensor, batch: Batch, batch_size:Optional[int]=None, max_num_nodes_per_graph: Optional[int] = None, on_ipu: bool=False) -> Tensor:
         """
@@ -265,10 +265,10 @@ class GPSLayerPyg(BaseGraphModule):
         if self._use_packing(batch):
             attn_mask = batch.pack_attn_mask
             key_padding_mask = None
-            idx = batch.node_to_pack_idx
+            idx = batch.pack_from_node_idx
             h_dense = to_packed_dense_batch(
                 h,
-                node_to_pack_idx=idx,
+                pack_from_node_idx=idx,
                 pack_attn_mask=attn_mask,
                 max_num_nodes_per_pack=100, # TODO: This should be a parameter
             )
@@ -291,7 +291,7 @@ class GPSLayerPyg(BaseGraphModule):
         if self._use_packing(batch):
             h = to_sparse_batch_from_packed(
                 h_dense,
-                node_to_pack_idx=idx,
+                pack_from_node_idx=idx,
             )
         else:
             h = to_sparse_batch(

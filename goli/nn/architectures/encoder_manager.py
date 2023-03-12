@@ -26,29 +26,45 @@ PE_ENCODERS_DICT = {
 class EncoderManager(nn.Module):
     def __init__(
         self,
-        pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
+        out_dim: int,
+        pool: str = "sum",
+        last_norm: str = "none",
+        in_dims: Dict[str, int] = None,
         max_num_nodes_per_graph: Optional[int] = None,
-        name: str = "encoder_manager",
+        encoders: Optional[Dict[str, Any]] = None,
+        name: str = "Encoder_Manager",
     ):
         r"""
         Class that allows to runs multiple encoders in parallel and concatenate / pool their outputs.
 
         Parameters:
 
-            pe_encoders_kwargs:
-                key-word arguments to use for the initialization of all positional encoding encoders
-                can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)
+            out_dim: Output dimension of the network
 
+            pool: Pooling method to use. Can be one of: "sum", "mean", "max"
+
+            last_norm: Normalization method to use on the output of the network. Can be one of: "batch_norm", "layer_norm", "none"
+
+            in_dims: Dictionary of input dimensions for each input key.
+
+            max_num_nodes_per_graph: Maximum number of nodes per graph. Used for positional encoders that require it.
+
+            encoders:
+                key-word arguments to use for the initialization of all positional encoding encoders
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
         """
 
         super().__init__()
+        self.out_dim = out_dim
+        self.pool = pool
+        self.last_norm = last_norm
+        self.in_dims = in_dims
         self.name = name
         self.max_num_nodes_per_graph = max_num_nodes_per_graph
-        self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
-        self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
+        self.pe_encoders_kwargs = deepcopy(encoders)
+        self.pe_encoders = self._initialize_positional_encoders(self.pe_encoders_kwargs)
 
     def _initialize_positional_encoders(self, pe_encoders_kwargs: Dict[str, Any]) -> Optional[nn.ModuleDict]:
         r"""Initialize the positional encoders for each positional/structural encodings.
@@ -63,13 +79,8 @@ class EncoderManager(nn.Module):
         if pe_encoders_kwargs is not None:
             pe_encoders = nn.ModuleDict()
 
-            # Pooling options here for pe encoders
-            self.pe_pool = pe_encoders_kwargs["pool"]
-            pe_out_dim = pe_encoders_kwargs["out_dim"]
-            in_dim_dict = pe_encoders_kwargs["in_dims"]
-
             # Loop every positional encoding to assign it
-            for encoder_name, encoder_kwargs in pe_encoders_kwargs["encoders"].items():
+            for encoder_name, encoder_kwargs in pe_encoders_kwargs.items():
                 encoder_kwargs = deepcopy(encoder_kwargs)
                 encoder_type = encoder_kwargs.pop("encoder_type")
                 encoder = PE_ENCODERS_DICT[encoder_type]
@@ -77,17 +88,17 @@ class EncoderManager(nn.Module):
                 # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name/`
                 # Then check for the exact key
                 this_in_dims = {}
-                for key, dim in in_dim_dict.items():
+                for key, dim in self.in_dims.items():
                     if isinstance(key, str) and key.startswith(f"{encoder_name}/"):
                         key_name = "in_dim_" + key[len(encoder_name) + 1 :]
                         this_in_dims[key_name] = dim
                 if len(this_in_dims) == 0:
                     for key in encoder_kwargs.get("input_keys", []):
-                        if key in in_dim_dict:
-                            this_in_dims[key] = in_dim_dict[key]
+                        if key in self.in_dims:
+                            this_in_dims[key] = self.in_dims[key]
                         else:
                             raise ValueError(
-                                f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}/' is also not found.\n Available keys: {in_dim_dict.keys()}"
+                                f"Key '{key}' not found in `self.in_dims`. Encoder '{encoder_name}/' is also not found.\n Available keys: {self.in_dims.keys()}"
                             )
 
                 # Parse the in_dims based on Encoder's signature
@@ -111,9 +122,11 @@ class EncoderManager(nn.Module):
                     encoder_kwargs["max_num_nodes_per_graph"] = self.max_num_nodes_per_graph
 
                 # Initialize the pe_encoder layer
-                pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
-                if pe_out_dim2 is not None:
-                    assert pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
+                pe_out_dim = encoder_kwargs.pop("out_dim", None)
+                if pe_out_dim is None:
+                    pe_out_dim = self.out_dim
+                if self.out_dim is not None:
+                    assert pe_out_dim == self.out_dim, f"values mismatch {pe_out_dim}!={self.out_dim}"
                 pe_encoders[encoder_name] = encoder(out_dim=pe_out_dim, **this_in_dims, **encoder_kwargs)
 
         return pe_encoders
@@ -220,46 +233,29 @@ class EncoderManager(nn.Module):
         Parameter:
             divide_factor: Factor by which to divide the width.
         """
+
+        # Create the base model kwargs
+        base_kwargs = {
+            "out_dim": round(self.out_dim / divide_factor),
+            "pool": self.pool,
+            "last_norm": self.last_norm,
+            "in_dims": self.in_dims,
+            "max_num_nodes_per_graph": self.max_num_nodes_per_graph,
+            "name": self.name,
+        }
+
         # For the pe-encoders, don't factor the in_dim and in_dim_edges
-        if self.pe_encoders is not None:
-            pe_kw = deepcopy(self.pe_encoders_kwargs)
+        pe_kw = deepcopy(self.pe_encoders_kwargs)
+        if self.pe_encoders_kwargs is not None:
             new_pe_kw = {
                 key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
                 for key, encoder in self.pe_encoders.items()
             }
-            pe_kw["out_dim"] = round(pe_kw["out_dim"] / divide_factor)
             for key, enc in pe_kw["encoders"].items():
                 new_pe_kw[key].pop("in_dim", None)
                 new_pe_kw[key].pop("in_dim_edges", None)
                 enc.update(new_pe_kw[key])
-        return pe_kw
 
-    @property
-    def input_keys(self) -> Iterable[str]:
-        r"""
-        Returns the input keys for all pe-encoders
-        """
-        if self.pe_encoders is not None:
-            return self.pe_encoders_kwargs["input_keys"]
-        else:
-            raise ValueError("pe_encoders is not initialized, so there are no input keys.")
+        base_kwargs["encoders"] = pe_kw
 
-    @property
-    def in_dims(self) -> Iterable[int]:
-        r"""
-        Returns the input dimensions for all pe-encoders
-        """
-        if self.pe_encoders is not None:
-            return self.pe_encoders_kwargs["in_dims"]
-        else:
-            raise ValueError("pe_encoders is not initialized, so there are no input dimensions.")
-
-    @property
-    def out_dim(self) -> int:
-        r"""
-        Returns the output dimension of the pooled embedding from all the pe encoders
-        """
-        if self.pe_encoders is not None:
-            return self.pe_encoders_kwargs["out_dim"]
-        else:
-            raise ValueError("pe_encoders is not initialized, so there is no output dimension.")
+        return base_kwargs

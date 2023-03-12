@@ -5,19 +5,20 @@ import torch
 from numpy import ndarray
 from scipy.sparse import spmatrix
 from torch.utils.data.dataloader import default_collate
-from typing import Union, List, Optional, Dict, Type, Any
+from typing import Union, List, Optional, Dict, Type, Any, Iterable
 import dgl
 from torch_geometric.data import Data, Batch
 
 from goli.features import GraphDict, to_dense_array
-
+from goli.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
 
 def goli_collate_fn(
-    elements,
+    elements: Union[List[Any], Dict[str, List[Any]]],
     labels_size_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
-):
+    batch_size_per_pack: Optional[int] = None,
+) -> Union[Any, Dict[str, Any]]:
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
     objects and use `dgl.batch` to batch graphs.
@@ -57,6 +58,15 @@ def goli_collate_fn(
 
         do_not_batch_keys:
             Keys to ignore for the collate
+
+        batch_size_per_pack: The number of graphs to pack together. 
+            This is useful for using packing with the Transformer.
+            If None, no packing is done.
+            Otherwise, indices are generated to map the nodes to the pack they belong to under the key `"pack_from_node_idx"`,
+            with an additional mask to indicate which nodes are from the same graph under the key `"pack_attn_mask"`.
+
+    Returns:
+        The batched elements. See `torch.utils.data.dataloader.default_collate`.
     """
 
     elem = elements[0]
@@ -75,27 +85,9 @@ def goli_collate_fn(
                 batch[key] = dgl.batch([d[key] for d in elements])
 
             # If a PyG Graph is provided, use the PyG batching
-            # Convert all numpy types to torch
-            # Convert edge indices to int64
             elif isinstance(elem[key], Data):
-                pyg_batch = []
-                for this_elem in elements:
-                    pyg_graph = this_elem[key]
-                    for pyg_key in pyg_graph.keys:
-                        tensor = pyg_graph[pyg_key]
-
-                        # Convert numpy/scipy to Pytorch
-                        if isinstance(tensor, (ndarray, spmatrix)):
-                            tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
-
-                        pyg_graph[pyg_key] = tensor
-
-                    # Convert edge index to int64
-                    pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
-                    pyg_batch.append(pyg_graph)
-
-                batch[key] = Batch.from_data_list(pyg_batch)
-                # batch[key] = pyg_batch
+                pyg_graphs = [d[key] for d in elements]
+                batch[key] = collage_pyg_graph(pyg_graphs, batch_size_per_pack=batch_size_per_pack)
 
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
@@ -103,14 +95,9 @@ def goli_collate_fn(
 
             # Multitask setting: We have to pad the missing labels
             elif key == "labels":
-                if labels_size_dict is not None:
-                    for datum in elements:
-                        empty_task_labels = set(labels_size_dict.keys()) - set(datum["labels"].keys())
-                        for task in empty_task_labels:
-                            datum["labels"][task] = torch.full(
-                                (len(elements), *labels_size_dict[task]), torch.nan
-                            )
-                batch[key] = default_collate([datum[key] for datum in elements])
+                labels = [d[key] for d in elements]
+                batch[key] = collate_labels(labels, labels_size_dict)
+
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
@@ -125,3 +112,71 @@ def goli_collate_fn(
         return batch["temp_key"]
     else:
         return default_collate(elements)
+
+
+def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pack: Optional[int] = None):
+    """
+    Function to collate pytorch geometric graphs.
+    Convert all numpy types to torch
+    Convert edge indices to int64
+
+    Parameters:
+        pyg_graphs: Iterable of PyG graphs
+        batch_size_per_pack: The number of graphs to pack together. 
+            This is useful for using packing with the Transformer,
+    """
+    
+    pyg_batch = []
+    for pyg_graph in pyg_graphs:
+        for pyg_key in pyg_graph.keys:
+            tensor = pyg_graph[pyg_key]
+
+            # Convert numpy/scipy to Pytorch
+            if isinstance(tensor, (ndarray, spmatrix)):
+                tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+
+            pyg_graph[pyg_key] = tensor
+
+        # Convert edge index to int64
+        pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
+        pyg_batch.append(pyg_graph)
+
+    # Apply the packing at the mini-batch level. This is useful for using packing with the Transformer,
+    # especially in the case of the large graphs being much larger than the small graphs.
+    if batch_size_per_pack is not None:
+        num_nodes = [g.num_nodes for g in pyg_batch]
+        packed_graph_idx = fast_packing(num_nodes, batch_size_per_pack)
+
+        # Get the node to pack indices and the mask
+        pack_from_node_idx, pack_attn_mask = node_to_pack_indices_mask(packed_graph_idx, num_nodes)
+        for pyg_graph in pyg_batch:
+            pyg_graph.pack_from_node_idx = pack_from_node_idx
+            pyg_graph.pack_attn_mask = pack_attn_mask
+
+    return Batch.from_data_list(pyg_batch)
+
+def collate_labels(labels: List[Dict[str, torch.Tensor]], labels_size_dict: Optional[Dict[str, Any]] = None,):
+    """Collate labels for multitask learning.
+
+    Parameters:
+        labels: List of labels
+        labels_size_dict: Dict of the form Dict[tasks, sizes] which has task names as keys
+            and the size of the label tensor as value. The size of the tensor corresponds to how many
+            labels/values there are to predict for that task.
+
+    Returns:
+        A dictionary of the form Dict[tasks, labels] where tasks is the name of the task and labels
+        is a tensor of shape (batch_size, *labels_size_dict[task]).
+    """
+    labels_dict = {}
+
+    if labels_size_dict is not None:
+        for this_label in labels:
+            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
+            for task in empty_task_labels:
+                this_label[task] = torch.full(
+                    (len(labels), *labels_size_dict[task]), torch.nan
+                )
+    labels_dict = default_collate(labels)
+    
+    return labels_dict
