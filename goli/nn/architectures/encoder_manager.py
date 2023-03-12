@@ -205,7 +205,7 @@ class EncoderManager(nn.Module):
         # Pool the node positional encodings
         pe_pooled = {}
         for key, pe_cat in pe_cats.items():
-            pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pe_pool, dim=-1)
+            pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pool, dim=-1)
 
         return pe_pooled
 
@@ -221,7 +221,7 @@ class EncoderManager(nn.Module):
         elif pooling == "max":
             pooled = torch.max(h, dim=dim).values
         else:
-            raise Exception(f"Pooling method `{self.pe_pool}` is not defined")
+            raise Exception(f"Pooling method `{pooling}` is not defined")
         return pooled
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:

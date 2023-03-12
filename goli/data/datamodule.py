@@ -418,6 +418,14 @@ class BaseDataModule(pl.LightningDataModule):
         self.batch_size_training = batch_size_training
         self.batch_size_inference = batch_size_inference
         self.batch_size_per_pack = batch_size_per_pack
+        if self.batch_size_per_pack is not None:
+            # Check that batch_size_per_pack is a divisor of batch_size_training and batch_size_inference
+            assert (
+                self.batch_size_training % self.batch_size_per_pack == 0
+            ), f"batch_size_training must be a multiple of batch_size_per_pack, provided batch_size_training={self.batch_size_training}, batch_size_per_pack={self.batch_size_per_pack}"
+            assert (
+                self.batch_size_inference % self.batch_size_per_pack == 0
+            ), f"batch_size_inference must be a multiple of batch_size_per_pack, provided batch_size_inference={self.batch_size_inference}, batch_size_per_pack={self.batch_size_per_pack}"
 
         self.num_workers = num_workers
         self.pin_memory = pin_memory
@@ -1713,6 +1721,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         obj_repr["test_size"] = len(self.test_indices) if self.test_indices is not None else None
         obj_repr["batch_size_training"] = self.batch_size_training
         obj_repr["batch_size_inference"] = self.batch_size_inference
+        obj_repr["batch_size_per_pack"] = self.batch_size_per_pack
         obj_repr["num_node_feats"] = self.num_node_feats
         obj_repr["num_node_feats_with_positional_encoding"] = self.num_node_feats_with_positional_encoding
         obj_repr["num_edge_feats"] = self.num_edge_feats
@@ -1737,6 +1746,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
+        batch_size_per_pack: Optional[int] = None,
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
@@ -1808,6 +1818,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dm_args["featurization"] = featurization
         dm_args["batch_size_training"] = batch_size_training
         dm_args["batch_size_inference"] = batch_size_inference
+        dm_args["batch_size_per_pack"] = batch_size_per_pack
         dm_args["num_workers"] = num_workers
         dm_args["pin_memory"] = pin_memory
         dm_args["featurization_n_jobs"] = featurization_n_jobs

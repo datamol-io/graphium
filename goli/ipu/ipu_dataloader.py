@@ -33,7 +33,6 @@ class IPUDataloaderOptions:
     max_num_edges: Optional[int] = None
     max_num_edges_per_graph: Optional[int] = None
     mode: "poptorch.DataLoaderMode" = "Sync"
-    graphs_per_mini_pack: Optional[int] = None
 
     def set_kwargs(self):
         # Get the maximum number of nodes
@@ -74,11 +73,6 @@ class IPUDataloaderOptions:
             else:
                 raise ValueError(f"`{self.mode}` not a valid parameter.")
         
-        if self.graphs_per_mini_pack is not None:
-            assert isinstance(self.graphs_per_mini_pack, int), f"graphs_per_mini_pack must be an integer, provided {type(self.graphs_per_mini_pack)}"
-            assert self.graphs_per_mini_pack > 0, f"graphs_per_mini_pack must be greater than 0, provided {self.graphs_per_mini_pack}"
-
-
 class CombinedBatchingCollator:
     """
     Collator object that manages the combined batch size defined as:
