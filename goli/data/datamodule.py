@@ -224,9 +224,11 @@ class MultitaskDataset(Dataset):
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
         self.labels_size = self.set_label_size_dict()
+        del self.mol_ids
+        del self.smiles
 
     def __len__(self):
-        return len(self.mol_ids)
+        return len(self.labels)
 
     @property
     def num_graphs_total(self):
@@ -284,12 +286,6 @@ class MultitaskDataset(Dataset):
 
     def __getitem__(self, idx):
         datum = {}
-
-        if self.mol_ids is not None:
-            datum["mol_ids"] = deepcopy(self.mol_ids[idx])
-
-        if self.smiles is not None:
-            datum["smiles"] = deepcopy(self.smiles[idx])
 
         if self.labels is not None:
             datum["labels"] = deepcopy(self.labels[idx])

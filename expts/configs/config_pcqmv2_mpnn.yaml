@@ -12,15 +12,12 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        # df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
-        # smiles_col: "cxsmiles"
-        # label_cols: ["homo_lumo_gap"]
-        # mini dataset for test
-        df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv
-        smiles_col: "smiles"
-        label_cols: ["homo"]
+        smiles_col: "cxsmiles"
+        label_cols: ["homo_lumo_gap"]
+        # sample_size: 50000 # use this for test
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -54,7 +51,7 @@ datamodule:
     batch_size_training: 128
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: 0 # -1 to use all
+    num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch. 
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "processes"
@@ -221,5 +218,5 @@ trainer:
     precision: 16
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 8
+    accumulate_grad_batches: 1
     check_val_every_n_epoch: 100

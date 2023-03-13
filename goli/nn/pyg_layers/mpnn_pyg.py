@@ -21,6 +21,7 @@ class MPNNPlusPyg(BaseGraphModule):
         scatter_to: str = "both",
         node_combine_method: str = "concat",
         num_node_mlp: int = 2,
+        mlp_expansion_ratio: int = 4,
         use_edges: bool = True,
         in_dim_edges: Optional[int] = 32,
         out_dim_edges: Optional[int] = 32,
@@ -89,6 +90,9 @@ class MPNNPlusPyg(BaseGraphModule):
             num_node_mlp:
                 Number of mlp layer used for node model
 
+            mlp_expansion_ratio:
+                Expansion ratio for node and edge mlp
+
             use_edges:
                 If edge features are used
 
@@ -119,6 +123,7 @@ class MPNNPlusPyg(BaseGraphModule):
         self.scatter_to = scatter_to
         self.node_combine_method = node_combine_method
         self.num_node_mlp = num_node_mlp
+        self.mlp_expansion_ratio = mlp_expansion_ratio
 
         self.use_edges = use_edges
         self.in_dim_edges = in_dim_edges
@@ -136,7 +141,7 @@ class MPNNPlusPyg(BaseGraphModule):
             node_model_in_dim = 2 * self.in_dim + edge_dim
         else:
             raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
-        node_model_hidden_dim = 4 * self.in_dim
+        node_model_hidden_dim = self.mlp_expansion_ratio * self.in_dim
         self.node_model = MLP(
             in_dim=node_model_in_dim,
             hidden_dims=node_model_hidden_dim,
@@ -153,7 +158,7 @@ class MPNNPlusPyg(BaseGraphModule):
             edge_model_in_dim = self.in_dim + self.in_dim_edges
         else:
             raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
-        edge_model_hidden_dim = 4 * self.in_dim_edges
+        edge_model_hidden_dim = self.mlp_expansion_ratio * self.in_dim_edges
         self.edge_model = MLP(
             in_dim=edge_model_in_dim,
             hidden_dims=edge_model_hidden_dim,
