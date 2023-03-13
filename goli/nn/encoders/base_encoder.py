@@ -31,7 +31,7 @@ class BaseEncoder(torch.nn.Module):
             activation: The activation function to use
             first_normalization: The normalization to use before the first layer
             use_input_keys_prefix: Whether to use the `key_prefix` argument in the `forward` method.
-                This is useful when the encodings are categorized by the function `get_all_positional_encoding`
+            This is useful when the encodings are categorized by the function `get_all_positional_encoding`
         """
         super().__init__()
 
@@ -59,7 +59,7 @@ class BaseEncoder(torch.nn.Module):
         r"""
         Forward pass of the encoder on a graph.
         This is a method to be implemented by the child class.
-        Prameeters:
+        Parameters:
             graph: The input pyg Batch
         """
         raise ValueError("This method must be implemented by the child class")
@@ -88,7 +88,7 @@ class BaseEncoder(torch.nn.Module):
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
 
-        Parameter:
+        Parameters:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
         Returns:

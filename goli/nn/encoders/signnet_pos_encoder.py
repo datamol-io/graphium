@@ -324,7 +324,7 @@ class SignNetNodeEncoder(BaseEncoder):
 
         # TODO: Update this. It is broken
 
-        Parameter:
+        Parameters:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
         """

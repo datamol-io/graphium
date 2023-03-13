@@ -17,7 +17,7 @@ def goli_collate_fn(
     labels_size_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
-):
+) -> Dict[str, Any]:
     """This collate function is identical to the default
     pytorch collate function but add support for `dgl.DGLGraph`
     objects and use `dgl.batch` to batch graphs.
@@ -57,6 +57,8 @@ def goli_collate_fn(
 
         do_not_batch_keys:
             Keys to ignore for the collate
+    Returns:
+        A dictionary of the batch
     """
 
     elem = elements[0]

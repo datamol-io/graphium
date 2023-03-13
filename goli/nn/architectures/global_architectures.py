@@ -1497,7 +1497,7 @@ class TaskHeads(nn.Module):
                 assert self.in_dim == head_in_dim, f"Inconsistent input dim {self.in_dim} != {head_in_dim}"
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
-    def forward(self, h: torch.Tensor):
+    def forward(self, h: torch.Tensor) -> Dict[str, torch.Tensor]:
         r"""
         forward function of the task head
         Parameters:
