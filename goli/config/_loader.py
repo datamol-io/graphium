@@ -255,7 +255,9 @@ def load_architecture(
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
     accelerator_kwargs = (
-        dict(cfg_arch["accelerator_options"]) if cfg_arch["accelerator_options"] is not None else None
+        dict(cfg_arch["accelerator_options"])
+        if cfg_arch.get("accelerator_options", None) is not None
+        else None
     )
 
     if accelerator_kwargs is not None:
