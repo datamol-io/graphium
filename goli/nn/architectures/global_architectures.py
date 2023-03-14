@@ -28,6 +28,9 @@ from goli.nn.encoders import (
     gaussian_kernel_pos_encoder,
 )
 
+from goli.ipu.ipu_utils import import_poptorch
+poptorch = import_poptorch(raise_error=False)
+
 import collections
 
 
@@ -1027,6 +1030,7 @@ class FullGraphNetwork(nn.Module):
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
         name: str = "DGL_GNN",
@@ -1063,6 +1067,10 @@ class FullGraphNetwork(nn.Module):
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a post-processing MLP.
+
+            accelerator_kwargs:
+                key-word arguments specific to the accelerator being used,
+                e.g. pipeline split points
 
             num_inference_to_average:
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
@@ -1120,6 +1128,13 @@ class FullGraphNetwork(nn.Module):
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
 
+        if accelerator_kwargs is not None:
+            print("hello1")
+            accelerator = accelerator_kwargs['_accelerator']
+            print(f"{accelerator=}")            
+            if accelerator == 'ipu':
+                self._apply_ipu_options(accelerator_kwargs)
+
     @staticmethod
     def _parse_feed_forward_gnn(gnn_kwargs):
         """
@@ -1168,6 +1183,51 @@ class FullGraphNetwork(nn.Module):
                     f"`self.gnn.out_dim` must be equal to `self.post_nn.in_dim`."
                     + 'Provided" {self.gnn.out_dim} and {self.post_nn.in_dim}'
                 )
+
+
+    def _apply_ipu_options(self, ipu_kwargs):
+        
+        print(f"{ipu_kwargs=}")
+        gnn_layers_per_ipu = ipu_kwargs.get("gnn_layers_per_ipu")
+        print(f"{gnn_layers_per_ipu=}")
+        print(f"{type(gnn_layers_per_ipu)=}")
+        self._apply_ipu_pipeline_split(gnn_layers_per_ipu)
+            
+    def _apply_ipu_pipeline_split(self, gnn_layers_per_ipu):
+        r"""
+        Apply pipeline split from accelerator options if applicable
+        """
+
+        if gnn_layers_per_ipu is None:
+            return
+
+        if not isinstance(gnn_layers_per_ipu, collections.abc.Sequence):
+            raise ValueError("gnn_layers_per_ipu must be a Sequence (e.g. a list)")
+
+        valid_ipu_pipeline_lengths = [1, 2, 4, 8, 16]
+        pipeline_length = len(gnn_layers_per_ipu)
+
+        if pipeline_length not in valid_ipu_pipeline_lengths:
+            raise ValueError(
+                f"gnn_layers_per_ipu must be one of {valid_ipu_pipeline_lengths}, "
+                f"got {gnn_layers_per_ipu} of length {pipeline_length} instead"
+            )
+
+        model_depth = len(self.gnn.layers)
+
+        if sum(gnn_layers_per_ipu) != model_depth:
+            raise ValueError(
+                f"The values in gnn_layers_per_ipu must add up to the depth of the model, "
+                f"got {gnn_layers_per_ipu} with total {sum(gnn_layers_per_ipu)} vs model depth "
+                f"of {model_depth}"
+            )
+
+        begin_block_layer_indices = [sum(gnn_layers_per_ipu[:i]) for i in range(1, pipeline_length)]
+
+        for begin_block_layer_index, ipu_id in zip(begin_block_layer_indices, range(1, pipeline_length)):
+            self.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
+                self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
+            )
 
     def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
         r"""
@@ -1545,6 +1605,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = True,
         name: str = "Multitask_GNN",
@@ -1585,6 +1646,10 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 MLP network after the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a post-processing MLP.
 
+            accelerator_kwargs:
+                key-word arguments specific to the accelerator being used,
+                e.g. pipeline split points
+
             num_inference_to_average:
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
                 by positional encodings with sign-flips. In case no such encoding is given,
@@ -1606,6 +1671,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             pre_nn_edges_kwargs=pre_nn_edges_kwargs,
             pe_encoders_kwargs=pe_encoders_kwargs,
             post_nn_kwargs=post_nn_kwargs,
+            accelerator_kwargs=accelerator_kwargs,
             num_inference_to_average=num_inference_to_average,
             last_layer_is_readout=False,
             name=name,
