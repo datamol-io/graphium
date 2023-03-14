@@ -13,7 +13,7 @@ from goli.features import GraphDict, to_dense_array
 
 
 def goli_collate_fn(
-    elements,
+    elements: List[Dict[str, Any]],
     labels_size_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
