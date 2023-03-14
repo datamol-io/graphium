@@ -295,12 +295,11 @@ def load_predictor(
         from goli.ipu.ipu_wrapper import PredictorModuleIPU
 
         predictor_class = PredictorModuleIPU
-
     else:
-        predictor_class = PredictionModule
+        predictor_class = PredictorModule
 
     cfg_pred = dict(deepcopy(config["predictor"]))
-    predictor = PredictorModule(
+    predictor = predictor_class(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
