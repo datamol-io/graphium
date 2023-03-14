@@ -8,7 +8,6 @@ from pytorch_lightning.trainer.states import RunningStage
 
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
-from goli.nn.architectures import FullGraphNetwork
 
 import torch
 from torch_geometric.data import Data, Batch
@@ -109,7 +108,6 @@ class PredictorModuleIPU(PredictorModule):
 
     def __init__(self, *args, **kwargs):
         # Import poptorch in a safe way that will work when working with cpu/gpu
-
         self.poptorch = import_poptorch()
         super().__init__(*args, **kwargs)
 
