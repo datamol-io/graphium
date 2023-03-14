@@ -257,11 +257,9 @@ def load_architecture(
     accelerator_kwargs = (
         dict(cfg_arch["accelerator_options"]) if cfg_arch["accelerator_options"] is not None else None
     )
-    print(f"{accelerator_kwargs=}")
 
     if accelerator_kwargs is not None:
         accelerator_kwargs["_accelerator"] = get_accelerator(config)
-        print(f"{get_accelerator(config)=}")
 
     # Set all the input arguments for the model
     model_kwargs = dict(

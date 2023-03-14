@@ -1130,9 +1130,7 @@ class FullGraphNetwork(nn.Module):
             assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
 
         if accelerator_kwargs is not None:
-            print("hello1")
             accelerator = accelerator_kwargs["_accelerator"]
-            print(f"{accelerator=}")
             if accelerator == "ipu":
                 self._apply_ipu_options(accelerator_kwargs)
 
@@ -1186,10 +1184,7 @@ class FullGraphNetwork(nn.Module):
                 )
 
     def _apply_ipu_options(self, ipu_kwargs):
-        print(f"{ipu_kwargs=}")
         gnn_layers_per_ipu = ipu_kwargs.get("gnn_layers_per_ipu")
-        print(f"{gnn_layers_per_ipu=}")
-        print(f"{type(gnn_layers_per_ipu)=}")
         self._apply_ipu_pipeline_split(gnn_layers_per_ipu)
 
     def _apply_ipu_pipeline_split(self, gnn_layers_per_ipu):
