@@ -228,10 +228,8 @@ class MultitaskDataset(Dataset):
         # self.features: list of pyg data object: [pyg.Data(edge_attr=[2, 32], eigval=[16, 8], rwse=[16, 16]), pyg.Data()...]
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict()
-        # self.mol_ids: array of string
-        # self.smiles: list of list of strings
-        del self.mol_ids
-        del self.smiles
+        self.mol_ids = None
+        self.smiles = None
 
     def __len__(self):
         return len(self.labels)
@@ -292,6 +290,12 @@ class MultitaskDataset(Dataset):
 
     def __getitem__(self, idx):
         datum = {}
+
+        if self.mol_ids is not None:
+            datum["mol_ids"] = self.mol_ids[idx]
+
+        if self.smiles is not None:
+            datum["smiles"] = self.smiles[idx]
 
         if self.labels is not None:
             datum["labels"] = deepcopy(self.labels[idx])
