@@ -223,7 +223,13 @@ class MultitaskDataset(Dataset):
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(self.datasets)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
+        # self.labels before conversion: list of dict of array: [{"homolumo": array([1.2])}, {"homolumo": array([2.5])}...]
+        # self.labels after conversion: array of dict of array: array([{homolumo: array[1.2]}, ...])
+        # self.features: list of pyg data object: [pyg.Data(edge_attr=[2, 32], eigval=[16, 8], rwse=[16, 16]), pyg.Data()...]
+        self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict()
+        # self.mol_ids: array of string
+        # self.smiles: list of list of strings
         del self.mol_ids
         del self.smiles
 
@@ -1929,6 +1935,8 @@ def get_num_nodes(graph):
         return graph.num_nodes()
     elif isinstance(graph, (Data, Batch)):
         return graph.num_nodes
+    else:
+        raise ValueError(f"graph dtype not recognised.")
 
 
 def get_num_edges(graph):
