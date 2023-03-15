@@ -20,7 +20,11 @@ mordred
 umap-learn
 pytest >==6.0
 pytest-cov
+<<<<<<< HEAD
 black >=23
+=======
+black >=22,<23
+>>>>>>> change black pinning and remove var initialization
 jupyterlab
 ipywidgets
 anaconda-client
