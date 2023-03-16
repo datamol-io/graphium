@@ -17,7 +17,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 10000 # use this for test
+        sample_size: 500000 # use this for test
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -51,14 +51,14 @@ datamodule:
     batch_size_training: 128
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: 10 # -1 to use all
-    persistent_workers: True # if use persistent worker at the start of each epoch. 
+    num_workers: 20 # -1 to use all
+    persistent_workers: False # if use persistent worker at the start of each epoch. 
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "processes"
 
     ipu_dataloader_training_opts:
       mode: async
-      max_num_nodes_per_graph: 15 # train max nodes: 20, max_edges: 54
+      max_num_nodes_per_graph: 16 # train max nodes: 20, max_edges: 54
       max_num_edges_per_graph: 60
 
     ipu_dataloader_inference_opts:

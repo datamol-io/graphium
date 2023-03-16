@@ -26,6 +26,7 @@ from pytorch_lightning.trainer.states import RunningStage
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
+from functools import lru_cache
 
 from goli.utils import fs
 from goli.features import (
@@ -223,9 +224,7 @@ class MultitaskDataset(Dataset):
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(self.datasets)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
-        # self.labels before conversion: list of dict of array: [{"homolumo": array([1.2])}, {"homolumo": array([2.5])}...]
-        # self.labels after conversion: array of dict of array: array([{homolumo: array[1.2]}, ...])
-        # self.features: list of pyg data object: [pyg.Data(edge_attr=[2, 32], eigval=[16, 8], rwse=[16, 16]), pyg.Data()...]
+
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict()
         self.mol_ids = None
@@ -288,6 +287,7 @@ class MultitaskDataset(Dataset):
         """Average number of edges per graph"""
         return self.num_edges_total / self.num_graphs_total
 
+    @lru_cache(maxsize=16)
     def __getitem__(self, idx):
         datum = {}
 
@@ -298,10 +298,10 @@ class MultitaskDataset(Dataset):
             datum["smiles"] = self.smiles[idx]
 
         if self.labels is not None:
-            datum["labels"] = deepcopy(self.labels[idx])
+            datum["labels"] = self.labels[idx]
 
         if self.features is not None:
-            datum["features"] = deepcopy(self.features[idx])
+            datum["features"] = self.features[idx]
 
         return datum
 
