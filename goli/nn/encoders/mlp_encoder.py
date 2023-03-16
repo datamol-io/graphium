@@ -27,7 +27,7 @@ class MLPEncoder(BaseEncoder):
     def __init__(
         self,
         input_keys: List[str],
-        output_keys: str,
+        output_keys: List[str],
         in_dim: int,
         hidden_dim: int,
         out_dim: int,
@@ -52,7 +52,10 @@ class MLPEncoder(BaseEncoder):
         # Check the output_keys
         self.hidden_dim = hidden_dim
         self.dropout = dropout
-        self.normalization = get_norm(normalization)
+
+        # Currently only used by make_mup_base_kwargs
+        #    so no need to call get_norm
+        self.normalization = normalization
 
         # Initialize the MLP
         self.pe_encoder = MLP(
@@ -113,7 +116,7 @@ class MLPEncoder(BaseEncoder):
             dict(
                 hidden_dim=round(self.hidden_dim / divide_factor),
                 dropout=self.dropout,
-                normalization=type(self.normalization).__name__,
+                normalization=self.normalization,
             )
         )
         return base_kwargs
