@@ -144,7 +144,7 @@ class test_mup(ut.TestCase):
         # Make fake graphs
         in_dim = 12
         in_dim_edges = 12
-        pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3}
+        pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3, "positions_3d": 3}
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
         in_features["feat"] = in_features["h"]
         in_features["edge_feat"] = in_features["edge_attr"]
@@ -230,7 +230,7 @@ class test_mup(ut.TestCase):
         # Make fake graphs
         in_dim = 12
         in_dim_edges = 12
-        pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3}
+        pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3, "positions_3d": 3}
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
         in_features["feat"] = in_features["h"]
         in_features["edge_feat"] = in_features["edge_attr"]

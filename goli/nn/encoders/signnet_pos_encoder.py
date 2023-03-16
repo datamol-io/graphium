@@ -2,14 +2,16 @@
 SignNet https://arxiv.org/abs/2202.13013
 based on https://github.com/cptq/SignNet-BasisNet
 """
-from typing import Dict, Any
+from typing import Dict, Any, Optional, List
 
 import torch
 import torch.nn as nn
 from torch_geometric.nn import GINConv
 from torch_scatter import scatter
+from torch_geometric.data import Batch
 
 from goli.nn.base_layers import MLP
+from goli.nn.encoders.base_encoder import BaseEncoder
 
 
 class SimpleGIN(nn.Module):
@@ -180,7 +182,7 @@ class MaskedGINDeepSigns(nn.Module):
         return x
 
 
-class SignNetNodeEncoder(torch.nn.Module):
+class SignNetNodeEncoder(BaseEncoder):
     r"""SignNet Positional Embedding node encoder.
     https://arxiv.org/abs/2202.13013
     https://github.com/cptq/SignNet-BasisNet
@@ -200,31 +202,36 @@ class SignNetNodeEncoder(torch.nn.Module):
 
     def __init__(
         self,
-        on_keys: Dict,
+        input_keys: Dict,
+        output_keys: List[str],
         in_dim,  # Size of PE embedding
         hidden_dim,
         out_dim,
-        model_type,  # 'MLP' or 'DeepSet'
         num_layers,  # Num. layers in \phi GNN part
+        model_type,  # 'MLP' or 'DeepSet'
         max_freqs,  # Num. eigenvectors (frequencies)
+        use_input_keys_prefix: bool = True,
         num_layers_post=0,  # Num. layers in \rho MLP/DeepSet
         activation="relu",
         dropout=0.0,
         normalization="none",
     ):
         # TODO: Not sure this works? Needs updating.
-        super().__init__()
+        super().__init__(
+            input_keys=input_keys,
+            output_keys=output_keys,
+            in_dim=in_dim,
+            out_dim=out_dim,
+            num_layers=num_layers,
+            activation=activation,
+            use_input_keys_prefix=use_input_keys_prefix,
+        )
 
-        # Parse the `on_keys`.
-        self.on_keys = self.parse_on_keys(on_keys)
-        self.in_dim = in_dim
+        # Parse the `input_keys`.
         self.hidden_dim = hidden_dim
-        self.out_dim = out_dim
         self.model_type = model_type
-        self.num_layers = num_layers
         self.max_freqs = max_freqs
         self.num_layers_post = num_layers_post
-        self.activation = activation
         self.dropout = dropout
         self.normalization = normalization
 
@@ -269,18 +276,31 @@ class SignNetNodeEncoder(torch.nn.Module):
         else:
             raise ValueError(f"Unexpected model {self.model_type}")
 
-    def parse_on_keys(self, on_keys):
-        if len(on_keys) != 1:
+    def parse_input_keys(self, input_keys):
+        if len(input_keys) != 1:
             raise ValueError(f"`{self.__class__}` only supports 1 key")
-        if "eigvecs" not in on_keys.keys():
-            raise ValueError(f"`on_keys` must contain the key eigvecs. Provided {on_keys}")
+        for key in input_keys:
+            assert not key.startswith(
+                "edge_"
+            ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
+            assert not key.startswith(
+                "graph_"
+            ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
+        return input_keys
 
-        on_keys["edge_index"] = "edge_index"
-        on_keys["batch_index"] = "batch_index"
+    def parse_output_keys(self, output_keys):
+        for key in output_keys:
+            assert not key.startswith(
+                "edge_"
+            ), f"Edge encodings are not supported for encoder {self.__class__}"
+            assert not key.startswith(
+                "graph_"
+            ), f"Graph encodings are not supported for encoder {self.__class__}"
+        return output_keys
 
-        return on_keys
-
-    def forward(self, eigvecs, edge_index, batch_index):
+    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
+        input_keys = self.parse_input_keys_with_prefix(key_prefix)
+        eigvecs, edge_index, batch_index = batch[input_keys[0]], batch["edge_index"], batch["batch_index"]
         pos_enc = eigvecs.unsqueeze(-1)  # (Num nodes) x (Num Eigenvectors) x 1
 
         empty_mask = torch.isnan(pos_enc)
@@ -289,7 +309,7 @@ class SignNetNodeEncoder(torch.nn.Module):
         # SignNet
         pos_enc = self.sign_inv_net(pos_enc, edge_index, batch_index)  # (Num nodes) x (pos_enc_dim)
 
-        output = {"node": pos_enc}
+        output = {key: pos_enc for key in self.output_keys}
 
         return output
 
@@ -299,20 +319,21 @@ class SignNetNodeEncoder(torch.nn.Module):
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
 
+        # TODO: Update this. It is broken
+
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
         """
-        return dict(
-            on_keys=self.on_keys,
-            in_dim=round(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
-            hidden_dim=round(self.hidden_dim / divide_factor),
-            out_dim=round(self.out_dim / divide_factor),
-            model_type=self.model_type,
-            num_layers=self.num_layers,
-            max_freqs=self.max_freqs,
-            num_layers_post=self.num_layers_post,
-            activation=self.activation,
-            dropout=self.dropout,
-            normalization=self.normalization,
+        base_kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
+        base_kwargs.update(
+            dict(
+                hidden_dim=round(self.hidden_dim / divide_factor),
+                model_type=self.model_type,
+                max_freqs=self.max_freqs,
+                num_layers_post=self.num_layers_post,
+                dropout=self.dropout,
+                normalization=type(self.normalization).__name__,
+            )
         )
+        return base_kwargs
