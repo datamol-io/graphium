@@ -279,6 +279,15 @@ def load_architecture(
     # Set the parameters for the full network
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
+    accelerator_kwargs = (
+        dict(cfg_arch["accelerator_options"])
+        if cfg_arch.get("accelerator_options", None) is not None
+        else None
+    )
+
+    if accelerator_kwargs is not None:
+        accelerator_kwargs["_accelerator"] = get_accelerator(config)
+
     # Set all the input arguments for the model
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
@@ -287,6 +296,7 @@ def load_architecture(
         pe_encoders_kwargs=pe_encoders_kwargs,
         post_nn_kwargs=post_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
+        accelerator_kwargs=accelerator_kwargs,
     )
 
     return model_class, model_kwargs
