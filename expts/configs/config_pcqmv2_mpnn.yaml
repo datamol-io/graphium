@@ -17,7 +17,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        sample_size: 30000 # use sample_size for test, comment out for full dataset training
+        # sample_size: 30000 # use sample_size for test
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
