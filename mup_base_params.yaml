@@ -1,6 +1,52 @@
 # This is a base shape file encoded in yaml
 # - `null` indicates a dimension is "finite", i.e. a non-"width" dimension
 # - a number indicates the base dimension of an "infinite" dimension, i.e. some notion of "width"
+encoder_manager.pe_encoders.la_pos.linear_in.linear.bias:
+- 32
+encoder_manager.pe_encoders.la_pos.linear_in.linear.weight:
+- 32
+- null
+encoder_manager.pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.bias:
+- 32
+encoder_manager.pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.weight:
+- 32
+- 32
+encoder_manager.pe_encoders.la_pos.pe_encoder.fully_connected.1.linear.bias:
+- 32
+encoder_manager.pe_encoders.la_pos.pe_encoder.fully_connected.1.linear.weight:
+- 32
+- 32
+encoder_manager.pe_encoders.la_pos.post_mlp.fully_connected.0.linear.bias:
+- 16
+encoder_manager.pe_encoders.la_pos.post_mlp.fully_connected.0.linear.weight:
+- 16
+- 32
+encoder_manager.pe_encoders.rw_pos.first_normalization.bias:
+- null
+encoder_manager.pe_encoders.rw_pos.first_normalization.weight:
+- null
+encoder_manager.pe_encoders.rw_pos.pe_encoder.first_normalization.bias:
+- null
+encoder_manager.pe_encoders.rw_pos.pe_encoder.first_normalization.weight:
+- null
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.bias:
+- 32
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.weight:
+- 32
+- null
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.0.normalization.bias:
+- 32
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.0.normalization.weight:
+- 32
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.1.linear.bias:
+- 16
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.1.linear.weight:
+- 16
+- 32
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.1.normalization.bias:
+- 16
+encoder_manager.pe_encoders.rw_pos.pe_encoder.fully_connected.1.normalization.weight:
+- 16
 gnn.layers.0.f_out.linear.bias:
 - 128
 gnn.layers.0.f_out.linear.weight:
@@ -59,6 +105,10 @@ gnn.layers.0.norm_layer.weight:
 gnn.layers.0.norm_layer_attn.bias:
 - 128
 gnn.layers.0.norm_layer_attn.weight:
+- 128
+gnn.layers.0.norm_layer_ff.bias:
+- 128
+gnn.layers.0.norm_layer_ff.weight:
 - 128
 gnn.layers.0.norm_layer_local.bias:
 - 128
@@ -123,6 +173,10 @@ gnn.layers.1.norm_layer_attn.bias:
 - 128
 gnn.layers.1.norm_layer_attn.weight:
 - 128
+gnn.layers.1.norm_layer_ff.bias:
+- 128
+gnn.layers.1.norm_layer_ff.weight:
+- 128
 gnn.layers.1.norm_layer_local.bias:
 - 128
 gnn.layers.1.norm_layer_local.weight:
@@ -185,6 +239,10 @@ gnn.layers.2.norm_layer.weight:
 gnn.layers.2.norm_layer_attn.bias:
 - 128
 gnn.layers.2.norm_layer_attn.weight:
+- 128
+gnn.layers.2.norm_layer_ff.bias:
+- 128
+gnn.layers.2.norm_layer_ff.weight:
 - 128
 gnn.layers.2.norm_layer_local.bias:
 - 128
@@ -249,6 +307,10 @@ gnn.layers.3.norm_layer_attn.bias:
 - 128
 gnn.layers.3.norm_layer_attn.weight:
 - 128
+gnn.layers.3.norm_layer_ff.bias:
+- 128
+gnn.layers.3.norm_layer_ff.weight:
+- 128
 gnn.layers.3.norm_layer_local.bias:
 - 128
 gnn.layers.3.norm_layer_local.weight:
@@ -262,43 +324,6 @@ gnn.out_linear.normalization.bias:
 - 128
 gnn.out_linear.normalization.weight:
 - 128
-pe_encoders.la_pos.linear_A.linear.bias:
-- null
-pe_encoders.la_pos.linear_A.linear.weight:
-- null
-- null
-pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.bias:
-- 32
-pe_encoders.la_pos.pe_encoder.fully_connected.0.linear.weight:
-- 32
-- null
-pe_encoders.la_pos.pe_encoder.fully_connected.1.linear.bias:
-- 16
-pe_encoders.la_pos.pe_encoder.fully_connected.1.linear.weight:
-- 16
-- 32
-pe_encoders.rw_pos.pe_encoder.first_normalization.bias:
-- null
-pe_encoders.rw_pos.pe_encoder.first_normalization.weight:
-- null
-pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.bias:
-- 32
-pe_encoders.rw_pos.pe_encoder.fully_connected.0.linear.weight:
-- 32
-- null
-pe_encoders.rw_pos.pe_encoder.fully_connected.0.normalization.bias:
-- 32
-pe_encoders.rw_pos.pe_encoder.fully_connected.0.normalization.weight:
-- 32
-pe_encoders.rw_pos.pe_encoder.fully_connected.1.linear.bias:
-- 16
-pe_encoders.rw_pos.pe_encoder.fully_connected.1.linear.weight:
-- 16
-- 32
-pe_encoders.rw_pos.pe_encoder.fully_connected.1.normalization.bias:
-- 16
-pe_encoders.rw_pos.pe_encoder.fully_connected.1.normalization.weight:
-- 16
 pre_nn.layers.0.linear.bias:
 - 512
 pre_nn.layers.0.linear.weight:
@@ -339,7 +364,6 @@ task_heads.task_heads.homolumo.layers.0.linear.bias:
 - 128
 task_heads.task_heads.homolumo.layers.0.linear.weight:
 - 128
-gnn.layers.3.mpnn.node_model.fully_connected.0.normalization.bias:
 - 128
 task_heads.task_heads.homolumo.layers.0.normalization.bias:
 - 128

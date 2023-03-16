@@ -17,7 +17,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 500000 # use this for test
+        sample_size: 30000 # use sample_size for test, comment out for full dataset training
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -48,7 +48,7 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 128
+    batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: 20 # -1 to use all
@@ -100,18 +100,19 @@ architecture:
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        on_keys: ["eigvecs", "eigvals"]
+        input_keys: ["eigvecs", "eigvals"]
+        output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
-        num_layers_post: 0 # Num. layers to apply after pooling
+        num_layers_post: 1 # Num. layers to apply after pooling
         dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        on_keys: ["rwse"]
-        out_level: "node"
+        input_keys: ["rwse"]
+        output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
         num_layers: 2
@@ -174,7 +175,7 @@ predictor:
     module_type: WarmUpLinearLR 
     max_num_epochs: &max_epochs 100
     warmup_epochs: 10
-    verbose: True
+    verbose: False
   scheduler_kwargs:
   #  monitor: &monitor homolumo/mae/train
   #  mode: min
@@ -218,5 +219,5 @@ trainer:
     precision: 16
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 1
-    check_val_every_n_epoch: 100
+    accumulate_grad_batches: 2
+    check_val_every_n_epoch: 10

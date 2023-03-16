@@ -52,7 +52,7 @@ class MLPEncoder(BaseEncoder):
         # Check the output_keys
         self.hidden_dim = hidden_dim
         self.dropout = dropout
-        self.normalization = get_norm(normalization)
+        self.normalization = normalization
 
         # Initialize the MLP
         self.pe_encoder = MLP(
@@ -113,7 +113,7 @@ class MLPEncoder(BaseEncoder):
             dict(
                 hidden_dim=round(self.hidden_dim / divide_factor),
                 dropout=self.dropout,
-                normalization=type(self.normalization).__name__,
+                normalization=self.normalization,
             )
         )
         return base_kwargs
