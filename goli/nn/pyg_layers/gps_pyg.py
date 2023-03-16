@@ -1,13 +1,9 @@
-"""
-adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
-"""
-
+import torch
 from copy import deepcopy
 from typing import Callable, Union, Optional, Dict, Any
 from torch.nn import Module
 from torch import Tensor
 from torch_geometric.data import Batch
-
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP, get_activation_str
 from goli.nn.pyg_layers import (
@@ -57,6 +53,8 @@ class GPSLayerPyg(BaseGraphModule):
         **kwargs,
     ):
         r"""
+        GPS layer implementation in pyg
+        adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
         GPS: Recipe for a General, Powerful, Scalable Graph Transformer
         Ladislav Rampášek, Mikhail Galkin, Vijay Prakash Dwivedi, Anh Tuan Luu, Guy Wolf, Dominique Beaini
         https://arxiv.org/abs/2205.12454
@@ -78,6 +76,12 @@ class GPSLayerPyg(BaseGraphModule):
 
             out_dim:
                 Output edge feature dimensions of the layer
+
+            in_dim_edges:
+                input edge-feature dimensions of the layer
+
+            out_dim_edges:
+                output edge-feature dimensions of the layer
 
             activation:
                 activation function to use in the layer
@@ -117,9 +121,18 @@ class GPSLayerPyg(BaseGraphModule):
             mpnn_type:
                 Type of MPNN layer to use. Choices specified in PYG_LAYERS_DICT
 
+            mpnn_kwargs:
+                Keyword arguments to pass to the MPNN layer
+
+            attn_type:
+                Type of attention layer to use. Choices specified in ATTENTION_LAYERS_DICT
+
             biased_attention_key:
                 indicates if biased attention is used by specifying a key corresponding to the pyg attribute in the batch (processed by the gaussian kernel encoder)
                 default: None means biased attention is not used
+
+            attn_kwargs:
+                Keyword arguments to pass to the attention layer
 
         """
 
@@ -164,12 +177,18 @@ class GPSLayerPyg(BaseGraphModule):
         self.norm_layer_ff = self._parse_norm(self.normalization)
 
         self.biased_attention_key = biased_attention_key
-
         # Initialize the MPNN and Attention layers
         self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
         self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
 
     def forward(self, batch: Batch) -> Batch:
+        r"""
+        forward function of the layer
+        Parameters:
+            batch: pyg Batch graphs to pass through the layer
+        Returns:
+            batch: pyg Batch graphs
+        """
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
 
@@ -232,7 +251,14 @@ class GPSLayerPyg(BaseGraphModule):
     def _parse_attn_layer(
         self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]
     ) -> Optional[Module]:
-        """Parse the attention layer."""
+        """
+        parse the input attention layer and check if it is valid
+        Parameters:
+            attn_type: type of the attention layer
+            biased_attention_key: key for the attenion bias
+        Returns:
+            attn_layer: the attention layer
+        """
 
         # Set the default values for the Attention layer
         if attn_kwargs is None:
@@ -299,8 +325,19 @@ class GPSLayerPyg(BaseGraphModule):
         # Combine local and global outputs.
         return h + h_attn
 
-    def _sa_block(self, x, attn_bias, attn_mask=None, key_padding_mask=None):
-        """Self-attention block."""
+    def _sa_block(
+        self, x: torch.Tensor, attn_bias: torch.Tensor, attn_mask=None, key_padding_mask=None
+    ) -> torch.Tensor:
+        """
+        Self-attention block.
+        Parameters:
+            x: input tensor
+            attn_bias: attention bias tensor
+            attn_mask: None
+            key_padding_mask: None
+        Returns:
+            x: output tensor
+        """
         x = self.attn_layer(
             x,
             x,

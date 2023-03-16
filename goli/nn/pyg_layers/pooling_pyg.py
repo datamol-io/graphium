@@ -14,7 +14,7 @@ from goli.nn.base_layers import MuReadoutGoli
 EPS = 1e-6
 
 
-def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None):
+def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None) -> Tensor:
     r"""
     Apply pooling over the nodes in the graph using a mean aggregation,
     but scaled by the log of the number of nodes. This gives the same
@@ -30,8 +30,8 @@ def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Op
             B-1\}}^N`, which assigns each node to a specific example.
         size (int, optional): Batch-size :math:`B`.
             Automatically calculated if not given. (default: :obj:`None`)
-
-    :rtype: :class:`Tensor`
+    Returns:
+        the pooled features tensor
     """
     dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
     mean_pool = scatter(x, batch, dim=dim, dim_size=dim_size, reduce="mean")
@@ -62,7 +62,8 @@ def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optio
         size (int, optional): Batch-size :math:`B`.
             Automatically calculated if not given. (default: :obj:`None`)
 
-    :rtype: :class:`Tensor`
+    Returns:
+        the pooled features tensor
     """
     dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
     mean = scatter(x, batch, dim=dim, out=None, dim_size=dim_size, reduce="mean")
@@ -76,7 +77,15 @@ class PoolingWrapperPyg(ModuleWrap):
         super().__init__(func, *args, **kwargs)
         self.feat_type = feat_type
 
-    def forward(self, g, feature, *args, **kwargs):
+    def forward(self, g: Batch, feature: Tensor, *args, **kwargs):
+        """
+        forward function
+        Parameters:
+            g: the pyg batch graph
+            feature: the node features
+        Returns:
+            the pooled features
+        """
         dim_size = g.num_graphs
         if self.feat_type is "node":
             index = g.batch
