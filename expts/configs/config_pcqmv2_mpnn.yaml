@@ -9,11 +9,12 @@ constants:
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
-    generated_data: True 
+    generated_data: False 
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
         df_path: pcqm4mv2.csv # 1M training samples
+        # df_path: null # 1M training samples
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         #df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv

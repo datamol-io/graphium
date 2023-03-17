@@ -530,12 +530,13 @@ class BaseDataModule(pl.LightningDataModule):
     # Private methods
 
     @staticmethod
-    def _read_csv(path, **kwargs):
-        if path is None:
+    def _read_csv(path, generated_data=False, **kwargs):
+        if generated_data is True:
             num_generated_mols = int(1e5)
             # Create a dummy generated dataset - singel smiles string, duplicated N times
             # TODO: have both cxsmiles and normal smiles
             # TODO: add the options for different cols for outcomes
+            # TODO: Take the label cols etc. 
             df = pd.DataFrame([dict(cxsmiles='[H]C1C2=C(NC(=O)[C@@]1([H])C1=C([H])C([H])=C(C([H])([H])[H])C([H])=C1[H])C([H])=C([H])N=C2[H] |(6.4528,-1.5789,-1.2859;5.789,-0.835,-0.8455;4.8499,-0.2104,-1.5946;3.9134,0.7241,-0.934;3.9796,1.1019,0.3172;5.0405,0.6404,1.1008;5.2985,1.1457,2.1772;5.9121,-0.5519,0.613;6.9467,-0.2303,0.8014;5.677,-1.7955,1.4745;4.7751,-2.7953,1.0929;4.2336,-2.7113,0.154;4.5521,-3.9001,1.914;3.8445,-4.6636,1.5979;5.215,-4.0391,3.1392;4.9919,-5.2514,4.0126;5.1819,-5.0262,5.0671;5.6619,-6.0746,3.7296;3.966,-5.6247,3.925;6.1051,-3.0257,3.52;6.6247,-3.101,4.4725;6.3372,-1.9217,2.7029;7.0168,-1.1395,3.0281;2.8586,1.2252,-1.7853;2.1303,1.9004,-1.3493;2.8118,0.8707,-3.0956;2.0282,1.2549,-3.7434;3.716,0.0207,-3.7371;4.6658,-0.476,-3.0127;5.3755,-1.1468,-3.5021)|',
                                     homo_lumo_gap=1.0)])
             logger.info(f"Generating fake dataset on host... \n Generating {num_generated_mols} rows in the df.")
@@ -896,16 +897,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         IPUDataModuleModifier.__init__(self, **kwargs)
 
         self.task_specific_args = task_specific_args
+        self.generated_data = generated_data
+
         # TODO: Have the input argument to the Data Module be of type DatasetParams
         self.task_dataset_processing_params = {
-            task: DatasetProcessingParams(**ds_args) for task, ds_args in task_specific_args.items()
+            task: DatasetProcessingParams(**ds_args, generated_data=self.generated_data) for task, ds_args in task_specific_args.items()
         }
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
 
         self.dataset_class = dataset_class
-        self.generated = generated_data
 
         self.task_train_indices = None
         self.task_val_indices = None
@@ -964,8 +966,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
             logger.info(f"Reading data for task '{task}'")
-
-            # TODO: this is where the generated data should be calculated 
+            if args.generated_data is True:
+                # TODO: this is where the generated data should be calculated 
+                """
+                What do we actually need to do here? 
+                I think it's actually generate the data - if I move it here will we skip the need for the read csv section?
+                """
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
                 label_cols = self._parse_label_cols(
@@ -979,7 +985,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 )
                 label_dtype = {col: np.float32 for col in label_cols}
 
-                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
+                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype, generated_data=args.generated_data)
 
             else:
                 label_cols = self._parse_label_cols(
@@ -1129,8 +1135,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="training set", generated=self.generated)  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="validation set", generated=self.generated)  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="training set", generated=self.generated_data)  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="validation set", generated=self.generated_data)  # type: ignore
             print(self.train_ds)
             print(self.val_ds)
 
@@ -1140,7 +1146,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="test set", generated=self.generated)  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="test set", generated=self.generated_data)  # type: ignore
             print(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
@@ -1324,7 +1330,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            data_frame = self._read_csv(df_path, nrows=0)
+            data_frame = self._read_csv(df_path, nrows=0, generated_data=self.generated_data)
         else:
             data_frame = df
         cols = list(data_frame.columns)
@@ -1410,7 +1416,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         task = keys[0]
         args = self.task_dataset_processing_params[task]
         if args.df is None:
-            df = self._read_csv(args.df_path, nrows=20)
+            df = self._read_csv(args.df_path, nrows=20, generated_data=self.generated_data)
         else:
             df = args.df.iloc[0:20, :]
 
@@ -1552,7 +1558,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = self._read_csv(splits_path)
+                splits = self._read_csv(splits_path, generated_data=self.generated_data)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -1719,7 +1725,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
             if args.df is None:
-                df = self._read_csv(args.df_path, usecols=[args.smiles_col])
+                df = self._read_csv(args.df_path, usecols=[args.smiles_col], generated_data=self.generated_data)
                 num_elements += len(df)
             else:
                 num_elements += len(args.df)
