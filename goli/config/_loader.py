@@ -147,7 +147,6 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
             batch_size=bz_test, **ipu_dataloader_inference_opts
         )
         ipu_dataloader_inference_opts.set_kwargs()
-
         datamodule = module_class(
             ipu_training_opts=ipu_training_opts,
             ipu_inference_opts=ipu_inference_opts,

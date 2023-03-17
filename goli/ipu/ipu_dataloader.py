@@ -234,7 +234,6 @@ def create_ipu_dataloader(
         )
         max_pack_size = max(max_pack_size, this_max_pack_size)
         max_pack_size_per_graph = max(max_pack_size_per_graph, this_max_pack_size_per_graph)
-
     max_num_nodes = collater.max_num_nodes
     # Log the estimated pack size, with warnings if too big or too small
     logger.info(
