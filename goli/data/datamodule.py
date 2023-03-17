@@ -80,10 +80,12 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
         mol_id = ""
     return mol_id
 
-class BatchingSmilesTransform():
+
+class BatchingSmilesTransform:
     """
     Class to transform a list of smiles using a transform function
     """
+
     def __init__(self, transform: Callable):
         self.transform = transform
 
@@ -95,6 +97,7 @@ class BatchingSmilesTransform():
         for smiles in smiles_list:
             mol_id_list.append(self.transform(smiles))
         return mol_id_list
+
 
 def smiles_to_unique_mol_ids(
     smiles: Iterable[str],
@@ -127,7 +130,7 @@ def smiles_to_unique_mol_ids(
     unique_mol_ids = dm.parallelized_with_batches(
         BatchingSmilesTransform(smiles_to_unique_mol_id),
         smiles,
-        batch_size = batch_size,
+        batch_size=batch_size,
         progress=progress,
         n_jobs=n_jobs,
         backend=backend,
@@ -1036,7 +1039,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 all_tasks.append(task)
         # Get all unique mol ids
         all_mol_ids = smiles_to_unique_mol_ids(
-            all_smiles, n_jobs=self.featurization_n_jobs, featurization_batch_size=self.featurization_batch_size, backend=self.featurization_backend
+            all_smiles,
+            n_jobs=self.featurization_n_jobs,
+            featurization_batch_size=self.featurization_batch_size,
+            backend=self.featurization_backend,
         )
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
@@ -1951,8 +1957,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata.T
 
         # Add metadata related to PCQM4M
-        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"]))
-        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"]))
+        ogb_metadata = pd.concat([ogb_metadata, pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"])])
+        ogb_metadata = pd.concat([ogb_metadata, pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"])])
 
         # Only keep datasets of type 'mol'
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
