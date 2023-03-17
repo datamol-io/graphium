@@ -81,12 +81,23 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
     return mol_id
 
 
+def did_featurization_fail(features: Any) -> bool:
+    """
+    Check if a featurization failed.
+    """
+    return (features is None) or isinstance(features, str)
+
+
 class BatchingSmilesTransform:
     """
     Class to transform a list of smiles using a transform function
     """
 
     def __init__(self, transform: Callable):
+        """
+        Parameters:
+            transform: Callable function to transform a single smiles
+        """
         self.transform = transform
 
     def __call__(self, smiles_list: Iterable[str]) -> Any:
@@ -97,6 +108,23 @@ class BatchingSmilesTransform:
         for smiles in smiles_list:
             mol_id_list.append(self.transform(smiles))
         return mol_id_list
+
+    @staticmethod
+    def parse_batch_size(numel: int, desired_batch_size: int, n_jobs: int) -> int:
+        """
+        Function to parse the batch size.
+        The batch size is limited by the number of elements divided by the number of jobs.
+        """
+        assert ((n_jobs >= 0) or (n_jobs == -1)) and isinstance(n_jobs, int), f"n_jobs must be a positive integer or -1, got {n_jobs}"
+        assert isinstance(desired_batch_size, int) and desired_batch_size >= 0, f"desired_batch_size must be a positive integer, got {desired_batch_size}"
+
+        if n_jobs == -1:
+            n_jobs = os.cpu_count()
+        if n_jobs == 0:
+            batch_size = numel
+        else:
+            batch_size = min(desired_batch_size, numel // n_jobs)
+        return batch_size
 
 
 def smiles_to_unique_mol_ids(
@@ -125,7 +153,8 @@ def smiles_to_unique_mol_ids(
         ids: A list of MD5 hash ids
     """
 
-    batch_size = min(featurization_batch_size, len(smiles))
+    batch_size = BatchingSmilesTransform.parse_batch_size(
+        numel=len(smiles), desired_batch_size=featurization_batch_size, n_jobs=n_jobs)
 
     unique_mol_ids = dm.parallelized_with_batches(
         BatchingSmilesTransform(smiles_to_unique_mol_id),
@@ -1048,7 +1077,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
-        features, idx_none = self._featurize_molecules(
+        features, _ = self._featurize_molecules(
             smiles_to_featurize
         )  # sample_idx is removed ... might need to add it again later in another way
 
@@ -1065,7 +1094,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Update idx_none per task for later filtering
         for task, args in task_dataset_args.items():
             for idx, feat in enumerate(args["features"]):
-                if feat == None:
+                if did_featurization_fail(feat):
                     args["idx_none"].append(idx)
 
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
@@ -1249,7 +1278,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             idx_none: A list of the indexes that failed featurization
         """
 
-        batch_size = min(self.featurization_batch_size, len(smiles))
+        batch_size = BatchingSmilesTransform.parse_batch_size(
+            numel=len(smiles), desired_batch_size=self.featurization_batch_size, n_jobs=self.featurization_n_jobs)
 
         # Loop all the smiles and compute the features
         features = dm.parallelized_with_batches(
@@ -1263,7 +1293,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         )
 
         # Warn about None molecules
-        idx_none = [ii for ii, feat in enumerate(features) if isinstance(feat, str)]
+        idx_none = [ii for ii, feat in enumerate(features) if did_featurization_fail(feat)]
         if len(idx_none) > 0:
             mols_to_msg = [f"{idx} - {smiles[idx]} - {str(features[idx])[:-200]}" for idx in idx_none]
             msg = "\n".join(mols_to_msg)
@@ -1618,6 +1648,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             compress: Whether to compress the data
 
         """
+        if self.cache_data_path is None:
+            return
         data_hash = self.get_data_hash()
         ext = ".datacache"
         if compress:
@@ -1636,6 +1668,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         """
         full_cache_data_path = self.get_data_cache_fullname(compress=compress)
+        if full_cache_data_path is None:
+            logger.info("No cache data path specified. Skipping saving the data to cache.")
+            return
 
         save_params = {
             "single_task_datasets": self.single_task_datasets,
@@ -1669,6 +1704,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             cache_data_exists: Whether the cache exists (if the hash matches) and the loading succeeded
         """
         full_cache_data_path = self.get_data_cache_fullname(compress=compress)
+
+        if full_cache_data_path is None:
+            logger.info("No cache data path specified. Skipping loading the data from cache.")
+            return False
+
         cache_data_exists = fs.exists(full_cache_data_path)
 
         if cache_data_exists:
