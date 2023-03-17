@@ -23,7 +23,7 @@ datamodule:
     prepare_dict_or_graph: pyg:graph
     featurization_n_jobs: 30
     featurization_progress: True
-    featurization_backend: "processes"
+    featurization_backend: "loky"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -52,9 +52,9 @@ datamodule:
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: 20 # -1 to use all
-    persistent_workers: False # if use persistent worker at the start of each epoch. 
+    persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "processes"
+    featurization_backend: "loky"
 
     ipu_dataloader_training_opts:
       mode: async
@@ -172,7 +172,7 @@ predictor:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
-    module_type: WarmUpLinearLR 
+    module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100
     warmup_epochs: 10
     verbose: False

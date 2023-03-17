@@ -31,7 +31,6 @@ from functools import lru_cache
 from goli.utils import fs
 from goli.features import (
     mol_to_graph_dict,
-    mol_to_graph_signature,
     mol_to_dglgraph,
     GraphDict,
     mol_to_pyggraph,
@@ -81,10 +80,26 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
         mol_id = ""
     return mol_id
 
+class BatchingSmilesTransform():
+    """
+    Class to transform a list of smiles using a transform function
+    """
+    def __init__(self, transform: Callable):
+        self.transform = transform
+
+    def __call__(self, smiles_list: Iterable[str]) -> Any:
+        """
+        Function to transform a list of smiles
+        """
+        mol_id_list = []
+        for smiles in smiles_list:
+            mol_id_list.append(self.transform(smiles))
+        return mol_id_list
 
 def smiles_to_unique_mol_ids(
     smiles: Iterable[str],
     n_jobs=-1,
+    featurization_batch_size=1000,
     backend="loky",
     progress=True,
     progress_desc="mols to ids",
@@ -106,16 +121,19 @@ def smiles_to_unique_mol_ids(
     Returns:
         ids: A list of MD5 hash ids
     """
-    if backend == "loky":
-        backend = None
-    unique_mol_ids = dm.parallelized(
-        smiles_to_unique_mol_id,
+
+    batch_size = min(featurization_batch_size, len(smiles))
+
+    unique_mol_ids = dm.parallelized_with_batches(
+        BatchingSmilesTransform(smiles_to_unique_mol_id),
         smiles,
+        batch_size = batch_size,
         progress=progress,
         n_jobs=n_jobs,
-        scheduler=backend,
-        tqdm_kwargs={"desc": progress_desc},
+        backend=backend,
+        tqdm_kwargs={"desc": f"{progress_desc}, batch={batch_size}"},
     )
+
     return unique_mol_ids
 
 
@@ -333,6 +351,7 @@ class MultitaskDataset(Dataset):
                 ds_mol_ids = smiles_to_unique_mol_ids(
                     ds_smiles,
                     n_jobs=self.n_jobs,
+                    featurization_batch_size=self.featurization_batch_size,
                     backend=self.backend,
                     progress=self.progress,
                     progress_desc=f"{task}: mol to ids",
@@ -786,6 +805,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
+        featurization_batch_size: int = 1000,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
@@ -853,6 +873,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - "multiprocessing": Found to cause less memory issues.
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
+            featurization_batch_size: Batch size to use for the featurization.
 
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
             prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs, DGL dict or PyG graphs.
@@ -888,6 +909,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
+        self.featurization_batch_size = featurization_batch_size
 
         self.dataset_class = dataset_class
 
@@ -1014,7 +1036,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 all_tasks.append(task)
         # Get all unique mol ids
         all_mol_ids = smiles_to_unique_mol_ids(
-            all_smiles, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend
+            all_smiles, n_jobs=self.featurization_n_jobs, featurization_batch_size=self.featurization_batch_size, backend=self.featurization_backend
         )
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
@@ -1221,13 +1243,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             idx_none: A list of the indexes that failed featurization
         """
 
+        batch_size = min(self.featurization_batch_size, len(smiles))
+
         # Loop all the smiles and compute the features
-        features = dm.parallelized(
-            self.smiles_transformer,
+        features = dm.parallelized_with_batches(
+            BatchingSmilesTransform(self.smiles_transformer),
             smiles,
+            batch_size=batch_size,
             progress=True,
             n_jobs=self.featurization_n_jobs,
-            tqdm_kwargs={"desc": "featurizing_smiles"},
+            backend=self.featurization_backend,
+            tqdm_kwargs={"desc": f"featurizing_smiles, batch={batch_size}"},
         )
 
         # Warn about None molecules

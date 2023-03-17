@@ -28,6 +28,7 @@ datamodule:
     prepare_dict_or_graph: pyg:graph
     featurization_n_jobs: 32
     featurization_progress: True
+    featurization_backend: loky
     featurization:
       atom_property_list_onehot: [atomic-number, valence]
       atom_property_list_float: [mass, electronegativity, in-ring]
