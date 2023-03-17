@@ -14,7 +14,11 @@ GOLI_DATASETS = {
 
 
 def load_micro_zinc() -> pd.DataFrame:
-    """Return a dataframe of micro ZINC (1000 data points)."""
+    """
+    Return a dataframe of micro ZINC (1000 data points).
+    Returns:
+        pd.DataFrame: A dataframe of micro ZINC.
+    """
 
     with importlib.resources.open_text("goli.data.micro_ZINC", "micro_ZINC.csv") as f:
         df = pd.read_csv(f)
@@ -23,7 +27,11 @@ def load_micro_zinc() -> pd.DataFrame:
 
 
 def load_tiny_zinc() -> pd.DataFrame:
-    """Return a dataframe of tiny ZINC (100 data points)."""
+    """
+    Return a dataframe of tiny ZINC (100 data points).
+    Returns:
+        pd.DataFrame: A dataframe of tiny ZINC.
+    """
 
     with importlib.resources.open_text("goli.data.micro_ZINC", "micro_ZINC.csv") as f:
         df = pd.read_csv(f, nrows=100)
@@ -31,19 +39,28 @@ def load_tiny_zinc() -> pd.DataFrame:
     return df  # type: ignore
 
 
-def list_goli_datasets():
-    """List Goli datasets available to download."""
+def list_goli_datasets() -> set:
+    """
+    List Goli datasets available to download.
+    Returns:
+        set: A set of Goli dataset names.
+    """
     return set(GOLI_DATASETS.keys())
 
 
-def download_goli_dataset(name: str, output_path: str, extract_zip: bool = True, progress: bool = False):
-    """Download a Goli dataset to a specified location.
+def download_goli_dataset(
+    name: str, output_path: str, extract_zip: bool = True, progress: bool = False
+) -> str:
+    r"""Download a Goli dataset to a specified location.
 
     Args:
         name: Name of the Goli dataset from `goli.data.utils.get_goli_datasets()`.
         output_path: Directory path where to download the dataset to.
         extract_zip: Whether to extract the dataset if it's a zip file.
         progress: Whether to show a progress bar during download.
+
+    Returns:
+        str: Path to the downloaded dataset.
     """
 
     if name not in GOLI_DATASETS:

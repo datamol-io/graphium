@@ -19,8 +19,15 @@ from goli.utils.tensor import one_of_k_encoding
 from goli.features.positional_encoding import get_all_positional_encoding
 
 
-def to_dense_array(array, dtype=None):
-    # Assign the node data
+def to_dense_array(array: np.ndarray, dtype: str = None) -> np.ndarray:
+    r"""
+    Assign the node data
+    Parameters:
+        array: The array to convert to dense
+        dtype: The dtype of the array
+    Returns:
+        The dense array
+    """
     if array is not None:
         if issparse(array):
             if array.dtype == np.float16:  # float16 doesn't support `todense`
@@ -32,7 +39,16 @@ def to_dense_array(array, dtype=None):
     return array
 
 
-def _mask_nans_inf(mask_nan, array, array_name):
+def _mask_nans_inf(mask_nan: Optional[str], array: np.ndarray, array_name: str) -> np.ndarray:
+    r"""
+    mask the NaNs in the array
+    Parameters:
+        mask_nan: How to mask the NaNs
+        array: The array to mask
+        array_name: The name of the array
+    Returns:
+        The masked array
+    """
     if (mask_nan is None) or (array is None):
         return array
 
@@ -162,6 +178,8 @@ def get_mol_conformer_features(
             Accepted properties are:
             - "positions_3d"
 
+    Returns:
+        prop_dict: a dictionary where the element of ``property_list`` are the keys
     """
     prop_dict = {}
     has_conf = True
@@ -198,7 +216,7 @@ def get_mol_atomic_features_float(
     offset_carbon: bool = True,
     mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Dict[str, np.ndarray]:
-    """
+    r"""
     Get a dictionary of floating-point arrays of atomic properties.
     To ensure all properties are at a similar scale, some of the properties
     are divided by a constant.
@@ -496,7 +514,7 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: dm.Mol) -> float:
 
 def get_mol_edge_features(
     mol: dm.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = "raise"
-):
+) -> Dict[str, np.ndarray]:
     r"""
     Get the following set of features for any given bond
     See `goli.features.nmp` for allowed values in one hot encoding
@@ -763,7 +781,7 @@ class GraphDict(dict):
         self,
         dic: Dict,
     ):
-        """
+        r"""
         Store the parameters required to initialize a `dgl.DGLGraph`, but
         as a dictionary to reduce memory consumption.
 
@@ -1047,6 +1065,7 @@ def mol_to_graph_dict(
         dgl_dict["ndata"][key] = pe
 
     # put the conformer positions here
+    # TODO: pool the keys based on node or edge prefix like "edge_"
     for key, val in conf_dict.items():
         dgl_dict["ndata"][key] = val
 
@@ -1355,10 +1374,16 @@ def graph_dict_to_dgl(
     return graph
 
 
-def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None):
-    """Get the default arguments of `mol_to_dglgraph_dict` and update it
+def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None) -> Dict[str, Any]:
+    """
+    Get the default arguments of `mol_to_dglgraph_dict` and update it
     with a provided dict of arguments in order to get a fulle signature
     of the featurizer args actually used for the features computation.
+
+    Parameters:
+        featurizer_args: A dictionary of featurizer arguments to update
+    Returns:
+        A dictionary of featurizer arguments
     """
 
     # Get the signature of `mol_to_dglgraph_dict`

@@ -1,4 +1,5 @@
 from typing import Iterable, Dict, Any, Optional
+from torch_geometric.data import Batch
 
 # Misc imports
 import inspect
@@ -32,7 +33,6 @@ class EncoderManager(nn.Module):
     ):
         r"""
         Class that allows to runs multiple encoders in parallel and concatenate / pool their outputs.
-
         Parameters:
 
             pe_encoders_kwargs:
@@ -52,12 +52,14 @@ class EncoderManager(nn.Module):
 
     def _initialize_positional_encoders(self, pe_encoders_kwargs: Dict[str, Any]) -> Optional[nn.ModuleDict]:
         r"""Initialize the positional encoders for each positional/structural encodings.
-        TODO: Currently only supports PE/SE on the nodes. Need to add edges.
-
         Parameters:
 
             pe_encoders_kwargs: key-word arguments to use for the initialization of all positional encoding encoders
+
+        Returns:
+            pe_encoders: a nn.ModuleDict containing all positional encoders specified by encoder_name in pe_encoders_kwargs["encoders"]
         """
+        # TODO: Currently only supports PE/SE on the nodes. Need to add edges.
         pe_encoders = None
 
         if pe_encoders_kwargs is not None:
@@ -118,14 +120,13 @@ class EncoderManager(nn.Module):
 
         return pe_encoders
 
-    def forward(self, g: Any) -> Tensor:
+    def forward(self, g: Batch) -> Batch:
         r"""
         forward pass of the pe encoders and pooling
-        #! this function breaks dependency with DGL graph and only works with pyg graph
-        Parameters:
 
+        Parameters:
             g:
-                graph on which the convolution is done.
+                ptg Batch on which the convolution is done.
                 Must contain the following elements:
 
                 - Node key `"feat"`: `torch.Tensor[..., N, Din]`.
@@ -141,10 +142,10 @@ class EncoderManager(nn.Module):
                   `"pos_enc_feats_no_flip"`.
 
         Returns:
-
             g:
-                graph with the positional encodings added to the graph
+                pyg Batch with the positional encodings added to the graph
         """
+        #! this function breaks dependency with DGL graph and only works with pyg graph
 
         # Apply the positional encoders
         pe_pooled = self.forward_positional_encoding(g)
@@ -158,7 +159,7 @@ class EncoderManager(nn.Module):
             g[pe_key] = feat
         return g
 
-    def forward_positional_encoding(self, g: Any) -> Dict[str, Tensor]:
+    def forward_positional_encoding(self, g: Batch) -> Dict[str, Tensor]:
         """
         Forward pass for the positional encodings (PE),
         with each PE having it's own encoder defined in `self.pe_encoders`.
@@ -166,7 +167,7 @@ class EncoderManager(nn.Module):
         using `self.pe_pooling`.
 
         Parameters:
-            g: graph containing the node positional encodings
+            g: pyg Batch containing the node positional encodings
 
         Returns:
             pe_node_pooled: The positional / structural encodings go through
@@ -199,6 +200,13 @@ class EncoderManager(nn.Module):
     def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
         """
         Apply sum, mean, or max pooling on a Tensor.
+        Parameters:
+            h: the Tensor to pool
+            pooling: string specifiying the pooling method
+            dim: the dimension to pool over
+
+        Returns:
+            pooled: the pooled Tensor
         """
 
         if pooling == "sum":
@@ -219,6 +227,9 @@ class EncoderManager(nn.Module):
 
         Parameter:
             divide_factor: Factor by which to divide the width.
+
+        Returns:
+            pe_kw: the model kwargs where the dimensions are divided by the factor
         """
         # For the pe-encoders, don't factor the in_dim and in_dim_edges
         if self.pe_encoders is not None:
@@ -238,6 +249,9 @@ class EncoderManager(nn.Module):
     def input_keys(self) -> Iterable[str]:
         r"""
         Returns the input keys for all pe-encoders
+
+        Returns:
+            input_keys: the input keys for all pe-encoders
         """
         if self.pe_encoders is not None:
             return self.pe_encoders_kwargs["input_keys"]
@@ -248,6 +262,9 @@ class EncoderManager(nn.Module):
     def in_dims(self) -> Iterable[int]:
         r"""
         Returns the input dimensions for all pe-encoders
+
+        Returns:
+            in_dims: the input dimensions for all pe-encoders
         """
         if self.pe_encoders is not None:
             return self.pe_encoders_kwargs["in_dims"]
@@ -258,6 +275,9 @@ class EncoderManager(nn.Module):
     def out_dim(self) -> int:
         r"""
         Returns the output dimension of the pooled embedding from all the pe encoders
+
+        Returns:
+            out_dim: the output dimension of the pooled embedding from all the pe encoders
         """
         if self.pe_encoders is not None:
             return self.pe_encoders_kwargs["out_dim"]

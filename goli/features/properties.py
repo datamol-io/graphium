@@ -9,9 +9,18 @@ from rdkit.Chem import rdMolDescriptors as rdMD
 from mordred import Calculator, descriptors
 
 
-def get_prop_or_none(prop, n, *args, **kwargs):
+def get_prop_or_none(
+    prop: Callable, n: int, *args: Union[dm.Mol, str], **kwargs: Union[dm.Mol, str]
+) -> Union[List[float], List[None]]:
     r"""
     return properties. If error, return list of `None` with lenght `n`.
+    Parameters:
+        prop: The property to compute.
+        n: The number of elements in the property.
+        *args: The arguments to pass to the property.
+        **kwargs: The keyword arguments to pass to the property.
+    Returns:
+        The property or a list of `None` with lenght `n`.
     """
     try:
         return prop(*args, **kwargs)
@@ -19,7 +28,9 @@ def get_prop_or_none(prop, n, *args, **kwargs):
         return [None] * n
 
 
-def get_props_from_mol(mol: Union[dm.Mol, str], properties: Union[List[str], str] = "autocorr3d"):
+def get_props_from_mol(
+    mol: Union[dm.Mol, str], properties: Union[List[str], str] = "autocorr3d"
+) -> np.ndarray:
     r"""
     Function to get a given set of desired properties from a molecule,
     and output a property list.
