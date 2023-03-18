@@ -326,7 +326,6 @@ class MultitaskDataset(Dataset):
         """
         return len(self.labels)
 
-
     @property
     def num_graphs_total(self):
         r"""
