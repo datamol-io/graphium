@@ -115,8 +115,12 @@ class BatchingSmilesTransform:
         Function to parse the batch size.
         The batch size is limited by the number of elements divided by the number of jobs.
         """
-        assert ((n_jobs >= 0) or (n_jobs == -1)) and isinstance(n_jobs, int), f"n_jobs must be a positive integer or -1, got {n_jobs}"
-        assert isinstance(desired_batch_size, int) and desired_batch_size >= 0, f"desired_batch_size must be a positive integer, got {desired_batch_size}"
+        assert ((n_jobs >= 0) or (n_jobs == -1)) and isinstance(
+            n_jobs, int
+        ), f"n_jobs must be a positive integer or -1, got {n_jobs}"
+        assert (
+            isinstance(desired_batch_size, int) and desired_batch_size >= 0
+        ), f"desired_batch_size must be a positive integer, got {desired_batch_size}"
 
         if n_jobs == -1:
             n_jobs = os.cpu_count()
@@ -155,7 +159,8 @@ def smiles_to_unique_mol_ids(
     """
 
     batch_size = BatchingSmilesTransform.parse_batch_size(
-        numel=len(smiles), desired_batch_size=featurization_batch_size, n_jobs=n_jobs)
+        numel=len(smiles), desired_batch_size=featurization_batch_size, n_jobs=n_jobs
+    )
 
     unique_mol_ids = dm.parallelized_with_batches(
         BatchingSmilesTransform(smiles_to_unique_mol_id),
@@ -1283,7 +1288,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
 
         batch_size = BatchingSmilesTransform.parse_batch_size(
-            numel=len(smiles), desired_batch_size=self.featurization_batch_size, n_jobs=self.featurization_n_jobs)
+            numel=len(smiles),
+            desired_batch_size=self.featurization_batch_size,
+            n_jobs=self.featurization_n_jobs,
+        )
 
         # Loop all the smiles and compute the features
         features = dm.parallelized_with_batches(
@@ -1299,7 +1307,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Warn about None molecules
         idx_none = [ii for ii, feat in enumerate(features) if did_featurization_fail(feat)]
         if len(idx_none) > 0:
-            mols_to_msg = [f"idx={idx} - smiles={smiles[idx]} - Error_msg[:-200]=\n{str(features[idx])[:-200]}" for idx in idx_none]
+            mols_to_msg = [
+                f"idx={idx} - smiles={smiles[idx]} - Error_msg[:-200]=\n{str(features[idx])[:-200]}"
+                for idx in idx_none
+            ]
             msg = "\n".join(mols_to_msg)
             logger.warning(
                 (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
