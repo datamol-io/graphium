@@ -30,8 +30,8 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 
 # CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"
 # CONFIG_FILE = "expts/configs/config_gpu_qm9.yaml"
-CONFIG_FILE = "expts/configs/config_pcqmv2_gpspp.yaml"
-# CONFIG_FILE = "expts/configs/config_ipu_reproduce.yaml"
+# CONFIG_FILE = "expts/configs/config_pcqmv2_gpspp.yaml"
+CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
 os.chdir(MAIN_DIR)
 
 

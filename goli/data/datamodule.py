@@ -26,11 +26,11 @@ from pytorch_lightning.trainer.states import RunningStage
 import torch
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
+from functools import lru_cache
 
 from goli.utils import fs
 from goli.features import (
     mol_to_graph_dict,
-    mol_to_graph_signature,
     mol_to_dglgraph,
     GraphDict,
     mol_to_pyggraph,
@@ -85,9 +85,61 @@ def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
     return mol_id
 
 
+def did_featurization_fail(features: Any) -> bool:
+    """
+    Check if a featurization failed.
+    """
+    return (features is None) or isinstance(features, str)
+
+
+class BatchingSmilesTransform:
+    """
+    Class to transform a list of smiles using a transform function
+    """
+
+    def __init__(self, transform: Callable):
+        """
+        Parameters:
+            transform: Callable function to transform a single smiles
+        """
+        self.transform = transform
+
+    def __call__(self, smiles_list: Iterable[str]) -> Any:
+        """
+        Function to transform a list of smiles
+        """
+        mol_id_list = []
+        for smiles in smiles_list:
+            mol_id_list.append(self.transform(smiles))
+        return mol_id_list
+
+    @staticmethod
+    def parse_batch_size(numel: int, desired_batch_size: int, n_jobs: int) -> int:
+        """
+        Function to parse the batch size.
+        The batch size is limited by the number of elements divided by the number of jobs.
+        """
+        assert ((n_jobs >= 0) or (n_jobs == -1)) and isinstance(
+            n_jobs, int
+        ), f"n_jobs must be a positive integer or -1, got {n_jobs}"
+        assert (
+            isinstance(desired_batch_size, int) and desired_batch_size >= 0
+        ), f"desired_batch_size must be a positive integer, got {desired_batch_size}"
+
+        if n_jobs == -1:
+            n_jobs = os.cpu_count()
+        if n_jobs == 0:
+            batch_size = numel
+        else:
+            batch_size = min(desired_batch_size, numel // n_jobs)
+        batch_size = max(1, batch_size)
+        return batch_size
+
+
 def smiles_to_unique_mol_ids(
     smiles: Iterable[str],
     n_jobs=-1,
+    featurization_batch_size=1000,
     backend="loky",
     progress=True,
     progress_desc="mols to ids",
@@ -109,16 +161,21 @@ def smiles_to_unique_mol_ids(
     Returns:
         ids: A list of MD5 hash ids
     """
-    if backend == "loky":
-        backend = None
-    unique_mol_ids = dm.parallelized(
-        smiles_to_unique_mol_id,
+
+    batch_size = BatchingSmilesTransform.parse_batch_size(
+        numel=len(smiles), desired_batch_size=featurization_batch_size, n_jobs=n_jobs
+    )
+
+    unique_mol_ids = dm.parallelized_with_batches(
+        BatchingSmilesTransform(smiles_to_unique_mol_id),
         smiles,
+        batch_size=batch_size,
         progress=progress,
         n_jobs=n_jobs,
-        scheduler=backend,
-        tqdm_kwargs={"desc": progress_desc},
+        backend=backend,
+        tqdm_kwargs={"desc": f"{progress_desc}, batch={batch_size}"},
     )
+
     return unique_mol_ids
 
 
@@ -221,6 +278,7 @@ class MultitaskDataset(Dataset):
         datasets: Dict[str, SingleTaskDataset],
         n_jobs=-1,
         backend: str = "loky",
+        featurization_batch_size=1000,
         progress: bool = True,
         about: str = "",
     ):
@@ -240,28 +298,33 @@ class MultitaskDataset(Dataset):
             datasets: A dictionary of single-task datasets
             n_jobs: Number of jobs to run in parallel
             backend: Parallelization backend
-            progress: Whether to display the progress bar
+        progress: Whether to display the progress bar
             about: A description of the dataset
         """
         super().__init__()
-        self.datasets = datasets
+        # self.datasets = datasets
         self.n_jobs = n_jobs
         self.backend = backend
+        self.featurization_batch_size = featurization_batch_size
         self.progress = progress
         self.about = about
 
-        task = next(iter(self.datasets))
-        if "features" in self.datasets[task][0]:
-            self.mol_ids, self.smiles, self.labels, self.features = self.merge(self.datasets)
+        task = next(iter(datasets))
+        if "features" in datasets[task][0]:
+            self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
+            manager = Manager()
+            self.features = manager.list(self.features)
         else:
-            self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
-        self.labels_size = self.set_label_size_dict()
+            self.mol_ids, self.smiles, self.labels = self.merge(datasets)
+
+        self.labels = np.array(self.labels)
+        self.labels_size = self.set_label_size_dict(datasets)
 
     def __len__(self):
         r"""
         Returns the number of molecules
         """
-        return len(self.mol_ids)
+        return len(self.labels)
 
     @property
     def num_graphs_total(self):
@@ -320,6 +383,7 @@ class MultitaskDataset(Dataset):
         """Average number of edges per graph"""
         return self.num_edges_total / self.num_graphs_total
 
+    @lru_cache(maxsize=16)
     def __getitem__(self, idx):
         r"""
         get the data for at the specified index
@@ -330,11 +394,12 @@ class MultitaskDataset(Dataset):
         """
         datum = {}
 
-        if self.mol_ids is not None:
-            datum["mol_ids"] = self.mol_ids[idx]
+        # Remove mol_ids and smiles for now, to reduce memory consumption b
+        # if self.mol_ids is not None:
+        #     datum["mol_ids"] = self.mol_ids[idx]
 
-        if self.smiles is not None:
-            datum["smiles"] = self.smiles[idx]
+        # if self.smiles is not None:
+        #     datum["smiles"] = self.smiles[idx]
 
         if self.labels is not None:
             datum["labels"] = self.labels[idx]
@@ -377,6 +442,7 @@ class MultitaskDataset(Dataset):
                 ds_mol_ids = smiles_to_unique_mol_ids(
                     ds_smiles,
                     n_jobs=self.n_jobs,
+                    featurization_batch_size=self.featurization_batch_size,
                     backend=self.backend,
                     progress=self.progress,
                     progress_desc=f"{task}: mol to ids",
@@ -420,12 +486,12 @@ class MultitaskDataset(Dataset):
         else:
             return mol_ids, smiles, labels
 
-    def set_label_size_dict(self):
+    def set_label_size_dict(self, datasets: Dict[str, SingleTaskDataset]):
         r"""
         This gives the number of labels to predict for a given task.
         """
         task_labels_size = {}
-        for task, ds in self.datasets.items():
+        for task, ds in datasets.items():
             label = ds[0][
                 "labels"
             ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
@@ -918,6 +984,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization_n_jobs: int = -1,
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
+        featurization_batch_size: int = 1000,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
@@ -986,6 +1053,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - "multiprocessing": Found to cause less memory issues.
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
+            featurization_batch_size: Batch size to use for the featurization.
 
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
             prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs, DGL dict or PyG graphs.
@@ -1021,6 +1089,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
+        self.featurization_batch_size = featurization_batch_size
 
         self.dataset_class = dataset_class
 
@@ -1092,7 +1161,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     + check_arg_iterator(args.idx_col, enforce_type=list)
                     + check_arg_iterator(args.weights_col, enforce_type=list)
                 )
-                label_dtype = {col: np.float16 for col in label_cols}
+                label_dtype = {col: np.float32 for col in label_cols}
 
                 task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
             else:
@@ -1147,13 +1216,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 all_tasks.append(task)
         # Get all unique mol ids
         all_mol_ids = smiles_to_unique_mol_ids(
-            all_smiles, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend
+            all_smiles,
+            n_jobs=self.featurization_n_jobs,
+            featurization_batch_size=self.featurization_batch_size,
+            backend=self.featurization_backend,
         )
         unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
-        features, idx_none = self._featurize_molecules(
+        features, _ = self._featurize_molecules(
             smiles_to_featurize
         )  # sample_idx is removed ... might need to add it again later in another way
 
@@ -1170,7 +1242,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Update idx_none per task for later filtering
         for task, args in task_dataset_args.items():
             for idx, feat in enumerate(args["features"]):
-                if feat == None:
+                if did_featurization_fail(feat):
                     args["idx_none"].append(idx)
 
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
@@ -1250,8 +1322,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="training set")  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="validation set")  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set")  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set")  # type: ignore
             print(self.train_ds)
             print(self.val_ds)
 
@@ -1261,7 +1333,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="test set")  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set")  # type: ignore
             print(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
@@ -1361,19 +1433,30 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             idx_none: A list of the indexes that failed featurization
         """
 
+        batch_size = BatchingSmilesTransform.parse_batch_size(
+            numel=len(smiles),
+            desired_batch_size=self.featurization_batch_size,
+            n_jobs=self.featurization_n_jobs,
+        )
+
         # Loop all the smiles and compute the features
-        features = dm.parallelized(
-            self.smiles_transformer,
+        features = dm.parallelized_with_batches(
+            BatchingSmilesTransform(self.smiles_transformer),
             smiles,
+            batch_size=batch_size,
             progress=True,
             n_jobs=self.featurization_n_jobs,
-            tqdm_kwargs={"desc": "featurizing_smiles"},
+            backend=self.featurization_backend,
+            tqdm_kwargs={"desc": f"featurizing_smiles, batch={batch_size}"},
         )
 
         # Warn about None molecules
-        idx_none = [ii for ii, feat in enumerate(features) if isinstance(feat, str)]
+        idx_none = [ii for ii, feat in enumerate(features) if did_featurization_fail(feat)]
         if len(idx_none) > 0:
-            mols_to_msg = [f"{idx} - {smiles[idx]} - {str(features[idx])[:-200]}" for idx in idx_none]
+            mols_to_msg = [
+                f"idx={idx} - smiles={smiles[idx]} - Error_msg[:-200]=\n{str(features[idx])[:-200]}"
+                for idx in idx_none
+            ]
             msg = "\n".join(mols_to_msg)
             logger.warning(
                 (f"{len(idx_none)} molecules will be removed since they failed featurization:\n" + msg)
@@ -1764,6 +1847,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Returns:
             full path to the data cache file
         """
+        if self.cache_data_path is None:
+            return
         data_hash = self.get_data_hash()
         ext = ".datacache"
         if compress:
@@ -1782,6 +1867,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         """
         full_cache_data_path = self.get_data_cache_fullname(compress=compress)
+        if full_cache_data_path is None:
+            logger.info("No cache data path specified. Skipping saving the data to cache.")
+            return
 
         save_params = {
             "single_task_datasets": self.single_task_datasets,
@@ -1815,6 +1903,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             cache_data_exists: Whether the cache exists (if the hash matches) and the loading succeeded
         """
         full_cache_data_path = self.get_data_cache_fullname(compress=compress)
+
+        if full_cache_data_path is None:
+            logger.info("No cache data path specified. Skipping loading the data from cache.")
+            return False
+
         cache_data_exists = fs.exists(full_cache_data_path)
 
         if cache_data_exists:
@@ -2147,8 +2240,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata.T
 
         # Add metadata related to PCQM4M
-        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"]))
-        ogb_metadata = ogb_metadata.append(pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"]))
+        ogb_metadata = pd.concat([ogb_metadata, pd.DataFrame(PCQM4M_meta, index=["ogbg-lsc-pcqm4m"])])
+        ogb_metadata = pd.concat([ogb_metadata, pd.DataFrame(PCQM4Mv2_meta, index=["ogbg-lsc-pcqm4mv2"])])
 
         # Only keep datasets of type 'mol'
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
@@ -2170,6 +2263,8 @@ def get_num_nodes(
         return graph.num_nodes()
     elif isinstance(graph, (Data, Batch)):
         return graph.num_nodes
+    else:
+        raise ValueError(f"graph dtype not recognised.")
 
 
 def get_num_edges(

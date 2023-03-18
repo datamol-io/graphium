@@ -154,7 +154,6 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
         ipu_training_opts, ipu_inference_opts = load_ipu_options(
             ipu_file=ipu_training_config_file,
-            ipu_inference_overrides=ipu_inference_config_overrides_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
@@ -447,18 +446,24 @@ def save_params_to_wandb(
         datamodule: The datamodule used to load the data into training
     """
 
+    # Get the wandb runner and directory
+    wandb_run = logger.experiment
+    if wandb_run is None:
+        wandb_run = ""
+    wandb_dir = wandb_run.dir
+
     # Save the mup base model to WandB as a yaml file
-    mup.save_base_shapes(predictor.model, "mup_base_params.yaml")
+    mup.save_base_shapes(predictor.model, os.path.join(wandb_dir, "mup_base_params.yaml"))
 
     # Save the full configs as a YAML file
-    with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
+    with open(os.path.join(wandb_dir, "full_configs.yaml"), "w") as file:
         yaml.dump(config, file)
 
     # Save the featurizer into wandb
-    featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
+    featurizer_path = os.path.join(wandb_dir, "featurizer.pickle")
     joblib.dump(datamodule.smiles_transformer, featurizer_path)
 
-    wandb_run = logger.experiment
+    # Save the featurizer and configs into wandb
     if wandb_run is not None:
         wandb_run.save("*.yaml")
         wandb_run.save("*.pickle")
