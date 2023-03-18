@@ -12,6 +12,8 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 
 def compute_rwse(adj: Union[np.ndarray, spmatrix], ksteps: int, num_nodes: int) -> np.ndarray:
     """
+    Compute Random Walk Spectral Embedding (RWSE) for given list of K steps.
+
     Parameters:
         adj: Adjacency matrix
         ksteps: Number of steps for the random walk

@@ -70,6 +70,10 @@ PCQM4Mv2_meta.update(
 def smiles_to_unique_mol_id(smiles: str) -> Optional[str]:
     """
     Convert a smiles to a unique MD5 Hash ID. Returns None if featurization fails.
+    Parameters:
+        smiles: A smiles string to be converted to a unique ID
+    Returns:
+        mol_id: a string unique ID
     """
     try:
         mol = dm.to_mol(mol=smiles)
@@ -185,6 +189,16 @@ class SingleTaskDataset(Dataset):
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
         unique_ids: Optional[List[str]] = None,
     ):
+        r"""
+        dataset for a single task
+        Parameters:
+            labels: A list of labels for the given task (one per graph)
+            features: A list of graphs
+            smiles: A list of smiles
+            indices: A list of indices
+            weights: A list of weights
+            unique_ids: A list of unique ids
+        """
         self.labels = labels
         if smiles is not None:
             manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
@@ -201,9 +215,21 @@ class SingleTaskDataset(Dataset):
         self.unique_ids = unique_ids
 
     def __len__(self):
+        r"""
+        return the size of the dataset
+        Returns:
+            size: the size of the dataset
+        """
         return len(self.labels)
 
     def __getitem__(self, idx):
+        """
+        get the data at the given index
+        Parameters:
+            idx: the index to get the data at
+        Returns:
+            datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids"
+        """
         datum = {}
 
         if self.features is not None:
@@ -247,19 +273,6 @@ class SingleTaskDataset(Dataset):
 
 
 class MultitaskDataset(Dataset):
-    """This class holds the information for the multitask dataset.
-
-    Several single-task datasets can be merged to create a multi-task dataset. After merging the dictionary of single-task datasets,
-    we will have a multitask dataset of the following form:
-        - self.mol_ids will be a list to contain the unique molecular IDs to identify the molecules
-        - self.smiles will be a list to contain the corresponding smiles for that molecular ID across all single-task datasets
-        - self.labels will be a list of dictionaries where the key is the task name and the value is the label(s) for that task.
-            At this point, any particular molecule will only have entries for tasks for which it has a label. Later, in the collate
-            function, we fill up the missing task labels with NaNs.
-        - self.features will be a list of featurized graphs corresponding to that particular unique molecule.
-            However, for testing purposes we may not require features so that we can make sure that this merge function works.
-    """
-
     def __init__(
         self,
         datasets: Dict[str, SingleTaskDataset],
@@ -269,6 +282,25 @@ class MultitaskDataset(Dataset):
         progress: bool = True,
         about: str = "",
     ):
+        r"""
+        This class holds the information for the multitask dataset.
+        Several single-task datasets can be merged to create a multi-task dataset. After merging the dictionary of single-task datasets.
+        we will have a multitask dataset of the following form:
+        - self.mol_ids will be a list to contain the unique molecular IDs to identify the molecules
+        - self.smiles will be a list to contain the corresponding smiles for that molecular ID across all single-task datasets
+        - self.labels will be a list of dictionaries where the key is the task name and the value is the label(s) for that task.
+            At this point, any particular molecule will only have entries for tasks for which it has a label. Later, in the collate
+            function, we fill up the missing task labels with NaNs.
+        - self.features will be a list of featurized graphs corresponding to that particular unique molecule.
+            However, for testing purposes we may not require features so that we can make sure that this merge function works.
+
+        Parameters:
+            datasets: A dictionary of single-task datasets
+            n_jobs: Number of jobs to run in parallel
+            backend: Parallelization backend
+        progress: Whether to display the progress bar
+            about: A description of the dataset
+        """
         super().__init__()
         # self.datasets = datasets
         self.n_jobs = n_jobs
@@ -289,10 +321,17 @@ class MultitaskDataset(Dataset):
         self.labels_size = self.set_label_size_dict(datasets)
 
     def __len__(self):
+        r"""
+        Returns the number of molecules
+        """
         return len(self.labels)
+
 
     @property
     def num_graphs_total(self):
+        r"""
+        number of graphs (molecules) in the dataset
+        """
         return len(self)
 
     @property
@@ -347,6 +386,13 @@ class MultitaskDataset(Dataset):
 
     @lru_cache(maxsize=16)
     def __getitem__(self, idx):
+        r"""
+        get the data for at the specified index
+        Parameters:
+            idx: The index of the data to retrieve
+        Returns:
+            A dictionary containing the data for the specified index with keys "mol_ids", "smiles", "labels", and "features"
+        """
         datum = {}
 
         # Remove mol_ids and smiles for now, to reduce memory consumption b
@@ -364,7 +410,7 @@ class MultitaskDataset(Dataset):
 
         return datum
 
-    def merge(self, datasets: Dict[str, Any]):
+    def merge(self, datasets: Dict[str, Any]) -> Tuple[List[str], List[str], List[Dict[str, Any]], List[Any]]:
         r"""This function merges several single task datasets into a multitask dataset.
 
         The idea: for each of the smiles, labels, features and tasks, we create a corresponding list that concatenates these items across all tasks.
@@ -375,6 +421,11 @@ class MultitaskDataset(Dataset):
         inverse from numpy's `unique`, which will allow us to index in addition to the list of all molecular IDs, the list of all smiles, labels, features and tasks.
         Finally, we use this inverse to construct the list of list of smiles, list of label dictionaries (indexed by task) and the list of features such that
         the indices match up. This is what is needed for the `get_item` function to work.
+
+        Parameters:
+            datasets: A dictionary of single-task datasets
+        Returns:
+            A tuple of (list of molecular IDs, list of smiles, list of label dictionaries, list of features)
         """
         all_smiles = []
         all_features = []
@@ -437,7 +488,9 @@ class MultitaskDataset(Dataset):
             return mol_ids, smiles, labels
 
     def set_label_size_dict(self, datasets: Dict[str, SingleTaskDataset]):
-        # This gives the number of labels to predict for a given task.
+        r"""
+        This gives the number of labels to predict for a given task.
+        """
         task_labels_size = {}
         for task, ds in datasets.items():
             label = ds[0][
@@ -449,6 +502,11 @@ class MultitaskDataset(Dataset):
         return task_labels_size
 
     def __repr__(self) -> str:
+        """
+        summarizes the dataset in a string
+        Returns:
+            A string representation of the dataset.
+        """
         out_str = (
             f"-------------------\n{self.__class__.__name__}\n"
             + f"\tabout = {self.about}\n"
@@ -478,6 +536,17 @@ class BaseDataModule(pl.LightningDataModule):
         persistent_workers: bool = False,
         collate_fn: Optional[Callable] = None,
     ):
+        """
+        base dataset module for all datasets (to be inherented)
+
+        Parameters:
+            batch_size_training: batch size for training
+            batch_size_inference: batch size for inference
+            num_workers: number of workers for data loading
+            pin_memory: whether to pin memory
+            persistent_workers: whether to use persistent workers
+            collate_fn: collate function for batching
+        """
         super().__init__()
 
         self.batch_size_training = batch_size_training
@@ -503,6 +572,9 @@ class BaseDataModule(pl.LightningDataModule):
         raise NotImplementedError()
 
     def train_dataloader(self, **kwargs):
+        """
+        return the training dataloader
+        """
         return self.get_dataloader(
             dataset=self.train_ds,  # type: ignore
             shuffle=True,
@@ -511,6 +583,9 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
     def val_dataloader(self, **kwargs):
+        r"""
+        return the validation dataloader
+        """
         return self.get_dataloader(
             dataset=self.val_ds,  # type: ignore
             shuffle=False,
@@ -519,6 +594,9 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
     def test_dataloader(self, **kwargs):
+        r"""
+        return the test dataloader
+        """
         return self.get_dataloader(
             dataset=self.test_ds,  # type: ignore
             shuffle=False,
@@ -527,6 +605,9 @@ class BaseDataModule(pl.LightningDataModule):
         )
 
     def predict_dataloader(self, **kwargs):
+        """
+        return the dataloader for prediction
+        """
         return self.get_dataloader(
             dataset=self.predict_ds,  # type: ignore
             shuffle=False,
@@ -569,6 +650,9 @@ class BaseDataModule(pl.LightningDataModule):
 
     @property
     def get_num_workers(self):
+        """
+        get the number of workers to use
+        """
         if self.num_workers == -1:
             num_workers = os.cpu_count()
             num_workers = num_workers if num_workers is not None else 0
@@ -587,7 +671,18 @@ class BaseDataModule(pl.LightningDataModule):
     # Private methods
 
     @staticmethod
-    def _read_csv(path, **kwargs):
+    def _read_csv(
+        path: str,
+        **kwargs,
+    ) -> pd.DataFrame:
+        """
+        private method for reading a csv file
+        Parameters:
+            path: path to the csv file
+            kwargs: keyword arguments for pd.read_csv
+        Returns:
+            pd.DataFrame: the panda dataframe storing molecules
+        """
         if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
             sep = ","
         elif str(path).endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
@@ -599,12 +694,28 @@ class BaseDataModule(pl.LightningDataModule):
         return df
 
     @staticmethod
-    def _read_parquet(path, **kwargs):
+    def _read_parquet(path: str, **kwargs) -> pd.DataFrame:
+        """
+        read the parquet file int a pandas dataframe
+        Parameters:
+            path: path to the parquet file
+            kwargs: keyword arguments for pd.read_parquet
+        Returns:
+            pd.DataFrame: the panda dataframe storing molecules
+        """
         df = pd.read_parquet(path)
         return df
 
     @staticmethod
-    def _read_table(self, path, **kwargs):
+    def _read_table(self, path: str, **kwargs) -> pd.DataFrame:
+        """
+        a general read file function which determines if which function to use, either _read_csv or _read_parquet
+        Parameters:
+            path: path to the file to read
+            kwargs: keyword arguments for pd.read_csv or pd.read_parquet
+        Returns:
+            pd.DataFrame: the panda dataframe storing molecules
+        """
         if str(path).endswith((".parquet")):
             return self._read_parquet(path)
         else:
@@ -624,7 +735,8 @@ class BaseDataModule(pl.LightningDataModule):
         loader_kwargs = {}
 
         # Get batch size and IPU options for training set
-        if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        # if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        if stage in [RunningStage.TRAINING]:
             loader_kwargs["batch_size"] = self.batch_size_training
 
         # Get batch size and IPU options for validation / testing sets
@@ -661,7 +773,14 @@ class BaseDataModule(pl.LightningDataModule):
         return self._dataloader(dataset=dataset, shuffle=shuffle, stage=stage, **kwargs)
 
     def _dataloader(self, dataset: Dataset, **kwargs) -> DataLoader:
-        """Get a dataloader for a given dataset"""
+        r"""
+        Get a dataloader for a given dataset
+        Parameters:
+            dataset: The dataset from which to load the data
+            kwargs: keyword arguments for DataLoader
+        Returns:
+            The dataloader to sample from
+        """
 
         loader = DataLoader(
             dataset=dataset,
@@ -752,7 +871,6 @@ class BaseDataModule(pl.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
-        # task_name: str,
         df: pd.DataFrame = None,
         df_path: Optional[Union[str, os.PathLike]] = None,
         smiles_col: str = None,
@@ -766,7 +884,22 @@ class DatasetProcessingParams:
         split_seed: int = None,
         splits_path: Optional[Union[str, os.PathLike]] = None,
     ):
-        # self.task_name = task_name
+        """
+        object to store the parameters for the dataset processing
+        Parameters:
+            df: The dataframe containing the data
+            df_path: The path to the dataframe containing the data
+            smiles_col: The column name of the smiles
+            label_cols: The column names of the labels
+            weights_col: The column name of the weights
+            weights_type: The type of weights
+            idx_col: The column name of the indices
+            sample_size: The size of the sample
+            split_val: The fraction of the data to use for validation
+            split_test: The fraction of the data to use for testing
+            split_seed: The seed to use for the split
+            splits_path: The path to the splits
+        """
         self.df = df
         self.df_path = df_path
         self.smiles_col = smiles_col
@@ -782,18 +915,6 @@ class DatasetProcessingParams:
 
 
 class IPUDataModuleModifier:
-    """
-    Modify functions from the a `DataModule` to support IPU and IPU options.
-    To be used in dual inheritance, for example:
-
-    ```
-    IPUDataModule(BaseDataModule, IPUDataModuleModifier):
-        def __init__(self, **kwargs):
-            BaseDataModule.__init__(self, **kwargs)
-            IPUDataModuleModifier.__init__(self, **kwargs)
-    ```
-    """
-
     def __init__(
         self,
         ipu_inference_opts: Optional["poptorch.Options"] = None,
@@ -803,11 +924,22 @@ class IPUDataModuleModifier:
         *args,
         **kwargs,
     ) -> None:
-        """
-        ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
-        ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
-        ipu_dataloader_kwargs_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
-        ipu_dataloader_kwargs_test: Options for the dataloader for the IPU. Ignore if not using IPUs
+        r"""
+        wrapper functions from the a `DataModule` to support IPU and IPU options To be used in dual inheritance, for example:
+        ```
+        IPUDataModule(BaseDataModule, IPUDataModuleModifier):
+            def __init__(self, **kwargs):
+                BaseDataModule.__init__(self, **kwargs)
+                IPUDataModuleModifier.__init__(self, **kwargs)
+        ```
+
+        Parameters:
+            ipu_inference_opts: Options for the IPU in inference mode. Ignore if not using IPUs
+            ipu_training_opts: Options for the IPU in training mode. Ignore if not using IPUs
+            ipu_dataloader_kwargs_train_val: Options for the dataloader for the IPU. Ignore if not using IPUs
+            ipu_dataloader_kwargs_test: Options for the dataloader for the IPU. Ignore if not using IPUs
+            args: Arguments for the `DataModule`
+            kwargs: Keyword arguments for the `DataModule`
         """
         self.ipu_inference_opts = ipu_inference_opts
         self.ipu_training_opts = ipu_training_opts
@@ -815,7 +947,14 @@ class IPUDataModuleModifier:
         self.ipu_dataloader_inference_opts = ipu_dataloader_inference_opts
 
     def _dataloader(self, dataset: Dataset, **kwargs) -> "poptorch.DataLoader":
-        """Get a dataloader for a given dataset"""
+        """
+        Get a poptorch dataloader for a given dataset
+        Parameters:
+            dataset: The dataset to use
+            kwargs: Keyword arguments for the dataloader
+        Returns:
+            The poptorch dataloader
+        """
 
         # Use regular Dataloader if no IPUs
         if ("ipu_options" not in kwargs.keys()) or (kwargs["ipu_options"] is None):
@@ -853,8 +992,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         **kwargs,
     ):
         """
-        Parameters: only for parameters beginning with task_*, we have a dictionary where the key is the task name
+        only for parameters beginning with task_*, we have a dictionary where the key is the task name
         and the value is specified below.
+        Parameters:
             task_df: (value) a dataframe
             task_df_path: (value) a path to a dataframe to load (CSV file). `df` takes precedence over
                 `df_path`.
@@ -1169,10 +1309,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # TODO (Gabriela): Implement the ability to save to cache.
 
     def setup(
-        self, stage: str = None
-    ):  # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
-        """Prepare the torch dataset. Called on every GPUs. Setting state here is ok."""
+        self,
+        stage: str = None,
+    ):
+        """
+        Prepare the torch dataset. Called on every GPUs. Setting state here is ok.
+        Parameters:
+            stage (str): Either 'fit', 'test', or None.
+        """
 
+        # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         # Produce the label sizes to update the collate function
         labels_size = {}
 
@@ -1212,7 +1358,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         loader_kwargs = super().get_dataloader_kwargs(stage=stage, shuffle=shuffle, **kwargs)
 
         # Get batch size and IPU options for training set
-        if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        # if stage in [RunningStage.TRAINING, RunningStage.TUNING]:
+        if stage in [RunningStage.TRAINING]:
             loader_kwargs["ipu_dataloader_options"] = self.ipu_dataloader_training_opts
             loader_kwargs["ipu_options"] = self.ipu_training_opts
 
@@ -1237,7 +1384,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self, dataset: Dataset, shuffle: bool, stage: RunningStage
     ) -> Union[DataLoader, "poptorch.DataLoader"]:
         """
-        Get the dataloader for a given dataset
+        Get the poptorch dataloader for a given dataset
 
         Parameters:
             dataset: The dataset from which to load the data
@@ -1245,7 +1392,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             stage: Whether in Training, Validating, Testing, Sanity-checking, Predicting, or Tuning phase.
 
         Returns:
-            The dataloader to sample from
+            The poptorch dataloader to sample from
         """
         kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
         is_ipu = ("ipu_options" in kwargs.keys()) and (kwargs.get("ipu_options") is not None)
@@ -1379,6 +1526,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Parse the choice of label columns depending on the type of input.
         The input parameters `label_cols` and `smiles_col` are described in
         the `__init__` method.
+        Parameters:
+            df: The dataframe containing the labels.
+            df_path: The path to the dataframe containing the labels.
+            label_cols: The columns to use as labels.
+            smiles_col: The column to use as SMILES
+        Returns:
+            the parsed label columns
         """
         if df is None:
             # Only load the useful columns, as some dataset can be very large
@@ -1513,8 +1667,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     ) -> Tuple[
         np.ndarray, np.ndarray, Union[Type[None], np.ndarray], Dict[str, Union[Type[None], np.ndarray]]
     ]:
-        """For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
+        """
+        For a given dataframe extract the SMILES and labels columns. Smiles is returned as a list
         of string while labels are returned as a 2D numpy array.
+
+        Parameters:
+            df: Pandas dataframe
+            smiles_col: Name of the column containing the SMILES
+            label_cols: List of column names containing the labels
+            idx_col: Name of the column containing the index
+            weights_col: Name of the column containing the weights
+            weights_type: Type of weights to use.
+        Returns:
+            smiles, labels, sample_idx, extras
         """
 
         if smiles_col is None:  # Should we specify which dataset has caused the potential issue?
@@ -1584,7 +1749,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         split_seed: int = None,
         splits_path: Union[str, os.PathLike] = None,
     ):
-        """Compute indices of random splits."""
+        r"""
+        Compute indices of random splits.
+        Parameters:
+            dataset_size: Size of the dataset
+            split_val: Fraction of the dataset to use for validation
+            split_test: Fraction of the dataset to use for testing
+            sample_idx: Indices of the samples to use for splitting
+            split_seed: Seed for the random splitting
+            splits_path: Path to a file containing the splits
+        Returns:
+            train_indices, val_indices, test_indices
+        """
 
         if sample_idx is None:
             sample_idx = np.arange(dataset_size)
@@ -1627,7 +1803,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return train_indices, val_indices, test_indices
 
-    def _sub_sample_df(self, df, sample_size):
+    def _sub_sample_df(self, df: pd.DataFrame, sample_size: Union[int, float, None]) -> pd.DataFrame:
+        r"""
+        subsample from a pandas dataframe
+        Parameters:
+            df: pandas dataframe to subsample
+            sample_size: number of samples to subsample
+        Returns:
+            subsampled pandas dataframe
+        """
         # Sub-sample the dataframe
         if isinstance(sample_size, int):
             n = min(sample_size, df.shape[0])
@@ -1655,13 +1839,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         data_hash = get_md5_hash(hash_dict)
         return data_hash
 
-    def get_data_cache_fullname(self, compress: bool = False):
+    def get_data_cache_fullname(self, compress: bool = False) -> str:
         """
         Create a hash for the dataset, and use it to generate a file name
 
         Parameters:
             compress: Whether to compress the data
-
+        Returns:
+            full path to the data cache file
         """
         if self.cache_data_path is None:
             return
@@ -1771,6 +1956,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     ) -> Tuple[Subset, Subset, Subset]:
         """
         From a dictionary of datasets and their associated indices, subset the train/val/test sets
+
+        Parameters:
+            single_task_datasets: Dictionary of datasets
+            task_train_indices: Dictionary of train indices
+            task_val_indices: Dictionary of val indices
+            task_test_indices: Dictionary of test indices
+        Returns:
+            train_singletask_datasets: Dictionary of train subsets
+            val_singletask_datasets: Dictionary of val subsets
+            test_singletask_datasets: Dictionary of test subsets
         """
         train_singletask_datasets = {}
         val_singletask_datasets = {}
@@ -1784,6 +1979,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def __len__(self) -> int:
         r"""
         Returns the number of elements of the current DataModule, which is the combined size of all single-task datasets given.
+        Returns:
+            num_elements: Number of elements in the current DataModule
         """
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
@@ -1794,7 +1991,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 num_elements += len(args.df)
         return num_elements
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Returns a dictionary representation of the current DataModule
+        Returns:
+            obj_repr: Dictionary representation of the current DataModule
+        """
         # TODO: Change to make more multi-task friendly
         obj_repr = {}
         obj_repr["name"] = self.__class__.__name__
@@ -1813,14 +2015,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         obj_repr["featurization"] = self.featurization
         return obj_repr
 
-    def __repr__(self):
-        """Controls how the class is printed"""
+    def __repr__(self) -> str:
+        r"""
+        Controls how the class is printed
+
+        Returns:
+
+        """
         return omegaconf.OmegaConf.to_yaml(self.to_dict())
 
 
 class GraphOGBDataModule(MultitaskFromSmilesDataModule):
-    """Load an OGB (Open-graph-benchmark) GraphProp dataset."""
-
     def __init__(
         self,
         task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
@@ -1839,7 +2044,8 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         dataset_class: type = MultitaskDataset,
         **kwargs,
     ):
-        """
+        r"""
+        Load an OGB (Open-graph-benchmark) GraphProp dataset.
 
         Parameters:
             task_specific_args: Arguments related to each task, with the task-name being the key,
@@ -1911,7 +2117,12 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
         super().__init__(**dm_args, **kwargs)
 
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
+        r"""
+        geenrate a dictionary representation of the class
+        Returns:
+            dict: dictionary representation of the class
+        """
         # TODO: Change to make more multi-task friendly
         obj_repr = {}
         obj_repr["dataset_name"] = self.dataset_name
@@ -1920,8 +2131,24 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
     # Private methods
 
-    def _load_dataset(self, metadata: dict, sample_size: Optional[int] = None):
-        """Download, extract and load an OGB dataset."""
+    def _load_dataset(
+        self,
+        metadata: dict,
+        sample_size: Optional[int] = None,
+    ) -> Tuple[pd.DataFrame, str, str, List[str], str]:
+        """
+        Download, extract and load an OGB dataset.
+        Parameters:
+            metadata: Metadata for the dataset to load.
+            sample_size: The number of molecules to sample from the dataset. Default=None,
+                meaning that all molecules will be considered.
+        Returns:
+            df: Pandas dataframe containing the dataset.
+            idx_col: Name of the column containing the molecule index.
+            smiles_col: Name of the column containing the SMILES.
+            label_cols: List of column names containing the labels.
+            splits_path: Path to the file containing the train/val/test splits.
+        """
 
         base_dir = fs.get_cache_dir("ogb")
         dataset_dir = base_dir / metadata["download_name"]
@@ -1996,7 +2223,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
         return df, idx_col, smiles_col, label_cols, splits_path
 
-    def _get_dataset_metadata(self, dataset_name: str):
+    def _get_dataset_metadata(self, dataset_name: str) -> Dict[str, Any]:
         ogb_metadata = self._get_ogb_metadata()
         if dataset_name not in ogb_metadata.index:
             raise ValueError(f"'{dataset_name}' is not a valid dataset name.")
@@ -2004,7 +2231,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         return ogb_metadata.loc[dataset_name].to_dict()
 
     def _get_ogb_metadata(self):
-        """Get the metadata of OGB GraphProp datasets."""
+        """
+        Get the metadata of OGB GraphProp datasets.
+        """
 
         with importlib.resources.open_text("ogb.graphproppred", "master.csv") as f:
             ogb_metadata = pd.read_csv(f)
@@ -2021,7 +2250,16 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         return ogb_metadata
 
 
-def get_num_nodes(graph):
+def get_num_nodes(
+    graph: Union[dgl.DGLGraph, GraphDict, Data, Batch],
+) -> int:
+    """
+    utility function to get the number of nodes in a graph
+    Parameters:
+        graph: a DGLGraph, GraphDict, Data or Batch object
+    Returns:
+        num_nodes: the number of nodes in the graph
+    """
     if isinstance(graph, (dgl.DGLGraph, GraphDict)):
         return graph.num_nodes()
     elif isinstance(graph, (Data, Batch)):
@@ -2030,7 +2268,16 @@ def get_num_nodes(graph):
         raise ValueError(f"graph dtype not recognised.")
 
 
-def get_num_edges(graph):
+def get_num_edges(
+    graph: Union[dgl.DGLGraph, GraphDict, Data, Batch],
+) -> int:
+    """
+    Utility function to get the number of edges in a graph
+    Parameters:
+        graph: a DGLGraph, GraphDict, Data or Batch object
+    Returns:
+        num_edges: the number of edges in the graph
+    """
     if isinstance(graph, (dgl.DGLGraph, GraphDict)):
         return graph.num_edges()
     elif isinstance(graph, (Data, Batch)):

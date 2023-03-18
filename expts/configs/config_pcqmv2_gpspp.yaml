@@ -182,7 +182,7 @@ architecture:
 predictor:
   metrics_on_progress_bar:
     homo: ["mae", "pearsonr", "spearmanr", "f1 > 0.5", "precision > 0.5"]
-  loss_fun:
+  loss_fun:  #<---- loss for the task head
     homo: mse_ipu
   random_seed: *seed
   optim_kwargs:
@@ -203,7 +203,7 @@ predictor:
 
 # Task-specific
 metrics:
-  homo:
+  homo: # <--- task head
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
