@@ -124,6 +124,7 @@ class BatchingSmilesTransform:
             batch_size = numel
         else:
             batch_size = min(desired_batch_size, numel // n_jobs)
+        batch_size = max(1, batch_size)
         return batch_size
 
 
@@ -259,26 +260,28 @@ class MultitaskDataset(Dataset):
         datasets: Dict[str, SingleTaskDataset],
         n_jobs=-1,
         backend: str = "loky",
+        featurization_batch_size=1000,
         progress: bool = True,
         about: str = "",
     ):
         super().__init__()
-        self.datasets = datasets
+        # self.datasets = datasets
         self.n_jobs = n_jobs
         self.backend = backend
+        self.featurization_batch_size = featurization_batch_size
         self.progress = progress
         self.about = about
 
-        task = next(iter(self.datasets))
-        if "features" in self.datasets[task][0]:
-            self.mol_ids, self.smiles, self.labels, self.features = self.merge(self.datasets)
+        task = next(iter(datasets))
+        if "features" in datasets[task][0]:
+            self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
+            manager = Manager()
+            self.features = manager.list(self.features)
         else:
-            self.mol_ids, self.smiles, self.labels = self.merge(self.datasets)
+            self.mol_ids, self.smiles, self.labels = self.merge(datasets)
 
         self.labels = np.array(self.labels)
-        self.labels_size = self.set_label_size_dict()
-        self.mol_ids = None
-        self.smiles = None
+        self.labels_size = self.set_label_size_dict(datasets)
 
     def __len__(self):
         return len(self.labels)
@@ -341,11 +344,12 @@ class MultitaskDataset(Dataset):
     def __getitem__(self, idx):
         datum = {}
 
-        if self.mol_ids is not None:
-            datum["mol_ids"] = self.mol_ids[idx]
+        # Remove mol_ids and smiles for now, to reduce memory consumption b
+        # if self.mol_ids is not None:
+        #     datum["mol_ids"] = self.mol_ids[idx]
 
-        if self.smiles is not None:
-            datum["smiles"] = self.smiles[idx]
+        # if self.smiles is not None:
+        #     datum["smiles"] = self.smiles[idx]
 
         if self.labels is not None:
             datum["labels"] = self.labels[idx]
@@ -427,10 +431,10 @@ class MultitaskDataset(Dataset):
         else:
             return mol_ids, smiles, labels
 
-    def set_label_size_dict(self):
+    def set_label_size_dict(self, datasets: Dict[str, SingleTaskDataset]):
         # This gives the number of labels to predict for a given task.
         task_labels_size = {}
-        for task, ds in self.datasets.items():
+        for task, ds in datasets.items():
             label = ds[0][
                 "labels"
             ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
@@ -1168,8 +1172,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="training set")  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="validation set")  # type: ignore
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set")  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set")  # type: ignore
             print(self.train_ds)
             print(self.val_ds)
 
@@ -1179,7 +1183,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, progress=self.featurization_progress, about="test set")  # type: ignore
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set")  # type: ignore
             print(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
