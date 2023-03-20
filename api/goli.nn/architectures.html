@@ -1,0 +1,4558 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deep learning library focused on graph representation learning for real-world chemical tasks.">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/valence-discovery/goli/api/goli.nn/architectures.html">
+      
+      
+        <link rel="prev" href="goli.nn.html">
+      
+      
+        <link rel="next" href="encoders.html">
+      
+      <link rel="icon" href="../../images/logo.png">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.3">
+    
+    
+      
+        <title>goli.nn.architectures - goli</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.c4a75a56.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../../_assets/css/custom.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="red" data-md-color-accent="indigo">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#goli.nn.architectures.global_architectures" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../index.html" title="goli" class="md-header__button md-logo" aria-label="goli" data-md-component="logo">
+      
+  <img src="../../images/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            goli
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              goli.nn.architectures
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/valence-discovery/goli" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/goli
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../index.html" title="goli" class="md-nav__button md-logo" aria-label="goli" data-md-component="logo">
+      
+  <img src="../../images/logo.png" alt="logo">
+
+    </a>
+    goli
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/valence-discovery/goli" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.3.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/goli
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../index.html" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          basics
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_1">
+          <span class="md-nav__icon md-icon"></span>
+          basics
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/implementing_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/csv_to_parquet.html" class="md-nav__link">
+        Convert CSV to Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/parquet_reader.html" class="md-nav__link">
+        Reading Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          model_training
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+        Building and training a simple model from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/model_training/ipu_training.html" class="md-nav__link">
+        Building and training on IPU from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
+        Chosing the right parallelization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design.html" class="md-nav__link">
+        Design
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../datasets.html" class="md-nav__link">
+        Datasets
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pretrained_models.html" class="md-nav__link">
+        Pretrained Models
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribute.html" class="md-nav__link">
+        Contribute
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_1" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8_1" id="__nav_8_1_label" tabindex="0">
+          goli.nn
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_1_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_8_1">
+          <span class="md-nav__icon md-icon"></span>
+          goli.nn
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="goli.nn.html" class="md-nav__link">
+        goli.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          goli.nn.architectures
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="architectures.html" class="md-nav__link md-nav__link--active">
+        goli.nn.architectures
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures" class="md-nav__link">
+    global_architectures
+  </a>
+  
+    <nav class="md-nav" aria-label="global_architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase" class="md-nav__link">
+    FeedForwardGraphBase
+  </a>
+  
+    <nav class="md-nav" aria-label="FeedForwardGraphBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.get_init_kwargs" class="md-nav__link">
+    get_init_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN" class="md-nav__link">
+    FeedForwardNN
+  </a>
+  
+    <nav class="md-nav" aria-label="FeedForwardNN">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.get_init_kwargs" class="md-nav__link">
+    get_init_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" class="md-nav__link">
+    FullGraphMultiTaskNetwork
+  </a>
+  
+    <nav class="md-nav" aria-label="FullGraphMultiTaskNetwork">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.set_max_num_nodes_edges_per_graph" class="md-nav__link">
+    set_max_num_nodes_edges_per_graph()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork" class="md-nav__link">
+    FullGraphNetwork
+  </a>
+  
+    <nav class="md-nav" aria-label="FullGraphNetwork">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.concat_last_layers" class="md-nav__link">
+    concat_last_layers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.dtype" class="md-nav__link">
+    dtype
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim" class="md-nav__link">
+    in_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim_edges" class="md-nav__link">
+    in_dim_edges
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.drop_post_nn_layers" class="md-nav__link">
+    drop_post_nn_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.extend_post_nn_layers" class="md-nav__link">
+    extend_post_nn_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.set_max_num_nodes_edges_per_graph" class="md-nav__link">
+    set_max_num_nodes_edges_per_graph()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads" class="md-nav__link">
+    TaskHeads
+  </a>
+  
+    <nav class="md-nav" aria-label="TaskHeads">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.pyg_architectures" class="md-nav__link">
+    pyg_architectures
+  </a>
+  
+    <nav class="md-nav" aria-label="pyg_architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.pyg_architectures.FeedForwardPyg" class="md-nav__link">
+    FeedForwardPyg
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.dgl_architectures" class="md-nav__link">
+    dgl_architectures
+  </a>
+  
+    <nav class="md-nav" aria-label="dgl_architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.dgl_architectures.FeedForwardDGL" class="md-nav__link">
+    FeedForwardDGL
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager" class="md-nav__link">
+    encoder_manager
+  </a>
+  
+    <nav class="md-nav" aria-label="encoder_manager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager" class="md-nav__link">
+    EncoderManager
+  </a>
+  
+    <nav class="md-nav" aria-label="EncoderManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.in_dims" class="md-nav__link">
+    in_dims
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.input_keys" class="md-nav__link">
+    input_keys
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward_positional_encoding" class="md-nav__link">
+    forward_positional_encoding()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward_simple_pooling" class="md-nav__link">
+    forward_simple_pooling()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="encoders.html" class="md-nav__link">
+        goli.nn.encoders
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="pyg_layers.html" class="md-nav__link">
+        goli.nn.pyg_layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="dgl_layers.html" class="md-nav__link">
+        goli.nn.dgl_layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../goli.features.html" class="md-nav__link">
+        goli.features
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../goli.trainer.html" class="md-nav__link">
+        goli.trainer
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../goli.data.html" class="md-nav__link">
+        goli.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../goli.utils.html" class="md-nav__link">
+        goli.utils
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../goli.config.html" class="md-nav__link">
+        goli.config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../goli.ipu.html" class="md-nav__link">
+        goli.ipu
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../goli.visualization.html" class="md-nav__link">
+        goli.visualization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cli_references.html" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures" class="md-nav__link">
+    global_architectures
+  </a>
+  
+    <nav class="md-nav" aria-label="global_architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase" class="md-nav__link">
+    FeedForwardGraphBase
+  </a>
+  
+    <nav class="md-nav" aria-label="FeedForwardGraphBase">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.get_init_kwargs" class="md-nav__link">
+    get_init_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN" class="md-nav__link">
+    FeedForwardNN
+  </a>
+  
+    <nav class="md-nav" aria-label="FeedForwardNN">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.get_init_kwargs" class="md-nav__link">
+    get_init_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FeedForwardNN.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" class="md-nav__link">
+    FullGraphMultiTaskNetwork
+  </a>
+  
+    <nav class="md-nav" aria-label="FullGraphMultiTaskNetwork">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.set_max_num_nodes_edges_per_graph" class="md-nav__link">
+    set_max_num_nodes_edges_per_graph()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork" class="md-nav__link">
+    FullGraphNetwork
+  </a>
+  
+    <nav class="md-nav" aria-label="FullGraphNetwork">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.concat_last_layers" class="md-nav__link">
+    concat_last_layers
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.dtype" class="md-nav__link">
+    dtype
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim" class="md-nav__link">
+    in_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim_edges" class="md-nav__link">
+    in_dim_edges
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.drop_post_nn_layers" class="md-nav__link">
+    drop_post_nn_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.extend_post_nn_layers" class="md-nav__link">
+    extend_post_nn_layers()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.set_max_num_nodes_edges_per_graph" class="md-nav__link">
+    set_max_num_nodes_edges_per_graph()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads" class="md-nav__link">
+    TaskHeads
+  </a>
+  
+    <nav class="md-nav" aria-label="TaskHeads">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.global_architectures.TaskHeads.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.pyg_architectures" class="md-nav__link">
+    pyg_architectures
+  </a>
+  
+    <nav class="md-nav" aria-label="pyg_architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.pyg_architectures.FeedForwardPyg" class="md-nav__link">
+    FeedForwardPyg
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.dgl_architectures" class="md-nav__link">
+    dgl_architectures
+  </a>
+  
+    <nav class="md-nav" aria-label="dgl_architectures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.dgl_architectures.FeedForwardDGL" class="md-nav__link">
+    FeedForwardDGL
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager" class="md-nav__link">
+    encoder_manager
+  </a>
+  
+    <nav class="md-nav" aria-label="encoder_manager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager" class="md-nav__link">
+    EncoderManager
+  </a>
+  
+    <nav class="md-nav" aria-label="EncoderManager">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.in_dims" class="md-nav__link">
+    in_dims
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.input_keys" class="md-nav__link">
+    input_keys
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.out_dim" class="md-nav__link">
+    out_dim
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward_positional_encoding" class="md-nav__link">
+    forward_positional_encoding()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward_simple_pooling" class="md-nav__link">
+    forward_simple_pooling()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.architectures.encoder_manager.EncoderManager.make_mup_base_kwargs" class="md-nav__link">
+    make_mup_base_kwargs()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+  <h1>goli.nn.architectures</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.nn.architectures.global_architectures" class="doc doc-heading">
+          <code>goli.nn.architectures.global_architectures</code>
+
+
+<a href="#goli.nn.architectures.global_architectures" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.global_architectures.FeedForwardGraphBase" class="doc doc-heading">
+        <code>FeedForwardGraphBase</code>
+
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="goli.nn.architectures.global_architectures.FeedForwardNN" href="#goli.nn.architectures.global_architectures.FeedForwardNN">FeedForwardNN</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardGraphBase.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_type</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">hidden_dims_edges</span><span class="o">=</span><span class="p">[],</span> <span class="n">pooling</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;sum&#39;</span><span class="p">],</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;GNN&#39;</span><span class="p">,</span> <span class="n">layer_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">virtual_node</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">use_virtual_edges</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p><strong>Astract class, must be inherited to override the following methods:</strong>
+- <code>_graph_layer_forward</code>
+- <code>_parse_virtual_node_class</code>
+- <code>_parse_pooling_layer</code>
+- <code>_get_node_feats
+-</code>_get_edge_feats<code>-</code>_set_node_feats<code>-</code>_set_edge_feats`</p>
+<p>A flexible neural network architecture, with variable hidden dimensions,
+support for multiple layer types, and support for different residual
+connections.</p>
+<p>This class is meant to work with different graph neural networks
+layers. Any layer must inherit from <code>goli.nn.base_graph_layer.BaseGraphStructure</code>
+or <code>goli.nn.base_graph_layer.BaseGraphLayer</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>in_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Input feature dimensions of the layer</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>out_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Output feature dimensions of the layer</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>hidden_dims</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[int], int]</code>
+          </td>
+          <td><p>List of dimensions in the hidden layers.
+Be careful, the "simple" residual type only supports
+hidden dimensions of the same value.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_type</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+          </td>
+          <td><p>Type of layer to use. Can be a string or nn.Module.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>depth</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>If <code>hidden_dims</code> is an integer, <code>depth</code> is 1 + the number of
+hidden layers to use. If <code>hidden_dims</code> is a <code>list</code>, <code>depth</code> must
+be <code>None</code>.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>activation</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>activation function to use in the hidden layers.</p></td>
+          <td>
+                <code>&#39;relu&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_activation</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>activation function to use in the last layer.</p></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dropout</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>The ratio of units to dropout. Must be between 0 and 1</p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_dropout</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>The ratio of units to dropout for the last layer. Must be between 0 and 1</p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>normalization</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Normalization to use. Choices:</p>
+<ul>
+<li>"none" or <code>None</code>: No normalization</li>
+<li>"batch_norm": Batch normalization</li>
+<li>"layer_norm": Layer normalization</li>
+<li><code>Callable</code>: Any callable function</li>
+</ul></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>first_normalization</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Whether to use batch normalization <strong>before</strong> the first layer</p></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_normalization</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Whether to use batch normalization in the last layer</p></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>residual_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><ul>
+<li>"none": No residual connection</li>
+<li>"simple": Residual connection similar to the ResNet architecture.
+  See class <code>ResidualConnectionSimple</code></li>
+<li>"weighted": Residual connection similar to the Resnet architecture,
+  but with weights applied before the summation. See class <code>ResidualConnectionWeighted</code></li>
+<li>"concat": Residual connection where the residual is concatenated instead
+  of being added.</li>
+<li>"densenet": Residual connection where the residual of all previous layers
+  are concatenated. This leads to a strong increase in the number of parameters
+  if there are multiple hidden layers.</li>
+</ul></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>residual_skip_steps</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The number of steps to skip between each residual connection.
+If <code>1</code>, all the layers are connected. If <code>2</code>, half of the
+layers are connected.</p></td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>in_dim_edges</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Input edge-feature dimensions of the network. Keep at 0 if not using
+edge features, or if the layer doesn't support edges.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>hidden_dims_edges</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[int]</code>
+          </td>
+          <td><p>Hidden dimensions for the edges. Most models don't support it, so it
+should only be used for those that do, i.e. <code>GatedGCNLayer</code></p></td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pooling</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[str], <span title="typing.List">List</span>[<span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td><p>The pooling types to use. Multiple pooling can be used, and their
+results will be concatenated.
+For node feature predictions, use <code>["none"]</code>.
+For graph feature predictions see <code>goli.nn.dgl_layers.pooling.parse_pooling_layer</code>.
+The list must either contain Callables, or the string below</p>
+<ul>
+<li>"none": No pooling is applied</li>
+<li>"sum": <code>SumPooling</code></li>
+<li>"mean": <code>MeanPooling</code></li>
+<li>"max": <code>MaxPooling</code></li>
+<li>"min": <code>MinPooling</code></li>
+<li>"std": <code>StdPooling</code></li>
+<li>"s2s": <code>Set2Set</code></li>
+</ul></td>
+          <td>
+                <code>[&#39;sum&#39;]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name attributed to the current network, for display and printing
+purposes.</p></td>
+          <td>
+                <code>&#39;GNN&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_type</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+          </td>
+          <td><p>The type of layers to use in the network.
+A class that inherits from <code>goli.nn.dgl_layers.BaseDGLLayer</code>,
+or one of the following strings</p>
+<ul>
+<li>"dgl:gcn": GCNDgl</li>
+<li>"dgl:gin": GINDgl</li>
+<li>"dgl:gat": GATDgl</li>
+<li>"dgl:gated-gcn": GatedGCNDgl</li>
+<li>"dgl:pna-conv": PNAConvolutionalDgl</li>
+<li>"dgl:pna-msgpass": PNAMessagePassingDgl</li>
+<li>"dgl:dgn-conv": DGNConvolutionalDgl</li>
+<li>"dgl:dgn-msgpass": DGNMessagePassingDgl</li>
+<li>"pyg:gin": GINConvPyg</li>
+<li>"pyg:gine": GINEConvPyg</li>
+<li>"pyg:gated-gcn": GatedGCNPyg</li>
+<li>"pyg:pna-msgpass": PNAMessagePassingPyg</li>
+</ul></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
+          </td>
+          <td><p>The arguments to be used in the initialization of the layer provided by <code>layer_type</code></p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>virtual_node</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>A string associated to the type of virtual node to use,
+either <code>None</code>, "none", "mean", "sum", "max", "logsum".
+See <code>goli.nn.dgl_layers.VirtualNode</code>.</p>
+<p>The virtual node will not use any residual connection if <code>residual_type</code>
+is "none". Otherwise, it will use a simple ResNet like residual
+connection.</p></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_virtual_edges</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>A bool flag used to select if the virtual node should use the edges or not</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_layer_is_readout</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether the last layer should be treated as a readout layer.
+Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardGraphBase.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Controls how the class is printed</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardGraphBase.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Apply the full graph neural network on the input graph and node features.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>pyg Batch graph on which the convolution is done with the keys:</p>
+<ul>
+<li>
+<p><code>"h"</code>: torch.Tensor[..., N, Din]
+  Node feature tensor, before convolution.
+  <code>N</code> is the number of nodes, <code>Din</code> is the input features</p>
+</li>
+<li>
+<p><code>"edge_attr"</code> (torch.Tensor[..., N, Ein]):
+  Edge feature tensor, before convolution.
+  <code>N</code> is the number of nodes, <code>Ein</code> is the input edge features</p>
+</li>
+</ul></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p><code>torch.Tensor[..., M, Dout]</code> or <code>torch.Tensor[..., N, Dout]</code>:
+Node or graph feature tensor, after the network.
+<code>N</code> is the number of nodes, <code>M</code> is the number of graphs,
+<code>Dout</code> is the output dimension <code>self.out_dim</code>
+If the <code>self.pooling</code> is [<code>None</code>], then it returns node features and the output dimension is <code>N</code>,
+otherwise it returns graph features and the output dimension is <code>M</code></p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardGraphBase.get_init_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_init_kwargs</span><span class="p">()</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.get_init_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a dictionary that can be used to instanciate a new object with identical parameters.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardGraphBase.make_mup_base_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
+The base model is usually identical to the regular model, but with the
+layers width divided by a given factor (2 by default)</p>
+
+<details class="parameter">
+  <summary>Parameter</summary>
+  <p>divide_factor: Factor by which to divide the width.
+factor_in_dim: Whether to factor the input dimension for the nodes</p>
+</details>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>kwargs</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Dictionary of parameters to be used to instanciate the base model divided by the factor</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.global_architectures.FeedForwardNN" class="doc doc-heading">
+        <code>FeedForwardNN</code>
+
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardNN" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardNN.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">hidden_dims</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s1">&#39;relu&#39;</span><span class="p">,</span> <span class="n">last_activation</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">last_dropout</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">first_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">last_normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_type</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">residual_skip_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;LNN&#39;</span><span class="p">,</span> <span class="n">layer_type</span><span class="o">=</span><span class="s1">&#39;fc&#39;</span><span class="p">,</span> <span class="n">layer_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardNN.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A flexible neural network architecture, with variable hidden dimensions,
+support for multiple layer types, and support for different residual
+connections.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>in_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Input feature dimensions of the layer</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>out_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Output feature dimensions of the layer</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>hidden_dims</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[int], int]</code>
+          </td>
+          <td><p>Either an integer specifying all the hidden dimensions,
+or a list of dimensions in the hidden layers.
+Be careful, the "simple" residual type only supports
+hidden dimensions of the same value.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>depth</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>If <code>hidden_dims</code> is an integer, <code>depth</code> is 1 + the number of
+hidden layers to use.
+If <code>hidden_dims</code> is a list, then
+<code>depth</code> must be <code>None</code> or equal to <code>len(hidden_dims) + 1</code></p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>activation</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>activation function to use in the hidden layers.</p></td>
+          <td>
+                <code>&#39;relu&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_activation</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>activation function to use in the last layer.</p></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dropout</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>The ratio of units to dropout. Must be between 0 and 1</p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_dropout</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td><p>The ratio of units to dropout for the last_layer. Must be between 0 and 1</p></td>
+          <td>
+                <code>0.0</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>normalization</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Normalization to use. Choices:</p>
+<ul>
+<li>"none" or <code>None</code>: No normalization</li>
+<li>"batch_norm": Batch normalization</li>
+<li>"layer_norm": Layer normalization</li>
+<li><code>Callable</code>: Any callable function</li>
+</ul></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>first_normalization</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Whether to use batch normalization <strong>before</strong> the first layer</p></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_normalization</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td><p>Whether to use batch normalization in the last layer</p></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>residual_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><ul>
+<li>"none": No residual connection</li>
+<li>"simple": Residual connection similar to the ResNet architecture.
+  See class <code>ResidualConnectionSimple</code></li>
+<li>"weighted": Residual connection similar to the Resnet architecture,
+  but with weights applied before the summation. See class <code>ResidualConnectionWeighted</code></li>
+<li>"concat": Residual connection where the residual is concatenated instead
+  of being added.</li>
+<li>"densenet": Residual connection where the residual of all previous layers
+  are concatenated. This leads to a strong increase in the number of parameters
+  if there are multiple hidden layers.</li>
+</ul></td>
+          <td>
+                <code>&#39;none&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>residual_skip_steps</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The number of steps to skip between each residual connection.
+If <code>1</code>, all the layers are connected. If <code>2</code>, half of the
+layers are connected.</p></td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name attributed to the current network, for display and printing
+purposes.</p></td>
+          <td>
+                <code>&#39;LNN&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_type</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+          </td>
+          <td><p>The type of layers to use in the network.
+Either "fc" as the <code>FCLayer</code>, or a class representing the <code>nn.Module</code>
+to use.</p></td>
+          <td>
+                <code>&#39;fc&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>layer_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
+          </td>
+          <td><p>The arguments to be used in the initialization of the layer provided by <code>layer_type</code></p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_layer_is_readout</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether the last layer should be treated as a readout layer.
+Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardNN.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardNN.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Controls how the class is printed</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardNN.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardNN.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Apply the neural network on the input features.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>h</code></td>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p><code>torch.Tensor[..., Din]</code>:
+Input feature tensor, before the network.
+<code>Din</code> is the number of input features</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p><code>torch.Tensor[..., Dout]</code>:
+Output feature tensor, after the network.
+<code>Dout</code> is the number of output features</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardNN.get_init_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_init_kwargs</span><span class="p">()</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardNN.get_init_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a dictionary that can be used to instanciate a new object with identical parameters.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FeedForwardNN.make_mup_base_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FeedForwardNN.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
+The base model is usually identical to the regular model, but with the
+layers width divided by a given factor (2 by default)</p>
+
+<details class="parameter">
+  <summary>Parameter</summary>
+  <p>divide_factor: Factor by which to divide the width.
+factor_in_dim: Whether to factor the input dimension</p>
+</details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" class="doc doc-heading">
+        <code>FullGraphMultiTaskNetwork</code>
+
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="goli.nn.architectures.global_architectures.FullGraphNetwork" href="#goli.nn.architectures.global_architectures.FullGraphNetwork">FullGraphNetwork</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.out_dim" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.out_dim" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the output dimension of the network for each task</p>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_heads_kwargs</span><span class="p">,</span> <span class="n">gnn_kwargs</span><span class="p">,</span> <span class="n">pre_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pe_encoders_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_nn_edges_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">post_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accelerator_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_inference_to_average</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;Multitask_GNN&#39;</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Class that allows to implement a full multi-task graph neural network architecture,
+including the pre-processing MLP, post-processing MLP and the task-specific heads.</p>
+<p>In this model, the tasks share a full network as a "trunk", and additionally have task-specific MLPs.
+Each molecular graph is associated with a variety of tasks, so the network outputs the task-specific preedictions for a graph.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>task_heads_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
+initialize a task-specific MLP.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>gnn_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the pre-processing
+GNN network using the class <code>FeedForwardDGL</code>.
+It must respect the following criteria:</p>
+<ul>
+<li>gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]</li>
+<li>gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]</li>
+</ul></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pre_nn_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the pre-processing
+MLP network of the node features before the GNN, using the class <code>FeedForwardNN</code>.
+If <code>None</code>, there won't be a pre-processing MLP.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pre_nn_edges_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the pre-processing
+MLP network of the edge features before the GNN, using the class <code>FeedForwardNN</code>.
+If <code>None</code>, there won't be a pre-processing MLP.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>post_nn_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the post-processing
+MLP network after the GNN, using the class <code>FeedForwardNN</code>.
+If <code>None</code>, there won't be a post-processing MLP.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>accelerator_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments specific to the accelerator being used,
+e.g. pipeline split points</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_inference_to_average</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Number of inferences to average at val/test time. This is used to avoid the noise introduced
+by positional encodings with sign-flips. In case no such encoding is given,
+this parameter is ignored.
+NOTE: The inference time will be slowed-down proportionaly to this parameter.</p></td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_layer_is_readout</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether the last layer should be treated as a readout layer.
+Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name attributed to the current network, for display and printing
+purposes.</p></td>
+          <td>
+                <code>&#39;Multitask_GNN&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Print the network architecture</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>forward pass of the network</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>Batch of pyg molecular graphs</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.make_mup_base_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
+The base model is usually identical to the regular model, but with the
+layers width divided by a given factor (2 by default)</p>
+
+<details class="parameter">
+  <summary>Parameter</summary>
+  <p>divide_factor: Factor by which to divide the width.</p>
+</details>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>A dictionary of arguments to be used to initialize the base model.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.set_max_num_nodes_edges_per_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork.set_max_num_nodes_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Set the maximum number of nodes and edges for all gnn layers</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>max_nodes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>Maximum number of nodes in the dataset.
+This will be useful for certain architecture, but ignored by others.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_edges</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>Maximum number of edges in the dataset.
+This will be useful for certain architecture, but ignored by others.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.global_architectures.FullGraphNetwork" class="doc doc-heading">
+        <code>FullGraphNetwork</code>
+
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.concat_last_layers" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">concat_last_layers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.concat_last_layers" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Property to control the output of the <code>self.forward</code>.
+If set to a list of integer, the <code>forward</code> function will
+concatenate the output of different layers.</p>
+<p>If set to <code>None</code>, the output of the last layer is returned.</p>
+<p>NOTE: The indexes are inverted. 0 is the last layer, 1 is the second last, etc.</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.dtype" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">dtype</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">dtype</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.dtype" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the dtype of the current network, based on the weights of linear layers within the GNN</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">in_dim</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the input dimension of the network</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim_edges" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">in_dim_edges</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.in_dim_edges" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the input edge dimension of the network</p>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.out_dim" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.out_dim" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the output dimension of the network</p>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">gnn_kwargs</span><span class="p">,</span> <span class="n">pre_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pre_nn_edges_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pe_encoders_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">post_nn_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accelerator_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_inference_to_average</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;DGL_GNN&#39;</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Class that allows to implement a full graph neural network architecture,
+including the pre-processing MLP and the post processing MLP.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>gnn_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the pre-processing
+GNN network using the class <code>FeedForwardDGL</code>.
+It must respect the following criteria:</p>
+<ul>
+<li>gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]</li>
+<li>gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]</li>
+</ul></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pe_encoders_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of all positional encoding encoders.
+See the class <code>EncoderManager</code> for more details.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pre_nn_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the pre-processing
+MLP network of the node features before the GNN, using the class <code>FeedForwardNN</code>.
+If <code>None</code>, there won't be a pre-processing MLP.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pre_nn_edges_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the pre-processing
+MLP network of the edge features before the GNN, using the class <code>FeedForwardNN</code>.
+If <code>None</code>, there won't be a pre-processing MLP.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>post_nn_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of the post-processing
+MLP network after the GNN, using the class <code>FeedForwardNN</code>.
+If <code>None</code>, there won't be a post-processing MLP.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>accelerator_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments specific to the accelerator being used,
+e.g. pipeline split points</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_inference_to_average</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Number of inferences to average at val/test time. This is used to avoid the noise introduced
+by positional encodings with sign-flips. In case no such encoding is given,
+this parameter is ignored.
+NOTE: The inference time will be slowed-down proportionaly to this parameter.</p></td>
+          <td>
+                <code>1</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_layer_is_readout</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether the last layer should be treated as a readout layer.
+Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name attributed to the current network, for display and printing
+purposes.</p></td>
+          <td>
+                <code>&#39;DGL_GNN&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Controls how the class is printed</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.drop_post_nn_layers" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">drop_post_nn_layers</span><span class="p">(</span><span class="n">num_layers_to_drop</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.drop_post_nn_layers" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Remove the last layers of the model. Useful for Transfer Learning.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>num_layers_to_drop</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The number of layers to drop from the <code>self.post_nn</code> network.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.extend_post_nn_layers" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">extend_post_nn_layers</span><span class="p">(</span><span class="n">layers</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.extend_post_nn_layers" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Add layers at the end of the model. Useful for Transfer Learning.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>layers</code></td>
+          <td>
+                <code><span title="torch.nn">nn</span>.<span title="torch.nn.ModuleList">ModuleList</span></code>
+          </td>
+          <td><p>A ModuleList of all the layers to extend</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Apply the pre-processing neural network, the graph neural network,
+and the post-processing neural network on the graph features.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>pyg Batch graph on which the convolution is done.
+Must contain the following elements:</p>
+<ul>
+<li>
+<p>Node key <code>"feat"</code>: <code>torch.Tensor[..., N, Din]</code>.
+  Input node feature tensor, before the network.
+  <code>N</code> is the number of nodes, <code>Din</code> is the input features dimension <code>self.pre_nn.in_dim</code></p>
+</li>
+<li>
+<p>Edge key <code>"edge_feat"</code>: <code>torch.Tensor[..., N, Ein]</code> <strong>Optional</strong>.
+  The edge features to use. It will be ignored if the
+  model doesn't supporte edge features or if
+  <code>self.in_dim_edges==0</code>.</p>
+</li>
+<li>
+<p>Other keys related to positional encodings <code>"pos_enc_feats_sign_flip"</code>,
+  <code>"pos_enc_feats_no_flip"</code>.</p>
+</li>
+</ul></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p><code>torch.Tensor[..., M, Dout]</code> or <code>torch.Tensor[..., N, Dout]</code>:
+Node or graph feature tensor, after the network.
+<code>N</code> is the number of nodes, <code>M</code> is the number of graphs,
+<code>Dout</code> is the output dimension <code>self.post_nn.out_dim</code>
+If the <code>self.gnn.pooling</code> is [<code>None</code>], then it returns node features and the output dimension is <code>N</code>,
+otherwise it returns graph features and the output dimension is <code>M</code></p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.make_mup_base_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
+The base model is usually identical to the regular model, but with the
+layers width divided by a given factor (2 by default)</p>
+
+<details class="parameter">
+  <summary>Parameter</summary>
+  <p>divide_factor: Factor by which to divide the width.</p>
+</details>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Dictionary with the kwargs to create the base model.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.FullGraphNetwork.set_max_num_nodes_edges_per_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_max_num_nodes_edges_per_graph</span><span class="p">(</span><span class="n">max_nodes</span><span class="p">,</span> <span class="n">max_edges</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.FullGraphNetwork.set_max_num_nodes_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Set the maximum number of nodes and edges for all gnn layers and encoder layers</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>max_nodes</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>Maximum number of nodes in the dataset.
+This will be useful for certain architecture, but ignored by others.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_edges</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>Maximum number of edges in the dataset.
+This will be useful for certain architecture, but ignored by others.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.global_architectures.TaskHeads" class="doc doc-heading">
+        <code>TaskHeads</code>
+
+
+<a href="#goli.nn.architectures.global_architectures.TaskHeads" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.TaskHeads.out_dim" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.global_architectures.TaskHeads.out_dim" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the output dimension of each task head</p>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.TaskHeads.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">task_heads_kwargs</span><span class="p">,</span> <span class="n">last_layer_is_readout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.TaskHeads.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Class that groups all multi-task output heads together to provide the task-specific outputs.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>in_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Input feature dimensions of the layer</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_heads_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
+Each dict of arguments is used to
+initialize a task-specific MLP.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>last_layer_is_readout</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether the last layer should be treated as a readout layer.
+Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.TaskHeads.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.TaskHeads.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns a string representation of the task heads</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.TaskHeads.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.TaskHeads.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>forward function of the task head</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>h</code></td>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>input tensor</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>task_head_outputs</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>Return a dictionary: Dict[task_name, Tensor]</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.global_architectures.TaskHeads.make_mup_base_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span> <span class="n">factor_in_dim</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.global_architectures.TaskHeads.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
+The base model is usually identical to the regular model, but with the
+layers width divided by a given factor (2 by default)</p>
+
+<details class="parameter">
+  <summary>Parameter</summary>
+  <p>divide_factor: Factor by which to divide the width.
+factor_in_dim: Whether to factor the input dimension</p>
+</details>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>kwargs</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Dictionary of arguments to be used to initialize the base model</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.nn.architectures.pyg_architectures" class="doc doc-heading">
+          <code>goli.nn.architectures.pyg_architectures</code>
+
+
+<a href="#goli.nn.architectures.pyg_architectures" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.pyg_architectures.FeedForwardPyg" class="doc doc-heading">
+        <code>FeedForwardPyg</code>
+
+
+<a href="#goli.nn.architectures.pyg_architectures.FeedForwardPyg" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="goli.nn.architectures.global_architectures.FeedForwardGraphBase" href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase">FeedForwardGraphBase</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.nn.architectures.dgl_architectures" class="doc doc-heading">
+          <code>goli.nn.architectures.dgl_architectures</code>
+
+
+<a href="#goli.nn.architectures.dgl_architectures" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.dgl_architectures.FeedForwardDGL" class="doc doc-heading">
+        <code>FeedForwardDGL</code>
+
+
+<a href="#goli.nn.architectures.dgl_architectures.FeedForwardDGL" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="goli.nn.architectures.global_architectures.FeedForwardGraphBase" href="#goli.nn.architectures.global_architectures.FeedForwardGraphBase">FeedForwardGraphBase</a></code></p>
+
+  
+      <p>A flexible neural network architecture, with variable hidden dimensions,
+support for multiple layer types, and support for different residual
+connections.</p>
+<p>This class is meant to work with different DGL-based graph neural networks
+layers. Any layer must inherit from <code>goli.nn.base_graph_layer.BaseGraphStructure</code>
+or <code>goli.nn.base_graph_layer.BaseGraphLayer</code>.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="goli.nn.architectures.encoder_manager" class="doc doc-heading">
+          <code>goli.nn.architectures.encoder_manager</code>
+
+
+<a href="#goli.nn.architectures.encoder_manager" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.nn.architectures.encoder_manager.EncoderManager" class="doc doc-heading">
+        <code>EncoderManager</code>
+
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.in_dims" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">in_dims</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.in_dims" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the input dimensions for all pe-encoders</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>in_dims</code></td>          <td>
+                <code><span title="typing.Iterable">Iterable</span>[int]</code>
+          </td>
+          <td><p>the input dimensions for all pe-encoders</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.input_keys" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">input_keys</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.input_keys" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the input keys for all pe-encoders</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>input_keys</code></td>          <td>
+                <code><span title="typing.Iterable">Iterable</span>[str]</code>
+          </td>
+          <td><p>the input keys for all pe-encoders</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-attribute">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.out_dim" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">out_dim</span><span class="p">:</span> <span class="nb">int</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
+  </span>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.out_dim" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the output dimension of the pooled embedding from all the pe encoders</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>out_dim</code></td>          <td>
+                <code>int</code>
+          </td>
+          <td><p>the output dimension of the pooled embedding from all the pe encoders</p></td>
+        </tr>
+    </tbody>
+  </table>
+  </div>
+
+</div>
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">pe_encoders_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;encoder_manager&#39;</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Class that allows to runs multiple encoders in parallel and concatenate / pool their outputs.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>pe_encoders_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>key-word arguments to use for the initialization of all positional encoding encoders
+can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Name attributed to the current network, for display and printing
+purposes.</p></td>
+          <td>
+                <code>&#39;encoder_manager&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>forward pass of the pe encoders and pooling</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>ptg Batch on which the convolution is done.
+Must contain the following elements:</p>
+<ul>
+<li>
+<p>Node key <code>"feat"</code>: <code>torch.Tensor[..., N, Din]</code>.
+  Input node feature tensor, before the network.
+  <code>N</code> is the number of nodes, <code>Din</code> is the input features dimension <code>self.pre_nn.in_dim</code></p>
+</li>
+<li>
+<p>Edge key <code>"edge_feat"</code>: <code>torch.Tensor[..., N, Ein]</code> <strong>Optional</strong>.
+  The edge features to use. It will be ignored if the
+  model doesn't supporte edge features or if
+  <code>self.in_dim_edges==0</code>.</p>
+</li>
+<li>
+<p>Other keys related to positional encodings <code>"pos_enc_feats_sign_flip"</code>,
+  <code>"pos_enc_feats_no_flip"</code>.</p>
+</li>
+</ul></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>g</code></td>          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>pyg Batch with the positional encodings added to the graph</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.forward_positional_encoding" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward_positional_encoding</span><span class="p">(</span><span class="n">g</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward_positional_encoding" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Forward pass for the positional encodings (PE),
+with each PE having it's own encoder defined in <code>self.pe_encoders</code>.
+All the positional encodings with the same keys are pooled together
+using <code>self.pe_pooling</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>g</code></td>
+          <td>
+                <code><span title="torch_geometric.data.Batch">Batch</span></code>
+          </td>
+          <td><p>pyg Batch containing the node positional encodings</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>pe_node_pooled</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>The positional / structural encodings go through</p></td>
+        </tr>
+        <tr>
+<td></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td><p>encoders, then are pooled together according to their keys.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.forward_simple_pooling" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward_simple_pooling</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">pooling</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.forward_simple_pooling" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Apply sum, mean, or max pooling on a Tensor.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>h</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>the Tensor to pool</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pooling</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>string specifiying the pooling method</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>the dimension to pool over</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>pooled</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>the pooled Tensor</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.nn.architectures.encoder_manager.EncoderManager.make_mup_base_kwargs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">make_mup_base_kwargs</span><span class="p">(</span><span class="n">divide_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">)</span></code>
+
+<a href="#goli.nn.architectures.encoder_manager.EncoderManager.make_mup_base_kwargs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a 'base' model to be used by the <code>mup</code> or <code>muTransfer</code> scaling of the model.
+The base model is usually identical to the regular model, but with the
+layers width divided by a given factor (2 by default)</p>
+
+<details class="parameter">
+  <summary>Parameter</summary>
+  <p>divide_factor: Factor by which to divide the width.</p>
+</details>
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>pe_kw</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>the model kwargs where the dimensions are divided by the factor</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2020 - 2023 Valence Discovery
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.expand"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.efa0ade1.min.js"></script>
+      
+        <script src="../../javascripts/config.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
