@@ -1,12 +1,62 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "goli"
+description = "A deep learning library focused on graph representation learning for real-world chemical tasks."
+version = "0.3.1" # project
+authors = [
+    { name = "Dominique Beaini", email = "dominique@valencediscovery.com" },
+]
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Healthcare Industry",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+# NOTE(hadim): to fill for the pypi release
+dependencies = []
+
+[project.urls]
+Website = "https://github.com/valence-discovery/goli"
+"Source Code" = "https://github.com/valence-discovery/goli"
+"Bug Tracker" = "https://github.com/valence-discovery/goli/issues"
+Documentation = "https://valence-discovery.github.io/goli/"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["goli", "goli.*"]
+exclude = []
+namespaces = true
+
+[tool.setuptools.package-data]
+"goli" = ["**/*.csv", "**/*.parquet", "**/*.yaml"]
+
 [tool.black]
 line-length = 110
-target-version = ['py37', 'py38']
+target-version = ['py39', 'py310']
 include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-# nb_test_files = false # buggy at the moment
-# addopts = "--verbose --cov --cov-report xml --cov-report term"
 addopts = "--verbose"
 testpaths = ["tests"]
 filterwarnings = [
@@ -15,9 +65,3 @@ filterwarnings = [
     "ignore::DeprecationWarning:numba.*:",
     "ignore::UserWarning:umap.*:",
 ]
-
-[tool.coverage.run]
-omit = ["setup.py", "tests/*"]
-
-[tool.coverage.xml]
-output = "cov.xml"
