@@ -281,7 +281,7 @@ class MultitaskDataset(Dataset):
         featurization_batch_size=1000,
         progress: bool = True,
         about: str = "",
-        generated: bool = False
+        generated: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -315,8 +315,6 @@ class MultitaskDataset(Dataset):
         task = next(iter(datasets))
         if "features" in datasets[task][0]:
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
-            manager = Manager()
-            self.features = manager.list(self.features)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
 
@@ -464,7 +462,6 @@ class MultitaskDataset(Dataset):
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
 
-
         if self.generated is False:
             # Get all unique mol ids.
             unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
@@ -473,7 +470,6 @@ class MultitaskDataset(Dataset):
             # The generated data is a single molecule duplicated
             mol_ids = np.array(all_mol_ids)
             inv = [_ for _ in range(len(mol_ids))]
-        
 
         # Store the smiles.
         smiles = [[] for _ in range(len(mol_ids))]
@@ -682,7 +678,7 @@ class BaseDataModule(pl.LightningDataModule):
     @staticmethod
     def _read_csv(
         path: str,
-        generated_data=False, **kwargs,
+        **kwargs,
     ) -> pd.DataFrame:
         """
         private method for reading a csv file
@@ -692,17 +688,6 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
-        if generated_data is True:
-            num_generated_mols = int(1e5)
-            # Create a dummy generated dataset - singel smiles string, duplicated N times
-            # TODO: have both cxsmiles and normal smiles
-            # TODO: add the options for different cols for outcomes
-            # TODO: Take the label cols etc. 
-            df = pd.DataFrame([dict(cxsmiles='[H]C1C2=C(NC(=O)[C@@]1([H])C1=C([H])C([H])=C(C([H])([H])[H])C([H])=C1[H])C([H])=C([H])N=C2[H] |(6.4528,-1.5789,-1.2859;5.789,-0.835,-0.8455;4.8499,-0.2104,-1.5946;3.9134,0.7241,-0.934;3.9796,1.1019,0.3172;5.0405,0.6404,1.1008;5.2985,1.1457,2.1772;5.9121,-0.5519,0.613;6.9467,-0.2303,0.8014;5.677,-1.7955,1.4745;4.7751,-2.7953,1.0929;4.2336,-2.7113,0.154;4.5521,-3.9001,1.914;3.8445,-4.6636,1.5979;5.215,-4.0391,3.1392;4.9919,-5.2514,4.0126;5.1819,-5.0262,5.0671;5.6619,-6.0746,3.7296;3.966,-5.6247,3.925;6.1051,-3.0257,3.52;6.6247,-3.101,4.4725;6.3372,-1.9217,2.7029;7.0168,-1.1395,3.0281;2.8586,1.2252,-1.7853;2.1303,1.9004,-1.3493;2.8118,0.8707,-3.0956;2.0282,1.2549,-3.7434;3.716,0.0207,-3.7371;4.6658,-0.476,-3.0127;5.3755,-1.1468,-3.5021)|',
-                                    homo_lumo_gap=1.0)])
-            logger.info(f"Generating fake dataset on host... \n Generating {num_generated_mols} rows in the df.")
-            df = pd.concat([df]*num_generated_mols, ignore_index=True)
-            return df
 
         if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
             sep = ","
@@ -904,7 +889,7 @@ class DatasetProcessingParams:
         split_test: float = 0.2,
         split_seed: int = None,
         splits_path: Optional[Union[str, os.PathLike]] = None,
-        generated_data: bool = False
+        generated_data: bool = False,
     ):
         """
         object to store the parameters for the dataset processing
@@ -985,6 +970,7 @@ class IPUDataModuleModifier:
 
         # Initialize the IPU dataloader
         from goli.ipu.ipu_dataloader import create_ipu_dataloader
+
         loader = create_ipu_dataloader(
             dataset=dataset,
             **kwargs,
@@ -1109,7 +1095,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # TODO: Have the input argument to the Data Module be of type DatasetParams
         self.task_dataset_processing_params = {
-            task: DatasetProcessingParams(**ds_args, generated_data=self.generated_data) for task, ds_args in task_specific_args.items()
+            task: DatasetProcessingParams(**ds_args, generated_data=self.generated_data)
+            for task, ds_args in task_specific_args.items()
         }
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
@@ -1145,6 +1132,27 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
 
+    def generate_data(
+        self,
+    ):
+        # Closure used here as temp solution
+        num_generated_mols = int(1e5)
+        # Create a dummy generated dataset - singel smiles string, duplicated N times
+        # TODO: have both cxsmiles and normal smiles
+        # TODO: add the options for different cols for outcomes
+        # TODO: Take the label cols etc.
+        df = pd.DataFrame(
+            [
+                dict(
+                    cxsmiles="[H]C1C2=C(NC(=O)[C@@]1([H])C1=C([H])C([H])=C(C([H])([H])[H])C([H])=C1[H])C([H])=C([H])N=C2[H] |(6.4528,-1.5789,-1.2859;5.789,-0.835,-0.8455;4.8499,-0.2104,-1.5946;3.9134,0.7241,-0.934;3.9796,1.1019,0.3172;5.0405,0.6404,1.1008;5.2985,1.1457,2.1772;5.9121,-0.5519,0.613;6.9467,-0.2303,0.8014;5.677,-1.7955,1.4745;4.7751,-2.7953,1.0929;4.2336,-2.7113,0.154;4.5521,-3.9001,1.914;3.8445,-4.6636,1.5979;5.215,-4.0391,3.1392;4.9919,-5.2514,4.0126;5.1819,-5.0262,5.0671;5.6619,-6.0746,3.7296;3.966,-5.6247,3.925;6.1051,-3.0257,3.52;6.6247,-3.101,4.4725;6.3372,-1.9217,2.7029;7.0168,-1.1395,3.0281;2.8586,1.2252,-1.7853;2.1303,1.9004,-1.3493;2.8118,0.8707,-3.0956;2.0282,1.2549,-3.7434;3.716,0.0207,-3.7371;4.6658,-0.476,-3.0127;5.3755,-1.1468,-3.5021)|",
+                    homo_lumo_gap=1.0,
+                )
+            ]
+        )
+        logger.info(f"Generating fake dataset on host... \n Generating {num_generated_mols} rows in the df.")
+        df = pd.concat([df] * num_generated_mols, ignore_index=True)
+        return df
+
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -1176,9 +1184,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         for task, args in self.task_dataset_processing_params.items():
             logger.info(f"Reading data for task '{task}'")
             if args.generated_data is True:
-                # TODO: this is where the generated data should be calculated 
+                # TODO: this is where the generated data should be calculated
                 """
-                What do we actually need to do here? 
+                What do we actually need to do here?
                 I think it's actually generate the data - if I move it here will we skip the need for the read csv section?
                 """
             if args.df is None:
@@ -1193,8 +1201,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     + check_arg_iterator(args.weights_col, enforce_type=list)
                 )
                 label_dtype = {col: np.float32 for col in label_cols}
-
-                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype, generated_data=args.generated_data)
+                # TODO: Add an if generated_data here to then go and generate with the appropriate labels etc
+                if self.generated_data:
+                    task_df[task] = self.generate_data()
+                else:
+                    task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
 
             else:
                 label_cols = self._parse_label_cols(
@@ -1260,7 +1271,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             # The generated data is a single molecule duplicated
             mol_ids = np.array(all_mol_ids)
             unique_idx = inv = [_ for _ in range(len(mol_ids))]
-        
+
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
@@ -1575,7 +1586,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            data_frame = self._read_csv(df_path, nrows=0, generated_data=self.generated_data)
+            # TODO: Option if generated_data and no df make the df with the relevant cols
+            # TODO: or we could just return the relevant cols
+            if self.generated_data:
+                data_frame = self.generate_data()
+            else:
+                data_frame = self._read_csv(df_path, nrows=0)
         else:
             data_frame = df
         cols = list(data_frame.columns)
@@ -1661,7 +1677,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         task = keys[0]
         args = self.task_dataset_processing_params[task]
         if args.df is None:
-            df = self._read_csv(args.df_path, nrows=20, generated_data=self.generated_data)
+            # TODO: Again if there is generated data flag and no df yet, need to make it here
+            if self.generated_data:
+                df = self.generate_data()
+            else:
+                df = self._read_csv(args.df_path, nrows=20)
         else:
             df = args.df.iloc[0:20, :]
 
@@ -1825,7 +1845,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                splits = self._read_csv(splits_path, generated_data=self.generated_data)
+                # TODO: Don't need the generated data here - maybe have an assertation line or something
+                if self.generated_data:
+                    splits = self.generate_data()
+                else:
+                    splits = self._read_csv(splits_path)
 
             train_indices = splits["train"].dropna().astype("int").tolist()
             val_indices = splits["val"].dropna().astype("int").tolist()
@@ -2023,7 +2047,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
             if args.df is None:
-                df = self._read_csv(args.df_path, usecols=[args.smiles_col], generated_data=self.generated_data)
+                # TODO: The full generated data here if they don't yet exist.
+                if self.generated_data:
+                    df = self.generate_data()
+                else:
+                    df = self._read_csv(args.df_path, usecols=[args.smiles_col])
                 num_elements += len(df)
             else:
                 num_elements += len(args.df)
