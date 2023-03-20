@@ -36,6 +36,7 @@ from goli.features import (
     mol_to_pyggraph,
 )
 from goli.data.collate import goli_collate_fn
+from goli.data.utils import goli_package_path
 from goli.utils.arg_checker import check_arg_iterator
 from goli.utils.hashing import get_md5_hash
 
@@ -682,6 +683,7 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
+
         if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
             sep = ","
         elif str(path).endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
@@ -689,6 +691,10 @@ class BaseDataModule(pl.LightningDataModule):
         else:
             raise ValueError(f"unsupported file `{path}`")
         kwargs.setdefault("sep", sep)
+
+        if path.startswith("goli://"):
+            path = goli_package_path(path)
+
         df = pd.read_csv(path, **kwargs)
         return df
 
@@ -702,6 +708,10 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
+
+        if path.startswith("goli://"):
+            path = goli_package_path(path)
+
         df = pd.read_parquet(path)
         return df
 

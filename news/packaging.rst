@@ -1,6 +1,6 @@
 **Added:**
 
-* <news item>
+* Add a new mechanism to load internal goli package data. Example: `goli://goli.data.multitask/tiny_ZINC_logp.csv`. It's needed because hard coded goli paths won't work when working outside of the goli repository (when goli is installed with `pip` or `mamba`).
 
 **Changed:**
 
