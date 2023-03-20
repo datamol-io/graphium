@@ -32,6 +32,9 @@ classifiers = [
 # NOTE(hadim): to fill for the pypi release
 dependencies = []
 
+[project.scripts]
+goli = "goli.cli:main_cli"
+
 [project.urls]
 Website = "https://github.com/valence-discovery/goli"
 "Source Code" = "https://github.com/valence-discovery/goli"
