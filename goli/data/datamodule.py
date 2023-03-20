@@ -312,8 +312,6 @@ class MultitaskDataset(Dataset):
         task = next(iter(datasets))
         if "features" in datasets[task][0]:
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
-            manager = Manager()
-            self.features = manager.list(self.features)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
 
