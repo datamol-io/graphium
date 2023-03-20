@@ -684,9 +684,11 @@ class BaseDataModule(pl.LightningDataModule):
             pd.DataFrame: the panda dataframe storing molecules
         """
 
-        if str(path).endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
+        path = str(path)
+
+        if path.endswith((".csv", ".csv.gz", ".csv.zip", ".csv.bz2")):
             sep = ","
-        elif str(path).endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
+        elif path.endswith((".tsv", ".tsv.gz", ".tsv.zip", ".tsv.bz2")):
             sep = "\t"
         else:
             raise ValueError(f"unsupported file `{path}`")
@@ -708,6 +710,8 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
+
+        path = str(path)
 
         if path.startswith("goli://"):
             path = goli_package_path(path)
