@@ -18,6 +18,8 @@ datamodule:
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 30000 # use sample_size for test
+        splits_path: goli/data/PCQM4Mv2/
+        use_pt_file: True
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -51,7 +53,7 @@ datamodule:
     batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: -1 # -1 to use all
+    num_workers: 20 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"

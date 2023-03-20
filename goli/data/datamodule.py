@@ -312,8 +312,6 @@ class MultitaskDataset(Dataset):
         task = next(iter(datasets))
         if "features" in datasets[task][0]:
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
-            manager = Manager()
-            self.features = manager.list(self.features)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
 
@@ -882,6 +880,7 @@ class DatasetProcessingParams:
         split_test: float = 0.2,
         split_seed: int = None,
         splits_path: Optional[Union[str, os.PathLike]] = None,
+        use_pt_file: Optional[str] = False,
     ):
         """
         object to store the parameters for the dataset processing
@@ -911,6 +910,7 @@ class DatasetProcessingParams:
         self.split_test = split_test
         self.split_seed = split_seed
         self.splits_path = splits_path
+        self.use_pt_file = use_pt_file
 
 
 class IPUDataModuleModifier:
@@ -1286,6 +1286,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 split_test=self.task_dataset_processing_params[task].split_test,
                 split_seed=self.task_dataset_processing_params[task].split_seed,
                 splits_path=self.task_dataset_processing_params[task].splits_path,
+                use_pt_file=self.task_dataset_processing_params[task].use_pt_file,
                 sample_idx=task_dataset_args[task]["sample_idx"],
             )
             self.task_train_indices[task] = train_indices
@@ -1747,6 +1748,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         sample_idx: Optional[Iterable[int]] = None,
         split_seed: int = None,
         splits_path: Union[str, os.PathLike] = None,
+        use_pt_file: Optional[bool] = False,
     ):
         r"""
         Compute indices of random splits.
@@ -1784,13 +1786,21 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 test_indices = np.array([])
 
         else:
-            # Split from an indices file
-            with fsspec.open(str(splits_path)) as f:
-                splits = self._read_csv(splits_path)
+            if use_pt_file:
+                print("Using splits from pytorch split file.")
+                split_file = splits_path + "splits/split_dict.pt"
+                split_dict = torch.load(split_file)
+                train_indices = split_dict["train"].astype("int").tolist()
+                val_indices = split_dict["valid"].astype("int").tolist()
+                test_indices = split_dict["test-dev"].astype("int").tolist()
+            else:
+                # Split from an indices file
+                with fsspec.open(str(splits_path)) as f:
+                    splits = self._read_csv(splits_path)
 
-            train_indices = splits["train"].dropna().astype("int").tolist()
-            val_indices = splits["val"].dropna().astype("int").tolist()
-            test_indices = splits["test"].dropna().astype("int").tolist()
+                train_indices = splits["train"].dropna().astype("int").tolist()
+                val_indices = splits["val"].dropna().astype("int").tolist()
+                test_indices = splits["test"].dropna().astype("int").tolist()
 
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
