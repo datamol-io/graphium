@@ -55,7 +55,7 @@ class MLPEncoder(BaseEncoder):
 
         # Currently only used by make_mup_base_kwargs
         #    so no need to call get_norm
-        self.normalization = normalization
+        self.normalization_argument = normalization
 
         # Initialize the MLP
         self.pe_encoder = MLP(
@@ -116,7 +116,7 @@ class MLPEncoder(BaseEncoder):
             dict(
                 hidden_dim=round(self.hidden_dim / divide_factor),
                 dropout=self.dropout,
-                normalization=self.normalization,
+                normalization=self.normalization_argument,
             )
         )
         return base_kwargs
