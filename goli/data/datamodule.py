@@ -1132,10 +1132,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
 
-    def generate_data(
-        self,
-    ):
-        # Closure used here as temp solution
+    def generate_data(self, label_cols: List[str], smiles_col: str):
+        """
+        Line
+
+        Parameters:
+            labels_cols
+            smiles_col
+        Returns:
+            pd.DataFrame
+        """
         num_generated_mols = int(1e5)
         # Create a dummy generated dataset - singel smiles string, duplicated N times
         # TODO: have both cxsmiles and normal smiles
@@ -1203,7 +1209,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 label_dtype = {col: np.float32 for col in label_cols}
                 # TODO: Add an if generated_data here to then go and generate with the appropriate labels etc
                 if self.generated_data:
-                    task_df[task] = self.generate_data()
+                    task_df[task] = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
                 else:
                     task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
 
@@ -1589,7 +1595,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             # TODO: Option if generated_data and no df make the df with the relevant cols
             # TODO: or we could just return the relevant cols
             if self.generated_data:
-                data_frame = self.generate_data()
+                data_frame = self.generate_data(label_cols=label_cols, smiles_col=smiles_col)
             else:
                 data_frame = self._read_csv(df_path, nrows=0)
         else:
@@ -1679,7 +1685,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if args.df is None:
             # TODO: Again if there is generated data flag and no df yet, need to make it here
             if self.generated_data:
-                df = self.generate_data()
+                df = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
             else:
                 df = self._read_csv(args.df_path, nrows=20)
         else:
@@ -2049,7 +2055,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             if args.df is None:
                 # TODO: The full generated data here if they don't yet exist.
                 if self.generated_data:
-                    df = self.generate_data()
+                    df = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
                 else:
                     df = self._read_csv(args.df_path, usecols=[args.smiles_col])
                 num_elements += len(df)
