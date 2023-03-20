@@ -75,7 +75,14 @@ class ResidualConnectionBase(nn.Module):
         """
         ...
 
-    def get_true_out_dims(self, out_dims: List):
+    def get_true_out_dims(self, out_dims: List) -> List:
+        r"""
+        find the true output dimensions
+        Parameters:
+            out_dims: List
+        Returns:
+            true_out_dims: List
+        """
         true_out_dims = [out_dims[0]]
         out_dims_at_skip = [out_dims[0]]
         for ii in range(1, len(out_dims) - 1):

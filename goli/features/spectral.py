@@ -16,6 +16,17 @@ def compute_laplacian_positional_eigvecs(
     disconnected_comp: bool = True,
     normalization: str = "none",
 ) -> Tuple[np.ndarray, np.ndarray]:
+    r"""
+    Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.
+    Parameters:
+        adj: Adjacency matrix of the graph
+        num_pos: Number of Laplacian eigenvectors to compute
+        disconnected_comp: Whether to compute the eigenvectors for each connected component
+        normalization: Normalization to apply to the Laplacian
+    Returns:
+        eigvals_tile: Eigenvalues of the Laplacian
+        eigvecs: Eigenvectors of the Laplacian
+    """
     # Sparsify the adjacency patrix
     if issparse(adj):
         adj = adj.astype(np.float64)
@@ -55,7 +66,19 @@ def compute_laplacian_positional_eigvecs(
     return eigvals_tile, eigvecs
 
 
-def _get_positional_eigvecs(matrix, num_pos: int):
+def _get_positional_eigvecs(
+    matrix: Union[np.ndarray, spmatrix],
+    num_pos: int,
+) -> Tuple[np.ndarray, np.ndarray]:
+    r"""
+    compute the eigenvalues and eigenvectors of a matrix
+    Parameters:
+        matrix: Matrix to compute the eigenvalues and eigenvectors of
+        num_pos: Number of eigenvalues and eigenvectors to compute
+    Returns:
+        eigvals: Eigenvalues of the matrix
+        eigvecs: Eigenvectors of the matrix
+    """
     mat_len = matrix.shape[0]
     eigvals, eigvecs = eig(matrix.todense())
 
@@ -79,7 +102,11 @@ def _get_positional_eigvecs(matrix, num_pos: int):
     return eigvals, eigvecs
 
 
-def normalize_matrix(matrix, degree_vector=None, normalization: str = None):
+def normalize_matrix(
+    matrix: Union[np.ndarray, spmatrix],
+    degree_vector=None,
+    normalization: str = None,
+) -> Union[np.ndarray, spmatrix]:
     r"""
     Normalize a given matrix using its degree vector
 

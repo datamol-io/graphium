@@ -18,6 +18,7 @@ def get_all_positional_encoding(
 
     Parameters:
         adj: Adjacency matrix of the graph
+        num_nodes: Number of nodes in the graph
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
         pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
@@ -54,7 +55,9 @@ def get_all_positional_encoding(
     return pe_dict, pe_dir_dict
 
 
-def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict) -> np.ndarray:
+def graph_positional_encoder(
+    adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict
+) -> Dict[str, np.ndarray]:
     r"""
     Get a positional encoding that depends on the parameters.
 
@@ -64,12 +67,16 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
 
         pos_type: The type of positional encoding to use. Supported types are:
 
-            - laplacian_eigvec: the
+            - laplacian_eigvec
             - laplacian_eigvec_eigval
+            - rwse
+            - gaussian_kernel
+
+    Returns:
+        pe_dict: Dictionary of positional and structural encodings
 
     """
     pos_type = pos_arg["pos_type"]
-
     pos_type = pos_type.lower()
     pe_dict = {}
 

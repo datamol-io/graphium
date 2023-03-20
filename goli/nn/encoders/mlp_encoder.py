@@ -1,31 +1,17 @@
 import torch
 import torch.nn as nn
-from typing import Union, Callable, List, Dict, Any
+from typing import Union, Callable, List, Dict, Any, Optional
+from torch_geometric.data import Batch
 
-from goli.nn.base_layers import MLP
+from goli.nn.base_layers import MLP, get_norm
+from goli.nn.encoders.base_encoder import BaseEncoder
 
 
-class MLPEncoder(torch.nn.Module):
-    """Configurable kernel-based Positional Encoding node encoder.
-
-    The choice of which kernel-based statistics to use is configurable through
-    setting of `kernel_type`. Based on this, the appropriate config is selected,
-    and also the appropriate variable with precomputed kernel stats is then
-    selected from PyG Data graphs in `forward` function.
-    E.g., supported are 'RWSE', 'HKdiagSE', 'ElstaticSE'.
-
-    PE of size `dim_pe` will get appended to each node feature vector.
-    If `expand_x` set True, original node features will be first linearly
-    projected to (dim_emb - dim_pe) size and the concatenated with PE.
-
-    """
-
-    kernel_type = None  # Instantiated type of the KernelPE, e.g. RWSE
-
+class MLPEncoder(BaseEncoder):
     def __init__(
         self,
-        on_keys: List[str],
-        out_level: str,
+        input_keys: List[str],
+        output_keys: str,
         in_dim: int,
         hidden_dim: int,
         out_dim: int,
@@ -34,25 +20,39 @@ class MLPEncoder(torch.nn.Module):
         dropout=0.0,
         normalization="none",
         first_normalization="none",
+        use_input_keys_prefix: bool = True,
     ):
-        super().__init__()
+        r"""
+        Configurable kernel-based Positional Encoding node encoder.
 
-        # Check the out_level
-        self.out_level = out_level.lower()
-        accepted_out_levels = ["node", "edge"]
-        if not (self.out_level in accepted_out_levels):
-            raise ValueError(f"`out_level` must be in {accepted_out_levels}, provided {out_level}")
+        Parameters:
+            input_keys: List of input keys to use from pyg batch graph
+            output_keys: List of output keys to add to the pyg batch graph
+            in_dim : input dimension of the mlp encoder
+            hidden_dim : hidden dimension of the mlp encoder
+            out_dim : output dimension of the mlp encoder
+            num_layers : number of layers of the mlp encoder
+            activation : activation function to use
+            dropout : dropout to use
+            normalization : normalization to use
+            first_normalization : normalization to use before the first layer
+            use_input_keys_prefix: Whether to use the `key_prefix` argument
+        """
+        super().__init__(
+            input_keys=input_keys,
+            output_keys=output_keys,
+            in_dim=in_dim,
+            out_dim=out_dim,
+            num_layers=num_layers,
+            activation=activation,
+            first_normalization=first_normalization,
+            use_input_keys_prefix=use_input_keys_prefix,
+        )
 
-        self.on_keys = self.parse_on_keys(on_keys)
-        self.out_level = out_level
-        self.in_dim = in_dim
+        # Check the output_keys
         self.hidden_dim = hidden_dim
-        self.out_dim = out_dim
-        self.num_layers = num_layers
-        self.activation = activation
         self.dropout = dropout
         self.normalization = normalization
-        self.first_normalization = first_normalization
 
         # Initialize the MLP
         self.pe_encoder = MLP(
@@ -63,27 +63,70 @@ class MLPEncoder(torch.nn.Module):
             dropout=dropout,
             activation=activation,
             last_activation=activation,
-            first_normalization=first_normalization,
+            first_normalization=self.first_normalization,
             normalization=normalization,
             last_normalization=normalization,
             last_dropout=dropout,
         )
 
-    def parse_on_keys(self, on_keys):
-        # Parse the `on_keys`.
-        if len(on_keys) != 1:
-            raise ValueError(f"`{self.__class__}` only supports one key")
-        # if list(on_keys.keys())[0] != "encoding":
-        #     raise ValueError(f"`on_keys` must contain the key 'encoding'")
-        return on_keys
+    def parse_input_keys(
+        self,
+        input_keys: List[str],
+    ) -> List[str]:
+        r"""
+        Parse the `input_keys`.
+        Parameters:
+            input_keys: List of input keys to use from pyg batch graph
+        Returns:
+            parsed input_keys
+        """
+        return input_keys
 
-    def forward(self, **encoding):
-        encoding = encoding[self.on_keys[0]]
-        # Run the MLP
-        encoding = self.pe_encoder(encoding)  # (Num nodes) x dim_pe
+    def parse_output_keys(
+        self,
+        output_keys: List[str],
+    ) -> List[str]:
+        r"""
+        Parse the `output_keys`.
+        Parameters:
+            output_keys: List of output keys to add to the pyg batch graph
+        Returns:
+            parsed output_keys
+        """
+        assert len(output_keys) == len(
+            self.input_keys
+        ), f"The number of input keys {len(self.input_keys)} and output keys {len(output_keys)} must be the same for the class {self.__class__.__name__}"
+        for in_key, out_key in zip(self.input_keys, output_keys):
+            if in_key.startswith("edge_") or out_key.startswith("edge_"):
+                assert out_key.startswith("edge_") and in_key.startswith(
+                    "edge_"
+                ), f"The output key {out_key} and input key {in_key} must match the 'edge_' prefix for the class {self.__class__.__name__}"
+            if in_key.startswith("graph_") or out_key.startswith("graph_"):
+                assert out_key.startswith("graph_") and in_key.startswith(
+                    "graph_"
+                ), f"The output key {out_key} and input key {in_key} must match the 'graph_' prefix for the class {self.__class__.__name__}"
+        return output_keys
 
-        # Set the level (node vs edge)
-        output = {self.out_level: encoding}
+    def forward(
+        self,
+        batch: Batch,
+        key_prefix: Optional[str] = None,
+    ) -> Dict[str, torch.Tensor]:
+        r"""
+        forward function of the mlp encoder
+        Parameters:
+            batch: pyg batch graph
+            key_prefix: Prefix to use for the input keys
+        Returns:
+            output: Dictionary of output embeddings with keys specified by input_keys
+        """
+        # TODO: maybe we should also use the output key here? @Dom
+        input_keys = self.parse_input_keys_with_prefix(key_prefix)
+
+        # Run the MLP for each input key
+        output = {}
+        for key in input_keys:
+            output[key] = self.pe_encoder(batch[key])  # (Num nodes) x dim_pe
 
         return output
 
@@ -96,16 +139,15 @@ class MLPEncoder(torch.nn.Module):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
+        Returns:
+            base_kwargs: Dictionary of kwargs to use for the base model
         """
-        return dict(
-            on_keys=self.on_keys,
-            out_level=self.out_level,
-            in_dim=round(self.in_dim / divide_factor) if factor_in_dim else self.in_dim,
-            hidden_dim=round(self.hidden_dim / divide_factor),
-            out_dim=round(self.out_dim / divide_factor),
-            num_layers=self.num_layers,
-            activation=self.activation,
-            dropout=self.dropout,
-            normalization=self.normalization,
-            first_normalization=self.first_normalization,
+        base_kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=factor_in_dim)
+        base_kwargs.update(
+            dict(
+                hidden_dim=round(self.hidden_dim / divide_factor),
+                dropout=self.dropout,
+                normalization=self.normalization,
+            )
         )
+        return base_kwargs

@@ -1,16 +1,18 @@
-"""
-adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
-"""
-
+import torch
 from copy import deepcopy
 from typing import Callable, Union, Optional, Dict, Any
+from torch.nn import Module
 from torch import Tensor
 from torch_geometric.data import Batch
-
-
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP, get_activation_str
-from goli.nn.pyg_layers import GatedGCNPyg, GINConvPyg, GINEConvPyg, PNAMessagePassingPyg, MPNNPlusPyg
+from goli.nn.pyg_layers import (
+    GatedGCNPyg,
+    GINConvPyg,
+    GINEConvPyg,
+    PNAMessagePassingPyg,
+    MPNNPlusPyg,
+)
 from goli.utils.decorators import classproperty
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 from goli.ipu.ipu_utils import is_running_on_ipu
@@ -43,6 +45,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
+        biased_attention_key: Optional[str] = None,
         attn_kwargs=None,
         droppath_rate_attn: float = 0.0,
         droppath_rate_ffn: float = 0.0,
@@ -50,6 +53,8 @@ class GPSLayerPyg(BaseGraphModule):
         **kwargs,
     ):
         r"""
+        GPS layer implementation in pyg
+        adapated from https://github.com/rampasek/GraphGPS/blob/main/graphgps/layer/gps_layer.py
         GPS: Recipe for a General, Powerful, Scalable Graph Transformer
         Ladislav Rampášek, Mikhail Galkin, Vijay Prakash Dwivedi, Anh Tuan Luu, Guy Wolf, Dominique Beaini
         https://arxiv.org/abs/2205.12454
@@ -71,6 +76,12 @@ class GPSLayerPyg(BaseGraphModule):
 
             out_dim:
                 Output edge feature dimensions of the layer
+
+            in_dim_edges:
+                input edge-feature dimensions of the layer
+
+            out_dim_edges:
+                output edge-feature dimensions of the layer
 
             activation:
                 activation function to use in the layer
@@ -107,6 +118,22 @@ class GPSLayerPyg(BaseGraphModule):
             droppath_rate_ffn:
                 stochastic depth drop rate for ffn layer https://arxiv.org/abs/1603.09382
 
+            mpnn_type:
+                Type of MPNN layer to use. Choices specified in PYG_LAYERS_DICT
+
+            mpnn_kwargs:
+                Keyword arguments to pass to the MPNN layer
+
+            attn_type:
+                Type of attention layer to use. Choices specified in ATTENTION_LAYERS_DICT
+
+            biased_attention_key:
+                indicates if biased attention is used by specifying a key corresponding to the pyg attribute in the batch (processed by the gaussian kernel encoder)
+                default: None means biased attention is not used
+
+            attn_kwargs:
+                Keyword arguments to pass to the attention layer
+
         """
 
         super().__init__(
@@ -121,8 +148,6 @@ class GPSLayerPyg(BaseGraphModule):
         # Set the other attributes
         self.in_dim_edges = in_dim_edges
         self.out_dim_edges = out_dim_edges
-        self.mpnn_kwargs = self._parse_mpnn_kwargs(mpnn_kwargs)
-        self.attn_kwargs = self._parse_attn_kwargs(attn_kwargs)
 
         # Dropout layers
         self.dropout_local = self.dropout_layer
@@ -142,21 +167,28 @@ class GPSLayerPyg(BaseGraphModule):
             depth=2,
             activation=activation,
             dropout=self.dropout,
+            last_dropout=self.dropout,
         )
         self.f_out = FCLayer(in_dim, out_dim, normalization=normalization)
 
         # Normalization layers
         self.norm_layer_local = self._parse_norm(normalization=self.normalization, dim=in_dim)
         self.norm_layer_attn = self._parse_norm(normalization=self.normalization, dim=in_dim)
+        self.norm_layer_ff = self._parse_norm(self.normalization)
 
-        # Initialize the MPNN layer
-        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
-        self.mpnn = mpnn_class(**self.mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
-
-        # Initialize the Attention layer
-        self.attn_layer = self._parse_attn_layer(attn_type, **self.attn_kwargs)
+        self.biased_attention_key = biased_attention_key
+        # Initialize the MPNN and Attention layers
+        self.mpnn = self._parse_mpnn_layer(mpnn_type, mpnn_kwargs)
+        self.attn_layer = self._parse_attn_layer(attn_type, self.biased_attention_key, attn_kwargs)
 
     def forward(self, batch: Batch) -> Batch:
+        r"""
+        forward function of the layer
+        Parameters:
+            batch: pyg Batch graphs to pass through the layer
+        Returns:
+            batch: pyg Batch graphs
+        """
         # pe, h, edge_index, edge_attr = batch.pos_enc_feats_sign_flip, batch.h, batch.edge_index, batch.edge_attr
         h = batch.h
 
@@ -171,70 +203,79 @@ class GPSLayerPyg(BaseGraphModule):
             h_local = h_in + h_local  # Residual connection for nodes, not used in gps++.
         if self.norm_layer_local is not None:
             h_local = self.norm_layer_local(h_local)
-        h = h_local
 
-        # Multi-head attention
+        # Multi-head attention.
         if self.attn_layer is not None:
-            h = self._self_attention_block(h, h_in, batch)
+            h_attn = self._self_attention_block(h, h_in, batch)
+            # Combine local and global outputs.
+            h = h_local + h_attn
+        else:
+            h = h_local
 
         # MLP block, with skip connection
-        h = h + self.mlp(h)
-        h = self.f_out(h)
-
+        h_mlp = self.mlp(h)
         # Add the droppath to the output of the MLP
         batch_size = None if h.device.type != "ipu" else batch.graph_is_true.shape[0]
         if self.droppath_ffn is not None:
-            h = self.droppath_ffn(h, batch.batch, batch_size)
+            h_mlp = self.droppath_ffn(h_mlp, batch.batch, batch_size)
+        h = h + h_mlp
+
+        h = self.f_out(h)
 
         batch_out.h = h
 
         return batch_out
 
-    def _parse_mpnn_kwargs(self, mpnn_kwargs: Union[type(None), Dict[str, Any]]) -> Dict[str, Any]:
-        """
-        Parsing the MPNN key-word arguments, and setting the default values to the same
-        as the current layer if not provided
-        """
+    def _parse_mpnn_layer(self, mpnn_type, mpnn_kwargs: Dict[str, Any]) -> Optional[Module]:
+        """Parse the MPNN layer."""
 
+        mpnn_kwargs = deepcopy(mpnn_kwargs)
         if mpnn_kwargs is None:
             mpnn_kwargs = {}
 
-        # Set the default values for the MPNN layer
+        # Set the default values
         mpnn_kwargs = deepcopy(mpnn_kwargs)
         mpnn_kwargs.setdefault("in_dim", self.in_dim)
         mpnn_kwargs.setdefault("out_dim", self.in_dim)
         mpnn_kwargs.setdefault("in_dim_edges", self.in_dim_edges)
         mpnn_kwargs.setdefault("out_dim_edges", self.out_dim_edges)
-        mpnn_kwargs.setdefault("activation", get_activation_str(self.activation))
-        mpnn_kwargs.setdefault("dropout", self.dropout)
-        mpnn_kwargs.setdefault("normalization", self.normalization)
+        # TODO: The rest of default values
+        self.mpnn_kwargs = mpnn_kwargs
 
-        return mpnn_kwargs
+        # Initialize the MPNN layer
+        mpnn_class = PYG_LAYERS_DICT[mpnn_type]
+        mpnn_layer = mpnn_class(**mpnn_kwargs, layer_depth=self.layer_depth, layer_idx=self.layer_idx)
 
-    def _parse_attn_kwargs(self, attn_kwargs: Union[type(None), Dict[str, Any]]) -> Dict[str, Any]:
+        return mpnn_layer
+
+    def _parse_attn_layer(
+        self, attn_type, biased_attention_key: str, attn_kwargs: Dict[str, Any]
+    ) -> Optional[Module]:
         """
-        Parsing the Attention key-word arguments, and setting the default values to the same
-        as the current layer if not provided
+        parse the input attention layer and check if it is valid
+        Parameters:
+            attn_type: type of the attention layer
+            biased_attention_key: key for the attenion bias
+        Returns:
+            attn_layer: the attention layer
         """
 
+        # Set the default values for the Attention layer
         if attn_kwargs is None:
             attn_kwargs = {}
-
-        # Enforce the value of embed_dim
-        embed_dim = attn_kwargs.get("embed_dim", None)
-        if embed_dim is not None:
-            assert (
-                embed_dim == self.in_dim
-            ), f"Dimension mismatch between `embed_dim={embed_dim}` and `in_dim={self.in_dim}`"
-        attn_kwargs["embed_dim"] = self.in_dim
-
-        # Set the default values for the self-Attention layer
         attn_kwargs.setdefault("embed_dim", self.in_dim)
         attn_kwargs.setdefault("num_heads", 1)
         attn_kwargs.setdefault("dropout", self.dropout)
         attn_kwargs.setdefault("batch_first", True)
+        self.attn_kwargs = attn_kwargs
 
-        return attn_kwargs
+        # Initialize the Attention layer
+        attn_layer, attn_class = None, None
+        if attn_type is not None:
+            attn_class = ATTENTION_LAYERS_DICT[attn_type]
+        if attn_class is not None:
+            attn_layer = attn_class(biased_attention_key, **attn_kwargs)
+        return attn_layer
 
     def _self_attention_block(self, h: Tensor, h_in: Tensor, batch: Batch) -> Tensor:
         """
@@ -261,8 +302,13 @@ class GPSLayerPyg(BaseGraphModule):
             max_num_nodes_per_graph=max_num_nodes_per_graph,
             drop_nodes_last_graph=on_ipu,
         )
+
+        attn_bias = None
+        if self.biased_attention_key is not None:
+            attn_bias = batch[self.biased_attention_key]
+
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> h_attn[num_graphs, max_num_nodes, hidden_dim]
-        h_attn = self._sa_block(h_dense, None, ~mask)
+        h_attn = self._sa_block(h_dense, attn_bias=attn_bias, attn_mask=None, key_padding_mask=~mask)
 
         # h_attn[num_graphs, max_num_nodes, hidden_dim] -> h_attn[num_nodes, hidden_dim]
         h_attn = to_sparse_batch(h_attn, idx)
@@ -274,23 +320,32 @@ class GPSLayerPyg(BaseGraphModule):
         if self.norm_layer_attn is not None:
             h_attn = self.norm_layer_attn(h_attn)
         if self.droppath_layer is not None:
-            self.droppath_layer(h_attn, batch.batch, batch_size)
+            self.droppath_layer(h_attn, batch.batch, batch_size=batch_size)
 
         # Combine local and global outputs.
         return h + h_attn
 
-    def _parse_attn_layer(self, attn_type, **attn_kwargs):
-        attn_layer, attn_class = None, None
-        if attn_type is not None:
-            attn_class = ATTENTION_LAYERS_DICT[attn_type]
-        if attn_class is not None:
-            attn_layer = attn_class(**attn_kwargs)
-        return attn_layer
-
-    def _sa_block(self, x, attn_mask, key_padding_mask):
-        """Self-attention block."""
+    def _sa_block(
+        self, x: torch.Tensor, attn_bias: torch.Tensor, attn_mask=None, key_padding_mask=None
+    ) -> torch.Tensor:
+        """
+        Self-attention block.
+        Parameters:
+            x: input tensor
+            attn_bias: attention bias tensor
+            attn_mask: None
+            key_padding_mask: None
+        Returns:
+            x: output tensor
+        """
         x = self.attn_layer(
-            x, x, x, attn_mask=attn_mask, key_padding_mask=key_padding_mask, need_weights=False
+            x,
+            x,
+            x,
+            attn_bias=attn_bias,
+            attn_mask=attn_mask,
+            key_padding_mask=key_padding_mask,
+            need_weights=False,
         )[0]
         return x
 

@@ -10,16 +10,6 @@ from goli.nn.architectures.global_architectures import FeedForwardGraphBase
 
 
 class FeedForwardPyg(FeedForwardGraphBase):
-    r"""
-    A flexible neural network architecture, with variable hidden dimensions,
-    support for multiple layer types, and support for different residual
-    connections.
-
-    This class is meant to work with different PyG-based graph neural networks
-    layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
-    or `goli.nn.base_graph_layer.BaseGraphLayer`.
-    """
-
     def _graph_layer_forward(
         self,
         layer: BaseGraphModule,
@@ -31,6 +21,14 @@ class FeedForwardPyg(FeedForwardGraphBase):
         step_idx: int,
     ) -> Tuple[Tensor, Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         r"""
+        A flexible neural network architecture, with variable hidden dimensions,
+        support for multiple layer types, and support for different residual
+        connections.
+
+        This class is meant to work with different PyG-based graph neural networks
+        layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
+        or `goli.nn.base_graph_layer.BaseGraphLayer`.
+
         Apply the *i-th* PyG graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.
 
@@ -111,7 +109,7 @@ class FeedForwardPyg(FeedForwardGraphBase):
         Get the node features of a PyG graph `g`.
 
         Parameters:
-            g: graph
+            g: pyg Batch graph
             key: key associated to the node features
         """
         return g.get(key, None)
@@ -121,10 +119,20 @@ class FeedForwardPyg(FeedForwardGraphBase):
         Get the edge features of a PyG graph `g`.
 
         Parameters:
-            g: graph
+            g: pyg Batch graph
             key: key associated to the edge features
         """
         return g.get(key, None) if (self.in_dim_edges > 0) else None
+
+    def _get_graph_feats(self, g: Union[Data, Batch], key: str = "graph_attr") -> Tensor:
+        """
+        Get the graph features of a PyG graph `g`.
+
+        Parameters:
+            g: pyg Batch graph
+            key: key associated to the edge features
+        """
+        return g.get(key, None)
 
     def _set_node_feats(
         self, g: Union[Data, Batch], node_feats: Tensor, key: str = "h"
@@ -133,7 +141,7 @@ class FeedForwardPyg(FeedForwardGraphBase):
         Set the node features of a PyG graph `g`, and return the graph.
 
         Parameters:
-            g: graph
+            g: pyg Batch graph
             key: key associated to the node features
         """
         assert node_feats.shape[0] == g.num_nodes
@@ -147,10 +155,25 @@ class FeedForwardPyg(FeedForwardGraphBase):
         Set the edge features of a PyG graph `g`, and return the graph.
 
         Parameters:
-            g: graph
+            g: pyg Batch graph
             key: key associated to the node features
         """
         if (self.in_dim_edges > 0) and (edge_feats is not None):
             assert edge_feats.shape[0] == g.num_edges
             g[key] = edge_feats
+        return g
+
+    def _set_graph_feats(
+        self, g: Union[Data, Batch], graph_feats: Tensor, key: str = "h"
+    ) -> Union[Data, Batch]:
+        """
+        Set the graph features of a PyG graph `g`, and return the graph.
+
+        Parameters:
+            g: pyg Batch graph
+            key: key associated to the node features
+        """
+        if isinstance(g, Batch):
+            assert graph_feats.shape[0] == g.num_graphs
+        g[key] = graph_feats
         return g

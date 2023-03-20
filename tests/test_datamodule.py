@@ -4,8 +4,8 @@ import torch
 import pandas as pd
 
 import goli
-from goli.utils.fs import mkdir, rm, exists, get_size
-
+from goli.utils.fs import rm, exists, get_size
+from goli.data import GraphOGBDataModule
 
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
@@ -21,6 +21,7 @@ class Test_DataModule(ut.TestCase):
         featurization_args = {}
         featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
         featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
+        featurization_args["conformer_property_list"] = ["positions_3d"]
         featurization_args["edge_property_list"] = ["bond-type-onehot"]
         featurization_args["add_self_loop"] = False
         featurization_args["use_bonds_weights"] = False
@@ -40,7 +41,7 @@ class Test_DataModule(ut.TestCase):
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
 
-        ds = goli.data.GraphOGBDataModule(task_specific_args, **dm_args)
+        ds = GraphOGBDataModule(task_specific_args, **dm_args)
 
         ds.prepare_data()
         ds.setup()
@@ -51,13 +52,12 @@ class Test_DataModule(ut.TestCase):
         assert len(ds) == 642
 
         # test dataset
-        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
+        assert set(ds.train_ds[0].keys()) == {"labels", "features"}
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
-        assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["task_1"]) == 16
-        assert len(batch["mol_ids"]) == 16
+        assert len(batch["features"]) == 16
 
     def test_none_filtering(self):
         # Create the objects to filter
@@ -158,6 +158,7 @@ class Test_DataModule(ut.TestCase):
         featurization_args = {}
         featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
         featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
+        featurization_args["conformer_property_list"] = ["positions_3d"]
         featurization_args["edge_property_list"] = ["bond-type-onehot"]
         featurization_args["add_self_loop"] = False
         featurization_args["use_bonds_weights"] = False
@@ -182,7 +183,7 @@ class Test_DataModule(ut.TestCase):
 
         # Prepare the data. It should create the cache there
         assert not exists(TEMP_CACHE_DATA_PATH)
-        ds = goli.data.GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
+        ds = GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
         assert not ds.load_data_from_cache(verbose=False)
         ds.prepare_data()
         ds.setup()
@@ -201,13 +202,12 @@ class Test_DataModule(ut.TestCase):
         assert len(ds) == 642
 
         # test dataset
-        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
+        assert set(ds.train_ds[0].keys()) == {"labels", "features"}
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
-        assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["task_1"]) == 16
-        assert len(batch["mol_ids"]) == 16
+        assert len(batch["features"]) == 16
 
 
 if __name__ == "__main__":

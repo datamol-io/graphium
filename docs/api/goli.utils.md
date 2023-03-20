@@ -2,6 +2,9 @@
 ::: goli.utils.decorators
 ::: goli.utils.dict_tensor
 ::: goli.utils.fs
+::: goli.utils.hashing
+::: goli.utils.moving_average_tracker
+::: goli.utils.mup
 ::: goli.utils.read_file
 ::: goli.utils.safe_run
 ::: goli.utils.spaces

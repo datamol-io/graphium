@@ -1,4 +1,5 @@
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
+from torch_geometric.data import Batch
 
 # Misc imports
 import inspect
@@ -13,6 +14,7 @@ from torch_geometric.data import Data
 
 # goli imports
 from goli.nn.base_layers import FCLayer, get_activation, get_norm
+from goli.nn.architectures.encoder_manager import EncoderManager
 from goli.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
 from goli.nn.residual_connections import (
     ResidualConnectionBase,
@@ -20,15 +22,12 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 
-from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
+
+from goli.ipu.ipu_utils import import_poptorch
+
+poptorch = import_poptorch(raise_error=False)
 
 import collections
-
-PE_ENCODERS_DICT = {
-    "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
-    "mlp": mlp_encoder.MLPEncoder,
-    "signnet": signnet_pos_encoder.SignNetNodeEncoder,
-}
 
 
 class FeedForwardNN(nn.Module):
@@ -415,6 +414,9 @@ class FeedForwardGraphBase(FeedForwardNN):
                 Be careful, the "simple" residual type only supports
                 hidden dimensions of the same value.
 
+            layer_type:
+                Type of layer to use. Can be a string or nn.Module.
+
             depth:
                 If `hidden_dims` is an integer, `depth` is 1 + the number of
                 hidden layers to use. If `hidden_dims` is a `list`, `depth` must
@@ -699,21 +701,23 @@ class FeedForwardGraphBase(FeedForwardNN):
             is_readout_layer=self.last_layer_is_readout,
         )
 
-    def _pool_layer_forward(self, g, h):
+    def _pool_layer_forward(
+        self,
+        g: Batch,
+        h: torch.Tensor,
+    ):
         r"""
         Apply the graph pooling layer, followed by the linear output layer.
 
         Parameters:
 
-            g: dgl.DGLGraph
-                graph on which the convolution is done
+            g: pyg Batch graph on which the convolution is done
 
             h (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the output size of the last DGL layer
 
         Returns:
-
             torch.Tensor[..., M, Din] or torch.Tensor[..., N, Din]:
                 Node feature tensor, after convolution.
                 `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
@@ -827,7 +831,12 @@ class FeedForwardGraphBase(FeedForwardNN):
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
     def _virtual_node_forward(
-        self, g: Union[DGLGraph, Data], h: torch.Tensor, vn_h: torch.Tensor, step_idx: int, e: torch.Tensor
+        self,
+        g: Union[DGLGraph, Data],
+        h: torch.Tensor,
+        vn_h: torch.Tensor,
+        step_idx: int,
+        e: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -849,6 +858,8 @@ class FeedForwardGraphBase(FeedForwardNN):
             step_idx:
                 The current step idx in the forward loop
 
+            e: torch.Tensor
+
         Returns:
 
             `h = torch.Tensor[..., N, Dout]`:
@@ -865,14 +876,14 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         return h, vn_h, e
 
-    def forward(self, g) -> torch.Tensor:
+    def forward(self, g: Batch) -> torch.Tensor:
         r"""
         Apply the full graph neural network on the input graph and node features.
 
         Parameters:
 
             g:
-                batched graphs on which the convolution is done with the keys:
+                pyg Batch graph on which the convolution is done with the keys:
 
                 - `"h"`: torch.Tensor[..., N, Din]
                   Node feature tensor, before convolution.
@@ -917,48 +928,56 @@ class FeedForwardGraphBase(FeedForwardNN):
 
         return pooled_h
 
-    def _get_node_feats(self, g, key: str = "h") -> Tensor:
+    def _get_node_feats(self, g: Batch, key: str = "h") -> Tensor:
         """
         Get the node features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
 
         Parameters:
-            g: graph
+            g: pyg Batch
             key: key associated to the node features
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
-    def _get_edge_feats(self, g, key: str = "edge_attr") -> Tensor:
+    def _get_edge_feats(self, g: Batch, key: str = "edge_attr") -> Tensor:
         """
         Get the edge features of a graph `g`.
         ***Virtual method, must be implemented in child class.***
 
         Parameters:
-            g: graph
+            g: pyg Batch
             key: key associated to the edge features
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
 
-    def _set_node_feats(self, g: Any, node_feats: Tensor, key: str = "h") -> Any:
+    def _set_node_feats(self, g: Batch, node_feats: Tensor, key: str = "h") -> Batch:
         """
         Set the node features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
 
         Parameters:
-            g: graph
+            g: pyg Batch
+            node_feats: node features tensor
             key: key associated to the node features
+
+        Returns:
+            g: pyg Batch with the node features set
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
         return g
 
-    def _set_edge_feats(self, g: Any, edge_feats: Tensor, key: str = "edge_attr") -> Any:
+    def _set_edge_feats(self, g: Batch, edge_feats: Tensor, key: str = "edge_attr") -> Batch:
         """
         Set the edge features of a graph `g`, and return the graph.
         ***Virtual method, must be implemented in child class.***
 
         Parameters:
-            g: graph
+            g: pyg Batch
+            edge_feats: edge features tensor
             key: key associated to the edge features
+
+        Returns:
+            g: pyg Batch with the edge features set
         """
         raise NotImplementedError("Virtual method must be overwritten by child class")
         return g
@@ -977,7 +996,11 @@ class FeedForwardGraphBase(FeedForwardNN):
         kwargs.update(new_kwargs)
         return deepcopy(kwargs)
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
+    def make_mup_base_kwargs(
+        self,
+        divide_factor: float = 2.0,
+        factor_in_dim: bool = False,
+    ) -> Dict[str, Any]:
         """
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
@@ -986,6 +1009,9 @@ class FeedForwardGraphBase(FeedForwardNN):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension for the nodes
+
+        Returns:
+            kwargs: Dictionary of parameters to be used to instanciate the base model divided by the factor
         """
         kwargs = self.get_init_kwargs()
         kwargs["hidden_dims"] = [round(dim / divide_factor) for dim in kwargs["hidden_dims"]]
@@ -1027,6 +1053,7 @@ class FullGraphNetwork(nn.Module):
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
         name: str = "DGL_GNN",
@@ -1046,8 +1073,8 @@ class FullGraphNetwork(nn.Module):
                 - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
 
             pe_encoders_kwargs:
-                key-word arguments to use for the initialization of all positional encoding encoders
-                can use the class PE_ENCODERS_DICT: "la_encoder"(tested) , "mlp_encoder" (not tested), "signnet_encoder" (not tested)
+                key-word arguments to use for the initialization of all positional encoding encoders.
+                See the class `EncoderManager` for more details.
 
             pre_nn_kwargs:
                 key-word arguments to use for the initialization of the pre-processing
@@ -1063,6 +1090,10 @@ class FullGraphNetwork(nn.Module):
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a post-processing MLP.
+
+            accelerator_kwargs:
+                key-word arguments specific to the accelerator being used,
+                e.g. pipeline split points
 
             num_inference_to_average:
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
@@ -1084,9 +1115,9 @@ class FullGraphNetwork(nn.Module):
         self.last_layer_is_readout = last_layer_is_readout
         self._concat_last_layers = None
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
-
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
-        self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
+        self.encoder_manager = EncoderManager(pe_encoders_kwargs)
+
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
             name = pre_nn_kwargs.pop("name", "pre-NN")
@@ -1120,66 +1151,22 @@ class FullGraphNetwork(nn.Module):
             self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
             assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
 
-    def _initialize_positional_encoders(self, pe_encoders_kwargs: Dict[str, Any]) -> Optional[nn.ModuleDict]:
-        """
-        Initialize the positional encoders for each positional/structural encodings.
-
-        TODO: Currently only supports PE/SE on the nodes. Need to add edges.
-        """
-        pe_encoders = None
-
-        if pe_encoders_kwargs is not None:
-            pe_encoders = nn.ModuleDict()
-
-            # Pooling options here for pe encoders
-            self.pe_pool = pe_encoders_kwargs["pool"]
-            pe_out_dim = pe_encoders_kwargs["out_dim"]
-            in_dim_dict = pe_encoders_kwargs["in_dims"]
-
-            # Loop every positional encoding to assign it
-            for encoder_name, encoder_kwargs in pe_encoders_kwargs["encoders"].items():
-                encoder_kwargs = deepcopy(encoder_kwargs)
-                encoder_type = encoder_kwargs.pop("encoder_type")
-                encoder = PE_ENCODERS_DICT[encoder_type]
-
-                # Get the keys associated to in_dim
-                this_in_dims = {}
-                for key, dim in in_dim_dict.items():
-                    if isinstance(key, str) and key.startswith(f"{encoder_name}/"):
-                        key_name = "in_dim_" + key[len(encoder_name) + 1 :]
-                        this_in_dims[key_name] = dim
-                assert (
-                    len(this_in_dims) > 0
-                ), f"Non-matching in_dim. Provided: '{encoder_name}/'. Available keys: {in_dim_dict.keys()}"
-
-                # Parse the in_dims based on Encoder's signature
-                accepted_keys = inspect.signature(encoder).parameters.keys()
-                if all([key in accepted_keys for key in this_in_dims.keys()]):
-                    pass
-                elif "in_dim" in accepted_keys:
-                    if len(set(this_in_dims.values())) == 1:
-                        this_in_dims = {"in_dim": list(this_in_dims.values())[0]}
-                    else:
-                        raise ValueError(
-                            f"All `in_dims` must be equal for encoder {encoder_name}. Provided: {this_in_dims}"
-                        )
-                else:
-                    raise ValueError(
-                        f"`in_dim` not understood for encoder {encoder_name}. Provided: {this_in_dims}. Accepted keys are: {accepted_keys}"
-                    )
-
-                # Initialize the pe_encoder layer
-                pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
-                if pe_out_dim2 is not None:
-                    assert pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
-                pe_encoders[encoder_name] = encoder(out_dim=pe_out_dim, **this_in_dims, **encoder_kwargs)
-
-        return pe_encoders
+        if accelerator_kwargs is not None:
+            accelerator = accelerator_kwargs["_accelerator"]
+            if accelerator == "ipu":
+                self._apply_ipu_options(accelerator_kwargs)
 
     @staticmethod
-    def _parse_feed_forward_gnn(gnn_kwargs):
+    def _parse_feed_forward_gnn(
+        gnn_kwargs: Dict[str, Any],
+    ):
         """
-        Returns either `FeedForwardDGL` or `FeedForwardPyg`.
+        Parse the key-word arguments to determine which `FeedForward` class to use.
+        Parameters:
+            gnn_kwargs: key-word arguments to use for the initialization of the GNN network.
+
+        Returns:
+            either `FeedForwardDGL` or `FeedForwardPyg`.
         """
 
         layer_type = gnn_kwargs.get("layer_type")
@@ -1225,6 +1212,46 @@ class FullGraphNetwork(nn.Module):
                     + 'Provided" {self.gnn.out_dim} and {self.post_nn.in_dim}'
                 )
 
+    def _apply_ipu_options(self, ipu_kwargs):
+        gnn_layers_per_ipu = ipu_kwargs.get("gnn_layers_per_ipu")
+        self._apply_ipu_pipeline_split(gnn_layers_per_ipu)
+
+    def _apply_ipu_pipeline_split(self, gnn_layers_per_ipu):
+        r"""
+        Apply pipeline split from accelerator options if applicable
+        """
+
+        if gnn_layers_per_ipu is None:
+            return
+
+        if not isinstance(gnn_layers_per_ipu, collections.abc.Sequence):
+            raise ValueError("gnn_layers_per_ipu must be a Sequence (e.g. a list)")
+
+        valid_ipu_pipeline_lengths = [1, 2, 4, 8, 16]
+        pipeline_length = len(gnn_layers_per_ipu)
+
+        if pipeline_length not in valid_ipu_pipeline_lengths:
+            raise ValueError(
+                f"gnn_layers_per_ipu must be one of {valid_ipu_pipeline_lengths}, "
+                f"got {gnn_layers_per_ipu} of length {pipeline_length} instead"
+            )
+
+        model_depth = len(self.gnn.layers)
+
+        if sum(gnn_layers_per_ipu) != model_depth:
+            raise ValueError(
+                f"The values in gnn_layers_per_ipu must add up to the depth of the model, "
+                f"got {gnn_layers_per_ipu} with total {sum(gnn_layers_per_ipu)} vs model depth "
+                f"of {model_depth}"
+            )
+
+        begin_block_layer_indices = [sum(gnn_layers_per_ipu[:i]) for i in range(1, pipeline_length)]
+
+        for begin_block_layer_index, ipu_id in zip(begin_block_layer_indices, range(1, pipeline_length)):
+            self.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
+                self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
+            )
+
     def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
         r"""
         Remove the last layers of the model. Useful for Transfer Learning.
@@ -1255,7 +1282,7 @@ class FullGraphNetwork(nn.Module):
 
         self.post_nn.extend(layers)
 
-    def forward(self, g: Any) -> Tensor:
+    def forward(self, g: Batch) -> Tensor:
         r"""
         Apply the pre-processing neural network, the graph neural network,
         and the post-processing neural network on the graph features.
@@ -1263,7 +1290,7 @@ class FullGraphNetwork(nn.Module):
         Parameters:
 
             g:
-                graph on which the convolution is done.
+                pyg Batch graph on which the convolution is done.
                 Must contain the following elements:
 
                 - Node key `"feat"`: `torch.Tensor[..., N, Din]`.
@@ -1289,19 +1316,11 @@ class FullGraphNetwork(nn.Module):
 
         """
 
-        return self._forward(g)
+        # Apply the positional encoders
+        g = self.encoder_manager(g)
 
-    def _forward(self, g: Any) -> Tensor:
-        h = self.gnn._get_node_feats(g, key="feat")
-        e = self.gnn._get_edge_feats(g, key="edge_feat")
-
-        # Node-wise positional encoding, concatenated to node features.
-        pe_node = self.forward_node_positional_encoding(g)
-        if pe_node is not None:
-            h = torch.cat((h, pe_node), dim=-1)
-
-        # TODO: Add edge-wise positional encoding
-        # pe_node = self.forward_edge_positional_encoding(g)
+        h = self.gnn._get_node_feats(g, key="feat")  # h = g["feat"]
+        e = self.gnn._get_edge_feats(g, key="edge_feat")  # e = g["edge_feat"]
 
         # Set the node and edge features before running the GNN
         g = self.gnn._set_node_feats(g, h.to(self.dtype), key="h")
@@ -1344,60 +1363,6 @@ class FullGraphNetwork(nn.Module):
 
         return h
 
-    def forward_node_positional_encoding(self, g: Any) -> Optional[Tensor]:
-        """
-        Forward pass for the positional encodings (PE) on the nodes,
-        with each PE having it's own encoder defined in `self.pe_encoders`.
-
-        Parameters:
-            g: graph containing the node positional encodings
-
-        Returns:
-            pe_node_pooled: The positional / structural encodings go through
-            encoders, then are pooled together
-
-        """
-
-        # Return None if no positional encoders
-        if (self.pe_encoders is None) or len(self.pe_encoders) == 0:
-            return None
-
-        encoder_outs = []
-        # Run every node positional-encoder
-        for name, encoder in self.pe_encoders.items():
-            keys = encoder.on_keys
-            encoder_inputs = {}
-            for key in keys:
-                encoder_inputs[key] = self.gnn._get_node_feats(g, key=f"{name}/{key}").to(self.dtype)
-            encoder_outs.append(
-                encoder(**encoder_inputs)["node"]
-            )  # TODO: Avoid repeated call to encoder when using edges
-
-        # Pool the node positional encodings
-        pe_outs = torch.stack(encoder_outs, dim=-1)
-        pe_node_pooled = self.forward_simple_pooling(pe_outs, pooling=self.pe_pool, dim=-1)
-
-        return pe_node_pooled
-
-    def forward_edge_positional_encoding(self, g):
-        # TODO: Implement edge-wise positional encoding
-        raise NotImplementedError("Not yet implemented")
-
-    def forward_simple_pooling(self, h: Tensor, pooling: str, dim: int) -> Tensor:
-        """
-        Apply sum, mean, or max pooling on a Tensor.
-        """
-
-        if pooling == "sum":
-            pooled = torch.sum(h, dim=dim)
-        elif pooling == "mean":
-            pooled = torch.mean(h, dim=dim)
-        elif pooling == "max":
-            pooled = torch.max(h, dim=dim).values
-        else:
-            raise Exception(f"Pooling method `{self.pe_pool}` is not defined")
-        return pooled
-
     @property
     def concat_last_layers(self) -> Optional[Iterable[int]]:
         """
@@ -1438,6 +1403,9 @@ class FullGraphNetwork(nn.Module):
 
         Parameter:
             divide_factor: Factor by which to divide the width.
+
+        Returns:
+            Dictionary with the kwargs to create the base model.
         """
         kwargs = dict(
             gnn_kwargs=None,
@@ -1456,7 +1424,7 @@ class FullGraphNetwork(nn.Module):
             kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=False
             )
-            pe_enc_outdim = 0 if self.pe_encoders is None else self.pe_encoders_kwargs["out_dim"]
+            pe_enc_outdim = 0 if self.encoder_manager is None else self.pe_encoders_kwargs["out_dim"]
             pre_nn_indim = kwargs["pre_nn_kwargs"]["in_dim"] - pe_enc_outdim
             kwargs["pre_nn_kwargs"]["in_dim"] = round(pre_nn_indim + (pe_enc_outdim / divide_factor))
 
@@ -1467,18 +1435,10 @@ class FullGraphNetwork(nn.Module):
             )
 
         # For the pe-encoders, don't factor the in_dim and in_dim_edges
-        if self.pe_encoders is not None:
-            pe_kw = deepcopy(self.pe_encoders_kwargs)
-            new_pe_kw = {
-                key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
-                for key, encoder in self.pe_encoders.items()
-            }
-            pe_kw["out_dim"] = round(pe_kw["out_dim"] / divide_factor)
-            for key, enc in pe_kw["encoders"].items():
-                new_pe_kw[key].pop("in_dim", None)
-                new_pe_kw[key].pop("in_dim_edges", None)
-                enc.update(new_pe_kw[key])
-            kwargs["pe_encoders_kwargs"] = pe_kw
+        if self.encoder_manager is not None:
+            kwargs["pe_encoders_kwargs"] = self.encoder_manager.make_mup_base_kwargs(
+                divide_factor=divide_factor
+            )
 
         # For the post-nn network, all the dimension are divided
         if self.post_nn is not None:
@@ -1498,7 +1458,7 @@ class FullGraphNetwork(nn.Module):
 
     def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
-        Set the maximum number of nodes and edges for all gnn layers
+        Set the maximum number of nodes and edges for all gnn layers and encoder layers
 
         Parameters:
             max_nodes: Maximum number of nodes in the dataset.
@@ -1507,6 +1467,10 @@ class FullGraphNetwork(nn.Module):
             max_edges: Maximum number of edges in the dataset.
                 This will be useful for certain architecture, but ignored by others.
         """
+        if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
+            for encoder in self.encoder_manager.pe_encoders.values():
+                encoder.max_num_nodes_per_graph = max_nodes
+                encoder.max_num_edges_per_graph = max_edges
         if self.gnn is not None:
             for layer in self.gnn.layers:
                 if isinstance(layer, BaseGraphStructure):
@@ -1604,8 +1568,14 @@ class TaskHeads(nn.Module):
                 assert self.in_dim == head_in_dim, f"Inconsistent input dim {self.in_dim} != {head_in_dim}"
             self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
 
-    # Return a dictionary: Dict[task_name, Tensor]
-    def forward(self, h: torch.Tensor):
+    def forward(self, h: torch.Tensor) -> Dict[str, torch.Tensor]:
+        r"""
+        forward function of the task head
+        Parameters:
+            h: input tensor
+        Returns:
+            task_head_outputs: Return a dictionary: Dict[task_name, Tensor]
+        """
         task_head_outputs = {}
 
         for task, head in self.task_heads.items():
@@ -1622,6 +1592,9 @@ class TaskHeads(nn.Module):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
+
+        Returns:
+            kwargs: Dictionary of arguments to be used to initialize the base model
         """
         task_heads_kwargs = {}
         for task_name, task_nn in self.task_heads.items():
@@ -1643,6 +1616,9 @@ class TaskHeads(nn.Module):
         return {task_name: head.out_dim for task_name, head in self.task_heads.items()}
 
     def __repr__(self):
+        r"""
+        Returns a string representation of the task heads
+        """
         task_repr = []
         for head, net in self.task_heads.items():
             task_repr.append(head + ": " + net.__repr__())
@@ -1650,15 +1626,6 @@ class TaskHeads(nn.Module):
 
 
 class FullGraphMultiTaskNetwork(FullGraphNetwork):
-    """
-    Class that allows to implement a full multi-task graph neural network architecture,
-    including the pre-processing MLP, post-processing MLP and the task-specific heads.
-
-    In this model, the tasks share a full DGL network as a "trunk", and then they have task-specific MLPs.
-
-    Each molecular graph is associated with a variety of tasks, so the network should output the task-specific preedictions for a graph.
-    """
-
     def __init__(
         self,
         task_heads_kwargs: Dict[str, Any],
@@ -1667,6 +1634,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = True,
         name: str = "Multitask_GNN",
@@ -1675,7 +1643,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
         Class that allows to implement a full multi-task graph neural network architecture,
         including the pre-processing MLP, post-processing MLP and the task-specific heads.
 
-        In this model, the tasks share a full DGL network as a "trunk", and additionally have task-specific MLPs.
+        In this model, the tasks share a full network as a "trunk", and additionally have task-specific MLPs.
         Each molecular graph is associated with a variety of tasks, so the network outputs the task-specific preedictions for a graph.
 
         Parameters:
@@ -1707,6 +1675,10 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                 MLP network after the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a post-processing MLP.
 
+            accelerator_kwargs:
+                key-word arguments specific to the accelerator being used,
+                e.g. pipeline split points
+
             num_inference_to_average:
                 Number of inferences to average at val/test time. This is used to avoid the noise introduced
                 by positional encodings with sign-flips. In case no such encoding is given,
@@ -1728,6 +1700,7 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             pre_nn_edges_kwargs=pre_nn_edges_kwargs,
             pe_encoders_kwargs=pe_encoders_kwargs,
             post_nn_kwargs=post_nn_kwargs,
+            accelerator_kwargs=accelerator_kwargs,
             num_inference_to_average=num_inference_to_average,
             last_layer_is_readout=False,
             name=name,
@@ -1740,7 +1713,13 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
             last_layer_is_readout=last_layer_is_readout,
         )
 
-    def forward(self, g: Union[DGLGraph, Data]):
+    def forward(self, g: Batch):
+        r"""
+        forward pass of the network
+
+        Parameters:
+            g: Batch of pyg molecular graphs
+        """
         h = super().forward(g)
         return self.task_heads(h)
 
@@ -1759,6 +1738,9 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
 
         Parameter:
             divide_factor: Factor by which to divide the width.
+
+        Returns:
+            A dictionary of arguments to be used to initialize the base model.
         """
         kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor)
         kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(
@@ -1785,6 +1767,9 @@ class FullGraphMultiTaskNetwork(FullGraphNetwork):
                     layer.max_num_edges_per_graph = max_edges
 
     def __repr__(self):
+        r"""
+        Print the network architecture
+        """
         task_str = self.task_heads.__repr__()
         task_str = "    Task heads:\n    " + "    ".join(task_str.splitlines(True))
 

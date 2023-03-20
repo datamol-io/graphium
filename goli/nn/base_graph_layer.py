@@ -403,7 +403,8 @@ def check_intpus_allow_int(obj, edge_index, size):
 
 
 def get_node_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping],
+    key: str = "h",
 ) -> Tensor:
     """
     Get the node features of a graph `g`.
@@ -411,6 +412,8 @@ def get_node_feats(
     Parameters:
         g: graph
         key: key associated to the node features
+    Returns:
+        node features
     """
     if (dgl is not None) and isinstance(g, dgl.DGLGraph):
         return g.ndata.get(key, None)
@@ -430,6 +433,7 @@ def set_node_feats(
 
     Parameters:
         g: graph
+        node_feats: node features
         key: key associated to the node features
     """
     if (dgl is not None) and isinstance(g, dgl.DGLGraph):
@@ -449,7 +453,8 @@ def set_node_feats(
 
 
 def get_edge_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
+    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping],
+    key: str = "h",
 ) -> Tensor:
     """
     Get the node features of a graph `g`.
@@ -457,6 +462,8 @@ def get_edge_feats(
     Parameters:
         g: graph
         key: key associated to the node features
+    Returns:
+        node features
     """
     if (dgl is not None) and isinstance(g, dgl.DGLGraph):
         return g.edata.get(key, None)
@@ -476,6 +483,7 @@ def set_edge_feats(
 
     Parameters:
         g: graph
+        edge_feats: edge feature tensor to set
         key: key associated to the node features
     """
     if (dgl is not None) and isinstance(g, dgl.DGLGraph):

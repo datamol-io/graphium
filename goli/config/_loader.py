@@ -1,4 +1,4 @@
-from typing import Dict, Mapping, Type, Union, Any
+from typing import Dict, Mapping, Tuple, Type, Union, Any
 
 # Misc
 import os
@@ -78,6 +78,48 @@ def get_accelerator(
     return acc_type
 
 
+def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
+    r"""
+    Get the paths of the IPU-specific config files from the main YAML config
+    """
+
+    accelerator_options = config.get("accelerator_options", None)
+
+    if accelerator_options is None:
+        ipu_training_config_path = "expts/configs/ipu.config"
+        ipu_inference_config_overrides_path = None
+    else:
+        ipu_training_config_path = accelerator_options.get("ipu_options_file")
+        ipu_inference_config_overrides_path = accelerator_options.get("ipu_inference_overrides_file", None)
+
+    if pathlib.Path(ipu_training_config_path).is_file():
+        ipu_training_config_filename = ipu_training_config_path
+    else:
+        raise ValueError(
+            "IPU configuration path must be specified "
+            "and must be a file, instead got "
+            f'"{ipu_training_config_path}"'
+        )
+
+    if ipu_inference_config_overrides_path is not None:
+        if pathlib.Path(ipu_inference_config_overrides_path).is_file():
+            ipu_inference_config_overrides_filename = ipu_inference_config_overrides_path
+        else:
+            raise ValueError(
+                "IPU inference override config must be a file if specified, "
+                f'instead got "{ipu_training_config_path}"'
+            )
+
+    else:
+        warnings.warn(
+            "IPU inference overrides configuration either not specified "
+            "or not a file, using same options for training and inference"
+        )
+        ipu_inference_config_overrides_filename = None
+
+    return ipu_training_config_filename, ipu_inference_config_overrides_filename
+
+
 def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> BaseDataModule:
     """
     Load the datamodule from the specified configurations at the key
@@ -107,27 +149,10 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
 
     # IPU specific adjustments
     else:
+        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+
         # Default empty values for the IPU configurations
         ipu_training_opts, ipu_inference_opts = None, None
-        ipu_training_config_path = "expts/configs/ipu.config"
-        if pathlib.Path(ipu_training_config_path).is_file():
-            ipu_training_config_file = ipu_training_config_path
-        else:
-            raise ValueError(
-                f"IPU configuration path must be specified "
-                "and must be a file, instead got "
-                '"{ipu_training_config_path}"'
-            )
-
-        ipu_inference_config_overrides_path = "expts/configs/ipu_inference.config"
-        if pathlib.Path(ipu_inference_config_overrides_path).is_file():
-            ipu_inference_config_overrides_file = ipu_inference_config_overrides_path
-        else:
-            warnings.warn(
-                "IPU inference overrides configuration either not specified "
-                "or not a file, using same options for training and inference"
-            )
-            ipu_inference_config_overrides_file = None
 
         ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
         ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
@@ -256,6 +281,15 @@ def load_architecture(
     # Set the parameters for the full network
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
+    accelerator_kwargs = (
+        dict(cfg_arch["accelerator_options"])
+        if cfg_arch.get("accelerator_options", None) is not None
+        else None
+    )
+
+    if accelerator_kwargs is not None:
+        accelerator_kwargs["_accelerator"] = get_accelerator(config)
+
     # Set all the input arguments for the model
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
@@ -264,6 +298,7 @@ def load_architecture(
         pe_encoders_kwargs=pe_encoders_kwargs,
         post_nn_kwargs=post_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
+        accelerator_kwargs=accelerator_kwargs,
     )
 
     return model_class, model_kwargs
@@ -337,15 +372,17 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
     # Define the IPU plugin if required
     strategy = None
     accelerator = get_accelerator(config)
-    ipu_file = "expts/configs/ipu.config"
     if accelerator == "ipu":
+        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+
         training_opts, inference_opts = load_ipu_options(
-            ipu_file=ipu_file,
+            ipu_file=ipu_training_config_file,
+            ipu_inference_overrides=ipu_inference_config_overrides_file,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
-            precision=cfg_trainer["trainer"].get("precision", None),
         )
+
         from goli.ipu.ipu_wrapper import DictIPUStrategy
 
         strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
@@ -412,18 +449,24 @@ def save_params_to_wandb(
         datamodule: The datamodule used to load the data into training
     """
 
+    # Get the wandb runner and directory
+    wandb_run = logger.experiment
+    if wandb_run is None:
+        wandb_run = ""
+    wandb_dir = wandb_run.dir
+
     # Save the mup base model to WandB as a yaml file
-    mup.save_base_shapes(predictor.model, "mup_base_params.yaml")
+    mup.save_base_shapes(predictor.model, os.path.join(wandb_dir, "mup_base_params.yaml"))
 
     # Save the full configs as a YAML file
-    with open(os.path.join(logger.experiment.dir, "full_configs.yaml"), "w") as file:
+    with open(os.path.join(wandb_dir, "full_configs.yaml"), "w") as file:
         yaml.dump(config, file)
 
     # Save the featurizer into wandb
-    featurizer_path = os.path.join(logger.experiment.dir, "featurizer.pickle")
+    featurizer_path = os.path.join(wandb_dir, "featurizer.pickle")
     joblib.dump(datamodule.smiles_transformer, featurizer_path)
 
-    wandb_run = logger.experiment
+    # Save the featurizer and configs into wandb
     if wandb_run is not None:
         wandb_run.save("*.yaml")
         wandb_run.save("*.pickle")

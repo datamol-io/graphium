@@ -12,24 +12,35 @@ docs_dir: "docs"
 nav:
   - Overview: index.md
   - Tutorials:
+    - basics:
       - Using GNN layers: tutorials/basics/using_gnn_layers.ipynb
       - Implementing GNN layers: tutorials/basics/implementing_gnn_layers.ipynb
       - Making GNN networks: tutorials/basics/making_gnn_networks.ipynb
+      - Convert CSV to Parquet files: tutorials/basics/csv_to_parquet.ipynb
+      - Reading Parquet files: tutorials/basics/parquet_reader.ipynb
+    - model_training:
       - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
       - Training on IPU: tutorials/model_training/ipu_training.ipynb
+      - Chosing the right parallelization: tutorials/basics/choosing_parallelization.ipynb
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
   - Contribute: contribute.md
   - License: license.md
   - API:
-    - goli.nn: api/goli.nn.md
+    - goli.nn:
+      - goli.nn: api/goli.nn/goli.nn.md
+      - goli.nn.architectures: api/goli.nn/architectures.md
+      - goli.nn.encoders: api/goli.nn/encoders.md
+      - goli.nn.pyg_layers: api/goli.nn/pyg_layers.md
+      - goli.nn.dgl_layers: api/goli.nn/dgl_layers.md
     - goli.features: api/goli.features.md
     - goli.trainer: api/goli.trainer.md
     - goli.data: api/goli.data.md
     - goli.utils: api/goli.utils.md
     - goli.config: api/goli.config.md
     - goli.ipu: api/goli.ipu.md
+    - goli.visualization: api/goli.visualization.md
   - CLI: cli_references.md
 
 theme:
