@@ -281,6 +281,7 @@ class MultitaskDataset(Dataset):
         featurization_batch_size=1000,
         progress: bool = True,
         about: str = "",
+        generated: bool = False
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -1251,7 +1252,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             featurization_batch_size=self.featurization_batch_size,
             backend=self.featurization_backend,
         )
-        unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
+        # TODO: this needs setting here as well
+        if self.generated_data is False:
+            # Get all unique mol ids.
+            unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
+        else:
+            # The generated data is a single molecule duplicated
+            mol_ids = np.array(all_mol_ids)
+            unique_idx = inv = [_ for _ in range(len(mol_ids))]
+        
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
