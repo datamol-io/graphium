@@ -1788,8 +1788,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             if use_pt_file:
                 print("Using splits from pytorch split file.")
-                split_file = splits_path + "splits/split_dict.pt"
-                split_dict = torch.load(split_file)
+                split_dict = torch.load(splits_path)
                 train_indices = split_dict["train"].astype("int").tolist()
                 val_indices = split_dict["valid"].astype("int").tolist()
                 test_indices = split_dict["test-dev"].astype("int").tolist()
