@@ -109,12 +109,8 @@ class PreprocessPositions(nn.Module):
         )
         # unsqueezed mask size: [batch, 1, nodes, 1] apply on tensor [batch, nodes, nodes, num_kernel]
         distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
-        print(f"{distance_feature.dtype=}")
-        print(f"{distance_feature.shape=}")
         # [batch, nodes, num_kernel]
         distance_feature_sum = distance_feature.sum(dim=-2)
-        print(f"{distance_feature_sum.dtype=}")
-        print(f"{distance_feature_sum.shape=}")
         # [batch, nodes, embed_dim]
         distance_feature_sum = distance_feature_sum.to(self.node_proj.weight.dtype)
         node_feature = self.node_proj(distance_feature_sum)
