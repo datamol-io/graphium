@@ -58,6 +58,9 @@ class MSELossIPU(MSELoss):
 
         # Replace the nan-targets in the input/target tensors by 0
         nan_targets = target.isnan()
+        # import ipdb; ipdb.set_trace()
+        print(input.shape, nan_targets.shape)
+        print("inp, tar", input.shape, target.shape)
         input[nan_targets] = 0.0
         target[nan_targets] = 0.0
 
