@@ -469,7 +469,8 @@ class MultitaskDataset(Dataset):
         else:
             # The generated data is a single molecule duplicated
             mol_ids = np.array(all_mol_ids)
-            inv = [_ for _ in range(len(mol_ids))]
+            inv = [_ for _ in range(len(mol_ids)//len(datasets.items()))]*len(datasets.items())
+            mol_ids = np.unique(inv)
 
         # Store the smiles.
         smiles = [[] for _ in range(len(mol_ids))]
@@ -1227,7 +1228,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 task_df[task] = args.df
             
             args.label_cols = label_cols
-        # import ipdb; ipdb.set_trace()
         logger.info("Done reading datasets")
 
         """Subsample the data frames and extract the necessary data to create SingleTaskDatasets for each task (smiles, labels, extras)."""
@@ -1389,8 +1389,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if stage == "fit" or stage is None:
             self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", generated=self.generated_data)  # type: ignore
             self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", generated=self.generated_data)  # type: ignore
-            print(self.train_ds)
-            print(self.val_ds)
 
             labels_size.update(
                 self.train_ds.labels_size
@@ -1399,7 +1397,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if stage == "test" or stage is None:
             self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", generated=self.generated_data)  # type: ignore
-            print(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
 

@@ -8,6 +8,7 @@ constants:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
+  generated_data: False
   args: # Matches that in the test_multitask_datamodule.py case.
     generated_data: True 
     task_specific_args:   # To be replaced by a new class "DatasetParams"
@@ -216,7 +217,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 16
+    precision: 32
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 2
