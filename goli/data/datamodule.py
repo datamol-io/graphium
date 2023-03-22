@@ -1787,7 +1787,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         else:
             # Split from an indices file
-            ext = os.path.splitext(splits_path)[-1].lower()
+            name, ext = os.path.splitext(splits_path)
+            _, ext2 = os.path.splitext(name)
+            if ext2 != "": ext = f"{ext2}{ext}"
             if ext == ".pt":
                 splits = torch.load(splits_path)
             elif ext == ".csv":
