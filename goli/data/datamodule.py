@@ -1792,7 +1792,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             if ext2 != "": ext = f"{ext2}{ext}"
             if ext == ".pt":
                 splits = torch.load(splits_path)
-            elif ext == ".csv":
+            elif (".csv" in ext) or (".tsv" in ext):
                 with fsspec.open(str(splits_path)) as f:
                     splits = self._read_csv(splits_path)
                 splits.dropna()
