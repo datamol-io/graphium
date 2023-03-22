@@ -853,11 +853,16 @@ class GraphDict(dict):
                 raise KeyError(f"Key `key` is present in both edge and node data")
             data_dict[key] = val
 
-        # Convert the data to torch
+        # Convert the data and sparse data to torch
         for key, val in data_dict.items():
             if isinstance(val, np.ndarray):
                 val = val.astype(self.dtype)
                 data_dict[key] = torch.as_tensor(val)
+            elif issparse(val):
+                indices = torch.from_numpy(np.vstack((val.row, val.col)).astype(np.int64))
+                data_dict[key] = torch.sparse_coo_tensor(indices=indices, values=val.data, size=val.shape)
+            else:
+                raise TypeError(f"Type {type(val)} not supported")
 
         # Create the PyG graph object `Data`
         data = Data(edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes, **data_dict)

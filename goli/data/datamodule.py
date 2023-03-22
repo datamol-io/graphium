@@ -334,22 +334,34 @@ class MultitaskDataset(Dataset):
     @property
     def num_nodes_total(self):
         """Total number of nodes for all graphs"""
-        return sum([get_num_nodes(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return sum([get_num_nodes(data) for data in features])
 
     @property
     def max_num_nodes_per_graph(self):
         """Maximum number of nodes per graph"""
-        return max([get_num_nodes(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return max([get_num_nodes(data) for data in features])
 
     @property
     def std_num_nodes_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        return np.std([get_num_nodes(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return np.std([get_num_nodes(data) for data in features])
 
     @property
     def min_num_nodes_per_graph(self):
         """Minimum number of nodes per graph"""
-        return min([get_num_nodes(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return min([get_num_nodes(data) for data in features])
 
     @property
     def mean_num_nodes_per_graph(self):
@@ -359,22 +371,34 @@ class MultitaskDataset(Dataset):
     @property
     def num_edges_total(self):
         """Total number of edges for all graphs"""
-        return sum([get_num_edges(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return sum([get_num_edges(data) for data in features])
 
     @property
     def max_num_edges_per_graph(self):
         """Maximum number of edges per graph"""
-        return max([get_num_edges(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return max([get_num_edges(data) for data in features])
 
     @property
     def min_num_edges_per_graph(self):
         """Minimum number of edges per graph"""
-        return min([get_num_edges(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return min([get_num_edges(data) for data in features])
 
     @property
     def std_num_edges_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        return np.std([get_num_edges(data) for data in self.features])
+        features = self.features
+        if isinstance(features, Batch):
+            features = features.to_data_list()
+        return np.std([get_num_edges(data) for data in features])
 
     @property
     def mean_num_edges_per_graph(self):
@@ -480,6 +504,7 @@ class MultitaskDataset(Dataset):
             features = [-1 for i in range(len(mol_ids))]
             for all_idx, unique_idx in enumerate(inv):
                 features[unique_idx] = all_features[all_idx]
+            features = Batch.from_data_list(features)
             return mol_ids, smiles, labels, features
         else:
             return mol_ids, smiles, labels
