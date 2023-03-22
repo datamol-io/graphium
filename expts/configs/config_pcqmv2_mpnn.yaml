@@ -8,14 +8,14 @@ constants:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  generated_data: False
   args: # Matches that in the test_multitask_datamodule.py case.
-    generated_data: True 
+    generated_data: False 
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: pcqm4mv2.csv # 1M training samples
-        # df_path: null # 1M training samples
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
+         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 30000 # use sample_size for test
@@ -217,7 +217,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 32
+    precision: 16
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 2

@@ -1145,16 +1145,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
         num_generated_mols = int(1e4)
         # Create a dummy generated dataset - singel smiles string, duplicated N times
-        # TODO: have both cxsmiles and normal smiles
-        # TODO: add the options for different cols for outcomes
-        # TODO: Take the label cols etc.
         example_molecules = dict(smiles = "C1N2C3C4C5OC13C2C45",
                                  cxsmiles="[H]C1C2=C(NC(=O)[C@@]1([H])C1=C([H])C([H])=C(C([H])([H])[H])C([H])=C1[H])C([H])=C([H])N=C2[H] |(6.4528,-1.5789,-1.2859;5.789,-0.835,-0.8455;4.8499,-0.2104,-1.5946;3.9134,0.7241,-0.934;3.9796,1.1019,0.3172;5.0405,0.6404,1.1008;5.2985,1.1457,2.1772;5.9121,-0.5519,0.613;6.9467,-0.2303,0.8014;5.677,-1.7955,1.4745;4.7751,-2.7953,1.0929;4.2336,-2.7113,0.154;4.5521,-3.9001,1.914;3.8445,-4.6636,1.5979;5.215,-4.0391,3.1392;4.9919,-5.2514,4.0126;5.1819,-5.0262,5.0671;5.6619,-6.0746,3.7296;3.966,-5.6247,3.925;6.1051,-3.0257,3.52;6.6247,-3.101,4.4725;6.3372,-1.9217,2.7029;7.0168,-1.1395,3.0281;2.8586,1.2252,-1.7853;2.1303,1.9004,-1.3493;2.8118,0.8707,-3.0956;2.0282,1.2549,-3.7434;3.716,0.0207,-3.7371;4.6658,-0.476,-3.0127;5.3755,-1.1468,-3.5021)|",
                                 )
-        reference_values = dict(homo = 0.378498,
-                                lumo = 1.343875,
-                                alpha =  -0.697538,
-                                cv = -2.01027)
         example_df_entry = {smiles_col: example_molecules[smiles_col]}
         for label in label_cols:
             example_df_entry[label] = np.random.random()
@@ -1197,12 +1190,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
             logger.info(f"Reading data for task '{task}'")
-            if args.generated_data is True:
-                # TODO: this is where the generated data should be calculated
-                """
-                What do we actually need to do here?
-                I think it's actually generate the data - if I move it here will we skip the need for the read csv section?
-                """
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
                 label_cols = self._parse_label_cols(
@@ -1215,7 +1202,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     + check_arg_iterator(args.weights_col, enforce_type=list)
                 )
                 label_dtype = {col: np.float32 for col in label_cols}
-                # TODO: Add an if generated_data here to then go and generate with the appropriate labels etc
                 if self.generated_data:
                     task_df[task] = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
                 else:
@@ -1278,7 +1264,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             featurization_batch_size=self.featurization_batch_size,
             backend=self.featurization_backend,
         )
-        # TODO: this needs setting here as well
         if self.generated_data is False:
             # Get all unique mol ids.
             unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
@@ -1598,8 +1583,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if df is None:
             # Only load the useful columns, as some dataset can be very large
             # when loading all columns
-            # TODO: Option if generated_data and no df make the df with the relevant cols
-            # TODO: or we could just return the relevant cols
             if self.generated_data:
                 data_frame = self.generate_data(label_cols=label_cols, smiles_col=smiles_col)
             else:
@@ -1689,7 +1672,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         task = keys[0]
         args = self.task_dataset_processing_params[task]
         if args.df is None:
-            # TODO: Again if there is generated data flag and no df yet, need to make it here
             if self.generated_data:
                 df = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
             else:
@@ -1856,7 +1838,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             # Split from an indices file
             with fsspec.open(str(splits_path)) as f:
-                # TODO: Don't need the generated data here - maybe have an assertation line or something
                 if self.generated_data:
                     splits = self.generate_data()
                 else:
@@ -2058,7 +2039,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         num_elements = 0
         for task, args in self.task_dataset_processing_params.items():
             if args.df is None:
-                # TODO: The full generated data here if they don't yet exist.
                 if self.generated_data:
                     df = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
                 else:

@@ -134,9 +134,6 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
 
     cfg_data = config["datamodule"]["args"]
 
-    # Check if generated data and dataframe / dataframe path ahve been provided
-    assert cfg_data
-
     # Instanciate the datamodule
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
 
