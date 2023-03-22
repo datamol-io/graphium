@@ -1789,13 +1789,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             # Split from an indices file
             name, ext = os.path.splitext(splits_path)
             _, ext2 = os.path.splitext(name)
-            if ext2 != "": ext = f"{ext2}{ext}"
+            if ext2 != "":
+                ext = f"{ext2}{ext}"
             if ext == ".pt":
                 splits = torch.load(splits_path)
             elif (".csv" in ext) or (".tsv" in ext):
                 with fsspec.open(str(splits_path)) as f:
                     splits = self._read_csv(splits_path)
-                splits.dropna()
+                splits = splits.dropna()
             else:
                 raise ValueError(f"file extension {ext} not recognised, please use .pt or .csv.")
             train, val, test = split_names

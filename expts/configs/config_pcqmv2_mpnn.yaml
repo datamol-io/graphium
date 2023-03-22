@@ -17,7 +17,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        sample_size: 30000 # use sample_size for test
+        # sample_size: 30000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
         split_names: ["train", "valid", "test-dev"]
