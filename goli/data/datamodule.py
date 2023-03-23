@@ -324,6 +324,7 @@ class MultitaskDataset(Dataset):
         """
         return len(self.labels)
 
+
     @property
     def num_graphs_total(self):
         r"""
@@ -334,34 +335,24 @@ class MultitaskDataset(Dataset):
     @property
     def num_nodes_total(self):
         """Total number of nodes for all graphs"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return sum([get_num_nodes(data) for data in features])
+        return sum(get_num_nodes_per_graph(self.features))
 
     @property
     def max_num_nodes_per_graph(self):
         """Maximum number of nodes per graph"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return max([get_num_nodes(data) for data in features])
+        return max(get_num_nodes_per_graph(self.features))
 
     @property
     def std_num_nodes_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return np.std([get_num_nodes(data) for data in features])
+        return np.std(get_num_nodes_per_graph(self.features))
+
 
     @property
     def min_num_nodes_per_graph(self):
         """Minimum number of nodes per graph"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return min([get_num_nodes(data) for data in features])
+        return min(get_num_nodes_per_graph(self.features))
+
 
     @property
     def mean_num_nodes_per_graph(self):
@@ -371,34 +362,25 @@ class MultitaskDataset(Dataset):
     @property
     def num_edges_total(self):
         """Total number of edges for all graphs"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return sum([get_num_edges(data) for data in features])
+        return sum(get_num_edges_per_graph(self.features))
 
     @property
     def max_num_edges_per_graph(self):
         """Maximum number of edges per graph"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return max([get_num_edges(data) for data in features])
+        return max(get_num_edges_per_graph(self.features))
+
 
     @property
     def min_num_edges_per_graph(self):
         """Minimum number of edges per graph"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return min([get_num_edges(data) for data in features])
+        return min(get_num_edges_per_graph(self.features))
+
 
     @property
     def std_num_edges_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        features = self.features
-        if isinstance(features, Batch):
-            features = features.to_data_list()
-        return np.std([get_num_edges(data) for data in features])
+        return np.std(get_num_edges_per_graph(self.features))
+
 
     @property
     def mean_num_edges_per_graph(self):
@@ -2289,6 +2271,16 @@ def get_num_nodes(
     else:
         raise ValueError(f"graph dtype not recognised.")
 
+def get_num_nodes_per_graph(graphs):
+    r"""
+    number of nodes per graph
+    """
+    if isinstance(graphs, Batch):
+        _, counts = torch.unique(graphs.batch, return_counts=True)
+        counts = counts.tolist()
+    else:
+        counts = [get_num_nodes(graph) for graph in graphs]
+    return counts
 
 def get_num_edges(
     graph: Union[dgl.DGLGraph, GraphDict, Data, Batch],
@@ -2304,3 +2296,14 @@ def get_num_edges(
         return graph.num_edges()
     elif isinstance(graph, (Data, Batch)):
         return graph.num_edges
+
+def get_num_edges_per_graph(graphs):
+    r"""
+    number of edges per graph
+    """
+    if isinstance(graphs, Batch):
+        _, counts = torch.unique(graphs.batch, return_counts=True)
+        counts = counts.tolist()
+    else:
+        counts = [get_num_edges(graph) for graph in graphs]
+    return counts
