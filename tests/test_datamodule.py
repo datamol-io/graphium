@@ -44,20 +44,25 @@ class Test_DataModule(ut.TestCase):
         ds = GraphOGBDataModule(task_specific_args, **dm_args)
 
         ds.prepare_data()
-        ds.setup()
+
+        # Check the keys in the dataset
+        ds.setup(save_smiles_and_ids=False)
+        assert set(ds.train_ds[0].keys()) == {"features", "labels"}
+
+        ds.setup(save_smiles_and_ids=True)
+        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
 
         # test module
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
         assert len(ds) == 642
 
-        # test dataset
-        assert set(ds.train_ds[0].keys()) == {"labels", "features"}
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
+        assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["task_1"]) == 16
-        assert len(batch["features"]) == 16
+        assert len(batch["mol_ids"]) == 16
 
     def test_none_filtering(self):
         # Create the objects to filter
@@ -186,7 +191,14 @@ class Test_DataModule(ut.TestCase):
         ds = GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
         assert not ds.load_data_from_cache(verbose=False)
         ds.prepare_data()
-        ds.setup()
+
+        # Check the keys in the dataset
+        ds.setup(save_smiles_and_ids=False)
+        assert set(ds.train_ds[0].keys()) == {"features", "labels"}
+
+        ds.setup(save_smiles_and_ids=True)
+        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
+
 
         # Make sure that the cache is created
         full_cache_path = ds.get_data_cache_fullname(compress=False)
@@ -201,13 +213,11 @@ class Test_DataModule(ut.TestCase):
         assert ds.num_node_feats == 50
         assert len(ds) == 642
 
-        # test dataset
-        assert set(ds.train_ds[0].keys()) == {"labels", "features"}
-
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
+        assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["task_1"]) == 16
-        assert len(batch["features"]) == 16
+        assert len(batch["mol_ids"]) == 16
 
 
 if __name__ == "__main__":

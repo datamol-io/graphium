@@ -281,6 +281,7 @@ class MultitaskDataset(Dataset):
         backend: str = "loky",
         featurization_batch_size=1000,
         progress: bool = True,
+        save_smiles_and_ids: bool = False,
         about: str = "",
     ):
         r"""
@@ -299,6 +300,11 @@ class MultitaskDataset(Dataset):
             datasets: A dictionary of single-task datasets
             n_jobs: Number of jobs to run in parallel
             backend: Parallelization backend
+            featurization_batch_size: The batch size to use for the parallelization of the featurization
+            progress: Whether to display the progress bar
+            save_smiles_and_ids: Whether to save the smiles and ids for the dataset. If `False`, `mol_ids` and `smiles` are set to `None`
+            about: A description of the dataset
+
         progress: Whether to display the progress bar
             about: A description of the dataset
         """
@@ -317,8 +323,10 @@ class MultitaskDataset(Dataset):
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
 
         # Set mol_ids and smiles to None to save memory as they are not needed.
-        self.mol_ids = None
-        self.smiles = None
+        if not save_smiles_and_ids:
+            self.mol_ids = None
+            self.smiles = None
+
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
 
@@ -1327,6 +1335,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def setup(
         self,
         stage: str = None,
+        save_smiles_and_ids: bool = False,
     ):
         """
         Prepare the torch dataset. Called on every GPUs. Setting state here is ok.
@@ -1339,10 +1348,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set")  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set")  # type: ignore
-            print(self.train_ds)
-            print(self.val_ds)
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            logger.info(self.train_ds)
+            logger.info(self.val_ds)
 
             labels_size.update(
                 self.train_ds.labels_size
@@ -1350,8 +1359,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set")  # type: ignore
-            print(self.test_ds)
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            logger.info(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
 
