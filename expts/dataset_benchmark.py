@@ -20,6 +20,7 @@ os.chdir(MAIN_DIR)
 CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"
 
+
 def benchmark(fn, *args, message="", log2wandb=False, **kwargs):
     start = time.time()
     value = fn(*args, **kwargs)
@@ -29,13 +30,14 @@ def benchmark(fn, *args, message="", log2wandb=False, **kwargs):
         wandb.log({message: duration})
     return value
 
+
 def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
     print(f"length of {name} dataloader: {len(dataloader)}")
     tputs = [0] * n_epochs
     n_samples = [0] * n_epochs
     n_graphs = [0] * n_epochs
-    n_nodes = [0]*n_epochs
-    n_edges = [0]*n_epochs
+    n_nodes = [0] * n_epochs
+    n_edges = [0] * n_epochs
     for i in range(n_epochs):
         start = time.time()
         for data in tqdm.tqdm(dataloader):
@@ -56,22 +58,24 @@ def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
         wandb.log({"average tput": average_tput})
 
         for i in range(n_epochs):
-            d = {"epoch": i,
-                       "samples per epoch": n_samples[i],
-                       "graphs per epoch": n_graphs[i],
-                       "nodes per epoch": n_nodes[i],
-                       "edges per epoch": n_edges[i]}
+            d = {
+                "epoch": i,
+                "samples per epoch": n_samples[i],
+                "graphs per epoch": n_graphs[i],
+                "nodes per epoch": n_nodes[i],
+                "edges per epoch": n_edges[i],
+            }
             print(d)
             wandb.log(d)
 
 
-
-def main(cfg: DictConfig,
-         stages: Optional[Sequence[str]] = None,
-         run_name: str = "dataset_benchmark",
-         add_date_time: bool = True,
-         log2wandb: bool = False) -> None:
-
+def main(
+    cfg: DictConfig,
+    stages: Optional[Sequence[str]] = None,
+    run_name: str = "dataset_benchmark",
+    add_date_time: bool = True,
+    log2wandb: bool = False,
+) -> None:
     if add_date_time:
         run_name += "_" + datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
@@ -81,31 +85,15 @@ def main(cfg: DictConfig,
     cfg = deepcopy(cfg)
 
     # Load and initialize the dataset
-    datamodule = benchmark(
-        load_datamodule,
-        cfg,
-        message="Load duration",
-        log2wandb=log2wandb)
+    datamodule = benchmark(load_datamodule, cfg, message="Load duration", log2wandb=log2wandb)
 
-    benchmark(
-        datamodule.prepare_data,
-        message="Prepare duration",
-        log2wandb=log2wandb)
+    benchmark(datamodule.prepare_data, message="Prepare duration", log2wandb=log2wandb)
 
-    if False: # stages is not None:
+    if False:  # stages is not None:
         for stage in stages:
-            benchmark(
-                datamodule.setup,
-                stage,
-                message=f"Setup {stage} duration",
-                log2wandb=log2wandb
-            )
+            benchmark(datamodule.setup, stage, message=f"Setup {stage} duration", log2wandb=log2wandb)
     else:
-        benchmark(
-            datamodule.setup,
-            message=f"Setup duration",
-            log2wandb=log2wandb
-        )
+        benchmark(datamodule.setup, message=f"Setup duration", log2wandb=log2wandb)
 
     if stages is None or {"train", "fit"}.intersection(stages):
         dataloader = datamodule.train_dataloader()
@@ -116,6 +104,7 @@ def main(cfg: DictConfig,
     if stages is None or {"test", "testing"}.intersection(stages):
         dataloader = datamodule.test_dataloader()
         benchmark_dataloader(dataloader, name="testing", log2wandb=log2wandb)
+
 
 if __name__ == "__main__":
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
