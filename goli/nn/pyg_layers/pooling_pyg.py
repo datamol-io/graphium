@@ -234,6 +234,9 @@ class VirtualNodePyg(nn.Module):
 
         # Use edge features in pooling
         self.use_edges = use_edges
+        has_edges = (in_dim_edges is not None) and (out_dim_edges is not None) and (in_dim_edges > 0) and (out_dim_edges > 0)
+        if self.use_edges and not has_edges:
+            raise ValueError("The edge features are not defined but `use_edges` is True")
         self.vn_type = vn_type.lower()
         self.layer, out_pool_dim = parse_pooling_layer_pyg(
             in_dim=self.in_dim_nodes, pooling=self.vn_type, feat_type="node"
@@ -258,7 +261,9 @@ class VirtualNodePyg(nn.Module):
 
         # Projection layers from the pooling layer to node and edge feature sizes
         self.node_projection = MuReadoutGoli(out_pool_dim, self.out_dim_nodes)
-        self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
+        self.edge_projection = None
+        if self.use_edges:
+            self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
 
     def forward(
         self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor
