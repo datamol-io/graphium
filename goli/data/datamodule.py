@@ -316,6 +316,9 @@ class MultitaskDataset(Dataset):
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
 
+        # Set mol_ids and smiles to None to save memory as they are not needed.
+        self.mol_ids = None
+        self.smiles = None
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
 
@@ -393,12 +396,11 @@ class MultitaskDataset(Dataset):
         """
         datum = {}
 
-        # Remove mol_ids and smiles for now, to reduce memory consumption b
-        # if self.mol_ids is not None:
-        #     datum["mol_ids"] = self.mol_ids[idx]
+        if self.mol_ids is not None:
+            datum["mol_ids"] = self.mol_ids[idx]
 
-        # if self.smiles is not None:
-        #     datum["smiles"] = self.smiles[idx]
+        if self.smiles is not None:
+            datum["smiles"] = self.smiles[idx]
 
         if self.labels is not None:
             datum["labels"] = self.labels[idx]
