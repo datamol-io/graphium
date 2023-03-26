@@ -151,10 +151,9 @@ class test_Multitask_NN(ut.TestCase):
             [1, 2],
             self.virtual_nodes,
             self.norms,
-            self.gnn_layers_kwargs.items()
+            self.gnn_layers_kwargs.items(),
         )
         for pooling, residual_skip_steps, virtual_node, normalization, (layer_name, this_kwargs) in options:
-
             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
             layer_type = layer_name.split("#")[0]
 

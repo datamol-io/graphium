@@ -234,7 +234,12 @@ class VirtualNodePyg(nn.Module):
 
         # Use edge features in pooling
         self.use_edges = use_edges
-        has_edges = (in_dim_edges is not None) and (out_dim_edges is not None) and (in_dim_edges > 0) and (out_dim_edges > 0)
+        has_edges = (
+            (in_dim_edges is not None)
+            and (out_dim_edges is not None)
+            and (in_dim_edges > 0)
+            and (out_dim_edges > 0)
+        )
         if self.use_edges and not has_edges:
             raise ValueError("The edge features are not defined but `use_edges` is True")
         self.vn_type = vn_type.lower()

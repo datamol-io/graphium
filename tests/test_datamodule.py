@@ -37,9 +37,10 @@ class Test_DataModule(ut.TestCase):
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 16
+        dm_args["featurization_n_jobs"] = 2
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
+        dm_args["featurization_batch_size"] = 50
 
         ds = GraphOGBDataModule(task_specific_args, **dm_args)
 
@@ -56,7 +57,6 @@ class Test_DataModule(ut.TestCase):
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
         assert len(ds) == 642
-
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
@@ -178,9 +178,10 @@ class Test_DataModule(ut.TestCase):
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 16
+        dm_args["featurization_n_jobs"] = 2
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
+        dm_args["featurization_batch_size"] = 50
 
         # Delete the cache if already exist
         if exists(TEMP_CACHE_DATA_PATH):
@@ -198,7 +199,6 @@ class Test_DataModule(ut.TestCase):
 
         ds.setup(save_smiles_and_ids=True)
         assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
-
 
         # Make sure that the cache is created
         full_cache_path = ds.get_data_cache_fullname(compress=False)
@@ -220,7 +220,6 @@ class Test_DataModule(ut.TestCase):
         assert len(batch["mol_ids"]) == 16
 
     def test_datamodule_with_none_molecules(self):
-
         # Setup the featurization
         featurization_args = {}
         featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
@@ -230,7 +229,7 @@ class Test_DataModule(ut.TestCase):
         # Config for datamodule
         bad_csv = "tests/data/micro_ZINC_corrupt.csv"
         task_specific_args = {}
-        task_kwargs = {"df_path": bad_csv, "split_val": 0., "split_test": 0.}
+        task_kwargs = {"df_path": bad_csv, "split_val": 0.0, "split_test": 0.0}
         task_specific_args["task_1"] = {"label_cols": "SA", "smiles_col": "SMILES1", **task_kwargs}
         task_specific_args["task_2"] = {"label_cols": "logp", "smiles_col": "SMILES2", **task_kwargs}
         task_specific_args["task_3"] = {"label_cols": "score", "smiles_col": "SMILES3", **task_kwargs}
@@ -241,7 +240,12 @@ class Test_DataModule(ut.TestCase):
         num_bad_smiles = sum(bad_smiles)
 
         # Test the datamodule
-        datamodule = MultitaskFromSmilesDataModule(task_specific_args=task_specific_args, featurization_args=featurization_args, featurization_n_jobs=0, featurization_batch_size=1)
+        datamodule = MultitaskFromSmilesDataModule(
+            task_specific_args=task_specific_args,
+            featurization_args=featurization_args,
+            featurization_n_jobs=0,
+            featurization_batch_size=1,
+        )
         datamodule.prepare_data()
         datamodule.setup(save_smiles_and_ids=True)
 
@@ -277,17 +281,21 @@ class Test_DataModule(ut.TestCase):
 
         # Check that the smiles are correct for each datapoint in the dataset
         for smiles in train_smiles:
-            self.assertEqual(len(set(smiles)), 1) # Check that all smiles are the same
+            self.assertEqual(len(set(smiles)), 1)  # Check that all smiles are the same
             this_smiles = smiles[0]
             true_smiles = df.loc[this_smiles][["SMILES1", "SMILES2", "SMILES3"]]
             num_true_smiles = sum(true_smiles != "XXX")
-            self.assertEqual(len(smiles), num_true_smiles) # Check that the number of smiles is correct
-            self.assertEqual(this_smiles, true_smiles[true_smiles != "XXX"].values[0]) # Check that the smiles are correct
+            self.assertEqual(len(smiles), num_true_smiles)  # Check that the number of smiles is correct
+            self.assertEqual(
+                this_smiles, true_smiles[true_smiles != "XXX"].values[0]
+            )  # Check that the smiles are correct
 
         # Convert the labels from the train_ds to a dataframe
         train_labels = [{task: val[0] for task, val in d["labels"].items()} for d in datamodule.train_ds]
         train_labels_df = pd.DataFrame(train_labels)
-        train_labels_df = train_labels_df.rename(columns={"task_1": "SA", "task_2": "logp", "task_3": "score"})
+        train_labels_df = train_labels_df.rename(
+            columns={"task_1": "SA", "task_2": "logp", "task_3": "score"}
+        )
         train_labels_df["smiles"] = [s[0] for s in datamodule.train_ds.smiles]
         train_labels_df = train_labels_df.set_index("smiles")
         train_labels_df = train_labels_df.sort_index()
@@ -299,8 +307,10 @@ class Test_DataModule(ut.TestCase):
         true_nans = df2[["SMILES1", "SMILES2", "SMILES3"]].values == "XXX"
         true_labels = df2[["SA", "logp", "score"]].values
         true_labels[true_nans] = np.nan
-        np.testing.assert_array_equal(nans, true_nans) # Check that the nans are correct
-        np.testing.assert_array_almost_equal(labels, true_labels, decimal=5) # Check that the label values are correct
+        np.testing.assert_array_equal(nans, true_nans)  # Check that the nans are correct
+        np.testing.assert_array_almost_equal(
+            labels, true_labels, decimal=5
+        )  # Check that the label values are correct
 
 
 if __name__ == "__main__":

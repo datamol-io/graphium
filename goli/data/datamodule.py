@@ -204,15 +204,25 @@ class SingleTaskDataset(Dataset):
         # Verify that all lists are the same length
         numel = len(labels)
         if features is not None:
-            assert len(features) == numel, f"features must be the same length as labels, got {len(features)} and {numel}"
+            assert (
+                len(features) == numel
+            ), f"features must be the same length as labels, got {len(features)} and {numel}"
         if smiles is not None:
-            assert len(smiles) == numel, f"smiles must be the same length as labels, got {len(smiles)} and {numel}"
+            assert (
+                len(smiles) == numel
+            ), f"smiles must be the same length as labels, got {len(smiles)} and {numel}"
         if indices is not None:
-            assert len(indices) == numel, f"indices must be the same length as labels, got {len(indices)} and {numel}"
+            assert (
+                len(indices) == numel
+            ), f"indices must be the same length as labels, got {len(indices)} and {numel}"
         if weights is not None:
-            assert len(weights) == numel, f"weights must be the same length as labels, got {len(weights)} and {numel}"
+            assert (
+                len(weights) == numel
+            ), f"weights must be the same length as labels, got {len(weights)} and {numel}"
         if unique_ids is not None:
-            assert len(unique_ids) == numel, f"unique_ids must be the same length as labels, got {len(unique_ids)} and {numel}"
+            assert (
+                len(unique_ids) == numel
+            ), f"unique_ids must be the same length as labels, got {len(unique_ids)} and {numel}"
 
         self.labels = labels
         if smiles is not None:
@@ -538,7 +548,8 @@ class MultitaskDataset(Dataset):
                 f"-------------------\n{self.__class__.__name__}\n"
                 + f"\tabout = {self.about}\n"
                 + f"\tnum_graphs_total = {self.num_graphs_total}\n"
-                + f"-------------------\n")
+                + f"-------------------\n"
+            )
             return out_str
 
         out_str = (
@@ -1278,9 +1289,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
-        features, _ = self._featurize_molecules(
-            smiles_to_featurize
-        )
+        features, _ = self._featurize_molecules(smiles_to_featurize)
 
         # Store the features (including Nones, which will be filtered in the next step)
         for task in task_dataset_args.keys():
