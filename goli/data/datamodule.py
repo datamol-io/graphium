@@ -129,8 +129,8 @@ class BatchingSmilesTransform:
 
         if n_jobs == -1:
             n_jobs = os.cpu_count()
-        if n_jobs == 0:
-            batch_size = numel
+        if (n_jobs == 0) or (n_jobs == 1):
+            batch_size = 1
         else:
             batch_size = min(desired_batch_size, numel // n_jobs)
         batch_size = max(1, batch_size)
