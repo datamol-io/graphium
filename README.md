@@ -63,6 +63,9 @@ pip install PATH_TO_SDK/poptorch-3.1.0+98660_0a383de63f_ubuntu_20_04-cp38-cp38-l
 # Activate poplar SDK.
 source PATH_TO_SDK/enable
 
+# Install the temporary IPU Lightning fork
+PACKAGE_NAME=pytorch pip install git+https://github.com/joao-alex-cunha/lightning
+
 # Install the IPU specific and goli requirements
 PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
 
