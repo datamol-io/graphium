@@ -114,7 +114,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config(self):
-        config = goli.load_config(name="zinc_default_multitask_fulldgl")
+        config = goli.load_config(name="zinc_default_multitask_pyg")
 
         df = goli.data.load_tiny_zinc()  # 100 molecules
 
@@ -161,7 +161,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config_csv(self):
-        config = goli.load_config(name="zinc_default_multitask_fulldgl")
+        config = goli.load_config(name="zinc_default_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
         dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)

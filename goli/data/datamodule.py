@@ -129,8 +129,8 @@ class BatchingSmilesTransform:
 
         if n_jobs == -1:
             n_jobs = os.cpu_count()
-        if n_jobs == 0:
-            batch_size = numel
+        if (n_jobs == 0) or (n_jobs == 1):
+            batch_size = 1
         else:
             batch_size = min(desired_batch_size, numel // n_jobs)
         batch_size = max(1, batch_size)
@@ -200,6 +200,30 @@ class SingleTaskDataset(Dataset):
             weights: A list of weights
             unique_ids: A list of unique ids
         """
+
+        # Verify that all lists are the same length
+        numel = len(labels)
+        if features is not None:
+            assert (
+                len(features) == numel
+            ), f"features must be the same length as labels, got {len(features)} and {numel}"
+        if smiles is not None:
+            assert (
+                len(smiles) == numel
+            ), f"smiles must be the same length as labels, got {len(smiles)} and {numel}"
+        if indices is not None:
+            assert (
+                len(indices) == numel
+            ), f"indices must be the same length as labels, got {len(indices)} and {numel}"
+        if weights is not None:
+            assert (
+                len(weights) == numel
+            ), f"weights must be the same length as labels, got {len(weights)} and {numel}"
+        if unique_ids is not None:
+            assert (
+                len(unique_ids) == numel
+            ), f"unique_ids must be the same length as labels, got {len(unique_ids)} and {numel}"
+
         self.labels = labels
         if smiles is not None:
             manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
@@ -281,6 +305,7 @@ class MultitaskDataset(Dataset):
         backend: str = "loky",
         featurization_batch_size=1000,
         progress: bool = True,
+        save_smiles_and_ids: bool = False,
         about: str = "",
     ):
         r"""
@@ -299,6 +324,11 @@ class MultitaskDataset(Dataset):
             datasets: A dictionary of single-task datasets
             n_jobs: Number of jobs to run in parallel
             backend: Parallelization backend
+            featurization_batch_size: The batch size to use for the parallelization of the featurization
+            progress: Whether to display the progress bar
+            save_smiles_and_ids: Whether to save the smiles and ids for the dataset. If `False`, `mol_ids` and `smiles` are set to `None`
+            about: A description of the dataset
+
         progress: Whether to display the progress bar
             about: A description of the dataset
         """
@@ -311,10 +341,15 @@ class MultitaskDataset(Dataset):
         self.about = about
 
         task = next(iter(datasets))
-        if "features" in datasets[task][0]:
+        if (len(datasets[task]) > 0) and ("features" in datasets[task][0]):
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
+
+        # Set mol_ids and smiles to None to save memory as they are not needed.
+        if not save_smiles_and_ids:
+            self.mol_ids = None
+            self.smiles = None
 
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
@@ -393,12 +428,11 @@ class MultitaskDataset(Dataset):
         """
         datum = {}
 
-        # Remove mol_ids and smiles for now, to reduce memory consumption b
-        # if self.mol_ids is not None:
-        #     datum["mol_ids"] = self.mol_ids[idx]
+        if self.mol_ids is not None:
+            datum["mol_ids"] = self.mol_ids[idx]
 
-        # if self.smiles is not None:
-        #     datum["smiles"] = self.smiles[idx]
+        if self.smiles is not None:
+            datum["smiles"] = self.smiles[idx]
 
         if self.labels is not None:
             datum["labels"] = self.labels[idx]
@@ -432,6 +466,8 @@ class MultitaskDataset(Dataset):
         all_tasks = []
 
         for task, ds in datasets.items():
+            if len(ds) == 0:
+                continue
             # Get data from single task dataset
             ds_smiles = [ds[i]["smiles"] for i in range(len(ds))]
             ds_labels = [ds[i]["labels"] for i in range(len(ds))]
@@ -491,6 +527,8 @@ class MultitaskDataset(Dataset):
         """
         task_labels_size = {}
         for task, ds in datasets.items():
+            if len(ds) == 0:
+                continue
             label = ds[0][
                 "labels"
             ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
@@ -505,6 +543,15 @@ class MultitaskDataset(Dataset):
         Returns:
             A string representation of the dataset.
         """
+        if len(self) == 0:
+            out_str = (
+                f"-------------------\n{self.__class__.__name__}\n"
+                + f"\tabout = {self.about}\n"
+                + f"\tnum_graphs_total = {self.num_graphs_total}\n"
+                + f"-------------------\n"
+            )
+            return out_str
+
         out_str = (
             f"-------------------\n{self.__class__.__name__}\n"
             + f"\tabout = {self.about}\n"
@@ -1122,6 +1169,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         self.cache_data_path = cache_data_path
 
+        if featurization is None:
+            featurization = {}
+
         # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
         if prepare_dict_or_graph == "dgl:dict":
             self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
@@ -1239,9 +1289,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
 
         # Convert SMILES to features
-        features, _ = self._featurize_molecules(
-            smiles_to_featurize
-        )  # sample_idx is removed ... might need to add it again later in another way
+        features, _ = self._featurize_molecules(smiles_to_featurize)
 
         # Store the features (including Nones, which will be filtered in the next step)
         for task in task_dataset_args.keys():
@@ -1253,23 +1301,25 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Add the features to the task-specific data
         for all_idx, task in enumerate(all_tasks):
             task_dataset_args[task]["features"].append(all_features[all_idx])
-        # Update idx_none per task for later filtering
-        for task, args in task_dataset_args.items():
-            for idx, feat in enumerate(args["features"]):
-                if did_featurization_fail(feat):
-                    args["idx_none"].append(idx)
 
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
         for task, args in task_dataset_args.items():
-            df, features, smiles, labels, sample_idx, extras = self._filter_none_molecules(
-                args["idx_none"],
+            # Find out which molecule failed featurization, and filter them out
+            idx_none = []
+            for idx, feat in enumerate(args["features"]):
+                if did_featurization_fail(feat):
+                    idx_none.append(idx)
+            this_unique_ids = all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
+            df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
+                idx_none,
                 task_df[task],
                 args["features"],
                 args["smiles"],
                 args["labels"],
                 args["sample_idx"],
                 args["extras"],
+                this_unique_ids,
             )
 
             # Update the data
@@ -1284,7 +1334,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
-                unique_ids=all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
+                unique_ids=this_unique_ids,
                 **task_dataset_args[task]["extras"],
             )
 
@@ -1325,6 +1375,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def setup(
         self,
         stage: str = None,
+        save_smiles_and_ids: bool = False,
     ):
         """
         Prepare the torch dataset. Called on every GPUs. Setting state here is ok.
@@ -1337,10 +1388,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set")  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set")  # type: ignore
-            print(self.train_ds)
-            print(self.val_ds)
+            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            logger.info(self.train_ds)
+            logger.info(self.val_ds)
 
             labels_size.update(
                 self.train_ds.labels_size
@@ -1348,8 +1399,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set")  # type: ignore
-            print(self.test_ds)
+            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            logger.info(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
 
@@ -1782,13 +1833,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if splits_path is None:
             # Random splitting
-            train_indices, val_test_indices = train_test_split(
-                sample_idx,
-                test_size=split_val + split_test,
-                random_state=split_seed,
-            )
+            if split_test + split_val > 0:
+                train_indices, val_test_indices = train_test_split(
+                    sample_idx,
+                    test_size=split_val + split_test,
+                    random_state=split_seed,
+                )
+                sub_split_test = split_test / (split_test + split_val)
+            else:
+                train_indices = sample_idx
+                val_test_indices = np.array([])
+                sub_split_test = 0
 
-            sub_split_test = split_test / (split_test + split_val)
             if split_test > 0:
                 val_indices, test_indices = train_test_split(
                     val_test_indices,
