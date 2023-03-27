@@ -21,7 +21,7 @@ from goli.nn.residual_connections import (
     ResidualConnectionWeighted,
     ResidualConnectionRandom,
 )
-
+from goli.nn.utils import MupMixin
 
 from goli.ipu.ipu_utils import import_poptorch
 
@@ -30,7 +30,7 @@ poptorch = import_poptorch(raise_error=False)
 import collections
 
 
-class FeedForwardNN(nn.Module):
+class FeedForwardNN(nn.Module, MupMixin):
     def __init__(
         self,
         in_dim: int,
@@ -1045,7 +1045,7 @@ class FeedForwardGraphBase(FeedForwardNN):
         return class_str + layer_str + pool_str + out_str
 
 
-class FullGraphNetwork(nn.Module):
+class FullGraphNetwork(nn.Module, MupMixin):
     def __init__(
         self,
         gnn_kwargs: Dict[str, Any],
@@ -1532,7 +1532,7 @@ class FullGraphNetwork(nn.Module):
         return self.gnn.out_linear.linear.weight.dtype
 
 
-class TaskHeads(nn.Module):
+class TaskHeads(nn.Module, MupMixin):
     def __init__(
         self,
         in_dim: int,
