@@ -3805,7 +3805,7 @@ cores.</p></td>
 
 
 <h5 id="goli.data.datamodule.MultitaskDataset.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">datasets</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">featurization_batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">about</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">datasets</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">featurization_batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">save_smiles_and_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">about</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></code>
 
 <a href="#goli.data.datamodule.MultitaskDataset.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3861,6 +3861,45 @@ we will have a multitask dataset of the following form:
           <td><p>Parallelization backend</p></td>
           <td>
                 <code>&#39;loky&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>featurization_batch_size</code></td>
+          <td>
+          </td>
+          <td><p>The batch size to use for the parallelization of the featurization</p></td>
+          <td>
+                <code>1000</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>progress</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether to display the progress bar</p></td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>save_smiles_and_ids</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>Whether to save the smiles and ids for the dataset. If <code>False</code>, <code>mol_ids</code> and <code>smiles</code> are set to <code>None</code></p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>about</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>A description of the dataset</p></td>
+          <td>
+                <code>&#39;&#39;</code>
           </td>
         </tr>
     </tbody>
@@ -5006,7 +5045,7 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
 
 
 <h5 id="goli.data.datamodule.MultitaskFromSmilesDataModule.setup" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">setup</span><span class="p">(</span><span class="n">stage</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">save_smiles_and_ids</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
 
 <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.setup" class="headerlink" title="Permanent link">&para;</a></h5>
 
