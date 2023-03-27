@@ -223,6 +223,7 @@ class SingleTaskDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
+        # TODO: This is the function we need to touch for the generated data
         """
         get the data at the given index
         Parameters:
@@ -231,6 +232,7 @@ class SingleTaskDataset(Dataset):
             datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids"
         """
         datum = {}
+        idx = 0
 
         if self.features is not None:
             datum["features"] = self.features[idx]
@@ -401,7 +403,8 @@ class MultitaskDataset(Dataset):
 
         # if self.smiles is not None:
         #     datum["smiles"] = self.smiles[idx]
-
+        # import ipdb; ipdb.set_trace()
+        idx = 0
         if self.labels is not None:
             datum["labels"] = self.labels[idx]
 
@@ -1143,7 +1146,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Returns:
             pd.DataFrame
         """
-        num_generated_mols = int(1e4)
+        num_generated_mols = int(1e2)
         # Create a dummy generated dataset - singel smiles string, duplicated N times
         example_molecules = dict(
             smiles="C1N2C3C4C5OC13C2C45",
@@ -1304,7 +1307,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["sample_idx"],
                 args["extras"],
             )
-
+            # if self.generated_data is True:
+            #     smiles = np.repeat(smiles, 1)
+            #     labels = np.repeat(labels, 1)
+                # features = features *  int(1)
+                # sample_idx = np.arange(smiles.shape[0])
+                # all_mol_ids = all_mol_ids * int(1)
+                # idx_per_task[task]= (0, len(all_mol_ids))
             # Update the data
             task_dataset_args[task]["smiles"] = smiles
             task_dataset_args[task]["labels"] = labels
@@ -1371,6 +1380,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if stage == "fit" or stage is None:
             self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", generated=self.generated_data)  # type: ignore
             self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", generated=self.generated_data)  # type: ignore
+            print(self.train_ds)
+            print(self.val_ds)
 
             labels_size.update(
                 self.train_ds.labels_size
@@ -1379,7 +1390,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if stage == "test" or stage is None:
             self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", generated=self.generated_data)  # type: ignore
-
+            print(self.test_ds)
             labels_size.update(self.test_ds.labels_size)
 
         default_labels_size_dict = self.collate_fn.keywords.get("labels_size_dict", None)

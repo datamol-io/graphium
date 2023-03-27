@@ -9,11 +9,11 @@ constants:
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
-    generated_data: False 
+    generated_data: True 
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        df_path: pcqm4mv2.csv
          # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
          # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
@@ -217,7 +217,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 16
+    precision: 32
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 2
