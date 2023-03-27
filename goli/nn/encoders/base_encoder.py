@@ -7,6 +7,7 @@ from torch_geometric.data import Batch
 from goli.nn.base_layers import get_norm
 from goli.nn.utils import MupMixin
 
+
 class BaseEncoder(torch.nn.Module, MupMixin):
     def __init__(
         self,
