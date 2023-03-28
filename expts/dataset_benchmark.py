@@ -103,13 +103,13 @@ def main(
 
     if stages is None or {"train", "fit"}.intersection(stages):
         dataloader = datamodule.train_dataloader()
-        benchmark_dataloader(dataloader, name="train", log2wandb=log2wandb)
+        benchmark_dataloader(dataloader, name="train", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb)
     if stages is None or {"val", "valid", "validation"}.intersection(stages):
         dataloader = datamodule.val_dataloader()
-        benchmark_dataloader(dataloader, name="validation", log2wandb=log2wandb)
+        benchmark_dataloader(dataloader, name="validation", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb)
     if stages is None or {"test", "testing"}.intersection(stages):
         dataloader = datamodule.test_dataloader()
-        benchmark_dataloader(dataloader, name="testing", log2wandb=log2wandb)
+        benchmark_dataloader(dataloader, name="testing", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb)
 
 
 if __name__ == "__main__":
