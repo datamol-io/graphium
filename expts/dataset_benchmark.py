@@ -33,8 +33,8 @@ def benchmark(fn, *args, message="", log2wandb=False, **kwargs):
 
 def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
     print(f"length of {name} dataloader: {len(dataloader)}")
-    epoch_times  = [0] * n_epochs
-    tputs  = [0] * n_epochs
+    epoch_times = [0] * n_epochs
+    tputs = [0] * n_epochs
     n_batches = [0] * n_epochs
     n_graphs = [0] * n_epochs
     n_nodes = [0] * n_epochs
@@ -103,13 +103,22 @@ def main(
 
     if stages is None or {"train", "fit"}.intersection(stages):
         dataloader = datamodule.train_dataloader()
-        benchmark_dataloader(dataloader, name="train", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb)
+        benchmark_dataloader(
+            dataloader, name="train", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb
+        )
     if stages is None or {"val", "valid", "validation"}.intersection(stages):
         dataloader = datamodule.val_dataloader()
-        benchmark_dataloader(dataloader, name="validation", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb)
+        benchmark_dataloader(
+            dataloader,
+            name="validation",
+            n_epochs=cfg["trainer"]["trainer"]["max_epochs"],
+            log2wandb=log2wandb,
+        )
     if stages is None or {"test", "testing"}.intersection(stages):
         dataloader = datamodule.test_dataloader()
-        benchmark_dataloader(dataloader, name="testing", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb)
+        benchmark_dataloader(
+            dataloader, name="testing", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb
+        )
 
 
 if __name__ == "__main__":
