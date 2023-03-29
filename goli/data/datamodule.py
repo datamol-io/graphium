@@ -1275,7 +1275,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     df=args.df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
                 )
                 task_df[task] = args.df
-            task_df[task] =  task_df[task]
+            task_df[task] = task_df[task]
             args.label_cols = label_cols
         logger.info("Done reading datasets")
 
@@ -1373,10 +1373,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             # if self.generated_data is True:
             #     smiles = np.repeat(smiles, 1)
             #     labels = np.repeat(labels, 1)
-                # features = features *  int(1)
-                # sample_idx = np.arange(smiles.shape[0])
-                # all_mol_ids = all_mol_ids * int(1)
-                # idx_per_task[task]= (0, len(all_mol_ids))
+            # features = features *  int(1)
+            # sample_idx = np.arange(smiles.shape[0])
+            # all_mol_ids = all_mol_ids * int(1)
+            # idx_per_task[task]= (0, len(all_mol_ids))
             # Update the data
             task_dataset_args[task]["smiles"] = smiles
             task_dataset_args[task]["labels"] = labels
@@ -2397,7 +2397,9 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
 
 class FakeDataModule(MultitaskFromSmilesDataModule):
-    def __init__(self, task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
+    def __init__(
+        self,
+        task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
@@ -2412,7 +2414,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
-        **kwargs):
+        **kwargs,
+    ):
         BaseDataModule.__init__(
             self,
             batch_size_training=batch_size_training,
@@ -2465,7 +2468,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             raise ValueError(
                 f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
-        
+
     # TODO: write the prepare dataset function to read just on molecule and run that through
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -2497,7 +2500,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
                 # else:
                 #     task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
 
-            task_df[task] =  task_df[task].iloc[0: 1]
+            task_df[task] = task_df[task].iloc[0:1]
             args.label_cols = label_cols
         logger.info("Done reading datasets")
 
@@ -2542,9 +2545,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             backend=self.featurization_backend,
         )
         # Convert SMILES to features
-        features, _ = self._featurize_molecules(
-            all_smiles
-        )  
+        features, _ = self._featurize_molecules(all_smiles)
         task_dataset_args[task]["features"] = features
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
@@ -2565,7 +2566,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             self.train_singletask_datasets[task] = Subset(self.single_task_datasets[task], [0])
             self.val_singletask_datasets[task] = Subset(self.single_task_datasets[task], [0])
             self.test_singletask_datasets[task] = Subset(self.single_task_datasets[task], [0])
-    
+
     def setup(self, stage=None):
         # TODO
         """
@@ -2595,7 +2596,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
 
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
-    
+
     def get_first_graph(self):
         """
         Low memory footprint method to get the first datapoint DGL graph.
@@ -2636,11 +2637,11 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
                 break
         return graph
-    
+
+
 class FakeDataset(MultitaskDataset):
-    
-    def __init__(self,  datasets,  num_mols=int(1234)):
-        self.generated=True
+    def __init__(self, datasets, num_mols=int(1234)):
+        self.generated = True
         self.about = "FakeDatasets"
         task = next(iter(datasets))
         if "features" in datasets[task][0]:
@@ -2652,13 +2653,13 @@ class FakeDataset(MultitaskDataset):
         self.labels_size = self.set_label_size_dict(datasets)
         self.features = self.features
         self.num_mols = num_mols
-    
+
     def __len__(self):
         r"""
         Returns the number of molecules
         """
         return self.num_mols
-    
+
     @lru_cache(maxsize=16)
     def __getitem__(self, idx):
         r"""
@@ -2676,8 +2677,8 @@ class FakeDataset(MultitaskDataset):
             datum["features"] = self.features[0]
 
         return datum
-    
-    
+
+
 def get_num_nodes(
     graph: Union[dgl.DGLGraph, GraphDict, Data, Batch],
 ) -> int:
