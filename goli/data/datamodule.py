@@ -765,9 +765,7 @@ class BaseDataModule(pl.LightningDataModule):
         return df
 
     @staticmethod
-    def _read_sdf(path: str, 
-                  mol_col_name : str = "_rdkit_molecule_obj",
-                  **kwargs):
+    def _read_sdf(path: str, mol_col_name: str = "_rdkit_molecule_obj", **kwargs):
         r"""
         read a given sdf file into a pandas dataframe
         uses datamol.read_sdf to read the sdf file
@@ -792,7 +790,7 @@ class BaseDataModule(pl.LightningDataModule):
         kwargs.setdefault("discard_invalid", False)
 
         # Get the interesting columns
-        mol_cols = mol_col_name #adjust this to be the column name in your sdf file
+        mol_cols = mol_col_name  # adjust this to be the column name in your sdf file
         kwargs.setdefault("mol_column", mol_cols)
         usecols = kwargs.pop("usecols", None)
         dtype = kwargs.pop("dtype", None)
@@ -812,7 +810,6 @@ class BaseDataModule(pl.LightningDataModule):
             df.astype(dtype=dtype_mapper, copy=False)
 
         return df
-
 
     @staticmethod
     def _read_table(self, path: str, **kwargs) -> pd.DataFrame:
