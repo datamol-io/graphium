@@ -216,7 +216,6 @@ def create_ipu_dataloader(
         dataset_max_nodes_per_graph=dataset.max_num_nodes_per_graph,
         dataset_max_edges_per_graph=dataset.max_num_edges_per_graph,
     )
-
     # Get the global batch size
     num_nodes = np.asarray([dataset[ii]["features"].num_nodes for ii in range(len(dataset))])
     accum = ipu_options.Training.gradient_accumulation

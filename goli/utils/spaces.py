@@ -7,6 +7,7 @@ from goli.nn.base_layers import FCLayer
 from goli.data.datamodule import (
     GraphOGBDataModule,
     MultitaskFromSmilesDataModule,
+    FakeDataModule
 )
 from goli.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
 from goli.ipu.ipu_metrics import (
@@ -168,4 +169,5 @@ METRICS_DICT.update(METRICS_REGRESSION)
 DATAMODULE_DICT = {
     "GraphOGBDataModule": GraphOGBDataModule,
     "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule,
+    "FakeDataModule": FakeDataModule,
 }

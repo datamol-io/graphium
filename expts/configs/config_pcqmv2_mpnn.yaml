@@ -4,21 +4,20 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  # cpu or ipu or gpu
+    type: cpu  # cpu or ipu or gpu
 
 datamodule:
-  module_type: "MultitaskFromSmilesDataModule"
+  module_type: "FakeDataModule"
+  # module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
     generated_data: True 
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
-        df: null
         df_path: pcqm4mv2.csv
          # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
          # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 30000 # use sample_size for test
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -49,7 +48,7 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 64
+    batch_size_training: 16
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: -1 # -1 to use all
