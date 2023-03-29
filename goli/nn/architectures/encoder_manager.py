@@ -145,8 +145,6 @@ class EncoderManager(nn.Module):
             g:
                 pyg Batch with the positional encodings added to the graph
         """
-        #! this function breaks dependency with DGL graph and only works with pyg graph
-
         # Apply the positional encoders
         pe_pooled = self.forward_positional_encoding(g)
 

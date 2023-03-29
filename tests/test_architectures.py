@@ -6,11 +6,9 @@ The layers are not thoroughly tested due to the difficulty of testing them
 
 import torch
 import unittest as ut
-import dgl
 from copy import deepcopy
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardDGL, FeedForwardPyg, FullGraphNetwork
-from goli.nn.architectures.global_architectures import FeedForwardGraph
+from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphNetwork
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -334,26 +332,22 @@ class test_FeedForwardGraph(ut.TestCase):
 
     edge_idx1 = (torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3]))
     edge_idx2 = (torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0]))
-    g1 = dgl.graph(edge_idx1)
-    g2 = dgl.graph(edge_idx2)
-    h1 = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    e1 = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    h2 = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    e2 = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
-    g1.ndata["h"] = h1
-    g1.edata["edge_attr"] = e1
-    g2.ndata["h"] = h2
-    g2.edata["edge_attr"] = e2
-    batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
-    batch = [dgl.add_self_loop(g) for g in batch]
-    batch_dgl = dgl.batch(batch)
-
-    num_nodes = batch_dgl.num_nodes()
-    batch_size = batch_dgl.batch_size
+    num_edges1 = len(edge_idx1[0])
+    num_nodes1 = max(edge_idx1[0].max(), edge_idx1[1].max()) + 1
+    num_edges2 = len(edge_idx2[0])
+    num_nodes2 = max(edge_idx2[0].max(), edge_idx2[1].max()) + 1
+    h1 = torch.zeros(num_nodes1, in_dim, dtype=torch.float32)
+    e1 = torch.ones(num_edges1, in_dim_edges, dtype=torch.float32)
+    h2 = torch.ones(num_nodes2, in_dim, dtype=torch.float32)
+    e2 = torch.zeros(num_edges2, in_dim_edges, dtype=torch.float32)
 
     g1 = Data(h=h1, edge_index=torch.stack(edge_idx1), edge_attr=e1)
     g2 = Data(h=h2, edge_index=torch.stack(edge_idx2), edge_attr=e2)
-    batch_pyg = Batch.from_data_list([g1, g2, deepcopy(g1), deepcopy(g2)])
+    data_list = [g1, g2, deepcopy(g1), deepcopy(g2)]
+    batch_pyg = Batch.from_data_list(data_list)
+    num_nodes = batch_pyg.num_nodes
+    num_edges = batch_pyg.num_edges
+    batch_size = len(data_list)
 
     virtual_nodes = ["none", "mean", "sum"]
     norms = ["none", "batch_norm", "layer_norm"]
@@ -365,13 +359,6 @@ class test_FeedForwardGraph(ut.TestCase):
         "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
         "pyg:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
         "pyg:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
-        "dgl:gcn": {},
-        "dgl:gin": {},
-        "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
-        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
-        "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
     def test_forward_no_residual(self):
@@ -383,11 +370,8 @@ class test_FeedForwardGraph(ut.TestCase):
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            # PYG or DGL
-                            if layer_type.startswith("dgl:"):
-                                layer_class = FeedForwardDGL
-                                bg = deepcopy(self.batch_dgl)
-                            elif layer_type.startswith("pyg:"):
+                            # PYG
+                            if layer_type.startswith("pyg:"):
                                 layer_class = FeedForwardPyg
                                 bg = deepcopy(self.batch_pyg)
 
@@ -436,11 +420,8 @@ class test_FeedForwardGraph(ut.TestCase):
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            # PYG or DGL
-                            if layer_type.startswith("dgl:"):
-                                layer_class = FeedForwardDGL
-                                bg = deepcopy(self.batch_dgl)
-                            elif layer_type.startswith("pyg:"):
+                            # PYG
+                            if layer_type.startswith("pyg:"):
                                 layer_class = FeedForwardPyg
                                 bg = deepcopy(self.batch_pyg)
 
@@ -488,11 +469,8 @@ class test_FeedForwardGraph(ut.TestCase):
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            # PYG or DGL
-                            if layer_type.startswith("dgl:"):
-                                layer_class = FeedForwardDGL
-                                bg = deepcopy(self.batch_dgl)
-                            elif layer_type.startswith("pyg:"):
+                            # PYG
+                            if layer_type.startswith("pyg:"):
                                 layer_class = FeedForwardPyg
                                 bg = deepcopy(self.batch_pyg)
 
@@ -540,11 +518,8 @@ class test_FeedForwardGraph(ut.TestCase):
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            # PYG or DGL
-                            if layer_type.startswith("dgl:"):
-                                layer_class = FeedForwardDGL
-                                bg = deepcopy(self.batch_dgl)
-                            elif layer_type.startswith("pyg:"):
+                            # PYG
+                            if layer_type.startswith("pyg:"):
                                 layer_class = FeedForwardPyg
                                 bg = deepcopy(self.batch_pyg)
 
@@ -596,11 +571,8 @@ class test_FeedForwardGraph(ut.TestCase):
                             err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
                             layer_type = layer_name.split("#")[0]
 
-                            # PYG or DGL
-                            if layer_type.startswith("dgl:"):
-                                layer_class = FeedForwardDGL
-                                bg = deepcopy(self.batch_dgl)
-                            elif layer_type.startswith("pyg:"):
+                            # PYG
+                            if layer_type.startswith("pyg:"):
                                 layer_class = FeedForwardPyg
                                 bg = deepcopy(self.batch_pyg)
 
@@ -662,26 +634,22 @@ class test_FullGraphNetwork(ut.TestCase):
 
     edge_idx1 = (torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3]))
     edge_idx2 = (torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0]))
-    g1 = dgl.graph(edge_idx1)
-    g2 = dgl.graph(edge_idx2)
-    h1 = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    e1 = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    h2 = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    e2 = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
-    g1.ndata["feat"] = h1
-    g1.edata["edge_feat"] = e1
-    g2.ndata["feat"] = h2
-    g2.edata["edge_feat"] = e2
-    batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
-    batch = [dgl.add_self_loop(g) for g in batch]
-    batch_dgl = dgl.batch(batch)
+    num_edges1 = len(edge_idx1[0])
+    num_nodes1 = max(edge_idx1[0].max(), edge_idx1[1].max()) + 1
+    num_edges2 = len(edge_idx2[0])
+    num_nodes2 = max(edge_idx2[0].max(), edge_idx2[1].max()) + 1
+    h1 = torch.zeros(num_nodes1, in_dim, dtype=torch.float32)
+    e1 = torch.ones(num_edges1, in_dim_edges, dtype=torch.float32)
+    h2 = torch.ones(num_nodes2, in_dim, dtype=torch.float32)
+    e2 = torch.zeros(num_edges2, in_dim_edges, dtype=torch.float32)
 
-    num_nodes = batch_dgl.num_nodes()
-    batch_size = batch_dgl.batch_size
-
-    g1 = Data(feat=h1, edge_index=torch.stack(edge_idx1), edge_feat=e1)
-    g2 = Data(feat=h2, edge_index=torch.stack(edge_idx2), edge_feat=e2)
-    batch_pyg = Batch.from_data_list([g1, g2, deepcopy(g1), deepcopy(g2)])
+    g1 = Data(h=h1, edge_index=torch.stack(edge_idx1), edge_attr=e1)
+    g2 = Data(h=h2, edge_index=torch.stack(edge_idx2), edge_attr=e2)
+    data_list = [g1, g2, deepcopy(g1), deepcopy(g2)]
+    batch_pyg = Batch.from_data_list(data_list)
+    num_nodes = batch_pyg.num_nodes
+    num_edges = batch_pyg.num_edges
+    batch_size = len(data_list)
 
     virtual_nodes = ["none", "mean"]
     norms = ["none", "batch_norm", "layer_norm"]
@@ -693,13 +661,6 @@ class test_FullGraphNetwork(ut.TestCase):
         "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
         "pyg:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
         "pyg:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
-        "dgl:gcn": {},
-        "dgl:gin": {},
-        "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
-        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
-        "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
     }
 
     def test_full_network_densenet(self):
@@ -724,10 +685,8 @@ class test_FullGraphNetwork(ut.TestCase):
                             layer_type = layer_name.split("#")[0]
                             for pre_nn_kwargs in pre_nn_kwargs_all:
                                 for pre_nn_edges_kwargs in pre_nn_edges_kwargs_all:
-                                    # PYG or DGL
-                                    if layer_type.startswith("dgl:"):
-                                        bg = deepcopy(self.batch_dgl)
-                                    elif layer_type.startswith("pyg:"):
+                                    # PYG
+                                    if layer_type.startswith("pyg:"):
                                         bg = deepcopy(self.batch_pyg)
 
                                     this_kwargs2 = deepcopy(this_kwargs)

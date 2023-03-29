@@ -110,7 +110,7 @@ class test_Multitask_NN(ut.TestCase):
     }
 
     in_dim = 7
-    fulldgl_out_dim = 11
+    fullgraph_out_dim = 11
     in_dim_edges = 3
     hidden_dims = [6, 6, 6, 6, 6]
 
@@ -134,7 +134,7 @@ class test_Multitask_NN(ut.TestCase):
         "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
     }
 
-    def test_fulldgl_multitask_forward(self):
+    def test_full_graph_multitask_forward(self):
         # Task heads
         task_heads_params = {"task_1": task_1_params, "task_2": task_2_params, "task_3": task_3_params}
 
@@ -144,7 +144,7 @@ class test_Multitask_NN(ut.TestCase):
 
         pre_nn_kwargs = dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4, 4, 4, 4])
 
-        post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.fulldgl_out_dim, hidden_dims=[3, 3, 3, 3])
+        post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.fullgraph_out_dim, hidden_dims=[3, 3, 3, 3])
 
         options = product(
             [["none"], ["sum"], ["mean", "max"]],
@@ -210,8 +210,6 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
     e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
     x2 = torch.randn(edge_idx2.max() + 1, in_dim_nodes, dtype=torch.float32)
     e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
-    # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
-    # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
     g1 = Data(feat=x1, edge_index=edge_idx1, edge_attr=e1)
     g2 = Data(feat=x2, edge_index=edge_idx2, edge_attr=e2)
     bg = Batch.from_data_list([g1, g2])
@@ -222,11 +220,11 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
         # Initialize the network
         model_class, model_kwargs = load_architecture(cfg, in_dims=self.in_dims)
 
-        multitask_fulldgl_nn = model_class(**model_kwargs)
+        multitask_full_graph_nn = model_class(**model_kwargs)
 
         # Test
         bg = deepcopy(self.bg)
-        h_out = multitask_fulldgl_nn.forward(bg)
+        h_out = multitask_full_graph_nn.forward(bg)
 
         dim_1 = self.bg.num_graphs
 

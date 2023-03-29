@@ -1243,9 +1243,8 @@ class FullGraphNetwork(nn.Module):
         h = g["feat"].to(self.dtype)
         g["h"] = h
         e = None
-        if "edge_feat" in g.keys():
-            e = g["edge_feat"].to(self.dtype)
-            g["edge_attr"] = e
+        if "edge_feat" in g.keys:
+            g["edge_attr"] = g["edge_feat"].to(self.dtype)
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:

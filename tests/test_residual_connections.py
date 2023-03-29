@@ -1,5 +1,5 @@
 """
-Unit tests for the file goli/dgl/residual_connections.py
+Unit tests for the file residual_connections.py
 """
 
 import numpy as np

@@ -1179,7 +1179,7 @@ def mol_to_pyggraph(
 
 def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Get the default arguments of `mol_to_dglgraph_dict` and update it
+    Get the default arguments of `mol_to_graph_dict` and update it
     with a provided dict of arguments in order to get a fulle signature
     of the featurizer args actually used for the features computation.
 
@@ -1189,7 +1189,7 @@ def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None) -> Dict[str, 
         A dictionary of featurizer arguments
     """
 
-    # Get the signature of `mol_to_dglgraph_dict`
+    # Get the signature of `mol_to_graph_dict`
     signature = inspect.signature(mol_to_graph_dict)
 
     # Filter out empty arguments (without default value)
