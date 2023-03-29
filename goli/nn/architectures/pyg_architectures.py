@@ -6,10 +6,10 @@ from torch_geometric.data import Data, Batch
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
-from goli.nn.architectures.global_architectures import FeedForwardGraphBase
+from goli.nn.architectures.global_architectures import FeedForwardGraph
 
 
-class FeedForwardPyg(FeedForwardGraphBase):
+class FeedForwardPyg(FeedForwardGraph):
     def _graph_layer_forward(
         self,
         layer: BaseGraphModule,
@@ -78,15 +78,15 @@ class FeedForwardPyg(FeedForwardGraphBase):
         """
 
         # Set node / edge features into the graph
-        g = self._set_node_feats(g, h, key="h")
-        g = self._set_edge_feats(g, e, key="edge_attr")
+        g["h"] = h
+        g["edge_attr"] = e
 
         # Apply the GNN layer
         g = layer(g)
 
         # Get the node / edge features from the graph
-        h = self._get_node_feats(g, key="h")
-        e = self._get_edge_feats(g, key="edge_attr")
+        h = g["h"]
+        e = g["edge_attr"]
 
         # Apply the residual layers on the features and edges (if applicable)
         if step_idx < len(self.layers) - 1:
@@ -103,77 +103,3 @@ class FeedForwardPyg(FeedForwardGraphBase):
         self, in_dim: int, pooling: Union[str, List[str]], **kwargs
     ) -> Tuple[Module, int]:
         return parse_pooling_layer_pyg(in_dim, pooling, **kwargs)
-
-    def _get_node_feats(self, g: Union[Data, Batch], key: str = "h") -> Tensor:
-        """
-        Get the node features of a PyG graph `g`.
-
-        Parameters:
-            g: pyg Batch graph
-            key: key associated to the node features
-        """
-        return g.get(key, None)
-
-    def _get_edge_feats(self, g: Union[Data, Batch], key: str = "edge_attr") -> Tensor:
-        """
-        Get the edge features of a PyG graph `g`.
-
-        Parameters:
-            g: pyg Batch graph
-            key: key associated to the edge features
-        """
-        return g.get(key, None) if (self.in_dim_edges > 0) else None
-
-    def _get_graph_feats(self, g: Union[Data, Batch], key: str = "graph_attr") -> Tensor:
-        """
-        Get the graph features of a PyG graph `g`.
-
-        Parameters:
-            g: pyg Batch graph
-            key: key associated to the edge features
-        """
-        return g.get(key, None)
-
-    def _set_node_feats(
-        self, g: Union[Data, Batch], node_feats: Tensor, key: str = "h"
-    ) -> Union[Data, Batch]:
-        """
-        Set the node features of a PyG graph `g`, and return the graph.
-
-        Parameters:
-            g: pyg Batch graph
-            key: key associated to the node features
-        """
-        assert node_feats.shape[0] == g.num_nodes
-        g[key] = node_feats
-        return g
-
-    def _set_edge_feats(
-        self, g: Union[Data, Batch], edge_feats: Tensor, key: str = "edge_attr"
-    ) -> Union[Data, Batch]:
-        """
-        Set the edge features of a PyG graph `g`, and return the graph.
-
-        Parameters:
-            g: pyg Batch graph
-            key: key associated to the node features
-        """
-        if (self.in_dim_edges > 0) and (edge_feats is not None):
-            assert edge_feats.shape[0] == g.num_edges
-            g[key] = edge_feats
-        return g
-
-    def _set_graph_feats(
-        self, g: Union[Data, Batch], graph_feats: Tensor, key: str = "h"
-    ) -> Union[Data, Batch]:
-        """
-        Set the graph features of a PyG graph `g`, and return the graph.
-
-        Parameters:
-            g: pyg Batch graph
-            key: key associated to the node features
-        """
-        if isinstance(g, Batch):
-            assert graph_feats.shape[0] == g.num_graphs
-        g[key] = graph_feats
-        return g

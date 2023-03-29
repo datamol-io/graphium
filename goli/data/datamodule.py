@@ -18,7 +18,6 @@ import datamol as dm
 
 from sklearn.model_selection import train_test_split
 
-import dgl
 from torch_geometric.data import Data, Batch
 import pytorch_lightning as pl
 from pytorch_lightning.trainer.states import RunningStage
@@ -31,7 +30,6 @@ from functools import lru_cache
 from goli.utils import fs
 from goli.features import (
     mol_to_graph_dict,
-    mol_to_dglgraph,
     GraphDict,
     mol_to_pyggraph,
 )
@@ -184,7 +182,7 @@ class SingleTaskDataset(Dataset):
     def __init__(
         self,
         labels: Union[torch.Tensor, np.ndarray],
-        features: Optional[List[Union[dgl.DGLGraph, GraphDict]]] = None,
+        features: Optional[List[GraphDict]] = None,
         smiles: Optional[List[str]] = None,
         indices: Optional[List[str]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
@@ -370,22 +368,22 @@ class MultitaskDataset(Dataset):
     @property
     def num_nodes_total(self):
         """Total number of nodes for all graphs"""
-        return sum([get_num_nodes(data) for data in self.features])
+        return sum([data.num_nodes for data in self.features])
 
     @property
     def max_num_nodes_per_graph(self):
         """Maximum number of nodes per graph"""
-        return max([get_num_nodes(data) for data in self.features])
+        return max([data.num_nodes for data in self.features])
 
     @property
     def std_num_nodes_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        return np.std([get_num_nodes(data) for data in self.features])
+        return np.std([data.num_nodes for data in self.features])
 
     @property
     def min_num_nodes_per_graph(self):
         """Minimum number of nodes per graph"""
-        return min([get_num_nodes(data) for data in self.features])
+        return min([data.num_nodes for data in self.features])
 
     @property
     def mean_num_nodes_per_graph(self):
@@ -395,22 +393,22 @@ class MultitaskDataset(Dataset):
     @property
     def num_edges_total(self):
         """Total number of edges for all graphs"""
-        return sum([get_num_edges(data) for data in self.features])
+        return sum([data.num_edges for data in self.features])
 
     @property
     def max_num_edges_per_graph(self):
         """Maximum number of edges per graph"""
-        return max([get_num_edges(data) for data in self.features])
+        return max([data.num_edges for data in self.features])
 
     @property
     def min_num_edges_per_graph(self):
         """Minimum number of edges per graph"""
-        return min([get_num_edges(data) for data in self.features])
+        return min([data.num_edges for data in self.features])
 
     @property
     def std_num_edges_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        return np.std([get_num_edges(data) for data in self.features])
+        return np.std([data.num_edges for data in self.features])
 
     @property
     def mean_num_edges_per_graph(self):
@@ -1117,15 +1115,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             featurization_batch_size: Batch size to use for the featurization.
 
             collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
-            prepare_dict_or_graph: Whether to preprocess all molecules as DGL graphs, DGL dict or PyG graphs.
+            prepare_dict_or_graph: Whether to preprocess all molecules as Graph dict or PyG graphs.
                 Possible options:
 
-                - "dgl:graph": Process molecules as `dgl.DGLGraph`. It's slower during pre-processing
-                  and requires more RAM. It is faster during training with `num_workers=0`, but
-                  slower with larger `num_workers`.
-                - "dgl:dict": Process molecules as a `dict`. It's faster and requires less RAM during
+                - "pyg:dict": Process molecules as a `dict`. It's faster and requires less RAM during
                   pre-processing. It is slower during training with with `num_workers=0` since
-                  DGLGraphs will be created during data-loading, but faster with large
+                  pyg `Data` will be created during data-loading, but faster with large
                   `num_workers`, and less likely to cause memory issues with the parallelization.
                 - "pyg:graph": Process molecules as `pyg.data.Data`.
             dataset_class: The class used to create the dataset from which to sample.
@@ -1172,16 +1167,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if featurization is None:
             featurization = {}
 
-        # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
-        if prepare_dict_or_graph == "dgl:dict":
+        # Whether to transform the smiles into a pyg `Data` graph or a dictionary compatible with pyg
+        if prepare_dict_or_graph == "pyg:dict":
             self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
-        elif prepare_dict_or_graph == "dgl:graph":
-            self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
         elif prepare_dict_or_graph == "pyg:graph":
             self.smiles_transformer = partial(mol_to_pyggraph, **featurization)
         else:
             raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
+                f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
 
     def prepare_data(self):
@@ -1650,7 +1643,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
 
         graph = self.get_first_graph()
-        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
+        if isinstance(graph, (GraphDict)):
             graph = graph.ndata
 
         # get list of all keys corresponding to positional encoding
@@ -1669,9 +1662,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """Return the number of edge features in the first graph"""
 
         graph = self.get_first_graph()
-        if isinstance(graph, (dgl.DGLGraph, GraphDict)):
-            graph = graph.edata
-
         empty = torch.Tensor([])
         num_feats = graph.get("edge_feat", empty).shape[-1]
 
@@ -1679,7 +1669,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     def get_first_graph(self):
         """
-        Low memory footprint method to get the first datapoint DGL graph.
+        Low memory footprint method to get the first datapoint graph.
         The first 10 rows of the data are read in case the first one has a featurization
         error. If all 20 first element, then `None` is returned, otherwise the first
         graph to not fail is returned.
@@ -1708,8 +1698,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         graph = None
         for s in smiles:
             graph = self.smiles_transformer(s, mask_nan=0.0)
-            num_nodes = get_num_nodes(graph)
-            num_edges = get_num_edges(graph)
+            num_nodes = graph.num_nodes
+            num_edges = graph.num_edges
             if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
                 break
         return graph
@@ -2329,37 +2319,3 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
 
         return ogb_metadata
-
-
-def get_num_nodes(
-    graph: Union[dgl.DGLGraph, GraphDict, Data, Batch],
-) -> int:
-    """
-    utility function to get the number of nodes in a graph
-    Parameters:
-        graph: a DGLGraph, GraphDict, Data or Batch object
-    Returns:
-        num_nodes: the number of nodes in the graph
-    """
-    if isinstance(graph, (dgl.DGLGraph, GraphDict)):
-        return graph.num_nodes()
-    elif isinstance(graph, (Data, Batch)):
-        return graph.num_nodes
-    else:
-        raise ValueError(f"graph dtype not recognised.")
-
-
-def get_num_edges(
-    graph: Union[dgl.DGLGraph, GraphDict, Data, Batch],
-) -> int:
-    """
-    Utility function to get the number of edges in a graph
-    Parameters:
-        graph: a DGLGraph, GraphDict, Data or Batch object
-    Returns:
-        num_edges: the number of edges in the graph
-    """
-    if isinstance(graph, (dgl.DGLGraph, GraphDict)):
-        return graph.num_edges()
-    elif isinstance(graph, (Data, Batch)):
-        return graph.num_edges

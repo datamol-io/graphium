@@ -8,7 +8,6 @@ import torch
 from torch import nn, Tensor
 import pytorch_lightning as pl
 from torch_geometric.data import Data, Batch
-from dgl import DGLHeteroGraph
 from mup.optim import MuAdam
 
 from goli.config.config_convert import recursive_config_reformating
@@ -170,13 +169,6 @@ class PredictorModule(pl.LightningModule):
         # Convert features to dtype
         if isinstance(feats, torch.Tensor):
             feats = feats.to(self.dtype)
-        elif isinstance(feats, DGLHeteroGraph):
-            for key, val in feats.ndata.items():
-                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
-                    feats.ndata[key] = val.to(dtype=self.dtype)
-            for key, val in feats.edata.items():
-                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
-                    feats.edata[key] = val.to(dtype=self.dtype)
         elif isinstance(feats, (Data, Batch, dict)):
             for key, val in feats.items():
                 if isinstance(val, torch.Tensor) and (val.is_floating_point()):

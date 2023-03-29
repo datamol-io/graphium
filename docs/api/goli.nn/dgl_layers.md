@@ -1,9 +1,0 @@
-::: goli.nn.dgl_layers.dgn_dgl
-::: goli.nn.dgl_layers.dgn_operations
-::: goli.nn.dgl_layers.gat_dgl
-::: goli.nn.dgl_layers.gated_gcn_dgl
-::: goli.nn.dgl_layers.gcn_dgl
-::: goli.nn.dgl_layers.gin_dgl
-::: goli.nn.dgl_layers.pna_dgl
-::: goli.nn.dgl_layers.pna_operations
-::: goli.nn.dgl_layers.pooling_dgl

@@ -10,7 +10,7 @@ import dgl
 from copy import deepcopy
 
 from goli.nn.architectures import FeedForwardNN, FeedForwardDGL, FeedForwardPyg, FullGraphNetwork
-from goli.nn.architectures.global_architectures import FeedForwardGraphBase
+from goli.nn.architectures.global_architectures import FeedForwardGraph
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
