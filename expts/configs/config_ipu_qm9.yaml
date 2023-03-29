@@ -4,13 +4,12 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  #cpu or ipu or gpu
+    type: ipu  #cpu or ipu or gpu
 
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
-  generated_data: False
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null

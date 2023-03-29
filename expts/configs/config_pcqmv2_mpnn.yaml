@@ -8,6 +8,7 @@ constants:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
+  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:

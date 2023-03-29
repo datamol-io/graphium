@@ -216,6 +216,7 @@ def create_ipu_dataloader(
         dataset_max_nodes_per_graph=dataset.max_num_nodes_per_graph,
         dataset_max_edges_per_graph=dataset.max_num_edges_per_graph,
     )
+
     # Get the global batch size
     num_nodes = np.asarray([dataset[ii]["features"].num_nodes for ii in range(len(dataset))])
     accum = ipu_options.Training.gradient_accumulation
@@ -245,6 +246,7 @@ def create_ipu_dataloader(
         )
         max_pack_size = max(max_pack_size, this_max_pack_size)
         max_pack_size_per_graph = max(max_pack_size_per_graph, this_max_pack_size_per_graph)
+
     max_num_nodes = collater.max_num_nodes
     # Log the estimated pack size, with warnings if too big or too small
     logger.info(

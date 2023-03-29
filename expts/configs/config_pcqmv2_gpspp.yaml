@@ -259,4 +259,3 @@ trainer:
     max_epochs: 5 #50
     min_epochs: 1 #5
     accumulate_grad_batches: 1
-    check_val_every_n_epoch: 50

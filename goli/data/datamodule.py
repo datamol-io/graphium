@@ -248,7 +248,6 @@ class SingleTaskDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        # TODO: This is the function we need to touch for the generated data
         """
         get the data at the given index
         Parameters:
@@ -1209,7 +1208,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Returns:
             pd.DataFrame
         """
-        num_generated_mols = int(1e5)
+        num_generated_mols = int(1)
         # Create a dummy generated dataset - singel smiles string, duplicated N times
         example_molecules = dict(
             smiles="C1N2C3C4C5OC13C2C45",
@@ -1385,7 +1384,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["extras"] = extras
 
             # We have the necessary components to create single-task datasets.
-            # import ipdb; ipdb.set_trace()
             self.single_task_datasets[task] = SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
@@ -2112,7 +2110,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         train_singletask_datasets = {}
         val_singletask_datasets = {}
         test_singletask_datasets = {}
-        # import ipdb; ipdb.set_trace()
         for task in task_train_indices.keys():
             train_singletask_datasets[task] = Subset(single_task_datasets[task], task_train_indices[task])
             val_singletask_datasets[task] = Subset(single_task_datasets[task], task_val_indices[task])
@@ -2414,6 +2411,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         dataset_class: type = MultitaskDataset,
+        generated_data: bool = True,
+        num_mols_to_generate: int = 100000,
         **kwargs,
     ):
         BaseDataModule.__init__(
@@ -2428,7 +2427,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         IPUDataModuleModifier.__init__(self, **kwargs)
 
         self.task_specific_args = task_specific_args
-        self.generated_data = kwargs["generated_data"]
+        self.generated_data = generated_data
+        self.num_mols_to_generate = num_mols_to_generate
 
         # TODO: Have the input argument to the Data Module be of type DatasetParams
         self.task_dataset_processing_params = {
@@ -2469,7 +2469,6 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
                 f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
 
-    # TODO: write the prepare dataset function to read just on molecule and run that through
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -2577,8 +2576,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = FakeDataset(self.train_singletask_datasets)  # type: ignore
-            self.val_ds = FakeDataset(self.val_singletask_datasets)  # type: ignore
+            self.train_ds = FakeDataset(self.train_singletask_datasets, num_mols=self.num_mols_to_generate)  # type: ignore
+            self.val_ds = FakeDataset(self.val_singletask_datasets, num_mols=self.num_mols_to_generate)  # type: ignore
             print(self.train_ds)
             print(self.val_ds)
 
@@ -2588,7 +2587,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = FakeDataset(self.test_singletask_datasets)  # type: ignore
+            self.test_ds = FakeDataset(self.test_singletask_datasets, num_mols=self.num_mols_to_generate)  # type: ignore
             print(self.test_ds)
             labels_size.update(self.test_ds.labels_size)
 

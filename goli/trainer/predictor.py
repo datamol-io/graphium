@@ -591,6 +591,7 @@ class PredictorModule(pl.LightningModule):
 
         max_nodes = datamodule.get_max_num_nodes_datamodule(stages)
         max_edges = datamodule.get_max_num_edges_datamodule(stages)
+
         self.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
     def get_num_graphs(self, data: Batch):
