@@ -4,18 +4,17 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  # cpu or ipu or gpu
+    type: ipu  # cpu or ipu or gpu
 
 datamodule:
-  module_type: "FakeDataModule"
-  # module_type: "MultitaskFromSmilesDataModule"
+  module_type: "MultitaskFromSmilesDataModule"
   args: # Matches that in the test_multitask_datamodule.py case.
-    generated_data: True 
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
-        df_path: pcqm4mv2.csv
-         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        df: null
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
+        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 30000 # use sample_size for test
@@ -52,7 +51,7 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 16
+    batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: 10 # -1 to use all
@@ -62,7 +61,7 @@ datamodule:
 
     ipu_dataloader_training_opts:
       mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+      max_num_nodes_per_graph: 16 # train max nodes: 20, max_edges: 54
       max_num_edges_per_graph: 60
 
     ipu_dataloader_inference_opts:
@@ -220,7 +219,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 32
+    precision: 16
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 2
