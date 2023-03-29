@@ -7,6 +7,8 @@ The layers are not thoroughly tested due to the difficulty of testing them
 import torch
 import unittest as ut
 from copy import deepcopy
+import sys
+import traceback
 
 from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphNetwork
 from goli.nn.base_layers import FCLayer
@@ -643,8 +645,8 @@ class test_FullGraphNetwork(ut.TestCase):
     h2 = torch.ones(num_nodes2, in_dim, dtype=torch.float32)
     e2 = torch.zeros(num_edges2, in_dim_edges, dtype=torch.float32)
 
-    g1 = Data(h=h1, edge_index=torch.stack(edge_idx1), edge_attr=e1)
-    g2 = Data(h=h2, edge_index=torch.stack(edge_idx2), edge_attr=e2)
+    g1 = Data(feat=h1, edge_index=torch.stack(edge_idx1), edge_attr=e1)
+    g2 = Data(feat=h2, edge_index=torch.stack(edge_idx2), edge_attr=e2)
     data_list = [g1, g2, deepcopy(g1), deepcopy(g2)]
     batch_pyg = Batch.from_data_list(data_list)
     num_nodes = batch_pyg.num_nodes
@@ -727,7 +729,10 @@ class test_FullGraphNetwork(ut.TestCase):
                                     try:
                                         h_out = net.forward(bg)
                                     except Exception as e:
-                                        self.fail(msg=err_msg + "\n" + e.__str__())
+                                        # self.fail(msg=err_msg + "\n" + e.__str__())
+                                        exc_type, exc_value, exc_traceback = sys.exc_info()
+                                        msg = err_msg + "\n" + str(traceback.format_exception(exc_type, exc_value, exc_traceback))
+                                        self.fail(msg)
 
                                     dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                                     self.assertListEqual(

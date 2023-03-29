@@ -611,7 +611,6 @@ def mol_to_adj_and_features(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Union[
@@ -663,9 +662,6 @@ def mol_to_adj_and_features(
 
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
-
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
 
         dtype:
             The numpy data type used to build the graph
@@ -756,7 +752,7 @@ def mol_to_adj_and_features(
 
     # Get all positional encodings
     pe_dict = get_all_positional_encoding(
-        adj, num_nodes, pos_encoding_as_features, pos_encoding_as_directions
+        adj, num_nodes, pos_encoding_as_features
     )
 
     # Mask the NaNs
@@ -880,7 +876,6 @@ def mol_to_graph_dict(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
@@ -929,9 +924,6 @@ def mol_to_graph_dict(
 
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
-
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
 
         dtype:
             The numpy data type used to build the graph
@@ -1006,7 +998,6 @@ def mol_to_graph_dict(
             explicit_H=explicit_H,
             use_bonds_weights=use_bonds_weights,
             pos_encoding_as_features=pos_encoding_as_features,
-            pos_encoding_as_directions=pos_encoding_as_directions,
             mask_nan=mask_nan,
         )
     except Exception as e:
@@ -1068,7 +1059,6 @@ def mol_to_pyggraph(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
@@ -1117,9 +1107,6 @@ def mol_to_pyggraph(
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
 
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
-
         dtype:
             The numpy data type used to build the graph
 
@@ -1164,7 +1151,6 @@ def mol_to_pyggraph(
         explicit_H=explicit_H,
         use_bonds_weights=use_bonds_weights,
         pos_encoding_as_features=pos_encoding_as_features,
-        pos_encoding_as_directions=pos_encoding_as_directions,
         dtype=dtype,
         on_error=on_error,
         mask_nan=mask_nan,
