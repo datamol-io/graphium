@@ -1232,7 +1232,7 @@ class FullGraphNetwork(nn.Module):
 
         if pipeline_length not in valid_ipu_pipeline_lengths:
             raise ValueError(
-                f"gnn_layers_per_ipu must be one of {valid_ipu_pipeline_lengths}, "
+                f"Length of gnn_layers_per_ipu must be one of {valid_ipu_pipeline_lengths}, "
                 f"got {gnn_layers_per_ipu} of length {pipeline_length} instead"
             )
 

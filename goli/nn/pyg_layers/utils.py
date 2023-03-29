@@ -111,6 +111,8 @@ class PreprocessPositions(nn.Module):
         distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
         # [batch, nodes, num_kernel]
         distance_feature_sum = distance_feature.sum(dim=-2)
+        # Output of GaussianLayer is FP32, cast to dtype of self.node_proj here
+        distance_feature_sum = distance_feature_sum.to(self.node_proj.weight.dtype)
         # [batch, nodes, embed_dim]
         node_feature = self.node_proj(distance_feature_sum)
         # [total_nodes, embed_dim]

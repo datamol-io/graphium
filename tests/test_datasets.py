@@ -45,7 +45,9 @@ class Test_Multitask_Dataset(ut.TestCase):
 
         # Create the multitask dataset
         datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
-        multitask_microzinc = MultitaskDataset(datasets_dict)  # Can optionally have features
+        multitask_microzinc = MultitaskDataset(
+            datasets_dict, save_smiles_and_ids=True
+        )  # Can optionally have features
 
         # Check: The number of unique molecules equals the number of datapoints in the multitask dataset.
         self.assertEqual(num_unique_mols, multitask_microzinc.__len__())
@@ -105,7 +107,9 @@ class Test_Multitask_Dataset(ut.TestCase):
 
         # Create the multitask dataset
         datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
-        multitask_microzinc = MultitaskDataset(datasets_dict)  # Can optionally have features
+        multitask_microzinc = MultitaskDataset(
+            datasets_dict, save_smiles_and_ids=True
+        )  # Can optionally have features
 
         # The total dataset has as many molecules as there are smiles in all tasks put together
         self.assertEqual(total_data_points, multitask_microzinc.__len__())
@@ -183,18 +187,12 @@ class Test_Multitask_Dataset(ut.TestCase):
 
         # Create the multitask dataset
         datasets_dict = {"SA": ds_micro_zinc_SA, "logp": ds_micro_zinc_logp, "score": ds_micro_zinc_score}
-        multitask_microzinc = MultitaskDataset(datasets_dict)  # Can optionally have features
+        multitask_microzinc = MultitaskDataset(
+            datasets_dict, save_smiles_and_ids=True
+        )  # Can optionally have features
 
         # The multitask dataset has as many molecules as there are unique smiles across the single task datasets.
         self.assertEqual(total_data_points, multitask_microzinc.__len__())
-
-    # # TODO (Gabriela): After fixing case 3, implement case with bad smiles.
-    # def test_multitask_dataset_case_4(self):
-    #     """Case: Different tasks, semi-intersection, some bad smiles
-    #         - For each task, add a few random smiles that won’t work, such as “XYZ” or simply “X”
-    #         - Check that the smiles are filtered, alongside their label (ensure the right label has been filtered)
-    #     """
-    #     pass
 
 
 if __name__ == "__main__":

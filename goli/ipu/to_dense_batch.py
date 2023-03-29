@@ -92,14 +92,16 @@ def to_dense_batch(
     # Create a zero-mask on the right device
     mask_sz = batch_size * max_num_nodes_per_graph
     if x.device.type in ("ipu", "xla"):
-        mask = torch.zeros(mask_sz, dtype=torch.bool, device="cpu")
+        mask = torch.zeros(mask_sz, dtype=torch.int32, device="cpu")
         mask = mask.to(x.device)
+        mask[idx] = 1
+        mask = mask.bool()
     else:
         mask = torch.zeros(mask_sz, dtype=torch.bool, device=x.device)
+        mask[idx] = 1
 
     ##### END CHANGES FROM PYG #####
 
-    mask[idx] = 1
     mask = mask.view(batch_size, max_num_nodes_per_graph)
 
     return out, mask, idx  # Added `idx` as a return

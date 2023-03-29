@@ -125,8 +125,8 @@ class MLPEncoder(BaseEncoder):
 
         # Run the MLP for each input key
         output = {}
-        for key in input_keys:
-            output[key] = self.pe_encoder(batch[key])  # (Num nodes) x dim_pe
+        for input_key, output_key in zip(input_keys, self.output_keys):
+            output[output_key] = self.pe_encoder(batch[input_key])  # (Num nodes) x dim_pe
 
         return output
 

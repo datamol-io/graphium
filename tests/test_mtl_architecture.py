@@ -6,8 +6,9 @@ The layers are not thoroughly tested due to the difficulty of testing them
 
 import torch
 import unittest as ut
-import dgl
+from torch_geometric.data import Data, Batch
 from copy import deepcopy
+from itertools import product
 
 import goli
 from goli.config._loader import load_architecture
@@ -100,7 +101,7 @@ class test_TaskHeads(ut.TestCase):
 
 
 class test_Multitask_NN(ut.TestCase):
-    fulldgl_kwargs = {
+    pyg_kwargs = {
         "activation": "relu",
         "last_activation": "none",
         "normalization": "none",
@@ -110,93 +111,92 @@ class test_Multitask_NN(ut.TestCase):
 
     in_dim = 7
     fulldgl_out_dim = 11
-    in_dim_edges = 13
+    in_dim_edges = 3
     hidden_dims = [6, 6, 6, 6, 6]
 
-    g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
-    g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
-    g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim, dtype=torch.float32)
-    g1.edata["edge_feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim, dtype=torch.float32)
-    g2.edata["edge_feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
-    batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
-    batch = [dgl.add_self_loop(g) for g in batch]
-    bg = dgl.batch(batch)
+    edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
+    edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
+    x1 = torch.randn(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
+    e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
+    x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
+    e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
+    # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
+    # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_attr=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_attr=e2)
+    bg = Batch.from_data_list([g1, g2])
 
     virtual_nodes = ["none", "mean", "sum"]
     norms = ["none", None, "batch_norm", "layer_norm"]
-    pna_kwargs = {"aggregators": ["mean", "max", "sum"], "scalers": ["identity", "amplification"]}
 
     gnn_layers_kwargs = {
-        "dgl:gcn": {},
-        "dgl:gin": {},
-        "dgl:gat": {"layer_kwargs": {"num_heads": 3}},
-        "dgl:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
-        "dgl:pna-conv": {"layer_kwargs": pna_kwargs},
-        "dgl:pna-msgpass#1": {"layer_kwargs": pna_kwargs, "in_dim_edges": 0},
-        "dgl:pna-msgpass#2": {"layer_kwargs": pna_kwargs, "in_dim_edges": in_dim_edges},
+        "pyg:gin": {},
+        "pyg:gated-gcn": {"in_dim_edges": in_dim_edges, "hidden_dims_edges": hidden_dims},
     }
 
     def test_fulldgl_multitask_forward(self):
         # Task heads
         task_heads_params = {"task_1": task_1_params, "task_2": task_2_params, "task_3": task_3_params}
 
-        # Params for the FullDGLNetwork
+        # Params for the network
         temp_dim_1 = 5
-        temp_dim_2 = 17
+        temp_dim_2 = 7
 
         pre_nn_kwargs = dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4, 4, 4, 4])
 
         post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.fulldgl_out_dim, hidden_dims=[3, 3, 3, 3])
 
-        for pooling in [["none"], ["sum"], ["mean", "s2s", "max"]]:
-            for residual_skip_steps in [1, 2, 3]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
+        options = product(
+            [["none"], ["sum"], ["mean", "max"]],
+            [1, 2],
+            self.virtual_nodes,
+            self.norms,
+            self.gnn_layers_kwargs.items(),
+        )
+        for pooling, residual_skip_steps, virtual_node, normalization, (layer_name, this_kwargs) in options:
+            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+            layer_type = layer_name.split("#")[0]
 
-                            gnn_kwargs = dict(
-                                in_dim=temp_dim_1,
-                                out_dim=temp_dim_2,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="densenet",
-                                residual_skip_steps=residual_skip_steps,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                **this_kwargs,
-                                **self.fulldgl_kwargs,
-                            )
+            gnn_kwargs = dict(
+                in_dim=temp_dim_1,
+                out_dim=temp_dim_2,
+                hidden_dims=self.hidden_dims,
+                residual_type="densenet",
+                residual_skip_steps=residual_skip_steps,
+                layer_type=layer_type,
+                pooling=pooling,
+                **this_kwargs,
+                **self.pyg_kwargs,
+            )
 
-                            multitask_graph_nn = FullGraphMultiTaskNetwork(
-                                task_heads_kwargs=task_heads_params,
-                                gnn_kwargs=gnn_kwargs,
-                                pre_nn_kwargs=pre_nn_kwargs,
-                                post_nn_kwargs=post_nn_kwargs,
-                            )
+            multitask_graph_nn = FullGraphMultiTaskNetwork(
+                task_heads_kwargs=task_heads_params,
+                gnn_kwargs=gnn_kwargs,
+                pre_nn_kwargs=pre_nn_kwargs,
+                post_nn_kwargs=post_nn_kwargs,
+            )
 
-                            bg = deepcopy(self.bg)
-                            h_out = multitask_graph_nn.forward(bg)
+            bg = deepcopy(self.bg)
+            h_out = multitask_graph_nn.forward(bg)
 
-                            dim_1 = bg.num_nodes() if pooling == ["none"] else bg.batch_size
-                            # self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+            dim_1 = bg.num_nodes if pooling == ["none"] else bg.num_graphs
+            # self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
-                            self.assertListEqual(
-                                list(h_out["task_1"].shape),
-                                [dim_1, task_1_kwargs["out_dim"]],
-                                msg=err_msg,
-                            )
-                            self.assertListEqual(
-                                list(h_out["task_2"].shape),
-                                [dim_1, task_2_kwargs["out_dim"]],
-                                msg=err_msg,
-                            )
-                            self.assertListEqual(
-                                list(h_out["task_3"].shape),
-                                [dim_1, task_3_kwargs["out_dim"]],
-                                msg=err_msg,
-                            )
+            self.assertListEqual(
+                list(h_out["task_1"].shape),
+                [dim_1, task_1_kwargs["out_dim"]],
+                msg=err_msg,
+            )
+            self.assertListEqual(
+                list(h_out["task_2"].shape),
+                [dim_1, task_2_kwargs["out_dim"]],
+                msg=err_msg,
+            )
+            self.assertListEqual(
+                list(h_out["task_3"].shape),
+                [dim_1, task_3_kwargs["out_dim"]],
+                msg=err_msg,
+            )
 
 
 class test_FullGraphMultiTaskNetwork(ut.TestCase):
@@ -204,18 +204,20 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
     in_dim_edges = 13
     in_dims = {"feat": in_dim_nodes, "edge_feat": in_dim_edges}
 
-    g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
-    g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
-    g1.ndata["feat"] = torch.zeros(g1.num_nodes(), in_dim_nodes, dtype=torch.float32)
-    g1.edata["edge_feat"] = torch.ones(g1.num_edges(), in_dim_edges, dtype=torch.float32)
-    g2.ndata["feat"] = torch.ones(g2.num_nodes(), in_dim_nodes, dtype=torch.float32)
-    g2.edata["edge_feat"] = torch.zeros(g2.num_edges(), in_dim_edges, dtype=torch.float32)
-    batch = [g1, g2, deepcopy(g1), deepcopy(g2)]
-    batch = [dgl.add_self_loop(g) for g in batch]
-    bg = dgl.batch(batch)
+    edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
+    edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
+    x1 = torch.randn(edge_idx1.max() + 1, in_dim_nodes, dtype=torch.float32)
+    e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
+    x2 = torch.randn(edge_idx2.max() + 1, in_dim_nodes, dtype=torch.float32)
+    e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
+    # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
+    # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_attr=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_attr=e2)
+    bg = Batch.from_data_list([g1, g2])
 
     def test_FullGraphMultiTaskNetwork_from_config(self):
-        cfg = goli.load_config(name="zinc_default_multitask_fulldgl")
+        cfg = goli.load_config(name="zinc_default_multitask_pyg")
 
         # Initialize the network
         model_class, model_kwargs = load_architecture(cfg, in_dims=self.in_dims)
@@ -226,7 +228,7 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
         bg = deepcopy(self.bg)
         h_out = multitask_fulldgl_nn.forward(bg)
 
-        dim_1 = self.bg.batch_size
+        dim_1 = self.bg.num_graphs
 
         self.assertListEqual(list(h_out["task_1"].shape), [dim_1, task_1_kwargs["out_dim"]])
         self.assertListEqual(list(h_out["task_2"].shape), [dim_1, task_2_kwargs["out_dim"]])
