@@ -47,6 +47,15 @@ class EncoderManager(nn.Module):
         super().__init__()
         self.name = name
         self.max_num_nodes_per_graph = max_num_nodes_per_graph
+        max_nodes = pe_encoders_kwargs.pop("max_num_nodes_per_graph", None)
+        if max_nodes is not None:
+            if self.max_num_nodes_per_graph is not None:
+                assert (
+                    self.max_num_nodes_per_graph == max_nodes
+                ), f"max_num_nodes_per_graph mismatch {self.max_num_nodes_per_graph}!={max_nodes}"
+            else:
+                self.max_num_nodes_per_graph = max_nodes
+
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
 

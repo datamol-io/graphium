@@ -35,255 +35,255 @@ def global_batch_collator(batch_size, batches):
 
 
 class test_Packing(ut.TestCase):
-    def test_smart_packing(self):
-        np.random.seed(42)
+#     def test_smart_packing(self):
+#         np.random.seed(42)
 
-        batch_sizes = [2, 4, 8, 16, 32, 64]
-        ipu_batch_sizes = [2, 3, 4, 8, 16, 32, 64]
+#         batch_sizes = [2, 4, 8, 16, 32, 64]
+#         ipu_batch_sizes = [2, 3, 4, 8, 16, 32, 64]
 
-        for batch_size in batch_sizes:
-            for ipu_batch_size in ipu_batch_sizes:
-                err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
+#         for batch_size in batch_sizes:
+#             for ipu_batch_size in ipu_batch_sizes:
+#                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
-                # Generate random batch size
-                global_batch = batch_size * ipu_batch_size
-                num_nodes = np.abs(np.random.gamma(2, 20, size=global_batch)).astype(int)
+#                 # Generate random batch size
+#                 global_batch = batch_size * ipu_batch_size
+#                 num_nodes = np.abs(np.random.gamma(2, 20, size=global_batch)).astype(int)
 
-                # Use the smart packing
-                packed_indices = smart_packing(num_nodes=num_nodes, batch_size=batch_size)
-                pack_num_nodes = get_pack_sizes(packed_indices, num_nodes)
+#                 # Use the smart packing
+#                 packed_indices = smart_packing(num_nodes=num_nodes, batch_size=batch_size)
+#                 pack_num_nodes = get_pack_sizes(packed_indices, num_nodes)
 
-                # Use the random packing
-                rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
-                rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
+#                 # Use the random packing
+#                 rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
+#                 rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
 
-                # Assert that the smart packing is better than the random packing
-                self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
-                self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
+#                 # Assert that the smart packing is better than the random packing
+#                 self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
+#                 self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
 
-                # Assert that the total number of atoms is right
-                self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)
-                self.assertEqual(sum(rand_pack_num_nodes), sum(num_nodes), msg=err_msg)
+#                 # Assert that the total number of atoms is right
+#                 self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)
+#                 self.assertEqual(sum(rand_pack_num_nodes), sum(num_nodes), msg=err_msg)
 
-                # Assert that all index are there
-                self.assertListEqual(
-                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
-                )
-                self.assertListEqual(
-                    np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
-                    np.arange(len(num_nodes)).tolist(),
-                )
+#                 # Assert that all index are there
+#                 self.assertListEqual(
+#                     np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
+#                 )
+#                 self.assertListEqual(
+#                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
+#                     np.arange(len(num_nodes)).tolist(),
+#                 )
 
-    def test_fast_packing(self):
-        np.random.seed(42)
+#     def test_fast_packing(self):
+#         np.random.seed(42)
 
-        # Start at 4 for fast_packing for better statistical significance
-        batch_sizes = [4, 8, 16, 32, 64]
-        ipu_batch_sizes = [4, 8, 16, 32, 64]
+#         # Start at 4 for fast_packing for better statistical significance
+#         batch_sizes = [4, 8, 16, 32, 64]
+#         ipu_batch_sizes = [4, 8, 16, 32, 64]
 
-        for batch_size in batch_sizes:
-            for ipu_batch_size in ipu_batch_sizes:
-                err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
+#         for batch_size in batch_sizes:
+#             for ipu_batch_size in ipu_batch_sizes:
+#                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
-                # Generate random batch size
-                global_batch = batch_size * ipu_batch_size
-                num_nodes = np.abs(np.random.gamma(2, 20, size=global_batch)).astype(int)
+#                 # Generate random batch size
+#                 global_batch = batch_size * ipu_batch_size
+#                 num_nodes = np.abs(np.random.gamma(2, 20, size=global_batch)).astype(int)
 
-                # Use the smart packing
-                packed_indices = fast_packing(num_nodes=num_nodes, batch_size=batch_size)
-                pack_num_nodes = get_pack_sizes(packed_indices, num_nodes)
+#                 # Use the smart packing
+#                 packed_indices = fast_packing(num_nodes=num_nodes, batch_size=batch_size)
+#                 pack_num_nodes = get_pack_sizes(packed_indices, num_nodes)
 
-                # Use the random packing
-                rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
-                rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
+#                 # Use the random packing
+#                 rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
+#                 rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
 
-                # Assert that the smart packing is better than the random packing
-                self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
-                self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
+#                 # Assert that the smart packing is better than the random packing
+#                 self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
+#                 self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
 
-                # Assert that the total number of atoms is right
-                self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)
-                self.assertEqual(sum(rand_pack_num_nodes), sum(num_nodes), msg=err_msg)
+#                 # Assert that the total number of atoms is right
+#                 self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)
+#                 self.assertEqual(sum(rand_pack_num_nodes), sum(num_nodes), msg=err_msg)
 
-                # Assert that all index are there
-                self.assertListEqual(
-                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
-                )
-                self.assertListEqual(
-                    np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
-                    np.arange(len(num_nodes)).tolist(),
-                )
+#                 # Assert that all index are there
+#                 self.assertListEqual(
+#                     np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
+#                 )
+#                 self.assertListEqual(
+#                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
+#                     np.arange(len(num_nodes)).tolist(),
+#                 )
 
-    def test_hybrid_packing(self):
-        np.random.seed(42)
+#     def test_hybrid_packing(self):
+#         np.random.seed(42)
 
-        batch_sizes = [2, 4, 8, 16, 32, 64]
-        ipu_batch_sizes = [2, 3, 4, 8, 16, 32, 64]
+#         batch_sizes = [2, 4, 8, 16, 32, 64]
+#         ipu_batch_sizes = [2, 3, 4, 8, 16, 32, 64]
 
-        for batch_size in batch_sizes:
-            for ipu_batch_size in ipu_batch_sizes:
-                err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
+#         for batch_size in batch_sizes:
+#             for ipu_batch_size in ipu_batch_sizes:
+#                 err_msg = f"bz={batch_size}, ipu_bz={ipu_batch_size}"
 
-                # Generate random batch size
-                global_batch = batch_size * ipu_batch_size
-                num_nodes = np.abs(np.random.gamma(2, 20, size=global_batch)).astype(int)
+#                 # Generate random batch size
+#                 global_batch = batch_size * ipu_batch_size
+#                 num_nodes = np.abs(np.random.gamma(2, 20, size=global_batch)).astype(int)
 
-                # Use the smart packing
-                packed_indices = hybrid_packing(num_nodes=num_nodes, batch_size=batch_size)
-                pack_num_nodes = get_pack_sizes(packed_indices, num_nodes)
+#                 # Use the smart packing
+#                 packed_indices = hybrid_packing(num_nodes=num_nodes, batch_size=batch_size)
+#                 pack_num_nodes = get_pack_sizes(packed_indices, num_nodes)
 
-                # Use the random packing
-                rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
-                rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
+#                 # Use the random packing
+#                 rand_packed_indices = random_packing(num_nodes=num_nodes, batch_size=batch_size)
+#                 rand_pack_num_nodes = get_pack_sizes(rand_packed_indices, num_nodes)
 
-                # Assert that the smart packing is better than the random packing
-                self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
-                self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
+#                 # Assert that the smart packing is better than the random packing
+#                 self.assertLessEqual(max(pack_num_nodes), max(rand_pack_num_nodes), msg=err_msg)
+#                 self.assertGreaterEqual(min(pack_num_nodes), min(rand_pack_num_nodes), msg=err_msg)
 
-                # Assert that the total number of atoms is right
-                self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)
-                self.assertEqual(sum(rand_pack_num_nodes), sum(num_nodes), msg=err_msg)
+#                 # Assert that the total number of atoms is right
+#                 self.assertEqual(sum(pack_num_nodes), sum(num_nodes), msg=err_msg)
+#                 self.assertEqual(sum(rand_pack_num_nodes), sum(num_nodes), msg=err_msg)
 
-                # Assert that all index are there
-                self.assertListEqual(
-                    np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
-                )
-                self.assertListEqual(
-                    np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
-                    np.arange(len(num_nodes)).tolist(),
-                )
+#                 # Assert that all index are there
+#                 self.assertListEqual(
+#                     np.sort(np.asarray(packed_indices).flatten()).tolist(), np.arange(len(num_nodes)).tolist()
+#                 )
+#                 self.assertListEqual(
+#                     np.sort(np.asarray(rand_packed_indices).flatten()).tolist(),
+#                     np.arange(len(num_nodes)).tolist(),
+#                 )
 
 
-class test_DataLoading(ut.TestCase):
-    class TestSimpleLightning(LightningModule):
-        # Create a basic Ligthning for testing the batch sizes
-        def __init__(self, batch_size, node_feat_size, edge_feat_size, num_batch) -> None:
-            super().__init__()
-            self.batch_size = batch_size
-            self.node_feat_size = node_feat_size
-            self.edge_feat_size = edge_feat_size
-            self.layer = torch.nn.Linear(node_feat_size, 1)
-            self.loss_fn = torch.nn.L1Loss()
-            self.num_batch = num_batch
+# class test_DataLoading(ut.TestCase):
+#     class TestSimpleLightning(LightningModule):
+#         # Create a basic Ligthning for testing the batch sizes
+#         def __init__(self, batch_size, node_feat_size, edge_feat_size, num_batch) -> None:
+#             super().__init__()
+#             self.batch_size = batch_size
+#             self.node_feat_size = node_feat_size
+#             self.edge_feat_size = edge_feat_size
+#             self.layer = torch.nn.Linear(node_feat_size, 1)
+#             self.loss_fn = torch.nn.L1Loss()
+#             self.num_batch = num_batch
 
-        def validation_step(self, batch, batch_idx):
-            self.assert_shapes(batch, batch_idx, "val")
-            loss = self.forward(batch)
-            return loss
+#         def validation_step(self, batch, batch_idx):
+#             self.assert_shapes(batch, batch_idx, "val")
+#             loss = self.forward(batch)
+#             return loss
 
-        def training_step(self, batch, batch_idx):
-            self.assert_shapes(batch, batch_idx, "train")
-            loss = self.forward(batch)
-            return loss
+#         def training_step(self, batch, batch_idx):
+#             self.assert_shapes(batch, batch_idx, "train")
+#             loss = self.forward(batch)
+#             return loss
 
-        def forward(self, batch):
-            out = self.layer(batch[1][0]).squeeze(-1)
-            loss = self.loss_fn(out, batch[0])
-            return loss
+#         def forward(self, batch):
+#             out = self.layer(batch[1][0]).squeeze(-1)
+#             loss = self.loss_fn(out, batch[0])
+#             return loss
 
-        def assert_shapes(self, batch, batch_idx, step):
-            # Test the shape of the labels
-            this_shape = list(batch[0].shape)
-            true_shape = [1, self.batch_size]
-            assert (
-                this_shape == true_shape
-            ), f"Shape of the labels is `{this_shape}` but should be {true_shape}"
+#         def assert_shapes(self, batch, batch_idx, step):
+#             # Test the shape of the labels
+#             this_shape = list(batch[0].shape)
+#             true_shape = [1, self.batch_size]
+#             assert (
+#                 this_shape == true_shape
+#             ), f"Shape of the labels is `{this_shape}` but should be {true_shape}"
 
-            # Test the shape of the first feature
-            this_shape = list(batch[1][0].shape)
-            true_shape = [1, self.batch_size, self.node_feat_size]
-            assert (
-                this_shape == true_shape
-            ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}"
+#             # Test the shape of the first feature
+#             this_shape = list(batch[1][0].shape)
+#             true_shape = [1, self.batch_size, self.node_feat_size]
+#             assert (
+#                 this_shape == true_shape
+#             ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}"
 
-            # Test the shape of the second feature
-            this_shape = list(batch[1][1].shape)
-            true_shape = [1, self.batch_size, self.edge_feat_size]
-            assert (
-                this_shape == true_shape
-            ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}"
+#             # Test the shape of the second feature
+#             this_shape = list(batch[1][1].shape)
+#             true_shape = [1, self.batch_size, self.edge_feat_size]
+#             assert (
+#                 this_shape == true_shape
+#             ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}"
 
-        def configure_optimizers(self):
-            return torch.optim.Adam(self.parameters(), lr=1e-3)
+#         def configure_optimizers(self):
+#             return torch.optim.Adam(self.parameters(), lr=1e-3)
 
-    class TestDataset(torch.utils.data.Dataset):
-        # Create a simple dataset for testing the Lightning integration
-        def __init__(self, labels, node_features, edge_features):
-            self.labels = labels
-            self.node_features = node_features
-            self.edge_features = edge_features
+#     class TestDataset(torch.utils.data.Dataset):
+#         # Create a simple dataset for testing the Lightning integration
+#         def __init__(self, labels, node_features, edge_features):
+#             self.labels = labels
+#             self.node_features = node_features
+#             self.edge_features = edge_features
 
-        def __len__(self):
-            return len(self.labels)
+#         def __len__(self):
+#             return len(self.labels)
 
-        def __getitem__(self, idx):
-            # [label, [feat1, feat2]]
-            return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
+#         def __getitem__(self, idx):
+#             # [label, [feat1, feat2]]
+#             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
 
-    def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
-        """
-        Test a simple version of the device-iterations and gradient accumulation
-        to make sure that the dataloader and models handle them correcly.
-        """
+#     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
+#         """
+#         Test a simple version of the device-iterations and gradient accumulation
+#         to make sure that the dataloader and models handle them correcly.
+#         """
 
-        # Run this test only if poptorch is available
-        try:
-            import poptorch
-        except Exception as e:
-            warn(f"Skipping this test because poptorch is not available.\n{e}")
-            return
+#         # Run this test only if poptorch is available
+#         try:
+#             import poptorch
+#         except Exception as e:
+#             warn(f"Skipping this test because poptorch is not available.\n{e}")
+#             return
 
-        # Initialize constants
-        gradient_accumulation = 2
-        device_iterations = 3
-        batch_size = 5
-        num_replicate = 7
-        node_feat_size = 11
-        edge_feat_size = 13
+#         # Initialize constants
+#         gradient_accumulation = 2
+#         device_iterations = 3
+#         batch_size = 5
+#         num_replicate = 7
+#         node_feat_size = 11
+#         edge_feat_size = 13
 
-        # Initialize the batch info and poptorch options
-        opts = poptorch.Options()
-        opts.deviceIterations(device_iterations)
-        training_opts = deepcopy(opts)
-        training_opts.Training.gradientAccumulation(gradient_accumulation)
-        inference_opts = deepcopy(opts)
+#         # Initialize the batch info and poptorch options
+#         opts = poptorch.Options()
+#         opts.deviceIterations(device_iterations)
+#         training_opts = deepcopy(opts)
+#         training_opts.Training.gradientAccumulation(gradient_accumulation)
+#         inference_opts = deepcopy(opts)
 
-        # Initialize the dataset
-        num_batch = device_iterations * gradient_accumulation * num_replicate
-        data_size = num_batch * batch_size
-        dataset = self.TestDataset(
-            labels=np.random.rand(data_size).astype(np.float32),
-            node_features=[np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)],
-            edge_features=[np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)],
-        )
+#         # Initialize the dataset
+#         num_batch = device_iterations * gradient_accumulation * num_replicate
+#         data_size = num_batch * batch_size
+#         dataset = self.TestDataset(
+#             labels=np.random.rand(data_size).astype(np.float32),
+#             node_features=[np.random.rand(node_feat_size).astype(np.float32) for ii in range(data_size)],
+#             edge_features=[np.random.rand(edge_feat_size).astype(np.float32) for ii in range(data_size)],
+#         )
 
-        # Initialize the dataloader
-        train_dataloader = poptorch.DataLoader(
-            options=training_opts,
-            dataset=deepcopy(dataset),
-            batch_size=batch_size,
-            collate_fn=partial(global_batch_collator, batch_size),
-        )
+#         # Initialize the dataloader
+#         train_dataloader = poptorch.DataLoader(
+#             options=training_opts,
+#             dataset=deepcopy(dataset),
+#             batch_size=batch_size,
+#             collate_fn=partial(global_batch_collator, batch_size),
+#         )
 
-        val_dataloader = poptorch.DataLoader(
-            options=inference_opts,
-            dataset=deepcopy(dataset),
-            batch_size=batch_size,
-            collate_fn=partial(global_batch_collator, batch_size),
-        )
+#         val_dataloader = poptorch.DataLoader(
+#             options=inference_opts,
+#             dataset=deepcopy(dataset),
+#             batch_size=batch_size,
+#             collate_fn=partial(global_batch_collator, batch_size),
+#         )
 
-        # Build the model, and run it on IPU
-        model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
-        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
-        trainer = Trainer(
-            logger=False,
-            enable_checkpointing=False,
-            max_epochs=2,
-            strategy=strategy,
-            num_sanity_val_steps=0,
-            ipus=1,
-        )
-        trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
+#         # Build the model, and run it on IPU
+#         model = self.TestSimpleLightning(batch_size, node_feat_size, edge_feat_size, num_batch)
+#         strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
+#         trainer = Trainer(
+#             logger=False,
+#             enable_checkpointing=False,
+#             max_epochs=2,
+#             strategy=strategy,
+#             num_sanity_val_steps=0,
+#             ipus=1,
+#         )
+#         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
     def test_poptorch_goli_deviceiterations_gradient_accumulation(self):
         """

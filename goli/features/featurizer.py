@@ -822,6 +822,8 @@ class GraphDict(dict):
         # Get the node and edge data
         data_dict = {key: val for key, val in self.items()}
         data_dict.pop("adj")
+        data_dict.pop("dtype")
+        data_dict.pop("mask_nan")
 
         # Convert the data to torch
         for key, val in data_dict.items():
