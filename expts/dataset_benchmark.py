@@ -33,23 +33,27 @@ def benchmark(fn, *args, message="", log2wandb=False, **kwargs):
 
 def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
     print(f"length of {name} dataloader: {len(dataloader)}")
+    epoch_times = [0] * n_epochs
     tputs = [0] * n_epochs
-    n_samples = [0] * n_epochs
+    n_batches = [0] * n_epochs
     n_graphs = [0] * n_epochs
     n_nodes = [0] * n_epochs
     n_edges = [0] * n_epochs
     for i in range(n_epochs):
         start = time.time()
         for data in tqdm.tqdm(dataloader):
-            n_samples[i] += 1
+            n_batches[i] += 1
             n_graphs[i] += data["features"]["batch"].max().item()
             n_nodes[i] += data["features"]["feat"].shape[-2]
             n_edges[i] += data["features"]["edge_index"].shape[-1]
-        tputs[i] = n_samples[i] / (time.time() - start)
+        epoch_times[i] = time.time() - start
+        tputs[i] = n_graphs[i] / epoch_times[i]
 
     average_tput = statistics.mean(tputs)
     print(f"{name} dataloader average tput {average_tput}")
-    print(f"{name} dataloader total samples per epoch {n_samples}")
+    print(f"{name} dataloader tputs per epoch {tputs}")
+    print(f"{name} dataloader epoch times {epoch_times}")
+    print(f"{name} dataloader total batches per epoch {n_batches}")
     print(f"{name} dataloader total graphs per epoch {n_graphs}")
     print(f"{name} dataloader total nodes per epoch {n_nodes}")
     print(f"{name} dataloader total edges per epoch {n_edges}")
@@ -60,7 +64,9 @@ def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
         for i in range(n_epochs):
             d = {
                 "epoch": i,
-                "samples per epoch": n_samples[i],
+                "tput per epoch": tputs[i],
+                "epoch times ": epoch_times[i],
+                "samples per epoch": n_batches[i],
                 "graphs per epoch": n_graphs[i],
                 "nodes per epoch": n_nodes[i],
                 "edges per epoch": n_edges[i],
@@ -97,13 +103,22 @@ def main(
 
     if stages is None or {"train", "fit"}.intersection(stages):
         dataloader = datamodule.train_dataloader()
-        benchmark_dataloader(dataloader, name="train", log2wandb=log2wandb)
+        benchmark_dataloader(
+            dataloader, name="train", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb
+        )
     if stages is None or {"val", "valid", "validation"}.intersection(stages):
         dataloader = datamodule.val_dataloader()
-        benchmark_dataloader(dataloader, name="validation", log2wandb=log2wandb)
+        benchmark_dataloader(
+            dataloader,
+            name="validation",
+            n_epochs=cfg["trainer"]["trainer"]["max_epochs"],
+            log2wandb=log2wandb,
+        )
     if stages is None or {"test", "testing"}.intersection(stages):
         dataloader = datamodule.test_dataloader()
-        benchmark_dataloader(dataloader, name="testing", log2wandb=log2wandb)
+        benchmark_dataloader(
+            dataloader, name="testing", n_epochs=cfg["trainer"]["trainer"]["max_epochs"], log2wandb=log2wandb
+        )
 
 
 if __name__ == "__main__":
