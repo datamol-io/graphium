@@ -822,15 +822,8 @@ class GraphDict(dict):
         num_nodes = self.adj.shape[0]
 
         # Get the node and edge data
-        data_dict = {key: val for key, val in self.ndata.items()}
-        for key, val in self.edata.items():
-            # Edge keys must start with `edge_`
-            if not key.startswith("edge_"):
-                raise KeyError(f"Edge keys must start with `edge_`. Key given is `{key}`")
-            # Edge keys must be different from node keys
-            if key in data_dict.keys():
-                raise KeyError(f"Key `key` is present in both edge and node data")
-            data_dict[key] = val
+        data_dict = {key: val for key, val in self.items()}
+        data_dict.pop("adj")
 
         # Convert the data to torch
         for key, val in data_dict.items():
