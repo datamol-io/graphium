@@ -731,7 +731,13 @@ class test_FullGraphNetwork(ut.TestCase):
                                     except Exception as e:
                                         # self.fail(msg=err_msg + "\n" + e.__str__())
                                         exc_type, exc_value, exc_traceback = sys.exc_info()
-                                        msg = err_msg + "\n" + str(traceback.format_exception(exc_type, exc_value, exc_traceback))
+                                        msg = (
+                                            err_msg
+                                            + "\n"
+                                            + str(
+                                                traceback.format_exception(exc_type, exc_value, exc_traceback)
+                                            )
+                                        )
                                         self.fail(msg)
 
                                     dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size

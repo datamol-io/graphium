@@ -10,6 +10,7 @@ from torch_geometric.data import Data, Batch
 
 from goli.features import GraphDict, to_dense_array
 
+
 def goli_collate_fn(
     elements: Union[List[Any], Dict[str, List[Any]]],
     labels_size_dict: Optional[Dict[str, Any]] = None,
@@ -125,7 +126,11 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
     return Batch.from_data_list(pyg_batch)
 
-def collate_labels(labels: List[Dict[str, torch.Tensor]], labels_size_dict: Optional[Dict[str, Any]] = None,):
+
+def collate_labels(
+    labels: List[Dict[str, torch.Tensor]],
+    labels_size_dict: Optional[Dict[str, Any]] = None,
+):
     """Collate labels for multitask learning.
 
     Parameters:
@@ -144,9 +149,7 @@ def collate_labels(labels: List[Dict[str, torch.Tensor]], labels_size_dict: Opti
         for this_label in labels:
             empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
             for task in empty_task_labels:
-                this_label[task] = torch.full(
-                    (len(labels), *labels_size_dict[task]), torch.nan
-                )
+                this_label[task] = torch.full((len(labels), *labels_size_dict[task]), torch.nan)
     labels_dict = default_collate(labels)
 
     return labels_dict

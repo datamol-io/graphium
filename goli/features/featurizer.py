@@ -751,9 +751,7 @@ def mol_to_adj_and_features(
         edata = None
 
     # Get all positional encodings
-    pe_dict = get_all_positional_encoding(
-        adj, num_nodes, pos_encoding_as_features
-    )
+    pe_dict = get_all_positional_encoding(adj, num_nodes, pos_encoding_as_features)
 
     # Mask the NaNs
     for pe_key in pe_dict.keys():
@@ -1012,9 +1010,7 @@ def mol_to_graph_dict(
     if ndata is not None:
         graph_dict["ndata"]["feat"] = ndata
 
-    # Assign the edge data. Due to DGL only supporting Hetero-graphs, we
-    # need to duplicate each edge information for its 2 entries
-    # TODO: Is this still needed since we are using PyG?
+    # For Hetero-graphs, we need to duplicate each edge information for its 2 entries
     if edata is not None:
         edata = to_dense_array(edata, dtype=dtype)
         src_ids, dst_ids = np.argwhere(adj).transpose()
