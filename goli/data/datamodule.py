@@ -2357,7 +2357,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         prepare_dict_or_graph: str = "pyg:graph",
         generated_data: bool = False,
         num_mols_to_generate: int = 1000000,
-        indexing_single_elem: bool = False,
+        indexing_single_elem: bool = True,
         **kwargs,
     ):
         BaseDataModule.__init__(
