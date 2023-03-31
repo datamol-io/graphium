@@ -4,18 +4,12 @@ import unittest as ut
 import numpy as np
 from copy import deepcopy
 from warnings import warn
-from pytorch_lightning import Trainer, LightningModule
-from pytorch_lightning.strategies import IPUStrategy
-from functools import partial
 
 import torch
 from torch.utils.data.dataloader import default_collate
 
 # Current library imports
-from goli.ipu.ipu_dataloader import smart_packing, get_pack_sizes, fast_packing, hybrid_packing
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
-from goli.ipu.ipu_utils import import_poptorch
-
 
 def random_packing(num_nodes, batch_size):
     ipu_batch_size = int(len(num_nodes) / batch_size)
