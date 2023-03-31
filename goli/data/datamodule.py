@@ -307,7 +307,6 @@ class MultitaskDataset(Dataset):
         progress: bool = True,
         save_smiles_and_ids: bool = False,
         about: str = "",
-        generated_data: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -332,11 +331,9 @@ class MultitaskDataset(Dataset):
 
         progress: Whether to display the progress bar
             about: A description of the dataset
-        generated: bool = False,
         """
         super().__init__()
         # self.datasets = datasets
-        self.generated_data = generated_data
         self.n_jobs = n_jobs
         self.backend = backend
         self.featurization_batch_size = featurization_batch_size
@@ -445,7 +442,9 @@ class MultitaskDataset(Dataset):
 
         return datum
 
-    def merge(self, datasets: Dict[str, Any]) -> Tuple[List[str], List[str], List[Dict[str, Any]], List[Any]]:
+    def merge(
+        self, datasets: Dict[str, SingleTaskDataset]
+    ) -> Tuple[List[str], List[str], List[Dict[str, Any]], List[Any]]:
         r"""This function merges several single task datasets into a multitask dataset.
 
         The idea: for each of the smiles, labels, features and tasks, we create a corresponding list that concatenates these items across all tasks.
@@ -462,6 +461,33 @@ class MultitaskDataset(Dataset):
         Returns:
             A tuple of (list of molecular IDs, list of smiles, list of label dictionaries, list of features)
         """
+
+        # Get all the smiles, labels, features and tasks.
+        all_lists = self._get_all_lists_ids(datasets=datasets)
+        mol_ids, inv = self._get_inv_of_mol_ids(all_mol_ids=all_lists["mol_ids"])
+
+        # Store the smiles.
+        smiles = [[] for _ in range(len(mol_ids))]
+        for all_idx, unique_idx in enumerate(inv):
+            smiles[unique_idx].append(all_lists["smiles"][all_idx])
+
+        # Store the labels.
+        labels = [{} for _ in range(len(mol_ids))]
+        for all_idx, unique_idx in enumerate(inv):
+            task = all_lists["tasks"][all_idx]
+            label = all_lists["labels"][all_idx]
+            labels[unique_idx][task] = label
+
+        # Store the features
+        if len(all_lists["features"]) > 0:
+            features = [-1 for i in range(len(mol_ids))]
+            for all_idx, unique_idx in enumerate(inv):
+                features[unique_idx] = all_lists["features"][all_idx]
+            return mol_ids, smiles, labels, features
+        else:
+            return mol_ids, smiles, labels
+
+    def _get_all_lists_ids(self, datasets: Dict[str, SingleTaskDataset]) -> Dict[str, Any]:
         all_smiles = []
         all_features = []
         all_labels = []
@@ -499,36 +525,19 @@ class MultitaskDataset(Dataset):
             task_list = [task] * ds.__len__()
             all_tasks.extend(task_list)
 
-        if self.generated_data is False:
-            # Get all unique mol ids.
-            unique_mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
-            mol_ids = unique_mol_ids
-        else:
-            # The generated data is a single molecule duplicated
-            mol_ids = np.array(all_mol_ids)
-            inv = [_ for _ in range(len(mol_ids) // len(datasets.items()))] * len(datasets.items())
-            mol_ids = np.unique(inv)
+        all_lists = {
+            "smiles": all_smiles,
+            "features": all_features,
+            "labels": all_labels,
+            "mol_ids": all_mol_ids,
+            "tasks": all_tasks,
+        }
 
-        # Store the smiles.
-        smiles = [[] for _ in range(len(mol_ids))]
-        for all_idx, unique_idx in enumerate(inv):
-            smiles[unique_idx].append(all_smiles[all_idx])
+        return all_lists
 
-        # Store the labels.
-        labels = [{} for _ in range(len(mol_ids))]
-        for all_idx, unique_idx in enumerate(inv):
-            task = all_tasks[all_idx]
-            label = all_labels[all_idx]
-            labels[unique_idx][task] = label
-
-        # Store the features
-        if len(all_features) > 0:
-            features = [-1 for i in range(len(mol_ids))]
-            for all_idx, unique_idx in enumerate(inv):
-                features[unique_idx] = all_features[all_idx]
-            return mol_ids, smiles, labels, features
-        else:
-            return mol_ids, smiles, labels
+    def _get_inv_of_mol_ids(self, all_mol_ids):
+        mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
+        return mol_ids, inv
 
     def set_label_size_dict(self, datasets: Dict[str, SingleTaskDataset]):
         r"""
@@ -2349,65 +2358,27 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         num_workers: int = 0,
         pin_memory: bool = True,
         persistent_workers: bool = False,
-        featurization_n_jobs: int = -1,
-        featurization_progress: bool = False,
-        featurization_backend: str = "loky",
-        featurization_batch_size: int = 1,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
-        generated_data: bool = False,
         num_mols_to_generate: int = 1000000,
         indexing_single_elem: bool = True,
         **kwargs,
     ):
-        BaseDataModule.__init__(
-            self,
+        super().__init__(
+            task_specific_args=task_specific_args,
+            cache_data_path=cache_data_path,
+            featurization=featurization,
             batch_size_training=batch_size_training,
             batch_size_inference=batch_size_inference,
             num_workers=num_workers,
             pin_memory=pin_memory,
             persistent_workers=persistent_workers,
             collate_fn=collate_fn,
+            prepare_dict_or_graph=prepare_dict_or_graph,
+            **kwargs,
         )
-        IPUDataModuleModifier.__init__(self, **kwargs)
-
-        self.task_specific_args = task_specific_args
-        self.generated_data = generated_data
         self.num_mols_to_generate = num_mols_to_generate
-
-        # TODO: Have the input argument to the Data Module be of type DatasetParams
-        self.task_dataset_processing_params = {
-            task: DatasetProcessingParams(**ds_args) for task, ds_args in task_specific_args.items()
-        }
-        self.featurization_n_jobs = featurization_n_jobs
-        self.featurization_progress = featurization_progress
-        self.featurization_backend = featurization_backend
-        self.featurization_batch_size = featurization_batch_size
-
-        self.task_train_indices = None
-        self.task_val_indices = None
-        self.task_test_indices = None
-
-        self.single_task_datasets = None
-        self.train_singletask_datasets = None
-        self.val_singletask_datasets = None
-        self.test_singletask_datasets = None
-
-        self.train_ds = None
-        # If True we reuse the same single data entry in memory, otherwise duplicate the same element to loop through
         self.indexing_single_elem = indexing_single_elem
-
-        # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
-        if prepare_dict_or_graph == "dgl:dict":
-            self.smiles_transformer = partial(mol_to_graph_dict, **featurization)
-        elif prepare_dict_or_graph == "dgl:graph":
-            self.smiles_transformer = partial(mol_to_dglgraph, **featurization)
-        elif prepare_dict_or_graph == "pyg:graph":
-            self.smiles_transformer = partial(mol_to_pyggraph, **featurization)
-        else:
-            raise ValueError(
-                f"`prepare_dict_or_graph` should be either 'dgl:dict', 'dgl:graph' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
-            )
 
     def generate_data(self, label_cols: List[str], smiles_col: str):
         """
@@ -2447,6 +2418,9 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         """
 
         """Load all single-task dataframes."""
+        if self.num_mols_to_generate is None:
+            num_mols = 0
+
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
             logger.info(f"Reading data for task '{task}'")
@@ -2456,21 +2430,14 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
                 label_cols = self._parse_label_cols(
                     df=None, df_path=args.df_path, label_cols=args.label_cols, smiles_col=args.smiles_col
                 )
-                usecols = (
-                    check_arg_iterator(args.smiles_col, enforce_type=list)
-                    + label_cols
-                    + check_arg_iterator(args.idx_col, enforce_type=list)
-                    + check_arg_iterator(args.weights_col, enforce_type=list)
-                )
-                label_dtype = {col: np.float32 for col in label_cols}
-                if self.generated_data:
-                    task_df[task] = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
-                else:
-                    task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
-            self.num_mols_to_generate = len(task_df[task])
+                task_df[task] = self.generate_data(label_cols=args.label_cols, smiles_col=args.smiles_col)
+                if self.num_mols_to_generate is None:
+                    num_mols = max(num_mols, len(task_df[task]))
             task_df[task] = task_df[task].iloc[0:1]
 
             args.label_cols = label_cols
+        if self.num_mols_to_generate is None:
+            self.num_mols_to_generate = num_mols
         logger.info("Done reading datasets")
 
         """Subsample the data frames and extract the necessary data to create SingleTaskDatasets for each task (smiles, labels, extras)."""
@@ -2606,10 +2573,10 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
 
 
 class FakeDataset(MultitaskDataset):
-    def __init__(self, datasets, num_mols=int(1234), indexing_same_elem=False):
-        self.generated_data = True
+    def __init__(self, datasets, num_mols, indexing_same_elem=False):
         self.indexing_same_elem = indexing_same_elem
         self.num_mols = num_mols
+        self.num_datasets = len(datasets)
 
         self.about = "FakeDatasets"
         task = next(iter(datasets))
@@ -2628,6 +2595,13 @@ class FakeDataset(MultitaskDataset):
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
         self.features = self.features
+
+    def _get_inv_of_mol_ids(self, all_mol_ids):
+        # The generated data is a single molecule duplicated
+        mol_ids = np.array(all_mol_ids)
+        inv = [_ for _ in range(len(mol_ids) // self.num_datasets)] * self.num_datasets
+        mol_ids = np.unique(inv)
+        return mol_ids, inv
 
     def deepcopy_mol(self, mol_ids, labels, smiles, features=None):
         """
