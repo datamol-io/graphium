@@ -57,10 +57,10 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertEqual(lnn.layers[2].in_dim, hidden_dims[1])
         self.assertEqual(lnn.layers[3].in_dim, hidden_dims[2])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_simple_residual_1(self):
         in_dim = 8
@@ -83,10 +83,10 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertEqual(lnn.layers[2].in_dim, hidden_dims[1])
         self.assertEqual(lnn.layers[3].in_dim, hidden_dims[2])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_norms(self):
         in_dim = 8
@@ -113,10 +113,10 @@ class test_FeedForwardNN(ut.TestCase):
             self.assertEqual(lnn.layers[2].in_dim, hidden_dims[1], msg=err_msg)
             self.assertEqual(lnn.layers[3].in_dim, hidden_dims[2], msg=err_msg)
 
-            h = torch.FloatTensor(batch, in_dim)
-            h_out = lnn.forward(h)
+            feat = torch.FloatTensor(batch, in_dim)
+            feat_out = lnn.forward(feat)
 
-            self.assertListEqual(list(h_out.shape), [batch, out_dim], msg=err_msg)
+            self.assertListEqual(list(feat_out.shape), [batch, out_dim], msg=err_msg)
 
     def test_forward_simple_residual_2(self):
         in_dim = 8
@@ -141,10 +141,10 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertEqual(lnn.layers[4].in_dim, hidden_dims[3])
         self.assertEqual(lnn.layers[5].in_dim, hidden_dims[4])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_concat_residual_1(self):
         in_dim = 8
@@ -169,10 +169,10 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertEqual(lnn.layers[4].in_dim, 2 * hidden_dims[3])
         self.assertEqual(lnn.layers[5].in_dim, 2 * hidden_dims[4])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_concat_residual_2(self):
         in_dim = 8
@@ -197,10 +197,10 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertEqual(lnn.layers[4].in_dim, 1 * hidden_dims[3])
         self.assertEqual(lnn.layers[5].in_dim, 2 * hidden_dims[4])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_densenet_residual_1(self):
         in_dim = 8
@@ -225,10 +225,10 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertEqual(lnn.layers[4].in_dim, 4 * hidden_dims[3])
         self.assertEqual(lnn.layers[5].in_dim, 5 * hidden_dims[4])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_densenet_residual_2(self):
         in_dim = 8
@@ -253,10 +253,10 @@ class test_FeedForwardNN(ut.TestCase):
         self.assertEqual(lnn.layers[4].in_dim, 1 * hidden_dims[3])
         self.assertEqual(lnn.layers[5].in_dim, 3 * hidden_dims[4])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_weighted_residual_1(self):
         in_dim = 8
@@ -283,10 +283,10 @@ class test_FeedForwardNN(ut.TestCase):
 
         self.assertEqual(len(lnn.residual_layer.residual_list), len(hidden_dims))
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
     def test_forward_weighted_residual_2(self):
         in_dim = 8
@@ -313,10 +313,10 @@ class test_FeedForwardNN(ut.TestCase):
 
         self.assertEqual(len(lnn.residual_layer.residual_list), (len(hidden_dims) // 2 + 1))
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = lnn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = lnn.forward(feat)
 
-        self.assertListEqual(list(h_out.shape), [batch, out_dim])
+        self.assertListEqual(list(feat_out.shape), [batch, out_dim])
 
 
 class test_FeedForwardGraph(ut.TestCase):
@@ -343,8 +343,8 @@ class test_FeedForwardGraph(ut.TestCase):
     h2 = torch.ones(num_nodes2, in_dim, dtype=torch.float32)
     e2 = torch.zeros(num_edges2, in_dim_edges, dtype=torch.float32)
 
-    g1 = Data(h=h1, edge_index=torch.stack(edge_idx1), edge_attr=e1)
-    g2 = Data(h=h2, edge_index=torch.stack(edge_idx2), edge_attr=e2)
+    g1 = Data(feat=h1, edge_index=torch.stack(edge_idx1), edge_feat=e1)
+    g2 = Data(feat=h2, edge_index=torch.stack(edge_idx2), edge_feat=e2)
     data_list = [g1, g2, deepcopy(g1), deepcopy(g2)]
     batch_pyg = Batch.from_data_list(data_list)
     num_nodes = batch_pyg.num_nodes
@@ -408,10 +408,10 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            h_out = gnn.forward(bg)
+                            feat_out = gnn.forward(bg)
 
                             dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_simple_residual(self):
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
@@ -457,10 +457,10 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            h_out = gnn.forward(bg)
+                            feat_out = gnn.forward(bg)
 
                             dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_weighted_residual(self):
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
@@ -506,10 +506,10 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            h_out = gnn.forward(bg)
+                            feat_out = gnn.forward(bg)
 
                             dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_concat_residual(self):
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
@@ -559,10 +559,10 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
 
-                            h_out = gnn.forward(bg)
+                            feat_out = gnn.forward(bg)
 
                             dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
     def test_forward_densenet_residual(self):
         for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
@@ -614,10 +614,10 @@ class test_FeedForwardGraph(ut.TestCase):
                             self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
                             self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
 
-                            h_out = gnn.forward(bg)
+                            feat_out = gnn.forward(bg)
 
                             dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
 
 class test_FullGraphNetwork(ut.TestCase):
@@ -645,8 +645,8 @@ class test_FullGraphNetwork(ut.TestCase):
     h2 = torch.ones(num_nodes2, in_dim, dtype=torch.float32)
     e2 = torch.zeros(num_edges2, in_dim_edges, dtype=torch.float32)
 
-    g1 = Data(feat=h1, edge_index=torch.stack(edge_idx1), edge_attr=e1)
-    g2 = Data(feat=h2, edge_index=torch.stack(edge_idx2), edge_attr=e2)
+    g1 = Data(feat=h1, edge_index=torch.stack(edge_idx1), edge_feat=e1)
+    g2 = Data(feat=h2, edge_index=torch.stack(edge_idx2), edge_feat=e2)
     data_list = [g1, g2, deepcopy(g1), deepcopy(g2)]
     batch_pyg = Batch.from_data_list(data_list)
     num_nodes = batch_pyg.num_nodes
@@ -727,7 +727,7 @@ class test_FullGraphNetwork(ut.TestCase):
                                     )
 
                                     try:
-                                        h_out = net.forward(bg)
+                                        feat_out = net.forward(bg)
                                     except Exception as e:
                                         # self.fail(msg=err_msg + "\n" + e.__str__())
                                         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -742,7 +742,7 @@ class test_FullGraphNetwork(ut.TestCase):
 
                                     dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
                                     self.assertListEqual(
-                                        list(h_out.shape), [dim_1, self.out_dim], msg=err_msg
+                                        list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg
                                     )
 
 

@@ -91,13 +91,13 @@ class test_TaskHeads(ut.TestCase):
         self.assertEqual(task_3_head.layers[2].in_dim, task_3_kwargs["hidden_dims"][1])
         self.assertEqual(task_3_head.layers[3].in_dim, task_3_kwargs["hidden_dims"][2])
 
-        h = torch.FloatTensor(batch, in_dim)
-        h_out = multi_head_nn.forward(h)
+        feat = torch.FloatTensor(batch, in_dim)
+        feat_out = multi_head_nn.forward(feat)
 
         # Check the output: It's a per-task prediction!
-        self.assertListEqual(list(h_out["task_1"].shape), [batch, task_1_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out["task_2"].shape), [batch, task_2_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out["task_3"].shape), [batch, task_3_kwargs["out_dim"]])
+        self.assertListEqual(list(feat_out["task_1"].shape), [batch, task_1_kwargs["out_dim"]])
+        self.assertListEqual(list(feat_out["task_2"].shape), [batch, task_2_kwargs["out_dim"]])
+        self.assertListEqual(list(feat_out["task_3"].shape), [batch, task_3_kwargs["out_dim"]])
 
 
 class test_Multitask_NN(ut.TestCase):
@@ -122,8 +122,8 @@ class test_Multitask_NN(ut.TestCase):
     e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
     # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
     # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
-    g1 = Data(feat=x1, edge_index=edge_idx1, edge_attr=e1)
-    g2 = Data(feat=x2, edge_index=edge_idx2, edge_attr=e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
     bg = Batch.from_data_list([g1, g2])
 
     virtual_nodes = ["none", "mean", "sum"]
@@ -177,23 +177,23 @@ class test_Multitask_NN(ut.TestCase):
             )
 
             bg = deepcopy(self.bg)
-            h_out = multitask_graph_nn.forward(bg)
+            feat_out = multitask_graph_nn.forward(bg)
 
             dim_1 = bg.num_nodes if pooling == ["none"] else bg.num_graphs
-            # self.assertListEqual(list(h_out.shape), [dim_1, self.out_dim], msg=err_msg)
+            # self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
 
             self.assertListEqual(
-                list(h_out["task_1"].shape),
+                list(feat_out["task_1"].shape),
                 [dim_1, task_1_kwargs["out_dim"]],
                 msg=err_msg,
             )
             self.assertListEqual(
-                list(h_out["task_2"].shape),
+                list(feat_out["task_2"].shape),
                 [dim_1, task_2_kwargs["out_dim"]],
                 msg=err_msg,
             )
             self.assertListEqual(
-                list(h_out["task_3"].shape),
+                list(feat_out["task_3"].shape),
                 [dim_1, task_3_kwargs["out_dim"]],
                 msg=err_msg,
             )
@@ -210,8 +210,8 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
     e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
     x2 = torch.randn(edge_idx2.max() + 1, in_dim_nodes, dtype=torch.float32)
     e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
-    g1 = Data(feat=x1, edge_index=edge_idx1, edge_attr=e1)
-    g2 = Data(feat=x2, edge_index=edge_idx2, edge_attr=e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
     bg = Batch.from_data_list([g1, g2])
 
     def test_FullGraphMultiTaskNetwork_from_config(self):
@@ -224,13 +224,13 @@ class test_FullGraphMultiTaskNetwork(ut.TestCase):
 
         # Test
         bg = deepcopy(self.bg)
-        h_out = multitask_full_graph_nn.forward(bg)
+        feat_out = multitask_full_graph_nn.forward(bg)
 
         dim_1 = self.bg.num_graphs
 
-        self.assertListEqual(list(h_out["task_1"].shape), [dim_1, task_1_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out["task_2"].shape), [dim_1, task_2_kwargs["out_dim"]])
-        self.assertListEqual(list(h_out["task_3"].shape), [dim_1, task_3_kwargs["out_dim"]])
+        self.assertListEqual(list(feat_out["task_1"].shape), [dim_1, task_1_kwargs["out_dim"]])
+        self.assertListEqual(list(feat_out["task_2"].shape), [dim_1, task_2_kwargs["out_dim"]])
+        self.assertListEqual(list(feat_out["task_3"].shape), [dim_1, task_3_kwargs["out_dim"]])
 
 
 if __name__ == "__main__":

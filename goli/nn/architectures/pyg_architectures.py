@@ -14,10 +14,10 @@ class FeedForwardPyg(FeedForwardGraph):
         self,
         layer: BaseGraphModule,
         g: Batch,
-        h: Tensor,
-        e: Optional[Tensor],
-        h_prev: Optional[Tensor],
-        e_prev: Optional[Tensor],
+        feat: Tensor,
+        edge_feat: Optional[Tensor],
+        feat_prev: Optional[Tensor],
+        edge_feat_prev: Optional[Tensor],
         step_idx: int,
     ) -> Tuple[Tensor, Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         r"""
@@ -42,18 +42,18 @@ class FeedForwardPyg(FeedForwardGraph):
             g:
                 graph on which the convolution is done
 
-            h (torch.Tensor[..., N, Din]):
+            feat (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
 
-            e (torch.Tensor[..., N, Ein]):
+            edge_feat (torch.Tensor[..., N, Ein]):
                 Edge feature tensor, before convolution.
                 `N` is the number of nodes, `Ein` is the input edge features
 
-            h_prev:
+            feat_prev:
                 Node feature of the previous residual connection, or `None`
 
-            e_prev:
+            edge_feat_prev:
                 Edge feature of the previous residual connection, or `None`
 
             step_idx:
@@ -61,40 +61,40 @@ class FeedForwardPyg(FeedForwardGraph):
 
         Returns:
 
-            h (torch.Tensor[..., N, Dout]):
+            feat (torch.Tensor[..., N, Dout]):
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
 
-            e:
+            edge_feat (torch.Tensor[..., N, Eout]):
                 Edge feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Ein` is the input edge features
 
-            h_prev:
+            feat_prev:
                 Node feature tensor to be used at the next residual connection, or `None`
 
-            e_prev:
+            edge_feat_prev:
                 Edge feature tensor to be used at the next residual connection, or `None`
 
         """
 
         # Set node / edge features into the graph
-        g["h"] = h
-        g["edge_attr"] = e
+        g["feat"] = feat
+        g["edge_feat"] = edge_feat
 
         # Apply the GNN layer
         g = layer(g)
 
         # Get the node / edge features from the graph
-        h = g["h"]
-        e = g["edge_attr"]
+        feat = g["feat"]
+        edge_feat = g["edge_feat"]
 
         # Apply the residual layers on the features and edges (if applicable)
         if step_idx < len(self.layers) - 1:
-            h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
+            feat, feat_prev = self.residual_layer.forward(feat, feat_prev, step_idx=step_idx)
             if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
-                e, e_prev = self.residual_edges_layer.forward(e, e_prev, step_idx=step_idx)
+                edge_feat, edge_feat_prev = self.residual_edges_layer.forward(edge_feat, edge_feat_prev, step_idx=step_idx)
 
-        return h, e, h_prev, e_prev
+        return feat, edge_feat, feat_prev, edge_feat_prev
 
     def _parse_virtual_node_class(self) -> type:
         return VirtualNodePyg

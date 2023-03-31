@@ -122,7 +122,7 @@ class BaseGraphStructure:
 
     def apply_norm_activation_dropout(
         self,
-        h: Tensor,
+        feat: Tensor,
         normalization: bool = True,
         activation: bool = True,
         dropout: bool = True,
@@ -136,7 +136,7 @@ class BaseGraphStructure:
 
         Parameters:
 
-            h:
+            feat:
                 Feature tensor, to be normalized
 
             batch_idx
@@ -155,24 +155,24 @@ class BaseGraphStructure:
 
         Returns:
 
-            h:
+            feat:
                 Normalized and dropped-out features
 
         """
 
         if normalization and (self.norm_layer is not None):
-            h = self.norm_layer(h)
+            feat = self.norm_layer(feat)
 
         if activation and (self.activation_layer is not None):
-            h = self.activation_layer(h)
+            feat = self.activation_layer(feat)
 
         if dropout and (self.dropout_layer is not None):
-            h = self.dropout_layer(h)
+            feat = self.dropout_layer(feat)
 
         if droppath and (self.droppath_layer is not None):
-            h = self.droppath_layer(h, batch_idx=batch_idx, batch_size=batch_size)
+            feat = self.droppath_layer(feat, batch_idx=batch_idx, batch_size=batch_size)
 
-        return h
+        return feat
 
     @classproperty
     def layer_supports_edges(cls) -> bool:

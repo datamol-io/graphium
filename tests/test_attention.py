@@ -36,8 +36,8 @@ class test_MultiHeadAttention(ut.TestCase):
     e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
     x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
     e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
-    g1 = Data(h=x1, edge_index=edge_idx1, edge_attr=e1)
-    g2 = Data(h=x2, edge_index=edge_idx2, edge_attr=e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
     bg = Batch.from_data_list([g1, g2])
 
     attn_kwargs = {"embed_dim": in_dim, "num_heads": 2, "batch_first": True}
@@ -52,7 +52,7 @@ class test_MultiHeadAttention(ut.TestCase):
         attention_layer_bias.eval()
 
         h_dense, mask, _ = to_dense_batch(
-            bg.h,
+            bg.feat,
             batch=bg.batch,
             batch_size=None,
             max_num_nodes_per_graph=None,

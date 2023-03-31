@@ -288,7 +288,7 @@ class FeedForwardNN(nn.Module):
                 `Dout` is the number of output features
 
         """
-        h_prev = None
+        feat_prev = None
 
         # Apply a normalization before the first layer
         if self.first_normalization is not None:
@@ -298,7 +298,7 @@ class FeedForwardNN(nn.Module):
         for ii, layer in enumerate(self.layers):
             h = layer.forward(h)
             if ii < len(self.layers) - 1:
-                h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=ii)
+                h, feat_prev = self.residual_layer.forward(h, feat_prev, step_idx=ii)
 
         return h
 
@@ -676,7 +676,7 @@ class FeedForwardGraph(FeedForwardNN):
     def _pool_layer_forward(
         self,
         g: Batch,
-        h: torch.Tensor,
+        feat: torch.Tensor,
     ):
         r"""
         Apply the graph pooling layer, followed by the linear output layer.
@@ -685,7 +685,7 @@ class FeedForwardGraph(FeedForwardNN):
 
             g: pyg Batch graph on which the convolution is done
 
-            h (torch.Tensor[..., N, Din]):
+            feat (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the output size of the last Graph layer
 
@@ -698,22 +698,22 @@ class FeedForwardGraph(FeedForwardNN):
         """
 
         if len(self.global_pool_layer) > 0:
-            pooled_h = self.global_pool_layer(g, h)
+            pooled_feat = self.global_pool_layer(g, feat)
         else:
-            pooled_h = h
+            pooled_feat = feat
 
-        pooled_h = self.out_linear(pooled_h)
+        pooled_feat = self.out_linear(pooled_feat)
 
-        return pooled_h
+        return pooled_feat
 
     def _graph_layer_forward(
         self,
         layer: BaseGraphModule,
         g: Batch,
-        h: Tensor,
-        e: Optional[Tensor],
-        h_prev: Optional[Tensor],
-        e_prev: Optional[Tensor],
+        feat: Tensor,
+        edge_feat: Optional[Tensor],
+        feat_prev: Optional[Tensor],
+        edge_feat_prev: Optional[Tensor],
         step_idx: int,
     ) -> Tuple[Tensor, Optional[Tensor], Optional[Tensor], Optional[Tensor]]:
         r"""
@@ -738,18 +738,18 @@ class FeedForwardGraph(FeedForwardNN):
             g:
                 graph on which the convolution is done
 
-            h (torch.Tensor[..., N, Din]):
+            feat (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
 
-            e (torch.Tensor[..., N, Ein]):
+            edge_feat (torch.Tensor[..., N, Ein]):
                 Edge feature tensor, before convolution.
                 `N` is the number of nodes, `Ein` is the input edge features
 
-            h_prev:
+            feat_prev:
                 Node feature of the previous residual connection, or `None`
 
-            e_prev:
+            edge_feat_prev:
                 Edge feature of the previous residual connection, or `None`
 
             step_idx:
@@ -757,40 +757,40 @@ class FeedForwardGraph(FeedForwardNN):
 
         Returns:
 
-            h (torch.Tensor[..., N, Dout]):
+            feat (torch.Tensor[..., N, Dout]):
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
 
-            e:
+            edge_feat:
                 Edge feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Ein` is the input edge features
 
-            h_prev:
+            feat_prev:
                 Node feature tensor to be used at the next residual connection, or `None`
 
-            e_prev:
+            edge_feat_prev:
                 Edge feature tensor to be used at the next residual connection, or `None`
 
         """
 
         # Set node / edge features into the graph
-        g["h"] = h
-        g["edge_attr"] = e
+        g["feat"] = feat
+        g["edge_feat"] = edge_feat
 
         # Apply the GNN layer
         g = layer(g)
 
         # Get the node / edge features from the graph
-        h = g["h"]
-        e = g["edge_attr"]
+        feat = g["feat"]
+        edge_feat = g["edge_feat"]
 
         # Apply the residual layers on the features and edges (if applicable)
         if step_idx < len(self.layers) - 1:
-            h, h_prev = self.residual_layer.forward(h, h_prev, step_idx=step_idx)
+            feat, feat_prev = self.residual_layer.forward(feat, feat_prev, step_idx=step_idx)
             if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
-                e, e_prev = self.residual_edges_layer.forward(e, e_prev, step_idx=step_idx)
+                edge_feat, edge_feat_prev = self.residual_edges_layer.forward(edge_feat, edge_feat_prev, step_idx=step_idx)
 
-        return h, e, h_prev, e_prev
+        return feat, edge_feat, feat_prev, edge_feat_prev
 
     def _parse_virtual_node_class(self) -> type:
         return VirtualNodePyg
@@ -831,10 +831,10 @@ class FeedForwardGraph(FeedForwardNN):
     def _virtual_node_forward(
         self,
         g: Data,
-        h: torch.Tensor,
-        vn_h: torch.Tensor,
+        feat: torch.Tensor,
+        vn_feat: torch.Tensor,
         step_idx: int,
-        e: torch.Tensor,
+        edge_feat: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         r"""
         Apply the *i-th* virtual node layer, where *i* is the index given by `step_idx`.
@@ -844,11 +844,11 @@ class FeedForwardGraph(FeedForwardNN):
             g:
                 graph on which the convolution is done
 
-            h (torch.Tensor[..., N, Din]):
+            feat (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
 
-            vn_h (torch.Tensor[..., M, Din]):
+            vn_feat (torch.Tensor[..., M, Din]):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features
                 It is added to the result after the MLP, as a residual connection
@@ -856,23 +856,23 @@ class FeedForwardGraph(FeedForwardNN):
             step_idx:
                 The current step idx in the forward loop
 
-            e: torch.Tensor
+            edge_feat: torch.Tensor
 
         Returns:
 
-            `h = torch.Tensor[..., N, Dout]`:
+            `feat = torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
 
-            `vn_h = torch.Tensor[..., M, Dout]`:
+            `vn_feat = torch.Tensor[..., M, Dout]`:
                 Graph feature tensor to be used at the next virtual node, or `None`
                 `M` is the number of graphs, `Dout` is the output features
 
         """
         if step_idx < len(self.virtual_node_layers):
-            h, vn_h, e = self.virtual_node_layers[step_idx].forward(g=g, h=h, vn_h=vn_h, e=e)
+            feat, vn_feat, edge_feat = self.virtual_node_layers[step_idx].forward(g=g, feat=feat, vn_feat=vn_feat, edge_feat=edge_feat)
 
-        return h, vn_h, e
+        return feat, vn_feat, edge_feat
 
     def forward(self, g: Batch) -> torch.Tensor:
         r"""
@@ -883,11 +883,11 @@ class FeedForwardGraph(FeedForwardNN):
             g:
                 pyg Batch graph on which the convolution is done with the keys:
 
-                - `"h"`: torch.Tensor[..., N, Din]
+                - `"feat"`: torch.Tensor[..., N, Din]
                   Node feature tensor, before convolution.
                   `N` is the number of nodes, `Din` is the input features
 
-                - `"edge_attr"` (torch.Tensor[..., N, Ein]):
+                - `"edge_feat"` (torch.Tensor[..., N, Ein]):
                   Edge feature tensor, before convolution.
                   `N` is the number of nodes, `Ein` is the input edge features
 
@@ -904,25 +904,25 @@ class FeedForwardGraph(FeedForwardNN):
         """
 
         # Initialize values of the residuals and virtual node
-        h_prev = None
-        e_prev = None
-        vn_h = 0.0
-        h = g["h"]
-        e = g["edge_attr"]
+        feat_prev = None
+        edge_feat_prev = None
+        vn_feat = 0.0
+        feat = g["feat"]
+        edge_feat = g["edge_feat"]
         # Apply the normalization before the first network layers
         if self.first_normalization is not None:
-            h = self.first_normalization(h)
+            feat = self.first_normalization(feat)
         if (self.first_normalization_edges is not None) and (self.in_dim_edges > 0):
-            e = self.first_normalization_edges(e)
+            edge_feat = self.first_normalization_edges(edge_feat)
 
         # Apply the forward loop of the layers, residuals and virtual nodes
         for ii, layer in enumerate(self.layers):
-            h, e, h_prev, e_prev = self._graph_layer_forward(
-                layer=layer, g=g, h=h, e=e, h_prev=h_prev, e_prev=e_prev, step_idx=ii
+            feat, edge_feat, feat_prev, edge_feat_prev = self._graph_layer_forward(
+                layer=layer, g=g, feat=feat, edge_feat=edge_feat, feat_prev=feat_prev, edge_feat_prev=edge_feat_prev, step_idx=ii
             )
-            h, vn_h, e = self._virtual_node_forward(g=g, h=h, e=e, vn_h=vn_h, step_idx=ii)
+            feat, vn_feat, edge_feat = self._virtual_node_forward(g=g, feat=feat, edge_feat=edge_feat, vn_feat=vn_feat, step_idx=ii)
 
-        pooled_h = self._pool_layer_forward(g=g, h=h)
+        pooled_h = self._pool_layer_forward(g=g, feat=feat)
 
         return pooled_h
 
@@ -1240,27 +1240,26 @@ class FullGraphNetwork(nn.Module):
         # Apply the positional encoders
         g = self.encoder_manager(g)
 
-        h = g["feat"].to(self.dtype)
-        g["h"] = h
+        g["feat"] = g["feat"].to(self.dtype)
         e = None
         if "edge_feat" in g.keys:
-            g["edge_attr"] = g["edge_feat"].to(self.dtype)
+            g["edge_feat"] = g["edge_feat"].to(self.dtype)
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
-            g["h"] = self.pre_nn.forward(g["h"])
+            g["feat"] = self.pre_nn.forward(g["feat"])
 
         # Run the pre-processing network on edge features
         # If there are no edges, skip the forward and change the dimension of e
         if self.pre_nn_edges is not None:
-            e = g["edge_attr"]
+            e = g["edge_feat"]
             if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
                 e = torch.zeros(
                     list(e.shape[:-1]) + [self.pre_nn_edges.out_dim], device=e.device, dtype=e.dtype
                 )
             else:
                 e = self.pre_nn_edges.forward(e)
-            g["edge_attr"] = e
+            g["edge_feat"] = e
 
         # Run the graph neural network
         h = self.gnn.forward(g)
