@@ -2348,6 +2348,13 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
 
 class FakeDataModule(MultitaskFromSmilesDataModule):
+    """
+    A fake datamodule that generates artificial data by mimicking the true data coming
+    from the provided dataset.
+    It is useful to test the speed and performance of the model on a dataset without
+    having to featurize it and wait for the workers to load it.
+    """
+
     def __init__(
         self,
         task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
@@ -2573,7 +2580,24 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
 
 
 class FakeDataset(MultitaskDataset):
-    def __init__(self, datasets, num_mols, indexing_same_elem=False):
+    """
+    A dataset to hold the fake data.
+    """
+
+    def __init__(
+        self, datasets: Dict[str, SingleTaskDataset], num_mols: int = 1234, indexing_same_elem: bool = False
+    ):
+        """
+        Parameters:
+            datasets:
+                A dictionary of datasets. The keys are the task names and the values are the datasets.
+            num_mols:
+                The number of molecules to generate. In reality, it is the same molecule,
+                but `num_mols` will change the length of the dataset.
+            indexing_same_elem:
+                If True, the same molecule is used for all samples.
+                Otherwise, a deepcopied molecule is used for each sample.
+        """
         self.indexing_same_elem = indexing_same_elem
         self.num_mols = num_mols
         self.num_datasets = len(datasets)
