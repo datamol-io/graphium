@@ -788,7 +788,9 @@ class FeedForwardGraph(FeedForwardNN):
         if step_idx < len(self.layers) - 1:
             feat, feat_prev = self.residual_layer.forward(feat, feat_prev, step_idx=step_idx)
             if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
-                edge_feat, edge_feat_prev = self.residual_edges_layer.forward(edge_feat, edge_feat_prev, step_idx=step_idx)
+                edge_feat, edge_feat_prev = self.residual_edges_layer.forward(
+                    edge_feat, edge_feat_prev, step_idx=step_idx
+                )
 
         return feat, edge_feat, feat_prev, edge_feat_prev
 
@@ -870,7 +872,9 @@ class FeedForwardGraph(FeedForwardNN):
 
         """
         if step_idx < len(self.virtual_node_layers):
-            feat, vn_feat, edge_feat = self.virtual_node_layers[step_idx].forward(g=g, feat=feat, vn_feat=vn_feat, edge_feat=edge_feat)
+            feat, vn_feat, edge_feat = self.virtual_node_layers[step_idx].forward(
+                g=g, feat=feat, vn_feat=vn_feat, edge_feat=edge_feat
+            )
 
         return feat, vn_feat, edge_feat
 
@@ -918,9 +922,17 @@ class FeedForwardGraph(FeedForwardNN):
         # Apply the forward loop of the layers, residuals and virtual nodes
         for ii, layer in enumerate(self.layers):
             feat, edge_feat, feat_prev, edge_feat_prev = self._graph_layer_forward(
-                layer=layer, g=g, feat=feat, edge_feat=edge_feat, feat_prev=feat_prev, edge_feat_prev=edge_feat_prev, step_idx=ii
+                layer=layer,
+                g=g,
+                feat=feat,
+                edge_feat=edge_feat,
+                feat_prev=feat_prev,
+                edge_feat_prev=edge_feat_prev,
+                step_idx=ii,
             )
-            feat, vn_feat, edge_feat = self._virtual_node_forward(g=g, feat=feat, edge_feat=edge_feat, vn_feat=vn_feat, step_idx=ii)
+            feat, vn_feat, edge_feat = self._virtual_node_forward(
+                g=g, feat=feat, edge_feat=edge_feat, vn_feat=vn_feat, step_idx=ii
+            )
 
         pooled_h = self._pool_layer_forward(g=g, feat=feat)
 

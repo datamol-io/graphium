@@ -313,7 +313,11 @@ class MPNNPlusPyg(BaseGraphModule):
         # ---------------Apply norm activation and dropout---------------
         # use dropout value of the layer (default 0.3)
         batch.feat = self.apply_norm_activation_dropout(
-            batch.feat, normalization=False, activation=False, batch_idx=batch.batch, batch_size=batch.num_graphs
+            batch.feat,
+            normalization=False,
+            activation=False,
+            batch_idx=batch.batch,
+            batch_size=batch.num_graphs,
         )
 
         return batch

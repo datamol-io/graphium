@@ -92,7 +92,9 @@ class FeedForwardPyg(FeedForwardGraph):
         if step_idx < len(self.layers) - 1:
             feat, feat_prev = self.residual_layer.forward(feat, feat_prev, step_idx=step_idx)
             if (self.residual_edges_layer is not None) and (layer.layer_outputs_edges):
-                edge_feat, edge_feat_prev = self.residual_edges_layer.forward(edge_feat, edge_feat_prev, step_idx=step_idx)
+                edge_feat, edge_feat_prev = self.residual_edges_layer.forward(
+                    edge_feat, edge_feat_prev, step_idx=step_idx
+                )
 
         return feat, edge_feat, feat_prev, edge_feat_prev
 
