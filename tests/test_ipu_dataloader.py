@@ -11,6 +11,7 @@ from torch.utils.data.dataloader import default_collate
 # Current library imports
 from goli.config._loader import load_datamodule, load_metrics, load_architecture
 
+
 def random_packing(num_nodes, batch_size):
     ipu_batch_size = int(len(num_nodes) / batch_size)
     indices = np.arange(len(num_nodes))
