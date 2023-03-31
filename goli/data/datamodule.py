@@ -2357,6 +2357,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         prepare_dict_or_graph: str = "pyg:graph",
         generated_data: bool = False,
         num_mols_to_generate: int = 1000000,
+        indexing_single_elem: bool = False,
         **kwargs,
     ):
         BaseDataModule.__init__(
@@ -2393,6 +2394,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         self.test_singletask_datasets = None
 
         self.train_ds = None
+        # If True we reuse the same single data entry in memory, otherwise duplicate the same element to loop through
+        self.indexing_single_elem = indexing_single_elem
 
         # Whether to transform the smiles into a dglgraph or a dictionary compatible with dgl
         if prepare_dict_or_graph == "dgl:dict":
@@ -2543,8 +2546,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = FakeDataset(self.train_singletask_datasets, num_mols=self.num_mols_to_generate)  # type: ignore
-            self.val_ds = FakeDataset(self.val_singletask_datasets, num_mols=self.num_mols_to_generate)  # type: ignore
+            self.train_ds = FakeDataset(self.train_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
+            self.val_ds = FakeDataset(self.val_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
             print(self.train_ds)
             print(self.val_ds)
 
@@ -2554,7 +2557,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = FakeDataset(self.test_singletask_datasets, num_mols=self.num_mols_to_generate)  # type: ignore
+            self.test_ds = FakeDataset(self.test_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
             print(self.test_ds)
             labels_size.update(self.test_ds.labels_size)
 
@@ -2603,19 +2606,53 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
 
 
 class FakeDataset(MultitaskDataset):
-    def __init__(self, datasets, num_mols=int(1234)):
+    def __init__(self, datasets, num_mols=int(1234), indexing_same_elem=False):
         self.generated_data = True
+        self.indexing_same_elem = indexing_same_elem
+        self.num_mols = num_mols
+
         self.about = "FakeDatasets"
         task = next(iter(datasets))
         if "features" in datasets[task][0]:
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
+            if self.indexing_same_elem is False:
+                self.mol_ids, self.smiles, self.labels, self.features = self.deepcopy_mol(
+                    self.mol_ids, self.smiles, self.labels, self.features
+                )
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
-
+            if self.indexing_same_elem is False:
+                self.mol_ids, self.smiles, self.labels, _ = self.deepcopy_mol(
+                    self.mol_ids, self.smiles, self.labels
+                )
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
         self.features = self.features
-        self.num_mols = num_mols
+
+    def deepcopy_mol(self, mol_ids, labels, smiles, features=None):
+        """
+        Create a deepcopy of the single molecule num_mols times
+
+        Args:
+            mol_ids (array): The single value for the mol ID
+            labels (List[Dict]): List containing one dict with the label name-value pairs
+            smiles (List[List[str]]): List of list containing SMILE sting
+            features (List[Data], optional): list containing Data object. Defaults to None.
+
+        Returns:
+            The deep copy of the inputs
+        """
+        logger.info("Duplicating the single dataset element...")
+        mol_ids = [deepcopy(mol_ids[0]) for _ in range(self.num_mols)]
+        logger.info("Finished `mol_ids`")
+        labels = [deepcopy(labels[0]) for _ in range(self.num_mols)]
+        logger.info("Finished `labels`")
+        smiles = [deepcopy(smiles[0]) for _ in range(self.num_mols)]
+        logger.info("Finished `smiles`")
+        if features is not None:
+            features = [deepcopy(features[0]) for _ in range(self.num_mols)]
+            logger.info("Finished `features`")
+        return mol_ids, labels, smiles, features
 
     def __len__(self):
         r"""
@@ -2633,11 +2670,14 @@ class FakeDataset(MultitaskDataset):
             A dictionary containing the data for the specified index with keys "mol_ids", "smiles", "labels", and "features"
         """
         datum = {}
+        if self.indexing_same_elem is True:
+            # If using a single memory location override the idx value passed
+            idx = 0
         if self.labels is not None:
-            datum["labels"] = self.labels[0]
+            datum["labels"] = self.labels[idx]
 
         if self.features is not None:
-            datum["features"] = self.features[0]
+            datum["features"] = self.features[idx]
 
         return datum
 
