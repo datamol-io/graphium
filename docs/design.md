@@ -57,11 +57,6 @@ The code is built to rapidly iterate on different architectures of neural networ
 
 This folder contains tools that allow tdependenciesrent kind of molecular data files, such as `.csv` or `.xlsx` with SMILES data, or `.sdf` files with 3D data.
 
-### dgl
-
-This folder contains the code necessary for compatibility with the Deep Graph Library (DGL), and implements many state of the art GNN methods, such as GCN, GIN, MPNN and PNA.
-It also contains major network architecture implemented for DGL (feed-forward, resnet, skip-connections, densenet), along with the DGL graph transformer for molecules.
-**_I was thinking of removing most models to avoid having too much maintenance to do, since they either don't perform well on molecular tasks (GAT, RingGNN) or they are generalized by DGN (GCN, GIN, MPNN, PNA, GraphSage)_**.
 
 ### features
 
@@ -85,13 +80,13 @@ Plot visualization tools
 
 ### Adding a new GNN layer
 
-Any new GNN layer must inherit from the class `goli.nn.dgl_layers.base_dgl_layer.BaseDGLLayer` and be implemented in the folder `goli/dgl/dgl_layers`, imported in the file `goli/dgl/architectures.py`, and in the same file, added to the function `FeedForwardDGL._parse_gnn_layer`.
+Any new GNN layer must inherit from the class `goli.nn.base_graph_layer.BaseGraphLayer` and be implemented in the folder `goli/nn/pyg_layers`, imported in the file `goli/nn/architectures.py`, and in the same file, added to the function `FeedForwardGraph._parse_gnn_layer`.
 
 To be used in the configuration file as a `goli.model.layer_name`, it must also be implemented with some variable parameters in the file `expts/config_gnns.yaml`.
 
 ### Adding a new NN architecture
 
-All NN and GNN architectures compatible with the `DGL` library are provided in the file `goli/dgl/architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `goli.nn.architectures.FeedForwardNN` for regular neural networks, from `goli.nn.architectures.FeedForwardDGL` for DGL neural network, or from any of their sub-classes.
+All NN and GNN architectures compatible with the `pyg` library are provided in the file `goli/nn/global_architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `goli.nn.architectures.FeedForwardNN` for regular neural networks, from `goli.nn.global_architectures.FeedForwardGraph` for pyg neural network, or from any of their sub-classes.
 
 ### Changing the PredictorModule and loss function
 

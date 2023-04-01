@@ -271,7 +271,7 @@ class VirtualNodePyg(nn.Module):
             self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
 
     def forward(
-        self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor
+        self, g: Union[Data, Batch], feat: Tensor, vn_feat: LongTensor, edge_feat: Tensor
     ) -> Tuple[Tensor, Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
@@ -281,30 +281,30 @@ class VirtualNodePyg(nn.Module):
             g:
                 PyG Graphs or Batched graphs.
 
-            h (torch.Tensor[..., N, Din]):
+            feat (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
 
-            vn_h (torch.Tensor[..., M, Din]):
+            vn_feat (torch.Tensor[..., M, Din]):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features.
                 It is added to the result after the MLP, as a residual connection
 
-            e (torch.Tensor[..., E, Din]):
+            edge_feat (torch.Tensor[..., E, Din]):
                 Edge feature tensor, before convolution.
                 `E` is the number of edges, `Din` is the input features
 
         Returns:
 
-            `h = torch.Tensor[..., N, Dout]`:
+            `feat = torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
 
-            `vn_h = torch.Tensor[..., M, Dout]`:
+            `vn_feat = torch.Tensor[..., M, Dout]`:
                 Graph feature tensor to be used at the next virtual node, or `None`
                 `M` is the number of graphs, `Dout` is the output features
 
-            `e = torch.Tensor[..., N, Dout]`:
+            `edge_feat = torch.Tensor[..., N, Dout]`:
                 Edge feature tensor, after convolution and residual - if edges are used, otherwise returned unchanged.
                 `N` is the number of edges, `Dout` is the output features of the layer and residual
 
@@ -312,23 +312,23 @@ class VirtualNodePyg(nn.Module):
 
         # Pool the features
         if self.vn_type is None:
-            return h, vn_h, e
-        pool = self.layer(g, h)
+            return feat, vn_feat, edge_feat
+        pool = self.layer(g, feat)
         if self.use_edges:
-            edge_pool = self.edge_layer(g, e)
+            edge_pool = self.edge_layer(g, edge_feat)
             pool = torch.cat((pool, edge_pool), -1)
 
-        vn_h_temp = self.fc_layer.forward(vn_h + pool)
+        vn_h_temp = self.fc_layer.forward(vn_feat + pool)
 
         if self.residual:
-            vn_h = vn_h + vn_h_temp
+            vn_feat = vn_feat + vn_h_temp
         else:
-            vn_h = vn_h_temp
+            vn_feat = vn_h_temp
 
         # Add the virtual node projections to the node features
-        h = h + self.node_projection(vn_h[g.batch])
+        feat = feat + self.node_projection(vn_feat[g.batch])
 
         if self.use_edges:
             # Add the virtual node projections to the edge features
-            e = e + self.edge_projection(vn_h[g.batch[g.edge_index][0]])
-        return h, vn_h, e
+            edge_feat = edge_feat + self.edge_projection(vn_feat[g.batch[g.edge_index][0]])
+        return feat, vn_feat, edge_feat

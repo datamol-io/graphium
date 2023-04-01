@@ -232,7 +232,7 @@ def load_architecture(
 
     # Select the architecture
     model_type = cfg_arch["model_type"].lower()
-    if model_type == "fulldglnetwork":
+    if model_type == "fullgraphnetwork":
         model_class = FullGraphNetwork
     elif model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork

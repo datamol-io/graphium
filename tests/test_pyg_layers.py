@@ -1,5 +1,5 @@
 """
-Unit tests for the different layers of goli/nn/dgl_layers/...
+Unit tests for the different layers of goli/nn/pyg_layers/...
 
 The layers are not thoroughly tested due to the difficulty of testing them
 """
@@ -40,8 +40,8 @@ class test_Pyg_Layers(ut.TestCase):
     e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
     # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
     # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
-    g1 = Data(h=x1, edge_index=edge_idx1, edge_attr=e1)
-    g2 = Data(h=x2, edge_index=edge_idx2, edge_attr=e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
     bg = Batch.from_data_list([g1, g2])
 
     kwargs = {
@@ -55,7 +55,7 @@ class test_Pyg_Layers(ut.TestCase):
 
     def test_gpslayer(self):
         bg = deepcopy(self.bg)
-        h_in = bg.h
+        feat_in = bg.feat
         kwargs = deepcopy(self.kwargs)
         kwargs.pop("droppath_rate")
         kwargs["droppath_rate_attn"] = 0.2
@@ -75,14 +75,14 @@ class test_Pyg_Layers(ut.TestCase):
             bg = layer.forward(bg)
 
         # Create new edge attributes with same dim and check that it works
-        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim), dtype=torch.float32)
+        bg.edge_feat = torch.zeros((bg.edge_feat.shape[0], self.in_dim), dtype=torch.float32)
         bg = layer.forward(bg)
-        self.assertEqual(bg.h.shape[0], h_in.shape[0])
-        self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg.feat.shape[0], feat_in.shape[0])
+        self.assertEqual(bg.feat.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_ginlayer(self):
         bg = deepcopy(self.bg)
-        h_in = bg.h
+        feat_in = bg.feat
         layer = GINConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
 
         # Check the re-implementation of abstract methods
@@ -93,12 +93,12 @@ class test_Pyg_Layers(ut.TestCase):
 
         # Apply layer
         bg = layer.forward(bg)
-        self.assertEqual(bg.h.shape[0], h_in.shape[0])
-        self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg.feat.shape[0], feat_in.shape[0])
+        self.assertEqual(bg.feat.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_ginelayer(self):
         bg = deepcopy(self.bg)
-        h_in = bg.h
+        feat_in = bg.feat
         layer = GINEConvPyg(in_dim=self.in_dim, out_dim=self.out_dim, **self.kwargs)
 
         # Check the re-implementation of abstract methods
@@ -112,14 +112,14 @@ class test_Pyg_Layers(ut.TestCase):
             bg = layer.forward(bg)
 
         # Create new edge attributes with same dim and check that it works
-        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim), dtype=torch.float32)
+        bg.edge_feat = torch.zeros((bg.edge_feat.shape[0], self.in_dim), dtype=torch.float32)
         bg = layer.forward(bg)
-        self.assertEqual(bg.h.shape[0], h_in.shape[0])
-        self.assertEqual(bg.h.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg.feat.shape[0], feat_in.shape[0])
+        self.assertEqual(bg.feat.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_mpnnlayer(self):
         bg = deepcopy(self.bg)
-        h_in = bg.h
+        feat_in = bg.feat
         # need in_dim = out_dim for skip connection
         # mpnn layer accept different dimension for node and edge features
         layer = MPNNPlusPyg(
@@ -138,15 +138,15 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(layer.out_dim_factor, 1)
 
         # Create new edge attributes with same dim and check that it works
-        bg.edge_attr = torch.zeros((bg.edge_attr.shape[0], self.in_dim_edges), dtype=torch.float32)
+        bg.edge_feat = torch.zeros((bg.edge_feat.shape[0], self.in_dim_edges), dtype=torch.float32)
         bg = layer.forward(bg)
-        self.assertEqual(bg.h.shape[0], h_in.shape[0])
-        self.assertEqual(bg.h.shape[1], self.in_dim * layer.out_dim_factor)
+        self.assertEqual(bg.feat.shape[0], feat_in.shape[0])
+        self.assertEqual(bg.feat.shape[1], self.in_dim * layer.out_dim_factor)
 
     def test_gatedgcnlayer(self):
         bg = deepcopy(self.bg)
-        h_in = bg.h
-        e_in = bg.edge_attr
+        feat_in = bg.feat
+        e_in = bg.edge_feat
         layer = GatedGCNPyg(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
@@ -166,12 +166,12 @@ class test_Pyg_Layers(ut.TestCase):
 
         # Apply layer with edges
         bg2 = layer.forward(bg)
-        self.assertEqual(bg2.h.shape[0], h_in.shape[0])
-        self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg2.feat.shape[0], feat_in.shape[0])
+        self.assertEqual(bg2.feat.shape[1], self.out_dim * layer.out_dim_factor)
 
     def test_pnamessagepassinglayer(self):
         bg = deepcopy(self.bg)
-        h_in = bg.h
+        feat_in = bg.feat
         aggregators = ["mean", "max", "min", "std", "sum"]
         scalers = ["identity", "amplification", "attenuation"]
 
@@ -188,8 +188,8 @@ class test_Pyg_Layers(ut.TestCase):
 
         # Apply layer
         bg2 = layer.forward(bg)
-        self.assertEqual(bg2.h.shape[0], h_in.shape[0])
-        self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertEqual(bg2.feat.shape[0], feat_in.shape[0])
+        self.assertEqual(bg2.feat.shape[1], self.out_dim * layer.out_dim_factor)
 
         # Now try with edges
         bg = deepcopy(self.bg)
@@ -211,16 +211,16 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(layer.out_dim_factor, 1)
 
         bg2 = layer.forward(bg)
-        self.assertEqual(bg2.h.shape[0], h_in.shape[0])
-        self.assertEqual(bg2.h.shape[1], self.out_dim * layer.out_dim_factor)
-        self.assertTrue((bg2.edge_attr == self.bg.edge_attr).all)
+        self.assertEqual(bg2.feat.shape[0], feat_in.shape[0])
+        self.assertEqual(bg2.feat.shape[1], self.out_dim * layer.out_dim_factor)
+        self.assertTrue((bg2.edge_feat == self.bg.edge_feat).all)
 
     def test_preprocess3Dfeaturelayer(self):
         bg = deepcopy(self.bg)
         num_heads = 2
         num_kernel = 2
         in_dim = 3
-        bg.positions_3d = torch.zeros(bg.h.size()[0], in_dim)
+        bg.positions_3d = torch.zeros(bg.feat.size()[0], in_dim)
         layer = PreprocessPositions(
             num_heads=num_heads,
             embed_dim=self.out_dim,
@@ -247,8 +247,8 @@ class test_Pyg_Layers(ut.TestCase):
 
     def test_pooling_virtual_node(self):
         bg = deepcopy(self.bg)
-        h_in = bg.h
-        e_in = bg.edge_attr
+        feat_in = bg.feat
+        e_in = bg.edge_feat
         vn_h = 0
 
         vn_types = ["sum", "mean"]
@@ -259,7 +259,7 @@ class test_Pyg_Layers(ut.TestCase):
                 expected_v_node=expected_v_node,
             ):
                 vn_h = 0.0
-                print(vn_h, self.out_dim, h_in.size())
+                print(vn_h, self.out_dim, feat_in.size())
                 layer = VirtualNodePyg(
                     in_dim=self.in_dim,
                     out_dim=self.in_dim,
@@ -270,17 +270,17 @@ class test_Pyg_Layers(ut.TestCase):
                     **self.kwargs,
                 )
 
-                h_out, vn_out, e_out = layer.forward(bg, h_in, vn_h, e=e_in)
+                feat_out, vn_out, e_out = layer.forward(bg, feat_in, vn_h, edge_feat=e_in)
                 assert vn_out.shape == expected_v_node
-                assert h_out.shape == (7, 21)
+                assert feat_out.shape == (7, 21)
                 assert e_out.shape == (9, 13)
                 if use_edges is False:
                     # i.e. that the node features have been updated
-                    assert torch.equal(h_out, h_in) == False
+                    assert torch.equal(feat_out, feat_in) == False
                     # And that the edge features have not
                     assert torch.equal(e_out, e_in) == True
                 else:
-                    assert torch.equal(h_out, h_in) == False
+                    assert torch.equal(feat_out, feat_in) == False
                     assert torch.equal(e_out, e_in) == False
 
 

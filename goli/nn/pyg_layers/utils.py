@@ -77,7 +77,7 @@ class PreprocessPositions(nn.Module):
         if self.first_normalization is not None:
             pos = self.first_normalization(pos)
         batch_size = None if pos.device.type != "ipu" else batch.graph_is_true.shape[0]
-        # batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.h is only available after passing through layers, not a good attribute to check
+        # batch_size = None if batch.feat.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.feat is only available after passing through layers, not a good attribute to check
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
         # idx: [totoal_nodes]

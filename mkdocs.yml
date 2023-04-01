@@ -33,7 +33,6 @@ nav:
       - goli.nn.architectures: api/goli.nn/architectures.md
       - goli.nn.encoders: api/goli.nn/encoders.md
       - goli.nn.pyg_layers: api/goli.nn/pyg_layers.md
-      - goli.nn.dgl_layers: api/goli.nn/dgl_layers.md
     - goli.features: api/goli.features.md
     - goli.trainer: api/goli.trainer.md
     - goli.data: api/goli.data.md

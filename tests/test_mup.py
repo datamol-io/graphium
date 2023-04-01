@@ -20,8 +20,8 @@ def get_pyg_graphs(in_dim, in_dim_edges):
     e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
     x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
     e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
-    g1 = Data(h=x1, edge_index=edge_idx1, edge_attr=e1)
-    g2 = Data(h=x2, edge_index=edge_idx2, edge_attr=e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
     bg = Batch.from_data_list([g1, g2])
 
     return bg
@@ -146,8 +146,8 @@ class test_mup(ut.TestCase):
         in_dim_edges = 12
         pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3, "positions_3d": 3}
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
-        in_features["feat"] = in_features["h"]
-        in_features["edge_feat"] = in_features["edge_attr"]
+        in_features["feat"] = in_features["feat"]
+        in_features["edge_feat"] = in_features["edge_feat"]
         for key, dim in pe_indims.items():
             in_features[key] = torch.randn(in_features.num_nodes, dim)
 
@@ -232,8 +232,8 @@ class test_mup(ut.TestCase):
         in_dim_edges = 12
         pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3, "positions_3d": 3}
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
-        in_features["feat"] = in_features["h"]
-        in_features["edge_feat"] = in_features["edge_attr"]
+        in_features["feat"] = in_features["feat"]
+        in_features["edge_feat"] = in_features["edge_feat"]
         for key, dim in pe_indims.items():
             in_features[key] = torch.randn(in_features.num_nodes, dim)
 

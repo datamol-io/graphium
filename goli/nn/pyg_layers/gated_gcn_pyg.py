@@ -110,7 +110,7 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
             batch: pyg Batch graph
         """
 
-        x, e, edge_index = batch.h, batch.edge_attr, batch.edge_index
+        x, e, edge_index = batch.feat, batch.edge_feat, batch.edge_index
 
         # Apply the linear layers
         Ax = self.A(x)
@@ -125,8 +125,8 @@ class GatedGCNPyg(MessagePassing, BaseGraphStructure):
         e = self.edge_out(e)
 
         # Output
-        batch.h = x
-        batch.edge_attr = e
+        batch.feat = x
+        batch.edge_feat = e
 
         return batch
 
