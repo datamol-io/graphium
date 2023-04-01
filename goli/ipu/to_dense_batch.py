@@ -11,6 +11,7 @@ def to_sparse_batch(x: Tensor, mask_idx: Tensor):
     """
     return torch.index_select(x.reshape(-1, x.shape[-1]), 0, mask_idx)
 
+
 def to_sparse_batch_from_packed(x: Tensor, pack_from_node_idx: Tensor):
     """
     Reverse function of `to_packed_dense_batch`
@@ -69,7 +70,7 @@ def to_dense_batch(
     num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
 
-    if max_num_nodes_per_graph is None: # Must be provided on IPU
+    if max_num_nodes_per_graph is None:  # Must be provided on IPU
         max_num_nodes_per_graph = int(num_nodes.max())
 
     idx = torch.arange(batch.size(0), dtype=torch.long, device=x.device)
@@ -147,7 +148,7 @@ def to_packed_dense_batch(
     :rtype: (:class:`Tensor`, :class:`BoolTensor`)
     """
 
-    if max_num_nodes_per_pack is None: # Must be provided on IPU
+    if max_num_nodes_per_pack is None:  # Must be provided on IPU
         max_num_nodes_per_pack = pack_attn_mask.shape[-1]
 
     size = [pack_attn_mask[0], max_num_nodes_per_pack] + list(x.size())[1:]
@@ -156,4 +157,3 @@ def to_packed_dense_batch(
     out[pack_from_node_idx[:, 0], pack_from_node_idx[:, 1]] = x
 
     return out
-

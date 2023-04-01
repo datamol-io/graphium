@@ -6,13 +6,14 @@ import torch
 from torch_geometric.data import Data, Batch
 
 # Current library imports
-from goli.ipu.ipu_dataloader import (
+from goli.utils.packing import (
     smart_packing,
     get_pack_sizes,
     fast_packing,
     hybrid_packing,
     node_to_pack_indices_mask,
 )
+
 
 def random_packing(num_nodes, batch_size):
     ipu_batch_size = int(len(num_nodes) / batch_size)

@@ -1072,7 +1072,7 @@ class FullGraphNetwork(nn.Module, MupMixin):
         self._concat_last_layers = None
         self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
-        self.encoder_manager = EncoderManager(**pe_encoders_kwargs)
+        self.encoder_manager = EncoderManager(pe_encoders_kwargs)
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:

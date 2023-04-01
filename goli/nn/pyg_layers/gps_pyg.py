@@ -14,7 +14,12 @@ from goli.nn.pyg_layers import (
     MPNNPlusPyg,
 )
 from goli.utils.decorators import classproperty
-from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch, to_packed_dense_batch, to_sparse_batch_from_packed
+from goli.ipu.to_dense_batch import (
+    to_dense_batch,
+    to_sparse_batch,
+    to_packed_dense_batch,
+    to_sparse_batch_from_packed,
+)
 from goli.ipu.ipu_utils import is_running_on_ipu
 
 PYG_LAYERS_DICT = {
@@ -283,7 +288,14 @@ class GPSLayerPyg(BaseGraphModule):
         """
         return "pack_from_node_idx" in batch.keys and "pack_attn_mask" in batch.keys
 
-    def _to_dense_batch(self, h: Tensor, batch: Batch, batch_size:Optional[int]=None, max_num_nodes_per_graph: Optional[int] = None, on_ipu: bool=False) -> Tensor:
+    def _to_dense_batch(
+        self,
+        h: Tensor,
+        batch: Batch,
+        batch_size: Optional[int] = None,
+        max_num_nodes_per_graph: Optional[int] = None,
+        on_ipu: bool = False,
+    ) -> Tensor:
         """
         Convert the batch of graphs to a dense batch.
         """
@@ -296,7 +308,7 @@ class GPSLayerPyg(BaseGraphModule):
                 h,
                 pack_from_node_idx=idx,
                 pack_attn_mask=attn_mask,
-                max_num_nodes_per_pack=100, # TODO: This should be a parameter
+                max_num_nodes_per_pack=100,  # TODO: This should be a parameter
             )
         else:
             attn_mask = None
@@ -357,7 +369,9 @@ class GPSLayerPyg(BaseGraphModule):
             attn_bias = batch[self.biased_attention_key]
 
         # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
-        feat_attn = self._sa_block(feat_dense, attn_bias=attn_bias, attn_mask=attn_mask, key_padding_mask=key_padding_mask)
+        feat_attn = self._sa_block(
+            feat_dense, attn_bias=attn_bias, attn_mask=attn_mask, key_padding_mask=key_padding_mask
+        )
 
         # feat_attn[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_nodes, hidden_dim]
         feat_attn = self._to_sparse_batch(batch, feat_attn, idx)

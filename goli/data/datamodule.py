@@ -1539,7 +1539,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def get_collate_fn(self, collate_fn):
         if collate_fn is None:
             # Some values become `inf` when changing data type. `mask_nan` deals with that
-            collate_fn = partial(goli_collate_fn, mask_nan=0, do_not_collate_keys=["smiles", "mol_ids"], batch_size_per_pack=self.batch_size_per_pack)
+            collate_fn = partial(
+                goli_collate_fn,
+                mask_nan=0,
+                do_not_collate_keys=["smiles", "mol_ids"],
+                batch_size_per_pack=self.batch_size_per_pack,
+            )
             collate_fn.__name__ = goli_collate_fn.__name__
         return collate_fn
 

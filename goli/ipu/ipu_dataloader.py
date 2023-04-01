@@ -12,7 +12,14 @@ from torch_geometric.data import Data, Batch, Dataset
 from torch_geometric.transforms import BaseTransform
 
 from goli.ipu.ipu_utils import import_poptorch
-from goli.utils.packing import fast_packing, hybrid_packing, get_pack_sizes, node_to_pack_indices_mask, estimate_max_pack_node_size
+from goli.utils.packing import (
+    fast_packing,
+    hybrid_packing,
+    get_pack_sizes,
+    node_to_pack_indices_mask,
+    estimate_max_pack_node_size,
+)
+
 
 @dataclass
 class IPUDataloaderOptions:
@@ -72,7 +79,8 @@ class IPUDataloaderOptions:
                 self.mode = poptorch.DataLoaderMode.AsyncRebatched
             else:
                 raise ValueError(f"`{self.mode}` not a valid parameter.")
-        
+
+
 class CombinedBatchingCollator:
     """
     Collator object that manages the combined batch size defined as:
@@ -109,7 +117,9 @@ class CombinedBatchingCollator:
         self.dataset_max_nodes_per_graph = dataset_max_nodes_per_graph
         self.dataset_max_edges_per_graph = dataset_max_edges_per_graph
 
-    def __call__(self, batch: List[Dict[str, Union[Data, Dict[str, Tensor]]]]) -> Dict[str, Union[Batch, Dict[str, Tensor], Any]]:
+    def __call__(
+        self, batch: List[Dict[str, Union[Data, Dict[str, Tensor]]]]
+    ) -> Dict[str, Union[Batch, Dict[str, Tensor], Any]]:
         """
         Stack tensors, batch the pyg graphs, and pad each tensor to be same size.
 
@@ -154,13 +164,12 @@ class CombinedBatchingCollator:
             if isinstance(val, torch.Tensor):
                 stacked_features[key] = torch.stack([this_graph[key] for this_graph in out_graphs], dim=0)
 
-        
         out_batch["features"] = stacked_features
         for key in all_batches[0].keys():
             if key not in ("features", "labels"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
 
-        # 
+        #
         for data_key, data_val in out_batch.items():
             if isinstance(data_val, Batch):
                 for sub_key, sub_val in data_val.items():
@@ -399,4 +408,3 @@ class Pad(BaseTransform):
         s += f"node_value={self.node_value}, "
         s += f"edge_value={self.edge_value})"
         return s
-

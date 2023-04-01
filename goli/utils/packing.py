@@ -311,9 +311,7 @@ def node_to_pack_indices_mask(
         this_pack_attn_mask = torch.ones((max_pack_size, max_pack_size), dtype=torch.bool)
         for graph_idx in pack:
             num_nodes = all_num_nodes[graph_idx]
-            node_idx = torch.arange(
-                cumsum_num_nodes[graph_idx] - num_nodes, cumsum_num_nodes[graph_idx]
-            )
+            node_idx = torch.arange(cumsum_num_nodes[graph_idx] - num_nodes, cumsum_num_nodes[graph_idx])
             this_pack_attn_mask[jj : jj + num_nodes, jj : jj + num_nodes] = False
             pack_from_node_idx[node_idx, 0] = ii
             pack_from_node_idx[node_idx, 1] = jj + torch.arange(num_nodes)

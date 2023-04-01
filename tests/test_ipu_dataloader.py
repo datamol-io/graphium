@@ -31,6 +31,7 @@ def global_batch_collator(batch_size, batches):
     global_batch = (global_batch[0], tuple(global_batch[1]))
     return global_batch
 
+
 class test_DataLoading(ut.TestCase):
     class TestSimpleLightning(LightningModule):
         # Create a basic Ligthning for testing the batch sizes
