@@ -33,7 +33,11 @@ from goli.features import (
 from goli.data.utils import goli_package_path
 from goli.utils.arg_checker import check_arg_iterator
 from goli.utils.hashing import get_md5_hash
-from goli.data.smiles_transform import did_featurization_fail, BatchingSmilesTransform, smiles_to_unique_mol_ids
+from goli.data.smiles_transform import (
+    did_featurization_fail,
+    BatchingSmilesTransform,
+    smiles_to_unique_mol_ids,
+)
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
 
