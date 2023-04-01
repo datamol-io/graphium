@@ -358,7 +358,7 @@ class GPSLayerPyg(BaseGraphModule):
         # h[num_nodes, hidden_dim] -> h_dense[num_graphs, max_num_nodes, hidden_dim]
         feat_dense, attn_mask, key_padding_mask, idx = self._to_dense_batch(
             feat,
-            batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
+            batch=batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
             max_num_nodes_per_graph=max_num_nodes_per_graph,
             on_ipu=on_ipu,
