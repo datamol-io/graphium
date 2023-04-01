@@ -836,6 +836,8 @@ class GraphDict(dict):
                 # See https://github.com/pyg-team/pytorch_geometric/pull/7037
                 # indices = torch.from_numpy(np.vstack((val.row, val.col)).astype(np.int64))
                 # data_dict[key] = torch.sparse_coo_tensor(indices=indices, values=val.data, size=val.shape)
+            elif isinstance(val, torch.Tensor):
+                data_dict[key] = val
             else:
                 pass  # Skip the other parameters
 
