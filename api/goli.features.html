@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://github.com/valence-discovery/goli/api/goli.features.html">
       
       
-        <link rel="prev" href="goli.nn/dgl_layers.html">
+        <link rel="prev" href="goli.nn/pyg_layers.html">
       
       
         <link rel="next" href="goli.trainer.html">
@@ -637,20 +637,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="goli.nn/dgl_layers.html" class="md-nav__link">
-        goli.nn.dgl_layers
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -717,13 +703,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.features.featurizer.GraphDict.make_dgl_graph" class="md-nav__link">
-    make_dgl_graph()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.features.featurizer.GraphDict.make_pyg_graph" class="md-nav__link">
     make_pyg_graph()
   </a>
@@ -778,22 +757,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.features.featurizer.graph_dict_to_dgl" class="md-nav__link">
-    graph_dict_to_dgl()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.features.featurizer.mol_to_adj_and_features" class="md-nav__link">
     mol_to_adj_and_features()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.features.featurizer.mol_to_dglgraph" class="md-nav__link">
-    mol_to_dglgraph()
   </a>
   
 </li>
@@ -1141,13 +1106,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.features.featurizer.GraphDict.make_dgl_graph" class="md-nav__link">
-    make_dgl_graph()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.features.featurizer.GraphDict.make_pyg_graph" class="md-nav__link">
     make_pyg_graph()
   </a>
@@ -1202,22 +1160,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.features.featurizer.graph_dict_to_dgl" class="md-nav__link">
-    graph_dict_to_dgl()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.features.featurizer.mol_to_adj_and_features" class="md-nav__link">
     mol_to_adj_and_features()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.features.featurizer.mol_to_dglgraph" class="md-nav__link">
-    mol_to_dglgraph()
   </a>
   
 </li>
@@ -1488,7 +1432,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Store the parameters required to initialize a <code>dgl.DGLGraph</code>, but
+      <p>Store the parameters required to initialize a <code>pyg.data.Data</code>, but
 as a dictionary to reduce memory consumption.</p>
 <p>Possible keys for the dictionary:</p>
 <ul>
@@ -1497,11 +1441,11 @@ as a dictionary to reduce memory consumption.</p>
 </li>
 <li>
 <p>ndata: A dictionnary containing different keys and numpy
-    arrays associated to the node features <code>DGLGraph.ndata</code>.</p>
+    arrays associated to the node features.</p>
 </li>
 <li>
 <p>edata: A dictionnary containing different keys and numpy
-    arrays associated to the edge features <code>DGLGraph.edata</code>.</p>
+    arrays associated to the edge features.</p>
 </li>
 <li>
 <p>dtype: The numpy dtype for the floating data. The arrays
@@ -1529,27 +1473,6 @@ as a dictionary to reduce memory consumption.</p>
 
 
 
-<h5 id="goli.features.featurizer.GraphDict.make_dgl_graph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">make_dgl_graph</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
-
-<a href="#goli.features.featurizer.GraphDict.make_dgl_graph" class="headerlink" title="Permanent link">&para;</a></h5>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Convert the current dictionary of parameters, containing an adjacency matrix with node/edge data
-into a <code>dgl.DGLGraph</code> of torch Tensors.</p>
-<p><code>**kwargs</code> can be used to overwrite any parameter from the current dictionary. See <code>DGLGraphDict.__init__</code>
-for a list of parameters</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h5 id="goli.features.featurizer.GraphDict.make_pyg_graph" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">make_pyg_graph</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
@@ -1559,8 +1482,8 @@ for a list of parameters</p>
   <div class="doc doc-contents ">
   
       <p>Convert the current dictionary of parameters, containing an adjacency matrix with node/edge data
-into a <code>dgl.DGLGraph</code> of torch Tensors.</p>
-<p><code>**kwargs</code> can be used to overwrite any parameter from the current dictionary. See <code>DGLGraphDict.__init__</code>
+into a <code>pyg.data.Data</code> of torch Tensors.</p>
+<p><code>**kwargs</code> can be used to overwrite any parameter from the current dictionary. See <code>GraphDict.__init__</code>
 for a list of parameters</p>
 
   </div>
@@ -2123,101 +2046,8 @@ not in functions requiring complex 3D structure.</p>
 
 
 
-<h4 id="goli.features.featurizer.graph_dict_to_dgl" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">graph_dict_to_dgl</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">ndata</span><span class="p">,</span> <span class="n">edata</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
-
-<a href="#goli.features.featurizer.graph_dict_to_dgl" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Convert an adjacency matrix with node/edge data into a <code>DGLGraph</code>
-of torch Tensors.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>adj</code></td>
-          <td>
-          </td>
-          <td><p>A numpy array containing the adjacency matrix</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>ndata</code></td>
-          <td>
-                <code><span title="typing.Dict">Dict</span></code>
-          </td>
-          <td><p>A dictionnary containing different keys and numpy
-arrays associated to the node features <code>DGLGraph.ndata</code>.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>edata</code></td>
-          <td>
-                <code><span title="typing.Dict">Dict</span></code>
-          </td>
-          <td><p>A dictionnary containing different keys and numpy
-arrays associated to the edge features <code>DGLGraph.edata</code>.</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>dtype</code></td>
-          <td>
-                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
-          </td>
-          <td><p>The numpy dtype for the floating data. The arrays
-will be converted to <code>torch.Tensor</code> when building the graph.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>mask_nan</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
-          </td>
-          <td><p>Deal with molecules that fail a part of the featurization.
-NaNs can happen when taking the of a noble gas,
-or other properties that are not measured for specific atoms.</p>
-<ul>
-<li>"raise": Raise an error when there is a nan or inf in the featurization</li>
-<li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
-<li>"None": DEFAULT. Don't do anything</li>
-<li>"Floating value": Replace nans or inf by the specified value</li>
-</ul></td>
-          <td>
-                <code>&#39;raise&#39;</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h4 id="goli.features.featurizer.mol_to_adj_and_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_adj_and_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_encoding_as_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">mol_to_adj_and_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">)</span></code>
 
 <a href="#goli.features.featurizer.mol_to_adj_and_features" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2338,17 +2168,6 @@ to generate positional encoding for node features.</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>pos_encoding_as_directions</code></td>
-          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
-          </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for directional features.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
           <td><code>dtype</code></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
@@ -2435,16 +2254,6 @@ If no properties are given, it returns <code>None</code></p></td>
 </ul></td>
         </tr>
         <tr>
-<td><code>pe_dir_dict</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
-          </td>
-          <td><p>Similar to <code>pe_dict</code>
-Dictionary of all positional encodings used to define directions. This can thus
-be used for relative position inference.
-This is used, for example, by <code>DGNConvolutionalLayer</code> to define
-the direction of the messages.</p></td>
-        </tr>
-        <tr>
 <td><code>conf_dict</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
           </td>
@@ -2461,229 +2270,8 @@ the direction of the messages.</p></td>
 
 
 
-<h4 id="goli.features.featurizer.mol_to_dglgraph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_dglgraph</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_encoding_as_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
-
-<a href="#goli.features.featurizer.mol_to_dglgraph" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Transforms a molecule into an adjacency matrix representing the molecular graph
-and a set of atom and bond features.</p>
-<p>Then, the adjacency matrix and node/edge features are used to build a
-<code>DGLGraph</code> with pytorch Tensors.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>mol</code></td>
-          <td>
-                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
-          </td>
-          <td><p>The molecule to be converted</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>atom_property_list_onehot</code></td>
-          <td>
-                <code><span title="typing.List">List</span>[str]</code>
-          </td>
-          <td><p>List of the properties used to get one-hot encoding of the atom type,
-such as the atom index represented as a one-hot vector.
-See function <code>get_mol_atomic_features_onehot</code></p></td>
-          <td>
-                <code>[]</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>atom_property_list_float</code></td>
-          <td>
-                <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
-          </td>
-          <td><p>List of the properties used to get floating-point encoding of the atom type,
-such as the atomic mass or electronegativity.
-See function <code>get_mol_atomic_features_float</code></p></td>
-          <td>
-                <code>[]</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>conformer_property_list</code></td>
-          <td>
-                <code><span title="typing.List">List</span>[str]</code>
-          </td>
-          <td><p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p></td>
-          <td>
-                <code>[]</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>edge_property_list</code></td>
-          <td>
-                <code><span title="typing.List">List</span>[str]</code>
-          </td>
-          <td><p>List of the properties used to encode the edges, such as the edge type
-and the stereo type.</p></td>
-          <td>
-                <code>[]</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>add_self_loop</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td><p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p></td>
-          <td>
-                <code>False</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>explicit_H</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td><p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
-are implicit.</p></td>
-          <td>
-                <code>False</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>use_bonds_weights</code></td>
-          <td>
-                <code>bool</code>
-          </td>
-          <td><p>Whether to use the floating-point value of the bonds in the adjacency matrix,
-such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p></td>
-          <td>
-                <code>False</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>pos_encoding_as_features</code></td>
-          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
-          </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for node features.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>pos_encoding_as_directions</code></td>
-          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
-          </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for directional features.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>dtype</code></td>
-          <td>
-                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
-          </td>
-          <td><p>The numpy data type used to build the graph</p></td>
-          <td>
-                <code>np.float16</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>on_error</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>What to do when the featurization fails. This can change the
-behavior of <code>mask_nan</code>.</p>
-<ul>
-<li>"raise": Raise an error</li>
-<li>"warn": Raise a warning and return None</li>
-<li>"ignore": Ignore the error and return None</li>
-</ul></td>
-          <td>
-                <code>&#39;ignore&#39;</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>mask_nan</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
-          </td>
-          <td><p>Deal with molecules that fail a part of the featurization.
-NaNs can happen when taking the of a noble gas,
-or other properties that are not measured for specific atoms.</p>
-<ul>
-<li>"raise": Raise an error when there is a nan in the featurization</li>
-<li>"warn": Raise a warning when there is a nan in the featurization</li>
-<li>"None": DEFAULT. Don't do anything</li>
-<li>"Floating value": Replace nans by the specified value</li>
-</ul></td>
-          <td>
-                <code>&#39;raise&#39;</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>max_num_atoms</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[int]</code>
-          </td>
-          <td><p>Maximum number of atoms for a given molecule. If a molecule with more atoms
-is give, an error is raised, but catpured according to the rules of
-<code>on_error</code>.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>graph</code></td>          <td>
-                <code>dgl.<span title="dgl.DGLGraph">DGLGraph</span></code>
-          </td>
-          <td><p>DGL graph, with <code>graph.ndata['feat']</code> corresponding to the concatenated
-node data from <code>atom_property_list_onehot</code> and <code>atom_property_list_float</code>,
-<code>graph.edata['feat']</code> corresponding to the concatenated edge data from <code>edge_property_list</code>.
-There are also additional entries for the positional encodings.</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h4 id="goli.features.featurizer.mol_to_graph_dict" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_graph_dict</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_encoding_as_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">mol_to_graph_dict</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.features.featurizer.mol_to_graph_dict" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2692,8 +2280,8 @@ There are also additional entries for the positional encodings.</p></td>
   
       <p>Transforms a molecule into an adjacency matrix representing the molecular graph
 and a set of atom and bond features, and re-organizes them into a dictionary
-that allows to build a <code>DGLGraph</code> object.</p>
-<p>Compared to <code>mol_to_dglgraph</code>, this function does not build the graph directly,
+that allows to build a <code>pyg.data.Data</code> object.</p>
+<p>Compared to <code>mol_to_pyggraph</code>, this function does not build the graph directly,
 and is thus faster, less memory heavy, and compatible with other frameworks.</p>
 
   <p><strong>Parameters:</strong></p>
@@ -2806,17 +2394,6 @@ to generate positional encoding for node features.</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>pos_encoding_as_directions</code></td>
-          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
-          </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for directional features.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
           <td><code>dtype</code></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
@@ -2889,7 +2466,7 @@ is give, an error is raised, but catpured according to the rules of
                 <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="goli.features.featurizer.GraphDict" href="#goli.features.featurizer.GraphDict">GraphDict</a>, str]</code>
           </td>
           <td><p>A dictionary <code>GraphDict</code> containing the keys required to build a graph,
-and which can be used to build a DGL or PyG graph. If it fails
+and which can be used to build a PyG graph. If it fails
 to featurize the molecule, it returns a string with the error.</p>
 <ul>
 <li>
@@ -2927,7 +2504,7 @@ to featurize the molecule, it returns a string with the error.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Get the default arguments of <code>mol_to_dglgraph_dict</code> and update it
+      <p>Get the default arguments of <code>mol_to_graph_dict</code> and update it
 with a provided dict of arguments in order to get a fulle signature
 of the featurizer args actually used for the features computation.</p>
 
@@ -2982,7 +2559,7 @@ of the featurizer args actually used for the features computation.</p>
 
 
 <h4 id="goli.features.featurizer.mol_to_pyggraph" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">mol_to_pyggraph</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_encoding_as_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">mol_to_pyggraph</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">atom_property_list_onehot</span><span class="o">=</span><span class="p">[],</span> <span class="n">atom_property_list_float</span><span class="o">=</span><span class="p">[],</span> <span class="n">conformer_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">edge_property_list</span><span class="o">=</span><span class="p">[],</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">explicit_H</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">on_error</span><span class="o">=</span><span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">max_num_atoms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.features.featurizer.mol_to_pyggraph" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3104,17 +2681,6 @@ to generate positional encoding for node features.</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>pos_encoding_as_directions</code></td>
-          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
-          </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for directional features.</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
-        <tr>
           <td><code>dtype</code></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
@@ -3186,9 +2752,9 @@ is give, an error is raised, but catpured according to the rules of
 <td><code>graph</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="torch_geometric.data.Data">Data</span>, str]</code>
           </td>
-          <td><p>DGL graph, with <code>graph.ndata['feat']</code> corresponding to the concatenated
+          <td><p>Pyg graph, with <code>graph['feat']</code> corresponding to the concatenated
 node data from <code>atom_property_list_onehot</code> and <code>atom_property_list_float</code>,
-<code>graph.edata['feat']</code> corresponding to the concatenated edge data from <code>edge_property_list</code>.
+<code>graph['edge_feat']</code> corresponding to the concatenated edge data from <code>edge_property_list</code>.
 There are also additional entries for the positional encodings.</p></td>
         </tr>
     </tbody>
@@ -3397,14 +2963,14 @@ There are also additional entries for the positional encodings.</p></td>
 
 
 <h4 id="goli.features.positional_encoding.get_all_positional_encoding" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_all_positional_encoding</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_encoding_as_directions</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_all_positional_encoding</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.features.positional_encoding.get_all_positional_encoding" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
   
-      <p>Get features positional encoding and direction positional encoding.</p>
+      <p>Get features positional encoding.</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3448,18 +3014,6 @@ to generate positional encoding for node features.</p></td>
                 <code>None</code>
           </td>
         </tr>
-        <tr>
-          <td><code>pos_encoding_as_directions</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
-          </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for directional features,
-for exemple, with the DGN model (Directional Graph Networks)</p></td>
-          <td>
-                <code>None</code>
-          </td>
-        </tr>
     </tbody>
   </table>
 
@@ -3474,16 +3028,9 @@ for exemple, with the DGN model (Directional Graph Networks)</p></td>
     <tbody>
         <tr>
 <td><code>pe_dict</code></td>          <td>
-                <code><span title="OrderedDict[str, np.ndarray]">ndarray]</span></code>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="OrderedDict[str, np.ndarray]">ndarray]</span>, <span title="OrderedDict[str, np.ndarray]">ndarray]</span>]</code>
           </td>
           <td><p>Dictionary of positional and structural encodings</p></td>
-        </tr>
-        <tr>
-<td><code>pe_dir_dict</code></td>          <td>
-                <code><span title="OrderedDict[str, np.ndarray]">ndarray]</span></code>
-          </td>
-          <td><p>Dictionary of positional and structural encodings to be used for directional
-features, for exemple, with the DGN model (Directional Graph Networks)</p></td>
         </tr>
     </tbody>
   </table>

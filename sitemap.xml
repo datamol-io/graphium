@@ -76,11 +76,6 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/valence-discovery/goli/api/goli.nn/dgl_layers.html</loc>
-         <lastmod>2023-04-01</lastmod>
-         <changefreq>daily</changefreq>
-    </url>
-    <url>
          <loc>https://github.com/valence-discovery/goli/api/goli.nn/encoders.html</loc>
          <lastmod>2023-04-01</lastmod>
          <changefreq>daily</changefreq>

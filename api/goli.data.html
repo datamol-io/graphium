@@ -637,20 +637,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="goli.nn/dgl_layers.html" class="md-nav__link">
-        goli.nn.dgl_layers
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -728,6 +714,20 @@
   
     <nav class="md-nav" aria-label="collate">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.data.collate.collage_pyg_graph" class="md-nav__link">
+    collage_pyg_graph()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.data.collate.collate_labels" class="md-nav__link">
+    collate_labels()
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#goli.data.collate.goli_collate_fn" class="md-nav__link">
@@ -1337,20 +1337,6 @@
           <li class="md-nav__item">
   <a href="#goli.data.datamodule.did_featurization_fail" class="md-nav__link">
     did_featurization_fail()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.data.datamodule.get_num_edges" class="md-nav__link">
-    get_num_edges()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.data.datamodule.get_num_nodes" class="md-nav__link">
-    get_num_nodes()
   </a>
   
 </li>
@@ -1541,6 +1527,20 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#goli.data.collate.collage_pyg_graph" class="md-nav__link">
+    collage_pyg_graph()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.data.collate.collate_labels" class="md-nav__link">
+    collate_labels()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.data.collate.goli_collate_fn" class="md-nav__link">
     goli_collate_fn()
   </a>
@@ -2153,20 +2153,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.data.datamodule.get_num_edges" class="md-nav__link">
-    get_num_edges()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.data.datamodule.get_num_nodes" class="md-nav__link">
-    get_num_nodes()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.data.datamodule.smiles_to_unique_mol_id" class="md-nav__link">
     smiles_to_unique_mol_id()
   </a>
@@ -2281,8 +2267,139 @@
 
 
 
+<h4 id="goli.data.collate.collage_pyg_graph" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">collage_pyg_graph</span><span class="p">(</span><span class="n">pyg_graphs</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.data.collate.collage_pyg_graph" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Function to collate pytorch geometric graphs.
+Convert all numpy types to torch
+Convert edge indices to int64</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>pyg_graphs</code></td>
+          <td>
+                <code><span title="typing.Iterable">Iterable</span>[<span title="typing.Union">Union</span>[<span title="torch_geometric.data.Data">Data</span>, <span title="typing.Dict">Dict</span>]]</code>
+          </td>
+          <td><p>Iterable of PyG graphs</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>batch_size_per_pack</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The number of graphs to pack together.
+This is useful for using packing with the Transformer,</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.data.collate.collate_labels" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">collate_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.data.collate.collate_labels" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Collate labels for multitask learning.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>labels</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td><p>List of labels</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>labels_size_dict</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>Dict of the form Dict[tasks, sizes] which has task names as keys
+and the size of the label tensor as value. The size of the tensor corresponds to how many
+labels/values there are to predict for that task.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+          </td>
+          <td><p>A dictionary of the form Dict[tasks, labels] where tasks is the name of the task and labels</p></td>
+        </tr>
+        <tr>
+          <td>
+          </td>
+          <td><p>is a tensor of shape (batch_size, *labels_size_dict[task]).</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h4 id="goli.data.collate.goli_collate_fn" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">goli_collate_fn</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">do_not_collate_keys</span><span class="o">=</span><span class="p">[])</span></code>
+<code class="highlight language-python"><span class="n">goli_collate_fn</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">do_not_collate_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.data.collate.goli_collate_fn" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2290,17 +2407,11 @@
   <div class="doc doc-contents ">
   
       <p>This collate function is identical to the default
-pytorch collate function but add support for <code>dgl.DGLGraph</code>
-objects and use <code>dgl.batch</code> to batch graphs.</p>
-<p>Beside dgl graph collate, other objects are processed the same way
+pytorch collate function but add support for <code>pyg.data.Data</code> to batch graphs.</p>
+<p>Beside pyg graph collate, other objects are processed the same way
 as the original torch collate function. See <a href="https://pytorch.org/docs/stable/data.html#dataloader-collate-fn">https://pytorch.org/docs/stable/data.html#dataloader-collate-fn</a>
 for more details.</p>
 
-<details class="important">
-  <summary>Important</summary>
-  <p>Only dgl graph within a dict are currently supported. It should not be hard
-to support dgl graphs from other objects.</p>
-</details>
 <details class="note">
   <summary>Note</summary>
   <p>If goli needs to manipulate other tricky-to-batch objects. Support
@@ -2320,7 +2431,7 @@ for them should be added to this single collate function.</p>
         <tr>
           <td><code>elements</code></td>
           <td>
-                <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+                <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[<span title="typing.Any">Any</span>], <span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[<span title="typing.Any">Any</span>]]]</code>
           </td>
           <td><p>The elements to batch. See <code>torch.utils.data.dataloader.default_collate</code>.</p></td>
           <td>
@@ -2345,7 +2456,7 @@ labels/values there are to predict for that task.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, float, <span title="typing.Type">Type</span>[None]]</code>
           </td>
-          <td><p>Deal with the NaN/Inf when calling the function <code>dgl_dict_to_graph</code>.
+          <td><p>Deal with the NaN/Inf when calling the function <code>make_pyg_graph</code>.
 Some values become <code>Inf</code> when changing data type. This allows to deal
 with that.</p>
 <ul>
@@ -2381,7 +2492,7 @@ with that.</p>
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+                <code><span title="typing.Union">Union</span>[<span title="typing.Any">Any</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
           <td><p>A dictionary of the batch</p></td>
         </tr>
@@ -5049,15 +5160,12 @@ cores.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Whether to preprocess all molecules as DGL graphs, DGL dict or PyG graphs.
+          <td><p>Whether to preprocess all molecules as Graph dict or PyG graphs.
 Possible options:</p>
 <ul>
-<li>"dgl:graph": Process molecules as <code>dgl.DGLGraph</code>. It's slower during pre-processing
-  and requires more RAM. It is faster during training with <code>num_workers=0</code>, but
-  slower with larger <code>num_workers</code>.</li>
-<li>"dgl:dict": Process molecules as a <code>dict</code>. It's faster and requires less RAM during
+<li>"pyg:dict": Process molecules as a <code>dict</code>. It's faster and requires less RAM during
   pre-processing. It is slower during training with with <code>num_workers=0</code> since
-  DGLGraphs will be created during data-loading, but faster with large
+  pyg <code>Data</code> will be created during data-loading, but faster with large
   <code>num_workers</code>, and less likely to cause memory issues with the parallelization.</li>
 <li>"pyg:graph": Process molecules as <code>pyg.data.Data</code>.</li>
 </ul></td>
@@ -5377,7 +5485,7 @@ Useful to cache the pre-processed data.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Low memory footprint method to get the first datapoint DGL graph.
+      <p>Low memory footprint method to get the first datapoint graph.
 The first 10 rows of the data are read in case the first one has a featurization
 error. If all 20 first element, then <code>None</code> is returned, otherwise the first
 graph to not fail is returned.</p>
@@ -5876,7 +5984,7 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
         <tr>
           <td><code>features</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<span title="typing.Union">Union</span>[dgl.<span title="dgl.DGLGraph">DGLGraph</span>, <a class="autorefs autorefs-internal" title="goli.features.GraphDict" href="goli.features.html#goli.features.featurizer.GraphDict">GraphDict</a>]]]</code>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[<a class="autorefs autorefs-internal" title="goli.features.GraphDict" href="goli.features.html#goli.features.featurizer.GraphDict">GraphDict</a>]]</code>
           </td>
           <td><p>A list of graphs</p></td>
           <td>
@@ -6005,126 +6113,6 @@ generate a file name. Then save to the path given by <code>self.cache_data_path<
   <div class="doc doc-contents ">
   
       <p>Check if a featurization failed.</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="goli.data.datamodule.get_num_edges" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_num_edges</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span></code>
-
-<a href="#goli.data.datamodule.get_num_edges" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Utility function to get the number of edges in a graph</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>graph</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[dgl.<span title="dgl.DGLGraph">DGLGraph</span>, <a class="autorefs autorefs-internal" title="goli.features.GraphDict" href="goli.features.html#goli.features.featurizer.GraphDict">GraphDict</a>, <span title="torch_geometric.data.Data">Data</span>, <span title="torch_geometric.data.Batch">Batch</span>]</code>
-          </td>
-          <td><p>a DGLGraph, GraphDict, Data or Batch object</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>num_edges</code></td>          <td>
-                <code>int</code>
-          </td>
-          <td><p>the number of edges in the graph</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="goli.data.datamodule.get_num_nodes" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_num_nodes</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span></code>
-
-<a href="#goli.data.datamodule.get_num_nodes" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>utility function to get the number of nodes in a graph</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>graph</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[dgl.<span title="dgl.DGLGraph">DGLGraph</span>, <a class="autorefs autorefs-internal" title="goli.features.GraphDict" href="goli.features.html#goli.features.featurizer.GraphDict">GraphDict</a>, <span title="torch_geometric.data.Data">Data</span>, <span title="torch_geometric.data.Batch">Batch</span>]</code>
-          </td>
-          <td><p>a DGLGraph, GraphDict, Data or Batch object</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-<th>Name</th>        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-<td><code>num_nodes</code></td>          <td>
-                <code>int</code>
-          </td>
-          <td><p>the number of nodes in the graph</p></td>
-        </tr>
-    </tbody>
-  </table>
 
   </div>
 

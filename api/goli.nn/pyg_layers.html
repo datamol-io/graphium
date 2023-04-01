@@ -16,7 +16,7 @@
         <link rel="prev" href="encoders.html">
       
       
-        <link rel="next" href="dgl_layers.html">
+        <link rel="next" href="../goli.features.html">
       
       <link rel="icon" href="../../images/logo.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.5">
@@ -1247,20 +1247,6 @@
   
 </nav>
       
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="dgl_layers.html" class="md-nav__link">
-        goli.nn.dgl_layers
-      </a>
     </li>
   
 
@@ -5221,7 +5207,7 @@ The results from all scalers will be concatenated</p></td>
 
 
 <h5 id="goli.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.message" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">message</span><span class="p">(</span><span class="n">x_i</span><span class="p">,</span> <span class="n">x_j</span><span class="p">,</span> <span class="n">edge_attr</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">message</span><span class="p">(</span><span class="n">x_i</span><span class="p">,</span> <span class="n">x_j</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">)</span></code>
 
 <a href="#goli.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg.message" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5262,7 +5248,7 @@ The results from all scalers will be concatenated</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>edge_attr</code></td>
+          <td><code>edge_feat</code></td>
           <td>
                 <code><span title="torch_geometric.typing.OptTensor">OptTensor</span></code>
           </td>
@@ -5284,7 +5270,7 @@ The results from all scalers will be concatenated</p></td>
     </thead>
     <tbody>
         <tr>
-<td><code>h</code></td>          <td>
+<td><code>feat</code></td>          <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td><p>the message</p></td>
@@ -5639,7 +5625,7 @@ aggregation and update of features</p></td>
 
 
 <h5 id="goli.nn.pyg_layers.pooling_pyg.VirtualNodePyg.forward" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">vn_h</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">feat</span><span class="p">,</span> <span class="n">vn_feat</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">)</span></code>
 
 <a href="#goli.nn.pyg_layers.pooling_pyg.VirtualNodePyg.forward" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5670,7 +5656,7 @@ aggregation and update of features</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>h</code></td>
+          <td><code>feat</code></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span>[..., N, Din]</code>
           </td>
@@ -5681,7 +5667,7 @@ aggregation and update of features</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>vn_h</code></td>
+          <td><code>vn_feat</code></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span>[..., M, Din]</code>
           </td>
@@ -5693,7 +5679,7 @@ It is added to the result after the MLP, as a residual connection</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>e</code></td>
+          <td><code>edge_feat</code></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span>[..., E, Din]</code>
           </td>
@@ -5719,7 +5705,7 @@ It is added to the result after the MLP, as a residual connection</p></td>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>h = torch.Tensor[..., N, Dout]</code>:
+          <td><p><code>feat = torch.Tensor[..., N, Dout]</code>:
 Node feature tensor, after convolution and residual.
 <code>N</code> is the number of nodes, <code>Dout</code> is the output features of the layer and residual</p></td>
         </tr>
@@ -5727,7 +5713,7 @@ Node feature tensor, after convolution and residual.
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>vn_h = torch.Tensor[..., M, Dout]</code>:
+          <td><p><code>vn_feat = torch.Tensor[..., M, Dout]</code>:
 Graph feature tensor to be used at the next virtual node, or <code>None</code>
 <code>M</code> is the number of graphs, <code>Dout</code> is the output features</p></td>
         </tr>
@@ -5735,7 +5721,7 @@ Graph feature tensor to be used at the next virtual node, or <code>None</code>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>e = torch.Tensor[..., N, Dout]</code>:
+          <td><p><code>edge_feat = torch.Tensor[..., N, Dout]</code>:
 Edge feature tensor, after convolution and residual - if edges are used, otherwise returned unchanged.
 <code>N</code> is the number of edges, <code>Dout</code> is the output features of the layer and residual</p></td>
         </tr>

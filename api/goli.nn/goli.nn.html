@@ -727,34 +727,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.get_edge_feats" class="md-nav__link">
-    get_edge_feats()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.get_node_feats" class="md-nav__link">
-    get_node_feats()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.set_edge_feats" class="md-nav__link">
-    set_edge_feats()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.set_node_feats" class="md-nav__link">
-    set_node_feats()
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1316,20 +1288,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="dgl_layers.html" class="md-nav__link">
-        goli.nn.dgl_layers
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -1587,34 +1545,6 @@
           <li class="md-nav__item">
   <a href="#goli.nn.base_graph_layer.check_intpus_allow_int" class="md-nav__link">
     check_intpus_allow_int()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.get_edge_feats" class="md-nav__link">
-    get_edge_feats()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.get_node_feats" class="md-nav__link">
-    get_node_feats()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.set_edge_feats" class="md-nav__link">
-    set_edge_feats()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.nn.base_graph_layer.set_node_feats" class="md-nav__link">
-    set_node_feats()
   </a>
   
 </li>
@@ -2214,7 +2144,7 @@
 
   <div class="doc doc-contents ">
   
-      <p>Abstract class used to standardize the implementation of DGL layers
+      <p>Abstract class used to standardize the implementation of Pyg layers
 in the current library. It will allow a network to seemlesly swap between
 different GNN layers by better understanding the expected inputs
 and outputs.</p>
@@ -2548,7 +2478,7 @@ of heads.</p>
 
   <div class="doc doc-contents ">
   
-      <p>Abstract class used to standardize the implementation of DGL layers
+      <p>Abstract class used to standardize the implementation of Pyg layers
 in the current library. It will allow a network to seemlesly swap between
 different GNN layers by better understanding the expected inputs
 and outputs.</p>
@@ -2680,7 +2610,7 @@ and outputs.</p>
 
 
 <h5 id="goli.nn.base_graph_layer.BaseGraphStructure.apply_norm_activation_dropout" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">droppath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">batch_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">feat</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">droppath</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">batch_idx</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.apply_norm_activation_dropout" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2702,7 +2632,7 @@ output layer.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>h</code></td>
+          <td><code>feat</code></td>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
@@ -2764,7 +2694,7 @@ output layer.</p>
     </thead>
     <tbody>
         <tr>
-<td><code>h</code></td>          <td>
+<td><code>feat</code></td>          <td>
           </td>
           <td><p>Normalized and dropped-out features</p></td>
         </tr>
@@ -2835,270 +2765,6 @@ supports output edges edges or not.</p>
   
       <p>Overwrite the <strong>check_input</strong> to allow for int32 and int16
 TODO: Remove when PyG and pytorch supports int32.</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="goli.nn.base_graph_layer.get_edge_feats" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_edge_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
-
-<a href="#goli.nn.base_graph_layer.get_edge_feats" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get the node features of a graph <code>g</code>.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>g</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
-          </td>
-          <td><p>graph</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>key</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>key associated to the node features</p></td>
-          <td>
-                <code>&#39;h&#39;</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="torch.Tensor">Tensor</span></code>
-          </td>
-          <td><p>node features</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="goli.nn.base_graph_layer.get_node_feats" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_node_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
-
-<a href="#goli.nn.base_graph_layer.get_node_feats" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Get the node features of a graph <code>g</code>.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>g</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
-          </td>
-          <td><p>graph</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>key</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>key associated to the node features</p></td>
-          <td>
-                <code>&#39;h&#39;</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  <p><strong>Returns:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Type</th>
-        <th>Description</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td>
-                <code><span title="torch.Tensor">Tensor</span></code>
-          </td>
-          <td><p>node features</p></td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="goli.nn.base_graph_layer.set_edge_feats" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">set_edge_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">edge_feats</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
-
-<a href="#goli.nn.base_graph_layer.set_edge_feats" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Set the node features of a graph <code>g</code>.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>g</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
-          </td>
-          <td><p>graph</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>edge_feats</code></td>
-          <td>
-                <code><span title="torch.Tensor">Tensor</span></code>
-          </td>
-          <td><p>edge feature tensor to set</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>key</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>key associated to the node features</p></td>
-          <td>
-                <code>&#39;h&#39;</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="goli.nn.base_graph_layer.set_node_feats" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">set_node_feats</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">node_feats</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;h&#39;</span><span class="p">)</span></code>
-
-<a href="#goli.nn.base_graph_layer.set_node_feats" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Set the node features of a graph <code>g</code>.</p>
-
-  <p><strong>Parameters:</strong></p>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Type</th>
-        <th>Description</th>
-        <th>Default</th>
-      </tr>
-    </thead>
-    <tbody>
-        <tr>
-          <td><code>g</code></td>
-          <td>
-                <code><span title="typing.Union">Union</span>[<span title="dgl.DGLGraph">DGLGraph</span>, <span title="pyg.data.Data">Data</span>, <span title="pyg.data.Batch">Batch</span>, <span title="typing.Mapping">Mapping</span>]</code>
-          </td>
-          <td><p>graph</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>node_feats</code></td>
-          <td>
-                <code><span title="torch.Tensor">Tensor</span></code>
-          </td>
-          <td><p>node features</p></td>
-          <td>
-              <em>required</em>
-          </td>
-        </tr>
-        <tr>
-          <td><code>key</code></td>
-          <td>
-                <code>str</code>
-          </td>
-          <td><p>key associated to the node features</p></td>
-          <td>
-                <code>&#39;h&#39;</code>
-          </td>
-        </tr>
-    </tbody>
-  </table>
 
   </div>
 

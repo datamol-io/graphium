@@ -524,13 +524,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dgl" class="md-nav__link">
-    dgl
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#features" class="md-nav__link">
     features
   </a>
@@ -795,20 +788,6 @@
 
             
           
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="api/goli.nn/dgl_layers.html" class="md-nav__link">
-        goli.nn.dgl_layers
-      </a>
-    </li>
-  
-
-            
-          
         </ul>
       </nav>
     </li>
@@ -998,13 +977,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#dgl" class="md-nav__link">
-    dgl
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#features" class="md-nav__link">
     features
   </a>
@@ -1143,10 +1115,6 @@
 <p>The code is built to rapidly iterate on different architectures of neural networks (NN) and graph neural networks (GNN) with Pytorch. The main focus of this work is molecular tasks, and we use the package <code>rdkit</code> to transform molecular SMILES into graphs.</p>
 <h3 id="data_parser">data_parser<a class="headerlink" href="#data_parser" title="Permanent link">&para;</a></h3>
 <p>This folder contains tools that allow tdependenciesrent kind of molecular data files, such as <code>.csv</code> or <code>.xlsx</code> with SMILES data, or <code>.sdf</code> files with 3D data.</p>
-<h3 id="dgl">dgl<a class="headerlink" href="#dgl" title="Permanent link">&para;</a></h3>
-<p>This folder contains the code necessary for compatibility with the Deep Graph Library (DGL), and implements many state of the art GNN methods, such as GCN, GIN, MPNN and PNA.
-It also contains major network architecture implemented for DGL (feed-forward, resnet, skip-connections, densenet), along with the DGL graph transformer for molecules.
-<strong><em>I was thinking of removing most models to avoid having too much maintenance to do, since they either don't perform well on molecular tasks (GAT, RingGNN) or they are generalized by DGN (GCN, GIN, MPNN, PNA, GraphSage)</em></strong>.</p>
 <h3 id="features">features<a class="headerlink" href="#features" title="Permanent link">&para;</a></h3>
 <p>Different utilities for molecules, such as Smiles to adjacency graph transformer, molecular property extraction, atomic properties, bond properties, ...</p>
 <p><strong><em>The MolecularTransformer and AdjGraphTransformer come from ivbase, but I don't like them. I think we should replace them with something simpler and give more flexibility for combining one-hot embedding with physical properties embedding.</em></strong>.</p>
@@ -1158,10 +1126,10 @@ It also contains major network architecture implemented for DGL (feed-forward, r
 <p>Plot visualization tools</p>
 <h2 id="modifying-the-code">Modifying the code<a class="headerlink" href="#modifying-the-code" title="Permanent link">&para;</a></h2>
 <h3 id="adding-a-new-gnn-layer">Adding a new GNN layer<a class="headerlink" href="#adding-a-new-gnn-layer" title="Permanent link">&para;</a></h3>
-<p>Any new GNN layer must inherit from the class <code>goli.nn.dgl_layers.base_dgl_layer.BaseDGLLayer</code> and be implemented in the folder <code>goli/dgl/dgl_layers</code>, imported in the file <code>goli/dgl/architectures.py</code>, and in the same file, added to the function <code>FeedForwardDGL._parse_gnn_layer</code>.</p>
+<p>Any new GNN layer must inherit from the class <code>goli.nn.base_graph_layer.BaseGraphLayer</code> and be implemented in the folder <code>goli/nn/pyg_layers</code>, imported in the file <code>goli/nn/architectures.py</code>, and in the same file, added to the function <code>FeedForwardGraph._parse_gnn_layer</code>.</p>
 <p>To be used in the configuration file as a <code>goli.model.layer_name</code>, it must also be implemented with some variable parameters in the file <code>expts/config_gnns.yaml</code>.</p>
 <h3 id="adding-a-new-nn-architecture">Adding a new NN architecture<a class="headerlink" href="#adding-a-new-nn-architecture" title="Permanent link">&para;</a></h3>
-<p>All NN and GNN architectures compatible with the <code>DGL</code> library are provided in the file <code>goli/dgl/architectures.py</code>. When implementing a new architecture, it is highly recommended to inherit from <code>goli.nn.architectures.FeedForwardNN</code> for regular neural networks, from <code>goli.nn.architectures.FeedForwardDGL</code> for DGL neural network, or from any of their sub-classes.</p>
+<p>All NN and GNN architectures compatible with the <code>pyg</code> library are provided in the file <code>goli/nn/global_architectures.py</code>. When implementing a new architecture, it is highly recommended to inherit from <code>goli.nn.architectures.FeedForwardNN</code> for regular neural networks, from <code>goli.nn.global_architectures.FeedForwardGraph</code> for pyg neural network, or from any of their sub-classes.</p>
 <h3 id="changing-the-predictormodule-and-loss-function">Changing the PredictorModule and loss function<a class="headerlink" href="#changing-the-predictormodule-and-loss-function" title="Permanent link">&para;</a></h3>
 <p>The <code>PredictorModule</code> is a general pytorch-lightning module that should work with any kind of <code>pytorch.nn.Module</code> or <code>pl.LightningModule</code>. The class defines a structure of including models, loss functions, batch sizes, collate functions, metrics...</p>
 <p>Some loss functions are already implemented in the PredictorModule, including <code>mse, bce, mae, cosine</code>, but some tasks will require more complex loss functions. One can add any new function in <code>goli.trainer.predictor.PredictorModule._parse_loss_fun</code>.</p>
