@@ -1926,6 +1926,20 @@ with that.</p>
               <em>required</em>
           </td>
         </tr>
+        <tr>
+          <td><code>batch_size_per_pack</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
+          </td>
+          <td><p>The number of graphs to pack together.
+This is useful for using packing with the Transformer.
+If None, no packing is done.
+Otherwise, indices are generated to map the nodes to the pack they belong to under the key <code>"pack_from_node_idx"</code>,
+with an additional mask to indicate which nodes are from the same graph under the key <code>"pack_attn_mask"</code>.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -1942,7 +1956,7 @@ with that.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.Any">Any</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>A dictionary of the batch</p></td>
+          <td><p>The batched elements. See <code>torch.utils.data.dataloader.default_collate</code>.</p></td>
         </tr>
     </tbody>
   </table>
@@ -2039,8 +2053,8 @@ with that.</p>
 <code class="highlight language-python"><span class="n">predict_ds</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.data.datamodule.BaseDataModule.predict_ds" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2060,7 +2074,7 @@ with that.</p>
 
 
 <h5 id="goli.data.datamodule.BaseDataModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.data.datamodule.BaseDataModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2916,7 +2930,7 @@ graph to not fail is returned.</p>
 
 
 <h5 id="goli.data.datamodule.GraphOGBDataModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">cache_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">cache_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.data.datamodule.GraphOGBDataModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3354,7 +3368,7 @@ raw positional encoding dimensions such eigval, eigvec, rwse and more</p>
 
 
 <h5 id="goli.data.datamodule.MultitaskFromSmilesDataModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">cache_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">featurization_batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_specific_args</span><span class="p">,</span> <span class="n">cache_data_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">featurization</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">batch_size_training</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_inference</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pin_memory</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">persistent_workers</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">featurization_progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">featurization_backend</span><span class="o">=</span><span class="s1">&#39;loky&#39;</span><span class="p">,</span> <span class="n">featurization_batch_size</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">collate_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prepare_dict_or_graph</span><span class="o">=</span><span class="s1">&#39;pyg:graph&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.data.datamodule.MultitaskFromSmilesDataModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
