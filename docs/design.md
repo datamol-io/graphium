@@ -2,6 +2,21 @@
 
 ---
 
+### Diagram for data processing in molGPS.
+
+<img src="images/datamodule.png" alt= "Data Processing Chart" width="100%" height="100%">
+
+
+
+### Diagram for Muti-task network in molGPS
+
+<img src="images/full_graph_network.png" alt= "Full Graph Multi-task Network" width="100%" height="100%">
+
+
+
+
+
+
 **Section from the previous README:**
 
 ### Data setup
