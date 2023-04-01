@@ -39,6 +39,18 @@ def load_tiny_zinc() -> pd.DataFrame:
     return df  # type: ignore
 
 
+def goli_package_path(goli_path: str) -> str:
+    """Return the path of a goli file in the package."""
+
+    assert goli_path.startswith("goli://"), f"Invalid goli path, must start with 'goli://': {goli_path}"
+
+    goli_path = goli_path.replace("goli://", "")
+    package, ressource = goli_path.split("/")
+    with importlib.resources.path(package, ressource) as data_path:
+        pass
+    return str(data_path)
+
+
 def list_goli_datasets() -> set:
     """
     List Goli datasets available to download.

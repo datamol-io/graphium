@@ -77,7 +77,7 @@ class PreprocessPositions(nn.Module):
         if self.first_normalization is not None:
             pos = self.first_normalization(pos)
         batch_size = None if pos.device.type != "ipu" else batch.graph_is_true.shape[0]
-        # batch_size = None if batch.h.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.h is only available after passing through layers, not a good attribute to check
+        # batch_size = None if batch.feat.device.type != "ipu" else batch.graph_is_true.shape[0] #[Andy] batch.feat is only available after passing through layers, not a good attribute to check
         # pos: [batch, nodes, 3]
         # padding_mask: [batch, nodes]
         # idx: [totoal_nodes]
@@ -111,6 +111,8 @@ class PreprocessPositions(nn.Module):
         distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
         # [batch, nodes, num_kernel]
         distance_feature_sum = distance_feature.sum(dim=-2)
+        # Output of GaussianLayer is FP32, cast to dtype of self.node_proj here
+        distance_feature_sum = distance_feature_sum.to(self.node_proj.weight.dtype)
         # [batch, nodes, embed_dim]
         node_feature = self.node_proj(distance_feature_sum)
         # [total_nodes, embed_dim]

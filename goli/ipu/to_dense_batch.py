@@ -12,6 +12,13 @@ def to_sparse_batch(x: Tensor, mask_idx: Tensor):
     return torch.index_select(x.reshape(-1, x.shape[-1]), 0, mask_idx)
 
 
+def to_sparse_batch_from_packed(x: Tensor, pack_from_node_idx: Tensor):
+    """
+    Reverse function of `to_packed_dense_batch`
+    """
+    return x[pack_from_node_idx[:, 0], pack_from_node_idx[:, 1]]
+
+
 def to_dense_batch(
     x: Tensor,
     batch: Optional[Tensor] = None,
@@ -63,7 +70,7 @@ def to_dense_batch(
     num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
 
-    if max_num_nodes_per_graph is None:
+    if max_num_nodes_per_graph is None:  # Must be provided on IPU
         max_num_nodes_per_graph = int(num_nodes.max())
 
     idx = torch.arange(batch.size(0), dtype=torch.long, device=x.device)
@@ -92,14 +99,61 @@ def to_dense_batch(
     # Create a zero-mask on the right device
     mask_sz = batch_size * max_num_nodes_per_graph
     if x.device.type in ("ipu", "xla"):
-        mask = torch.zeros(mask_sz, dtype=torch.bool, device="cpu")
+        mask = torch.zeros(mask_sz, dtype=torch.int32, device="cpu")
         mask = mask.to(x.device)
+        mask[idx] = 1
+        mask = mask.bool()
     else:
         mask = torch.zeros(mask_sz, dtype=torch.bool, device=x.device)
+        mask[idx] = 1
 
     ##### END CHANGES FROM PYG #####
 
-    mask[idx] = 1
     mask = mask.view(batch_size, max_num_nodes_per_graph)
 
     return out, mask, idx  # Added `idx` as a return
+
+
+def to_packed_dense_batch(
+    x: Tensor,
+    pack_from_node_idx: Tensor,
+    pack_attn_mask: Tensor,
+    fill_value: float = 0.0,
+    max_num_nodes_per_pack: Optional[int] = None,
+) -> Tuple[Tensor, Tensor]:
+    r"""Given a sparse batch of node features
+    :math:`\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}` (with
+    :math:`N_i` indicating the number of nodes in graph :math:`i`), creates a
+    dense node feature tensor
+    :math:`\mathbf{X} \in \mathbb{R}^{B \times N_{\max} \times F}` (with
+    :math:`N_{\max} = \max_i^B N_i`).
+    In addition, a mask of shape :math:`\mathbf{M} \in \{ 0, 1 \}^{B \times
+    N_{\max}}` is returned, holding information about the existence of
+    fake-nodes in the dense representation.
+
+    Parameters: # TODO: Update docstring
+        x: Node feature matrix
+            :math:`\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}`.
+        batch: Batch vector
+            :math:`\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N`, which assigns each
+            node to a specific example. Must be ordered. (default: :obj:`None`)
+        fill_value: The value for invalid entries in the
+            resulting dense output tensor. (default: :obj:`0`)
+        max_num_nodes_per_graph: The size of the output node dimension.
+            (default: :obj:`None`)
+        batch_size: The batch size. (default: :obj:`None`)
+        drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
+            the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
+
+    :rtype: (:class:`Tensor`, :class:`BoolTensor`)
+    """
+
+    if max_num_nodes_per_pack is None:  # Must be provided on IPU
+        max_num_nodes_per_pack = pack_attn_mask.shape[-1]
+
+    size = [pack_attn_mask[0], max_num_nodes_per_pack] + list(x.size())[1:]
+
+    out = x.new_full(size, fill_value)
+    out[pack_from_node_idx[:, 0], pack_from_node_idx[:, 1]] = x
+
+    return out

@@ -160,32 +160,32 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         Returns:
             batch: pyg Batch graphs
         """
-        h, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
+        feat, edge_index, edge_feat = batch.feat, batch.edge_index, batch.edge_feat
 
-        out = self.propagate(edge_index, x=h, edge_attr=edge_attr, size=None)
+        out = self.propagate(edge_index, x=feat, edge_feat=edge_feat, size=None)
         out = self.posttrans(out)  # No more towers and concat with x
-        batch.h = out
+        batch.feat = out
         return batch
 
-    def message(self, x_i: Tensor, x_j: Tensor, edge_attr: OptTensor) -> Tensor:
+    def message(self, x_i: Tensor, x_j: Tensor, edge_feat: OptTensor) -> Tensor:
         r"""
         message function
 
         Parameters:
             x_i: node features
             x_j: neighbour node features
-            edge_attr: edge features
+            edge_feat: edge features
         Returns:
-            h: the message
+            feat: the message
         """
-        h: Tensor = x_i  # Dummy.
-        if (edge_attr is not None) and (self.edge_encoder is not None):
-            edge_attr = self.edge_encoder(edge_attr)
-            h = torch.cat([x_i, x_j, edge_attr], dim=-1)
+        feat: Tensor = x_i  # Dummy.
+        if (edge_feat is not None) and (self.edge_encoder is not None):
+            edge_feat = self.edge_encoder(edge_feat)
+            feat = torch.cat([x_i, x_j, edge_feat], dim=-1)
         else:
-            h = torch.cat([x_i, x_j], dim=-1)
+            feat = torch.cat([x_i, x_j], dim=-1)
 
-        return self.pretrans(h)  # No more towers
+        return self.pretrans(feat)  # No more towers
 
     def aggregate(
         self,

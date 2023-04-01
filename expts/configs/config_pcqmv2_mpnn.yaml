@@ -8,16 +8,21 @@ constants:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
+  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv #goli/data/PCQM4Mv2/pcqm4mv2.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 30000 # use sample_size for test
+        splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
+        #goli/data/PCQM4Mv2/split_dict.pt
+        # goli/data/PCQM4Mv2/pcqm4m_split.csv
+        split_names: ["train", "val", "test"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -51,14 +56,14 @@ datamodule:
     batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: -1 # -1 to use all
+    num_workers: 10 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
     ipu_dataloader_training_opts:
       mode: async
-      max_num_nodes_per_graph: 16 # train max nodes: 20, max_edges: 54
+      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
       max_num_edges_per_graph: 60
 
     ipu_dataloader_inference_opts:
@@ -220,4 +225,4 @@ trainer:
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 2
-    check_val_every_n_epoch: 10
+    check_val_every_n_epoch: 20

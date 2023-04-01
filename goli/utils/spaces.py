@@ -1,103 +1,48 @@
 from copy import deepcopy
 import torch
 import torch.optim.lr_scheduler as sc
-import torchmetrics.functional as met
+import torchmetrics.functional as TorchMetrics
 
-from goli.nn.base_layers import FCLayer
-from goli.data.datamodule import (
-    GraphOGBDataModule,
-    MultitaskFromSmilesDataModule,
-)
-from goli.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
-from goli.ipu.ipu_metrics import (
-    auroc_ipu,
-    average_precision_ipu,
-    precision_ipu,
-    accuracy_ipu,
-    recall_ipu,
-    pearson_ipu,
-    spearman_ipu,
-    r2_score_ipu,
-    f1_score_ipu,
-    fbeta_score_ipu,
-    mean_squared_error_ipu,
-    mean_absolute_error_ipu,
-)
-
-from goli.nn.dgl_layers import (
-    GATDgl,
-    GCNDgl,
-    GINDgl,
-    GatedGCNDgl,
-    PNAConvolutionalDgl,
-    PNAMessagePassingDgl,
-    DGNConvolutionalDgl,
-    DGNMessagePassingDgl,
-)
-
-from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg, GPSLayerPyg
-
-from goli.nn.residual_connections import (
-    ResidualConnectionConcat,
-    ResidualConnectionDenseNet,
-    ResidualConnectionNone,
-    ResidualConnectionSimple,
-    ResidualConnectionWeighted,
-    ResidualConnectionRandom,
-)
-
-from goli.nn.encoders import (
-    laplace_pos_encoder,
-    mlp_encoder,
-    signnet_pos_encoder,
-    gaussian_kernel_pos_encoder,
-)
-
-from goli.utils.custom_lr import WarmUpLinearLR
+import goli.nn.base_layers as BaseLayers
+import goli.utils.custom_lr as CustomLR
+import goli.data.datamodule as Datamodules
+import goli.ipu.ipu_losses as Losses
+import goli.ipu.ipu_metrics as Metrics
+import goli.nn.pyg_layers as PygLayers
+import goli.nn.residual_connections as Residuals
+import goli.nn.encoders as Encoders
 
 PE_ENCODERS_DICT = {
-    "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
-    "mlp": mlp_encoder.MLPEncoder,
-    "signnet": signnet_pos_encoder.SignNetNodeEncoder,
-    "gaussian_kernel": gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
+    "laplacian_pe": Encoders.laplace_pos_encoder.LapPENodeEncoder,
+    "mlp": Encoders.mlp_encoder.MLPEncoder,
+    "signnet": Encoders.signnet_pos_encoder.SignNetNodeEncoder,
+    "gaussian_kernel": Encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
 }
 
 
 FC_LAYERS_DICT = {
-    "fc": FCLayer,
-}
-
-DGL_LAYERS_DICT = {
-    "dgl:gcn": GCNDgl,
-    "dgl:gin": GINDgl,
-    "dgl:gat": GATDgl,
-    "dgl:gated-gcn": GatedGCNDgl,
-    "dgl:pna-conv": PNAConvolutionalDgl,
-    "dgl:pna-msgpass": PNAMessagePassingDgl,
-    "dgl:dgn-conv": DGNConvolutionalDgl,
-    "dgl:dgn-msgpass": DGNMessagePassingDgl,
+    "fc": BaseLayers.FCLayer,
 }
 
 PYG_LAYERS_DICT = {
-    "pyg:gin": GINConvPyg,
-    "pyg:gine": GINEConvPyg,
-    "pyg:gated-gcn": GatedGCNPyg,
-    "pyg:pna-msgpass": PNAMessagePassingPyg,
-    "pyg:gps": GPSLayerPyg,
+    "pyg:gin": PygLayers.GINConvPyg,
+    "pyg:gine": PygLayers.GINEConvPyg,
+    "pyg:gated-gcn": PygLayers.GatedGCNPyg,
+    "pyg:pna-msgpass": PygLayers.PNAMessagePassingPyg,
+    "pyg:gps": PygLayers.GPSLayerPyg,
 }
 
-LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
-LAYERS_DICT.update(deepcopy(FC_LAYERS_DICT))
+LAYERS_DICT = deepcopy(FC_LAYERS_DICT)
 LAYERS_DICT.update(deepcopy(PYG_LAYERS_DICT))
 
 
 RESIDUALS_DICT = {
-    "none": ResidualConnectionNone,
-    "simple": ResidualConnectionSimple,
-    "weighted": ResidualConnectionWeighted,
-    "concat": ResidualConnectionConcat,
-    "densenet": ResidualConnectionDenseNet,
-    "random": ResidualConnectionRandom,
+    "none": Residuals.ResidualConnectionNone,
+    "simple": Residuals.ResidualConnectionSimple,
+    "weighted": Residuals.ResidualConnectionWeighted,
+    "concat": Residuals.ResidualConnectionConcat,
+    "densenet": Residuals.ResidualConnectionDenseNet,
+    "random": Residuals.ResidualConnectionRandom,
 }
 
 LOSS_DICT = {
@@ -105,10 +50,10 @@ LOSS_DICT = {
     "bce": torch.nn.BCELoss(),
     "l1": torch.nn.L1Loss(),
     "mae": torch.nn.L1Loss(),
-    "bce_ipu": BCELossIPU(),
-    "mse_ipu": MSELossIPU(),
-    "mae_ipu": L1LossIPU(),
-    "l1_ipu": L1LossIPU(),
+    "bce_ipu": Losses.BCELossIPU(),
+    "mse_ipu": Losses.MSELossIPU(),
+    "mae_ipu": Losses.L1LossIPU(),
+    "l1_ipu": Losses.L1LossIPU(),
 }
 
 
@@ -122,43 +67,43 @@ SCHEDULER_DICT = {
     "ReduceLROnPlateau": sc.ReduceLROnPlateau,
     "StepLR": sc.StepLR,
     "ConstantLR": sc.ConstantLR,
-    "WarmUpLinearLR": WarmUpLinearLR,
+    "WarmUpLinearLR": CustomLR.WarmUpLinearLR,
 }
 
 METRICS_CLASSIFICATION = {
-    "accuracy": met.accuracy,
-    "averageprecision": met.average_precision,
-    "auroc": met.auroc,
-    "confusionmatrix": met.confusion_matrix,
-    "f1": met.f1_score,
-    "fbeta": met.fbeta_score,
-    "precisionrecallcurve": met.precision_recall_curve,
-    "precision": met.precision,
-    "recall": met.recall,
-    "mcc": met.matthews_corrcoef,
-    "auroc_ipu": auroc_ipu,
-    "accuracy_ipu": accuracy_ipu,
-    "average_precision_ipu": average_precision_ipu,
-    "f1_ipu": f1_score_ipu,
-    "fbeta_ipu": fbeta_score_ipu,
-    "precision_ipu": precision_ipu,
-    "recall_ipu": recall_ipu,
+    "accuracy": TorchMetrics.accuracy,
+    "averageprecision": TorchMetrics.average_precision,
+    "auroc": TorchMetrics.auroc,
+    "confusionmatrix": TorchMetrics.confusion_matrix,
+    "f1": TorchMetrics.f1_score,
+    "fbeta": TorchMetrics.fbeta_score,
+    "precisionrecallcurve": TorchMetrics.precision_recall_curve,
+    "precision": TorchMetrics.precision,
+    "recall": TorchMetrics.recall,
+    "mcc": TorchMetrics.matthews_corrcoef,
+    "auroc_ipu": Metrics.auroc_ipu,
+    "accuracy_ipu": Metrics.accuracy_ipu,
+    "average_precision_ipu": Metrics.average_precision_ipu,
+    "f1_ipu": Metrics.f1_score_ipu,
+    "fbeta_ipu": Metrics.fbeta_score_ipu,
+    "precision_ipu": Metrics.precision_ipu,
+    "recall_ipu": Metrics.recall_ipu,
 }
 
 METRICS_REGRESSION = {
-    "mae": met.mean_absolute_error,
-    "mape": met.mean_absolute_percentage_error,
-    "mse": met.mean_squared_error,
-    "msle": met.mean_squared_log_error,
-    "pearsonr": met.pearson_corrcoef,
-    "spearmanr": met.spearman_corrcoef,
-    "r2": met.r2_score,
-    "cosine": met.cosine_similarity,
-    "pearsonr_ipu": pearson_ipu,
-    "spearmanr_ipu": spearman_ipu,
-    "r2_score_ipu": r2_score_ipu,
-    "mae_ipu": mean_absolute_error_ipu,
-    "mse_ipu": mean_squared_error_ipu,
+    "mae": TorchMetrics.mean_absolute_error,
+    "mape": TorchMetrics.mean_absolute_percentage_error,
+    "mse": TorchMetrics.mean_squared_error,
+    "msle": TorchMetrics.mean_squared_log_error,
+    "pearsonr": TorchMetrics.pearson_corrcoef,
+    "spearmanr": TorchMetrics.spearman_corrcoef,
+    "r2": TorchMetrics.r2_score,
+    "cosine": TorchMetrics.cosine_similarity,
+    "pearsonr_ipu": Metrics.pearson_ipu,
+    "spearmanr_ipu": Metrics.spearman_ipu,
+    "r2_score_ipu": Metrics.r2_score_ipu,
+    "mae_ipu": Metrics.mean_absolute_error_ipu,
+    "mse_ipu": Metrics.mean_squared_error_ipu,
 }
 
 METRICS_DICT = deepcopy(METRICS_CLASSIFICATION)
@@ -166,6 +111,7 @@ METRICS_DICT.update(METRICS_REGRESSION)
 
 
 DATAMODULE_DICT = {
-    "GraphOGBDataModule": GraphOGBDataModule,
-    "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule,
+    "GraphOGBDataModule": Datamodules.GraphOGBDataModule,
+    "MultitaskFromSmilesDataModule": Datamodules.MultitaskFromSmilesDataModule,
+    "FakeDataModule": Datamodules.FakeDataModule,
 }

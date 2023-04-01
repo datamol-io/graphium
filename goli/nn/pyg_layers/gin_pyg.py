@@ -90,8 +90,8 @@ class GINConvPyg(BaseGraphModule):
         Returns:
             batch: pyg Batch graphs
         """
-        batch.h = self.model(batch.h, batch.edge_index)
-        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
+        batch.feat = self.model(batch.feat, batch.edge_index)
+        batch.feat = self.apply_norm_activation_dropout(batch.feat, batch_idx=batch.batch)
 
         return batch
 
@@ -240,8 +240,8 @@ class GINEConvPyg(BaseGraphModule):
         Returns:
             batch: pyg Batch graphs
         """
-        batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
-        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
+        batch.feat = self.model(batch.feat, batch.edge_index, batch.edge_feat)
+        batch.feat = self.apply_norm_activation_dropout(batch.feat, batch_idx=batch.batch)
 
         return batch
 

@@ -7,7 +7,6 @@ import numpy as np
 from scipy.sparse import issparse, coo_matrix
 import torch
 
-import dgl
 from torch_geometric.data import Data
 
 from rdkit import Chem
@@ -612,7 +611,6 @@ def mol_to_adj_and_features(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Union[
@@ -665,9 +663,6 @@ def mol_to_adj_and_features(
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
 
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
-
         dtype:
             The numpy data type used to build the graph
 
@@ -710,13 +705,6 @@ def mol_to_adj_and_features(
             - "rwse":
                 Node structural encoding corresponding to the diagonal of the random
                 walk matrix
-
-        pe_dir_dict:
-            Similar to `pe_dict`
-            Dictionary of all positional encodings used to define directions. This can thus
-            be used for relative position inference.
-            This is used, for example, by `DGNConvolutionalLayer` to define
-            the direction of the messages.
 
         conf_dict:
             contains the 3d positions of a conformer of the molecule or 0s if none is found
@@ -763,17 +751,13 @@ def mol_to_adj_and_features(
         edata = None
 
     # Get all positional encodings
-    pe_dict, pe_dir_dict = get_all_positional_encoding(
-        adj, num_nodes, pos_encoding_as_features, pos_encoding_as_directions
-    )
+    pe_dict = get_all_positional_encoding(adj, num_nodes, pos_encoding_as_features)
 
     # Mask the NaNs
     for pe_key in pe_dict.keys():
         pe_dict[pe_key] = _mask_nans_inf(mask_nan, pe_dict[pe_key], pe_key)
-    for pe_key in pe_dir_dict.keys():
-        pe_dir_dict[pe_key] = _mask_nans_inf(mask_nan, pe_dir_dict[pe_key], pe_key)
 
-    return adj, ndata, edata, pe_dict, pe_dir_dict, conf_dict
+    return adj, ndata, edata, pe_dict, conf_dict
 
 
 class GraphDict(dict):
@@ -782,7 +766,7 @@ class GraphDict(dict):
         dic: Dict,
     ):
         r"""
-        Store the parameters required to initialize a `dgl.DGLGraph`, but
+        Store the parameters required to initialize a `pyg.data.Data`, but
         as a dictionary to reduce memory consumption.
 
         Possible keys for the dictionary:
@@ -790,10 +774,10 @@ class GraphDict(dict):
         - adj: A numpy array containing the adjacency matrix
 
         - ndata: A dictionnary containing different keys and numpy
-            arrays associated to the node features `DGLGraph.ndata`.
+            arrays associated to the node features.
 
         - edata: A dictionnary containing different keys and numpy
-            arrays associated to the edge features `DGLGraph.edata`.
+            arrays associated to the edge features.
 
         - dtype: The numpy dtype for the floating data. The arrays
             will be converted to `torch.Tensor` when building the graph.
@@ -812,28 +796,21 @@ class GraphDict(dict):
             "dtype": np.float16,
             "mask_nan": "raise",
         }
+        ndata = dic.pop("ndata", {})
+        edata = dic.pop("edata", {})
+        for key in edata.keys():
+            assert key.startswith("edge_"), f"Edge features must start with 'edge_' but got {key}"
         default_dic.update(dic)
+        default_dic.update(ndata)
+        default_dic.update(edata)
         super().__init__(default_dic)
-
-    def make_dgl_graph(self, **kwargs) -> dgl.DGLGraph:
-        """
-        Convert the current dictionary of parameters, containing an adjacency matrix with node/edge data
-        into a `dgl.DGLGraph` of torch Tensors.
-
-        `**kwargs` can be used to overwrite any parameter from the current dictionary. See `DGLGraphDict.__init__`
-        for a list of parameters
-        """
-        this_dict = self.copy()
-        for key, val in kwargs.items():
-            this_dict[key] = val
-        return graph_dict_to_dgl(**this_dict)
 
     def make_pyg_graph(self, **kwargs) -> Data:
         """
         Convert the current dictionary of parameters, containing an adjacency matrix with node/edge data
-        into a `dgl.DGLGraph` of torch Tensors.
+        into a `pyg.data.Data` of torch Tensors.
 
-        `**kwargs` can be used to overwrite any parameter from the current dictionary. See `DGLGraphDict.__init__`
+        `**kwargs` can be used to overwrite any parameter from the current dictionary. See `GraphDict.__init__`
         for a list of parameters
         """
 
@@ -843,15 +820,10 @@ class GraphDict(dict):
         num_nodes = self.adj.shape[0]
 
         # Get the node and edge data
-        data_dict = {key: val for key, val in self.ndata.items()}
-        for key, val in self.edata.items():
-            # Edge keys must start with `edge_`
-            if not key.startswith("edge_"):
-                raise KeyError(f"Edge keys must start with `edge_`. Key given is `{key}`")
-            # Edge keys must be different from node keys
-            if key in data_dict.keys():
-                raise KeyError(f"Key `key` is present in both edge and node data")
-            data_dict[key] = val
+        data_dict = {key: val for key, val in self.items()}
+        data_dict.pop("adj")
+        data_dict.pop("dtype")
+        data_dict.pop("mask_nan")
 
         # Convert the data and sparse data to torch
         for key, val in data_dict.items():
@@ -869,14 +841,6 @@ class GraphDict(dict):
         return deepcopy(data)
 
     @property
-    def ndata(self):
-        return self["ndata"]
-
-    @property
-    def edata(self):
-        return self["edata"]
-
-    @property
     def adj(self):
         return self["adj"]
 
@@ -887,6 +851,17 @@ class GraphDict(dict):
     @property
     def mask_nan(self):
         return self["mask_nan"]
+
+    @property
+    def num_nodes(self) -> int:
+        return self.adj.shape[0]
+
+    @property
+    def num_edges(self) -> int:
+        if issparse(self.adj):
+            return self.adj.nnz
+        else:
+            return np.count_nonzero(self.adj) // 2
 
 
 def mol_to_graph_dict(
@@ -899,7 +874,6 @@ def mol_to_graph_dict(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
@@ -908,9 +882,9 @@ def mol_to_graph_dict(
     r"""
     Transforms a molecule into an adjacency matrix representing the molecular graph
     and a set of atom and bond features, and re-organizes them into a dictionary
-    that allows to build a `DGLGraph` object.
+    that allows to build a `pyg.data.Data` object.
 
-    Compared to `mol_to_dglgraph`, this function does not build the graph directly,
+    Compared to `mol_to_pyggraph`, this function does not build the graph directly,
     and is thus faster, less memory heavy, and compatible with other frameworks.
 
     Parameters:
@@ -949,9 +923,6 @@ def mol_to_graph_dict(
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
 
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
-
         dtype:
             The numpy data type used to build the graph
 
@@ -982,7 +953,7 @@ def mol_to_graph_dict(
 
         graph_dict:
             A dictionary `GraphDict` containing the keys required to build a graph,
-            and which can be used to build a DGL or PyG graph. If it fails
+            and which can be used to build a PyG graph. If it fails
             to featurize the molecule, it returns a string with the error.
 
             - "adj": A sparse int-array containing the adjacency matrix
@@ -1014,7 +985,6 @@ def mol_to_graph_dict(
             ndata,
             edata,
             pe_dict,
-            pe_dir_dict,
             conf_dict,
         ) = mol_to_adj_and_features(
             mol=mol,
@@ -1026,7 +996,6 @@ def mol_to_graph_dict(
             explicit_H=explicit_H,
             use_bonds_weights=use_bonds_weights,
             pos_encoding_as_features=pos_encoding_as_features,
-            pos_encoding_as_directions=pos_encoding_as_directions,
             mask_nan=mask_nan,
         )
     except Exception as e:
@@ -1042,14 +1011,13 @@ def mol_to_graph_dict(
         elif on_error.lower() == "ignore":
             return str(e)
 
-    dgl_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
+    graph_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
 
     # Assign the node data
     if ndata is not None:
-        dgl_dict["ndata"]["feat"] = ndata
+        graph_dict["ndata"]["feat"] = ndata
 
-    # Assign the edge data. Due to DGL only supporting Hetero-graphs, we
-    # need to duplicate each edge information for its 2 entries
+    # For Hetero-graphs, we need to duplicate each edge information for its 2 entries
     if edata is not None:
         edata = to_dense_array(edata, dtype=dtype)
         src_ids, dst_ids = np.argwhere(adj).transpose()
@@ -1062,148 +1030,19 @@ def mol_to_graph_dict(
             hetero_edata[id1, :] = edata[ii, :]
             hetero_edata[id2, :] = edata[ii, :]
 
-        dgl_dict["edata"]["edge_feat"] = coo_matrix(hetero_edata)
+        graph_dict["edata"]["edge_feat"] = coo_matrix(hetero_edata)
 
     # Put the positional encodings as node features
     # TODO: add support for PE on edges
     for key, pe in pe_dict.items():
-        dgl_dict["ndata"][key] = pe
+        graph_dict["ndata"][key] = pe
 
     # put the conformer positions here
-    # TODO: pool the keys based on node or edge prefix like "edge_"
     for key, val in conf_dict.items():
-        dgl_dict["ndata"][key] = val
+        graph_dict["ndata"][key] = val
 
-    # Add positional encoding for directional use
-    if (pe_dir_dict is not None) and (len(pe_dir_dict) > 0):
-        pos_dir = np.concatenate(pe_dir_dict.values(), dim=-1)
-        dgl_dict["ndata"]["pos_dir"] = pos_dir
-
-    dgl_dict = GraphDict(dgl_dict)
-    return dgl_dict
-
-
-def mol_to_dglgraph(
-    mol: dm.Mol,
-    atom_property_list_onehot: List[str] = [],
-    atom_property_list_float: List[Union[str, Callable]] = [],
-    conformer_property_list: List[str] = [],
-    edge_property_list: List[str] = [],
-    add_self_loop: bool = False,
-    explicit_H: bool = False,
-    use_bonds_weights: bool = False,
-    pos_encoding_as_features: Dict[str, Any] = None,
-    pos_encoding_as_directions: Dict[str, Any] = None,
-    dtype: np.dtype = np.float16,
-    on_error: str = "ignore",
-    mask_nan: Union[str, float, type(None)] = "raise",
-    max_num_atoms: Optional[int] = None,
-) -> dgl.DGLGraph:
-    r"""
-    Transforms a molecule into an adjacency matrix representing the molecular graph
-    and a set of atom and bond features.
-
-    Then, the adjacency matrix and node/edge features are used to build a
-    `DGLGraph` with pytorch Tensors.
-
-    Parameters:
-
-        mol:
-            The molecule to be converted
-
-        atom_property_list_onehot:
-            List of the properties used to get one-hot encoding of the atom type,
-            such as the atom index represented as a one-hot vector.
-            See function `get_mol_atomic_features_onehot`
-
-        atom_property_list_float:
-            List of the properties used to get floating-point encoding of the atom type,
-            such as the atomic mass or electronegativity.
-            See function `get_mol_atomic_features_float`
-
-        conformer_property_list:
-            list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"
-
-
-        edge_property_list:
-            List of the properties used to encode the edges, such as the edge type
-            and the stereo type.
-
-        add_self_loop:
-            Whether to add a value of `1` on the diagonal of the adjacency matrix.
-
-        explicit_H:
-            Whether to consider the Hydrogens explicitely. If `False`, the hydrogens
-            are implicit.
-
-        use_bonds_weights:
-            Whether to use the floating-point value of the bonds in the adjacency matrix,
-            such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5
-
-        pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for node features.
-
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
-
-        dtype:
-            The numpy data type used to build the graph
-
-        on_error:
-            What to do when the featurization fails. This can change the
-            behavior of `mask_nan`.
-
-            - "raise": Raise an error
-            - "warn": Raise a warning and return None
-            - "ignore": Ignore the error and return None
-
-        mask_nan:
-            Deal with molecules that fail a part of the featurization.
-            NaNs can happen when taking the of a noble gas,
-            or other properties that are not measured for specific atoms.
-
-            - "raise": Raise an error when there is a nan in the featurization
-            - "warn": Raise a warning when there is a nan in the featurization
-            - "None": DEFAULT. Don't do anything
-            - "Floating value": Replace nans by the specified value
-
-        max_num_atoms:
-            Maximum number of atoms for a given molecule. If a molecule with more atoms
-            is give, an error is raised, but catpured according to the rules of
-            `on_error`.
-    Returns:
-
-        graph:
-            DGL graph, with `graph.ndata['feat']` corresponding to the concatenated
-            node data from `atom_property_list_onehot` and `atom_property_list_float`,
-            `graph.edata['feat']` corresponding to the concatenated edge data from `edge_property_list`.
-            There are also additional entries for the positional encodings.
-
-    """
-
-    dgl_dict = mol_to_graph_dict(
-        mol=mol,
-        atom_property_list_onehot=atom_property_list_onehot,
-        atom_property_list_float=atom_property_list_float,
-        conformer_property_list=conformer_property_list,
-        edge_property_list=edge_property_list,
-        add_self_loop=add_self_loop,
-        explicit_H=explicit_H,
-        use_bonds_weights=use_bonds_weights,
-        pos_encoding_as_features=pos_encoding_as_features,
-        pos_encoding_as_directions=pos_encoding_as_directions,
-        dtype=dtype,
-        on_error=on_error,
-        mask_nan=mask_nan,
-        max_num_atoms=max_num_atoms,
-    )
-
-    print(dgl_dict)
-
-    if dgl_dict is not None:
-        return dgl_dict.make_dgl_graph()
-
-    return None
+    graph_dict = GraphDict(graph_dict)
+    return graph_dict
 
 
 def mol_to_pyggraph(
@@ -1216,7 +1055,6 @@ def mol_to_pyggraph(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    pos_encoding_as_directions: Dict[str, Any] = None,
     dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
@@ -1265,9 +1103,6 @@ def mol_to_pyggraph(
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
 
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features.
-
         dtype:
             The numpy data type used to build the graph
 
@@ -1296,9 +1131,9 @@ def mol_to_pyggraph(
     Returns:
 
         graph:
-            DGL graph, with `graph.ndata['feat']` corresponding to the concatenated
+            Pyg graph, with `graph['feat']` corresponding to the concatenated
             node data from `atom_property_list_onehot` and `atom_property_list_float`,
-            `graph.edata['feat']` corresponding to the concatenated edge data from `edge_property_list`.
+            `graph['edge_feat']` corresponding to the concatenated edge data from `edge_property_list`.
             There are also additional entries for the positional encodings.
 
     """
@@ -1312,7 +1147,6 @@ def mol_to_pyggraph(
         explicit_H=explicit_H,
         use_bonds_weights=use_bonds_weights,
         pos_encoding_as_features=pos_encoding_as_features,
-        pos_encoding_as_directions=pos_encoding_as_directions,
         dtype=dtype,
         on_error=on_error,
         mask_nan=mask_nan,
@@ -1325,63 +1159,9 @@ def mol_to_pyggraph(
         return graph_dict
 
 
-def graph_dict_to_dgl(
-    adj,
-    ndata: Dict,
-    edata: Dict,
-    dtype: np.dtype = None,
-    mask_nan: Union[str, float, type(None)] = "raise",
-) -> dgl.DGLGraph:
-    """
-    Convert an adjacency matrix with node/edge data into a `DGLGraph`
-    of torch Tensors.
-
-    Parameters:
-
-        adj: A numpy array containing the adjacency matrix
-
-        ndata: A dictionnary containing different keys and numpy
-            arrays associated to the node features `DGLGraph.ndata`.
-
-        edata: A dictionnary containing different keys and numpy
-            arrays associated to the edge features `DGLGraph.edata`.
-
-        dtype: The numpy dtype for the floating data. The arrays
-            will be converted to `torch.Tensor` when building the graph.
-
-        mask_nan:
-            Deal with molecules that fail a part of the featurization.
-            NaNs can happen when taking the of a noble gas,
-            or other properties that are not measured for specific atoms.
-
-            - "raise": Raise an error when there is a nan or inf in the featurization
-            - "warn": Raise a warning when there is a nan or inf in the featurization
-            - "None": DEFAULT. Don't do anything
-            - "Floating value": Replace nans or inf by the specified value
-
-    """
-
-    # Transform the matrix and data into a DGLGraph object
-    graph = dgl.from_scipy(adj, idtype=torch.int32)
-
-    if ndata is not None:
-        for key, val in ndata.items():
-            graph.ndata[key] = torch.as_tensor(
-                _mask_nans_inf(mask_nan=mask_nan, array=to_dense_array(val, dtype=dtype), array_name="ndata")
-            )
-
-    if edata is not None:
-        for key, val in edata.items():
-            graph.edata[key] = torch.as_tensor(
-                _mask_nans_inf(mask_nan=mask_nan, array=to_dense_array(val, dtype=dtype), array_name="edata")
-            )
-
-    return graph
-
-
 def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None) -> Dict[str, Any]:
     """
-    Get the default arguments of `mol_to_dglgraph_dict` and update it
+    Get the default arguments of `mol_to_graph_dict` and update it
     with a provided dict of arguments in order to get a fulle signature
     of the featurizer args actually used for the features computation.
 
@@ -1391,7 +1171,7 @@ def mol_to_graph_signature(featurizer_args: Dict[str, Any] = None) -> Dict[str, 
         A dictionary of featurizer arguments
     """
 
-    # Get the signature of `mol_to_dglgraph_dict`
+    # Get the signature of `mol_to_graph_dict`
     signature = inspect.signature(mol_to_graph_dict)
 
     # Filter out empty arguments (without default value)
