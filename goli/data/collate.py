@@ -6,7 +6,6 @@ from numpy import ndarray
 from scipy.sparse import spmatrix
 from torch.utils.data.dataloader import default_collate
 from typing import Union, List, Optional, Dict, Type, Any, Iterable
-import dgl
 from torch_geometric.data import Data, Batch
 
 from goli.features import GraphDict, to_dense_array
@@ -20,16 +19,11 @@ def goli_collate_fn(
     batch_size_per_pack: Optional[int] = None,
 ) -> Union[Any, Dict[str, Any]]:
     """This collate function is identical to the default
-    pytorch collate function but add support for `dgl.DGLGraph`
-    objects and use `dgl.batch` to batch graphs.
+    pytorch collate function but add support for `pyg.data.Data` to batch graphs.
 
-    Beside dgl graph collate, other objects are processed the same way
+    Beside pyg graph collate, other objects are processed the same way
     as the original torch collate function. See https://pytorch.org/docs/stable/data.html#dataloader-collate-fn
     for more details.
-
-    Important:
-        Only dgl graph within a dict are currently supported. It should not be hard
-        to support dgl graphs from other objects.
 
     Note:
         If goli needs to manipulate other tricky-to-batch objects. Support
@@ -47,7 +41,7 @@ def goli_collate_fn(
             labels/values there are to predict for that task.
 
         mask_nan:
-            Deal with the NaN/Inf when calling the function `dgl_dict_to_graph`.
+            Deal with the NaN/Inf when calling the function `make_pyg_graph`.
             Some values become `Inf` when changing data type. This allows to deal
             with that.
 
@@ -59,7 +53,7 @@ def goli_collate_fn(
         do_not_batch_keys:
             Keys to ignore for the collate
 
-        batch_size_per_pack: The number of graphs to pack together. 
+        batch_size_per_pack: The number of graphs to pack together.
             This is useful for using packing with the Transformer.
             If None, no packing is done.
             Otherwise, indices are generated to map the nodes to the pack they belong to under the key `"pack_from_node_idx"`,
@@ -74,15 +68,11 @@ def goli_collate_fn(
     if isinstance(elem, Mapping):
         batch = {}
         for key in elem:
-            # If the features are a dictionary containing DGLGraph elements,
-            # Convert to DGLGraph and use the dgl batching.
+            # If the features are a dictionary containing GraphDict elements,
+            # Convert to pyg graphs and use the pyg batching.
             if isinstance(elem[key], GraphDict):
-                graphs = [d[key].make_dgl_graph(mask_nan=mask_nan) for d in elements]
-                batch[key] = dgl.batch(graphs)
-
-            # If a DGLGraph is provided, use the dgl batching
-            elif isinstance(elem[key], dgl.DGLGraph):
-                batch[key] = dgl.batch([d[key] for d in elements])
+                pyg_graphs = [d[key].make_pyg_graph(mask_nan=mask_nan) for d in elements]
+                batch[key] = collage_pyg_graph(pyg_graphs)
 
             # If a PyG Graph is provided, use the PyG batching
             elif isinstance(elem[key], Data):
@@ -122,10 +112,10 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
     Parameters:
         pyg_graphs: Iterable of PyG graphs
-        batch_size_per_pack: The number of graphs to pack together. 
+        batch_size_per_pack: The number of graphs to pack together.
             This is useful for using packing with the Transformer,
     """
-    
+
     pyg_batch = []
     for pyg_graph in pyg_graphs:
         for pyg_key in pyg_graph.keys:
@@ -178,5 +168,5 @@ def collate_labels(labels: List[Dict[str, torch.Tensor]], labels_size_dict: Opti
                     (len(labels), *labels_size_dict[task]), torch.nan
                 )
     labels_dict = default_collate(labels)
-    
+
     return labels_dict

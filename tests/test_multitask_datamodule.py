@@ -79,7 +79,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["featurization"] = featurization_args
         dm_args["featurization_n_jobs"] = 16
         dm_args["featurization_progress"] = True
-        dm_args["featurization_backend"] = "threads"
+        dm_args["featurization_backend"] = "loky"
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
         dm_args["cache_data_path"] = None
@@ -106,10 +106,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             it = iter(dl)
             batch = next(it)
 
-            assert set(batch.keys()) == {"labels", "features", "smiles", "mol_ids"}
-            assert len(batch["mol_ids"]) == 16
-            # assert len(batch["smiles"]) == 16
-            # assert len(batch["features"])                      # This is not a list, but a graph.
+            assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
             assert batch["labels"]["SA"].shape == (16, 1)
@@ -117,7 +114,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config(self):
-        config = goli.load_config(name="zinc_default_multitask_fulldgl")
+        config = goli.load_config(name="zinc_default_multitask_pyg")
 
         df = goli.data.load_tiny_zinc()  # 100 molecules
 
@@ -156,10 +153,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             it = iter(dl)
             batch = next(it)
 
-            assert set(batch.keys()) == {"labels", "features", "smiles", "mol_ids"}
-            assert len(batch["mol_ids"]) == 16
-            # assert len(batch["smiles"]) == 16
-            # assert len(batch["features"])                      # This is not a list, but a graph.
+            assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
             assert batch["labels"]["SA"].shape == (16, 1)
@@ -167,7 +161,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config_csv(self):
-        config = goli.load_config(name="zinc_default_multitask_fulldgl")
+        config = goli.load_config(name="zinc_default_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
         dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)
@@ -186,10 +180,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             it = iter(dl)
             batch = next(it)
 
-            assert set(batch.keys()) == {"labels", "features", "smiles", "mol_ids"}
-            assert len(batch["mol_ids"]) == 16
-            # assert len(batch["smiles"]) == 16
-            # assert len(batch["features"])                      # This is not a list, but a graph.
+            assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
             assert batch["labels"]["SA"].shape == (16, 1)

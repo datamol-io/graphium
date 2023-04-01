@@ -4,10 +4,7 @@ import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as met
 
 from goli.nn.base_layers import FCLayer
-from goli.data.datamodule import (
-    GraphOGBDataModule,
-    MultitaskFromSmilesDataModule,
-)
+from goli.data.datamodule import GraphOGBDataModule, MultitaskFromSmilesDataModule, FakeDataModule
 from goli.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
 from goli.ipu.ipu_metrics import (
     auroc_ipu,
@@ -22,17 +19,6 @@ from goli.ipu.ipu_metrics import (
     fbeta_score_ipu,
     mean_squared_error_ipu,
     mean_absolute_error_ipu,
-)
-
-from goli.nn.dgl_layers import (
-    GATDgl,
-    GCNDgl,
-    GINDgl,
-    GatedGCNDgl,
-    PNAConvolutionalDgl,
-    PNAMessagePassingDgl,
-    DGNConvolutionalDgl,
-    DGNMessagePassingDgl,
 )
 
 from goli.nn.pyg_layers import PNAMessagePassingPyg, GINConvPyg, GINEConvPyg, GatedGCNPyg, GPSLayerPyg
@@ -53,6 +39,8 @@ from goli.nn.encoders import (
     gaussian_kernel_pos_encoder,
 )
 
+from goli.utils.custom_lr import WarmUpLinearLR
+
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
@@ -65,17 +53,6 @@ FC_LAYERS_DICT = {
     "fc": FCLayer,
 }
 
-DGL_LAYERS_DICT = {
-    "dgl:gcn": GCNDgl,
-    "dgl:gin": GINDgl,
-    "dgl:gat": GATDgl,
-    "dgl:gated-gcn": GatedGCNDgl,
-    "dgl:pna-conv": PNAConvolutionalDgl,
-    "dgl:pna-msgpass": PNAMessagePassingDgl,
-    "dgl:dgn-conv": DGNConvolutionalDgl,
-    "dgl:dgn-msgpass": DGNMessagePassingDgl,
-}
-
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,
     "pyg:gine": GINEConvPyg,
@@ -84,8 +61,7 @@ PYG_LAYERS_DICT = {
     "pyg:gps": GPSLayerPyg,
 }
 
-LAYERS_DICT = deepcopy(DGL_LAYERS_DICT)
-LAYERS_DICT.update(deepcopy(FC_LAYERS_DICT))
+LAYERS_DICT = deepcopy(FC_LAYERS_DICT)
 LAYERS_DICT.update(deepcopy(PYG_LAYERS_DICT))
 
 
@@ -119,6 +95,8 @@ SCHEDULER_DICT = {
     "MultiStepLR": sc.MultiStepLR,
     "ReduceLROnPlateau": sc.ReduceLROnPlateau,
     "StepLR": sc.StepLR,
+    "ConstantLR": sc.ConstantLR,
+    "WarmUpLinearLR": WarmUpLinearLR,
 }
 
 METRICS_CLASSIFICATION = {
@@ -164,4 +142,5 @@ METRICS_DICT.update(METRICS_REGRESSION)
 DATAMODULE_DICT = {
     "GraphOGBDataModule": GraphOGBDataModule,
     "MultitaskFromSmilesDataModule": MultitaskFromSmilesDataModule,
+    "FakeDataModule": FakeDataModule,
 }

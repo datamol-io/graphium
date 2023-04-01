@@ -8,17 +8,6 @@ from goli.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
 from goli.nn.base_layers import MLP
 from goli.utils.decorators import classproperty
 
-"""
-    GIN: Graph Isomorphism Networks
-    HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
-    https://arxiv.org/pdf/1810.00826.pdf
-
-    GINE: Graph Isomorphism Networks with Edges
-    Strategies for Pre-training Graph Neural Networks
-    Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Jure Leskovec
-    https://arxiv.org/abs/1905.12265
-"""
-
 
 class GINConvPyg(BaseGraphModule):
     def __init__(
@@ -90,9 +79,19 @@ class GINConvPyg(BaseGraphModule):
         self.model = pyg_nn.GINConv(gin_nn)
         self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
-    def forward(self, batch: Union[Data, Batch]):
-        batch.h = self.model(batch.h, batch.edge_index)
-        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
+    def forward(
+        self,
+        batch: Union[Data, Batch],
+    ) -> Union[Data, Batch]:
+        r"""
+        forward function of the layer
+        Parameters:
+            batch: pyg Batch graphs to pass through the layer
+        Returns:
+            batch: pyg Batch graphs
+        """
+        batch.feat = self.model(batch.feat, batch.edge_index)
+        batch.feat = self.apply_norm_activation_dropout(batch.feat, batch_idx=batch.batch)
 
         return batch
 
@@ -230,9 +229,19 @@ class GINEConvPyg(BaseGraphModule):
         self.model = pyg_nn.GINEConv(gin_nn, edge_dim=in_dim_edges)  # , node_dim=-1)
         self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
-    def forward(self, batch):
-        batch.h = self.model(batch.h, batch.edge_index, batch.edge_attr)
-        batch.h = self.apply_norm_activation_dropout(batch.h, batch_idx=batch.batch)
+    def forward(
+        self,
+        batch: Union[Data, Batch],
+    ) -> Union[Data, Batch]:
+        r"""
+        forward function of the layer
+        Parameters:
+            batch: pyg Batch graphs to pass through the layer
+        Returns:
+            batch: pyg Batch graphs
+        """
+        batch.feat = self.model(batch.feat, batch.edge_index, batch.edge_feat)
+        batch.feat = self.apply_norm_activation_dropout(batch.feat, batch_idx=batch.batch)
 
         return batch
 

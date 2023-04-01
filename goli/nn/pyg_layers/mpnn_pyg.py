@@ -21,6 +21,7 @@ class MPNNPlusPyg(BaseGraphModule):
         scatter_to: str = "both",
         node_combine_method: str = "concat",
         num_node_mlp: int = 2,
+        mlp_expansion_ratio: int = 4,
         use_edges: bool = True,
         in_dim_edges: Optional[int] = 32,
         out_dim_edges: Optional[int] = 32,
@@ -89,6 +90,9 @@ class MPNNPlusPyg(BaseGraphModule):
             num_node_mlp:
                 Number of mlp layer used for node model
 
+            mlp_expansion_ratio:
+                Expansion ratio for node and edge mlp
+
             use_edges:
                 If edge features are used
 
@@ -119,6 +123,7 @@ class MPNNPlusPyg(BaseGraphModule):
         self.scatter_to = scatter_to
         self.node_combine_method = node_combine_method
         self.num_node_mlp = num_node_mlp
+        self.mlp_expansion_ratio = mlp_expansion_ratio
 
         self.use_edges = use_edges
         self.in_dim_edges = in_dim_edges
@@ -129,8 +134,14 @@ class MPNNPlusPyg(BaseGraphModule):
         self.aggregator = MultiAggregation(aggregation_method)
 
         # node_model:
-        node_model_in_dim = 3 * self.in_dim + 2 * self.in_dim_edges
-        node_model_hidden_dim = 4 * self.in_dim
+        edge_dim = self.out_dim_edges if use_edges else self.in_dim_edges
+        if self.node_combine_method == "concat":
+            node_model_in_dim = 3 * self.in_dim + 2 * edge_dim
+        elif self.node_combine_method == "sum":
+            node_model_in_dim = 2 * self.in_dim + edge_dim
+        else:
+            raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
+        node_model_hidden_dim = self.mlp_expansion_ratio * self.in_dim
         self.node_model = MLP(
             in_dim=node_model_in_dim,
             hidden_dims=node_model_hidden_dim,
@@ -141,8 +152,13 @@ class MPNNPlusPyg(BaseGraphModule):
         )
 
         # edge_model:
-        edge_model_in_dim = 2 * self.in_dim + self.in_dim_edges
-        edge_model_hidden_dim = 4 * self.in_dim_edges
+        if self.node_combine_method == "concat":
+            edge_model_in_dim = 2 * self.in_dim + self.in_dim_edges
+        elif self.node_combine_method == "sum":
+            edge_model_in_dim = self.in_dim + self.in_dim_edges
+        else:
+            raise ValueError(f"node_combine_method {self.node_combine_method} not recognised.")
+        edge_model_hidden_dim = self.mlp_expansion_ratio * self.in_dim_edges
         self.edge_model = MLP(
             in_dim=edge_model_in_dim,
             hidden_dims=edge_model_hidden_dim,
@@ -162,7 +178,7 @@ class MPNNPlusPyg(BaseGraphModule):
         receivers: Union[IntTensor, LongTensor],
     ) -> Tuple[Tensor, Tensor, Tensor]:
         r"""
-            Function to gather node features based on the senders and receivers of the edge indices.
+        Function to gather node features based on the senders and receivers of the edge indices.
 
         Parameters:
 
@@ -179,7 +195,6 @@ class MPNNPlusPyg(BaseGraphModule):
             Gathered node features (sender and receiver) summed up or concatenated
             Gathered sender features
             Gathered receiver features
-
         """
 
         out = []
@@ -213,7 +228,7 @@ class MPNNPlusPyg(BaseGraphModule):
         size: int,
     ) -> Tensor:
         r"""
-            Function to aggregate (scatter) messages built from node and edge features.
+        Function to aggregate (scatter) messages built from node and edge features.
 
         Parameters:
 
@@ -265,33 +280,44 @@ class MPNNPlusPyg(BaseGraphModule):
         return out
 
     def forward(self, batch: Batch) -> Batch:
+        r"""
+        Forward function of the MPNN Plus layer
+        Parameters:
+            batch: pyg Batch graph to pass through the layer
+        Returns:
+            batch: pyg Batch graph with updated node and edge features
+        """
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
         # ---------------EDGE step---------------
-        edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.h, senders, receivers)
+        edge_model_input, sender_nodes, receiver_nodes = self.gather_features(batch.feat, senders, receivers)
 
         if self.use_edges:
-            edge_model_input.append(batch.edge_attr)
+            edge_model_input.append(batch.edge_feat)
             edge_model_input = torch.cat([edge_model_input[0], edge_model_input[1]], dim=-1)
             # edge dropout included in the edge_model
-            batch.edge_attr = self.edge_model(edge_model_input)
+            batch.edge_feat = self.edge_model(edge_model_input)
         else:
-            batch.edge_attr = edge_model_input
+            batch.edge_feat = edge_model_input
 
         # ---------------NODE step---------------
         # message + aggregate
-        node_count_per_pack = batch.h.shape[-2]
+        node_count_per_pack = batch.feat.shape[-2]
         node_model_input = self.aggregate_features(
-            batch.edge_attr, senders, receivers, sender_nodes, receiver_nodes, node_count_per_pack
+            batch.edge_feat, senders, receivers, sender_nodes, receiver_nodes, node_count_per_pack
         )
-        node_model_input.append(batch.h)
-        batch.h = torch.cat([node_model_input[0], node_model_input[1]], dim=-1)
-        batch.h = self.node_model(batch.h)
+        node_model_input.append(batch.feat)
+        batch.feat = torch.cat([node_model_input[0], node_model_input[1]], dim=-1)
+        batch.feat = self.node_model(batch.feat)
 
         # ---------------Apply norm activation and dropout---------------
         # use dropout value of the layer (default 0.3)
-        batch.h = self.apply_norm_activation_dropout(
-            batch.h, normalization=False, activation=False, batch_idx=batch.batch, batch_size=batch.num_graphs
+        batch.feat = self.apply_norm_activation_dropout(
+            batch.feat,
+            normalization=False,
+            activation=False,
+            batch_idx=batch.batch,
+            batch_size=batch.num_graphs,
         )
 
         return batch

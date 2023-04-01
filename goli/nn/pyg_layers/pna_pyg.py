@@ -16,25 +16,6 @@ from goli.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
 
 
 class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
-    r"""
-    Implementation of the message passing architecture of the PNA message passing layer,
-    previously known as `PNALayerComplex`. This layer applies an MLP as
-    pretransformation to the concatenation of $[h_u, h_v, e_{uv}]$ to generate
-    the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
-    and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
-
-    After the pre-transformation, it aggregates the messages
-    multiple aggregators and scalers,
-    concatenates their results, then applies an MLP on the concatenated
-    features.
-
-    PNA: Principal Neighbourhood Aggregation
-    Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
-    https://arxiv.org/abs/2004.05718
-
-    [!] code adapted from pytorch-geometric implementation of PNAConv
-    """
-
     def __init__(
         self,
         in_dim: int,
@@ -52,6 +33,22 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
         **kwargs,
     ):
         r"""
+        Implementation of the message passing architecture of the PNA message passing layer,
+        previously known as `PNALayerComplex`. This layer applies an MLP as
+        pretransformation to the concatenation of $[h_u, h_v, e_{uv}]$ to generate
+        the messages, with $h_u$ the node feature, $h_v$ the neighbour node features,
+        and $e_{uv}$ the edge feature between the nodes $u$ and $v$.
+
+        After the pre-transformation, it aggregates the messages
+        multiple aggregators and scalers,
+        concatenates their results, then applies an MLP on the concatenated
+        features.
+
+        PNA: Principal Neighbourhood Aggregation
+        Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
+        https://arxiv.org/abs/2004.05718
+
+        [!] code adapted from pytorch-geometric implementation of PNAConv
 
         Parameters:
 
@@ -155,27 +152,59 @@ class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):
             last_normalization=normalization,
         )
 
-    def forward(self, batch: Union[Data, Batch]):
-        h, edge_index, edge_attr = batch.h, batch.edge_index, batch.edge_attr
+    def forward(self, batch: Union[Data, Batch]) -> Union[Data, Batch]:
+        r"""
+        forward function of the layer
+        Parameters:
+            batch: pyg Batch graphs
+        Returns:
+            batch: pyg Batch graphs
+        """
+        feat, edge_index, edge_feat = batch.feat, batch.edge_index, batch.edge_feat
 
-        out = self.propagate(edge_index, x=h, edge_attr=edge_attr, size=None)
+        out = self.propagate(edge_index, x=feat, edge_feat=edge_feat, size=None)
         out = self.posttrans(out)  # No more towers and concat with x
-        batch.h = out
+        batch.feat = out
         return batch
 
-    def message(self, x_i: Tensor, x_j: Tensor, edge_attr: OptTensor) -> Tensor:
-        h: Tensor = x_i  # Dummy.
-        if (edge_attr is not None) and (self.edge_encoder is not None):
-            edge_attr = self.edge_encoder(edge_attr)
-            h = torch.cat([x_i, x_j, edge_attr], dim=-1)
-        else:
-            h = torch.cat([x_i, x_j], dim=-1)
+    def message(self, x_i: Tensor, x_j: Tensor, edge_feat: OptTensor) -> Tensor:
+        r"""
+        message function
 
-        return self.pretrans(h)  # No more towers
+        Parameters:
+            x_i: node features
+            x_j: neighbour node features
+            edge_feat: edge features
+        Returns:
+            feat: the message
+        """
+        feat: Tensor = x_i  # Dummy.
+        if (edge_feat is not None) and (self.edge_encoder is not None):
+            edge_feat = self.edge_encoder(edge_feat)
+            feat = torch.cat([x_i, x_j, edge_feat], dim=-1)
+        else:
+            feat = torch.cat([x_i, x_j], dim=-1)
+
+        return self.pretrans(feat)  # No more towers
 
     def aggregate(
-        self, inputs: Tensor, index: Tensor, edge_index: Tensor, dim_size: Optional[int] = None
+        self,
+        inputs: Tensor,
+        index: Tensor,
+        edge_index: Tensor,
+        dim_size: Optional[int] = None,
     ) -> Tensor:
+        r"""
+        aggregate function
+
+        Parameters:
+            inputs: input features
+            index: index of the nodes
+            edge_index: edge index
+            dim_size: dimension size
+        Returns:
+            out: aggregated features
+        """
         outs = []
 
         for aggregator in self.aggregators:

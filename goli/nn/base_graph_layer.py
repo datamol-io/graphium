@@ -9,15 +9,7 @@ from torch_sparse import SparseTensor
 
 from goli.nn.base_layers import get_activation, DropPath
 from goli.utils.decorators import classproperty
-
-try:
-    import dgl
-except:
-    dgl = None
-try:
-    import torch_geometric as pyg
-except:
-    pyg = None
+import torch_geometric as pyg
 
 
 class BaseGraphStructure:
@@ -33,7 +25,7 @@ class BaseGraphStructure:
         droppath_rate: float = 0.0,
     ):
         r"""
-        Abstract class used to standardize the implementation of DGL layers
+        Abstract class used to standardize the implementation of Pyg layers
         in the current library. It will allow a network to seemlesly swap between
         different GNN layers by better understanding the expected inputs
         and outputs.
@@ -130,7 +122,7 @@ class BaseGraphStructure:
 
     def apply_norm_activation_dropout(
         self,
-        h: Tensor,
+        feat: Tensor,
         normalization: bool = True,
         activation: bool = True,
         dropout: bool = True,
@@ -144,7 +136,7 @@ class BaseGraphStructure:
 
         Parameters:
 
-            h:
+            feat:
                 Feature tensor, to be normalized
 
             batch_idx
@@ -163,24 +155,24 @@ class BaseGraphStructure:
 
         Returns:
 
-            h:
+            feat:
                 Normalized and dropped-out features
 
         """
 
         if normalization and (self.norm_layer is not None):
-            h = self.norm_layer(h)
+            feat = self.norm_layer(feat)
 
         if activation and (self.activation_layer is not None):
-            h = self.activation_layer(h)
+            feat = self.activation_layer(feat)
 
         if dropout and (self.dropout_layer is not None):
-            h = self.dropout_layer(h)
+            feat = self.dropout_layer(feat)
 
         if droppath and (self.droppath_layer is not None):
-            h = self.droppath_layer(h, batch_idx=batch_idx, batch_size=batch_size)
+            feat = self.droppath_layer(feat, batch_idx=batch_idx, batch_size=batch_size)
 
-        return h
+        return feat
 
     @classproperty
     def layer_supports_edges(cls) -> bool:
@@ -307,7 +299,7 @@ class BaseGraphModule(BaseGraphStructure, nn.Module):
         droppath_rate: float = 0.0,
     ):
         r"""
-        Abstract class used to standardize the implementation of DGL layers
+        Abstract class used to standardize the implementation of Pyg layers
         in the current library. It will allow a network to seemlesly swap between
         different GNN layers by better understanding the expected inputs
         and outputs.
@@ -400,97 +392,3 @@ def check_intpus_allow_int(obj, edge_index, size):
             "argument `edge_index`."
         )
     )
-
-
-def get_node_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
-) -> Tensor:
-    """
-    Get the node features of a graph `g`.
-
-    Parameters:
-        g: graph
-        key: key associated to the node features
-    """
-    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
-        return g.ndata.get(key, None)
-    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
-        return g.get(key, None)
-    elif isinstance(g, Mapping):
-        return g.get(key, None)
-    else:
-        raise TypeError(f"Unrecognized graph type {type(g)}")
-
-
-def set_node_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], node_feats: Tensor, key: str = "h"
-) -> Tensor:
-    """
-    Set the node features of a graph `g`.
-
-    Parameters:
-        g: graph
-        key: key associated to the node features
-    """
-    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
-        assert node_feats.shape[0] == g.num_nodes()
-        g.ndata[key] = node_feats
-    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
-        assert node_feats.shape[0] == g.num_nodes
-        g[key] = node_feats
-    elif isinstance(g, Mapping):
-        g[key] = node_feats
-    else:
-        raise TypeError(
-            f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed"
-        )
-
-    return g
-
-
-def get_edge_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], key: str = "h"
-) -> Tensor:
-    """
-    Get the node features of a graph `g`.
-
-    Parameters:
-        g: graph
-        key: key associated to the node features
-    """
-    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
-        return g.edata.get(key, None)
-    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
-        return g.get(key, None)
-    elif isinstance(g, Mapping):
-        return g.get(key, None)
-    else:
-        raise TypeError(f"Unrecognized graph type {type(g)}")
-
-
-def set_edge_feats(
-    g: Union["dgl.DGLGraph", "pyg.data.Data", "pyg.data.Batch", Mapping], edge_feats: Tensor, key: str = "h"
-) -> Tensor:
-    """
-    Set the node features of a graph `g`.
-
-    Parameters:
-        g: graph
-        key: key associated to the node features
-    """
-    if (dgl is not None) and isinstance(g, dgl.DGLGraph):
-        if edge_feats is not None:
-            assert edge_feats.shape[0] == g.num_edges()
-            g.edata[key] = edge_feats
-    elif (pyg is not None) and isinstance(g, (pyg.data.Data, pyg.data.Batch)):
-        if edge_feats is not None:
-            assert edge_feats.shape[0] == g.num_edges
-            g[key] = edge_feats
-    elif isinstance(g, Mapping):
-        g[key] = edge_feats
-    else:
-        raise TypeError(
-            f"Unrecognized graph type {type(g)}. Make sure that pyg or dgl are installed if needed"
-        )
-
-    return g

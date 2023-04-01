@@ -11,29 +11,23 @@ def get_all_positional_encoding(
     adj: Union[np.ndarray, spmatrix],
     num_nodes: int,
     pos_encoding_as_features: Optional[Dict] = None,
-    pos_encoding_as_directions: Optional[Dict] = None,
 ) -> Tuple["OrderedDict[str, np.ndarray]", "OrderedDict[str, np.ndarray]"]:
     r"""
-    Get features positional encoding and direction positional encoding.
+    Get features positional encoding.
 
     Parameters:
         adj: Adjacency matrix of the graph
+        num_nodes: Number of nodes in the graph
         pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
-        pos_encoding_as_directions: keyword arguments for function `graph_positional_encoder`
-            to generate positional encoding for directional features,
-            for exemple, with the DGN model (Directional Graph Networks)
 
     Returns:
         pe_dict: Dictionary of positional and structural encodings
-        pe_dir_dict: Dictionary of positional and structural encodings to be used for directional
-            features, for exemple, with the DGN model (Directional Graph Networks)
     """
 
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
-    pos_encoding_as_directions = {} if pos_encoding_as_directions is None else pos_encoding_as_directions
 
-    pe_dict, pe_dir_dict = OrderedDict(), OrderedDict()
+    pe_dict = OrderedDict()
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
@@ -43,18 +37,12 @@ def get_all_positional_encoding(
             this_pe = {f"{pos}/{key}": val for key, val in this_pe.items()}
             pe_dict.update(this_pe)
 
-    # Get the positional encoding for the directions (useful for directional GNNs and asymetric pooling)
-    if len(pos_encoding_as_directions) > 0:
-        for pos in pos_encoding_as_directions["pos_types"]:
-            pos_args = pos_encoding_as_directions["pos_types"][pos]
-            this_pe = graph_positional_encoder(adj, num_nodes, pos_args)
-            this_pe = {f"{pos}/{key}": val for key, val in this_pe.items()}
-            pe_dir_dict.update(this_pe)
-
-    return pe_dict, pe_dir_dict
+    return pe_dict
 
 
-def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict) -> np.ndarray:
+def graph_positional_encoder(
+    adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict
+) -> Dict[str, np.ndarray]:
     r"""
     Get a positional encoding that depends on the parameters.
 
@@ -69,6 +57,8 @@ def graph_positional_encoder(adj: Union[np.ndarray, spmatrix], num_nodes: int, p
             - rwse
             - gaussian_kernel
 
+    Returns:
+        pe_dict: Dictionary of positional and structural encodings
 
     """
     pos_type = pos_arg["pos_type"]

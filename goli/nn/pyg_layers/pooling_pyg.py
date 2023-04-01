@@ -14,7 +14,7 @@ from goli.nn.base_layers import MuReadoutGoli
 EPS = 1e-6
 
 
-def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None):
+def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optional[int] = None) -> Tensor:
     r"""
     Apply pooling over the nodes in the graph using a mean aggregation,
     but scaled by the log of the number of nodes. This gives the same
@@ -30,8 +30,8 @@ def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Op
             B-1\}}^N`, which assigns each node to a specific example.
         size (int, optional): Batch-size :math:`B`.
             Automatically calculated if not given. (default: :obj:`None`)
-
-    :rtype: :class:`Tensor`
+    Returns:
+        the pooled features tensor
     """
     dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
     mean_pool = scatter(x, batch, dim=dim, dim_size=dim_size, reduce="mean")
@@ -62,7 +62,8 @@ def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optio
         size (int, optional): Batch-size :math:`B`.
             Automatically calculated if not given. (default: :obj:`None`)
 
-    :rtype: :class:`Tensor`
+    Returns:
+        the pooled features tensor
     """
     dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
     mean = scatter(x, batch, dim=dim, out=None, dim_size=dim_size, reduce="mean")
@@ -76,7 +77,15 @@ class PoolingWrapperPyg(ModuleWrap):
         super().__init__(func, *args, **kwargs)
         self.feat_type = feat_type
 
-    def forward(self, g, feature, *args, **kwargs):
+    def forward(self, g: Batch, feature: Tensor, *args, **kwargs):
+        """
+        forward function
+        Parameters:
+            g: the pyg batch graph
+            feature: the node features
+        Returns:
+            the pooled features
+        """
         dim_size = g.num_graphs
         if self.feat_type is "node":
             index = g.batch
@@ -225,6 +234,14 @@ class VirtualNodePyg(nn.Module):
 
         # Use edge features in pooling
         self.use_edges = use_edges
+        has_edges = (
+            (in_dim_edges is not None)
+            and (out_dim_edges is not None)
+            and (in_dim_edges > 0)
+            and (out_dim_edges > 0)
+        )
+        if self.use_edges and not has_edges:
+            raise ValueError("The edge features are not defined but `use_edges` is True")
         self.vn_type = vn_type.lower()
         self.layer, out_pool_dim = parse_pooling_layer_pyg(
             in_dim=self.in_dim_nodes, pooling=self.vn_type, feat_type="node"
@@ -249,10 +266,12 @@ class VirtualNodePyg(nn.Module):
 
         # Projection layers from the pooling layer to node and edge feature sizes
         self.node_projection = MuReadoutGoli(out_pool_dim, self.out_dim_nodes)
-        self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
+        self.edge_projection = None
+        if self.use_edges:
+            self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
 
     def forward(
-        self, g: Union[Data, Batch], h: Tensor, vn_h: LongTensor, e: Tensor
+        self, g: Union[Data, Batch], feat: Tensor, vn_feat: LongTensor, edge_feat: Tensor
     ) -> Tuple[Tensor, Tensor, Tensor]:
         r"""
         Apply the virtual node layer.
@@ -262,30 +281,30 @@ class VirtualNodePyg(nn.Module):
             g:
                 PyG Graphs or Batched graphs.
 
-            h (torch.Tensor[..., N, Din]):
+            feat (torch.Tensor[..., N, Din]):
                 Node feature tensor, before convolution.
                 `N` is the number of nodes, `Din` is the input features
 
-            vn_h (torch.Tensor[..., M, Din]):
+            vn_feat (torch.Tensor[..., M, Din]):
                 Graph feature of the previous virtual node, or `None`
                 `M` is the number of graphs, `Din` is the input features.
                 It is added to the result after the MLP, as a residual connection
 
-            e (torch.Tensor[..., E, Din]):
+            edge_feat (torch.Tensor[..., E, Din]):
                 Edge feature tensor, before convolution.
                 `E` is the number of edges, `Din` is the input features
 
         Returns:
 
-            `h = torch.Tensor[..., N, Dout]`:
+            `feat = torch.Tensor[..., N, Dout]`:
                 Node feature tensor, after convolution and residual.
                 `N` is the number of nodes, `Dout` is the output features of the layer and residual
 
-            `vn_h = torch.Tensor[..., M, Dout]`:
+            `vn_feat = torch.Tensor[..., M, Dout]`:
                 Graph feature tensor to be used at the next virtual node, or `None`
                 `M` is the number of graphs, `Dout` is the output features
 
-            `e = torch.Tensor[..., N, Dout]`:
+            `edge_feat = torch.Tensor[..., N, Dout]`:
                 Edge feature tensor, after convolution and residual - if edges are used, otherwise returned unchanged.
                 `N` is the number of edges, `Dout` is the output features of the layer and residual
 
@@ -293,23 +312,23 @@ class VirtualNodePyg(nn.Module):
 
         # Pool the features
         if self.vn_type is None:
-            return h, vn_h, e
-        pool = self.layer(g, h)
+            return feat, vn_feat, edge_feat
+        pool = self.layer(g, feat)
         if self.use_edges:
-            edge_pool = self.edge_layer(g, e)
+            edge_pool = self.edge_layer(g, edge_feat)
             pool = torch.cat((pool, edge_pool), -1)
 
-        vn_h_temp = self.fc_layer.forward(vn_h + pool)
+        vn_h_temp = self.fc_layer.forward(vn_feat + pool)
 
         if self.residual:
-            vn_h = vn_h + vn_h_temp
+            vn_feat = vn_feat + vn_h_temp
         else:
-            vn_h = vn_h_temp
+            vn_feat = vn_h_temp
 
         # Add the virtual node projections to the node features
-        h = h + self.node_projection(vn_h[g.batch])
+        feat = feat + self.node_projection(vn_feat[g.batch])
 
         if self.use_edges:
             # Add the virtual node projections to the edge features
-            e = e + self.edge_projection(vn_h[g.batch[g.edge_index][0]])
-        return h, vn_h, e
+            edge_feat = edge_feat + self.edge_projection(vn_feat[g.batch[g.edge_index][0]])
+        return feat, vn_feat, edge_feat

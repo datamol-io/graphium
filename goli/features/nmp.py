@@ -1,3 +1,4 @@
+from typing import Tuple, Optional, Dict, Union
 import importlib.resources
 from copy import deepcopy
 import pandas as pd
@@ -12,7 +13,14 @@ PERIODIC_TABLE = PERIODIC_TABLE.set_index("AtomicNumber")
 
 
 # Small function to convert strings to floats
-def float_or_none(string):
+def float_or_none(string: str) -> Union[float, None]:
+    """
+    check if a string can be converted to float, return none if it can't
+    Parameters:
+        string: str
+    Returns:
+        val: float or None
+    """
     try:
         val = float(string)
     except:

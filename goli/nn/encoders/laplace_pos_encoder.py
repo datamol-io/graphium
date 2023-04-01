@@ -8,15 +8,6 @@ from goli.nn.encoders.base_encoder import BaseEncoder
 
 
 class LapPENodeEncoder(BaseEncoder):
-    """Laplace Positional Embedding node encoder.
-
-    LapPE of size dim_pe will get appended to each node feature vector.
-
-    Args:
-        dim_emb: Size of final node embedding
-        expand_x: Expand node features `x` from dim_in to (dim_emb - dim_pe)
-    """
-
     def __init__(
         self,
         input_keys: List[str],
@@ -33,6 +24,23 @@ class LapPENodeEncoder(BaseEncoder):
         use_input_keys_prefix: bool = True,
         **model_kwargs,
     ):
+        r"""
+        Laplace Positional Embedding node encoder.
+        LapPE of size dim_pe will get appended to each node feature vector.
+
+        Parameters:
+            input_keys: List of input keys to use from the data object.
+            output_keys: List of output keys to add to the data object.
+            in_dim : Size of Laplace PE embedding. Only used by the MLP model
+            hidden_dim: Size of hidden layer
+            out_dim: Size of final node embedding
+            num_layers: Number of layers in the MLP
+            activation: Activation function to use.
+            model_type: 'Transformer' or 'DeepSet' or 'MLP'
+            num_layers_post: Number of layers to apply after pooling
+            dropout: Dropout rate
+            first_normalization: Normalization to apply to the first layer.
+        """
         super().__init__(
             input_keys=input_keys,
             output_keys=output_keys,
@@ -108,7 +116,17 @@ class LapPENodeEncoder(BaseEncoder):
                 last_activation="none",
             )
 
-    def parse_input_keys(self, input_keys):
+    def parse_input_keys(
+        self,
+        input_keys: List[str],
+    ) -> List[str]:
+        r"""
+        Parse the input keys and make sure they are supported for this encoder
+        Parameters:
+            input_keys: List of input keys to use from the data object.
+        Returns:
+            List of parsed input keys
+        """
         if len(input_keys) != 2:
             raise ValueError(f"`{self.__class__}` only supports 2 keys")
         for key in input_keys:
@@ -120,7 +138,17 @@ class LapPENodeEncoder(BaseEncoder):
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
 
-    def parse_output_keys(self, output_keys):
+    def parse_output_keys(
+        self,
+        output_keys: List[str],
+    ) -> List[str]:
+        r"""
+        parse the output keys
+        Parameters:
+            output_keys: List of output keys to add to the data object.
+        Returns:
+            List of parsed output keys
+        """
         for key in output_keys:
             assert not key.startswith(
                 "edge_"
@@ -130,7 +158,19 @@ class LapPENodeEncoder(BaseEncoder):
             ), f"Graph encodings are not supported for encoder {self.__class__}"
         return output_keys
 
-    def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, torch.Tensor]:
+    def forward(
+        self,
+        batch: Batch,
+        key_prefix: Optional[str] = None,
+    ) -> Dict[str, torch.Tensor]:
+        r"""
+        Forward pass of the encoder.
+        Parameters:
+            batch: pyg Batches of graphs
+            key_prefix: Prefix to use for the input and output keys.
+        Returns:
+            output dictionary with keys as specified in `output_keys` and their output embeddings.
+        """
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
         eigvals, eigvecs = batch[input_keys[0]], batch[input_keys[1]]
 
@@ -178,8 +218,12 @@ class LapPENodeEncoder(BaseEncoder):
 
         return output
 
-    def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
-        """
+    def make_mup_base_kwargs(
+        self,
+        divide_factor: float = 2.0,
+        factor_in_dim: bool = False,
+    ) -> Dict[str, Any]:
+        r"""
         Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
         The base model is usually identical to the regular model, but with the
         layers width divided by a given factor (2 by default)
@@ -187,6 +231,8 @@ class LapPENodeEncoder(BaseEncoder):
         Parameter:
             divide_factor: Factor by which to divide the width.
             factor_in_dim: Whether to factor the input dimension
+        Returns:
+            Dictionary of kwargs to be used to create the base model.
         """
         base_kwargs = super().make_mup_base_kwargs(divide_factor, factor_in_dim)
         base_kwargs.update(

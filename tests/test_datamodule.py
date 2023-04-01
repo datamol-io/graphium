@@ -2,16 +2,16 @@ import unittest as ut
 import numpy as np
 import torch
 import pandas as pd
+import datamol as dm
 
 import goli
-from goli.utils.fs import mkdir, rm, exists, get_size
-
+from goli.utils.fs import rm, exists, get_size
+from goli.data import GraphOGBDataModule, MultitaskFromSmilesDataModule
 
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
 
 class Test_DataModule(ut.TestCase):
-    # TODO: Add this test once the OGB Datamodule is fixed
     def test_ogb_datamodule(self):
         # other datasets are too large to be tested
         dataset_names = ["ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv"]
@@ -37,22 +37,26 @@ class Test_DataModule(ut.TestCase):
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 16
+        dm_args["featurization_n_jobs"] = 2
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
+        dm_args["featurization_batch_size"] = 50
 
-        ds = goli.data.GraphOGBDataModule(task_specific_args, **dm_args)
+        ds = GraphOGBDataModule(task_specific_args, **dm_args)
 
         ds.prepare_data()
-        ds.setup()
+
+        # Check the keys in the dataset
+        ds.setup(save_smiles_and_ids=False)
+        assert set(ds.train_ds[0].keys()) == {"features", "labels"}
+
+        ds.setup(save_smiles_and_ids=True)
+        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
 
         # test module
         assert ds.num_edge_feats == 5
         assert ds.num_node_feats == 50
         assert len(ds) == 642
-
-        # test dataset
-        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
 
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
@@ -174,9 +178,10 @@ class Test_DataModule(ut.TestCase):
         dm_args["batch_size_inference"] = 16
         dm_args["num_workers"] = 0
         dm_args["pin_memory"] = True
-        dm_args["featurization_n_jobs"] = 16
+        dm_args["featurization_n_jobs"] = 2
         dm_args["featurization_progress"] = True
         dm_args["featurization_backend"] = "loky"
+        dm_args["featurization_batch_size"] = 50
 
         # Delete the cache if already exist
         if exists(TEMP_CACHE_DATA_PATH):
@@ -184,10 +189,16 @@ class Test_DataModule(ut.TestCase):
 
         # Prepare the data. It should create the cache there
         assert not exists(TEMP_CACHE_DATA_PATH)
-        ds = goli.data.GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
+        ds = GraphOGBDataModule(task_specific_args, cache_data_path=TEMP_CACHE_DATA_PATH, **dm_args)
         assert not ds.load_data_from_cache(verbose=False)
         ds.prepare_data()
-        ds.setup()
+
+        # Check the keys in the dataset
+        ds.setup(save_smiles_and_ids=False)
+        assert set(ds.train_ds[0].keys()) == {"features", "labels"}
+
+        ds.setup(save_smiles_and_ids=True)
+        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
 
         # Make sure that the cache is created
         full_cache_path = ds.get_data_cache_fullname(compress=False)
@@ -202,14 +213,104 @@ class Test_DataModule(ut.TestCase):
         assert ds.num_node_feats == 50
         assert len(ds) == 642
 
-        # test dataset
-        assert set(ds.train_ds[0].keys()) == {"smiles", "mol_ids", "features", "labels"}
-
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
         assert len(batch["smiles"]) == 16
         assert len(batch["labels"]["task_1"]) == 16
         assert len(batch["mol_ids"]) == 16
+
+    def test_datamodule_with_none_molecules(self):
+        # Setup the featurization
+        featurization_args = {}
+        featurization_args["atom_property_list_float"] = []  # ["weight", "valence"]
+        featurization_args["atom_property_list_onehot"] = ["atomic-number", "degree"]
+        featurization_args["edge_property_list"] = ["bond-type-onehot"]
+
+        # Config for datamodule
+        bad_csv = "tests/data/micro_ZINC_corrupt.csv"
+        task_specific_args = {}
+        task_kwargs = {"df_path": bad_csv, "split_val": 0.0, "split_test": 0.0}
+        task_specific_args["task_1"] = {"label_cols": "SA", "smiles_col": "SMILES1", **task_kwargs}
+        task_specific_args["task_2"] = {"label_cols": "logp", "smiles_col": "SMILES2", **task_kwargs}
+        task_specific_args["task_3"] = {"label_cols": "score", "smiles_col": "SMILES3", **task_kwargs}
+
+        # Read the corrupted dataset and get stats
+        df = pd.read_csv(bad_csv)
+        bad_smiles = (df["SMILES1"] == "XXX") & (df["SMILES2"] == "XXX") & (df["SMILES3"] == "XXX")
+        num_bad_smiles = sum(bad_smiles)
+
+        # Test the datamodule
+        datamodule = MultitaskFromSmilesDataModule(
+            task_specific_args=task_specific_args,
+            featurization_args=featurization_args,
+            featurization_n_jobs=0,
+            featurization_batch_size=1,
+        )
+        datamodule.prepare_data()
+        datamodule.setup(save_smiles_and_ids=True)
+
+        # Check that the number of molecules is correct
+        smiles = df["SMILES1"].tolist() + df["SMILES2"].tolist() + df["SMILES3"].tolist()
+        num_unique_smiles = len(set(smiles)) - 1  # -1 because of the XXX
+        # self.assertEqual(len(datamodule.train_ds), num_unique_smiles - num_bad_smiles)
+
+        # Change the index of the dataframe
+        index_smiles = []
+        for ii in range(len(df)):
+            if df["SMILES1"][ii] != "XXX":
+                smiles = df["SMILES1"][ii]
+            elif df["SMILES2"][ii] != "XXX":
+                smiles = df["SMILES2"][ii]
+            elif df["SMILES3"][ii] != "XXX":
+                smiles = df["SMILES3"][ii]
+            else:
+                smiles = "XXX"
+            index_smiles.append(smiles)
+        df["idx_smiles"] = index_smiles
+        df = df.set_index("idx_smiles")
+
+        # Convert the smilies from the train_ds to a list, and check the content
+        train_smiles = [d["smiles"] for d in datamodule.train_ds]
+
+        # Check that the set of smiles are the same
+        train_smiles_flat = list(set([item for sublist in train_smiles for item in sublist]))
+        train_smiles_flat.sort()
+        index_smiles_filt = list(set([smiles for smiles in index_smiles if smiles != "XXX"]))
+        index_smiles_filt.sort()
+        self.assertListEqual(train_smiles_flat, index_smiles_filt)
+
+        # Check that the smiles are correct for each datapoint in the dataset
+        for smiles in train_smiles:
+            self.assertEqual(len(set(smiles)), 1)  # Check that all smiles are the same
+            this_smiles = smiles[0]
+            true_smiles = df.loc[this_smiles][["SMILES1", "SMILES2", "SMILES3"]]
+            num_true_smiles = sum(true_smiles != "XXX")
+            self.assertEqual(len(smiles), num_true_smiles)  # Check that the number of smiles is correct
+            self.assertEqual(
+                this_smiles, true_smiles[true_smiles != "XXX"].values[0]
+            )  # Check that the smiles are correct
+
+        # Convert the labels from the train_ds to a dataframe
+        train_labels = [{task: val[0] for task, val in d["labels"].items()} for d in datamodule.train_ds]
+        train_labels_df = pd.DataFrame(train_labels)
+        train_labels_df = train_labels_df.rename(
+            columns={"task_1": "SA", "task_2": "logp", "task_3": "score"}
+        )
+        train_labels_df["smiles"] = [s[0] for s in datamodule.train_ds.smiles]
+        train_labels_df = train_labels_df.set_index("smiles")
+        train_labels_df = train_labels_df.sort_index()
+
+        # Check that the labels are correct
+        df2 = df.reset_index()[~bad_smiles].set_index("idx_smiles").sort_index()
+        labels = train_labels_df[["SA", "logp", "score"]].values
+        nans = np.isnan(labels)
+        true_nans = df2[["SMILES1", "SMILES2", "SMILES3"]].values == "XXX"
+        true_labels = df2[["SA", "logp", "score"]].values
+        true_labels[true_nans] = np.nan
+        np.testing.assert_array_equal(nans, true_nans)  # Check that the nans are correct
+        np.testing.assert_array_almost_equal(
+            labels, true_labels, decimal=5
+        )  # Check that the label values are correct
 
 
 if __name__ == "__main__":

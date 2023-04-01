@@ -4,8 +4,7 @@
 pyg-nightly
 torch-scatter==2.1.0
 torch-sparse==0.6.15
-dgl
-torchvision==0.14.0+cpu
+torchvision==0.14.1+cpu
 git+https://github.com/joao-alex-cunha/lightning
 
 -r ./requirements.txt

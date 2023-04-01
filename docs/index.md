@@ -22,9 +22,6 @@ Visit https://valence-discovery.github.io/goli/.
 Use either [`mamba`](https://github.com/mamba-org/mamba) or [`conda`](https://docs.conda.io/en/latest/):
 
 ```bash
-# Install DGL from https://github.com/dmlc/dgl/#installation
-mamba install -c dglteam dgl
-
 # Install Goli
 mamba install -c conda-forge goli
 ```

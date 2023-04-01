@@ -4,7 +4,11 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
+<<<<<<< HEAD:expts/configs/config_gpu_qm9.yaml
     type: gpu  #cpu or ipu or gpu
+=======
+    type: cpu  #cpu or ipu or gpu
+>>>>>>> minor update, all tested fine:expts/configs/config_qm9_gpspp.yaml
 
 
 datamodule:

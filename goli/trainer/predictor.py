@@ -8,13 +8,11 @@ import torch
 from torch import nn, Tensor
 import pytorch_lightning as pl
 from torch_geometric.data import Data, Batch
-from dgl import DGLHeteroGraph
 from mup.optim import MuAdam
 
 from goli.config.config_convert import recursive_config_reformating
 from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
 from goli.trainer.predictor_summaries import TaskSummaries
-from goli.nn.base_graph_layer import get_node_feats, set_node_feats
 from goli.data.datamodule import BaseDataModule
 from goli.utils.moving_average_tracker import MovingAverageTracker
 
@@ -170,13 +168,6 @@ class PredictorModule(pl.LightningModule):
         # Convert features to dtype
         if isinstance(feats, torch.Tensor):
             feats = feats.to(self.dtype)
-        elif isinstance(feats, DGLHeteroGraph):
-            for key, val in feats.ndata.items():
-                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
-                    feats.ndata[key] = val.to(dtype=self.dtype)
-            for key, val in feats.edata.items():
-                if isinstance(val, torch.Tensor) and (val.is_floating_point()):
-                    feats.edata[key] = val.to(dtype=self.dtype)
         elif isinstance(feats, (Data, Batch, dict)):
             for key, val in feats.items():
                 if isinstance(val, torch.Tensor) and (val.is_floating_point()):
@@ -332,15 +323,15 @@ class PredictorModule(pl.LightningModule):
         alpha, n_steps = self.flag_kwargs["alpha"], self.flag_kwargs["n_steps"]
 
         X = self._convert_features_dtype(batch["features"])
-        X_shape = get_node_feats(X, "feat").shape
+        X_shape = X["feat"].shape
 
-        pert = torch.FloatTensor(X_shape).uniform_(-alpha, alpha).to(device=get_node_feats(X, "feat").device)
+        pert = torch.FloatTensor(X_shape).uniform_(-alpha, alpha).to(device=X["feat"].device)
         pert.requires_grad = True
 
         # Perturb the features
         pert_batch = deepcopy(batch)
         features = pert_batch["features"]
-        features = set_node_feats(features, get_node_feats(features, "feat") + pert, "feat")
+        features["feat"] = features["feat"] + pert
 
         preds = self.forward(pert_batch)["preds"]
         targets = batch.pop("labels")
@@ -365,7 +356,7 @@ class PredictorModule(pl.LightningModule):
             pert_data = pert.detach() + alpha * torch.sign(pert.grad.detach())
             pert.data = pert_data.data
             pert.grad[:] = 0
-            features = set_node_feats(features, get_node_feats(features, "feat") + pert, "feat")
+            features["feat"] = features["feat"] + pert
             pert_batch["features"] = features
             preds = self.forward(pert_batch)["preds"]
             loss, _ = self.compute_loss(
