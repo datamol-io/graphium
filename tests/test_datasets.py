@@ -1,7 +1,8 @@
 import unittest as ut
 
 import goli
-from goli.data import load_micro_zinc, SingleTaskDataset, MultitaskDataset
+from goli.data import load_micro_zinc
+from goli.data.dataset import SingleTaskDataset, MultitaskDataset
 from goli.data.datamodule import smiles_to_unique_mol_ids
 from goli.data.utils import load_tiny_zinc
 

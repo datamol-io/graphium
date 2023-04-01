@@ -28,8 +28,7 @@ from goli.nn.utils import MupMixin
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
-from goli.data.datamodule import MultitaskFromSmilesDataModule
-from goli.data.datamodule import BaseDataModule
+from goli.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
 
 # Weights and Biases
 from pytorch_lightning import Trainer
