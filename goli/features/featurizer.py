@@ -820,16 +820,26 @@ class GraphDict(dict):
         num_nodes = self.adj.shape[0]
 
         # Get the node and edge data
-        data_dict = {key: val for key, val in self.items()}
-        data_dict.pop("adj")
-        data_dict.pop("dtype")
-        data_dict.pop("mask_nan")
+        data_dict = {}
 
-        # Convert the data to torch
-        for key, val in data_dict.items():
-            if isinstance(val, np.ndarray):
+        # Convert the data and sparse data to torch
+        for key, val in self.items():
+            if key in ["adj", "dtype", "mask_nan"]:  # Skip the parameters
+                continue
+            elif isinstance(val, np.ndarray):
+                # Convert the data to the specified dtype in torch format
                 val = val.astype(self.dtype)
                 data_dict[key] = torch.as_tensor(val)
+            elif issparse(val):
+                data_dict[key] = val
+                # TODO: Convert sparse data to torch once the bug is fixed in PyG
+                # See https://github.com/pyg-team/pytorch_geometric/pull/7037
+                # indices = torch.from_numpy(np.vstack((val.row, val.col)).astype(np.int64))
+                # data_dict[key] = torch.sparse_coo_tensor(indices=indices, values=val.data, size=val.shape)
+            elif isinstance(val, torch.Tensor):
+                data_dict[key] = val
+            else:
+                pass  # Skip the other parameters
 
         # Create the PyG graph object `Data`
         data = Data(edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes, **data_dict)
