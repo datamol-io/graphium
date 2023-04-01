@@ -5,6 +5,8 @@ from .collate import goli_collate_fn
 
 from .datamodule import GraphOGBDataModule
 from .datamodule import MultitaskFromSmilesDataModule
+from .datamodule import FakeDataModule
 
-from .datamodule import SingleTaskDataset
-from .datamodule import MultitaskDataset
+from .dataset import SingleTaskDataset
+from .dataset import MultitaskDataset
+from .dataset import FakeDataset
