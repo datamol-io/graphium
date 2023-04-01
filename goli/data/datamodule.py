@@ -33,9 +33,9 @@ from goli.features import (
 from goli.data.utils import goli_package_path
 from goli.utils.arg_checker import check_arg_iterator
 from goli.utils.hashing import get_md5_hash
-from goli.data.dataset import SingleTaskDataset, FakeDataset, MultiTaskDataset
 from goli.data.data_utils import did_featurization_fail, BatchingSmilesTransform, smiles_to_unique_mol_ids
 from goli.data.collate import goli_collate_fn
+import goli.data.dataset as Datasets
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -62,6 +62,7 @@ PCQM4Mv2_meta.update(
         "version": 2,
     }
 )
+
 
 class BaseDataModule(pl.LightningDataModule):
     def __init__(
@@ -812,7 +813,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["extras"] = extras
 
             # We have the necessary components to create single-task datasets.
-            self.single_task_datasets[task] = SingleTaskDataset(
+            self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
@@ -870,8 +871,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
-            self.val_ds = MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            self.train_ds = Datasets.MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            self.val_ds = Datasets.MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
             logger.info(self.train_ds)
             logger.info(self.val_ds)
 
@@ -881,7 +882,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            self.test_ds = Datasets.MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
             logger.info(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
@@ -1508,7 +1509,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
     def get_subsets_of_datasets(
         self,
-        single_task_datasets: Dict[str, SingleTaskDataset],
+        single_task_datasets: Dict[str, Datasets.SingleTaskDataset],
         task_train_indices: Dict[str, Iterable],
         task_val_indices: Dict[str, Iterable],
         task_test_indices: Dict[str, Iterable],
@@ -1953,7 +1954,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
         for task, args in task_dataset_args.items():
-            self.single_task_datasets[task] = SingleTaskDataset(
+            self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
@@ -1980,8 +1981,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = MultiTaskDataset(self.train_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
-            self.val_ds = MultiTaskDataset(self.val_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
+            self.train_ds = Datasets.FakeDataset(self.train_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
+            self.val_ds = Datasets.FakeDataset(self.val_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
             print(self.train_ds)
             print(self.val_ds)
 
@@ -1991,7 +1992,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = MultiTaskDataset(self.test_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
+            self.test_ds = Datasets.FakeDataset(self.test_singletask_datasets, num_mols=self.num_mols_to_generate, indexing_same_elem=self.indexing_single_elem)  # type: ignore
             print(self.test_ds)
             labels_size.update(self.test_ds.labels_size)
 
