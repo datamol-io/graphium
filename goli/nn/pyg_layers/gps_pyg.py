@@ -5,7 +5,7 @@ from torch.nn import Module
 from torch import Tensor
 from torch_geometric.data import Batch
 from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP, get_activation_str
+from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
 from goli.nn.pyg_layers import (
     GatedGCNPyg,
     GINConvPyg,
@@ -14,7 +14,12 @@ from goli.nn.pyg_layers import (
     MPNNPlusPyg,
 )
 from goli.utils.decorators import classproperty
-from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
+from goli.ipu.to_dense_batch import (
+    to_dense_batch,
+    to_sparse_batch,
+    to_packed_dense_batch,
+    to_sparse_batch_from_packed,
+)
 from goli.ipu.ipu_utils import is_running_on_ipu
 
 PYG_LAYERS_DICT = {
@@ -277,6 +282,62 @@ class GPSLayerPyg(BaseGraphModule):
             attn_layer = attn_class(biased_attention_key, **attn_kwargs)
         return attn_layer
 
+    def _use_packing(self, batch: Batch) -> bool:
+        """
+        Check if we should use packing for the batch of graphs.
+        """
+        return "pack_from_node_idx" in batch.keys and "pack_attn_mask" in batch.keys
+
+    def _to_dense_batch(
+        self,
+        h: Tensor,
+        batch: Batch,
+        batch_size: Optional[int] = None,
+        max_num_nodes_per_graph: Optional[int] = None,
+        on_ipu: bool = False,
+    ) -> Tensor:
+        """
+        Convert the batch of graphs to a dense batch.
+        """
+
+        if self._use_packing(batch):
+            attn_mask = batch.pack_attn_mask
+            key_padding_mask = None
+            idx = batch.pack_from_node_idx
+            h_dense = to_packed_dense_batch(
+                h,
+                pack_from_node_idx=idx,
+                pack_attn_mask=attn_mask,
+                max_num_nodes_per_pack=100,  # TODO: This should be a parameter
+            )
+        else:
+            attn_mask = None
+            h_dense, key_padding_mask, idx = to_dense_batch(
+                h,
+                batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
+                batch_size=batch_size,
+                max_num_nodes_per_graph=max_num_nodes_per_graph,
+                drop_nodes_last_graph=on_ipu,
+            )
+            key_padding_mask = ~key_padding_mask
+        return h_dense, attn_mask, key_padding_mask, idx
+
+    def _to_sparse_batch(self, batch: Batch, h_dense: Tensor, idx: Tensor) -> Tensor:
+        """
+        Convert the dense batch back to a sparse batch.
+        """
+        if self._use_packing(batch):
+            h = to_sparse_batch_from_packed(
+                h_dense,
+                pack_from_node_idx=idx,
+            )
+        else:
+            h = to_sparse_batch(
+                h_dense,
+                mask_idx=idx,
+            )
+        return h
+
     def _self_attention_block(self, feat: Tensor, feat_in: Tensor, batch: Batch) -> Tensor:
         """
         Applying the multi-head self-attention to the batch of graphs.
@@ -294,24 +355,26 @@ class GPSLayerPyg(BaseGraphModule):
         # Convert the tensor to a dense batch, then back to a sparse batch
         batch_size = None if feat.device.type != "ipu" else batch.graph_is_true.shape[0]
 
-        # feat[num_nodes, hidden_dim] -> feat_dense[num_graphs, max_num_nodes, hidden_dim]
-        h_dense, mask, idx = to_dense_batch(
+        # h[num_nodes, hidden_dim] -> h_dense[num_graphs, max_num_nodes, hidden_dim]
+        feat_dense, attn_mask, key_padding_mask, idx = self._to_dense_batch(
             feat,
-            batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
+            batch=batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
             max_num_nodes_per_graph=max_num_nodes_per_graph,
-            drop_nodes_last_graph=on_ipu,
+            on_ipu=on_ipu,
         )
 
         attn_bias = None
         if self.biased_attention_key is not None:
             attn_bias = batch[self.biased_attention_key]
 
-        # feat_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
-        feat_attn = self._sa_block(h_dense, attn_bias=attn_bias, attn_mask=None, key_padding_mask=~mask)
+        # h_dense[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_graphs, max_num_nodes, hidden_dim]
+        feat_attn = self._sa_block(
+            feat_dense, attn_bias=attn_bias, attn_mask=attn_mask, key_padding_mask=key_padding_mask
+        )
 
         # feat_attn[num_graphs, max_num_nodes, hidden_dim] -> feat_attn[num_nodes, hidden_dim]
-        feat_attn = to_sparse_batch(feat_attn, idx)
+        feat_attn = self._to_sparse_batch(batch, feat_attn, idx)
 
         # Dropout, residual, norm
         if self.dropout_attn is not None:

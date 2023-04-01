@@ -87,9 +87,9 @@ class PoolingWrapperPyg(ModuleWrap):
             the pooled features
         """
         dim_size = g.num_graphs
-        if self.feat_type is "node":
+        if self.feat_type == "node":
             index = g.batch
-        elif self.feat_type is "edge":
+        elif self.feat_type == "edge":
             index = g.batch[g.edge_index][0]
         else:
             index = g.batch
