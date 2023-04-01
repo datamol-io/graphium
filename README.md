@@ -87,3 +87,17 @@ Under the Apache-2.0 license. See [LICENSE](LICENSE).
 ## Authors
 
 See [AUTHORS.rst](./AUTHORS.rst).
+
+## Documentation
+
+* Diagram for data processing in molGPS.
+
+<img src="docs/images/datamodule.png" alt= "Data Processing Chart" width="60%" height="60%">
+
+
+
+* Diagram for Muti-task network in molGPS
+
+<img src="docs/images/full_graph_network.png" alt= "Full Graph Multi-task Network" width="80%" height="80%">
+
+

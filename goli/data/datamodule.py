@@ -783,6 +783,53 @@ class BaseDataModule(pl.LightningDataModule):
         return df
 
     @staticmethod
+    def _read_sdf(path: str, mol_col_name: str = "_rdkit_molecule_obj", **kwargs):
+        r"""
+        read a given sdf file into a pandas dataframe
+        uses datamol.read_sdf to read the sdf file
+        Parameters:
+            path: path to the sdf file
+            mol_col_name: name of the column containing the molecule object
+            kwargs: arguments to pass to datamol.read_sdf
+        Returns:
+            pandas dataframe containing the molecules and their conformer coordinates from the sdf file
+
+        Note: please change mol_col_name to be the column name corresoonding to the molecule object in your sdf file
+        """
+
+        # Set default arguments for reading the SDF
+        kwargs.setdefault("smiles_column", "smiles")
+        kwargs.setdefault("sanitize", False)
+        kwargs.setdefault("include_private", True)
+        kwargs.setdefault("include_computed", True)
+        kwargs.setdefault("remove_hs", True)
+        kwargs.setdefault("n_jobs", -1)
+        kwargs.setdefault("max_num_mols", kwargs.pop("sample_size", None))
+        kwargs.setdefault("discard_invalid", False)
+
+        # Get the interesting columns
+        mol_cols = mol_col_name  # adjust this to be the column name in your sdf file
+        kwargs.setdefault("mol_column", mol_cols)
+        usecols = kwargs.pop("usecols", None)
+        dtype = kwargs.pop("dtype", None)
+        smiles_col = kwargs["smiles_column"]
+
+        # Read the SDF
+        df = dm.read_sdf(path, as_df=True, **kwargs)
+
+        # Keep only the columns needed
+        if usecols is not None:
+            df = df[usecols + [mol_cols]]
+
+        # Convert the dtypes
+        if dtype is not None:
+            label_columns = list(set(usecols) - set([mol_cols, smiles_col]))
+            dtype_mapper = {col: dtype for col in label_columns}
+            df.astype(dtype=dtype_mapper, copy=False)
+
+        return df
+
+    @staticmethod
     def _read_table(self, path: str, **kwargs) -> pd.DataFrame:
         """
         a general read file function which determines if which function to use, either _read_csv or _read_parquet
