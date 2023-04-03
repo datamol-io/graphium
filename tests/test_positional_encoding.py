@@ -8,6 +8,7 @@ from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
 import torch
+from scipy.sparse import coo_matrix
 
 from goli.features.featurizer import GraphDict
 from goli.features.positional_encoding import graph_positional_encoder
@@ -157,7 +158,7 @@ class test_positional_encoder(ut.TestCase):
                         eigvals = pos_enc_no_flip
                         g = GraphDict(
                             {
-                                "adj": torch.as_tensor(adj).to_sparse_coo(),
+                                "adj": coo_matrix(adj),
                                 "ndata": {"eigvals": eigvals, "eigvecs": eigvecs},
                                 "edata": {},
                             }
