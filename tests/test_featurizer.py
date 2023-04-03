@@ -230,22 +230,22 @@ class test_featurizer(ut.TestCase):
             mol_No_Hs = Chem.RemoveHs(mol)  # type: ignore
 
             graph = mol_to_pyggraph(
-                        mol=mol,
-                        atom_property_list_onehot=[],
-                        atom_property_list_float=["atomic-number"],
-                        edge_property_list=["bond-type-float"],
-                        add_self_loop=False,
-                        explicit_H=False,
-                        use_bonds_weights=False,
-                        on_error="raise",
-                    )
+                mol=mol,
+                atom_property_list_onehot=[],
+                atom_property_list_float=["atomic-number"],
+                edge_property_list=["bond-type-float"],
+                add_self_loop=False,
+                explicit_H=False,
+                use_bonds_weights=False,
+                on_error="raise",
+            )
 
             # Check the number of nodes and edges
             self.assertListEqual(list(graph["feat"].shape), [mol.GetNumAtoms(), 1], msg=err_msg)
-            self.assertListEqual(list(graph["edge_feat"].shape), [2*mol.GetNumBonds(), 1], msg=err_msg)
+            self.assertListEqual(list(graph["edge_feat"].shape), [2 * mol.GetNumBonds(), 1], msg=err_msg)
 
             # Check the node features
-            feat = graph["feat"].to_dense().numpy() * 5 + 6 # Undo the scaling
+            feat = graph["feat"].to_dense().numpy() * 5 + 6  # Undo the scaling
             atom_nums = np.asarray([atom.GetAtomicNum() for atom in mol.GetAtoms()])
             np.testing.assert_array_almost_equal(feat[:, 0], atom_nums, decimal=5, err_msg=err_msg)
 

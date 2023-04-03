@@ -741,7 +741,9 @@ def mol_to_adj_and_features(
 
     num_nodes = mol.GetNumAtoms()
 
-    adj = mol_to_adjacency_matrix(mol, use_bonds_weights=use_bonds_weights, add_self_loop=add_self_loop, dtype=dtype)
+    adj = mol_to_adjacency_matrix(
+        mol, use_bonds_weights=use_bonds_weights, add_self_loop=add_self_loop, dtype=dtype
+    )
 
     # Get the node features
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
@@ -775,7 +777,12 @@ def mol_to_adj_and_features(
     return adj, ndata, edata, pe_dict, conf_dict
 
 
-def mol_to_adjacency_matrix(mol: dm.Mol, use_bonds_weights: bool=False, add_self_loop: bool=False, dtype: torch.dtype = torch.float32) -> torch.Tensor:
+def mol_to_adjacency_matrix(
+    mol: dm.Mol,
+    use_bonds_weights: bool = False,
+    add_self_loop: bool = False,
+    dtype: torch.dtype = torch.float32,
+) -> torch.Tensor:
     r"""
     Convert a molecule to a sparse adjacency matrix, as a torch Tensor.
     Instead of using the Rdkit `GetAdjacencyMatrix()` method, this method
@@ -822,13 +829,14 @@ def mol_to_adjacency_matrix(mol: dm.Mol, use_bonds_weights: bool=False, add_self
         values=torch.as_tensor(adj_val),
         size=(mol.GetNumAtoms(), mol.GetNumAtoms()),
         dtype=dtype,
-        )
+    )
 
     # Add self loops
     if add_self_loop:
         arange = torch.arange(adj.shape[0], dtype=torch.long)
         adj[arange, arange] = 1
     return adj
+
 
 class GraphDict(dict):
     def __init__(
@@ -932,7 +940,9 @@ class GraphDict(dict):
         if self.adj.is_sparse:
             return self.adj._indices().shape[1]
         else:
-            return torch.count_nonzero(self.adj.to_dense()) # No division by 2 because edges are counted twice
+            return torch.count_nonzero(
+                self.adj.to_dense()
+            )  # No division by 2 because edges are counted twice
 
 
 def mol_to_graph_dict(
