@@ -1264,7 +1264,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if graph is None:
             raise ValueError("No valid graph found in the first 20 rows of the dataset")
         elif isinstance(graph, str):
-            raise ValueError(f"No valid graph found in the first 20 rows of the dataset, with error:\n {graph}")
+            raise ValueError(
+                f"No valid graph found in the first 20 rows of the dataset, with error:\n {graph}"
+            )
         return graph
 
     ########################## Private methods ######################################

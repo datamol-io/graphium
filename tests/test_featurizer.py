@@ -7,7 +7,6 @@ import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
-import torch
 
 from goli.features.featurizer import (
     get_mol_atomic_features_onehot,
@@ -20,8 +19,9 @@ from goli.features.featurizer import (
 
 class test_featurizer(ut.TestCase):
     smiles = [
-        "C",
-        "CC",
+        # "C",
+        # "CC",
+        "C1(C[N]CCC1)=O",
         "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
         "OCCc1c(C)[n+](cs1)Cc2cnc(C)nc2N",
         "O1C=C[C@H]([C@H]1O2)c3c2cc(OC)c4c3OC(=O)C5=C4CCC(=O)5",

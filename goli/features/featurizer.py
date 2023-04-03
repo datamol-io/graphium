@@ -368,9 +368,7 @@ def get_mol_atomic_features_float(
                 elif prop in ["vdw-radius"]:
                     val = periodic_table.GetRvdw(atom.GetAtomicNum()) - offC * periodic_table.GetRvdw(C_num)
                 elif prop in ["covalent-radius"]:
-                    val = periodic_table.GetRcovalent(
-                        atomic_num
-                    ) - offC * periodic_table.GetRcovalent(C_num)
+                    val = periodic_table.GetRcovalent(atomic_num) - offC * periodic_table.GetRcovalent(C_num)
                 elif prop in ["electronegativity"]:
                     val = (
                         nmp.ELECTRONEGATIVITY[atom.GetAtomicNum() - 1]
@@ -378,13 +376,9 @@ def get_mol_atomic_features_float(
                     )
                 elif prop in ["ionization", "first-ionization"]:
                     prop_name = "ionization"
-                    val = (
-                        nmp.FIRST_IONIZATION[atomic_num - 1] - offC * nmp.FIRST_IONIZATION[C_num - 1]
-                    ) / 5
+                    val = (nmp.FIRST_IONIZATION[atomic_num - 1] - offC * nmp.FIRST_IONIZATION[C_num - 1]) / 5
                 elif prop in ["melting-point"]:
-                    val = (
-                        nmp.MELTING_POINT[atomic_num - 1] - offC * nmp.MELTING_POINT[C_num - 1]
-                    ) / 200
+                    val = (nmp.MELTING_POINT[atomic_num - 1] - offC * nmp.MELTING_POINT[C_num - 1]) / 200
                 elif prop in ["metal"]:
                     val = nmp.METAL[atomic_num - 1]
                 elif prop in "group":
@@ -813,18 +807,23 @@ def mol_to_adjacency_matrix(
             coo sparse adjacency matrix of the molecule
     """
 
-    # Get the indices for the adjacency matrix, and the bond values
-    adj = np.zeros((mol.GetNumAtoms(), mol.GetNumAtoms()), dtype=dtype)
+    # Get the indices for the adjacency matrix, and the bond value
+    adj_idx, adj_val = [], []
     for bond in mol.GetBonds():
+        adj_idx.append([bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()])
+        adj_idx.append([bond.GetEndAtomIdx(), bond.GetBeginAtomIdx()])
         if use_bonds_weights:
             val = nmp.BOND_TYPES[bond.GetBondType()]
         else:
             val = 1
-        adj[bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()] = val
-        adj[bond.GetEndAtomIdx(), bond.GetBeginAtomIdx()] = val
+        adj_val.extend([val, val])
 
-    # Convert to coo sparse matrix
-    adj = coo_matrix(adj)
+    # Convert to torch coo sparse tensor
+    adj = coo_matrix(
+        (torch.as_tensor(adj_val), torch.as_tensor(adj_idx).T.reshape(2, -1)),
+        shape=(mol.GetNumAtoms(), mol.GetNumAtoms()),
+        dtype=dtype,
+    )
 
     # Add self loops
     if add_self_loop:
@@ -934,7 +933,8 @@ class GraphDict(dict):
         if issparse(self.adj):
             return self.adj.nnz
         else:
-            return np.count_nonzero(self.adj) # No division by 2 because edges are counted twice
+            return np.count_nonzero(self.adj)  # No division by 2 because edges are counted twice
+
 
 def mol_to_graph_dict(
     mol: dm.Mol,

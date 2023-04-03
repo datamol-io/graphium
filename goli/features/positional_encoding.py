@@ -1,4 +1,5 @@
 from typing import Tuple, Optional, Dict, Union
+from copy import deepcopy
 import numpy as np
 import torch
 from scipy.sparse import spmatrix
@@ -29,13 +30,12 @@ def get_all_positional_encoding(
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
 
     pe_dict = OrderedDict()
-    adj = adj.astype(np.float32)
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:
         for pos in pos_encoding_as_features["pos_types"]:
             pos_args = pos_encoding_as_features["pos_types"][pos]
-            this_pe = graph_positional_encoder(adj, num_nodes, pos_args)
+            this_pe = graph_positional_encoder(deepcopy(adj), num_nodes, pos_args)
             this_pe = {f"{pos}/{key}": val for key, val in this_pe.items()}
             pe_dict.update(this_pe)
 

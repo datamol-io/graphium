@@ -7,6 +7,7 @@ from goli.features.featurizer import mol_to_pyggraph, mol_to_adj_and_features, m
 
 # Check out this profiling tool: https://kirillstrelkov.medium.com/python-profiling-with-vscode-3a17c0407833
 
+
 def main():
     df = load_micro_zinc()
     smiles = df["SMILES"].values.tolist()
