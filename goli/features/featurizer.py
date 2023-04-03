@@ -782,7 +782,7 @@ def mol_to_adjacency_matrix(
     use_bonds_weights: bool = False,
     add_self_loop: bool = False,
     dtype: torch.dtype = torch.float32,
-) -> torch.Tensor:
+) -> torch.sparse.Tensor:
     r"""
     Convert a molecule to a sparse adjacency matrix, as a torch Tensor.
     Instead of using the Rdkit `GetAdjacencyMatrix()` method, this method

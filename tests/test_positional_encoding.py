@@ -3,7 +3,6 @@ Unit tests for the different datasets of goli/features/featurizer.py
 """
 
 import numpy as np
-from scipy.sparse import coo_matrix
 import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
@@ -158,7 +157,7 @@ class test_positional_encoder(ut.TestCase):
                         eigvals = pos_enc_no_flip
                         g = GraphDict(
                             {
-                                "adj": coo_matrix(adj),
+                                "adj": torch.as_tensor(adj).to_sparse_coo(),
                                 "ndata": {"eigvals": eigvals, "eigvecs": eigvecs},
                                 "edata": {},
                             }
