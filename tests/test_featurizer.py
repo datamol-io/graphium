@@ -7,6 +7,7 @@ import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
+import torch
 
 from goli.features.featurizer import (
     get_mol_atomic_features_onehot,
@@ -24,6 +25,7 @@ class test_featurizer(ut.TestCase):
         "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
         "OCCc1c(C)[n+](cs1)Cc2cnc(C)nc2N",
         "O1C=C[C@H]([C@H]1O2)c3c2cc(OC)c4c3OC(=O)C5=C4CCC(=O)5",
+        "CC1(C2C1C(N(C2)C(=O)C(C(C)=B)NC(=O)C(F)(F)F)C(=O)NC(C(C3CCNC3=O)[Cl])C#N)C",
     ]
 
     smiles_noble = ["[He].[He]", "[He][He]", "[Kr][Kr]"]
@@ -100,7 +102,7 @@ class test_featurizer(ut.TestCase):
                     err_msg3 = err_msg2 + f"\n\t\tkey: {key}"
                     self.assertEqual(val.shape[0], mol.GetNumAtoms(), msg=err_msg3)
                     self.assertGreater(val.shape[1], 1, msg=err_msg3)
-                    self.assertTrue(np.all((val == 0) | (val == 1)), msg=err_msg3)
+                    self.assertTrue(torch.all((val == 0) | (val == 1)), msg=err_msg3)
 
             with self.assertRaises(ValueError, msg=err_msg):
                 get_mol_atomic_features_onehot(mol, property_list=bad_props)
@@ -227,6 +229,31 @@ class test_featurizer(ut.TestCase):
             mol_Hs = Chem.AddHs(mol)  # type: ignore
             mol_No_Hs = Chem.RemoveHs(mol)  # type: ignore
 
+            graph = mol_to_pyggraph(
+                        mol=mol,
+                        atom_property_list_onehot=[],
+                        atom_property_list_float=["atomic-number"],
+                        edge_property_list=["bond-type-float"],
+                        add_self_loop=False,
+                        explicit_H=False,
+                        use_bonds_weights=False,
+                        on_error="raise",
+                    )
+
+            # Check the number of nodes and edges
+            self.assertListEqual(list(graph["feat"].shape), [mol.GetNumAtoms(), 1], msg=err_msg)
+            self.assertListEqual(list(graph["edge_feat"].shape), [2*mol.GetNumBonds(), 1], msg=err_msg)
+
+            # Check the node features
+            feat = graph["feat"].to_dense().numpy() * 5 + 6 # Undo the scaling
+            atom_nums = np.asarray([atom.GetAtomicNum() for atom in mol.GetAtoms()])
+            np.testing.assert_array_almost_equal(feat[:, 0], atom_nums, decimal=5, err_msg=err_msg)
+
+            # Check the edge features
+            edge_feat = graph["edge_feat"].to_dense().numpy()
+            bond_types = np.asarray([bond.GetBondTypeAsDouble() for bond in mol.GetBonds()]).repeat(2)
+            np.testing.assert_array_almost_equal(edge_feat[:, 0], bond_types, decimal=5, err_msg=err_msg)
+
             for explicit_H in [True, False]:
                 this_mol = mol_Hs if explicit_H else mol_No_Hs
                 for ii in np.arange(0, 5, 0.2):
@@ -245,6 +272,7 @@ class test_featurizer(ut.TestCase):
                         add_self_loop=False,
                         explicit_H=explicit_H,
                         use_bonds_weights=False,
+                        on_error="raise",
                     )
 
                     self.assertEqual(graph.num_nodes, this_mol.GetNumAtoms(), msg=err_msg2)
