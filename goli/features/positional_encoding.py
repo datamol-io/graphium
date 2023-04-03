@@ -91,7 +91,7 @@ def graph_positional_encoder(
         pe_dict["eigvals"] = eigvals_tile
 
     elif pos_type == "rwse":
-        rwse_pe = compute_rwse(adj=adj, ksteps=pos_arg["ksteps"], num_nodes=num_nodes)
+        rwse_pe = compute_rwse(adj=adj.astype(np.float32), ksteps=pos_arg["ksteps"], num_nodes=num_nodes)
         rwse_pe = rwse_pe.astype(np.float32)
         pe_dict["rwse"] = rwse_pe
 
