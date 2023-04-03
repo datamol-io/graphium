@@ -254,6 +254,17 @@ class test_featurizer(ut.TestCase):
             bond_types = np.asarray([bond.GetBondTypeAsDouble() for bond in mol.GetBonds()]).repeat(2)
             np.testing.assert_array_almost_equal(edge_feat[:, 0], bond_types, decimal=5, err_msg=err_msg)
 
+            # Check the edge indices
+            if mol.GetNumBonds() > 0:
+                edge_index = graph["edge_index"].to_dense().numpy()
+                true_edge_index = []
+                for bond in mol.GetBonds():
+                    true_edge_index.append([bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()])
+                    true_edge_index.append([bond.GetEndAtomIdx(), bond.GetBeginAtomIdx()])
+                true_edge_index = np.asarray(true_edge_index).T
+                np.testing.assert_array_equal(edge_index, true_edge_index, err_msg=err_msg)
+
+            # Loop over many possible combinations of properties
             for explicit_H in [True, False]:
                 this_mol = mol_Hs if explicit_H else mol_No_Hs
                 for ii in np.arange(0, 5, 0.2):
