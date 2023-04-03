@@ -29,6 +29,7 @@ def get_all_positional_encoding(
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
 
     pe_dict = OrderedDict()
+    adj = adj.astype(np.float32)
 
     # Get the positional encoding for the features
     if len(pos_encoding_as_features) > 0:

@@ -102,7 +102,7 @@ class test_featurizer(ut.TestCase):
                     err_msg3 = err_msg2 + f"\n\t\tkey: {key}"
                     self.assertEqual(val.shape[0], mol.GetNumAtoms(), msg=err_msg3)
                     self.assertGreater(val.shape[1], 1, msg=err_msg3)
-                    self.assertTrue(torch.all((val == 0) | (val == 1)), msg=err_msg3)
+                    self.assertTrue(np.all((val == 0) | (val == 1)), msg=err_msg3)
 
             with self.assertRaises(ValueError, msg=err_msg):
                 get_mol_atomic_features_onehot(mol, property_list=bad_props)

@@ -2,7 +2,6 @@ from typing import Union, List, Callable, Dict, Tuple, Any, Optional
 
 import inspect
 from loguru import logger
-from copy import deepcopy
 import numpy as np
 from scipy.sparse import issparse, coo_matrix
 import torch
@@ -55,7 +54,7 @@ def to_dense_tensor(tensor: Tensor, dtype: str = None) -> Tensor:
     return tensor
 
 
-def _mask_nans_inf(mask_nan: Optional[str], tensor: Tensor, array_name: str) -> Tensor:
+def _mask_nans_inf(mask_nan: Optional[str], array: np.ndarray, array_name: str) -> np.ndarray:
     r"""
     mask the NaNs in the array
     Parameters:
@@ -65,26 +64,26 @@ def _mask_nans_inf(mask_nan: Optional[str], tensor: Tensor, array_name: str) -> 
     Returns:
         The masked array
     """
-    if (mask_nan is None) or (tensor is None):
-        return tensor
+    if (mask_nan is None) or (array is None):
+        return array
 
-    new_array = tensor
+    new_array = array
     if issparse(new_array):
         new_array = new_array.data
-    nans = ~torch.isfinite(new_array)
+    nans = ~np.isfinite(new_array)
 
     # Mask the NaNs
     if nans.any():
-        msg = f"There are {torch.sum(nans)} NaNs in `{array_name}`"
+        msg = f"There are {np.sum(nans)} NaNs in `{array_name}`"
         if mask_nan == "raise":
             raise ValueError(msg)
         elif mask_nan == "warn":
             logger.warning(msg)
         else:
             new_array[nans] = mask_nan
-            if issparse(tensor):
-                tensor.data = new_array
-                new_array = tensor
+            if issparse(array):
+                array.data = new_array
+                new_array = array
     return new_array
 
 
@@ -172,9 +171,9 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
-            property_array.append(torch.as_tensor(one_hot, dtype=torch.float16))
+            property_array.append(np.asarray(one_hot, dtype=np.float16))
 
-        prop_dict[prop_name] = torch.stack(property_array, dim=0)
+        prop_dict[prop_name] = np.stack(property_array, axis=0)
 
     return prop_dict
 
@@ -182,7 +181,7 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
 def get_mol_conformer_features(
     mol: dm.Mol,
     property_list: Union[List[str], List[Callable]],
-) -> Dict[str, Tensor]:
+) -> Dict[str, np.ndarray]:
     r"""obtain the conformer features of a molecule
     Parameters:
 
@@ -209,7 +208,7 @@ def get_mol_conformer_features(
         if isinstance(prop, str):
             if prop in ["positions_3d"]:  # locating 3d conformer coordinates
                 if not has_conf:
-                    positions = torch.full((mol.GetNumAtoms(), 3), float("nan"), dtype=torch.float16)
+                    positions = np.full((mol.GetNumAtoms(), 3), float("nan"), dtype=np.float16)
                 else:
                     positions = [[], [], []]
                     for i in range(mol.GetNumAtoms()):
@@ -217,7 +216,7 @@ def get_mol_conformer_features(
                         positions[0].append(pos.x)
                         positions[1].append(pos.y)
                         positions[2].append(pos.z)
-                    positions = torch.as_tensor(positions, dtype=torch.float16).T
+                    positions = np.ndarray(positions, dtype=np.float16).T
                 prop_dict[prop] = positions
             else:
                 ValueError(
@@ -233,7 +232,7 @@ def get_mol_atomic_features_float(
     property_list: Union[List[str], List[Callable]],
     offset_carbon: bool = True,
     mask_nan: Union[str, float, type(None)] = "raise",
-) -> Dict[str, Tensor]:
+) -> Dict[str, np.ndarray]:
     r"""
     Get a dictionary of floating-point arrays of atomic properties.
     To ensure all properties are at a similar scale, some of the properties
@@ -317,16 +316,17 @@ def get_mol_atomic_features_float(
     for prop in property_list:
         prop_name = None
 
-        property_array = torch.zeros(mol.GetNumAtoms(), dtype=torch.float16)
+        property_array = np.zeros(mol.GetNumAtoms(), dtype=np.float16)
         for ii, atom in enumerate(atom_list):
             val = None
+            atomic_num = atom.GetAtomicNum()
 
             if isinstance(prop, str):
                 prop = prop.lower()
                 prop_name = prop
 
                 if prop in ["atomic-number"]:
-                    val = (atom.GetAtomicNum() - (offC * C_num)) / 5
+                    val = (atomic_num - (offC * C_num)) / 5
                 elif prop in ["mass", "weight"]:
                     prop_name = "mass"
                     val = (atom.GetMass() - (offC * C.GetMass())) / 10
@@ -369,7 +369,7 @@ def get_mol_atomic_features_float(
                     val = periodic_table.GetRvdw(atom.GetAtomicNum()) - offC * periodic_table.GetRvdw(C_num)
                 elif prop in ["covalent-radius"]:
                     val = periodic_table.GetRcovalent(
-                        atom.GetAtomicNum()
+                        atomic_num
                     ) - offC * periodic_table.GetRcovalent(C_num)
                 elif prop in ["electronegativity"]:
                     val = (
@@ -379,18 +379,18 @@ def get_mol_atomic_features_float(
                 elif prop in ["ionization", "first-ionization"]:
                     prop_name = "ionization"
                     val = (
-                        nmp.FIRST_IONIZATION[atom.GetAtomicNum() - 1] - offC * nmp.FIRST_IONIZATION[C_num - 1]
+                        nmp.FIRST_IONIZATION[atomic_num - 1] - offC * nmp.FIRST_IONIZATION[C_num - 1]
                     ) / 5
                 elif prop in ["melting-point"]:
                     val = (
-                        nmp.MELTING_POINT[atom.GetAtomicNum() - 1] - offC * nmp.MELTING_POINT[C_num - 1]
+                        nmp.MELTING_POINT[atomic_num - 1] - offC * nmp.MELTING_POINT[C_num - 1]
                     ) / 200
                 elif prop in ["metal"]:
-                    val = nmp.METAL[atom.GetAtomicNum() - 1]
+                    val = nmp.METAL[atomic_num - 1]
                 elif prop in "group":
-                    val = float(nmp.GROUP[atom.GetAtomicNum() - 1]) - offC * float(nmp.GROUP[C_num - 1])
+                    val = float(nmp.GROUP[atomic_num - 1]) - offC * float(nmp.GROUP[C_num - 1])
                 elif prop in "period":
-                    val = float(nmp.PERIOD[atom.GetAtomicNum() - 1]) - offC * float(nmp.PERIOD[C_num - 1])
+                    val = float(nmp.PERIOD[atomic_num - 1]) - offC * float(nmp.PERIOD[C_num - 1])
                 elif "-bond" in prop:
                     bonds = [bond.GetBondTypeAsDouble() for bond in atom.GetBonds()]
                     if prop in ["single-bond"]:
@@ -532,7 +532,7 @@ def get_estimated_bond_length(bond: Chem.rdchem.Bond, mol: dm.Mol) -> float:
 
 def get_mol_edge_features(
     mol: dm.Mol, property_list: List[str], mask_nan: Union[str, float, type(None)] = "raise"
-) -> Dict[str, Tensor]:
+) -> Dict[str, np.ndarray]:
     r"""
     Get the following set of features for any given bond
     See `goli.features.nmp` for allowed values in one hot encoding
@@ -601,10 +601,10 @@ def get_mol_edge_features(
             else:
                 raise ValueError(f"Unsupported property `{prop}`")
 
-            property_array.append(torch.as_tensor(encoding, dtype=torch.float16))
+            property_array.append(np.asarray(encoding, dtype=np.float16))
 
         if num_bonds > 0:
-            property_array = torch.stack(property_array, dim=0)
+            property_array = np.stack(property_array, axis=0)
             # Mask the NaNs
             prop_dict[prop] = _mask_nans_inf(mask_nan, property_array, "edge property")
         else:
@@ -615,7 +615,7 @@ def get_mol_edge_features(
             elif prop in ["stereo"]:
                 arr_len = len(nmp.BOND_STEREO) + 1
 
-            prop_dict[prop] = torch.zeros((0, arr_len))
+            prop_dict[prop] = np.zeros((0, arr_len))
 
     return prop_dict
 
@@ -630,7 +630,7 @@ def mol_to_adj_and_features(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    dtype: torch.dtype = torch.float16,
+    dtype: np.dtype = np.float16,
     mask_nan: Union[str, float, type(None)] = "raise",
 ) -> Union[
     coo_matrix,
@@ -750,10 +750,10 @@ def mol_to_adj_and_features(
     atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float, mask_nan=mask_nan)
     conf_dict = get_mol_conformer_features(mol, conformer_property_list)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
-    ndata = [d.unsqueeze(1) if d.ndim == 1 else d for d in ndata]
+    ndata = [d[:, np.newaxis] if d.ndim == 1 else d for d in ndata]
 
     if len(ndata) > 0:
-        ndata = torch.cat(ndata, dim=1).to_sparse_coo().to(dtype)
+        ndata = np.concatenate(ndata, axis=1).astype(dtype=dtype)
     else:
         ndata = None
 
@@ -762,7 +762,7 @@ def mol_to_adj_and_features(
     edata = list(edge_features.values())
     edata = [np.expand_dims(d, axis=1) if d.ndim == 1 else d for d in edata]
     if len(edata) > 0:
-        edata = torch.cat(edata, dim=1).to_sparse_coo().to(dtype)
+        edata = np.concatenate(edata, axis=1).astype(dtype=dtype)
     else:
         edata = None
 
@@ -771,7 +771,7 @@ def mol_to_adj_and_features(
 
     # Mask the NaNs
     for pe_key, pe_val in pe_dict.items():
-        pe_val = torch.as_tensor(pe_val, dtype=dtype)
+        pe_val = np.asarray(pe_val, dtype=dtype)
         pe_dict[pe_key] = _mask_nans_inf(mask_nan, pe_val, pe_key)
 
     return adj, ndata, edata, pe_dict, conf_dict
@@ -781,8 +781,8 @@ def mol_to_adjacency_matrix(
     mol: dm.Mol,
     use_bonds_weights: bool = False,
     add_self_loop: bool = False,
-    dtype: torch.dtype = torch.float32,
-) -> torch.sparse.Tensor:
+    dtype: np.dtype = np.float32,
+) -> coo_matrix:
     r"""
     Convert a molecule to a sparse adjacency matrix, as a torch Tensor.
     Instead of using the Rdkit `GetAdjacencyMatrix()` method, this method
@@ -806,34 +806,29 @@ def mol_to_adjacency_matrix(
             node.
 
         dtype:
-            The torch data type used to build the graph
+            The data type used to build the graph
 
     Returns:
         adj:
-            torch coo sparse adjacency matrix of the molecule
+            coo sparse adjacency matrix of the molecule
     """
-    # Get the indices for the adjacency matrix, and the bond value
-    adj_idx, adj_val = [], []
+
+    # Get the indices for the adjacency matrix, and the bond values
+    adj = np.zeros((mol.GetNumAtoms(), mol.GetNumAtoms()), dtype=dtype)
     for bond in mol.GetBonds():
-        adj_idx.append([bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()])
-        adj_idx.append([bond.GetEndAtomIdx(), bond.GetBeginAtomIdx()])
         if use_bonds_weights:
             val = nmp.BOND_TYPES[bond.GetBondType()]
         else:
             val = 1
-        adj_val.extend([val, val])
+        adj[bond.GetBeginAtomIdx(), bond.GetEndAtomIdx()] = val
+        adj[bond.GetEndAtomIdx(), bond.GetBeginAtomIdx()] = val
 
-    # Convert to torch coo sparse tensor
-    adj = torch.sparse_coo_tensor(
-        indices=torch.as_tensor(adj_idx).T.reshape(2, -1),
-        values=torch.as_tensor(adj_val),
-        size=(mol.GetNumAtoms(), mol.GetNumAtoms()),
-        dtype=dtype,
-    )
+    # Convert to coo sparse matrix
+    adj = coo_matrix(adj)
 
     # Add self loops
     if add_self_loop:
-        arange = torch.arange(adj.shape[0], dtype=torch.long)
+        arange = np.arange(adj.shape[0], dtype=int)
         adj[arange, arange] = 1
     return adj
 
@@ -857,7 +852,7 @@ class GraphDict(dict):
         - edata: A dictionnary containing different keys and Tensors
             associated to the edge features.
 
-        - dtype: The torch dtype for the floating data.
+        - dtype: The dtype for the floating data.
 
         - mask_nan:
             Deal with molecules that fail a part of the featurization.
@@ -870,7 +865,7 @@ class GraphDict(dict):
             - "Floating value": Replace nans or inf by the specified value
         """
         default_dic = {
-            "dtype": torch.float16,
+            "dtype": np.float16,
             "mask_nan": "raise",
         }
         ndata = dic.pop("ndata", {})
@@ -891,12 +886,7 @@ class GraphDict(dict):
         for a list of parameters
         """
 
-        # Convert adjacency matrix into edge_index and edge_weight
-        edge_index = self.adj._indices()
-        edge_weight = self.adj._values()
         num_nodes = self.adj.shape[0]
-
-        # Get the node and edge data
         data_dict = {}
 
         # Convert the numpy and numpy sparse data to torch
@@ -908,16 +898,20 @@ class GraphDict(dict):
                 val = val.astype(self.dtype)
                 data_dict[key] = torch.as_tensor(val)
             elif issparse(val):
-                indices = torch.from_numpy(np.vstack((val.row, val.col)).astype(np.int64))
-                data_dict[key] = torch.sparse_coo_tensor(indices=indices, values=val.data, size=val.shape)
+                data_dict[key] = torch.as_tensor(val.astype(np.float32).todense())
+                # `torch.sparse_coo_tensor` is too slow. Slows down the multiprocessing of features by >3x on 32 cores.
+                # indices = torch.from_numpy(np.vstack((val.row, val.col)).astype(np.int64))
+                # data_dict[key] = torch.sparse_coo_tensor(indices=indices, values=val.data, size=val.shape)
             elif isinstance(val, torch.Tensor):
                 data_dict[key] = val
             else:
                 pass  # Skip the other parameters
 
         # Create the PyG graph object `Data`
+        edge_index = torch.as_tensor(np.vstack((self.adj.row, self.adj.col)))
+        edge_weight = torch.as_tensor(self.adj.data)
         data = Data(edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes, **data_dict)
-        return deepcopy(data)
+        return data
 
     @property
     def adj(self):
@@ -937,13 +931,10 @@ class GraphDict(dict):
 
     @property
     def num_edges(self) -> int:
-        if self.adj.is_sparse:
-            return self.adj._indices().shape[1]
+        if issparse(self.adj):
+            return self.adj.nnz
         else:
-            return torch.count_nonzero(
-                self.adj.to_dense()
-            )  # No division by 2 because edges are counted twice
-
+            return np.count_nonzero(self.adj) # No division by 2 because edges are counted twice
 
 def mol_to_graph_dict(
     mol: dm.Mol,
@@ -955,7 +946,7 @@ def mol_to_graph_dict(
     explicit_H: bool = False,
     use_bonds_weights: bool = False,
     pos_encoding_as_features: Dict[str, Any] = None,
-    dtype: torch.dtype = torch.float16,
+    dtype: np.dtype = np.float16,
     on_error: str = "ignore",
     mask_nan: Union[str, float, type(None)] = "raise",
     max_num_atoms: Optional[int] = None,
@@ -1100,10 +1091,10 @@ def mol_to_graph_dict(
 
     # Assign the edge data
     if edata is not None:
-        if edata.is_sparse:
-            edata = edata.to_dense()
-        hetero_edata = edata.repeat_interleave(2, dim=0)
-        graph_dict["edata"]["edge_feat"] = hetero_edata.to_sparse_coo()
+        if issparse(edata):
+            edata = to_dense_array(edata, dtype=dtype)
+        hetero_edata = edata.repeat(2, axis=0)
+        graph_dict["edata"]["edge_feat"] = hetero_edata
 
     # Put the positional encodings as node features
     # TODO: add support for PE on edges

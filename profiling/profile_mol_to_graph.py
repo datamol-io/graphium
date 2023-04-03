@@ -3,13 +3,14 @@ import datamol as dm
 import pickle
 
 from goli.data.utils import load_micro_zinc
-from goli.features.featurizer import mol_to_graph_dict, mol_to_adj_and_features
+from goli.features.featurizer import mol_to_pyggraph, mol_to_adj_and_features, mol_to_graph_dict
 
+# Check out this profiling tool: https://kirillstrelkov.medium.com/python-profiling-with-vscode-3a17c0407833
 
 def main():
     df = load_micro_zinc()
     smiles = df["SMILES"].values.tolist()
-    smiles = smiles * 1
+    smiles = smiles * 10
     print("Num smiles: ", len(smiles))
 
     pos_enc = {
@@ -47,7 +48,7 @@ def main():
         "explicit_H": False,
         "use_bonds_weights": False,
         "pos_encoding_as_features": pos_enc,
-        "pos_encoding_as_directions": pos_enc,
+        # "on_error": "raise",
     }
 
     graphs = []
