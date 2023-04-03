@@ -942,7 +942,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 self.train_ds.labels_size
             )  # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
+            # create a folder it doesn't exist
+            # loop through train_ds, for each sample write it to disk
+            # self.train_ds should be a list of dataset, so we can loop through that.
+            # keep track of the filenames
+            # self.train_ds = Dataset(list of filenames)
 
+            # __getitem__(idx):
+            # filename = self.filenames[idx]
+            # read from filename
+            
         if stage == "test" or stage is None:
             self.test_ds = Datasets.MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
             logger.info(self.test_ds)

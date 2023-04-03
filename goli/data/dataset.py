@@ -90,7 +90,9 @@ class SingleTaskDataset(Dataset):
             datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids"
         """
         datum = {}
-
+        # read from files using the index
+        # keep track of the file using file names
+        # read directly and save to a dictionary
         if self.features is not None:
             datum["features"] = self.features[idx]
 
@@ -189,6 +191,8 @@ class MultitaskDataset(Dataset):
 
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
+        
+        # save the list of num nodes and num edges here and get the min max and mean, so it does not load multiple time.
 
     def __len__(self):
         r"""
