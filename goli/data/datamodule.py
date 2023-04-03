@@ -16,6 +16,7 @@ import numpy as np
 import datamol as dm
 from tqdm import tqdm
 import multiprocessing as mp
+import os.path as osp
 from sklearn.model_selection import train_test_split
 
 import pytorch_lightning as pl
@@ -883,8 +884,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 unique_ids=this_unique_ids,
                 **task_dataset_args[task]["extras"],
             )
-        processed_data_path = "goli/data/PCQM4Mv2/"
-        self.save_featurized_data(self.single_task_datasets[task], processed_data_path)
+
         """We split the data up to create train, val and test datasets"""
         self.task_train_indices = {}
         self.task_val_indices = {}
@@ -923,6 +923,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         stage: str = None,
         save_smiles_and_ids: bool = False,
+        processed_data_path: str = "goli/data/PCQM4Mv2/",
     ):
         """
         Prepare the torch dataset. Called on every GPUs. Setting state here is ok.
@@ -935,28 +936,56 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            self.train_ds = Datasets.MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
-            self.val_ds = Datasets.MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            processed_train_data_path = osp.join(processed_data_path, "train")
+            processed_val_data_path = osp.join(processed_data_path, "val")
+            self.train_ds = Datasets.MultitaskDataset(
+                self.train_singletask_datasets,
+                n_jobs=self.featurization_n_jobs,
+                backend=self.featurization_backend,
+                featurization_batch_size=self.featurization_batch_size,
+                progress=self.featurization_progress,
+                about="training set",
+                save_smiles_and_ids=save_smiles_and_ids,
+                data_path=processed_train_data_path,
+            )  # type: ignore
+            self.val_ds = Datasets.MultitaskDataset(
+                self.val_singletask_datasets,
+                n_jobs=self.featurization_n_jobs,
+                backend=self.featurization_backend,
+                featurization_batch_size=self.featurization_batch_size,
+                progress=self.featurization_progress,
+                about="validation set",
+                save_smiles_and_ids=save_smiles_and_ids,
+                data_path=processed_val_data_path,
+            )  # type: ignore
             logger.info(self.train_ds)
             logger.info(self.val_ds)
+            # save featurized train dataset to disk
+            self.save_featurized_data(self.train_ds, processed_train_data_path)
+
+            # save featurized validation dataset to disk
+            self.save_featurized_data(self.val_ds, processed_val_data_path)
 
             labels_size.update(
                 self.train_ds.labels_size
             )  # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
-            # create a folder it doesn't exist
-            # loop through train_ds, for each sample write it to disk
-            # self.train_ds should be a list of dataset, so we can loop through that.
-            # keep track of the filenames
-            # self.train_ds = Dataset(list of filenames)
 
-            # __getitem__(idx):
-            # filename = self.filenames[idx]
-            # read from filename
-            
         if stage == "test" or stage is None:
-            self.test_ds = Datasets.MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            processed_test_data_path = osp.join(processed_data_path, "test")
+            self.test_ds = Datasets.MultitaskDataset(
+                self.test_singletask_datasets,
+                n_jobs=self.featurization_n_jobs,
+                backend=self.featurization_backend,
+                featurization_batch_size=self.featurization_batch_size,
+                progress=self.featurization_progress,
+                about="test set",
+                save_smiles_and_ids=save_smiles_and_ids,
+                data_path=processed_test_data_path,
+            )  # type: ignore
             logger.info(self.test_ds)
+            # save featurized test dataset to disk
+            self.save_featurized_data(self.test_ds, processed_test_data_path)
 
             labels_size.update(self.test_ds.labels_size)
 
@@ -965,21 +994,20 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
 
-    def save_featurized_data(dataset, processed_data_path):
+    def save_featurized_data(self, dataset, processed_data_path):
         for i in range(0, len(dataset), 1000):
-            os.makedirs(os.path.join(processed_data_path, format(i//1000, '04d')), exist_ok=True)
+            os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
         process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
-        pool = mp.Pool(processes=4)
-        results = list(pool.imap_unordered(process_func, tqdm(process_params)))
+        pool = mp.Pool(processes=60)
+        pool.imap_unordered(process_func, tqdm(process_params))
         pool.close()
+        return
 
-    def process_func(param):
+    def process_func(self, param):
         index, datum, folder = param
-
         graph_with_features, label = datum
-        
-        filename = os.path.join(folder, format(index//1000, '04d'), format(index, '07d') + '.pkl')
-        torch.save({'graph_with_features': graph_with_features, 'labels': label}, filename, pickle_protocol=4)
+        filename = os.path.join(folder, format(index // 1000, "04d"), format(index, "07d") + ".pkl")
+        torch.save({"graph_with_features": graph_with_features, "label": label}, filename, pickle_protocol=4)
         return
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
@@ -1990,7 +2018,6 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         for task, args in self.task_dataset_processing_params.items():
             logger.info(f"Reading data for task '{task}'")
             if args.df is None:
-                # import ipdb; ipdb.set_trace()
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
                 label_cols = self._parse_label_cols(
                     df=None, df_path=args.df_path, label_cols=args.label_cols, smiles_col=args.smiles_col
