@@ -5,6 +5,9 @@ import numpy as np
 from functools import lru_cache
 from loguru import logger
 from copy import deepcopy
+import os
+import numpy as np
+import pickle
 
 import torch
 from torch.utils.data.dataloader import Dataset
@@ -90,14 +93,16 @@ class SingleTaskDataset(Dataset):
             datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids"
         """
         datum = {}
+        data_idx = self.split[idx]
+        graph_with_features, label = self.get_data(data_idx)
         # read from files using the index
         # keep track of the file using file names
         # read directly and save to a dictionary
         if self.features is not None:
-            datum["features"] = self.features[idx]
+            datum["features"] = graph_with_features
 
         if self.labels is not None:
-            datum["labels"] = self.labels[idx]
+            datum["labels"] = label
 
         if self.smiles is not None:
             datum["smiles"] = self.smiles[idx]
@@ -131,6 +136,17 @@ class SingleTaskDataset(Dataset):
             state["smiles"] = manager.list(state["smiles"])
 
         self.__dict__.update(state)
+
+
+    def get_data(self, data_idx):
+        filename = os.path.join(
+            self.data_path, format(data_idx // 1000, '04d'), format(data_idx, '07d') + '.pkl')
+
+        with open(filename, 'rb') as fin:
+            graph, label = pickle.load(fin)
+            pass
+
+        return graph, label
 
 
 class MultitaskDataset(Dataset):

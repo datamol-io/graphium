@@ -14,7 +14,8 @@ import omegaconf
 import pandas as pd
 import numpy as np
 import datamol as dm
-
+from tqdm import tqdm
+import multiprocessing as mp
 from sklearn.model_selection import train_test_split
 
 import pytorch_lightning as pl
@@ -882,7 +883,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 unique_ids=this_unique_ids,
                 **task_dataset_args[task]["extras"],
             )
-
+        processed_data_path = "goli/data/PCQM4Mv2/"
+        self.save_featurized_data(self.single_task_datasets[task], processed_data_path)
         """We split the data up to create train, val and test datasets"""
         self.task_train_indices = {}
         self.task_val_indices = {}
@@ -962,6 +964,23 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
+
+    def save_featurized_data(dataset, processed_data_path):
+        for i in range(0, len(dataset), 1000):
+            os.makedirs(os.path.join(processed_data_path, format(i//1000, '04d')), exist_ok=True)
+        process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
+        pool = mp.Pool(processes=4)
+        results = list(pool.imap_unordered(process_func, tqdm(process_params)))
+        pool.close()
+
+    def process_func(param):
+        index, datum, folder = param
+
+        graph_with_features, label = datum
+        
+        filename = os.path.join(folder, format(index//1000, '04d'), format(index, '07d') + '.pkl')
+        torch.save({'graph_with_features': graph_with_features, 'labels': label}, filename, pickle_protocol=4)
+        return
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
