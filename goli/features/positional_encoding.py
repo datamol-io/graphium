@@ -1,5 +1,6 @@
 from typing import Tuple, Optional, Dict, Union
 import numpy as np
+import torch
 from scipy.sparse import spmatrix
 from collections import OrderedDict
 
@@ -64,6 +65,12 @@ def graph_positional_encoder(
     pos_type = pos_arg["pos_type"]
     pos_type = pos_type.lower()
     pe_dict = {}
+
+    # Convert to numpy array
+    if isinstance(adj, torch.sparse.Tensor):
+        adj = adj.to_dense().numpy()
+    elif isinstance(adj, torch.Tensor):
+        adj = adj.numpy()
 
     if pos_type == "laplacian_eigvec":
         _, eigvecs = compute_laplacian_positional_eigvecs(
