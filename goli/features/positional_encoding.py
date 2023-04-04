@@ -1,5 +1,7 @@
 from typing import Tuple, Optional, Dict, Union
+from copy import deepcopy
 import numpy as np
+import torch
 from scipy.sparse import spmatrix
 from collections import OrderedDict
 
@@ -33,7 +35,7 @@ def get_all_positional_encoding(
     if len(pos_encoding_as_features) > 0:
         for pos in pos_encoding_as_features["pos_types"]:
             pos_args = pos_encoding_as_features["pos_types"][pos]
-            this_pe = graph_positional_encoder(adj, num_nodes, pos_args)
+            this_pe = graph_positional_encoder(deepcopy(adj), num_nodes, pos_args)
             this_pe = {f"{pos}/{key}": val for key, val in this_pe.items()}
             pe_dict.update(this_pe)
 
@@ -65,6 +67,12 @@ def graph_positional_encoder(
     pos_type = pos_type.lower()
     pe_dict = {}
 
+    # Convert to numpy array
+    if isinstance(adj, torch.sparse.Tensor):
+        adj = adj.to_dense().numpy()
+    elif isinstance(adj, torch.Tensor):
+        adj = adj.numpy()
+
     if pos_type == "laplacian_eigvec":
         _, eigvecs = compute_laplacian_positional_eigvecs(
             adj=adj, num_pos=pos_arg["num_pos"], disconnected_comp=pos_arg["disconnected_comp"]
@@ -83,7 +91,7 @@ def graph_positional_encoder(
         pe_dict["eigvals"] = eigvals_tile
 
     elif pos_type == "rwse":
-        rwse_pe = compute_rwse(adj=adj, ksteps=pos_arg["ksteps"], num_nodes=num_nodes)
+        rwse_pe = compute_rwse(adj=adj.astype(np.float32), ksteps=pos_arg["ksteps"], num_nodes=num_nodes)
         rwse_pe = rwse_pe.astype(np.float32)
         pe_dict["rwse"] = rwse_pe
 

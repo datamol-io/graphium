@@ -45,3 +45,4 @@ wandb
 optuna
 google-cloud-storage
 mup
+pyg-nightly
