@@ -372,12 +372,15 @@ def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
     return predictor
 
 
-def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str) -> Trainer:
+def load_trainer(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str, date_time_suffix: str = ""
+) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
     Parameters:
         config: The config file, with key `trainer`
         run_name: The name of the current run. To be used for logging.
+        date_time_suffix: The date and time of the current run. To be used for logging.
     Returns:
         trainer: the trainer module
     """
@@ -429,9 +432,12 @@ def load_trainer(config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: 
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     # Define the logger parameters
-    if "logger" in cfg_trainer.keys():
-        wandb_logger = WandbLogger(name=run_name, project="multitask-gnn")
-        trainer_kwargs["logger"] = wandb_logger
+    logger = cfg_trainer.pop("logger", None)
+    if logger is not None:
+        name = logger.pop("name", run_name)
+        if len(date_time_suffix) > 0:
+            name += f"_{date_time_suffix}"
+        trainer_kwargs["logger"] = WandbLogger(name=name, **logger)
 
     trainer_kwargs["callbacks"] = callbacks
 
