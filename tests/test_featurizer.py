@@ -19,8 +19,8 @@ from goli.features.featurizer import (
 
 class test_featurizer(ut.TestCase):
     smiles = [
-        # "C",
-        # "CC",
+        "C",
+        "CC",
         "C1(C[N]CCC1)=O",
         "CC(C)CC1=CC=C(C=C1)C(C)C(=O)O",
         "OCCc1c(C)[n+](cs1)Cc2cnc(C)nc2N",
