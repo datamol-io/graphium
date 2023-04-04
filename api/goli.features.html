@@ -764,6 +764,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#goli.features.featurizer.mol_to_adjacency_matrix" class="md-nav__link">
+    mol_to_adjacency_matrix()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.features.featurizer.mol_to_graph_dict" class="md-nav__link">
     mol_to_graph_dict()
   </a>
@@ -787,6 +794,13 @@
           <li class="md-nav__item">
   <a href="#goli.features.featurizer.to_dense_array" class="md-nav__link">
     to_dense_array()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.features.featurizer.to_dense_tensor" class="md-nav__link">
+    to_dense_tensor()
   </a>
   
 </li>
@@ -1167,6 +1181,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#goli.features.featurizer.mol_to_adjacency_matrix" class="md-nav__link">
+    mol_to_adjacency_matrix()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.features.featurizer.mol_to_graph_dict" class="md-nav__link">
     mol_to_graph_dict()
   </a>
@@ -1190,6 +1211,13 @@
           <li class="md-nav__item">
   <a href="#goli.features.featurizer.to_dense_array" class="md-nav__link">
     to_dense_array()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.features.featurizer.to_dense_tensor" class="md-nav__link">
+    to_dense_tensor()
   </a>
   
 </li>
@@ -1437,19 +1465,18 @@ as a dictionary to reduce memory consumption.</p>
 <p>Possible keys for the dictionary:</p>
 <ul>
 <li>
-<p>adj: A numpy array containing the adjacency matrix</p>
+<p>adj: A sparse Tensor containing the adjacency matrix</p>
 </li>
 <li>
-<p>ndata: A dictionnary containing different keys and numpy
-    arrays associated to the node features.</p>
+<p>ndata: A dictionnary containing different keys and Tensors
+    associated to the node features.</p>
 </li>
 <li>
-<p>edata: A dictionnary containing different keys and numpy
-    arrays associated to the edge features.</p>
+<p>edata: A dictionnary containing different keys and Tensors
+    associated to the edge features.</p>
 </li>
 <li>
-<p>dtype: The numpy dtype for the floating data. The arrays
-    will be converted to <code>torch.Tensor</code> when building the graph.</p>
+<p>dtype: The dtype for the floating data.</p>
 </li>
 <li>
 <p>mask_nan:
@@ -1803,7 +1830,7 @@ Callables are not supported by this function.</p>
     <tbody>
         <tr>
 <td><code>prop_dict</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
           <td><p>A dictionnary where the element of <code>property_list</code> are the keys
 and the values are np.ndarray of shape (N, OH). N is the number of atoms
@@ -2172,7 +2199,7 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
-          <td><p>The numpy data type used to build the graph</p></td>
+          <td><p>The torch data type used to build the graph</p></td>
           <td>
                 <code>np.float16</code>
           </td>
@@ -2209,13 +2236,13 @@ or other properties that are not measured for specific atoms.</p>
     <tbody>
         <tr>
 <td><code>adj</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>Scipy sparse adjacency matrix of the molecule</p></td>
+          <td><p>torch coo sparse adjacency matrix of the molecule</p></td>
         </tr>
         <tr>
 <td><code>ndata</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
           <td><p>Concatenated node data of the atoms, based on the properties from
 <code>atom_property_list_onehot</code> and <code>atom_property_list_float</code>.
@@ -2223,7 +2250,7 @@ If no properties are given, it returns <code>None</code></p></td>
         </tr>
         <tr>
 <td><code>edata</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
           <td><p>Concatenated node edge of the molecule, based on the properties from
 <code>edge_property_list</code>.
@@ -2231,7 +2258,7 @@ If no properties are given, it returns <code>None</code></p></td>
         </tr>
         <tr>
 <td><code>pe_dict</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
           <td><p>Dictionary of all positional encodings. Current supported keys:</p>
 <ul>
@@ -2255,9 +2282,110 @@ If no properties are given, it returns <code>None</code></p></td>
         </tr>
         <tr>
 <td><code>conf_dict</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>], <span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
           <td><p>contains the 3d positions of a conformer of the molecule or 0s if none is found</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.features.featurizer.mol_to_adjacency_matrix" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mol_to_adjacency_matrix</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">use_bonds_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">add_self_loop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span></code>
+
+<a href="#goli.features.featurizer.mol_to_adjacency_matrix" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Convert a molecule to a sparse adjacency matrix, as a torch Tensor.
+Instead of using the Rdkit <code>GetAdjacencyMatrix()</code> method, this method
+uses the bond ordering from the molecule object, which is the same as
+the bond ordering in the bond features.</p>
+
+<details class="warning">
+  <summary>Warning</summary>
+  <p>Do not use <code>Tensor.coalesce()</code> on the returned adjacency matrix, as it
+will change the ordering of the bonds.</p>
+</details>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>mol</code></td>
+          <td>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
+          </td>
+          <td><p>A molecule in the form of a SMILES string or an RDKit molecule object.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>use_bonds_weights</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>If <code>True</code>, the adjacency matrix will contain the bond type as the
+value of the edge. If <code>False</code>, the adjacency matrix will contain
+<code>1</code> as the value of the edge.</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>add_self_loop</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td><p>If <code>True</code>, the adjacency matrix will contain a self-loop for each
+node.</p></td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
+          </td>
+          <td><p>The data type used to build the graph</p></td>
+          <td>
+                <code>np.float32</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>adj</code></td>          <td>
+                <code><span title="scipy.sparse.coo_matrix">coo_matrix</span></code>
+          </td>
+          <td><p>coo sparse adjacency matrix of the molecule</p></td>
         </tr>
     </tbody>
   </table>
@@ -2824,6 +2952,75 @@ There are also additional entries for the positional encodings.</p></td>
         <tr>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
+          </td>
+          <td><p>The dense array</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.features.featurizer.to_dense_tensor" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">to_dense_tensor</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#goli.features.featurizer.to_dense_tensor" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Assign the node data</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>array</code></td>
+          <td>
+          </td>
+          <td><p>The array to convert to dense</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>The dtype of the array</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
           </td>
           <td><p>The dense array</p></td>
         </tr>
