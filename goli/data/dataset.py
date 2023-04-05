@@ -8,6 +8,7 @@ from copy import deepcopy
 import os
 import numpy as np
 import pickle
+import os.path as osp
 
 import torch
 from torch.utils.data.dataloader import Dataset
@@ -275,8 +276,9 @@ class MultitaskDataset(Dataset):
         datum = {}
         if self.labels is not None:
             data_dict = self.get_data(idx)
-            datum["features"] = data_dict["graph_with_features"]
-            datum["labels"] = data_dict["label"]
+            if data_dict is not None:
+                datum["features"] = data_dict["graph_with_features"]
+                datum["labels"] = data_dict["label"]
 
         return datum
 
@@ -284,12 +286,14 @@ class MultitaskDataset(Dataset):
         filename = os.path.join(
             self.data_path, format(data_idx // 1000, "04d"), format(data_idx, "07d") + ".pkl"
         )
-
-        with open(filename, "rb") as file:
-            graph, label = pickle.load(file)
-            pass
-
-        return graph, label
+        # check if file exist beofre loading it
+        if osp.isfile(filename):
+            with open(filename, "rb") as file:
+                data_dict = pickle.load(file)
+                pass
+            return data_dict
+        else:
+            return None
 
     def merge(
         self, datasets: Dict[str, SingleTaskDataset]
