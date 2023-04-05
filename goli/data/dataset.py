@@ -150,6 +150,7 @@ class MultitaskDataset(Dataset):
         save_smiles_and_ids: bool = False,
         about: str = "",
         data_path: str = "",
+        load_from_file: bool = True,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -183,6 +184,7 @@ class MultitaskDataset(Dataset):
         self.progress = progress
         self.about = about
         self.data_path = data_path
+        self.load_from_file = load_from_file
 
         task = next(iter(datasets))
         if (len(datasets[task]) > 0) and ("features" in datasets[task][0]):
@@ -199,7 +201,8 @@ class MultitaskDataset(Dataset):
         self.dataset_length = len(self.labels)
         self.num_nodes_list = get_num_nodes_per_graph(self.features)
         self.num_edges_list = get_num_edges_per_graph(self.features)
-        self.features = None
+        if self.load_from_file:
+            self.features = None
 
     def __len__(self):
         r"""
@@ -274,11 +277,22 @@ class MultitaskDataset(Dataset):
             A dictionary containing the data for the specified index with keys "mol_ids", "smiles", "labels", and "features"
         """
         datum = {}
-        if self.labels is not None:
+        if self.load_from_file:
             data_dict = self.get_data(idx)
-            if data_dict is not None:
-                datum["features"] = data_dict["graph_with_features"]
-                datum["labels"] = data_dict["label"]
+            datum["features"] = data_dict["graph_with_features"]
+            datum["labels"] = data_dict["labels"]
+        else:
+            if self.mol_ids is not None:
+                datum["mol_ids"] = self.mol_ids[idx]
+
+            if self.smiles is not None:
+                datum["smiles"] = self.smiles[idx]
+
+            if self.labels is not None:
+                datum["labels"] = self.labels[idx]
+
+            if self.features is not None:
+                datum["features"] = self.features[idx]
 
         return datum
 
@@ -286,14 +300,8 @@ class MultitaskDataset(Dataset):
         filename = os.path.join(
             self.data_path, format(data_idx // 1000, "04d"), format(data_idx, "07d") + ".pkl"
         )
-        # check if file exist beofre loading it
-        if osp.isfile(filename):
-            with open(filename, "rb") as file:
-                data_dict = pickle.load(file)
-                pass
-            return data_dict
-        else:
-            return None
+        data_dict = torch.load(filename)
+        return data_dict
 
     def merge(
         self, datasets: Dict[str, SingleTaskDataset]

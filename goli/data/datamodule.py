@@ -947,6 +947,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 about="training set",
                 save_smiles_and_ids=save_smiles_and_ids,
                 data_path=processed_train_data_path,
+                load_from_file=osp.exists(processed_train_data_path) and self.get_folder_size(processed_train_data_path) > 0
             )  # type: ignore
             self.val_ds = Datasets.MultitaskDataset(
                 self.val_singletask_datasets,
@@ -957,6 +958,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 about="validation set",
                 save_smiles_and_ids=save_smiles_and_ids,
                 data_path=processed_val_data_path,
+                load_from_file=osp.exists(processed_val_data_path) and self.get_folder_size(processed_val_data_path) > 0
             )  # type: ignore
             logger.info(self.train_ds)
             logger.info(self.val_ds)
@@ -982,6 +984,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 about="test set",
                 save_smiles_and_ids=save_smiles_and_ids,
                 data_path=processed_test_data_path,
+                load_from_file=osp.exists(processed_test_data_path) and self.get_folder_size(processed_test_data_path) > 0
             )  # type: ignore
             logger.info(self.test_ds)
             # save featurized test dataset to disk
@@ -993,21 +996,26 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
+            
+    def get_folder_size(self, path):
+        # check if the data items are actually saved into the folders
+        return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
     def save_featurized_data(self, dataset, processed_data_path):
         for i in range(0, len(dataset), 1000):
             os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
         process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
-        pool = mp.Pool(processes=60)
-        pool.imap_unordered(process_func, tqdm(process_params))
-        pool.close()
+        # pool = mp.Pool(processes=60)
+        # pool.imap_unordered(self.process_func, tqdm(process_params))
+        for param in tqdm(process_params):
+            self.process_func(param)
+        # pool.close()
         return
 
     def process_func(self, param):
         index, datum, folder = param
-        graph_with_features, label = datum
         filename = os.path.join(folder, format(index // 1000, "04d"), format(index, "07d") + ".pkl")
-        torch.save({"graph_with_features": graph_with_features, "label": label}, filename, pickle_protocol=4)
+        torch.save({"graph_with_features": datum["features"], "labels": datum["labels"]}, filename, pickle_protocol=4)
         return
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
