@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  # cpu or ipu or gpu
+    type: cpu  # cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -13,16 +13,15 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv #goli/data/PCQM4Mv2/pcqm4mv2.csv
-        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
-        smiles_col: "cxsmiles"
-        label_cols: ["homo_lumo_gap"]
+        df_path: goli/data/b3lyp/b3lyp_mini.parquet #goli/data/b3lyp/b3lyp_mini.parquet
+        # wget https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet
+        # or set path as https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet directly
+        smiles_col: "smiles"
+        label_cols: ["beta_gap"]
         # sample_size: 30000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
-        #goli/data/PCQM4Mv2/split_dict.pt
-        # goli/data/PCQM4Mv2/pcqm4m_split.csv
-        split_names: ["train", "val", "test"]
+        splits_val: 0.1
+        splits_test: 0.1
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -61,24 +60,24 @@ datamodule:
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
-    ipu_dataloader_training_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-      max_num_edges_per_graph: 60
+    # ipu_dataloader_training_opts:
+    #   mode: async
+    #   max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+    #   max_num_edges_per_graph: 60
 
-    ipu_dataloader_inference_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
-      max_num_edges_per_graph: 120
-      # test-dev max nodes: 50, max_edges: 116
-      # test-challenge max nodes: 51, max_edges: 106
+    # ipu_dataloader_inference_opts:
+    #   mode: async
+    #   max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
+    #   max_num_edges_per_graph: 120
+    #   # test-dev max nodes: 50, max_edges: 116
+    #   # test-challenge max nodes: 51, max_edges: 106
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 256
-    hidden_dims: 1024
+    out_dim: 32
+    hidden_dims: 64
     depth: 2
     activation: relu
     last_activation: none
@@ -88,8 +87,8 @@ architecture:
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 128
-    hidden_dims: 512
+    out_dim: 16
+    hidden_dims: 32
     depth: 2
     activation: relu
     last_activation: none
@@ -127,8 +126,8 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 256
-    hidden_dims: 256
+    out_dim: 32
+    hidden_dims: 32
     depth: 4
     activation: gelu
     last_activation: none
@@ -143,10 +142,10 @@ architecture:
       node_residual: false
       mpnn_type: 'pyg:mpnnplus'
       mpnn_kwargs:
-        in_dim: 256
-        out_dim: 256
-        in_dim_edges: 128
-        out_dim_edges: 128
+        in_dim: 32
+        out_dim: 32
+        in_dim_edges: 16
+        out_dim_edges: 16
       attn_type: "none" # "full-attention", "none"
       # biased_attention: false
       attn_kwargs: null

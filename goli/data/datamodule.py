@@ -772,7 +772,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     + check_arg_iterator(args.weights_col, enforce_type=list)
                 )
                 label_dtype = {col: np.float32 for col in label_cols}
-                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
+                task_df[task] = self._read_table(args.df_path, usecols=usecols, dtype=label_dtype)
 
             else:
                 label_cols = self._parse_label_cols(
