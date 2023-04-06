@@ -7,8 +7,6 @@ from loguru import logger
 from copy import deepcopy
 import os
 import numpy as np
-import pickle
-import os.path as osp
 
 import torch
 from torch.utils.data.dataloader import Dataset
@@ -204,6 +202,7 @@ class MultitaskDataset(Dataset):
         self.num_edges_list = get_num_edges_per_graph(self.features)
         if self.load_from_file:
             self.features = None
+            self.labels = None
 
     def __len__(self):
         r"""
