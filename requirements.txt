@@ -38,7 +38,7 @@ loguru
 appdirs
 matplotlib
 tk
-pytorch-lightning >1.8
+pytorch-lightning >1.8,<2.0
 datamol
 PyYAML
 wandb

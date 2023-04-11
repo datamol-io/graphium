@@ -11,7 +11,7 @@ datamodule:
   # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
-      homolumo:
+      betagap:
         df: null
         df_path: goli/data/b3lyp/b3lyp_mini.parquet #goli/data/b3lyp/b3lyp_mini.parquet
         # wget https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet
@@ -19,9 +19,20 @@ datamodule:
         smiles_col: "smiles"
         label_cols: ["beta_gap"]
         # sample_size: 30000 # use sample_size for test
-        splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
-        splits_val: 0.1
-        splits_test: 0.1
+        # splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
+        split_val: 0.1
+        split_test: 0.1
+      alphagap:
+        df: null
+        df_path: goli/data/b3lyp/b3lyp_mini.parquet #goli/data/b3lyp/b3lyp_mini.parquet
+        # wget https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet
+        # or set path as https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet directly
+        smiles_col: "smiles"
+        label_cols: ["alpha_gap"]
+        # sample_size: 30000 # use sample_size for test
+        # splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
+        split_val: 0.1
+        split_test: 0.1
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -55,7 +66,7 @@ datamodule:
     batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: 10 # -1 to use all
+    num_workers: 0 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
@@ -154,7 +165,17 @@ architecture:
   post_nn: null
 
   task_heads:
-    homolumo:
+    alphagap:
+      out_dim: 1
+      hidden_dims: 256
+      depth: 2                          # Not needed if we have hidden_dims
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+    betagap:
       out_dim: 1
       hidden_dims: 256
       depth: 2                          # Not needed if we have hidden_dims
@@ -168,9 +189,11 @@ architecture:
 #Task-specific
 predictor:
   metrics_on_progress_bar:
-    homolumo: ["mae", "pearsonr"]
+    alphagap: ["mae", "pearsonr"]
+    betagap: ["mae", "pearsonr"]
   loss_fun:
-    homolumo: mse_ipu
+    alphagap: mse_ipu
+    betagap: mse_ipu
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
@@ -191,7 +214,7 @@ predictor:
 
 # Task-specific
 metrics:
-  homolumo:
+  alphagap: &alpha_metrics
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
@@ -202,6 +225,7 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
+  betagap: *alpha_metrics
 
 trainer:
   logger:
@@ -221,7 +245,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 16
+    precision: 32
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 2

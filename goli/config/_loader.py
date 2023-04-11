@@ -194,7 +194,7 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
     """
 
     task_metrics = {}
-    cfg_metrics = deepcopy(config["metrics"])
+    cfg_metrics = {key: deepcopy(value) for key, value in config["metrics"].items()}
     if cfg_metrics is None:
         return task_metrics
 
