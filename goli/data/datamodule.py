@@ -15,7 +15,6 @@ import pandas as pd
 import numpy as np
 import datamol as dm
 from tqdm import tqdm
-import multiprocessing as mp
 import os.path as osp
 from sklearn.model_selection import train_test_split
 
@@ -1018,10 +1017,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         for i in range(0, len(dataset), 1000):
             os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
         process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
-        # leaving this for now, will remove when merging
-        # pool = mp.Pool(processes=60)
-        # pool.imap_unordered(self.process_func, tqdm(process_params))
-        # pool.close()
+
         for param in tqdm(process_params):
             self.process_func(param)
         return

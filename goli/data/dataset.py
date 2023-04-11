@@ -92,9 +92,7 @@ class SingleTaskDataset(Dataset):
             datum: a dictionary containing the data at the given index, with keys "features", "labels", "smiles", "indices", "weights", "unique_ids"
         """
         datum = {}
-        # read from files using the index
-        # keep track of the file using file names
-        # read directly and save to a dictionary
+
         if self.features is not None:
             datum["features"] = self.features[idx]
 
