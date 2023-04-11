@@ -1,4 +1,4 @@
-from typing import Iterable, Optional, Union
+from typing import Optional
 
 import torch
 from torch import Tensor
@@ -9,7 +9,7 @@ from torch.nn.modules.loss import _WeightedLoss
 class HybridCELoss(_WeightedLoss):
     def __init__(
         self,
-        brackets: Union[Iterable[int], Tensor] = (0, 1, 2, 3, 4),
+        n_brackets: int = 5,
         regression_loss: str = "mse",
         alpha: float = 0.5,
         weight: Optional[Tensor] = None,
@@ -21,8 +21,8 @@ class HybridCELoss(_WeightedLoss):
         and the task in transformed into a multi-class classification.
 
         Parameters:
-            brackets: an iterable of integers assigned to each class. Expected to have the same size
-                as the number of classes in the transformed regression task.
+            n_brackets: the number of brackets that will be used to group the regression targets.
+                Expected to have the same size as the number of classes in the transformed regression task.
             regression_loss: type of regression loss, either 'mse' or 'mae'.
             alpha: weight assigned to the CE loss component. Must be a value in [0, 1] range.
             weight: a manual rescaling weight given to each class in the CE loss component.
@@ -43,10 +43,7 @@ class HybridCELoss(_WeightedLoss):
                 f"Expected alpha to be in the [0, 1] range, received {alpha}."
             )
 
-        if not isinstance(brackets, Tensor):
-            brackets = Tensor(brackets)
-
-        self.brackets = brackets
+        self.brackets = Tensor(range(n_brackets))
         self.regression_loss = F.l1_loss if regression_loss == "mae" else F.mse_loss
         self.alpha = alpha
 
@@ -54,7 +51,7 @@ class HybridCELoss(_WeightedLoss):
         """
         Parameters:
             input: (batch_size x n_classes) tensor of probabilities predicted for each bracket.
-            target: (batch_Size x n_classes) tensor of one-hot encoded target brackets.
+            target: (batch_size x n_classes) tensor of one-hot encoded target brackets.
         """
         regression_input = torch.inner(input, self.brackets)
         regression_target = target.argmax(-1)

@@ -17,7 +17,7 @@ class test_Losses(ut.TestCase):
     regression_target = torch.Tensor([3, 0])  # argmax over target
 
     def test_pure_ce_loss(self):
-        loss = HybridCELoss(brackets=self.brackets, alpha=1.0, reduction="none")
+        loss = HybridCELoss(n_brackets=len(self.brackets), alpha=1.0, reduction="none")
 
         assert torch.equal(
             loss(self.input, self.target),
@@ -27,7 +27,10 @@ class test_Losses(ut.TestCase):
 
     def test_pure_mae_loss(self):
         loss = HybridCELoss(
-            brackets=self.brackets, alpha=0.0, regression_loss="mae", reduction="none"
+            n_brackets=len(self.brackets),
+            alpha=0.0,
+            regression_loss="mae",
+            reduction="none",
         )
 
         assert torch.equal(
@@ -38,7 +41,10 @@ class test_Losses(ut.TestCase):
 
     def test_pure_mse_loss(self):
         loss = HybridCELoss(
-            brackets=self.brackets, alpha=0.0, regression_loss="mse", reduction="none"
+            n_brackets=len(self.brackets),
+            alpha=0.0,
+            regression_loss="mse",
+            reduction="none",
         )
 
         assert torch.equal(
@@ -48,7 +54,9 @@ class test_Losses(ut.TestCase):
         assert loss(self.input, self.target).shape == (2,)
 
     def test_hybrid_loss(self):
-        loss = HybridCELoss(brackets=self.brackets, alpha=0.5, regression_loss="mse")
+        loss = HybridCELoss(
+            n_brackets=len(self.brackets), alpha=0.5, regression_loss="mse"
+        )
 
         ce_loss = F.cross_entropy(self.input, self.target)
         mse_loss = F.mse_loss(self.regression_input, self.regression_target)
