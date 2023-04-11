@@ -6,11 +6,12 @@ import torchmetrics.functional as TorchMetrics
 import goli.nn.base_layers as BaseLayers
 import goli.utils.custom_lr as CustomLR
 import goli.data.datamodule as Datamodules
-import goli.ipu.ipu_losses as Losses
+import goli.ipu.ipu_losses as IPULosses
 import goli.ipu.ipu_metrics as Metrics
 import goli.nn.pyg_layers as PygLayers
 import goli.nn.residual_connections as Residuals
 import goli.nn.encoders as Encoders
+import goli.trainer.losses as Losses
 
 PE_ENCODERS_DICT = {
     "laplacian_pe": Encoders.laplace_pos_encoder.LapPENodeEncoder,
@@ -50,10 +51,12 @@ LOSS_DICT = {
     "bce": torch.nn.BCELoss(),
     "l1": torch.nn.L1Loss(),
     "mae": torch.nn.L1Loss(),
-    "bce_ipu": Losses.BCELossIPU(),
-    "mse_ipu": Losses.MSELossIPU(),
-    "mae_ipu": Losses.L1LossIPU(),
-    "l1_ipu": Losses.L1LossIPU(),
+    "mae_ce": Losses.HybridCELoss(regression_loss="mae"),
+    "mse_ce": Losses.HybridCELoss(regression_loss="mse"),
+    "bce_ipu": IPULosses.BCELossIPU(),
+    "mse_ipu": IPULosses.MSELossIPU(),
+    "mae_ipu": IPULosses.L1LossIPU(),
+    "l1_ipu": IPULosses.L1LossIPU(),
 }
 
 
