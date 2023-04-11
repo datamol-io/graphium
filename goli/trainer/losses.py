@@ -39,9 +39,7 @@ class HybridCELoss(_WeightedLoss):
             )
 
         if alpha < 0 or alpha > 1:
-            raise ValueError(
-                f"Expected alpha to be in the [0, 1] range, received {alpha}."
-            )
+            raise ValueError(f"Expected alpha to be in the [0, 1] range, received {alpha}.")
 
         self.brackets = Tensor(range(n_brackets))
         self.regression_loss = F.l1_loss if regression_loss == "mae" else F.mse_loss
@@ -55,12 +53,8 @@ class HybridCELoss(_WeightedLoss):
         """
         regression_input = torch.inner(input, self.brackets)
         regression_target = target.argmax(-1)
-        regression_loss = self.regression_loss(
-            regression_input, regression_target, reduction=self.reduction
-        )
+        regression_loss = self.regression_loss(regression_input, regression_target, reduction=self.reduction)
 
-        ce_loss = F.cross_entropy(
-            input, target, weight=self.weight, reduction=self.reduction
-        )
+        ce_loss = F.cross_entropy(input, target, weight=self.weight, reduction=self.reduction)
 
         return self.alpha * ce_loss + (1 - self.alpha) * regression_loss
