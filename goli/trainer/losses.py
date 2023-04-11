@@ -18,7 +18,10 @@ class HybridCELoss(_WeightedLoss):
         """
         A hybrid between the regression loss (either MAE or MSE) and the cross entropy loss. Intended
         to be used with noisy regression datasets, for which the targets are assigned to binary brackets,
-        and the task in transformed into a multi-class classification.
+        and the task is transformed into a multi-class classification.
+
+        Note that it assumes that the brackets are consecutive integers starting at 0 up to n_brackets,
+        which has an impact on the scale of the regression loss component.
 
         Parameters:
             n_brackets: the number of brackets that will be used to group the regression targets.
