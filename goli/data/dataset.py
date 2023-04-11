@@ -197,7 +197,6 @@ class MultitaskDataset(Dataset):
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
         self.dataset_length = len(self.labels)
-        print(self.dataset_length)
         self.num_nodes_list = get_num_nodes_per_graph(self.features)
         self.num_edges_list = get_num_edges_per_graph(self.features)
         if self.load_from_file:

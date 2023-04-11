@@ -591,6 +591,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
+        processed_graph_data_path: str = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -718,6 +719,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.test_ds = None
 
         self.cache_data_path = cache_data_path
+        self.processed_graph_data_path = processed_graph_data_path
 
         if featurization is None:
             featurization = {}
@@ -924,7 +926,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         stage: str = None,
         save_smiles_and_ids: bool = False,
-        processed_data_path: str = "goli/data/PCQM4Mv2/",
     ):
         """
         Prepare the torch dataset. Called on every GPUs. Setting state here is ok.
@@ -937,11 +938,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
 
         if stage == "fit" or stage is None:
-            processed_train_data_path = osp.join(processed_data_path, "train")
+            processed_train_data_path = osp.join(self.processed_graph_data_path, "train")
             train_load_from_file = (
                 osp.exists(processed_train_data_path) and self.get_folder_size(processed_train_data_path) > 0
             )
-            processed_val_data_path = osp.join(processed_data_path, "val")
+            processed_val_data_path = osp.join(self.processed_graph_data_path, "val")
             val_load_from_file = (
                 osp.exists(processed_val_data_path) and self.get_folder_size(processed_val_data_path) > 0
             )
@@ -982,7 +983,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            processed_test_data_path = osp.join(processed_data_path, "test")
+            processed_test_data_path = osp.join(self.processed_graph_data_path, "test")
             test_load_from_file = (
                 osp.exists(processed_test_data_path) and self.get_folder_size(processed_test_data_path) > 0
             )
