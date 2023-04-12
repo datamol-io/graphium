@@ -12,12 +12,15 @@ docs_dir: "docs"
 nav:
   - Overview: index.md
   - Tutorials:
-    - basics:
-      - Using GNN layers: tutorials/basics/using_gnn_layers.ipynb
-      - Implementing GNN layers: tutorials/basics/implementing_gnn_layers.ipynb
-      - Making GNN networks: tutorials/basics/making_gnn_networks.ipynb
-      - Convert CSV to Parquet files: tutorials/basics/csv_to_parquet.ipynb
-      - Reading Parquet files: tutorials/basics/parquet_reader.ipynb
+    - feature_processing:
+      - Add new positional encoding (updated): tutorials/feature_processing/add_new_positional_encoding.ipynb
+      - Convert CSV to Parquet files: tutorials/feature_processing/csv_to_parquet.ipynb
+      - Reading Parquet files: tutorials/feature_processing/parquet_reader.ipynb
+      - parallel: tutorials/feature_processing/timing_parallel.ipynb
+    - gnn_layers:
+      - Add new gnn layers (updated): tutorials/gnn/add_new_gnn_layers.ipynb
+      - Making GNN networks: tutorials/gnn/making_gnn_networks.ipynb
+      - Using GNN layers: tutorials/gnn/using_gnn_layers.ipynb
     - model_training:
       - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
       - Training on IPU: tutorials/model_training/ipu_training.ipynb
