@@ -177,3 +177,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# jama's ignored files
+notebooks/experimental_notebook.ipynb
+.DS_Store

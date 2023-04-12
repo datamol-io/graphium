@@ -14,7 +14,7 @@ datamodule:
         sample_size: null                 # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
-        weights_type: null                # This may not always be provided
+        weights_type: null                # This may not always be provided 
       logp:
         df: null
         df_path: "goli://goli.data.multitask/tiny_ZINC_logp.csv"
@@ -113,6 +113,7 @@ architecture:     # The parameters for the full graph network are taken from `co
 
   task_heads:     # Set as null to avoid task heads. Recall that the arguments for the TaskHeads is a List of TaskHeadParams
     task_1:
+      task_level: "node"
       out_dim: 5
       hidden_dims: [5, 6, 7]
       #depth: none                          # Not needed if we have hidden_dims
@@ -122,6 +123,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       normalization: none
       residual_type: none
     task_2:
+      task_level: "edge"
       out_dim: 3
       hidden_dims: [8, 9, 10]
       activation: relu
@@ -130,6 +132,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       normalization: none
       residual_type: none
     task_3:
+      task_level: "graph"
       out_dim: 4
       hidden_dims: [2, 2, 2]
       activation: relu
@@ -137,3 +140,46 @@ architecture:     # The parameters for the full graph network are taken from `co
       dropout: 0.2
       normalization: none
       residual_type: none
+    task_4:
+      task_level: "nodepair"
+      out_dim: 4
+      hidden_dims: [2, 2, 2]
+      activation: relu
+      last_activation: none
+      dropout: 0.2
+      normalization: none
+      residual_type: none
+
+  shared_mlp:
+    node:
+      out_dim: 16
+      hidden_dims: [8, 9, 10]
+      activation: relu
+      last_activation: none
+      dropout: 0.2
+      normalization: none
+      residual_type: none  
+    graph:
+      out_dim: 16
+      hidden_dims: [8, 9, 10]
+      activation: relu
+      last_activation: none
+      dropout: 0.2
+      normalization: none
+      residual_type: none   
+    edge:
+      out_dim: 16
+      hidden_dims: [8, 9, 10]
+      activation: relu
+      last_activation: none
+      dropout: 0.2
+      normalization: none
+      residual_type: none  
+    nodepair:
+      out_dim: 16
+      hidden_dims: [8, 9, 10]
+      activation: relu
+      last_activation: none
+      dropout: 0.2
+      normalization: none
+      residual_type: none      

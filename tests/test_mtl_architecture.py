@@ -25,18 +25,77 @@ kwargs = {
     "residual_type": "none",
     "residual_skip_steps": 1,
 }
-
+# task kwargs
 task_1_kwargs = {
     "out_dim": 5,
+    "task_level": "node",
     "hidden_dims": [5, 6, 7],
 }
 task_2_kwargs = {
     "out_dim": 3,
+    "task_level": "edge",
     "hidden_dims": [8, 9, 10],
 }
 task_3_kwargs = {
     "out_dim": 4,
+    "task_level": "graph",
     "hidden_dims": [2, 2, 2],
+}
+task_4_kwargs = {
+    "out_dim": 3,
+    "task_level": "nodepair",
+    "hidden_dims": [2, 2, 2],
+}
+
+# level-wise kwargs
+node_level_kwargs = {
+    "out_dim": 8,
+    "hidden_dims": [8, 9, 10],
+    "activation": "relu",
+    "last_activation": "none",
+    "normalization": "none",
+    "dropout": 0.2,
+    "name": "LNN",
+    "layer_type": FCLayer,
+    "residual_type": "none",
+    "residual_skip_steps": 1,
+}
+graph_level_kwargs = {
+    "out_dim": 8,
+    "hidden_dims": [8, 9, 10],
+    "activation": "relu",
+    "last_activation": "none",
+    "normalization": "none",
+    "dropout": 0.2,
+    "name": "LNN",
+    "layer_type": FCLayer,
+    "residual_type": "none",
+    "residual_skip_steps": 1,
+}
+edge_level_kwargs = {
+    "out_dim": 8,
+    "hidden_dims": [8, 9, 10],
+    "activation": "relu",
+    "last_activation": "none",
+    "normalization": "none",
+    "dropout": 0.2,
+    "name": "LNN",
+    "layer_type": FCLayer,
+    "residual_type": "none",
+    "residual_skip_steps": 1,
+}
+
+nodepair_level_kwargs = {
+    "out_dim": 8,
+    "hidden_dims": [8, 9, 10],
+    "activation": "relu",
+    "last_activation": "none",
+    "normalization": "none",
+    "dropout": 0.2,
+    "name": "LNN",
+    "layer_type": FCLayer,
+    "residual_type": "none",
+    "residual_skip_steps": 1,
 }
 
 task_1_params = {}
@@ -48,17 +107,53 @@ task_2_params.update(kwargs)
 task_3_params = {}
 task_3_params.update(task_3_kwargs)
 task_3_params.update(kwargs)
+task_4_params = {}
+task_4_params.update(task_4_kwargs)
+task_4_params.update(kwargs)
+
+
+def toy_test_data(in_dim=7, in_dim_edges=3, task_level="node"):
+    edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
+    edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
+    x1 = torch.randn(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
+    e1 = torch.randn(edge_idx1.shape[-1], in_dim, dtype=torch.float32)
+    x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
+    e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
+    # edge_idx1, e1 = add_self_loops(edge_idx1, e1)
+    # edge_idx2, e2 = add_self_loops(edge_idx2, e2)
+    g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
+    g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
+    bg = Batch.from_data_list([g1, g2])
+
+    batch_node = bg["feat"].size()[0]
+    batch_edge = bg["edge_feat"].size()[0]
+    batch_graph = 2
+    batch_nodepair = ((batch_node ** 2) - batch_node)//2
+
+    return bg, batch_node, batch_edge, batch_graph, batch_nodepair
 
 
 class test_TaskHeads(ut.TestCase):
     def test_task_heads_forward(self):
-        in_dim = 4  # Dimension of the incoming data
-        batch = 2
+        in_dim = 8  # Dimension of the incoming data
 
-        task_heads_params = {"task_1": task_1_params, "task_2": task_2_params, "task_3": task_3_params}
 
+        task_heads_params = {
+            "task_1": task_1_params,
+            "task_2": task_2_params,
+            "task_3": task_3_params,
+            "task_4": task_4_params,
+        }
+        shared_mlp_params = {
+            "node": node_level_kwargs,
+            "edge": edge_level_kwargs,
+            "graph": graph_level_kwargs,
+            "nodepair": nodepair_level_kwargs,
+        }
         # Create the "multitask" network. Really it's just an input going to various FFNNs since there's nothing shared.
-        multi_head_nn = TaskHeads(in_dim=in_dim, task_heads_kwargs=task_heads_params)
+        multi_head_nn = TaskHeads(
+            in_dim=in_dim, task_heads_kwargs=task_heads_params, shared_mlp_kwargs=shared_mlp_params
+        )
 
         # Test the sizes of the MLPs for each head
         # Head for task_1
@@ -91,14 +186,24 @@ class test_TaskHeads(ut.TestCase):
         self.assertEqual(task_3_head.layers[2].in_dim, task_3_kwargs["hidden_dims"][1])
         self.assertEqual(task_3_head.layers[3].in_dim, task_3_kwargs["hidden_dims"][2])
 
-        feat = torch.FloatTensor(batch, in_dim)
-        feat_out = multi_head_nn.forward(feat)
+        # Head for task_4
+        task_4_head = multi_head_nn.task_heads["task_3"]
+
+        # Check the dimensions
+        self.assertEqual(len(task_4_head.layers), len(task_4_kwargs["hidden_dims"]) + 1)
+        self.assertEqual(task_4_head.layers[0].in_dim, in_dim)
+        self.assertEqual(task_4_head.layers[1].in_dim, task_4_kwargs["hidden_dims"][0])
+        self.assertEqual(task_4_head.layers[2].in_dim, task_4_kwargs["hidden_dims"][1])
+        self.assertEqual(task_4_head.layers[3].in_dim, task_4_kwargs["hidden_dims"][2])
 
         # Check the output: It's a per-task prediction!
-        self.assertListEqual(list(feat_out["task_1"].shape), [batch, task_1_kwargs["out_dim"]])
-        self.assertListEqual(list(feat_out["task_2"].shape), [batch, task_2_kwargs["out_dim"]])
-        self.assertListEqual(list(feat_out["task_3"].shape), [batch, task_3_kwargs["out_dim"]])
+        bg, batch_node, batch_edge, batch_graph, batch_nodepair = toy_test_data(in_dim=in_dim, in_dim_edges=in_dim)
+        feat_out = multi_head_nn.forward(bg)
 
+        self.assertListEqual(list(feat_out["task_1"].shape), [batch_node, task_1_kwargs["out_dim"]]) # node level task
+        self.assertListEqual(list(feat_out["task_2"].shape), [batch_edge, task_2_kwargs["out_dim"]]) # edge level task
+        self.assertListEqual(list(feat_out["task_3"].shape), [batch_graph, task_3_kwargs["out_dim"]]) # graph level task
+        self.assertListEqual(list(feat_out["task_4"].shape), [batch_nodepair, task_4_kwargs["out_dim"]]) # nodepair level task
 
 class test_Multitask_NN(ut.TestCase):
     pyg_kwargs = {

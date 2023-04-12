@@ -1464,7 +1464,9 @@ class TaskHeads(nn.Module, MupMixin):
         self,
         in_dim: int,
         task_heads_kwargs: Dict[str, Any],
+        shared_mlp_kwargs: Dict[str, Any],
         last_layer_is_readout: bool = True,
+        pooling: Union[str, List[str]] = "mean",
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
@@ -1473,8 +1475,10 @@ class TaskHeads(nn.Module, MupMixin):
                 Input feature dimensions of the layer
             task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
-                Each dict of arguments is used to
-                initialize a task-specific MLP.
+                Each dict of arguments is used to initialize a task-specific MLP.
+            shared_mlp_kwargs:
+                This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
+                Each dict of arguments is used to initialize a shared MLP.
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
@@ -1482,31 +1486,156 @@ class TaskHeads(nn.Module, MupMixin):
 
         super().__init__()
 
-        self.in_dim = in_dim
         self.last_layer_is_readout = last_layer_is_readout
-        task_heads_kwargs = deepcopy(task_heads_kwargs)
+        self.task_heads_kwargs = deepcopy(task_heads_kwargs)
+        self.shared_mlp_kwargs = deepcopy(shared_mlp_kwargs)
+        self.task_levels = {head_kwargs["task_level"] for _, head_kwargs in self.task_heads_kwargs.items()}
+        self.map_task_level = {
+            "node": "feat",
+            "nodepair": "nodepair_feat",
+            "graph": "graph_feat",
+            "edge": "edge_feat",
+        }
+        self.in_dim = in_dim
         self.task_heads = nn.ModuleDict()
+        self.shared_MLP = nn.ModuleDict()
+        
 
-        for task_name, head_kwargs in task_heads_kwargs.items():
+        for task_name, head_kwargs in self.task_heads_kwargs.items():
+            task_level = self.task_heads_kwargs[task_name].get(
+                "task_level", None
+            )  # Get task_level without modifying head_kwargs
+            if (
+                task_level is None
+            ):  # Add an appropriate default or error message if task_level is not specified
+                raise ValueError("task_level must be specified for each task head.")
+            self.in_dim = in_dim * 2 if task_level == "nodepair" else in_dim
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)
             head_in_dim = head_kwargs.pop("in_dim", None)
             if head_in_dim is not None:
                 assert self.in_dim == head_in_dim, f"Inconsistent input dim {self.in_dim} != {head_in_dim}"
-            self.task_heads[task_name] = FeedForwardNN(in_dim=self.in_dim, **head_kwargs)
+            self.shared_MLP[task_level] = FeedForwardNN(
+                in_dim=self.in_dim, **self.shared_mlp_kwargs[task_level]
+            )
+            # Create a new dictionary without the task_level key-value pair, and pass it while initializing the FeedForwardNN instance for tasks
+            filtered_kwargs = {k: v for k, v in head_kwargs.items() if k != "task_level"}
+            self.task_heads[task_name] = FeedForwardNN(
+                in_dim=self.shared_mlp_kwargs[task_level]["out_dim"], **filtered_kwargs
+            )
 
-    def forward(self, h: torch.Tensor) -> Dict[str, torch.Tensor]:
+        self.global_pool_layer, self.out_pool_dim = self._parse_pooling_layer(in_dim, pooling)
+
+    def _parse_pooling_layer(
+        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
+    ) -> Tuple[nn.Module, int]:
+        r"""
+        Return the pooling layer
+        **This function is virtual, so it needs to be implemented by the child class.**
+
+        Parameters:
+
+            in_dim:
+                The dimension at the input layer of the pooling
+
+            pooling:
+                The list of pooling layers to use. The accepted strings are:
+
+                - "sum": `SumPooling`
+                - "mean": `MeanPooling`
+                - "max": `MaxPooling`
+                - "min": `MinPooling`
+                - "std": `StdPooling`
+                - "s2s": `Set2Set`
+                - "dir{int}": `DirPooling`
+
+            kwargs:
+                Kew-word arguments for the pooling layer initialization
+
+        Return:
+            pool_layer: Pooling layer module
+            out_pool_dim: Output dimension of the pooling layer
+
+        """
+        return parse_pooling_layer_pyg(in_dim, pooling, **kwargs)
+
+    def _pool_layer_forward(
+        self,
+        g: Batch,
+        feat: torch.Tensor,
+    ):
+        r"""
+        Apply the graph pooling layer, followed by the linear output layer.
+
+        Parameters:
+
+            g: pyg Batch graph on which the convolution is done
+
+            feat (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the output size of the last Graph layer
+
+        Returns:
+            torch.Tensor[..., M, Din] or torch.Tensor[..., N, Din]:
+                Node feature tensor, after convolution.
+                `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
+                If the pooling is `None`, the dimension is `N`, otherwise it is `M`
+
+        """
+
+        if len(self.global_pool_layer) > 0:
+            pooled_feat = self.global_pool_layer(g, feat)
+        else:
+            pooled_feat = feat
+
+        # pooled_feat = self.out_linear(pooled_feat) 
+
+        return pooled_feat
+
+    def vectorized_nodepair_approach(self, feat: torch.tensor):
+        r"""
+        Vectorized implementation of nodepair-level task. See approach here:(https://github.com/datamol-io/goli/issues/5#issuecomment-1502162544)
+        Parameters:
+            feat: Node features
+        Returns:
+            result: concatenation of node features
+        """
+        n = feat.size()[0]
+        h_X = feat[:, None].repeat(1, n, 1)
+        h_Y = feat[None, :].repeat(n, 1, 1)
+        nodepair_h = torch.cat((h_X + h_Y, torch.abs(h_X - h_Y)), dim=-1)
+        mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
+        result = nodepair_h[mask, :]
+        return result
+
+    def forward(self, g: Batch) -> Dict[str, torch.Tensor]:
         r"""
         forward function of the task head
         Parameters:
-            h: input tensor
+            feat: Node features
+            edge_feat: Edge features
         Returns:
             task_head_outputs: Return a dictionary: Dict[task_name, Tensor]
         """
-        task_head_outputs = {}
+        # Check if at least one nodepair task is present
+        if "nodepair" in self.task_levels:
+            g["nodepair_feat"] = self.vectorized_nodepair_approach(g["feat"])
 
-        for task, head in self.task_heads.items():
-            task_head_outputs[task] = head.forward(h)
+        # Check if at least one graph-level task is present
+        if "graph" in self.task_levels:
+            # pool features
+            g["graph_feat"] = self._pool_layer_forward(g, g["feat"])
+
+        features = {
+            task_level: self.shared_MLP[task_level](g[self.map_task_level[task_level]])
+            for task_level in self.task_levels
+        }
+        task_head_outputs = {}
+        for task_name, head in self.task_heads.items():
+            task_level = self.task_heads_kwargs[task_name].get(
+                "task_level", None
+            )  # Get task_level without modifying head_kwargs
+            task_head_outputs[task_name] = head.forward(features[task_level])
 
         return task_head_outputs
 
