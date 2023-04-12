@@ -1498,7 +1498,7 @@ class TaskHeads(nn.Module, MupMixin):
         }
         self.in_dim = in_dim
         self.task_heads = nn.ModuleDict()
-        self.shared_MLP = nn.ModuleDict()
+        self.post_nn = nn.ModuleDict()
         
 
         for task_name, head_kwargs in self.task_heads_kwargs.items():
@@ -1515,7 +1515,7 @@ class TaskHeads(nn.Module, MupMixin):
             head_in_dim = head_kwargs.pop("in_dim", None)
             if head_in_dim is not None:
                 assert self.in_dim == head_in_dim, f"Inconsistent input dim {self.in_dim} != {head_in_dim}"
-            self.shared_MLP[task_level] = FeedForwardNN(
+            self.post_nn[task_level] = FeedForwardNN(
                 in_dim=self.in_dim, **self.shared_mlp_kwargs[task_level]
             )
             # Create a new dictionary without the task_level key-value pair, and pass it while initializing the FeedForwardNN instance for tasks
@@ -1627,7 +1627,7 @@ class TaskHeads(nn.Module, MupMixin):
             g["graph_feat"] = self._pool_layer_forward(g, g["feat"])
 
         features = {
-            task_level: self.shared_MLP[task_level](g[self.map_task_level[task_level]])
+            task_level: self.post_nn[task_level](g[self.map_task_level[task_level]])
             for task_level in self.task_levels
         }
         task_head_outputs = {}
