@@ -260,9 +260,9 @@ class BaseDataModule(pl.LightningDataModule):
             return "parquet"
         elif ".sdf" in str(path)[-8:]:  # support compressed sdf files
             return "sdf"
-        elif ".csv" in str(path)[-8:]: # support compressed csv files
+        elif ".csv" in str(path)[-8:]:  # support compressed csv files
             return "csv"
-        elif ".tsv" in str(path)[-8:]: # support compressed tsv files
+        elif ".tsv" in str(path)[-8:]:  # support compressed tsv files
             return "tsv"
         else:
             raise ValueError(f"unsupported file `{path}`")
@@ -298,7 +298,7 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _read_parquet(path, **kwargs):
-        kwargs.pop("dtype", None) # Only useful for csv
+        kwargs.pop("dtype", None)  # Only useful for csv
         column_names = BaseDataModule._get_table_columns(path)
 
         # Change the 'usecols' parameter to 'columns'
@@ -309,13 +309,14 @@ class BaseDataModule(pl.LightningDataModule):
         if columns is None:
             columns = column_names
         for column in columns:
-            assert column in column_names, f"Column `{column}` is not in the parquet file with columns {column_names}"
+            assert (
+                column in column_names
+            ), f"Column `{column}` is not in the parquet file with columns {column_names}"
 
         # Read the parquet file per column, and convert the data to float16 to reduce memory consumption
         all_series = {}
         progress = tqdm(columns)
         for col in progress:
-
             # Read single column
             progress.set_description(f"Reading parquet column `{col}`")
             this_series = pd.read_parquet(path, columns=[col], engine="fastparquet", **kwargs)[col]
@@ -338,7 +339,7 @@ class BaseDataModule(pl.LightningDataModule):
                     this_series = this_series.astype(np.float16)
 
             all_series[col] = this_series
-            gc.collect() # Reset memory after each column
+            gc.collect()  # Reset memory after each column
 
         # Merge columns into a dataframe
         df = pd.concat(all_series, axis=1)
@@ -405,7 +406,7 @@ class BaseDataModule(pl.LightningDataModule):
             return self._read_parquet(path, **kwargs)
         elif ".sdf" in str(path)[-7:]:  # support compressed sdf files
             return self._read_sdf(path, **kwargs)
-        elif ".csv" in str(path)[-7:] or ".tsv" in str(path)[-7:]: # support compressed csv and tsv files
+        elif ".csv" in str(path)[-7:] or ".tsv" in str(path)[-7:]:  # support compressed csv and tsv files
             return self._read_csv(path, **kwargs)
         else:
             raise ValueError(f"unsupported file `{path}`")
