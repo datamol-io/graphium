@@ -256,14 +256,26 @@ class BaseDataModule(pl.LightningDataModule):
 
     @staticmethod
     def _get_data_file_type(path):
-        if str(path).endswith((".parquet")):  # Support parquet files. Compression is implicit
+        # Extract the extension
+        name, ext = os.path.splitext(path)
+
+        # support compressed files
+        _, ext2 = os.path.splitext(name)
+        if ext2 != "":
+            ext = f"{ext2}{ext}"
+
+        if ext.endswith((".parquet")):  # Support parquet files. Compression is implicit
             return "parquet"
-        elif ".sdf" in str(path)[-8:]:  # support compressed sdf files
+        elif ".sdf" in ext:  # support compressed sdf files
             return "sdf"
-        elif ".csv" in str(path)[-8:]:  # support compressed csv files
+        elif ".csv" in ext:  # support compressed csv files
             return "csv"
-        elif ".tsv" in str(path)[-8:]:  # support compressed tsv files
+        elif ".tsv" in ext:  # support compressed tsv files
             return "tsv"
+        elif ".pkl" in ext:  # support compressed pickle files
+            return "pkl"
+        elif ext.endswith(".pt"):  # Pytorch tensor files, used for storing index splits
+            return "pt"
         else:
             raise ValueError(f"unsupported file `{path}`")
 
@@ -402,11 +414,12 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
-        if str(path).endswith((".parquet")):
+        file_type = self._get_data_file_type(path)
+        if file_type == "parquet":
             return self._read_parquet(path, **kwargs)
-        elif ".sdf" in str(path)[-7:]:  # support compressed sdf files
+        elif file_type == "sdf":  # support compressed sdf files
             return self._read_sdf(path, **kwargs)
-        elif ".csv" in str(path)[-7:] or ".tsv" in str(path)[-7:]:  # support compressed csv and tsv files
+        elif file_type in ["csv", "tsv"]:  # support compressed csv and tsv files
             return self._read_csv(path, **kwargs)
         else:
             raise ValueError(f"unsupported file `{path}`")
@@ -1454,18 +1467,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         else:
             # Split from an indices file
-            name, ext = os.path.splitext(splits_path)
-            _, ext2 = os.path.splitext(name)
-            if ext2 != "":
-                ext = f"{ext2}{ext}"
-            if ext == ".pt":
+            file_type = self._get_data_file_type(splits_path)
+
+            if file_type == "pt":
                 splits = torch.load(splits_path)
-            elif (".csv" in ext) or (".tsv" in ext):
+            elif file_type in ["csv", "tsv"]:
                 with fsspec.open(str(splits_path)) as f:
                     splits = self._read_csv(splits_path)
                 splits = splits.dropna()
             else:
-                raise ValueError(f"file extension {ext} not recognised, please use .pt or .csv.")
+                raise ValueError(
+                    f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
+                )
             train, val, test = split_names
             train_indices = splits[train].astype("int").tolist()
             val_indices = splits[val].astype("int").tolist()

@@ -177,3 +177,4 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+goli/data/PCQM4M/pcqm4mv2-20k.csv
