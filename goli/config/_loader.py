@@ -194,10 +194,10 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
     """
 
     task_metrics = {}
-    cfg_metrics = deepcopy(config["metrics"])
+    cfg_metrics = config.get("metrics", None)
     if cfg_metrics is None:
         return task_metrics
-
+    cfg_metrics = {key: deepcopy(value) for key, value in config["metrics"].items()}
     # Wrap every metric in the class `MetricWrapper` to standardize them
     for task in cfg_metrics:
         task_metrics[task] = {}

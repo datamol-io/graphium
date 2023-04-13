@@ -29,6 +29,7 @@ goli/data/mega-pubchem/
 goli/data/cache/
 goli/data/b3lyp/
 goli/data/PCQM4Mv2/
+goli/data/PCQM4M/
 predictions/
 
 # Others
