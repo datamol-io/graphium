@@ -101,15 +101,46 @@ architecture:     # The parameters for the full graph network are taken from `co
       scalers: [identity, amplification, attenuation]
 
   post_nn:        # Set as null to avoid a post-nn network
-    out_dim: 16                       # This was originally 1
-    hidden_dims: 32
-    depth: 2
-    activation: relu
-    last_activation: none
-    dropout: *dropout
-    normalization: *normalization
-    last_normalization: "none"
-    residual_type: none
+    node:
+      out_dim: 16
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none 
+    graph:
+      out_dim: 1
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none 
+    edge:
+      out_dim: 16
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none 
+    nodepair:
+      out_dim: 16
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none     
 
   task_heads:     # Set as null to avoid task heads. Recall that the arguments for the TaskHeads is a List of TaskHeadParams
     task_1:
@@ -149,37 +180,3 @@ architecture:     # The parameters for the full graph network are taken from `co
       dropout: 0.2
       normalization: none
       residual_type: none
-
-  shared_mlp:
-    node:
-      out_dim: 16
-      hidden_dims: [8, 9, 10]
-      activation: relu
-      last_activation: none
-      dropout: 0.2
-      normalization: none
-      residual_type: none  
-    graph:
-      out_dim: 16
-      hidden_dims: [8, 9, 10]
-      activation: relu
-      last_activation: none
-      dropout: 0.2
-      normalization: none
-      residual_type: none   
-    edge:
-      out_dim: 16
-      hidden_dims: [8, 9, 10]
-      activation: relu
-      last_activation: none
-      dropout: 0.2
-      normalization: none
-      residual_type: none  
-    nodepair:
-      out_dim: 16
-      hidden_dims: [8, 9, 10]
-      activation: relu
-      last_activation: none
-      dropout: 0.2
-      normalization: none
-      residual_type: none      

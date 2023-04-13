@@ -136,7 +136,7 @@ def toy_test_data(in_dim=7, in_dim_edges=3, task_level="node"):
 class test_TaskHeads(ut.TestCase):
     def test_task_heads_forward(self):
         in_dim = 8  # Dimension of the incoming data
-
+        in_dim_edges = 8
 
         task_heads_params = {
             "task_1": task_1_params,
@@ -144,7 +144,7 @@ class test_TaskHeads(ut.TestCase):
             "task_3": task_3_params,
             "task_4": task_4_params,
         }
-        shared_mlp_params = {
+        post_nn_kwargs = {
             "node": node_level_kwargs,
             "edge": edge_level_kwargs,
             "graph": graph_level_kwargs,
@@ -152,7 +152,7 @@ class test_TaskHeads(ut.TestCase):
         }
         # Create the "multitask" network. Really it's just an input going to various FFNNs since there's nothing shared.
         multi_head_nn = TaskHeads(
-            in_dim=in_dim, task_heads_kwargs=task_heads_params, shared_mlp_kwargs=shared_mlp_params
+            in_dim=in_dim, in_dim_edges=in_dim_edges, task_heads_kwargs=task_heads_params, post_nn_kwargs=post_nn_kwargs
         )
 
         # Test the sizes of the MLPs for each head
