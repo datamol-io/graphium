@@ -935,13 +935,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         # Produce the label sizes to update the collate function
         labels_size = {}
-
+        data_hash = self.get_data_hash()
         if stage == "fit" or stage is None:
-            processed_train_data_path = osp.join(self.processed_graph_data_path, "train")
+            processed_train_data_path = osp.join(self.processed_graph_data_path, f"train_{data_hash}")
             train_load_from_file = (
                 osp.exists(processed_train_data_path) and self.get_folder_size(processed_train_data_path) > 0
             )
-            processed_val_data_path = osp.join(self.processed_graph_data_path, "val")
+            processed_val_data_path = osp.join(self.processed_graph_data_path, f"val_{data_hash}")
             val_load_from_file = (
                 osp.exists(processed_val_data_path) and self.get_folder_size(processed_val_data_path) > 0
             )
@@ -982,7 +982,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            processed_test_data_path = osp.join(self.processed_graph_data_path, "test")
+            processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{data_hash}")
             test_load_from_file = (
                 osp.exists(processed_test_data_path) and self.get_folder_size(processed_test_data_path) > 0
             )

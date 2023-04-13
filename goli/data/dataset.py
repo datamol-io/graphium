@@ -275,9 +275,11 @@ class MultitaskDataset(Dataset):
         """
         datum = {}
         if self.load_from_file:
-            data_dict = self.get_data(idx)
+            data_dict = self.load_graph_from_index(idx)
             datum["features"] = data_dict["graph_with_features"]
             datum["labels"] = data_dict["labels"]
+            if "smiles" in data_dict.keys():
+                datum["smiles"] = data_dict["smiles"]
         else:
             if self.mol_ids is not None:
                 datum["mol_ids"] = self.mol_ids[idx]
@@ -293,7 +295,14 @@ class MultitaskDataset(Dataset):
 
         return datum
 
-    def get_data(self, data_idx):
+    def load_graph_from_index(self, data_idx):
+        r"""
+        load the graph (in pickle file) from the disk
+        Parameters:
+            data_idx: The index of the data to retrieve
+        Returns:
+            A dictionary containing the data for the specified index with keys "graph_with_features", "labels" and "smiles" (optional).
+        """
         filename = os.path.join(
             self.data_path, format(data_idx // 1000, "04d"), format(data_idx, "07d") + ".pkl"
         )
