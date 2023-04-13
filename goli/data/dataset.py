@@ -146,7 +146,7 @@ class MultitaskDataset(Dataset):
         save_smiles_and_ids: bool = False,
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
-        load_from_file: bool = True,
+        load_from_file: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.

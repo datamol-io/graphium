@@ -944,7 +944,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             if self.processed_graph_data_path is not None:
                 processed_train_data_path = osp.join(self.processed_graph_data_path, f"train_{data_hash}")
                 train_load_from_file = (
-                    osp.exists(processed_train_data_path) and self.get_folder_size(processed_train_data_path) > 0
+                    osp.exists(processed_train_data_path)
+                    and self.get_folder_size(processed_train_data_path) > 0
                 )
                 processed_val_data_path = osp.join(self.processed_graph_data_path, f"val_{data_hash}")
                 val_load_from_file = (
@@ -992,7 +993,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             if self.processed_graph_data_path is not None:
                 processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{data_hash}")
                 test_load_from_file = (
-                    osp.exists(processed_test_data_path) and self.get_folder_size(processed_test_data_path) > 0
+                    osp.exists(processed_test_data_path)
+                    and self.get_folder_size(processed_test_data_path) > 0
                 )
             self.test_ds = Datasets.MultitaskDataset(
                 self.test_singletask_datasets,

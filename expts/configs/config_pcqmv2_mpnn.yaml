@@ -18,7 +18,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 3000 # use sample_size for test
+        sample_size: 6000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
@@ -59,7 +59,7 @@ datamodule:
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: 40 # -1 to use all
-    persistent_workers: True # if use persistent worker at the start of each epoch.
+    persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
