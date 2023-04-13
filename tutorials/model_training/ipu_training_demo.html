@@ -265,14 +265,14 @@
       
       
         <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
-          basics
+          feature_processing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2_1">
           <span class="md-nav__icon md-icon"></span>
-          basics
+          feature_processing
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -282,8 +282,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../basics/using_gnn_layers.html" class="md-nav__link">
-        Using GNN layers
+      <a href="../feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
       </a>
     </li>
   
@@ -296,35 +296,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../basics/implementing_gnn_layers.html" class="md-nav__link">
-        Creating GNN layers
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../basics/making_gnn_networks.html" class="md-nav__link">
-        Making GNN Networks
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../basics/csv_to_parquet.html" class="md-nav__link">
+      <a href="../feature_processing/csv_to_parquet.html" class="md-nav__link">
         Convert CSV to Parquet files
       </a>
     </li>
@@ -338,8 +310,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../basics/parquet_reader.html" class="md-nav__link">
-        Reading Parquet files
+      <a href="../feature_processing/timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
       </a>
     </li>
   
@@ -371,12 +343,90 @@
       
       
         <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
-          model_training
+          gnn_layers
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_3">
           <span class="md-nav__icon md-icon"></span>
           model_training
         </label>
@@ -1821,7 +1871,7 @@ Licensed under the Apache License, Version 2.0.
     init_mathjax();
     </script>
     <!-- End of mathjax configuration --><div class="jupyter-wrapper"><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=22b6137a" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=b558a16b" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1869,7 +1919,7 @@ from pytorch_lightning.utilities.model_summary import ModelSummary</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=1580b5a5" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=1d84737b" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1907,7 +1957,7 @@ from goli.utils.safe_run import SafeRun</div>
 
 </div>
 </div>
-<div id="cell-id=09c82692" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div id="cell-id=61f4080d" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1920,7 +1970,7 @@ Aggregation.set_validate_args(False)</p>
 </div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=3cc568dd" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=429b12ec" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1954,7 +2004,7 @@ import wandb</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=07e6ec30" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=109be6c5" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -1994,7 +2044,7 @@ os.chdir(MAIN_DIR)</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=d2e74446" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=aeffe7c7" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2028,7 +2078,7 @@ os.chdir(MAIN_DIR)</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=739eeb95" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=ca91cd80" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2064,7 +2114,7 @@ datamodule.prepare_data()</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=92edf05c" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=d2dead94" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2104,7 +2154,7 @@ model_class, model_kwargs = load_architecture(
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=a75f1d02" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=f8978035" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2138,7 +2188,7 @@ logger.info(metrics)</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=6761756e" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=277ef773" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2172,7 +2222,7 @@ predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])</di
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=4e27c9f8" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=95a21aa4" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2206,7 +2256,7 @@ logger.info(ModelSummary(predictor, max_depth=4))</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=5a88f60d" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=14d1abe9" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2238,7 +2288,7 @@ logger.info(ModelSummary(predictor, max_depth=4))</div>
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=844544ad" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=db18e545" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2274,7 +2324,7 @@ with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"],
 
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div id="cell-id=1d7cd6cd" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=7c60c633" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>

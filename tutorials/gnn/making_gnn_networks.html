@@ -10,20 +10,20 @@
       
       
       
-        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/basics/parquet_reader.html">
+        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/gnn/making_gnn_networks.html">
       
       
-        <link rel="prev" href="csv_to_parquet.html">
+        <link rel="prev" href="add_new_gnn_layers.html">
       
       
-        <link rel="next" href="../model_training/simple-molecular-model.html">
+        <link rel="next" href="using_gnn_layers.html">
       
       <link rel="icon" href="../../images/logo.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
     
     
       
-        <title>Reading Parquet files - goli</title>
+        <title>Making GNN Networks - goli</title>
       
     
     
@@ -74,6 +74,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#making-gnn-networks" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -104,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Reading Parquet files
+              Making GNN Networks
             
           </span>
         </div>
@@ -255,28 +260,28 @@
               
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
       
       
       
         <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
-          basics
+          feature_processing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2_1">
           <span class="md-nav__icon md-icon"></span>
-          basics
+          feature_processing
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -286,8 +291,8 @@
   
   
     <li class="md-nav__item">
-      <a href="using_gnn_layers.html" class="md-nav__link">
-        Using GNN layers
+      <a href="../feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
       </a>
     </li>
   
@@ -300,36 +305,72 @@
   
   
     <li class="md-nav__item">
-      <a href="implementing_gnn_layers.html" class="md-nav__link">
-        Creating GNN layers
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="making_gnn_networks.html" class="md-nav__link">
-        Making GNN Networks
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="csv_to_parquet.html" class="md-nav__link">
+      <a href="../feature_processing/csv_to_parquet.html" class="md-nav__link">
         Convert CSV to Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_processing/timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          gnn_layers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
       </a>
     </li>
   
@@ -348,11 +389,65 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
       
-      <a href="parquet_reader.html" class="md-nav__link md-nav__link--active">
-        Reading Parquet files
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Making GNN Networks
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="making_gnn_networks.html" class="md-nav__link md-nav__link--active">
+        Making GNN Networks
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-network" class="md-nav__link">
+    Building the network
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applying-the-network" class="md-nav__link">
+    Applying the network
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
     </li>
   
 
@@ -378,17 +473,17 @@
       
         
       
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
       
       
       
-        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+        <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
           model_training
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_2_2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_3">
           <span class="md-nav__icon md-icon"></span>
           model_training
         </label>
@@ -428,7 +523,7 @@
   
   
     <li class="md-nav__item">
-      <a href="choosing_parallelization.ipynb" class="md-nav__link">
+      <a href="../basics/choosing_parallelization.ipynb" class="md-nav__link">
         Chosing the right parallelization
       </a>
     </li>
@@ -783,6 +878,30 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#building-the-network" class="md-nav__link">
+    Building the network
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#applying-the-network" class="md-nav__link">
+    Applying the network
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -799,8 +918,6 @@
   
   
 
-
-  <h1>Reading Parquet files</h1>
 
 <script>
 (function (global, factory) {
@@ -962,6 +1079,33 @@
           notice.hidden = true
         }, 1000)
       })
+</script><script>
+(function() {
+  function addWidgetsRenderer() {
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var scriptElement = document.createElement('script');
+    
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        
+        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
+        
+      }
+    } catch(e) {}
+
+    scriptElement.src = widgetRendererSrc;
+    document.body.appendChild(scriptElement);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
 </script>
 
 
@@ -1832,13 +1976,27 @@ Licensed under the Apache License, Version 2.0.
     }
     init_mathjax();
     </script>
-    <!-- End of mathjax configuration --><div class="jupyter-wrapper"><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+    <!-- End of mathjax configuration --><div class="jupyter-wrapper">
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="making-gnn-networks">Making GNN Networks<a class="anchor-link" href="#making-gnn-networks">&#182;</a></h1><p>In this example, you will learn how to easily build a full GNN network using any kind of GNN layer. This tutorial uses the architecture defined by the class <code>FullDGLNetwork</code>, which is compatible with any layer that inherits from <code>BaseDGLLayer</code>.</p>
+<p><code>FullDGLNetwork</code> is an architecture that takes as input node features and (optionally) edge features. It applies a pre-MLP on both sets of features, then it passes it into a main GNN network, and finally applies a post-MLP to produce the final output (either node predictions or graph property predictions).</p>
+<p>The network is very easy to built via a dictionnary of parameter that allow to custom each part of the network.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -1853,63 +2011,29 @@ Licensed under the Apache License, Version 2.0.
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pyarrow</span> <span class="k">as</span> <span class="nn">pa</span>
-<span class="kn">import</span> <span class="nn">pyarrow.parquet</span> <span class="k">as</span> <span class="nn">pq</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">google.cloud</span> <span class="kn">import</span> <span class="n">storage</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="o">%</span><span class="n">load_ext</span> <span class="n">autoreload</span>
+<span class="o">%</span><span class="n">autoreload</span> <span class="mi">2</span>
 
-<span class="c1"># TODO create funciton to read parquet, test from GCP storage (put it in path, should support gs and path, explore function from Pandas instead of parquet &quot;pq&quot;)</span>
-<span class="k">def</span> <span class="nf">_read_parquet</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">dgl</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-    <span class="n">bucket_name</span> <span class="o">=</span> <span class="n">path</span>
-    <span class="n">destination_blob_name</span> <span class="o">=</span> <span class="s1">&#39;Compound_000025001_000050000.parquet&#39;</span>
-    
-    <span class="n">storage_client</span> <span class="o">=</span> <span class="n">storage</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
-    <span class="n">bucket</span> <span class="o">=</span> <span class="n">storage_client</span><span class="o">.</span><span class="n">bucket</span><span class="p">(</span><span class="n">bucket_name</span><span class="p">)</span>
-    <span class="n">blob</span> <span class="o">=</span> <span class="n">bucket</span><span class="o">.</span><span class="n">blob</span><span class="p">(</span><span class="n">destination_blob_name</span><span class="p">)</span>
- 
-    <span class="c1"># read as string</span>
-    <span class="n">read_output</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">download_as_string</span><span class="p">()</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">StringIO</span><span class="p">(</span><span class="n">read_output</span><span class="p">))</span>
- 
-    <span class="nb">print</span><span class="p">(</span>
-        <span class="s2">&quot;File </span><span class="si">{}</span><span class="s2"> read successfully  from Bucket  </span><span class="si">{}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">destination_blob_name</span><span class="p">,</span> <span class="n">bucket_name</span>
-        <span class="p">)</span>
-    <span class="p">)</span>
+<span class="kn">from</span> <span class="nn">goli.nn.dgl_layers</span> <span class="kn">import</span> <span class="n">PNAMessagePassingLayer</span>
+<span class="kn">from</span> <span class="nn">goli.nn.architectures</span> <span class="kn">import</span> <span class="n">FullDGLNetwork</span>
 
-<span class="n">_read_parquet</span><span class="p">(</span><span class="s1">&#39;gs://goli-private/datasets/pm6&#39;</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
-<div id="cell-1" class="clipboard-copy-txt">import os
-import pyarrow as pa
-import pyarrow.parquet as pq
-import pandas as pd
-from google.cloud import storage
-from io import StringIO
+<div id="cell-1" class="clipboard-copy-txt">%load_ext autoreload
+%autoreload 2
 
-# TODO create funciton to read parquet, test from GCP storage (put it in path, should support gs and path, explore function from Pandas instead of parquet "pq")
-def _read_parquet(path, **kwargs):
+import torch
+import dgl
+from copy import deepcopy
 
-    bucket_name = path
-    destination_blob_name = 'Compound_000025001_000050000.parquet'
-    
-    storage_client = storage.Client()
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
- 
-    # read as string
-    read_output = blob.download_as_string()
-    df = pd.read_csv(StringIO(read_output))
- 
-    print(
-        "File {} read successfully  from Bucket  {}.".format(
-            destination_blob_name, bucket_name
-        )
-    )
+from goli.nn.dgl_layers import PNAMessagePassingLayer
+from goli.nn.architectures import FullDGLNetwork
 
-_read_parquet('gs://goli-private/datasets/pm6')</div>
+_ = torch.manual_seed(42)</div>
         
         </div>
     </div>
@@ -1929,153 +2053,8 @@ _read_parquet('gs://goli-private/datasets/pm6')</div>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>
-<span class="ansi-red-fg">---------------------------------------------------------------------------</span>
-<span class="ansi-red-fg">InvalidResponse</span>                           Traceback (most recent call last)
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/cloud/storage/client.py:1151</span>, in <span class="ansi-cyan-fg">Client.download_blob_to_file</span><span class="ansi-blue-fg">(self, blob_or_uri, file_obj, start, end, raw_download, if_etag_match, if_etag_not_match, if_generation_match, if_generation_not_match, if_metageneration_match, if_metageneration_not_match, timeout, checksum, retry)</span>
-<span class="ansi-green-intense-fg ansi-bold">   1150</span> try:
-<span class="ansi-green-fg">-&gt; 1151</span>     blob_or_uri._do_download(
-<span class="ansi-green-intense-fg ansi-bold">   1152</span>         transport,
-<span class="ansi-green-intense-fg ansi-bold">   1153</span>         file_obj,
-<span class="ansi-green-intense-fg ansi-bold">   1154</span>         download_url,
-<span class="ansi-green-intense-fg ansi-bold">   1155</span>         headers,
-<span class="ansi-green-intense-fg ansi-bold">   1156</span>         start,
-<span class="ansi-green-intense-fg ansi-bold">   1157</span>         end,
-<span class="ansi-green-intense-fg ansi-bold">   1158</span>         raw_download,
-<span class="ansi-green-intense-fg ansi-bold">   1159</span>         timeout=timeout,
-<span class="ansi-green-intense-fg ansi-bold">   1160</span>         checksum=checksum,
-<span class="ansi-green-intense-fg ansi-bold">   1161</span>         retry=retry,
-<span class="ansi-green-intense-fg ansi-bold">   1162</span>     )
-<span class="ansi-green-intense-fg ansi-bold">   1163</span> except resumable_media.InvalidResponse as exc:
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/cloud/storage/blob.py:989</span>, in <span class="ansi-cyan-fg">Blob._do_download</span><span class="ansi-blue-fg">(self, transport, file_obj, download_url, headers, start, end, raw_download, timeout, checksum, retry)</span>
-<span class="ansi-green-intense-fg ansi-bold">    988</span> download._retry_strategy = retry_strategy
-<span class="ansi-green-fg">--&gt; 989</span> response = download.consume(transport, timeout=timeout)
-<span class="ansi-green-intense-fg ansi-bold">    990</span> self._extract_headers_from_download(response)
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/resumable_media/requests/download.py:214</span>, in <span class="ansi-cyan-fg">Download.consume</span><span class="ansi-blue-fg">(self, transport, timeout)</span>
-<span class="ansi-green-intense-fg ansi-bold">    212</span>     return result
-<span class="ansi-green-fg">--&gt; 214</span> return _request_helpers.wait_and_retry(
-<span class="ansi-green-intense-fg ansi-bold">    215</span>     retriable_request, self._get_status_code, self._retry_strategy
-<span class="ansi-green-intense-fg ansi-bold">    216</span> )
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/resumable_media/requests/_request_helpers.py:148</span>, in <span class="ansi-cyan-fg">wait_and_retry</span><span class="ansi-blue-fg">(func, get_status_code, retry_strategy)</span>
-<span class="ansi-green-intense-fg ansi-bold">    147</span> try:
-<span class="ansi-green-fg">--&gt; 148</span>     response = func()
-<span class="ansi-green-intense-fg ansi-bold">    149</span> except _CONNECTION_ERROR_CLASSES as e:
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/resumable_media/requests/download.py:207</span>, in <span class="ansi-cyan-fg">Download.consume.&lt;locals&gt;.retriable_request</span><span class="ansi-blue-fg">()</span>
-<span class="ansi-green-intense-fg ansi-bold">    203</span>     self._object_generation = _helpers._parse_generation_header(
-<span class="ansi-green-intense-fg ansi-bold">    204</span>         result, self._get_headers
-<span class="ansi-green-intense-fg ansi-bold">    205</span>     )
-<span class="ansi-green-fg">--&gt; 207</span> self._process_response(result)
-<span class="ansi-green-intense-fg ansi-bold">    209</span> if self._stream is not None:
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/resumable_media/_download.py:188</span>, in <span class="ansi-cyan-fg">Download._process_response</span><span class="ansi-blue-fg">(self, response)</span>
-<span class="ansi-green-intense-fg ansi-bold">    187</span> self._finished = True
-<span class="ansi-green-fg">--&gt; 188</span> _helpers.require_status_code(
-<span class="ansi-green-intense-fg ansi-bold">    189</span>     response, _ACCEPTABLE_STATUS_CODES, self._get_status_code
-<span class="ansi-green-intense-fg ansi-bold">    190</span> )
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/resumable_media/_helpers.py:105</span>, in <span class="ansi-cyan-fg">require_status_code</span><span class="ansi-blue-fg">(response, status_codes, get_status_code, callback)</span>
-<span class="ansi-green-intense-fg ansi-bold">    104</span>         callback()
-<span class="ansi-green-fg">--&gt; 105</span>     raise common.InvalidResponse(
-<span class="ansi-green-intense-fg ansi-bold">    106</span>         response,
-<span class="ansi-green-intense-fg ansi-bold">    107</span>         &#34;Request failed with status code&#34;,
-<span class="ansi-green-intense-fg ansi-bold">    108</span>         status_code,
-<span class="ansi-green-intense-fg ansi-bold">    109</span>         &#34;Expected one of&#34;,
-<span class="ansi-green-intense-fg ansi-bold">    110</span>         *status_codes
-<span class="ansi-green-intense-fg ansi-bold">    111</span>     )
-<span class="ansi-green-intense-fg ansi-bold">    112</span> return status_code
-
-<span class="ansi-red-fg">InvalidResponse</span>: (&#39;Request failed with status code&#39;, 404, &#39;Expected one of&#39;, &lt;HTTPStatus.OK: 200&gt;, &lt;HTTPStatus.PARTIAL_CONTENT: 206&gt;)
-
-During handling of the above exception, another exception occurred:
-
-<span class="ansi-red-fg">NotFound</span>                                  Traceback (most recent call last)
-<span class="ansi-green-intense-fg ansi-bold">/home/oleksandr/code/goli/tests/parquet_reader.ipynb Cell 1</span> in <span class="ansi-cyan-fg">&lt;cell line: 39&gt;</span><span class="ansi-blue-fg">()</span>
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=23&#39;&gt;24&lt;/a&gt;</span>     print(
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=24&#39;&gt;25&lt;/a&gt;</span>         &#34;File {} read successfully  from Bucket  {}.&#34;.format(
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=25&#39;&gt;26&lt;/a&gt;</span>             destination_blob_name, bucket_name
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=26&#39;&gt;27&lt;/a&gt;</span>         )
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=27&#39;&gt;28&lt;/a&gt;</span>     )
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=29&#39;&gt;30&lt;/a&gt;</span>     # files = os.listdir(path)
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=30&#39;&gt;31&lt;/a&gt;</span>     # print(&#39;files is&#39;, files)
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=31&#39;&gt;32&lt;/a&gt;</span> 
-<span class="ansi-green-fg">   (...)</span>
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=35&#39;&gt;36&lt;/a&gt;</span>     # # df = pd.read_csv(path, **kwargs)
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=36&#39;&gt;37&lt;/a&gt;</span>     # return df
-<span class="ansi-green-fg">---&gt; &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=38&#39;&gt;39&lt;/a&gt;</span> _read_parquet(&#39;gs://goli-private/datasets/pm6&#39;)
-
-<span class="ansi-green-intense-fg ansi-bold">/home/oleksandr/code/goli/tests/parquet_reader.ipynb Cell 1</span> in <span class="ansi-cyan-fg">_read_parquet</span><span class="ansi-blue-fg">(path, **kwargs)</span>
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=15&#39;&gt;16&lt;/a&gt;</span> blob = bucket.blob(destination_blob_name)
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=17&#39;&gt;18&lt;/a&gt;</span> # read as string
-<span class="ansi-green-fg">---&gt; &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=18&#39;&gt;19&lt;/a&gt;</span> read_output = blob.download_as_string()
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=20&#39;&gt;21&lt;/a&gt;</span> # blobstring = blob_service.get_blob_to_text(CONTAINERNAME,BLOBNAME)
-<span class="ansi-green-intense-fg ansi-bold">     &lt;a href=&#39;vscode-notebook-cell://ssh-remote%2B193.57.88.53/home/oleksandr/code/goli/tests/parquet_reader.ipynb#ch0000000vscode-remote?line=21&#39;&gt;22&lt;/a&gt;</span> df = pd.read_csv(StringIO(read_output))
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/cloud/storage/blob.py:1516</span>, in <span class="ansi-cyan-fg">Blob.download_as_string</span><span class="ansi-blue-fg">(self, client, start, end, raw_download, if_etag_match, if_etag_not_match, if_generation_match, if_generation_not_match, if_metageneration_match, if_metageneration_not_match, timeout, retry)</span>
-<span class="ansi-green-intense-fg ansi-bold">   1434</span> &#34;&#34;&#34;(Deprecated) Download the contents of this blob as a bytes object.
-<span class="ansi-green-intense-fg ansi-bold">   1435</span> 
-<span class="ansi-green-intense-fg ansi-bold">   1436</span> If :attr:`user_project` is set on the bucket, bills the API request
-<span class="ansi-green-fg">   (...)</span>
-<span class="ansi-green-intense-fg ansi-bold">   1511</span> :raises: :class:`google.cloud.exceptions.NotFound`
-<span class="ansi-green-intense-fg ansi-bold">   1512</span> &#34;&#34;&#34;
-<span class="ansi-green-intense-fg ansi-bold">   1513</span> warnings.warn(
-<span class="ansi-green-intense-fg ansi-bold">   1514</span>     _DOWNLOAD_AS_STRING_DEPRECATED, PendingDeprecationWarning, stacklevel=2
-<span class="ansi-green-intense-fg ansi-bold">   1515</span> )
-<span class="ansi-green-fg">-&gt; 1516</span> return self.download_as_bytes(
-<span class="ansi-green-intense-fg ansi-bold">   1517</span>     client=client,
-<span class="ansi-green-intense-fg ansi-bold">   1518</span>     start=start,
-<span class="ansi-green-intense-fg ansi-bold">   1519</span>     end=end,
-<span class="ansi-green-intense-fg ansi-bold">   1520</span>     raw_download=raw_download,
-<span class="ansi-green-intense-fg ansi-bold">   1521</span>     if_etag_match=if_etag_match,
-<span class="ansi-green-intense-fg ansi-bold">   1522</span>     if_etag_not_match=if_etag_not_match,
-<span class="ansi-green-intense-fg ansi-bold">   1523</span>     if_generation_match=if_generation_match,
-<span class="ansi-green-intense-fg ansi-bold">   1524</span>     if_generation_not_match=if_generation_not_match,
-<span class="ansi-green-intense-fg ansi-bold">   1525</span>     if_metageneration_match=if_metageneration_match,
-<span class="ansi-green-intense-fg ansi-bold">   1526</span>     if_metageneration_not_match=if_metageneration_not_match,
-<span class="ansi-green-intense-fg ansi-bold">   1527</span>     timeout=timeout,
-<span class="ansi-green-intense-fg ansi-bold">   1528</span>     retry=retry,
-<span class="ansi-green-intense-fg ansi-bold">   1529</span> )
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/cloud/storage/blob.py:1401</span>, in <span class="ansi-cyan-fg">Blob.download_as_bytes</span><span class="ansi-blue-fg">(self, client, start, end, raw_download, if_etag_match, if_etag_not_match, if_generation_match, if_generation_not_match, if_metageneration_match, if_metageneration_not_match, timeout, checksum, retry)</span>
-<span class="ansi-green-intense-fg ansi-bold">   1399</span> client = self._require_client(client)
-<span class="ansi-green-intense-fg ansi-bold">   1400</span> string_buffer = BytesIO()
-<span class="ansi-green-fg">-&gt; 1401</span> client.download_blob_to_file(
-<span class="ansi-green-intense-fg ansi-bold">   1402</span>     self,
-<span class="ansi-green-intense-fg ansi-bold">   1403</span>     string_buffer,
-<span class="ansi-green-intense-fg ansi-bold">   1404</span>     start=start,
-<span class="ansi-green-intense-fg ansi-bold">   1405</span>     end=end,
-<span class="ansi-green-intense-fg ansi-bold">   1406</span>     raw_download=raw_download,
-<span class="ansi-green-intense-fg ansi-bold">   1407</span>     if_etag_match=if_etag_match,
-<span class="ansi-green-intense-fg ansi-bold">   1408</span>     if_etag_not_match=if_etag_not_match,
-<span class="ansi-green-intense-fg ansi-bold">   1409</span>     if_generation_match=if_generation_match,
-<span class="ansi-green-intense-fg ansi-bold">   1410</span>     if_generation_not_match=if_generation_not_match,
-<span class="ansi-green-intense-fg ansi-bold">   1411</span>     if_metageneration_match=if_metageneration_match,
-<span class="ansi-green-intense-fg ansi-bold">   1412</span>     if_metageneration_not_match=if_metageneration_not_match,
-<span class="ansi-green-intense-fg ansi-bold">   1413</span>     timeout=timeout,
-<span class="ansi-green-intense-fg ansi-bold">   1414</span>     checksum=checksum,
-<span class="ansi-green-intense-fg ansi-bold">   1415</span>     retry=retry,
-<span class="ansi-green-intense-fg ansi-bold">   1416</span> )
-<span class="ansi-green-intense-fg ansi-bold">   1417</span> return string_buffer.getvalue()
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/cloud/storage/client.py:1164</span>, in <span class="ansi-cyan-fg">Client.download_blob_to_file</span><span class="ansi-blue-fg">(self, blob_or_uri, file_obj, start, end, raw_download, if_etag_match, if_etag_not_match, if_generation_match, if_generation_not_match, if_metageneration_match, if_metageneration_not_match, timeout, checksum, retry)</span>
-<span class="ansi-green-intense-fg ansi-bold">   1151</span>     blob_or_uri._do_download(
-<span class="ansi-green-intense-fg ansi-bold">   1152</span>         transport,
-<span class="ansi-green-intense-fg ansi-bold">   1153</span>         file_obj,
-<span class="ansi-green-fg">   (...)</span>
-<span class="ansi-green-intense-fg ansi-bold">   1161</span>         retry=retry,
-<span class="ansi-green-intense-fg ansi-bold">   1162</span>     )
-<span class="ansi-green-intense-fg ansi-bold">   1163</span> except resumable_media.InvalidResponse as exc:
-<span class="ansi-green-fg">-&gt; 1164</span>     _raise_from_invalid_response(exc)
-
-File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/google/cloud/storage/blob.py:4457</span>, in <span class="ansi-cyan-fg">_raise_from_invalid_response</span><span class="ansi-blue-fg">(error)</span>
-<span class="ansi-green-intense-fg ansi-bold">   4453</span>     error_message = str(error)
-<span class="ansi-green-intense-fg ansi-bold">   4455</span> message = f&#34;{response.request.method} {response.request.url}: {error_message}&#34;
-<span class="ansi-green-fg">-&gt; 4457</span> raise exceptions.from_http_status(response.status_code, message, response=response)
-
-<span class="ansi-red-fg">NotFound</span>: 404 GET https://storage.googleapis.com/download/storage/v1/b/gs://goli-private/datasets/pm6/o/Compound_000025001_000050000.parquet?alt=media: Not Found: (&#39;Request failed with status code&#39;, 404, &#39;Expected one of&#39;, &lt;HTTPStatus.OK: 200&gt;, &lt;HTTPStatus.PARTIAL_CONTENT: 206&gt;)</pre>
+<pre>Using backend: pytorch
+</pre>
 </div>
 </div>
 
@@ -2083,6 +2062,18 @@ File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/go
 
 </div>
 
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We will first create some simple batched graphs that will be used accross the examples. Here, <code>bg</code> is a batch containing 2 graphs with random node features.</p>
+
+</div>
+</div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -2090,7 +2081,7 @@ File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/go
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2105,29 +2096,52 @@ File <span class="ansi-green-fg">~/.venv/goli_ipu/lib/python3.8/site-packages/go
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">goli</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">in_dim</span> <span class="o">=</span> <span class="mi">5</span>          <span class="c1"># Input node-feature dimensions</span>
+<span class="n">out_dim</span> <span class="o">=</span> <span class="mi">11</span>        <span class="c1"># Desired output node-feature dimensions</span>
+<span class="n">in_dim_edges</span> <span class="o">=</span> <span class="mi">13</span>   <span class="c1"># Input edge-feature dimensions</span>
 
-<span class="n">MAIN_DIR</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">goli</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)))</span>
+<span class="c1"># Let&#39;s create 2 simple graphs. Here the tensors represent the connectivity between nodes</span>
+<span class="n">g1</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])))</span>
+<span class="n">g2</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])))</span>
 
-<span class="n">filename</span> <span class="o">=</span> <span class="n">MAIN_DIR</span> <span class="o">+</span> <span class="s1">&#39;/goli/data/QM9/micro_qm9&#39;</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_parquet</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1">.parquet&#39;</span><span class="p">)</span>
+<span class="c1"># We add some node features to the graphs</span>
+<span class="n">g1</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;feat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">g2</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;feat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
 
-<span class="n">df</span>
+<span class="c1"># We also add some edge features to the graphs</span>
+<span class="n">g1</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;feat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">g2</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;feat&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="c1"># Finally we batch the graphs in a way compatible with the DGL library</span>
+<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">batch</span><span class="p">([</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">])</span>
+<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">add_self_loop</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+
+<span class="c1"># The batched graph will show as a single graph with 7 nodes</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
 </pre></div>
-<div id="cell-2" class="clipboard-copy-txt">import pandas as pd
-import goli
-import os
-from os.path import dirname, abspath
+<div id="cell-2" class="clipboard-copy-txt">in_dim = 5          # Input node-feature dimensions
+out_dim = 11        # Desired output node-feature dimensions
+in_dim_edges = 13   # Input edge-feature dimensions
 
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+# Let's create 2 simple graphs. Here the tensors represent the connectivity between nodes
+g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
+g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
 
-filename = MAIN_DIR + '/goli/data/QM9/micro_qm9'
-df = pd.read_parquet(f'{filename}.parquet')
+# We add some node features to the graphs
+g1.ndata["feat"] = torch.rand(g1.num_nodes(), in_dim, dtype=float)
+g2.ndata["feat"] = torch.rand(g2.num_nodes(), in_dim, dtype=float)
 
-df</div>
+# We also add some edge features to the graphs
+g1.edata["feat"] = torch.rand(g1.num_edges(), in_dim_edges, dtype=float)
+g2.edata["feat"] = torch.rand(g2.num_edges(), in_dim_edges, dtype=float)
+
+# Finally we batch the graphs in a way compatible with the DGL library
+bg = dgl.batch([g1, g2])
+bg = dgl.add_self_loop(bg)
+
+# The batched graph will show as a single graph with 7 nodes
+print(bg)
+</div>
         
         </div>
     </div>
@@ -2141,322 +2155,16 @@ df</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputArea-child">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[1]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>mol_id</th>
-      <th>smiles</th>
-      <th>A</th>
-      <th>B</th>
-      <th>C</th>
-      <th>mu</th>
-      <th>alpha</th>
-      <th>homo</th>
-      <th>lumo</th>
-      <th>gap</th>
-      <th>...</th>
-      <th>zpve</th>
-      <th>u0</th>
-      <th>u298</th>
-      <th>h298</th>
-      <th>g298</th>
-      <th>cv</th>
-      <th>u0_atom</th>
-      <th>u298_atom</th>
-      <th>h298_atom</th>
-      <th>g298_atom</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>gdb_1</td>
-      <td>C</td>
-      <td>157.71180</td>
-      <td>157.709970</td>
-      <td>157.706990</td>
-      <td>0.0000</td>
-      <td>13.21</td>
-      <td>-0.3877</td>
-      <td>0.1171</td>
-      <td>0.5048</td>
-      <td>...</td>
-      <td>0.044749</td>
-      <td>-40.478930</td>
-      <td>-40.476062</td>
-      <td>-40.475117</td>
-      <td>-40.498597</td>
-      <td>6.469</td>
-      <td>-395.999595</td>
-      <td>-398.643290</td>
-      <td>-401.014647</td>
-      <td>-372.471772</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>gdb_2</td>
-      <td>N</td>
-      <td>293.60975</td>
-      <td>293.541110</td>
-      <td>191.393970</td>
-      <td>1.6256</td>
-      <td>9.46</td>
-      <td>-0.2570</td>
-      <td>0.0829</td>
-      <td>0.3399</td>
-      <td>...</td>
-      <td>0.034358</td>
-      <td>-56.525887</td>
-      <td>-56.523026</td>
-      <td>-56.522082</td>
-      <td>-56.544961</td>
-      <td>6.316</td>
-      <td>-276.861363</td>
-      <td>-278.620271</td>
-      <td>-280.399259</td>
-      <td>-259.338802</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>gdb_3</td>
-      <td>O</td>
-      <td>799.58812</td>
-      <td>437.903860</td>
-      <td>282.945450</td>
-      <td>1.8511</td>
-      <td>6.31</td>
-      <td>-0.2928</td>
-      <td>0.0687</td>
-      <td>0.3615</td>
-      <td>...</td>
-      <td>0.021375</td>
-      <td>-76.404702</td>
-      <td>-76.401867</td>
-      <td>-76.400922</td>
-      <td>-76.422349</td>
-      <td>6.002</td>
-      <td>-213.087624</td>
-      <td>-213.974294</td>
-      <td>-215.159658</td>
-      <td>-201.407171</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>gdb_4</td>
-      <td>C#C</td>
-      <td>0.00000</td>
-      <td>35.610036</td>
-      <td>35.610036</td>
-      <td>0.0000</td>
-      <td>16.28</td>
-      <td>-0.2845</td>
-      <td>0.0506</td>
-      <td>0.3351</td>
-      <td>...</td>
-      <td>0.026841</td>
-      <td>-77.308427</td>
-      <td>-77.305527</td>
-      <td>-77.304583</td>
-      <td>-77.327429</td>
-      <td>8.574</td>
-      <td>-385.501997</td>
-      <td>-387.237686</td>
-      <td>-389.016047</td>
-      <td>-365.800724</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>gdb_5</td>
-      <td>C#N</td>
-      <td>0.00000</td>
-      <td>44.593883</td>
-      <td>44.593883</td>
-      <td>2.8937</td>
-      <td>12.99</td>
-      <td>-0.3604</td>
-      <td>0.0191</td>
-      <td>0.3796</td>
-      <td>...</td>
-      <td>0.016601</td>
-      <td>-93.411888</td>
-      <td>-93.409370</td>
-      <td>-93.408425</td>
-      <td>-93.431246</td>
-      <td>6.278</td>
-      <td>-301.820534</td>
-      <td>-302.906752</td>
-      <td>-304.091489</td>
-      <td>-288.720028</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>1001</th>
-      <td>gdb_94823</td>
-      <td>CC1OCC2(CC2)C=C1</td>
-      <td>3.73934</td>
-      <td>1.156580</td>
-      <td>1.019880</td>
-      <td>1.0639</td>
-      <td>86.86</td>
-      <td>-0.2291</td>
-      <td>0.0210</td>
-      <td>0.2501</td>
-      <td>...</td>
-      <td>0.183181</td>
-      <td>-387.089386</td>
-      <td>-387.080974</td>
-      <td>-387.080030</td>
-      <td>-387.122163</td>
-      <td>33.410</td>
-      <td>-2037.744489</td>
-      <td>-2051.130511</td>
-      <td>-2062.985411</td>
-      <td>-1895.686491</td>
-    </tr>
-    <tr>
-      <th>1002</th>
-      <td>gdb_39986</td>
-      <td>C1CC11CC2C3OC2C13</td>
-      <td>4.01995</td>
-      <td>1.375230</td>
-      <td>1.276030</td>
-      <td>2.0583</td>
-      <td>78.65</td>
-      <td>-0.2263</td>
-      <td>0.0855</td>
-      <td>0.3118</td>
-      <td>...</td>
-      <td>0.160873</td>
-      <td>-385.816258</td>
-      <td>-385.809490</td>
-      <td>-385.808546</td>
-      <td>-385.847235</td>
-      <td>28.507</td>
-      <td>-1866.696830</td>
-      <td>-1879.337372</td>
-      <td>-1890.006280</td>
-      <td>-1736.880279</td>
-    </tr>
-    <tr>
-      <th>1003</th>
-      <td>gdb_129889</td>
-      <td>c1c(nc2n1cno2)N</td>
-      <td>5.52693</td>
-      <td>1.335230</td>
-      <td>1.076560</td>
-      <td>4.4714</td>
-      <td>67.81</td>
-      <td>-0.2034</td>
-      <td>-0.0173</td>
-      <td>0.1861</td>
-      <td>...</td>
-      <td>0.092058</td>
-      <td>-448.922474</td>
-      <td>-448.915855</td>
-      <td>-448.914911</td>
-      <td>-448.953258</td>
-      <td>25.857</td>
-      <td>-1339.274261</td>
-      <td>-1346.674475</td>
-      <td>-1353.785407</td>
-      <td>-1248.217057</td>
-    </tr>
-    <tr>
-      <th>1004</th>
-      <td>gdb_47001</td>
-      <td>O=C1NCC2COC1C2</td>
-      <td>2.67679</td>
-      <td>1.787180</td>
-      <td>1.428170</td>
-      <td>4.8266</td>
-      <td>70.94</td>
-      <td>-0.2282</td>
-      <td>0.0241</td>
-      <td>0.2522</td>
-      <td>...</td>
-      <td>0.151811</td>
-      <td>-439.131708</td>
-      <td>-439.124600</td>
-      <td>-439.123656</td>
-      <td>-439.163299</td>
-      <td>28.066</td>
-      <td>-1779.364520</td>
-      <td>-1790.901901</td>
-      <td>-1800.977813</td>
-      <td>-1656.054609</td>
-    </tr>
-    <tr>
-      <th>1005</th>
-      <td>gdb_53123</td>
-      <td>CC#CC1C2C3CN1C23</td>
-      <td>4.54414</td>
-      <td>0.981090</td>
-      <td>0.944760</td>
-      <td>1.7549</td>
-      <td>84.57</td>
-      <td>-0.2224</td>
-      <td>0.0357</td>
-      <td>0.2581</td>
-      <td>...</td>
-      <td>0.147781</td>
-      <td>-364.706764</td>
-      <td>-364.698604</td>
-      <td>-364.697660</td>
-      <td>-364.740861</td>
-      <td>30.373</td>
-      <td>-1786.060041</td>
-      <td>-1796.938537</td>
-      <td>-1807.014449</td>
-      <td>-1664.834715</td>
-    </tr>
-  </tbody>
-</table>
-<p>1006 rows × 21 columns</p>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>Graph(num_nodes=7, num_edges=14,
+      ndata_schemes={&#39;feat&#39;: Scheme(shape=(5,), dtype=torch.float64)}
+      edata_schemes={&#39;feat&#39;: Scheme(shape=(13,), dtype=torch.float64)})
+</pre>
 </div>
 </div>
 
@@ -2464,6 +2172,274 @@ df</div>
 
 </div>
 
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="building-the-network">Building the network<a class="anchor-link" href="#building-the-network">&#182;</a></h2><p>To build the network, we must define the arguments to pass at the different steps:</p>
+<ul>
+<li><p><code>pre_nn_kwargs</code>: The parameters used by a feed-forward neural network on the input node-features, before passing to the convolutional layers. See class <code>FeedForwardNN</code> for details on the required parameters. Will be ignored if set to <code>None</code>.</p>
+</li>
+<li><p><code>gnn_kwargs</code>: The parameters used by a feed-forward <strong>graph</strong> neural network on the features after it has passed through the pre-processing neural network. See class <code>FeedForwardDGL</code> for details on the required parameters.</p>
+</li>
+<li><p><code>post_nn_kwargs</code>: The parameters used by a feed-forward neural network on the features after the GNN layers. See class <code>FeedForwardNN</code> for details on the required parameters. Will be ignored if set to <code>None</code>.</p>
+</li>
+</ul>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-3">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">temp_dim_1</span> <span class="o">=</span> <span class="mi">23</span>
+<span class="n">temp_dim_2</span> <span class="o">=</span> <span class="mi">17</span>
+
+<span class="n">pre_nn_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;in_dim&quot;</span><span class="p">:</span> <span class="n">in_dim</span><span class="p">,</span>
+        <span class="s2">&quot;out_dim&quot;</span><span class="p">:</span> <span class="n">temp_dim_1</span><span class="p">,</span>
+        <span class="s2">&quot;hidden_dims&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span>
+        <span class="s2">&quot;activation&quot;</span><span class="p">:</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;last_activation&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="s2">&quot;dropout&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>    <span class="p">}</span>
+
+<span class="n">post_nn_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;in_dim&quot;</span><span class="p">:</span> <span class="n">temp_dim_2</span><span class="p">,</span>
+        <span class="s2">&quot;out_dim&quot;</span><span class="p">:</span> <span class="n">out_dim</span><span class="p">,</span>
+        <span class="s2">&quot;hidden_dims&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+        <span class="s2">&quot;activation&quot;</span><span class="p">:</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;last_activation&quot;</span><span class="p">:</span> <span class="s2">&quot;sigmoid&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;dropout&quot;</span><span class="p">:</span> <span class="mf">0.</span><span class="p">,</span>    <span class="p">}</span>
+
+<span class="n">layer_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;aggregators&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;sum&quot;</span><span class="p">],</span> 
+    <span class="s2">&quot;scalers&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="s2">&quot;amplification&quot;</span><span class="p">],}</span>
+
+<span class="n">gnn_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;in_dim&quot;</span><span class="p">:</span> <span class="n">temp_dim_1</span><span class="p">,</span>
+    <span class="s2">&quot;out_dim&quot;</span><span class="p">:</span> <span class="n">temp_dim_2</span><span class="p">,</span>
+    <span class="s2">&quot;hidden_dims&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+    <span class="s2">&quot;residual_type&quot;</span><span class="p">:</span> <span class="s2">&quot;densenet&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;residual_skip_steps&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="s2">&quot;layer_type&quot;</span><span class="p">:</span> <span class="n">PNAMessagePassingLayer</span><span class="p">,</span>
+    <span class="s2">&quot;pooling&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;sum&quot;</span><span class="p">],</span>
+    <span class="s2">&quot;activation&quot;</span><span class="p">:</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;last_activation&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="s2">&quot;dropout&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+    <span class="s2">&quot;in_dim_edges&quot;</span><span class="p">:</span> <span class="n">in_dim_edges</span><span class="p">,</span>
+    <span class="s2">&quot;layer_kwargs&quot;</span><span class="p">:</span> <span class="n">layer_kwargs</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">gnn_net</span> <span class="o">=</span> <span class="n">FullDGLNetwork</span><span class="p">(</span>
+    <span class="n">pre_nn_kwargs</span><span class="o">=</span><span class="n">pre_nn_kwargs</span><span class="p">,</span> 
+    <span class="n">gnn_kwargs</span><span class="o">=</span><span class="n">gnn_kwargs</span><span class="p">,</span> 
+    <span class="n">post_nn_kwargs</span><span class="o">=</span><span class="n">post_nn_kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+</pre></div>
+<div id="cell-3" class="clipboard-copy-txt">temp_dim_1 = 23
+temp_dim_2 = 17
+
+pre_nn_kwargs = {
+        "in_dim": in_dim,
+        "out_dim": temp_dim_1,
+        "hidden_dims": [4, 4, 4],
+        "activation": "relu",
+        "last_activation": "none",
+        "batch_norm": True,
+        "dropout": 0.2,    }
+
+post_nn_kwargs = {
+        "in_dim": temp_dim_2,
+        "out_dim": out_dim,
+        "hidden_dims": [6, 6],
+        "activation": "relu",
+        "last_activation": "sigmoid",
+        "batch_norm": False,
+        "dropout": 0.,    }
+
+layer_kwargs = {
+    "aggregators": ["mean", "max", "sum"], 
+    "scalers": ["identity", "amplification"],}
+
+gnn_kwargs = {
+    "in_dim": temp_dim_1,
+    "out_dim": temp_dim_2,
+    "hidden_dims": [5, 5, 5, 5, 5, 5],
+    "residual_type": "densenet",
+    "residual_skip_steps": 2,
+    "layer_type": PNAMessagePassingLayer,
+    "pooling": ["sum"],
+    "activation": "relu",
+    "last_activation": "none",
+    "batch_norm": False,
+    "dropout": 0.2,
+    "in_dim_edges": in_dim_edges,
+    "layer_kwargs": layer_kwargs,
+}
+
+gnn_net = FullDGLNetwork(
+    pre_nn_kwargs=pre_nn_kwargs, 
+    gnn_kwargs=gnn_kwargs, 
+    post_nn_kwargs=post_nn_kwargs).to(float)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="applying-the-network">Applying the network<a class="anchor-link" href="#applying-the-network">&#182;</a></h2><p>Once the network is defined, we only need to run the forward pass on the input graphs to get a prediction.</p>
+<p>The network will handle the node and edge features depending on it's parameters and layer type.</p>
+<p>Chosing between graph property prediction and node property prediction depends on the parameter given by <code>gnn_kwargs[&quot;pooling&quot;]</code>.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-4">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;feat&quot;</span><span class="p">]</span>
+
+<span class="n">h_out</span> <span class="o">=</span> <span class="n">gnn_net</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">gnn_net</span><span class="p">)</span>
+</pre></div>
+<div id="cell-4" class="clipboard-copy-txt">graph = deepcopy(bg)
+h_in = graph.ndata["feat"]
+
+h_out = gnn_net(graph)
+
+print(h_in.shape)
+print(h_out.shape)
+print("\n")
+print(gnn_net)
+</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>torch.Size([7, 5])
+torch.Size([1, 11])
+
+
+DGL_GNN
+---------
+    pre-NN(depth=4, ResidualConnectionNone)
+        [FCLayer[5 -&gt; 4 -&gt; 4 -&gt; 4 -&gt; 23]
+    
+    GNN(depth=7, ResidualConnectionDenseNet(skip_steps=2))
+        PNAMessagePassingLayer[23 -&gt; 5 -&gt; 5 -&gt; 5 -&gt; 5 -&gt; 5 -&gt; 5 -&gt; 17]
+        -&gt; Pooling([&#39;sum&#39;]) -&gt; FCLayer(17 -&gt; 17, activation=None)
+    
+    post-NN(depth=3, ResidualConnectionNone)
+        [FCLayer[17 -&gt; 6 -&gt; 6 -&gt; 11]
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-5">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span>
+</pre></div>
+<div id="cell-5" class="clipboard-copy-txt"></div>
+        
+        </div>
+    </div>
+
+</div>
 </div>
 
 </div>

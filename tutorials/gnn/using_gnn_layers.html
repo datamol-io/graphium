@@ -10,20 +10,20 @@
       
       
       
-        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/basics/csv_to_parquet.html">
+        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/gnn/using_gnn_layers.html">
       
       
         <link rel="prev" href="making_gnn_networks.html">
       
       
-        <link rel="next" href="parquet_reader.html">
+        <link rel="next" href="../model_training/simple-molecular-model.html">
       
       <link rel="icon" href="../../images/logo.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
     
     
       
-        <title>Convert CSV to Parquet files - goli</title>
+        <title>Using GNN layers - goli</title>
       
     
     
@@ -74,6 +74,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#using-gnn-layers" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -104,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Convert CSV to Parquet files
+              Using GNN layers
             
           </span>
         </div>
@@ -255,28 +260,28 @@
               
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
       
       
       
         <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
-          basics
+          feature_processing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2_1">
           <span class="md-nav__icon md-icon"></span>
-          basics
+          feature_processing
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -286,8 +291,8 @@
   
   
     <li class="md-nav__item">
-      <a href="using_gnn_layers.html" class="md-nav__link">
-        Using GNN layers
+      <a href="../feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
       </a>
     </li>
   
@@ -300,7 +305,71 @@
   
   
     <li class="md-nav__item">
-      <a href="implementing_gnn_layers.html" class="md-nav__link">
+      <a href="../feature_processing/csv_to_parquet.html" class="md-nav__link">
+        Convert CSV to Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature_processing/timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          gnn_layers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="add_new_gnn_layers.html" class="md-nav__link">
         Creating GNN layers
       </a>
     </li>
@@ -334,25 +403,65 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
       
-      <a href="csv_to_parquet.html" class="md-nav__link md-nav__link--active">
-        Convert CSV to Parquet files
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Using GNN layers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="using_gnn_layers.html" class="md-nav__link md-nav__link--active">
+        Using GNN layers
       </a>
       
-    </li>
-  
+        
 
-            
-          
-            
-              
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
   
   
   
-    <li class="md-nav__item">
-      <a href="parquet_reader.html" class="md-nav__link">
-        Reading Parquet files
-      </a>
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#gcn-layer" class="md-nav__link">
+    GCN Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gin-layer" class="md-nav__link">
+    GIN Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gat-layer" class="md-nav__link">
+    GAT Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gated-gcn-layer" class="md-nav__link">
+    Gated-GCN Layer
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -378,17 +487,17 @@
       
         
       
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
       
       
       
-        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+        <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
           model_training
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_2_2">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_3">
           <span class="md-nav__icon md-icon"></span>
           model_training
         </label>
@@ -428,7 +537,7 @@
   
   
     <li class="md-nav__item">
-      <a href="choosing_parallelization.ipynb" class="md-nav__link">
+      <a href="../basics/choosing_parallelization.ipynb" class="md-nav__link">
         Chosing the right parallelization
       </a>
     </li>
@@ -783,6 +892,44 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#gcn-layer" class="md-nav__link">
+    GCN Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gin-layer" class="md-nav__link">
+    GIN Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gat-layer" class="md-nav__link">
+    GAT Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gated-gcn-layer" class="md-nav__link">
+    Gated-GCN Layer
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -799,8 +946,6 @@
   
   
 
-
-  <h1>Convert CSV to Parquet files</h1>
 
 <script>
 (function (global, factory) {
@@ -1832,13 +1977,26 @@ Licensed under the Apache License, Version 2.0.
     }
     init_mathjax();
     </script>
-    <!-- End of mathjax configuration --><div class="jupyter-wrapper"><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+    <!-- End of mathjax configuration --><div class="jupyter-wrapper">
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="using-gnn-layers">Using GNN layers<a class="anchor-link" href="#using-gnn-layers">&#182;</a></h1><p>The current library implements multiple state-of-the-art graph neural networks. In this tutorial, you will learn how to use the <strong>GCN</strong>, <strong>GIN</strong>, <strong>Gated-GCN</strong> and <strong>PNA</strong> layers in a simple <code>forward</code> context.</p>
+<p>Other layers such as <strong>DGN</strong> require additional positional encoding to work.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -1853,43 +2011,41 @@ Licensed under the Apache License, Version 2.0.
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">pyarrow</span> <span class="k">as</span> <span class="nn">pa</span>
-<span class="kn">import</span> <span class="nn">pyarrow.parquet</span> <span class="k">as</span> <span class="nn">pq</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">from</span> <span class="nn">google.cloud</span> <span class="kn">import</span> <span class="n">storage</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
-<span class="kn">import</span> <span class="nn">goli</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="o">%</span><span class="n">load_ext</span> <span class="n">autoreload</span>
+<span class="o">%</span><span class="n">autoreload</span> <span class="mi">2</span>
 
-<span class="n">MAIN_DIR</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">goli</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)))</span>
+<span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">import</span> <span class="nn">dgl</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="c1"># TODO create funciton to read parquet, test from GCP storage (put it in path, should support gs and path, explore function from Pandas instead of parquet &quot;pq&quot;)</span>
-<span class="k">def</span> <span class="nf">_csv_to_parquet</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">parquet_path</span><span class="p">):</span>
-    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
-    <span class="n">df</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">parquet_path</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">goli.nn.dgl_layers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GCNLayer</span><span class="p">,</span>
+    <span class="n">GINLayer</span><span class="p">,</span>
+    <span class="n">GATLayer</span><span class="p">,</span>
+    <span class="n">GatedGCNLayer</span><span class="p">,</span>
+    <span class="n">PNAConvolutionalLayer</span><span class="p">,</span>
+    <span class="n">PNAMessagePassingLayer</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="n">_csv_to_parquet</span><span class="p">(</span><span class="n">MAIN_DIR</span> <span class="o">+</span> <span class="s1">&#39;/goli/data/QM9/micro_qm9.csv&#39;</span><span class="p">,</span> <span class="n">MAIN_DIR</span> <span class="o">+</span> <span class="s1">&#39;/goli/data/QM9/micro_qm9.parquet&#39;</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
-<div id="cell-1" class="clipboard-copy-txt">import os
-import pyarrow as pa
-import pyarrow.parquet as pq
-import pandas as pd
-from google.cloud import storage
-from io import StringIO
-import goli
-import os
-from os.path import dirname, abspath
+<div id="cell-1" class="clipboard-copy-txt">%load_ext autoreload
+%autoreload 2
 
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+import torch
+import dgl
+from copy import deepcopy
 
-# TODO create funciton to read parquet, test from GCP storage (put it in path, should support gs and path, explore function from Pandas instead of parquet "pq")
-def _csv_to_parquet(csv_path, parquet_path):
-    df = pd.read_csv(csv_path)
-    df.to_parquet(parquet_path)
+from goli.nn.dgl_layers import (
+    GCNLayer,
+    GINLayer,
+    GATLayer,
+    GatedGCNLayer,
+    PNAConvolutionalLayer,
+    PNAMessagePassingLayer,
+)
 
-_csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/data/QM9/micro_qm9.parquet')</div>
+_ = torch.manual_seed(42)</div>
         
         </div>
     </div>
@@ -1897,14 +2053,47 @@ _csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/dat
 </div>
 </div>
 
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
+<pre>Using backend: pytorch
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>We will first create some simple batched graphs that will be used accross the examples. Here, <code>bg</code> is a batch of 2 graphs containing random node features <code>bg.ndata[&quot;h&quot;]</code> and edge features <code>bg.edata[&quot;e&quot;]</code>.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -1919,45 +2108,52 @@ _csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/dat
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># TODO create funciton to specify if you read parquet or csv</span>
-    <span class="c1"># TODO replace all location with call for _read_csv and make sure to read all files if path ends with &quot;*&quot;</span>
-    <span class="c1"># def read_table:</span>
-</pre></div>
-<div id="cell-2" class="clipboard-copy-txt">    # TODO create funciton to specify if you read parquet or csv
-    # TODO replace all location with call for _read_csv and make sure to read all files if path ends with "*"
-    # def read_table:</div>
-        
-        </div>
-    </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">in_dim</span> <span class="o">=</span> <span class="mi">5</span>          <span class="c1"># Input node-feature dimensions</span>
+<span class="n">out_dim</span> <span class="o">=</span> <span class="mi">11</span>        <span class="c1"># Desired output node-feature dimensions</span>
+<span class="n">in_dim_edges</span> <span class="o">=</span> <span class="mi">13</span>   <span class="c1"># Input edge-feature dimensions</span>
 
-</div>
-</div>
+<span class="c1"># Let&#39;s create 2 simple graphs. Here the tensors represent the connectivity between nodes</span>
+<span class="n">g1</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])))</span>
+<span class="n">g2</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])))</span>
 
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-3">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="err">!</span><span class="n">pwd</span>
+<span class="c1"># We add some node features to the graphs</span>
+<span class="n">g1</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">g2</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="c1"># We also add some edge features to the graphs</span>
+<span class="n">g1</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">g2</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="c1"># Finally we batch the graphs in a way compatible with the DGL library</span>
+<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">batch</span><span class="p">([</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">])</span>
+<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">add_self_loop</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+
+<span class="c1"># The batched graph will show as a single graph with 7 nodes</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
 </pre></div>
-<div id="cell-3" class="clipboard-copy-txt">!pwd</div>
+<div id="cell-2" class="clipboard-copy-txt">in_dim = 5          # Input node-feature dimensions
+out_dim = 11        # Desired output node-feature dimensions
+in_dim_edges = 13   # Input edge-feature dimensions
+
+# Let's create 2 simple graphs. Here the tensors represent the connectivity between nodes
+g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
+g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
+
+# We add some node features to the graphs
+g1.ndata["h"] = torch.rand(g1.num_nodes(), in_dim, dtype=float)
+g2.ndata["h"] = torch.rand(g2.num_nodes(), in_dim, dtype=float)
+
+# We also add some edge features to the graphs
+g1.edata["e"] = torch.rand(g1.num_edges(), in_dim_edges, dtype=float)
+g2.edata["e"] = torch.rand(g2.num_edges(), in_dim_edges, dtype=float)
+
+# Finally we batch the graphs in a way compatible with the DGL library
+bg = dgl.batch([g1, g2])
+bg = dgl.add_self_loop(bg)
+
+# The batched graph will show as a single graph with 7 nodes
+print(bg)
+</div>
         
         </div>
     </div>
@@ -1977,7 +2173,9 @@ _csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/dat
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>/home/oleksandr/code/goli/docs/tutorials/basics
+<pre>Graph(num_nodes=7, num_edges=14,
+      ndata_schemes={&#39;h&#39;: Scheme(shape=(5,), dtype=torch.float64)}
+      edata_schemes={&#39;e&#39;: Scheme(shape=(13,), dtype=torch.float64)})
 </pre>
 </div>
 </div>
@@ -1987,6 +2185,19 @@ _csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/dat
 </div>
 
 </div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="gcn-layer">GCN Layer<a class="anchor-link" href="#gcn-layer">&#182;</a></h2><p>To use the GCN layer from the <em>Kipf et al.</em> paper, the steps are very simple. We create the layer with the desired attributes, and apply it to the graph.</p>
+<p><sub>Kipf, Thomas N., and Max Welling. &quot;Semi-supervised classification with graph convolutional networks.&quot; arXiv preprint arXiv:1609.02907 (2016).</sub></p>
+
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
@@ -1994,6 +2205,106 @@ _csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/dat
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
 <div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-3">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># We first need to extract the node features from the graph.</span>
+<span class="c1"># The GCN method doesn&#39;t support edge features, so we ignore them</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+
+<span class="c1"># We create the layer</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GCNLayer</span><span class="p">(</span>
+            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="c1"># We apply the forward loop on the node features</span>
+<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+
+<span class="c1"># 7 is the number of nodes, 5 number of input features and 11 number of output features</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<div id="cell-3" class="clipboard-copy-txt"># We first need to extract the node features from the graph.
+# The GCN method doesn't support edge features, so we ignore them
+graph = deepcopy(bg)
+h_in = graph.ndata["h"]
+
+# We create the layer
+layer = GCNLayer(
+            in_dim=in_dim, out_dim=out_dim, 
+            activation="relu", dropout=.3, normalization="batch_norm").to(float)
+
+# We apply the forward loop on the node features
+h_out = layer(graph, h_in)
+
+# 7 is the number of nodes, 5 number of input features and 11 number of output features
+print(layer)
+print(h_in.shape)
+print(h_out.shape)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>GCNLayer(5 -&gt; 11, activation=relu)
+torch.Size([7, 5])
+torch.Size([7, 11])
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="gin-layer">GIN Layer<a class="anchor-link" href="#gin-layer">&#182;</a></h2><p>To use the GIN layer from the <em>Xu et al.</em> paper, the steps are identical to GCN.</p>
+<p><sub>Xu, Keyulu, et al. &quot;How powerful are graph neural networks?.&quot; arXiv preprint arXiv:1810.00826 (2018).</sub></p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2008,17 +2319,27 @@ _csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/dat
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">import</span> <span class="nn">goli</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
-<span class="n">MAIN_DIR</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">goli</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)))</span>
-<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">MAIN_DIR</span><span class="p">)</span> <span class="c1"># No need for this file</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GINLayer</span><span class="p">(</span>
+            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
-<div id="cell-4" class="clipboard-copy-txt">import goli
-import os
-from os.path import dirname, abspath
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
-os.chdir(MAIN_DIR) # No need for this file</div>
+<div id="cell-4" class="clipboard-copy-txt">graph = deepcopy(bg)
+h_in = graph.ndata["h"]
+layer = GINLayer(
+            in_dim=in_dim, out_dim=out_dim, 
+            activation="relu", dropout=.3, normalization="batch_norm").to(float)
+h_out = layer(graph, h_in)
+
+print(layer)
+print(h_in.shape)
+print(h_out.shape)</div>
         
         </div>
     </div>
@@ -2032,21 +2353,445 @@ os.chdir(MAIN_DIR) # No need for this file</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
+<div class="jp-OutputArea-child">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>&#39;/home/oleksandr/code/goli/goli&#39;</pre>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>GINLayer(5 -&gt; 11, activation=relu)
+torch.Size([7, 5])
+torch.Size([7, 11])
+</pre>
+</div>
 </div>
 
 </div>
 
 </div>
 
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="gat-layer">GAT Layer<a class="anchor-link" href="#gat-layer">&#182;</a></h2><p>To use the GAT layer from the <em>Velickovic et al.</em> paper, the steps are identical to GCN, but the output dimension is multiplied by the number of heads.</p>
+<p><sub>Velickovic, Petar, et al. &quot;Graph attention networks.&quot; arXiv preprint arXiv:1710.10903 (2017).</sub></p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-5">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GATLayer</span><span class="p">(</span>
+            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> <span class="n">num_heads</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;elu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<div id="cell-5" class="clipboard-copy-txt">graph = deepcopy(bg)
+h_in = graph.ndata["h"]
+layer = GATLayer(
+            in_dim=in_dim, out_dim=out_dim, num_heads=5,
+            activation="elu", dropout=.3, normalization="batch_norm").to(float)
+h_out = layer(graph, h_in)
+
+print(layer)
+print(h_in.shape)
+print(h_out.shape)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>GATLayer(5 -&gt; 11 * 5, activation=elu)
+torch.Size([7, 5])
+torch.Size([7, 55])
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="gated-gcn-layer">Gated-GCN Layer<a class="anchor-link" href="#gated-gcn-layer">&#182;</a></h2><p>To use the Gated-GCN layer from the <em>Bresson et al.</em> paper, the steps are different since the layer requires edge features as inputs, and outputs new edge features.</p>
+<p><sub>Bresson, Xavier, and Thomas Laurent. &quot;Residual gated graph convnets.&quot; arXiv preprint arXiv:1711.07553 (2017).</sub></p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-6">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># We first need to extract the node and edge features from the graph.</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+<span class="n">e_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span>
+
+<span class="c1"># We create the layer</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GatedGCNLayer</span><span class="p">(</span>
+        <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
+        <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span>
+        <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="c1"># We apply the forward loop on the node features</span>
+<span class="n">h_out</span><span class="p">,</span> <span class="n">e_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">,</span> <span class="n">e_in</span><span class="p">)</span>
+
+<span class="c1"># 7 is the number of nodes, 5 number of input features and 11 number of output features</span>
+<span class="c1"># 13 is the number of input edge features</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">e_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">e_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<div id="cell-6" class="clipboard-copy-txt"># We first need to extract the node and edge features from the graph.
+graph = deepcopy(bg)
+h_in = graph.ndata["h"]
+e_in = graph.edata["e"]
+
+# We create the layer
+layer = GatedGCNLayer(
+        in_dim=in_dim, out_dim=out_dim, 
+        in_dim_edges=in_dim_edges, out_dim_edges=out_dim,
+        activation="relu", dropout=.3, normalization="batch_norm").to(float)
+
+# We apply the forward loop on the node features
+h_out, e_out = layer(graph, h_in, e_in)
+
+# 7 is the number of nodes, 5 number of input features and 11 number of output features
+# 13 is the number of input edge features
+print(layer)
+print(h_in.shape)
+print(h_out.shape)
+print(e_in.shape)
+print(e_out.shape)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>GatedGCNLayer(5 -&gt; 11, activation=relu)
+torch.Size([7, 5])
+torch.Size([7, 11])
+torch.Size([14, 13])
+torch.Size([14, 11])
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="pna">PNA<a class="anchor-link" href="#pna">&#182;</a></h1><p>PNA is a multi-aggregator method proposed by <em>Corso et al.</em>. It supports 2 types of aggregations, convolutional <em>PNA-conv</em> or message passing <em>PNA-msgpass</em>.</p>
+<p><sub>PNA: Principal Neighbourhood Aggregation 
+Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
+<a href="https://arxiv.org/abs/2004.05718">https://arxiv.org/abs/2004.05718</a></sub></p>
+<h2 id="pna-conv">PNA-conv<a class="anchor-link" href="#pna-conv">&#182;</a></h2><p>First, let's focus on the PNA-conv. In this case, it works exactly as the GCN and GIN methods. Although not presented in the example, PNA-conv also supports edge features by concatenating them to the node features during convolution.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-7">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+
+<span class="c1"># We create the layer, and need to specify the aggregators and scalers</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">PNAConvolutionalLayer</span><span class="p">(</span>
+    <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
+    <span class="n">aggregators</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">],</span>
+    <span class="n">scalers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="s2">&quot;amplification&quot;</span><span class="p">,</span> <span class="s2">&quot;attenuation&quot;</span><span class="p">],</span>
+    <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<div id="cell-7" class="clipboard-copy-txt">graph = deepcopy(bg)
+h_in = graph.ndata["h"]
+
+# We create the layer, and need to specify the aggregators and scalers
+layer = PNAConvolutionalLayer(
+    in_dim=in_dim, out_dim=out_dim, 
+    aggregators=["mean", "max", "min", "std"],
+    scalers=["identity", "amplification", "attenuation"],
+    activation="relu", dropout=.3, normalization="batch_norm").to(float)
+
+h_out = layer(graph, h_in)
+
+print(layer)
+print(h_in.shape)
+print(h_out.shape)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>PNAConvolutionalLayer(5 -&gt; 11, activation=relu)
+torch.Size([7, 5])
+torch.Size([7, 11])
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="pna-msgpass">PNA-msgpass<a class="anchor-link" href="#pna-msgpass">&#182;</a></h2><p>The PNA message passing is typically more powerful that the convolutional one, and it supports edges as inputs, but doesn't output edges. It's usage is very similar to the <em>PNA-conv</em>. Here, we also present the option to specify the edge dimensions and features.</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-8">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+<span class="n">e_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span>
+
+<span class="c1"># We create the layer, and need to specify the aggregators and scalers</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">PNAMessagePassingLayer</span><span class="p">(</span>
+    <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span>
+    <span class="n">aggregators</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">],</span>
+    <span class="n">scalers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="s2">&quot;amplification&quot;</span><span class="p">,</span> <span class="s2">&quot;attenuation&quot;</span><span class="p">],</span>
+    <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">,</span> <span class="n">e_in</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+</pre></div>
+<div id="cell-8" class="clipboard-copy-txt">graph = deepcopy(bg)
+h_in = graph.ndata["h"]
+e_in = graph.edata["e"]
+
+# We create the layer, and need to specify the aggregators and scalers
+layer = PNAMessagePassingLayer(
+    in_dim=in_dim, out_dim=out_dim, in_dim_edges=in_dim_edges,
+    aggregators=["mean", "max", "min", "std"],
+    scalers=["identity", "amplification", "attenuation"],
+    activation="relu", dropout=.3, normalization="batch_norm").to(float)
+
+h_out = layer(graph, h_in, e_in)
+
+print(layer)
+print(h_in.shape)
+print(h_out.shape)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>PNAMessagePassingLayer(5 -&gt; 11, activation=relu)
+torch.Size([7, 5])
+torch.Size([7, 11])
+</pre>
+</div>
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-9">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span>
+</pre></div>
+<div id="cell-9" class="clipboard-copy-txt"></div>
+        
+        </div>
+    </div>
+
+</div>
 </div>
 
 </div>

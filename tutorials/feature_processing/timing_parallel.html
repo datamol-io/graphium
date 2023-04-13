@@ -10,16 +10,20 @@
       
       
       
-        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/basics/timing_parallel.html">
+        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/feature_processing/timing_parallel.html">
       
       
+        <link rel="prev" href="csv_to_parquet.html">
+      
+      
+        <link rel="next" href="../gnn/add_new_gnn_layers.html">
       
       <link rel="icon" href="../../images/logo.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
     
     
       
-        <title>pandarallel - goli</title>
+        <title>Timing parallel processing - goli</title>
       
     
     
@@ -71,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#setup" class="md-skip">
+        <a href="#timing-parallel-processing" class="md-skip">
           Skip to content
         </a>
       
@@ -105,7 +109,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              pandarallel
+              Timing parallel processing
             
           </span>
         </div>
@@ -227,16 +231,16 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
       
       
       
@@ -245,7 +249,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
           Tutorials
@@ -256,28 +260,28 @@
               
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
       
       
       
         <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
-          basics
+          feature_processing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2_1">
           <span class="md-nav__icon md-icon"></span>
-          basics
+          feature_processing
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -287,36 +291,8 @@
   
   
     <li class="md-nav__item">
-      <a href="using_gnn_layers.html" class="md-nav__link">
-        Using GNN layers
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="implementing_gnn_layers.html" class="md-nav__link">
-        Creating GNN layers
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="making_gnn_networks.html" class="md-nav__link">
-        Making GNN Networks
+      <a href="add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
       </a>
     </li>
   
@@ -341,11 +317,86 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="parquet_reader.html" class="md-nav__link">
-        Reading Parquet files
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Timing parallel processing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="timing_parallel.html" class="md-nav__link md-nav__link--active">
+        Timing parallel processing
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    Setup
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmarks" class="md-nav__link">
+    Benchmarks
+  </a>
+  
+    <nav class="md-nav" aria-label="Benchmarks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#no-batch" class="md-nav__link">
+    No batch
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#batch" class="md-nav__link">
+    Batch
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    Results
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -376,12 +427,90 @@
       
       
         <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
-          model_training
+          gnn_layers
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_3">
           <span class="md-nav__icon md-icon"></span>
           model_training
         </label>
@@ -421,7 +550,7 @@
   
   
     <li class="md-nav__item">
-      <a href="choosing_parallelization.ipynb" class="md-nav__link">
+      <a href="../basics/choosing_parallelization.ipynb" class="md-nav__link">
         Chosing the right parallelization
       </a>
     </li>
@@ -776,6 +905,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -818,22 +949,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#pandarallel" class="md-nav__link">
-    pandarallel
-  </a>
-  
-    <nav class="md-nav" aria-label="pandarallel">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
   <a href="#results" class="md-nav__link">
     Results
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1912,7 +2030,20 @@ Licensed under the Apache License, Version 2.0.
     }
     init_mathjax();
     </script>
-    <!-- End of mathjax configuration --><div class="jupyter-wrapper"><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+    <!-- End of mathjax configuration --><div class="jupyter-wrapper">
+<div id="cell-id=0693c5c9" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h1 id="timing-parallel-processing">Timing parallel processing<a class="anchor-link" href="#timing-parallel-processing">&#182;</a></h1><p>This tutorial is meant to help you benchmark different parallel processing methods for the processing of molecules into graphs. This will allow you to chose the one most suitable for your machine, since the benchmarks vary per machine.</p>
+<p>In general, we find that using <code>joblib</code> with the <code>loky</code> parallel processing and a batch size of <code>1000</code> is most beneficial. The logic is abstracted into <code>datamol.parallelized_with_batches</code></p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div id="cell-id=b5df2ac6-2ded-4597-a445-f2b5fb106330" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
@@ -2405,17 +2536,6 @@ def smiles_to_unique_mol_id_batch(smiles_list):
 
 </div>
 
-</div>
-</div>
-<div id="cell-id=cc3f7256-3f92-4bf7-ae96-010efe5f060c" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="pandarallel">pandarallel<a class="anchor-link" href="#pandarallel">&#182;</a></h1>
-</div>
-</div>
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div id="cell-id=ec7529d1-2ca3-42ec-a811-3dc010a03350" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">

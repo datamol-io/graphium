@@ -91,32 +91,32 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/valence-discovery/goli/tutorials/basics/csv_to_parquet.html</loc>
+         <loc>https://github.com/valence-discovery/goli/tutorials/feature_processing/add_new_positional_encoding.html</loc>
          <lastmod>2023-04-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/valence-discovery/goli/tutorials/basics/implementing_gnn_layers.html</loc>
+         <loc>https://github.com/valence-discovery/goli/tutorials/feature_processing/csv_to_parquet.html</loc>
          <lastmod>2023-04-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/valence-discovery/goli/tutorials/basics/making_gnn_networks.html</loc>
+         <loc>https://github.com/valence-discovery/goli/tutorials/feature_processing/timing_parallel.html</loc>
          <lastmod>2023-04-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/valence-discovery/goli/tutorials/basics/parquet_reader.html</loc>
+         <loc>https://github.com/valence-discovery/goli/tutorials/gnn/add_new_gnn_layers.html</loc>
          <lastmod>2023-04-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/valence-discovery/goli/tutorials/basics/timing_parallel.html</loc>
+         <loc>https://github.com/valence-discovery/goli/tutorials/gnn/making_gnn_networks.html</loc>
          <lastmod>2023-04-13</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>https://github.com/valence-discovery/goli/tutorials/basics/using_gnn_layers.html</loc>
+         <loc>https://github.com/valence-discovery/goli/tutorials/gnn/using_gnn_layers.html</loc>
          <lastmod>2023-04-13</lastmod>
          <changefreq>daily</changefreq>
     </url>

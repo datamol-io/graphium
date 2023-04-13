@@ -10,20 +10,20 @@
       
       
       
-        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/basics/implementing_gnn_layers.html">
+        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/feature_processing/csv_to_parquet.html">
       
       
-        <link rel="prev" href="using_gnn_layers.html">
+        <link rel="prev" href="add_new_positional_encoding.html">
       
       
-        <link rel="next" href="making_gnn_networks.html">
+        <link rel="next" href="timing_parallel.html">
       
       <link rel="icon" href="../../images/logo.png">
       <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
     
     
       
-        <title>Creating GNN layers - goli</title>
+        <title>Convert CSV to Parquet files - goli</title>
       
     
     
@@ -74,11 +74,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#creating-gnn-layers" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -109,7 +104,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Creating GNN layers
+              Convert CSV to Parquet files
             
           </span>
         </div>
@@ -274,14 +269,14 @@
       
       
         <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
-          basics
+          feature_processing
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2_1">
           <span class="md-nav__icon md-icon"></span>
-          basics
+          feature_processing
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -291,8 +286,8 @@
   
   
     <li class="md-nav__item">
-      <a href="using_gnn_layers.html" class="md-nav__link">
-        Using GNN layers
+      <a href="add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
       </a>
     </li>
   
@@ -311,86 +306,11 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
-        
       
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Creating GNN layers
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="implementing_gnn_layers.html" class="md-nav__link md-nav__link--active">
-        Creating GNN layers
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#pre-defining-test-variables" class="md-nav__link">
-    Pre-defining test variables
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#creating-a-simple-layer" class="md-nav__link">
-    Creating a simple layer
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#creating-a-complex-layer-with-edges" class="md-nav__link">
-    Creating a complex layer with edges
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="making_gnn_networks.html" class="md-nav__link">
-        Making GNN Networks
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="csv_to_parquet.html" class="md-nav__link">
+      <a href="csv_to_parquet.html" class="md-nav__link md-nav__link--active">
         Convert CSV to Parquet files
       </a>
+      
     </li>
   
 
@@ -402,8 +322,8 @@
   
   
     <li class="md-nav__item">
-      <a href="parquet_reader.html" class="md-nav__link">
-        Reading Parquet files
+      <a href="timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
       </a>
     </li>
   
@@ -435,12 +355,90 @@
       
       
         <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
-          model_training
+          gnn_layers
           <span class="md-nav__icon md-icon"></span>
         </label>
       
       <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_2_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gnn/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_2_3">
           <span class="md-nav__icon md-icon"></span>
           model_training
         </label>
@@ -480,7 +478,7 @@
   
   
     <li class="md-nav__item">
-      <a href="choosing_parallelization.ipynb" class="md-nav__link">
+      <a href="../basics/choosing_parallelization.ipynb" class="md-nav__link">
         Chosing the right parallelization
       </a>
     </li>
@@ -835,37 +833,6 @@
   
   
   
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#pre-defining-test-variables" class="md-nav__link">
-    Pre-defining test variables
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#creating-a-simple-layer" class="md-nav__link">
-    Creating a simple layer
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#creating-a-complex-layer-with-edges" class="md-nav__link">
-    Creating a complex layer with edges
-  </a>
-  
-</li>
-      
-    </ul>
   
 </nav>
                   </div>
@@ -882,6 +849,8 @@
   
   
 
+
+  <h1>Convert CSV to Parquet files</h1>
 
 <script>
 (function (global, factory) {
@@ -1913,27 +1882,13 @@ Licensed under the Apache License, Version 2.0.
     }
     init_mathjax();
     </script>
-    <!-- End of mathjax configuration --><div class="jupyter-wrapper">
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="creating-gnn-layers">Creating GNN layers<a class="anchor-link" href="#creating-gnn-layers">&#182;</a></h1><p>One of the primary advantage of the current library is the fact that GNN layers are independant from model architecture, thus allowing more flexibility with the code by easily swapping different layer types as hyper-parameters. However, this requires that the layers be implemented using the DGL library, and must be inherited from the class <code>BaseDGLLayer</code>, which standardizes the inputs, outputs and properties of the layers. Thus, the architecture can be handled independantly using the class <code>FeedForwardDGL</code>, or any similar custom class.</p>
-<p>We will first start by a simple layer that does not use edges, to a more complex layer that uses edges.</p>
-<p>Since these examples are built on top of DGL, we recommend looking at their <a href="https://docs.dgl.ai/en/0.5.x/index.html">library</a> for more info.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+    <!-- End of mathjax configuration --><div class="jupyter-wrapper"><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -1948,33 +1903,43 @@ Licensed under the Apache License, Version 2.0.
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="o">%</span><span class="n">load_ext</span> <span class="n">autoreload</span>
-<span class="o">%</span><span class="n">autoreload</span> <span class="mi">2</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pyarrow</span> <span class="k">as</span> <span class="nn">pa</span>
+<span class="kn">import</span> <span class="nn">pyarrow.parquet</span> <span class="k">as</span> <span class="nn">pq</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">google.cloud</span> <span class="kn">import</span> <span class="n">storage</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span> <span class="nn">goli</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
 
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">dgl</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
+<span class="n">MAIN_DIR</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">goli</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)))</span>
 
-<span class="kn">from</span> <span class="nn">goli.nn.dgl_layers</span> <span class="kn">import</span> <span class="n">BaseDGLLayer</span>
-<span class="kn">from</span> <span class="nn">goli.nn.base_layers</span> <span class="kn">import</span> <span class="n">FCLayer</span>
-<span class="kn">from</span> <span class="nn">goli.utils.decorators</span> <span class="kn">import</span> <span class="n">classproperty</span>
+<span class="c1"># TODO create funciton to read parquet, test from GCP storage (put it in path, should support gs and path, explore function from Pandas instead of parquet &quot;pq&quot;)</span>
+<span class="k">def</span> <span class="nf">_csv_to_parquet</span><span class="p">(</span><span class="n">csv_path</span><span class="p">,</span> <span class="n">parquet_path</span><span class="p">):</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">csv_path</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_parquet</span><span class="p">(</span><span class="n">parquet_path</span><span class="p">)</span>
 
-
-<span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">_csv_to_parquet</span><span class="p">(</span><span class="n">MAIN_DIR</span> <span class="o">+</span> <span class="s1">&#39;/goli/data/QM9/micro_qm9.csv&#39;</span><span class="p">,</span> <span class="n">MAIN_DIR</span> <span class="o">+</span> <span class="s1">&#39;/goli/data/QM9/micro_qm9.parquet&#39;</span><span class="p">)</span>
 </pre></div>
-<div id="cell-1" class="clipboard-copy-txt">%load_ext autoreload
-%autoreload 2
+<div id="cell-1" class="clipboard-copy-txt">import os
+import pyarrow as pa
+import pyarrow.parquet as pq
+import pandas as pd
+from google.cloud import storage
+from io import StringIO
+import goli
+import os
+from os.path import dirname, abspath
 
-import torch
-import dgl
-from copy import deepcopy
+MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 
-from goli.nn.dgl_layers import BaseDGLLayer
-from goli.nn.base_layers import FCLayer
-from goli.utils.decorators import classproperty
+# TODO create funciton to read parquet, test from GCP storage (put it in path, should support gs and path, explore function from Pandas instead of parquet "pq")
+def _csv_to_parquet(csv_path, parquet_path):
+    df = pd.read_csv(csv_path)
+    df.to_parquet(parquet_path)
 
-
-_ = torch.manual_seed(42)</div>
+_csv_to_parquet(MAIN_DIR + '/goli/data/QM9/micro_qm9.csv', MAIN_DIR + '/goli/data/QM9/micro_qm9.parquet')</div>
         
         </div>
     </div>
@@ -1982,47 +1947,14 @@ _ = torch.manual_seed(42)</div>
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>Using backend: pytorch
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="pre-defining-test-variables">Pre-defining test variables<a class="anchor-link" href="#pre-defining-test-variables">&#182;</a></h2><p>We define below a small batched graph on which we can test the created layers</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2037,51 +1969,13 @@ _ = torch.manual_seed(42)</div>
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">in_dim</span> <span class="o">=</span> <span class="mi">5</span>          <span class="c1"># Input node-feature dimensions</span>
-<span class="n">out_dim</span> <span class="o">=</span> <span class="mi">11</span>        <span class="c1"># Desired output node-feature dimensions</span>
-<span class="n">in_dim_edges</span> <span class="o">=</span> <span class="mi">13</span>   <span class="c1"># Input edge-feature dimensions</span>
-
-<span class="c1"># Let&#39;s create 2 simple graphs. Here the tensors represent the connectivity between nodes</span>
-<span class="n">g1</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])))</span>
-<span class="n">g2</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])))</span>
-
-<span class="c1"># We add some node features to the graphs</span>
-<span class="n">g1</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">g2</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-
-<span class="c1"># We also add some edge features to the graphs</span>
-<span class="n">g1</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">g2</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-
-<span class="c1"># Finally we batch the graphs in a way compatible with the DGL library</span>
-<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">batch</span><span class="p">([</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">])</span>
-<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">add_self_loop</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-
-<span class="c1"># The batched graph will show as a single graph with 7 nodes</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># TODO create funciton to specify if you read parquet or csv</span>
+    <span class="c1"># TODO replace all location with call for _read_csv and make sure to read all files if path ends with &quot;*&quot;</span>
+    <span class="c1"># def read_table:</span>
 </pre></div>
-<div id="cell-2" class="clipboard-copy-txt">in_dim = 5          # Input node-feature dimensions
-out_dim = 11        # Desired output node-feature dimensions
-in_dim_edges = 13   # Input edge-feature dimensions
-
-# Let's create 2 simple graphs. Here the tensors represent the connectivity between nodes
-g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
-g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
-
-# We add some node features to the graphs
-g1.ndata["h"] = torch.rand(g1.num_nodes(), in_dim, dtype=float)
-g2.ndata["h"] = torch.rand(g2.num_nodes(), in_dim, dtype=float)
-
-# We also add some edge features to the graphs
-g1.edata["e"] = torch.rand(g1.num_edges(), in_dim_edges, dtype=float)
-g2.edata["e"] = torch.rand(g2.num_edges(), in_dim_edges, dtype=float)
-
-# Finally we batch the graphs in a way compatible with the DGL library
-bg = dgl.batch([g1, g2])
-bg = dgl.add_self_loop(bg)
-
-# The batched graph will show as a single graph with 7 nodes
-print(bg)</div>
+<div id="cell-2" class="clipboard-copy-txt">    # TODO create funciton to specify if you read parquet or csv
+    # TODO replace all location with call for _read_csv and make sure to read all files if path ends with "*"
+    # def read_table:</div>
         
         </div>
     </div>
@@ -2089,58 +1983,14 @@ print(bg)</div>
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Graph(num_nodes=7, num_edges=14,
-      ndata_schemes={&#39;h&#39;: Scheme(shape=(5,), dtype=torch.float64)}
-      edata_schemes={&#39;e&#39;: Scheme(shape=(13,), dtype=torch.float64)})
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="creating-a-simple-layer">Creating a simple layer<a class="anchor-link" href="#creating-a-simple-layer">&#182;</a></h2><p>Here, we will show how to create a GNN layer that does a mean aggregation on the neighbouring features.</p>
-<p>First, for the layer to be fully compatible with the flexible architecture provided by <code>FeedForwardDGL</code>, it needs to inherit from the class <code>BaseDGLLayer</code>. This base-layer has multiple virtual methods that must be implemented in any class that inherits from it.</p>
-<p>The virtual methods are below</p>
-<ul>
-<li><code>layer_supports_edges</code>: We want to return <code>False</code> since our layer doesn't support edges</li>
-<li><code>layer_inputs_edges</code>: We want to return <code>False</code> since our layer doesn't input edges</li>
-<li><code>layer_outputs_edges</code>: We want to return <code>False</code> since our layer doesn't output edges</li>
-<li><code>layer_outdim_factor</code>: We want to return <code>1</code> since the output dimension does not depend on internal parameters.</li>
-</ul>
-<p>The example is given below</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2155,83 +2005,9 @@ print(bg)</div>
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="k">class</span> <span class="nc">SimpleMeanLayer</span><span class="p">(</span><span class="n">BaseDGLLayer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">normalization</span><span class="p">):</span>
-        <span class="c1"># Initialize the parent class</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>   <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
-                            <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">)</span>
-
-        <span class="c1"># Create the layer with learned parameters</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="n">FCLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">):</span>
-        <span class="c1"># We first apply the mean aggregation</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">update_all</span><span class="p">(</span><span class="n">message_func</span><span class="o">=</span><span class="n">dgl</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">copy_u</span><span class="p">(</span><span class="s2">&quot;h&quot;</span><span class="p">,</span> <span class="s2">&quot;m&quot;</span><span class="p">),</span> 
-                    <span class="n">reduce_func</span><span class="o">=</span><span class="n">dgl</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">))</span>
-
-        <span class="c1"># Then we apply the FCLayer, and the non-linearities</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">h</span>
-
-    <span class="c1"># Finally, we define all the virtual properties according to how</span>
-    <span class="c1"># the class works</span>
-    <span class="nd">@classproperty</span>
-    <span class="k">def</span> <span class="nf">layer_supports_edges</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">layer_inputs_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">layer_outputs_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">out_dim_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mi">1</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="err">!</span><span class="n">pwd</span>
 </pre></div>
-<div id="cell-3" class="clipboard-copy-txt">class SimpleMeanLayer(BaseDGLLayer):
-    def __init__(self, in_dim, out_dim, activation, dropout, normalization):
-        # Initialize the parent class
-        super().__init__(   in_dim=in_dim, out_dim=out_dim, activation=activation,
-                            dropout=dropout, normalization=normalization)
-
-        # Create the layer with learned parameters
-        self.layer = FCLayer(in_dim=in_dim, out_dim=out_dim)
-
-    def forward(self, g, h):
-        # We first apply the mean aggregation
-        g.ndata["h"] = h
-        g.update_all(message_func=dgl.function.copy_u("h", "m"), 
-                    reduce_func=dgl.function.mean("m", "h"))
-
-        # Then we apply the FCLayer, and the non-linearities
-        h = g.ndata["h"]
-        h = self.layer(h)
-        h = self.apply_norm_activation_dropout(h)
-        return h
-
-    # Finally, we define all the virtual properties according to how
-    # the class works
-    @classproperty
-    def layer_supports_edges(cls):
-        return False
-
-    @property
-    def layer_inputs_edges(self):
-        return False
-
-    @property
-    def layer_outputs_edges(self):
-        return False
-
-    @property
-    def out_dim_factor(self):
-        return 1   </div>
+<div id="cell-3" class="clipboard-copy-txt">!pwd</div>
         
         </div>
     </div>
@@ -2239,18 +2015,27 @@ print(bg)</div>
 </div>
 </div>
 
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>/home/oleksandr/code/goli/docs/tutorials/basics
+</pre>
 </div>
 </div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now, we are ready to test the <code>SimpleMeanLayer</code> on some DGL graphs. Note that in this example, we <strong>ignore</strong> the edge features since they are not supported.</p>
 
 </div>
+
 </div>
+
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
@@ -2258,7 +2043,7 @@ print(bg)</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2273,25 +2058,17 @@ print(bg)</div>
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">SimpleMeanLayer</span><span class="p">(</span>
-            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
-            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">import</span> <span class="nn">goli</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="n">MAIN_DIR</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">goli</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)))</span>
+<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">MAIN_DIR</span><span class="p">)</span> <span class="c1"># No need for this file</span>
 </pre></div>
-<div id="cell-4" class="clipboard-copy-txt">graph = deepcopy(bg)
-h_in = graph.ndata["h"]
-layer = SimpleMeanLayer(
-            in_dim=in_dim, out_dim=out_dim, 
-            activation="relu", dropout=.3, normalization="batch_norm").to(float)
-h_out = layer(graph, h_in)
-
-print(h_in.shape)
-print(h_out.shape)</div>
+<div id="cell-4" class="clipboard-copy-txt">import goli
+import os
+from os.path import dirname, abspath
+MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+os.chdir(MAIN_DIR) # No need for this file</div>
         
         </div>
     </div>
@@ -2305,252 +2082,17 @@ print(h_out.shape)</div>
 
 
 <div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
+<div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[3]:</div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>torch.Size([7, 5])
-torch.Size([7, 11])
-</pre>
-</div>
-</div>
 
+
+<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
+<pre>&#39;/home/oleksandr/code/goli/goli&#39;</pre>
 </div>
 
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="creating-a-complex-layer-with-edges">Creating a complex layer with edges<a class="anchor-link" href="#creating-a-complex-layer-with-edges">&#182;</a></h2><p>Here, we will show how to create a GNN layer that does a mean aggregation on the neighbouring features, concatenated to the edge features with their neighbours. In that case, only the node features will change, and the network will not update the edge features.</p>
-<p>The virtual methods will have different outputs</p>
-<ul>
-<li><code>layer_supports_edges</code>: We want to return <code>True</code> since our layer does support edges</li>
-<li><code>layer_inputs_edges</code>: We want to return <code>True</code> since our layer does input edges</li>
-<li><code>layer_outputs_edges</code>: We want to return <code>False</code> since our layer will not output new edges</li>
-<li><code>layer_outdim_factor</code>: We want to return <code>1</code> since the output dimension does not depend on internal parameters.</li>
-</ul>
-<p>The example is given below</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-5">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="k">class</span> <span class="nc">ComplexMeanLayer</span><span class="p">(</span><span class="n">BaseDGLLayer</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">activation</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">normalization</span><span class="p">):</span>
-        <span class="c1"># Initialize the parent class</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>   <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">activation</span><span class="p">,</span>
-                            <span class="n">dropout</span><span class="o">=</span><span class="n">dropout</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="n">normalization</span><span class="p">)</span>
-
-        <span class="c1"># Create the layer with learned parameters. Note the addition</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">layer</span> <span class="o">=</span> <span class="n">FCLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span> <span class="o">+</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">cat_nodes_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span>
-        <span class="c1"># Create a message &quot;m&quot; by concatenating &quot;h&quot; and &quot;e&quot; for each pair of nodes</span>
-        <span class="n">nodes_edges</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">edges</span><span class="o">.</span><span class="n">src</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span> <span class="n">edges</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="n">nodes_edges</span><span class="p">}</span>
-
-    <span class="k">def</span> <span class="nf">get_edges_messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">edges</span><span class="p">):</span> <span class="c1"># Simply return the messages on the edges</span>
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;m&quot;</span><span class="p">:</span> <span class="n">edges</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;m&quot;</span><span class="p">]}</span>
-
-    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
-
-        <span class="c1"># We first concatenate both the node and edge features on the edges</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">h</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">e</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">apply_edges</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cat_nodes_edges</span><span class="p">)</span>
-
-        <span class="c1"># Then we apply the mean aggregation to generate a message &quot;m&quot;</span>
-        <span class="n">g</span><span class="o">.</span><span class="n">update_all</span><span class="p">(</span><span class="n">message_func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_edges_messages</span><span class="p">,</span> 
-                    <span class="n">reduce_func</span><span class="o">=</span><span class="n">dgl</span><span class="o">.</span><span class="n">function</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="s2">&quot;h&quot;</span><span class="p">))</span>
-
-        <span class="c1"># Finally we apply the FCLayer, and the non-linearities</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">h</span>
-
-    <span class="c1"># Finally, we define all the virtual properties according to how</span>
-    <span class="c1"># the class works</span>
-    <span class="nd">@classproperty</span>
-    <span class="k">def</span> <span class="nf">layer_supports_edges</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">True</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">layer_inputs_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">True</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">layer_outputs_edges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">out_dim_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mi">1</span>
-</pre></div>
-<div id="cell-5" class="clipboard-copy-txt">class ComplexMeanLayer(BaseDGLLayer):
-    def __init__(self, in_dim, out_dim, in_dim_edges, activation, dropout, normalization):
-        # Initialize the parent class
-        super().__init__(   in_dim=in_dim, out_dim=out_dim, activation=activation,
-                            dropout=dropout, normalization=normalization)
-
-        # Create the layer with learned parameters. Note the addition
-        self.layer = FCLayer(in_dim=in_dim + in_dim_edges, out_dim=out_dim)
-
-    def cat_nodes_edges(self, edges):
-        # Create a message "m" by concatenating "h" and "e" for each pair of nodes
-        nodes_edges = torch.cat([edges.src["h"], edges.data["e"]], dim=-1)
-        return {"m": nodes_edges}
-
-    def get_edges_messages(self, edges): # Simply return the messages on the edges
-        return {"m": edges.data["m"]}
-
-    def forward(self, g, h, e):
-
-        # We first concatenate both the node and edge features on the edges
-        g.ndata["h"] = h
-        g.edata["e"] = e
-        g.apply_edges(self.cat_nodes_edges)
-
-        # Then we apply the mean aggregation to generate a message "m"
-        g.update_all(message_func=self.get_edges_messages, 
-                    reduce_func=dgl.function.mean("m", "h"))
-
-        # Finally we apply the FCLayer, and the non-linearities
-        h = g.ndata["h"]
-        h = self.layer(h)
-        h = self.apply_norm_activation_dropout(h)
-        return h
-
-    # Finally, we define all the virtual properties according to how
-    # the class works
-    @classproperty
-    def layer_supports_edges(cls):
-        return True
-
-    @property
-    def layer_inputs_edges(self):
-        return True
-
-    @property
-    def layer_outputs_edges(self):
-        return False
-
-    @property
-    def out_dim_factor(self):
-        return 1   </div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>Now, we are ready to test the <code>ComplexMeanLayer</code> on some DGL graphs. Note that in this example, we <strong>use</strong> the edge features since they are mandatory.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-6">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-<span class="n">e_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">ComplexMeanLayer</span><span class="p">(</span>
-            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span>
-            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">,</span> <span class="n">e_in</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-</pre></div>
-<div id="cell-6" class="clipboard-copy-txt">graph = deepcopy(bg)
-h_in = graph.ndata["h"]
-e_in = graph.edata["e"]
-layer = ComplexMeanLayer(
-            in_dim=in_dim, out_dim=out_dim, in_dim_edges=in_dim_edges,
-            activation="relu", dropout=.3, normalization="batch_norm").to(float)
-h_out = layer(graph, h_in, e_in)
-
-print(h_in.shape)
-print(h_out.shape)</div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>torch.Size([7, 5])
-torch.Size([7, 11])
-</pre>
-</div>
 </div>
 
 </div>
