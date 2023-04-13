@@ -6,6 +6,8 @@ import importlib.resources
 import zipfile
 from copy import deepcopy
 import time
+from tqdm import tqdm
+import gc
 
 from loguru import logger
 import fsspec
@@ -16,6 +18,8 @@ import numpy as np
 import datamol as dm
 from tqdm import tqdm
 import os.path as osp
+from fastparquet import ParquetFile
+
 from sklearn.model_selection import train_test_split
 
 import pytorch_lightning as pl
@@ -41,6 +45,8 @@ from goli.data.smiles_transform import (
 )
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
+
+torch.multiprocessing.set_sharing_strategy("file_system")
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -217,7 +223,7 @@ class BaseDataModule(pl.LightningDataModule):
         """Set the dataset for the prediction"""
         self._predict_ds = value
 
-    def get_first_graph(self):
+    def get_fake_graph(self):
         raise NotImplementedError()
 
     # Private methods
@@ -253,22 +259,107 @@ class BaseDataModule(pl.LightningDataModule):
         return df
 
     @staticmethod
-    def _read_parquet(path: str, **kwargs) -> pd.DataFrame:
+    def _get_data_file_type(path):
+        # Extract the extension
+        name, ext = os.path.splitext(path)
+
+        # support compressed files
+        _, ext2 = os.path.splitext(name)
+        if ext2 != "":
+            ext = f"{ext2}{ext}"
+
+        if ext.endswith((".parquet")):  # Support parquet files. Compression is implicit
+            return "parquet"
+        elif ".sdf" in ext:  # support compressed sdf files
+            return "sdf"
+        elif ".csv" in ext:  # support compressed csv files
+            return "csv"
+        elif ".tsv" in ext:  # support compressed tsv files
+            return "tsv"
+        elif ".pkl" in ext:  # support compressed pickle files
+            return "pkl"
+        elif ext.endswith(".pt"):  # Pytorch tensor files, used for storing index splits
+            return "pt"
+        else:
+            raise ValueError(f"unsupported file `{path}`")
+
+    @staticmethod
+    def _get_table_columns(path: str) -> List[str]:
         """
-        read the parquet file int a pandas dataframe
+        Get the columns of a table without reading all the data.
+        Might be slow to decompress the file if the file is compressed.
+
         Parameters:
-            path: path to the parquet file
-            kwargs: keyword arguments for pd.read_parquet
+            path: path to the table file
+
         Returns:
-            pd.DataFrame: the panda dataframe storing molecules
+            List[str]: the column names
         """
 
-        path = str(path)
+        datafile_type = BaseDataModule._get_data_file_type(path)
 
-        if path.startswith("goli://"):
-            path = goli_package_path(path)
+        if datafile_type == "parquet":
+            # Read the schema of a parquet file
+            file = ParquetFile(path)
+            schema = file.pandas_metadata["columns"]
+            column_names = [s["name"] for s in schema if s["name"] is not None]
+        elif datafile_type == "sdf":
+            df = BaseDataModule._read_sdf(path, max_num_mols=5, discard_invalud=True, n_jobs=1)
+            column_names = df.columns
+        elif datafile_type in ["csv", "tsv"]:
+            # Read the schema of a csv / tsv file
+            df = BaseDataModule._read_csv(path, nrows=5)
+            column_names = df.columns
+        return column_names
 
-        df = pd.read_parquet(path)
+    @staticmethod
+    def _read_parquet(path, **kwargs):
+        kwargs.pop("dtype", None)  # Only useful for csv
+        column_names = BaseDataModule._get_table_columns(path)
+
+        # Change the 'usecols' parameter to 'columns'
+        columns = kwargs.pop("columns", None)
+        if "usecols" in kwargs.keys():
+            assert columns is None, "Ambiguous value of `columns`"
+            columns = kwargs.pop("usecols")
+        if columns is None:
+            columns = column_names
+        for column in columns:
+            assert (
+                column in column_names
+            ), f"Column `{column}` is not in the parquet file with columns {column_names}"
+
+        # Read the parquet file per column, and convert the data to float16 to reduce memory consumption
+        all_series = {}
+        progress = tqdm(columns)
+        for col in progress:
+            # Read single column
+            progress.set_description(f"Reading parquet column `{col}`")
+            this_series = pd.read_parquet(path, columns=[col], engine="fastparquet", **kwargs)[col]
+
+            # Check if the data is float
+            first_elem = this_series.iloc[0]
+            is_float = False
+            if isinstance(first_elem, (list, tuple)):
+                is_float = isinstance(first_elem[0], np.floating)
+            elif isinstance(first_elem, np.ndarray):
+                is_float = isinstance(first_elem, np.floating)
+
+            # Convert floats to float16
+            if is_float:
+                if isinstance(first_elem, np.ndarray):
+                    this_series.update([elem.astype(np.float16) for elem in this_series])
+                elif isinstance(first_elem, list):
+                    this_series.update([np.asarray(elem).astype(np.float16) for elem in this_series])
+                else:
+                    this_series = this_series.astype(np.float16)
+
+            all_series[col] = this_series
+            gc.collect()  # Reset memory after each column
+
+        # Merge columns into a dataframe
+        df = pd.concat(all_series, axis=1)
+
         return df
 
     @staticmethod
@@ -318,7 +409,6 @@ class BaseDataModule(pl.LightningDataModule):
 
         return df
 
-    @staticmethod
     def _read_table(self, path: str, **kwargs) -> pd.DataFrame:
         """
         a general read file function which determines if which function to use, either _read_csv or _read_parquet
@@ -328,10 +418,15 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
-        if str(path).endswith((".parquet")):
-            return self._read_parquet(path)
+        file_type = self._get_data_file_type(path)
+        if file_type == "parquet":
+            return self._read_parquet(path, **kwargs)
+        elif file_type == "sdf":  # support compressed sdf files
+            return self._read_sdf(path, **kwargs)
+        elif file_type in ["csv", "tsv"]:  # support compressed csv and tsv files
+            return self._read_csv(path, **kwargs)
         else:
-            return self._read_csv(path)
+            raise ValueError(f"unsupported file `{path}`")
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
@@ -776,7 +871,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     + check_arg_iterator(args.weights_col, enforce_type=list)
                 )
                 label_dtype = {col: np.float32 for col in label_cols}
-                task_df[task] = self._read_csv(args.df_path, usecols=usecols, dtype=label_dtype)
+                task_df[task] = self._read_table(args.df_path, usecols=usecols, dtype=label_dtype)
 
             else:
                 label_cols = self._parse_label_cols(
@@ -1235,12 +1330,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             the parsed label columns
         """
         if df is None:
-            # Only load the useful columns, as some dataset can be very large
-            # when loading all columns
-            data_frame = self._read_csv(df_path, nrows=0)
+            cols = BaseDataModule._get_table_columns(df_path)
         else:
-            data_frame = df
-        cols = list(data_frame.columns)
+            cols = list(df.columns)
 
         # A star `*` at the beginning or end of the string specifies to look for all
         # columns that starts/end with a specific string
@@ -1272,7 +1364,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     @property
     def num_node_feats(self):
         """Return the number of node features in the first graph"""
-        graph = self.get_first_graph()
+        graph = self.get_fake_graph()
         num_feats = graph.feat.shape[1]
         return num_feats
 
@@ -1284,7 +1376,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         raw positional encoding dimensions such eigval, eigvec, rwse and more
         """
 
-        graph = self.get_first_graph()
+        graph = self.get_fake_graph()
         if isinstance(graph, (GraphDict)):
             graph = graph.ndata
 
@@ -1303,56 +1395,23 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def num_edge_feats(self):
         """Return the number of edge features in the first graph"""
 
-        graph = self.get_first_graph()
+        graph = self.get_fake_graph()
         empty = torch.Tensor([])
         num_feats = graph.get("edge_feat", empty).shape[-1]
 
         return num_feats
 
-    def get_first_graph(self):
+    def get_fake_graph(self):
         """
-        Low memory footprint method to get the first datapoint graph.
-        The first 10 rows of the data are read in case the first one has a featurization
-        error. If all 20 first element, then `None` is returned, otherwise the first
-        graph to not fail is returned.
+        Low memory footprint method to get the featurization of a fake graph
+        without reading the dataset. Useful for getting the number of node/edge features.
+
+        Returns:
+            graph: A fake graph with the right featurization
         """
-        keys = list(self.task_dataset_processing_params.keys())
-        task = keys[0]
-        args = self.task_dataset_processing_params[task]
-        if args.df is None:
-            df = self._read_csv(args.df_path, nrows=20)
-        else:
-            df = args.df.iloc[0:20, :]
 
-        label_cols = self._parse_label_cols(
-            df, df_path=None, label_cols=args.label_cols, smiles_col=args.smiles_col
-        )
-
-        smiles, labels, sample_idx, extras = self._extract_smiles_labels(
-            df,
-            smiles_col=args.smiles_col,
-            label_cols=label_cols,
-            idx_col=args.idx_col,
-            weights_col=args.weights_col,
-            weights_type=args.weights_type,
-        )
-
-        graph = None
-        for s in smiles:
-            graph = self.smiles_transformer(s, mask_nan=0.0)
-            if (graph is None) or isinstance(graph, str):
-                continue
-            else:
-                num_nodes = graph.num_nodes
-                num_edges = graph.num_edges
-            if (graph is not None) and not isinstance(graph, str) and (num_edges > 0) and (num_nodes > 0):
-                break
-        if graph is None:
-            raise ValueError("No valid graph found in the first 20 rows of the dataset")
-        elif isinstance(graph, str):
-            raise ValueError(
-                f"No valid graph found in the first 20 rows of the dataset, with error:\n {graph}"
-            )
+        smiles = "C1=CC=CC=C1"
+        graph = self.smiles_transformer(smiles, mask_nan=0.0)
         return graph
 
     ########################## Private methods ######################################
@@ -1497,18 +1556,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         else:
             # Split from an indices file
-            name, ext = os.path.splitext(splits_path)
-            _, ext2 = os.path.splitext(name)
-            if ext2 != "":
-                ext = f"{ext2}{ext}"
-            if ext == ".pt":
+            file_type = self._get_data_file_type(splits_path)
+
+            if file_type == "pt":
                 splits = torch.load(splits_path)
-            elif (".csv" in ext) or (".tsv" in ext):
+            elif file_type in ["csv", "tsv"]:
                 with fsspec.open(str(splits_path)) as f:
                     splits = self._read_csv(splits_path)
                 splits = splits.dropna()
             else:
-                raise ValueError(f"file extension {ext} not recognised, please use .pt or .csv.")
+                raise ValueError(
+                    f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
+                )
             train, val, test = split_names
             train_indices = splits[train].astype("int").tolist()
             val_indices = splits[val].astype("int").tolist()
@@ -2164,7 +2223,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
 
-    def get_first_graph(self):
+    def get_fake_graph(self):
         """
         Low memory footprint method to get the first datapoint DGL graph.
         The first 10 rows of the data are read in case the first one has a featurization
