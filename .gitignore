@@ -29,6 +29,7 @@ goli/data/mega-pubchem/
 goli/data/cache/
 goli/data/b3lyp/
 goli/data/PCQM4Mv2/
+goli/data/PCQM4M/
 predictions/
 
 # Others
@@ -177,4 +178,3 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-goli/data/PCQM4M/pcqm4mv2-20k.csv
