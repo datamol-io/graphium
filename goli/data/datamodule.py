@@ -590,7 +590,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
-        processed_graph_data_path: Optional[str] = None,
+        processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -937,14 +937,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         labels_size = {}
         data_hash = self.get_data_hash()
         if stage == "fit" or stage is None:
-            processed_train_data_path = osp.join(self.processed_graph_data_path, f"train_{data_hash}")
-            train_load_from_file = (
-                osp.exists(processed_train_data_path) and self.get_folder_size(processed_train_data_path) > 0
-            )
-            processed_val_data_path = osp.join(self.processed_graph_data_path, f"val_{data_hash}")
-            val_load_from_file = (
-                osp.exists(processed_val_data_path) and self.get_folder_size(processed_val_data_path) > 0
-            )
+            train_load_from_file = False
+            processed_train_data_path = None
+            val_load_from_file = False
+            processed_val_data_path = None
+            if self.processed_graph_data_path is not None:
+                processed_train_data_path = osp.join(self.processed_graph_data_path, f"train_{data_hash}")
+                train_load_from_file = (
+                    osp.exists(processed_train_data_path) and self.get_folder_size(processed_train_data_path) > 0
+                )
+                processed_val_data_path = osp.join(self.processed_graph_data_path, f"val_{data_hash}")
+                val_load_from_file = (
+                    osp.exists(processed_val_data_path) and self.get_folder_size(processed_val_data_path) > 0
+                )
             self.train_ds = Datasets.MultitaskDataset(
                 self.train_singletask_datasets,
                 n_jobs=self.featurization_n_jobs,
@@ -982,10 +987,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{data_hash}")
-            test_load_from_file = (
-                osp.exists(processed_test_data_path) and self.get_folder_size(processed_test_data_path) > 0
-            )
+            test_load_from_file = False
+            processed_test_data_path = None
+            if self.processed_graph_data_path is not None:
+                processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{data_hash}")
+                test_load_from_file = (
+                    osp.exists(processed_test_data_path) and self.get_folder_size(processed_test_data_path) > 0
+                )
             self.test_ds = Datasets.MultitaskDataset(
                 self.test_singletask_datasets,
                 n_jobs=self.featurization_n_jobs,

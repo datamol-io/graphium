@@ -145,7 +145,7 @@ class MultitaskDataset(Dataset):
         progress: bool = True,
         save_smiles_and_ids: bool = False,
         about: str = "",
-        data_path: str = "",
+        data_path: Optional[Union[str, os.PathLike]] = None,
         load_from_file: bool = True,
     ):
         r"""
@@ -183,6 +183,7 @@ class MultitaskDataset(Dataset):
         self.load_from_file = load_from_file
 
         task = next(iter(datasets))
+        self.features = None
         if (len(datasets[task]) > 0) and ("features" in datasets[task][0]):
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
         else:
@@ -195,8 +196,9 @@ class MultitaskDataset(Dataset):
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
         self.dataset_length = len(self.labels)
-        self.num_nodes_list = get_num_nodes_per_graph(self.features)
-        self.num_edges_list = get_num_edges_per_graph(self.features)
+        if self.features is not None:
+            self.num_nodes_list = get_num_nodes_per_graph(self.features)
+            self.num_edges_list = get_num_edges_per_graph(self.features)
         if self.load_from_file:
             self.features = None
             self.labels = None
