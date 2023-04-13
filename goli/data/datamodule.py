@@ -41,6 +41,8 @@ from goli.data.smiles_transform import (
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
 
+torch.multiprocessing.set_sharing_strategy("file_system")
+
 PCQM4M_meta = {
     "num tasks": 1,
     "eval metric": "mae",
