@@ -16,6 +16,8 @@ import omegaconf
 import pandas as pd
 import numpy as np
 import datamol as dm
+from tqdm import tqdm
+import os.path as osp
 from fastparquet import ParquetFile
 
 from sklearn.model_selection import train_test_split
@@ -683,6 +685,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
+        processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -810,6 +813,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.test_ds = None
 
         self.cache_data_path = cache_data_path
+        self.processed_graph_data_path = processed_graph_data_path
 
         if featurization is None:
             featurization = {}
@@ -846,6 +850,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # If a path for data caching is provided, try to load from the path.
         # If successful, skip the data preparation.
         cache_data_exists = self.load_data_from_cache()
+        # need to check if cache exist properly
         if cache_data_exists:
             self._data_is_prepared = True
             return
@@ -1025,12 +1030,52 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         # Produce the label sizes to update the collate function
         labels_size = {}
-
+        data_hash = self.get_data_hash()
         if stage == "fit" or stage is None:
-            self.train_ds = Datasets.MultitaskDataset(self.train_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="training set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
-            self.val_ds = Datasets.MultitaskDataset(self.val_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="validation set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            train_load_from_file = False
+            processed_train_data_path = None
+            val_load_from_file = False
+            processed_val_data_path = None
+            if self.processed_graph_data_path is not None:
+                processed_train_data_path = osp.join(self.processed_graph_data_path, f"train_{data_hash}")
+                train_load_from_file = (
+                    osp.exists(processed_train_data_path)
+                    and self.get_folder_size(processed_train_data_path) > 0
+                )
+                processed_val_data_path = osp.join(self.processed_graph_data_path, f"val_{data_hash}")
+                val_load_from_file = (
+                    osp.exists(processed_val_data_path) and self.get_folder_size(processed_val_data_path) > 0
+                )
+            self.train_ds = Datasets.MultitaskDataset(
+                self.train_singletask_datasets,
+                n_jobs=self.featurization_n_jobs,
+                backend=self.featurization_backend,
+                featurization_batch_size=self.featurization_batch_size,
+                progress=self.featurization_progress,
+                about="training set",
+                save_smiles_and_ids=save_smiles_and_ids,
+                data_path=processed_train_data_path,
+                load_from_file=train_load_from_file,
+            )  # type: ignore
+            self.val_ds = Datasets.MultitaskDataset(
+                self.val_singletask_datasets,
+                n_jobs=self.featurization_n_jobs,
+                backend=self.featurization_backend,
+                featurization_batch_size=self.featurization_batch_size,
+                progress=self.featurization_progress,
+                about="validation set",
+                save_smiles_and_ids=save_smiles_and_ids,
+                data_path=processed_val_data_path,
+                load_from_file=val_load_from_file,
+            )  # type: ignore
             logger.info(self.train_ds)
             logger.info(self.val_ds)
+            if (self.processed_graph_data_path is not None) and (not train_load_from_file):
+                # save featurized train dataset to disk
+                self.save_featurized_data(self.train_ds, processed_train_data_path)
+            if (self.processed_graph_data_path is not None) and (not val_load_from_file):
+                # save featurized validation dataset to disk
+                self.save_featurized_data(self.val_ds, processed_val_data_path)
 
             labels_size.update(
                 self.train_ds.labels_size
@@ -1038,8 +1083,29 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            self.test_ds = Datasets.MultitaskDataset(self.test_singletask_datasets, n_jobs=self.featurization_n_jobs, backend=self.featurization_backend, featurization_batch_size=self.featurization_batch_size, progress=self.featurization_progress, about="test set", save_smiles_and_ids=save_smiles_and_ids)  # type: ignore
+            test_load_from_file = False
+            processed_test_data_path = None
+            if self.processed_graph_data_path is not None:
+                processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{data_hash}")
+                test_load_from_file = (
+                    osp.exists(processed_test_data_path)
+                    and self.get_folder_size(processed_test_data_path) > 0
+                )
+            self.test_ds = Datasets.MultitaskDataset(
+                self.test_singletask_datasets,
+                n_jobs=self.featurization_n_jobs,
+                backend=self.featurization_backend,
+                featurization_batch_size=self.featurization_batch_size,
+                progress=self.featurization_progress,
+                about="test set",
+                save_smiles_and_ids=save_smiles_and_ids,
+                data_path=processed_test_data_path,
+                load_from_file=test_load_from_file,
+            )  # type: ignore
             logger.info(self.test_ds)
+            if (self.processed_graph_data_path is not None) and (not test_load_from_file):
+                # save featurized test dataset to disk
+                self.save_featurized_data(self.test_ds, processed_test_data_path)
 
             labels_size.update(self.test_ds.labels_size)
 
@@ -1047,6 +1113,27 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
+
+    def get_folder_size(self, path):
+        # check if the data items are actually saved into the folders
+        return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
+
+    def save_featurized_data(self, dataset, processed_data_path):
+        for i in range(0, len(dataset), 1000):
+            os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
+        process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
+
+        for param in tqdm(process_params):
+            self.process_func(param)
+        return
+
+    def process_func(self, param):
+        index, datum, folder = param
+        filename = os.path.join(folder, format(index // 1000, "04d"), format(index, "07d") + ".pkl")
+        torch.save(
+            {"graph_with_features": datum["features"], "labels": datum["labels"]}, filename, pickle_protocol=4
+        )
+        return
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
@@ -2029,7 +2116,6 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         for task, args in self.task_dataset_processing_params.items():
             logger.info(f"Reading data for task '{task}'")
             if args.df is None:
-                # import ipdb; ipdb.set_trace()
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
                 label_cols = self._parse_label_cols(
                     df=None, df_path=args.df_path, label_cols=args.label_cols, smiles_col=args.smiles_col
