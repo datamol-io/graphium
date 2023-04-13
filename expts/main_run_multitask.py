@@ -38,8 +38,9 @@ os.chdir(MAIN_DIR)
 def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) -> None:
     st = timeit.default_timer()
 
+    date_time_suffix = ""
     if add_date_time:
-        run_name += "_" + datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
+        date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
     cfg = deepcopy(cfg)
 
@@ -60,7 +61,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
 
-    trainer = load_trainer(cfg, run_name)
+    trainer = load_trainer(cfg, run_name, date_time_suffix)
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
 
     datamodule.prepare_data()

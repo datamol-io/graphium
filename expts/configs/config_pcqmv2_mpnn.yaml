@@ -210,6 +210,7 @@ trainer:
   logger:
     save_dir: logs/PCQMv2
     name: *name
+    project: PCQMv2_mpnn
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0

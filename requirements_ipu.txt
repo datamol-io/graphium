@@ -1,7 +1,6 @@
 --find-links https://data.pyg.org/whl/torch-1.13.0+cpu.html
 --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
 
-pyg-nightly
 torch-scatter==2.1.0
 torch-sparse==0.6.15
 torchvision==0.14.1+cpu
