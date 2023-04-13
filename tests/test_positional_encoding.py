@@ -3,12 +3,12 @@ Unit tests for the different datasets of goli/features/featurizer.py
 """
 
 import numpy as np
-from scipy.sparse import coo_matrix
 import unittest as ut
 from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
 import torch
+from scipy.sparse import coo_matrix
 
 from goli.features.featurizer import GraphDict
 from goli.features.positional_encoding import graph_positional_encoder

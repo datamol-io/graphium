@@ -1338,10 +1338,19 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         graph = None
         for s in smiles:
             graph = self.smiles_transformer(s, mask_nan=0.0)
-            num_nodes = graph.num_nodes
-            num_edges = graph.num_edges
-            if (graph is not None) and (num_edges > 0) and (num_nodes > 0):
+            if (graph is None) or isinstance(graph, str):
+                continue
+            else:
+                num_nodes = graph.num_nodes
+                num_edges = graph.num_edges
+            if (graph is not None) and not isinstance(graph, str) and (num_edges > 0) and (num_nodes > 0):
                 break
+        if graph is None:
+            raise ValueError("No valid graph found in the first 20 rows of the dataset")
+        elif isinstance(graph, str):
+            raise ValueError(
+                f"No valid graph found in the first 20 rows of the dataset, with error:\n {graph}"
+            )
         return graph
 
     ########################## Private methods ######################################

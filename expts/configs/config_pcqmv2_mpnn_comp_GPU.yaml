@@ -1,4 +1,4 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Testing the multitask pipeline with the PCQMv2 dataset on IPU.
 constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
@@ -8,33 +8,25 @@ constants:
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
-  # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv #goli/data/PCQM4Mv2/pcqm4mv2.csv
-        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        df_path: goli/data/PCQM4Mv2/pcqm4mv2_medium.csv # 1M training samples
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 3000 # use sample_size for test
-        splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
-        # goli/data/PCQM4Mv2/split_dict.pt
-        # goli/data/PCQM4Mv2/pcqm4m_split.csv
-        split_names: ["train", "valid", "test-dev"]
+        #df_path: &df_path https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-mini.csv
+        #smiles_col: "smiles"
+        #label_cols: ["homo"]
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 20
+    featurization_n_jobs: 30
     featurization_progress: True
-    featurization_backend: "loky"
-    cache_data_path: "./datacache"
-    processed_graph_data_path: "goli/data/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
-    # 'num_chiral_centers (not included yet)']
+    # 'num_chiral_centers (need graph property, properties for the full molecule are not supported now)']
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
@@ -55,17 +47,17 @@ datamodule:
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
-    batch_size_training: 64
-    batch_size_inference: 16
-    # cache_data_path: .
-    num_workers: 40 # -1 to use all
-    persistent_workers: True # if use persistent worker at the start of each epoch.
+    batch_size_training: 32
+    batch_size_inference: 8
+    # cache_data_path: null
+
+    num_workers: 20 # -1 to use all
+    persistent_workers: False # if use persistent worker at the start of each epoch. 
     # Using persistent_workers false might make the start of each epoch very long.
-    featurization_backend: "loky"
 
     ipu_dataloader_training_opts:
       mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+      max_num_nodes_per_graph: 15 # train max nodes: 20, max_edges: 54
       max_num_edges_per_graph: 60
 
     ipu_dataloader_inference_opts:
@@ -107,19 +99,18 @@ architecture:
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        input_keys: ["eigvecs", "eigvals"]
-        output_keys: ["feat"]
+        on_keys: ["eigvecs", "eigvals"]
         hidden_dim: 64
         out_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
-        num_layers_post: 1 # Num. layers to apply after pooling
+        num_layers_post: 0 # Num. layers to apply after pooling
         dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        input_keys: ["rwse"]
-        output_keys: ["feat"]
+        on_keys: ["rwse"]
+        out_level: "node"
         hidden_dim: 64
         out_dim: 32
         num_layers: 2
@@ -179,10 +170,8 @@ predictor:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
-    module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
-    warmup_epochs: 10
-    verbose: False
+    module_type: ConstantLR  
+    last_epoch: -1
   scheduler_kwargs:
   #  monitor: &monitor homolumo/mae/train
   #  mode: min
@@ -210,7 +199,6 @@ trainer:
   logger:
     save_dir: logs/PCQMv2
     name: *name
-    project: PCQMv2_mpnn
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0
@@ -222,10 +210,10 @@ trainer:
     #monitor: *monitor
     #mode: *mode
     save_top_k: 1
-    every_n_epochs: 100
+    every_n_epochs: 50
   trainer:
-    precision: 16
-    max_epochs: *max_epochs
+    precision: 32
+    max_epochs: 10
     min_epochs: 1
-    accumulate_grad_batches: 2
-    check_val_every_n_epoch: 20
+    accumulate_grad_batches: 112
+    check_val_every_n_epoch: 50

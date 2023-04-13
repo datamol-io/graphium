@@ -62,7 +62,7 @@ def is_dtype_numpy_array(dtype: Union[np.dtype, torch.dtype]) -> bool:
     return (is_num or is_numpy) and not is_torch
 
 
-def one_of_k_encoding(val: Any, classes: Iterable[Any]) -> np.ndarray:
+def one_of_k_encoding(val: Any, classes: Iterable[Any]) -> List[int]:
     r"""Converts a single value to a one-hot vector.
 
     Parameters:
@@ -75,15 +75,15 @@ def one_of_k_encoding(val: Any, classes: Iterable[Any]) -> np.ndarray:
     Returns:
         A list of length len(num_classes) + 1
     """
-    encoding = [0] * (len(classes) + 1)
+    encoding = [False] * (len(classes) + 1)
     found = False
     for i, v in enumerate(classes):
         if v == val:
-            encoding[i] = 1
+            encoding[i] = True
             found = True
             break
     if not found:
-        encoding[-1] = 1
+        encoding[-1] = True
     return encoding
 
 
