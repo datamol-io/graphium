@@ -590,7 +590,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
-        processed_graph_data_path: str = None,
+        processed_graph_data_path: Optional[str] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
         batch_size_inference: int = 16,
@@ -969,10 +969,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )  # type: ignore
             logger.info(self.train_ds)
             logger.info(self.val_ds)
-            if not train_load_from_file:
+            if (self.processed_graph_data_path is not None) and (not train_load_from_file):
                 # save featurized train dataset to disk
                 self.save_featurized_data(self.train_ds, processed_train_data_path)
-            if not val_load_from_file:
+            if (self.processed_graph_data_path is not None) and (not val_load_from_file):
                 # save featurized validation dataset to disk
                 self.save_featurized_data(self.val_ds, processed_val_data_path)
 
@@ -998,7 +998,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 load_from_file=test_load_from_file,
             )  # type: ignore
             logger.info(self.test_ds)
-            if not test_load_from_file:
+            if (self.processed_graph_data_path is not None) and (not test_load_from_file):
                 # save featurized test dataset to disk
                 self.save_featurized_data(self.test_ds, processed_test_data_path)
 
