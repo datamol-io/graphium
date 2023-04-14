@@ -10,7 +10,7 @@ from copy import deepcopy
 import sys
 import traceback
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphNetwork
+from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphMultiTaskNetwork
 from goli.nn.base_layers import FCLayer
 from goli.nn.residual_connections import (
     ResidualConnectionConcat,
@@ -364,260 +364,297 @@ class test_FeedForwardGraph(ut.TestCase):
     }
 
     def test_forward_no_residual(self):
-        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
-            for residual_skip_steps in [1, 2]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
+        for residual_skip_steps in [1, 2]:
+            for virtual_node in self.virtual_nodes:
+                for normalization in self.norms:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+                        layer_type = layer_name.split("#")[0]
 
-                            # PYG
-                            if layer_type.startswith("pyg:"):
-                                layer_class = FeedForwardPyg
-                                bg = deepcopy(self.batch_pyg)
+                        # PYG
+                        if layer_type.startswith("pyg:"):
+                            layer_class = FeedForwardPyg
+                            bg = deepcopy(self.batch_pyg)
 
-                            gnn = layer_class(
-                                in_dim=self.in_dim,
-                                out_dim=self.out_dim,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="none",
-                                residual_skip_steps=residual_skip_steps,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                normalization=normalization,
-                                **this_kwargs,
-                                **self.kwargs,
-                            )
-                            # gnn.to(torch.float32)
+                        gnn = layer_class(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="none",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            normalization=normalization,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        # gnn.to(torch.float32)
 
-                            self.assertIsInstance(gnn.residual_layer, ResidualConnectionNone)
-                            self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
-                            self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionNone)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
 
-                            f = gnn.layers[0].out_dim_factor
-                            self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+                        f = gnn.layers[0].out_dim_factor
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            feat_out = gnn.forward(bg)
+                        out_g = gnn.forward(bg)
+                        feat_out = out_g["feat"]
+                        edge_feat_out = out_g["edge_feat"]
 
-                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                        out_dim_edges = (
+                            gnn.full_dims_edges[-1] if gnn.full_dims_edges is not None else self.in_dim_edges
+                        )
+
+                        self.assertListEqual(
+                            list(feat_out.shape), [self.num_nodes, self.out_dim], msg=err_msg
+                        )
+                        self.assertListEqual(
+                            list(edge_feat_out.shape), [self.num_edges, out_dim_edges], msg=err_msg
+                        )
 
     def test_forward_simple_residual(self):
-        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
-            for residual_skip_steps in [1, 2]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
+        for residual_skip_steps in [1, 2]:
+            for virtual_node in self.virtual_nodes:
+                for normalization in self.norms:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+                        layer_type = layer_name.split("#")[0]
 
-                            # PYG
-                            if layer_type.startswith("pyg:"):
-                                layer_class = FeedForwardPyg
-                                bg = deepcopy(self.batch_pyg)
+                        # PYG
+                        if layer_type.startswith("pyg:"):
+                            layer_class = FeedForwardPyg
+                            bg = deepcopy(self.batch_pyg)
 
-                            gnn = layer_class(
-                                in_dim=self.in_dim,
-                                out_dim=self.out_dim,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="simple",
-                                residual_skip_steps=1,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                **this_kwargs,
-                                **self.kwargs,
-                            )
-                            # gnn.to(torch.float32)
+                        gnn = layer_class(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="simple",
+                            residual_skip_steps=1,
+                            layer_type=layer_type,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        # gnn.to(torch.float32)
 
-                            self.assertIsInstance(gnn.residual_layer, ResidualConnectionSimple)
-                            self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
-                            self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionSimple)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
 
-                            f = gnn.layers[0].out_dim_factor
-                            self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+                        f = gnn.layers[0].out_dim_factor
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            feat_out = gnn.forward(bg)
+                        out_g = gnn.forward(bg)
+                        feat_out = out_g["feat"]
+                        edge_feat_out = out_g["edge_feat"]
 
-                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                        out_dim_edges = (
+                            gnn.full_dims_edges[-1] if gnn.full_dims_edges is not None else self.in_dim_edges
+                        )
+
+                        self.assertListEqual(
+                            list(feat_out.shape), [self.num_nodes, self.out_dim], msg=err_msg
+                        )
+                        self.assertListEqual(
+                            list(edge_feat_out.shape), [self.num_edges, out_dim_edges], msg=err_msg
+                        )
 
     def test_forward_weighted_residual(self):
-        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
-            for residual_skip_steps in [1, 2]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
+        for residual_skip_steps in [1, 2]:
+            for virtual_node in self.virtual_nodes:
+                for normalization in self.norms:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+                        layer_type = layer_name.split("#")[0]
 
-                            # PYG
-                            if layer_type.startswith("pyg:"):
-                                layer_class = FeedForwardPyg
-                                bg = deepcopy(self.batch_pyg)
+                        # PYG
+                        if layer_type.startswith("pyg:"):
+                            layer_class = FeedForwardPyg
+                            bg = deepcopy(self.batch_pyg)
 
-                            gnn = layer_class(
-                                in_dim=self.in_dim,
-                                out_dim=self.out_dim,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="weighted",
-                                residual_skip_steps=residual_skip_steps,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                **this_kwargs,
-                                **self.kwargs,
-                            )
-                            # gnn.to(torch.float32)
+                        gnn = layer_class(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="weighted",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        # gnn.to(torch.float32)
 
-                            self.assertIsInstance(gnn.residual_layer, ResidualConnectionWeighted)
-                            self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
-                            self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionWeighted)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
 
-                            f = gnn.layers[0].out_dim_factor
-                            self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
+                        f = gnn.layers[0].out_dim_factor
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f * self.hidden_dims[4], msg=err_msg)
 
-                            feat_out = gnn.forward(bg)
+                        out_g = gnn.forward(bg)
+                        feat_out = out_g["feat"]
+                        edge_feat_out = out_g["edge_feat"]
 
-                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                        out_dim_edges = (
+                            gnn.full_dims_edges[-1] if gnn.full_dims_edges is not None else self.in_dim_edges
+                        )
+
+                        self.assertListEqual(
+                            list(feat_out.shape), [self.num_nodes, self.out_dim], msg=err_msg
+                        )
+                        self.assertListEqual(
+                            list(edge_feat_out.shape), [self.num_edges, out_dim_edges], msg=err_msg
+                        )
 
     def test_forward_concat_residual(self):
-        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
-            for residual_skip_steps in [1, 2]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
+        for residual_skip_steps in [1, 2]:
+            for virtual_node in self.virtual_nodes:
+                for normalization in self.norms:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+                        layer_type = layer_name.split("#")[0]
 
-                            # PYG
-                            if layer_type.startswith("pyg:"):
-                                layer_class = FeedForwardPyg
-                                bg = deepcopy(self.batch_pyg)
+                        # PYG
+                        if layer_type.startswith("pyg:"):
+                            layer_class = FeedForwardPyg
+                            bg = deepcopy(self.batch_pyg)
 
-                            gnn = layer_class(
-                                in_dim=self.in_dim,
-                                out_dim=self.out_dim,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="concat",
-                                residual_skip_steps=residual_skip_steps,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                **this_kwargs,
-                                **self.kwargs,
-                            )
-                            # gnn.to(torch.float32)
+                        gnn = layer_class(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="concat",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        # gnn.to(torch.float32)
 
-                            self.assertIsInstance(gnn.residual_layer, ResidualConnectionConcat)
-                            self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
-                            self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionConcat)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
 
-                            f = gnn.layers[0].out_dim_factor
-                            f2 = [
-                                2 * f if ((ii % residual_skip_steps) == 0 and ii > 0) else f
-                                for ii in range(6)
-                            ]
-                            self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
+                        f = gnn.layers[0].out_dim_factor
+                        f2 = [2 * f if ((ii % residual_skip_steps) == 0 and ii > 0) else f for ii in range(6)]
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
 
-                            feat_out = gnn.forward(bg)
+                        out_g = gnn.forward(bg)
+                        feat_out = out_g["feat"]
+                        edge_feat_out = out_g["edge_feat"]
 
-                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                        out_dim_edges = (
+                            gnn.full_dims_edges[-1] if gnn.full_dims_edges is not None else self.in_dim_edges
+                        )
+
+                        self.assertListEqual(
+                            list(feat_out.shape), [self.num_nodes, self.out_dim], msg=err_msg
+                        )
+                        self.assertListEqual(
+                            list(edge_feat_out.shape), [self.num_edges, out_dim_edges], msg=err_msg
+                        )
 
     def test_forward_densenet_residual(self):
-        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
-            for residual_skip_steps in [1, 2]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
+        for residual_skip_steps in [1, 2]:
+            for virtual_node in self.virtual_nodes:
+                for normalization in self.norms:
+                    for layer_name, this_kwargs in self.layers_kwargs.items():
+                        err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+                        layer_type = layer_name.split("#")[0]
 
-                            # PYG
-                            if layer_type.startswith("pyg:"):
-                                layer_class = FeedForwardPyg
-                                bg = deepcopy(self.batch_pyg)
+                        # PYG
+                        if layer_type.startswith("pyg:"):
+                            layer_class = FeedForwardPyg
+                            bg = deepcopy(self.batch_pyg)
 
-                            gnn = layer_class(
-                                in_dim=self.in_dim,
-                                out_dim=self.out_dim,
-                                hidden_dims=self.hidden_dims,
-                                residual_type="densenet",
-                                residual_skip_steps=residual_skip_steps,
-                                layer_type=layer_type,
-                                pooling=pooling,
-                                **this_kwargs,
-                                **self.kwargs,
-                            )
-                            # gnn.to(torch.float32)
+                        gnn = layer_class(
+                            in_dim=self.in_dim,
+                            out_dim=self.out_dim,
+                            hidden_dims=self.hidden_dims,
+                            residual_type="densenet",
+                            residual_skip_steps=residual_skip_steps,
+                            layer_type=layer_type,
+                            **this_kwargs,
+                            **self.kwargs,
+                        )
+                        # gnn.to(torch.float32)
 
-                            self.assertIsInstance(gnn.residual_layer, ResidualConnectionDenseNet)
-                            self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
-                            self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
+                        self.assertIsInstance(gnn.residual_layer, ResidualConnectionDenseNet)
+                        self.assertEqual(len(gnn.layers), len(self.hidden_dims) + 1, msg=err_msg)
+                        self.assertEqual(gnn.layers[0].out_dim, self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[1].out_dim, self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].out_dim, self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].out_dim, self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].out_dim, self.hidden_dims[4], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].out_dim, self.out_dim, msg=err_msg)
 
-                            f = gnn.layers[0].out_dim_factor
-                            f2 = [
-                                ((ii // residual_skip_steps) + 1) * f
-                                if ((ii % residual_skip_steps) == 0 and ii > 0)
-                                else f
-                                for ii in range(6)
-                            ]
-                            self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
-                            self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
-                            self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
-                            self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
-                            self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
-                            self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
+                        f = gnn.layers[0].out_dim_factor
+                        f2 = [
+                            ((ii // residual_skip_steps) + 1) * f
+                            if ((ii % residual_skip_steps) == 0 and ii > 0)
+                            else f
+                            for ii in range(6)
+                        ]
+                        self.assertEqual(gnn.layers[0].in_dim, self.in_dim, msg=err_msg)
+                        self.assertEqual(gnn.layers[1].in_dim, f2[0] * self.hidden_dims[0], msg=err_msg)
+                        self.assertEqual(gnn.layers[2].in_dim, f2[1] * self.hidden_dims[1], msg=err_msg)
+                        self.assertEqual(gnn.layers[3].in_dim, f2[2] * self.hidden_dims[2], msg=err_msg)
+                        self.assertEqual(gnn.layers[4].in_dim, f2[3] * self.hidden_dims[3], msg=err_msg)
+                        self.assertEqual(gnn.layers[5].in_dim, f2[4] * self.hidden_dims[4], msg=err_msg)
 
-                            feat_out = gnn.forward(bg)
+                        out_g = gnn.forward(bg)
+                        feat_out = out_g["feat"]
+                        edge_feat_out = out_g["edge_feat"]
 
-                            dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                            self.assertListEqual(list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg)
+                        out_dim_edges = (
+                            gnn.full_dims_edges[-1] if gnn.full_dims_edges is not None else self.in_dim_edges
+                        )
+
+                        self.assertListEqual(
+                            list(feat_out.shape), [self.num_nodes, self.out_dim], msg=err_msg
+                        )
+                        self.assertListEqual(
+                            list(edge_feat_out.shape), [self.num_edges, out_dim_edges], msg=err_msg
+                        )
 
 
 class test_FullGraphNetwork(ut.TestCase):
@@ -676,74 +713,79 @@ class test_FullGraphNetwork(ut.TestCase):
             dict(in_dim=self.in_dim_edges, out_dim=temp_dim_edges, hidden_dims=[4, 4]),
         ]
 
-        post_nn_kwargs = dict(in_dim=temp_dim_2, out_dim=self.out_dim, hidden_dims=[3, 3, 3, 3])
+        for residual_skip_steps in [1, 2]:
+            for virtual_node in self.virtual_nodes:
+                for normalization in self.norms:
+                    for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
+                        err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
+                        layer_type = layer_name.split("#")[0]
+                        for pre_nn_kwargs in pre_nn_kwargs_all:
+                            for pre_nn_edges_kwargs in pre_nn_edges_kwargs_all:
+                                expected_dim_edges = self.in_dim_edges
 
-        for pooling in [["none"], ["sum"], ["mean", "logsum", "max"]]:
-            for residual_skip_steps in [1, 2]:
-                for virtual_node in self.virtual_nodes:
-                    for normalization in self.norms:
-                        for layer_name, this_kwargs in self.gnn_layers_kwargs.items():
-                            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}"
-                            layer_type = layer_name.split("#")[0]
-                            for pre_nn_kwargs in pre_nn_kwargs_all:
-                                for pre_nn_edges_kwargs in pre_nn_edges_kwargs_all:
-                                    # PYG
-                                    if layer_type.startswith("pyg:"):
-                                        bg = deepcopy(self.batch_pyg)
+                                # PYG
+                                if layer_type.startswith("pyg:"):
+                                    bg = deepcopy(self.batch_pyg)
 
-                                    this_kwargs2 = deepcopy(this_kwargs)
-                                    if pre_nn_edges_kwargs is not None:
-                                        this_kwargs2["in_dim_edges"] = temp_dim_edges
+                                this_kwargs2 = deepcopy(this_kwargs)
+                                if pre_nn_edges_kwargs is not None:
+                                    this_kwargs2["in_dim_edges"] = temp_dim_edges
+                                    expected_dim_edges = temp_dim_edges
 
-                                    gnn_kwargs = dict(
-                                        in_dim=self.in_dim if pre_nn_kwargs is None else temp_dim_1,
-                                        out_dim=temp_dim_2,
-                                        hidden_dims=self.hidden_dims,
-                                        residual_type="densenet",
-                                        residual_skip_steps=residual_skip_steps,
-                                        layer_type=layer_type,
-                                        pooling=pooling,
-                                        **this_kwargs2,
-                                        **self.kwargs,
-                                    )
+                                gnn_kwargs = dict(
+                                    in_dim=self.in_dim if pre_nn_kwargs is None else temp_dim_1,
+                                    out_dim=temp_dim_2,
+                                    hidden_dims=self.hidden_dims,
+                                    residual_type="densenet",
+                                    residual_skip_steps=residual_skip_steps,
+                                    layer_type=layer_type,
+                                    **this_kwargs2,
+                                    **self.kwargs,
+                                )
 
-                                    if (not LAYERS_DICT[layer_type].layer_supports_edges) and (
-                                        pre_nn_edges_kwargs is not None
-                                    ):
-                                        with self.assertRaises(ValueError):
-                                            net = FullGraphNetwork(
-                                                pre_nn_kwargs=pre_nn_kwargs,
-                                                pre_nn_edges_kwargs=pre_nn_edges_kwargs,
-                                                gnn_kwargs=gnn_kwargs,
-                                                post_nn_kwargs=post_nn_kwargs,
-                                            )
-                                        continue
-
-                                    net = FullGraphNetwork(
-                                        pre_nn_kwargs=pre_nn_kwargs,
-                                        pre_nn_edges_kwargs=pre_nn_edges_kwargs,
-                                        gnn_kwargs=gnn_kwargs,
-                                        post_nn_kwargs=post_nn_kwargs,
-                                    )
-
-                                    try:
-                                        feat_out = net.forward(bg)
-                                    except Exception as e:
-                                        # self.fail(msg=err_msg + "\n" + e.__str__())
-                                        exc_type, exc_value, exc_traceback = sys.exc_info()
-                                        msg = (
-                                            err_msg
-                                            + "\n"
-                                            + str(
-                                                traceback.format_exception(exc_type, exc_value, exc_traceback)
-                                            )
+                                if (not LAYERS_DICT[layer_type].layer_supports_edges) and (
+                                    pre_nn_edges_kwargs is not None
+                                ):
+                                    with self.assertRaises(ValueError):
+                                        net = FullGraphMultiTaskNetwork(
+                                            pre_nn_kwargs=pre_nn_kwargs,
+                                            pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+                                            gnn_kwargs=gnn_kwargs,
                                         )
-                                        self.fail(msg)
+                                    continue
 
-                                    dim_1 = self.num_nodes if pooling == ["none"] else self.batch_size
-                                    self.assertListEqual(
-                                        list(feat_out.shape), [dim_1, self.out_dim], msg=err_msg
+                                net = FullGraphMultiTaskNetwork(
+                                    pre_nn_kwargs=pre_nn_kwargs,
+                                    pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+                                    gnn_kwargs=gnn_kwargs,
+                                )
+
+                                try:
+                                    out_g = net.forward(bg)
+                                    feat_out = out_g["feat"]
+                                    edge_feat_out = out_g["edge_feat"]
+                                except Exception as e:
+                                    # self.fail(msg=err_msg + "\n" + e.__str__())
+                                    exc_type, exc_value, exc_traceback = sys.exc_info()
+                                    msg = (
+                                        err_msg
+                                        + "\n"
+                                        + str(traceback.format_exception(exc_type, exc_value, exc_traceback))
                                     )
+                                    self.fail(msg)
+
+                                out_dim_edges = (
+                                    net.gnn.full_dims_edges[-1]
+                                    if net.gnn.full_dims_edges is not None
+                                    else expected_dim_edges
+                                )
+
+                                self.assertListEqual(
+                                    list(feat_out.shape), [self.num_nodes, temp_dim_2], msg=err_msg
+                                )
+                                self.assertListEqual(
+                                    list(edge_feat_out.shape), [self.num_edges, out_dim_edges], msg=err_msg
+                                )
 
 
 if __name__ == "__main__":

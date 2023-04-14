@@ -23,7 +23,7 @@ from pytorch_lightning.loggers import WandbLogger, Logger
 from goli.utils.mup import set_base_shapes
 from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullGraphMultiTaskNetwork
+from goli.nn.architectures import FullGraphMultiTaskNetwork
 from goli.nn.utils import MupMixin
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
@@ -213,7 +213,7 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
 def load_architecture(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     in_dims: Dict[str, int],
-) -> Union[FullGraphNetwork, torch.nn.Module]:
+) -> Union[FullGraphMultiTaskNetwork, torch.nn.Module]:
     """
     Loading the architecture used for training.
     Parameters:
@@ -230,10 +230,10 @@ def load_architecture(
     kwargs = {}
 
     # Select the architecture
+    # TODO: Deprecate model_type or keep for future extension?
+    # TODO: Choose simpler name for base model
     model_type = cfg_arch["model_type"].lower()
-    if model_type == "fullgraphnetwork":
-        model_class = FullGraphNetwork
-    elif model_type == "fullgraphmultitasknetwork":
+    if model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")

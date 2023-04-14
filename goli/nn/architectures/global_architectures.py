@@ -375,7 +375,6 @@ class FeedForwardGraph(FeedForwardNN):
         residual_skip_steps: int = 1,
         in_dim_edges: int = 0,
         hidden_dims_edges: List[int] = [],
-        pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "GNN",
         layer_kwargs: Optional[Dict] = None,
         virtual_node: str = "none",
@@ -463,21 +462,6 @@ class FeedForwardGraph(FeedForwardNN):
                 Hidden dimensions for the edges. Most models don't support it, so it
                 should only be used for those that do, i.e. `GatedGCNLayer`
 
-            pooling:
-                The pooling types to use. Multiple pooling can be used, and their
-                results will be concatenated.
-                For node feature predictions, use `["none"]`.
-                For graph feature predictions see `self.parse_pooling_layer`.
-                The list must either contain Callables, or the string below
-
-                - "none": No pooling is applied
-                - "sum": `SumPooling`
-                - "mean": `MeanPooling`
-                - "max": `MaxPooling`
-                - "min": `MinPooling`
-                - "std": `StdPooling`
-                - "s2s": `Set2Set`
-
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -526,7 +510,6 @@ class FeedForwardGraph(FeedForwardNN):
             self.full_dims_edges = [self.in_dim_edges] + self.hidden_dims_edges + [self.hidden_dims_edges[-1]]
 
         self.virtual_node = virtual_node.lower() if virtual_node is not None else "none"
-        self.pooling = pooling
 
         self.use_virtual_edges = use_virtual_edges
         self.virtual_node_class = self._parse_virtual_node_class()
@@ -661,50 +644,16 @@ class FeedForwardGraph(FeedForwardNN):
             self.residual_edges_layer, _ = self._create_residual_connection(out_dims=layer_out_dims_edges)
         else:
             self.residual_edges_layer = None
-        self.global_pool_layer, out_pool_dim = self._parse_pooling_layer(layer_out_dims[-1], self.pooling)
 
         # Output linear layer
         self.out_linear = FCLayer(
-            in_dim=out_pool_dim,
+            in_dim=layer_out_dims[-1],
             out_dim=self.out_dim,
             activation=self.last_activation,
             dropout=self.last_dropout,
             normalization=self.last_normalization,
             is_readout_layer=self.last_layer_is_readout,
         )
-
-    def _pool_layer_forward(
-        self,
-        g: Batch,
-        feat: torch.Tensor,
-    ):
-        r"""
-        Apply the graph pooling layer, followed by the linear output layer.
-
-        Parameters:
-
-            g: pyg Batch graph on which the convolution is done
-
-            feat (torch.Tensor[..., N, Din]):
-                Node feature tensor, before convolution.
-                `N` is the number of nodes, `Din` is the output size of the last Graph layer
-
-        Returns:
-            torch.Tensor[..., M, Din] or torch.Tensor[..., N, Din]:
-                Node feature tensor, after convolution.
-                `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
-                If the pooling is `None`, the dimension is `N`, otherwise it is `M`
-
-        """
-
-        if len(self.global_pool_layer) > 0:
-            pooled_feat = self.global_pool_layer(g, feat)
-        else:
-            pooled_feat = feat
-
-        pooled_feat = self.out_linear(pooled_feat)
-
-        return pooled_feat
 
     def _graph_layer_forward(
         self,
@@ -796,39 +745,6 @@ class FeedForwardGraph(FeedForwardNN):
 
     def _parse_virtual_node_class(self) -> type:
         return VirtualNodePyg
-
-    def _parse_pooling_layer(
-        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
-    ) -> Tuple[nn.Module, int]:
-        r"""
-        Return the pooling layer
-        **This function is virtual, so it needs to be implemented by the child class.**
-
-        Parameters:
-
-            in_dim:
-                The dimension at the input layer of the pooling
-
-            pooling:
-                The list of pooling layers to use. The accepted strings are:
-
-                - "sum": `SumPooling`
-                - "mean": `MeanPooling`
-                - "max": `MaxPooling`
-                - "min": `MinPooling`
-                - "std": `StdPooling`
-                - "s2s": `Set2Set`
-                - "dir{int}": `DirPooling`
-
-            kwargs:
-                Kew-word arguments for the pooling layer initialization
-
-        Return:
-            pool_layer: Pooling layer module
-            out_pool_dim: Output dimension of the pooling layer
-
-        """
-        return parse_pooling_layer_pyg(in_dim, pooling, **kwargs)
 
     def _virtual_node_forward(
         self,
@@ -934,9 +850,8 @@ class FeedForwardGraph(FeedForwardNN):
                 g=g, feat=feat, edge_feat=edge_feat, vn_feat=vn_feat, step_idx=ii
             )
 
-        pooled_h = self._pool_layer_forward(g=g, feat=feat)
-
-        return pooled_h
+        g["feat"], g["edge_feat"] = feat, edge_feat
+        return g
 
     def get_init_kwargs(self) -> Dict[str, Any]:
         """
@@ -946,7 +861,6 @@ class FeedForwardGraph(FeedForwardNN):
         new_kwargs = dict(
             in_dim_edges=self.in_dim_edges,
             hidden_dims_edges=self.hidden_dims_edges,
-            pooling=self.pooling,
             virtual_node=self.virtual_node,
         )
         kwargs.update(new_kwargs)
@@ -995,23 +909,32 @@ class FeedForwardGraph(FeedForwardNN):
         """
         class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
         layer_str = f"{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]\n    "
-        pool_str = f"-> Pooling({self.pooling})"
         out_str = f" -> {self.out_linear}"
 
-        return class_str + layer_str + pool_str + out_str
+        return class_str + layer_str + out_str
 
 
-class FullGraphNetwork(nn.Module, MupMixin):
+# TODO: Pooling replacement
+# - __repr__
+# - get_init_kwargs
+# - _parse_pooling_layer
+
+# TODO: Keep out_layer of FeedForwardGraph?
+
+
+class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
     def __init__(
         self,
         gnn_kwargs: Dict[str, Any],
         pre_nn_kwargs: Optional[Dict[str, Any]] = None,
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
+        task_heads_kwargs: Optional[Dict[str, Any]] = None,
         post_nn_kwargs: Optional[Dict[str, Any]] = None,
         accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
+        pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "FullGNN",
     ):
         r"""
@@ -1042,10 +965,13 @@ class FullGraphNetwork(nn.Module, MupMixin):
                 MLP network of the edge features before the GNN, using the class `FeedForwardNN`.
                 If `None`, there won't be a pre-processing MLP.
 
+            task_heads_kwargs:
+                This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
+                initialize a task-specific MLP.
+
             post_nn_kwargs:
-                key-word arguments to use for the initialization of the post-processing
-                MLP network after the GNN, using the class `FeedForwardNN`.
-                If `None`, there won't be a post-processing MLP.
+                This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
+                Each dict of arguments is used to initialize a shared MLP.
 
             accelerator_kwargs:
                 key-word arguments specific to the accelerator being used,
@@ -1060,6 +986,21 @@ class FullGraphNetwork(nn.Module, MupMixin):
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
+            pooling:
+                The pooling types to use. Multiple pooling can be used, and their
+                results will be concatenated.
+                For node feature predictions, use `["none"]`.
+                For graph feature predictions, see `self.parse_pooling_layer`.
+                The list must either contain Callables, or the string below
+
+                - "none": No pooling is applied
+                - "sum": `SumPooling`
+                - "mean": `MeanPooling`
+                - "max": `MaxPooling`
+                - "min": `MinPooling`
+                - "std": `StdPooling`
+                - "s2s": `Set2Set`
+
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -1069,9 +1010,11 @@ class FullGraphNetwork(nn.Module, MupMixin):
         self.name = name
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout
+        self.pooling = pooling
         self._concat_last_layers = None
-        self.pre_nn, self.post_nn, self.pre_nn_edges = None, None, None
+        self.pre_nn, self.pre_nn_edges, self.task_heads = None, None, None
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
+        self.post_nn_kwargs = post_nn_kwargs
         self.encoder_manager = EncoderManager(pe_encoders_kwargs)
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
@@ -1094,23 +1037,28 @@ class FullGraphNetwork(nn.Module, MupMixin):
         name = gnn_kwargs.pop("name", "GNN")
         gnn_class = self._parse_feed_forward_gnn(gnn_kwargs)
         gnn_kwargs.setdefault(
-            "last_layer_is_readout", self.last_layer_is_readout and (post_nn_kwargs is None)
+            "last_layer_is_readout", self.last_layer_is_readout and (task_heads_kwargs is None)
         )
         self.gnn = gnn_class(**gnn_kwargs, name=name)
         next_in_dim = self.gnn.out_dim
 
-        # Initialize the post-processing neural net (applied after the gnn)
-        if post_nn_kwargs is not None:
-            name = post_nn_kwargs.pop("name", "post-NN")
-            post_nn_kwargs.setdefault("in_dim", next_in_dim)
-            post_nn_kwargs.setdefault("last_layer_is_readout", self.last_layer_is_readout)
-            self.post_nn = FeedForwardNN(**post_nn_kwargs, name=name)
-            assert next_in_dim == self.post_nn.in_dim, "Inconsistent input/output dimensions"
+        if task_heads_kwargs is not None:
+            self.task_heads = TaskHeads(
+                in_dim=self.out_dim,
+                in_dim_edges=self.out_dim_edges,
+                task_heads_kwargs=task_heads_kwargs,
+                post_nn_kwargs=post_nn_kwargs,
+                last_layer_is_readout=last_layer_is_readout,
+                pooling=pooling,
+            )
+            self._task_heads_kwargs = task_heads_kwargs
 
         if accelerator_kwargs is not None:
             accelerator = accelerator_kwargs["_accelerator"]
             if accelerator == "ipu":
                 self._apply_ipu_options(accelerator_kwargs)
+
+        self._check_bad_arguments()
 
     @staticmethod
     def _parse_feed_forward_gnn(
@@ -1132,18 +1080,35 @@ class FullGraphNetwork(nn.Module, MupMixin):
         Raise comprehensive errors if the arguments seem wrong
         """
         if self.pre_nn is not None:
-            if self.pre_nn["out_dim"] != self.gnn["in_dim"]:
+            if self.pre_nn.out_dim != self.gnn.in_dim:
                 raise ValueError(
                     f"`self.pre_nn.out_dim` must be equal to `self.gnn.in_dim`."
                     + 'Provided" {self.pre_nn.out_dim} and {self.gnn.in_dim}'
                 )
 
-        if self.post_nn is not None:
-            if self.gnn["out_dim"] != self.post_nn["in_dim"]:
+        if self.task_heads is not None:
+            edge_level_tasks = [
+                task_name
+                for task_name, head_kwargs in self._task_heads_kwargs.items()
+                if head_kwargs["task_level"] == "edge"
+            ]
+            if len(edge_level_tasks) > 0 and (
+                not self.gnn.layer_class.layer_supports_edges or self.out_dim_edges < 1
+            ):
                 raise ValueError(
-                    f"`self.gnn.out_dim` must be equal to `self.post_nn.in_dim`."
-                    + 'Provided" {self.gnn.out_dim} and {self.post_nn.in_dim}'
+                    f"Task heads have edge level tasks {', '.join(edge_level_tasks)}, but edge level tasks cannot be used with layer class `{self.gnn.layer_class}`"
                 )
+
+            if self.pooling == ["none"]:
+                graph_level_tasks = [
+                    task_name
+                    for task_name, head_kwargs in self._task_heads_kwargs.items()
+                    if head_kwargs["task_level"] == "graph"
+                ]
+                if len(graph_level_tasks) > 0:
+                    raise ValueError(
+                        f"Task heads have graph level tasks {', '.join(graph_level_tasks)}, but pooling is none."
+                    )
 
     def _apply_ipu_options(self, ipu_kwargs):
         gnn_layers_per_ipu = ipu_kwargs.get("gnn_layers_per_ipu")
@@ -1184,36 +1149,6 @@ class FullGraphNetwork(nn.Module, MupMixin):
             self.gnn.layers[begin_block_layer_index] = poptorch.BeginBlock(
                 self.gnn.layers[begin_block_layer_index], ipu_id=ipu_id
             )
-
-    def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
-        r"""
-        Remove the last layers of the model. Useful for Transfer Learning.
-
-        Parameters:
-            num_layers_to_drop: The number of layers to drop from the `self.post_nn` network.
-
-        """
-
-        assert num_layers_to_drop >= 0
-        assert num_layers_to_drop <= len(self.post_nn.layers)
-
-        if num_layers_to_drop > 0:
-            self.post_nn.layers = self.post_nn.layers[:-num_layers_to_drop]
-
-    def extend_post_nn_layers(self, layers: nn.ModuleList):
-        r"""
-        Add layers at the end of the model. Useful for Transfer Learning.
-
-        Parameters:
-            layers: A ModuleList of all the layers to extend
-
-        """
-
-        assert isinstance(layers, nn.ModuleList)
-        if len(self.post_nn.layers) > 0:
-            assert layers[0].in_dim == self.post_nn.layers.out_dim[-1]
-
-        self.post_nn.extend(layers)
 
     def forward(self, g: Batch) -> Tensor:
         r"""
@@ -1274,53 +1209,12 @@ class FullGraphNetwork(nn.Module, MupMixin):
             g["edge_feat"] = e
 
         # Run the graph neural network
-        h = self.gnn.forward(g)
+        g = self.gnn.forward(g)
 
-        # Run the output network
-        if self.post_nn is not None:
-            if self.concat_last_layers is None:
-                h = self.post_nn.forward(h)
-            else:
-                # Concatenate the output of the last layers according to `self._concat_last_layers``.
-                # Useful for generating fingerprints
-                h = [h]
-                for ii in range(len(self.post_nn.layers)):
-                    h.insert(0, self.post_nn.layers[ii].forward(h[0]))  # Append in reverse order
-                h = torch.cat([h[ii] for ii in self._concat_last_layers], dim=-1)
+        if self.task_heads is not None:
+            return self.task_heads.forward(g)
 
-        return h
-
-    @property
-    def concat_last_layers(self) -> Optional[Iterable[int]]:
-        """
-        Property to control the output of the `self.forward`.
-        If set to a list of integer, the `forward` function will
-        concatenate the output of different layers.
-
-        If set to `None`, the output of the last layer is returned.
-
-        NOTE: The indexes are inverted. 0 is the last layer, 1 is the second last, etc.
-        """
-        return self._concat_last_layers
-
-    @concat_last_layers.setter
-    def concat_last_layers(self, value: Union[Type[None], int, Iterable[int]]) -> None:
-        """
-        Set the property to control the output of the `self.forward`.
-        If set to a list of integer, the `forward` function will
-        concatenate the output of different layers.
-        If a single integer is provided, it will output that specific layer.
-
-        If set to `None`, the output of the last layer is returned.
-
-        NOTE: The indexes are inverted. 0 is the last layer, 1 is the second last, etc.
-
-        Parameters:
-            value: Output layers to concatenate, in reverse order (`0` is the last layer)
-        """
-        if (value is not None) and not isinstance(value, Iterable):
-            value = [value]
-        self._concat_last_layers = value
+        return g
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
         """
@@ -1339,7 +1233,6 @@ class FullGraphNetwork(nn.Module, MupMixin):
             pre_nn_kwargs=None,
             pre_nn_edges_kwargs=None,
             pe_encoders_kwargs=None,
-            post_nn_kwargs=None,
             num_inference_to_average=self.num_inference_to_average,
             last_layer_is_readout=self.last_layer_is_readout,
             name=self.name,
@@ -1367,11 +1260,11 @@ class FullGraphNetwork(nn.Module, MupMixin):
                 divide_factor=divide_factor
             )
 
-        # For the post-nn network, all the dimension are divided
-        if self.post_nn is not None:
-            kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(
+        if self.task_heads is not None:
+            kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=True
-            )
+            )["task_heads_kwargs"]
+            kwargs["post_nn_kwargs"] = self.post_nn_kwargs
 
         # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
@@ -1404,20 +1297,27 @@ class FullGraphNetwork(nn.Module, MupMixin):
                     layer.max_num_nodes_per_graph = max_nodes
                     layer.max_num_edges_per_graph = max_edges
 
+        for task_head in self.task_heads.task_heads.values():
+            for layer in task_head.layers:
+                if isinstance(layer, BaseGraphStructure):
+                    layer.max_num_nodes_per_graph = max_nodes
+                    layer.max_num_edges_per_graph = max_edges
+
     def __repr__(self) -> str:
         r"""
         Controls how the class is printed
         """
-        pre_nn_str, post_nn_str, pre_nn_edges_str = "", "", ""
+        pre_nn_str, pre_nn_edges_str = "", "", ""
         if self.pre_nn is not None:
             pre_nn_str = self.pre_nn.__repr__() + "\n\n"
         if self.pre_nn_edges is not None:
             pre_nn_edges_str = self.pre_nn_edges.__repr__() + "\n\n"
         gnn_str = self.gnn.__repr__() + "\n\n"
-        if self.post_nn is not None:
-            post_nn_str = self.post_nn.__repr__()
+        if self.task_heads is not None:
+            task_str = self.task_heads.__repr__()
+            task_str = "    Task heads:\n    " + "    ".join(task_str.splitlines(True))
 
-        child_str = "    " + pre_nn_str + pre_nn_edges_str + gnn_str + post_nn_str
+        child_str = "    " + pre_nn_str + pre_nn_edges_str + gnn_str + task_str
         child_str = "    ".join(child_str.splitlines(True))
 
         full_str = self.name + "\n" + "-" * (len(self.name) + 2) + "\n" + child_str
@@ -1439,10 +1339,17 @@ class FullGraphNetwork(nn.Module, MupMixin):
         r"""
         Returns the output dimension of the network
         """
-        if self.post_nn is not None:
-            return self.post_nn.out_dim
-        else:
-            return self.gnn.out_dim
+        return self.gnn.out_dim
+
+    @property
+    def out_dim_edges(self) -> int:
+        r"""
+        Returns the output dimension of the edges
+        of the network.
+        """
+        if self.gnn.full_dims_edges is not None:
+            return self.gnn.full_dims_edges[-1]
+        return self.gnn.in_dim_edges
 
     @property
     def in_dim_edges(self) -> int:
@@ -1600,6 +1507,10 @@ class TaskHeads(nn.Module, MupMixin):
         Parameters:
             in_dim:
                 Input feature dimensions of the layer
+
+            in_dim_edges:
+                Input edge feature dimensions of the layer
+
             task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to initialize a task-specific MLP.
@@ -1614,6 +1525,13 @@ class TaskHeads(nn.Module, MupMixin):
                 results will be concatenated.
                 For node feature predictions, use `["none"]`.
                 For graph feature predictions see `self.parse_pooling_layer`.
+                The list must either contain Callables, or the string below
+
+            pooling:
+                The pooling types to use. Multiple pooling can be used, and their
+                results will be concatenated.
+                For node feature predictions, use `["none"]`.
+                For graph feature predictions, see `self.parse_pooling_layer`.
                 The list must either contain Callables, or the string below
 
                 - "none": No pooling is applied
@@ -1657,6 +1575,11 @@ class TaskHeads(nn.Module, MupMixin):
             else:
                 level_in_dim = in_dim
 
+            # TODO: Should we fail here, already or in the _check_bad_arguments in the
+            # FullGraphMultiTaskNetwork but accept that torch will then raise a
+            # warning due to zero-init. tensor.
+            if level_in_dim == 0:
+                raise ValueError(f"Task head for task {task_name} has an input dimension of 0.")
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault(
                 "last_layer_is_readout", last_layer_is_readout
@@ -1666,9 +1589,8 @@ class TaskHeads(nn.Module, MupMixin):
             )
             # Create a new dictionary without the task_level key-value pair, and pass it while initializing the FeedForwardNN instance for tasks
             filtered_kwargs = {k: v for k, v in head_kwargs.items() if k != "task_level"}
-            self.task_heads[task_name] = FeedForwardNN(
-                in_dim=self.post_nn_kwargs[task_level]["out_dim"], **filtered_kwargs
-            )
+            filtered_kwargs["in_dim"] = self.post_nn_kwargs[task_level]["out_dim"]
+            self.task_heads[task_name] = FeedForwardNN(**filtered_kwargs)
 
     def _parse_pooling_layer(
         self, in_dim: int, pooling: Union[str, List[str]], **kwargs
@@ -1801,10 +1723,12 @@ class TaskHeads(nn.Module, MupMixin):
             task_heads_kwargs[task_name] = task_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=factor_in_dim
             )
+            task_heads_kwargs[task_name]["task_level"] = self.task_heads_kwargs[task_name]["task_level"]
         kwargs = dict(
             in_dim=self.in_dim,
             last_layer_is_readout=self.last_layer_is_readout,
             task_heads_kwargs=task_heads_kwargs,
+            post_nn_kwargs=self.post_nn_kwargs,
         )
         return kwargs
 
@@ -1833,169 +1757,19 @@ class TaskHeads(nn.Module, MupMixin):
             if task_level is None:
                 raise ValueError("task_level must be specified for each task head.")
 
-            if task_level == "nodepair":
-                level_in_dim = 2 * self.in_dim
-            elif task_level == "edge":
-                level_in_dim = self.in_dim_edges
-            elif task_level == "graph":
-                level_in_dim = self.out_pool_dim
-            else:
-                level_in_dim = self.in_dim
+            # TODO Jama: Clarify what this is supposed to achieve, since head_kwargs[in_dim] is not
+            # even used other than overriding the actual in_dim coming from the post_nn
+            # if task_level == "nodepair":
+            #    level_in_dim = 2 * self.in_dim
+            # elif task_level == "edge":
+            #    level_in_dim = self.in_dim_edges
+            # elif task_level == "graph":
+            #    level_in_dim = self.out_pool_dim
+            # else:
+            #    level_in_dim = self.in_dim#
 
-            head_in_dim = head_kwargs.pop("in_dim", None)
-            if level_in_dim == head_in_dim:
-                raise ValueError(
-                    f"`self.gnn.out_dim` must be equal to `self.post_nn.in_dim`."
-                    + 'Provided" {head_in_dim} and {self.in_dim}'
-                )
-
-
-class FullGraphMultiTaskNetwork(FullGraphNetwork):
-    def __init__(
-        self,
-        task_heads_kwargs: Dict[str, Any],
-        gnn_kwargs: Dict[str, Any],
-        pre_nn_kwargs: Optional[Dict[str, Any]] = None,
-        pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
-        pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
-        post_nn_kwargs: Optional[Dict[str, Any]] = None,
-        accelerator_kwargs: Optional[Dict[str, Any]] = None,
-        num_inference_to_average: int = 1,
-        last_layer_is_readout: bool = True,
-        name: str = "Multitask_GNN",
-    ):
-        r"""
-        Class that allows to implement a full multi-task graph neural network architecture,
-        including the pre-processing MLP, post-processing MLP and the task-specific heads.
-
-        In this model, the tasks share a full network as a "trunk", and additionally have task-specific MLPs.
-        Each molecular graph is associated with a variety of tasks, so the network outputs the task-specific preedictions for a graph.
-
-        Parameters:
-
-            task_heads_kwargs:
-                This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
-                initialize a task-specific MLP.
-
-            gnn_kwargs:
-                key-word arguments to use for the initialization of the pre-processing
-                GNN network using the class `FeedForwardGraph`.
-                It must respect the following criteria:
-
-                - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
-                - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
-
-            pre_nn_kwargs:
-                key-word arguments to use for the initialization of the pre-processing
-                MLP network of the node features before the GNN, using the class `FeedForwardNN`.
-                If `None`, there won't be a pre-processing MLP.
-
-            pre_nn_edges_kwargs:
-                key-word arguments to use for the initialization of the pre-processing
-                MLP network of the edge features before the GNN, using the class `FeedForwardNN`.
-                If `None`, there won't be a pre-processing MLP.
-
-            post_nn_kwargs:
-                key-word arguments to use for the initialization of the post-processing
-                MLP network after the GNN, using the class `FeedForwardNN`.
-                If `None`, there won't be a post-processing MLP.
-
-            accelerator_kwargs:
-                key-word arguments specific to the accelerator being used,
-                e.g. pipeline split points
-
-            num_inference_to_average:
-                Number of inferences to average at val/test time. This is used to avoid the noise introduced
-                by positional encodings with sign-flips. In case no such encoding is given,
-                this parameter is ignored.
-                NOTE: The inference time will be slowed-down proportionaly to this parameter.
-
-            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
-                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-
-            name:
-                Name attributed to the current network, for display and printing
-                purposes.
-        """
-
-        # Use last_layer_is_readout=False since readout layers are in task heads
-        super().__init__(
-            gnn_kwargs=gnn_kwargs,
-            pre_nn_kwargs=pre_nn_kwargs,
-            pre_nn_edges_kwargs=pre_nn_edges_kwargs,
-            pe_encoders_kwargs=pe_encoders_kwargs,
-            post_nn_kwargs=post_nn_kwargs,
-            accelerator_kwargs=accelerator_kwargs,
-            num_inference_to_average=num_inference_to_average,
-            last_layer_is_readout=False,
-            name=name,
-        )
-        self.last_layer_is_readout = last_layer_is_readout
-
-        self.task_heads = TaskHeads(
-            in_dim=super().out_dim,
-            task_heads_kwargs=task_heads_kwargs,
-            last_layer_is_readout=last_layer_is_readout,
-        )
-
-    def forward(self, g: Batch):
-        r"""
-        forward pass of the network
-
-        Parameters:
-            g: Batch of pyg molecular graphs
-        """
-        h = super().forward(g)
-        return self.task_heads(h)
-
-    @property
-    def out_dim(self) -> Dict[str, int]:
-        r"""
-        Returns the output dimension of the network for each task
-        """
-        return self.task_heads.out_dim
-
-    def make_mup_base_kwargs(self, divide_factor: float = 2.0) -> Dict[str, Any]:
-        """
-        Create a 'base' model to be used by the `mup` or `muTransfer` scaling of the model.
-        The base model is usually identical to the regular model, but with the
-        layers width divided by a given factor (2 by default)
-
-        Parameter:
-            divide_factor: Factor by which to divide the width.
-
-        Returns:
-            A dictionary of arguments to be used to initialize the base model.
-        """
-        kwargs = super().make_mup_base_kwargs(divide_factor=divide_factor)
-        kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(
-            divide_factor=divide_factor, factor_in_dim=True
-        )["task_heads_kwargs"]
-        return kwargs
-
-    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
-        """
-        Set the maximum number of nodes and edges for all gnn layers
-
-        Parameters:
-            max_nodes: Maximum number of nodes in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-
-            max_edges: Maximum number of edges in the dataset.
-                This will be useful for certain architecture, but ignored by others.
-        """
-        super().set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
-        for task_head in self.task_heads.task_heads.values():
-            for layer in task_head.layers:
-                if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = max_nodes
-                    layer.max_num_edges_per_graph = max_edges
-
-    def __repr__(self):
-        r"""
-        Print the network architecture
-        """
-        task_str = self.task_heads.__repr__()
-        task_str = "    Task heads:\n    " + "    ".join(task_str.splitlines(True))
-
-        return super().__repr__() + task_str
+            # head_in_dim = head_kwargs.pop("in_dim", None)
+            # if level_in_dim != head_in_dim:
+            #    raise ValueError(
+            #        f"`self.gnn.out_dim` must be equal to `self.post_nn.in_dim`. Provided {level_in_dim} and {head_in_dim}"
+            #    )

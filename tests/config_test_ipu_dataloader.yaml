@@ -80,6 +80,8 @@ datamodule:
 architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
+  pooling: [sum, mean, max]
+
   pre_nn:   # Set as null to avoid a pre-nn network
     out_dim: 16
     hidden_dims: 16
@@ -149,7 +151,6 @@ architecture:
     normalization: *normalization
     last_normalization: *normalization
     residual_type: simple
-    pooling: [sum, mean, max]
     virtual_node: 'none'
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
@@ -160,15 +161,16 @@ architecture:
       attn_kwargs: null
 
   post_nn:
-    out_dim: 8
-    hidden_dims: 8
-    depth: 1
-    activation: relu
-    last_activation: none
-    dropout: *dropout
-    normalization: *normalization
-    last_normalization: "none"
-    residual_type: none
+    graph:
+      out_dim: 8
+      hidden_dims: 8
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
 
   task_heads:
     homo:
@@ -181,6 +183,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
+      task_level: graph
     alpha:
       out_dim: 1
       hidden_dims: 8
@@ -191,6 +194,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
+      task_level: graph
     cv:
       out_dim: 1
       hidden_dims: 8
@@ -201,6 +205,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
+      task_level: graph
 
 #Task-specific
 predictor:

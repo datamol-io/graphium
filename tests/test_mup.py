@@ -10,7 +10,7 @@ import yaml
 
 from torch_geometric.data import Batch, Data
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphNetwork, FullGraphMultiTaskNetwork
+from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphMultiTaskNetwork
 
 
 def get_pyg_graphs(in_dim, in_dim_edges):
@@ -154,14 +154,15 @@ class test_mup(ut.TestCase):
         # Load the model
         kwargs = {}
         for key, val in cfg["architecture"].items():
-            if key in ["model_type", "task_heads", "mup_base_path"]:
+            if key in ["model_type", "mup_base_path", "pooling"]:
                 continue
             kwargs[key + "_kwargs"] = val
         kwargs["pre_nn_kwargs"]["in_dim"] = in_dim + kwargs["pe_encoders_kwargs"]["out_dim"]
         kwargs["pre_nn_edges_kwargs"]["in_dim"] = in_dim_edges
         kwargs["pe_encoders_kwargs"]["in_dims"] = pe_indims
+        kwargs["pooling"] = cfg["architecture"]["pooling"]
 
-        model = FullGraphNetwork(**kwargs, last_layer_is_readout=True)
+        model = FullGraphMultiTaskNetwork(**kwargs, last_layer_is_readout=True)
 
         kw_1 = model.make_mup_base_kwargs(divide_factor=1)
         kw_2 = model.make_mup_base_kwargs(divide_factor=2)
@@ -207,18 +208,18 @@ class test_mup(ut.TestCase):
 
         # Test that the models with divide_factor=1 can be built run a forward pass
         kw_1["last_layer_is_readout"] = False
-        model_1 = FullGraphNetwork(**kw_1)
+        model_1 = FullGraphMultiTaskNetwork(**kw_1)
         model_1.forward(deepcopy(in_features))
         kw_1["last_layer_is_readout"] = True
-        model_1 = FullGraphNetwork(**kw_1)
+        model_1 = FullGraphMultiTaskNetwork(**kw_1)
         model_1.forward(deepcopy(in_features))
 
         # Test that the models with divide_factor=2 can be built run a forward pass
         kw_2["last_layer_is_readout"] = False
-        model_2 = FullGraphNetwork(**kw_2)
+        model_2 = FullGraphMultiTaskNetwork(**kw_2)
         model_2.forward(deepcopy(in_features))
         kw_2["last_layer_is_readout"] = True
-        model_2 = FullGraphNetwork(**kw_2)
+        model_2 = FullGraphMultiTaskNetwork(**kw_2)
         model_2.forward(deepcopy(in_features))
 
     def test_fullgraphmultitasknetwork(self):
@@ -240,12 +241,13 @@ class test_mup(ut.TestCase):
         # Load the model
         kwargs = {}
         for key, val in cfg["architecture"].items():
-            if key in ["model_type", "mup_base_path"]:
+            if key in ["model_type", "mup_base_path", "pooling"]:
                 continue
             kwargs[key + "_kwargs"] = val
         kwargs["pre_nn_kwargs"]["in_dim"] = in_dim + kwargs["pe_encoders_kwargs"]["out_dim"]
         kwargs["pre_nn_edges_kwargs"]["in_dim"] = in_dim_edges
         kwargs["pe_encoders_kwargs"]["in_dims"] = pe_indims
+        kwargs["pooling"] = cfg["architecture"]["pooling"]
 
         model = FullGraphMultiTaskNetwork(**kwargs, last_layer_is_readout=True)
 
