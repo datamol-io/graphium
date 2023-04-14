@@ -31,6 +31,7 @@ def benchmark(fn, *args, message="", log2wandb=False, **kwargs):
         wandb.log({message: duration})
     return value
 
+
 def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
     print(f"length of {name} dataloader: {len(dataloader)}")
     epoch_times = [0] * n_epochs
