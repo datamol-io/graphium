@@ -60,6 +60,7 @@ datamodule:
 
 architecture:     # The parameters for the full graph network are taken from `config_micro_ZINC.yaml`
   model_type: FullGraphMultiTaskNetwork
+  pooling: [sum, max]
   pre_nn:         # Set as null to avoid a pre-nn network
     out_dim: 32
     hidden_dims: 32
@@ -92,7 +93,6 @@ architecture:     # The parameters for the full graph network are taken from `co
     normalization: *normalization
     last_normalization: *normalization
     residual_type: random
-    pooling: [sum, max]
     virtual_node: 'sum'
     layer_type: 'pyg:pna-msgpass'
     layer_kwargs:

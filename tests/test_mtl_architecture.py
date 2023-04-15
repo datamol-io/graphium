@@ -9,6 +9,8 @@ import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
 from itertools import product
+import sys
+import traceback
 
 import goli
 from goli.config._loader import load_architecture
@@ -44,7 +46,7 @@ task_3_kwargs = {
     "hidden_dims": [2, 2, 2],
 }
 task_4_kwargs = {
-    "out_dim": 3,
+    "out_dim": 4,
     "task_level": "nodepair",
     "hidden_dims": [2, 2, 2],
 }
@@ -352,17 +354,26 @@ class test_Multitask_NN(ut.TestCase):
                         pooling=pooling,
                     )
                 continue
+            
+            try:
+                multitask_graph_nn = FullGraphMultiTaskNetwork(
+                    gnn_kwargs=gnn_kwargs,
+                    pre_nn_kwargs=pre_nn_kwargs,
+                    pre_nn_edges_kwargs=pre_nn_edges_kwargs,
+                    task_heads_kwargs=task_heads_kwargs,
+                    post_nn_kwargs=post_nn_kwargs,
+                    pooling=pooling,
+                )
 
-            multitask_graph_nn = FullGraphMultiTaskNetwork(
-                gnn_kwargs=gnn_kwargs,
-                pre_nn_kwargs=pre_nn_kwargs,
-                pre_nn_edges_kwargs=pre_nn_edges_kwargs,
-                task_heads_kwargs=task_heads_kwargs,
-                post_nn_kwargs=post_nn_kwargs,
-                pooling=pooling,
-            )
-
-            batch_out = multitask_graph_nn.forward(bg)
+                batch_out = multitask_graph_nn.forward(bg)
+            except Exception as e:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                msg = (
+                    err_msg
+                    + "\n"
+                    + str(traceback.format_exception(exc_type, exc_value, exc_traceback))
+                )
+                self.fail(msg)
 
             if task_heads_kwargs is not None:
                 if "task_node" in task_heads_kwargs:
@@ -406,41 +417,37 @@ class test_Multitask_NN(ut.TestCase):
                 self.assertListEqual(list(feat_out.shape), [num_nodes, temp_dim_2], msg=err_msg)
                 self.assertListEqual(list(edge_feat_out.shape), [num_edges, out_dim_edges], msg=err_msg)
 
-
-"""
-class test_FullGraphMultiTaskNetwork(ut.TestCase):
-    in_dim_nodes = 7
-    in_dim_edges = 13
-    in_dims = {"feat": in_dim_nodes, "edge_feat": in_dim_edges}
-
-    edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
-    edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
-    x1 = torch.randn(edge_idx1.max() + 1, in_dim_nodes, dtype=torch.float32)
-    e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
-    x2 = torch.randn(edge_idx2.max() + 1, in_dim_nodes, dtype=torch.float32)
-    e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
-    g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
-    g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
-    bg = Batch.from_data_list([g1, g2])
-
-    def test_FullGraphMultiTaskNetwork_from_config(self):
+    def test_full_graph_multi_task_from_config(self):
         cfg = goli.load_config(name="zinc_default_multitask_pyg")
 
         # Initialize the network
-        model_class, model_kwargs = load_architecture(cfg, in_dims=self.in_dims)
+        in_dims = {"feat": self.in_dim, "edge_feat": self.in_dim_edges}
+        model_class, model_kwargs = load_architecture(cfg, in_dims=in_dims)
 
         multitask_full_graph_nn = model_class(**model_kwargs)
 
         # Test
-        bg = deepcopy(self.bg)
-        feat_out = multitask_full_graph_nn.forward(bg)
+        bg, num_nodes, num_edges, num_graphs, num_nodepairs = toy_test_data(
+            in_dim=self.in_dim, in_dim_edges=self.in_dim_edges
+        )
+        batch_out = multitask_full_graph_nn.forward(bg)
 
-        dim_1 = self.bg.num_graphs
-
-        self.assertListEqual(list(feat_out["task_1"].shape), [dim_1, task_1_kwargs["out_dim"]])
-        self.assertListEqual(list(feat_out["task_2"].shape), [dim_1, task_2_kwargs["out_dim"]])
-        self.assertListEqual(list(feat_out["task_3"].shape), [dim_1, task_3_kwargs["out_dim"]])
-"""
+        self.assertListEqual(
+            list(batch_out["task_1"].shape),
+            [num_nodes, task_1_kwargs["out_dim"]],
+            )
+        self.assertListEqual(
+            list(batch_out["task_2"].shape),
+            [num_edges, task_2_kwargs["out_dim"]],
+        )
+        self.assertListEqual(
+            list(batch_out["task_3"].shape),
+            [num_graphs, task_3_kwargs["out_dim"]],
+        )
+        self.assertListEqual(
+            list(batch_out["task_4"].shape),
+            [num_nodepairs, task_4_kwargs["out_dim"]],
+        )
 
 if __name__ == "__main__":
     ut.main()
