@@ -645,16 +645,6 @@ class FeedForwardGraph(FeedForwardNN):
         else:
             self.residual_edges_layer = None
 
-        # Output linear layer
-        self.out_linear = FCLayer(
-            in_dim=layer_out_dims[-1],
-            out_dim=self.out_dim,
-            activation=self.last_activation,
-            dropout=self.last_dropout,
-            normalization=self.last_normalization,
-            is_readout_layer=self.last_layer_is_readout,
-        )
-
     def _graph_layer_forward(
         self,
         layer: BaseGraphModule,
@@ -909,17 +899,8 @@ class FeedForwardGraph(FeedForwardNN):
         """
         class_str = f"{self.name}(depth={self.depth}, {self.residual_layer})\n    "
         layer_str = f"{self.layer_class.__name__}[{' -> '.join(map(str, self.full_dims))}]\n    "
-        out_str = f" -> {self.out_linear}"
 
-        return class_str + layer_str + out_str
-
-
-# TODO: Pooling replacement
-# - __repr__
-# - get_init_kwargs
-# - _parse_pooling_layer
-
-# TODO: Keep out_layer of FeedForwardGraph?
+        return class_str + layer_str
 
 
 class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
@@ -1361,9 +1342,12 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
     @property
     def dtype(self) -> torch.dtype:
         """
-        Get the dtype of the current network, based on the weights of linear layers within the GNN
+        Get the dtype of the current network, based on the torch default when initializing
+        networks.
         """
-        return self.gnn.out_linear.linear.weight.dtype
+        # TODO: Make this configurable + read out from the FeedForwardGraph?
+        # Then call .to(dtype=...) on FullGraphMultiTaskNetwork
+        return torch.get_default_dtype()
 
 
 class SharedNN(nn.Module, MupMixin):
@@ -1653,8 +1637,6 @@ class TaskHeads(nn.Module, MupMixin):
             pooled_feat = self.global_pool_layer(g, feat)
         else:
             pooled_feat = feat
-
-        # pooled_feat = self.out_linear(pooled_feat)
 
         return pooled_feat
 
