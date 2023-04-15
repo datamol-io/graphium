@@ -14,7 +14,6 @@ datamodule:
         sample_size: null                 # This may not always be provided
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
-        weights_type: null                # This may not always be provided 
       logp:
         df: null
         df_path: "goli://goli.data.multitask/tiny_ZINC_logp.csv"
@@ -100,7 +99,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       aggregators: [mean, max]
       scalers: [identity, amplification, attenuation]
 
-  post_nn:        # Set as null to avoid a post-nn network
+  post_nn:
     node:
       out_dim: 16
       hidden_dims: 32

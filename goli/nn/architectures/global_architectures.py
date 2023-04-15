@@ -1350,7 +1350,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         return torch.get_default_dtype()
 
 
-class SharedNN(nn.Module, MupMixin):
+class GraphOutputNN(nn.Module, MupMixin):
     def __init__(
         self,
         in_dim: int,
@@ -1568,7 +1568,7 @@ class TaskHeads(nn.Module, MupMixin):
             head_kwargs.setdefault(
                 "last_layer_is_readout", last_layer_is_readout
             )  # I am not sure if this is necessary
-            self.post_nn[task_level] = SharedNN(
+            self.post_nn[task_level] = GraphOutputNN(
                 in_dim=level_in_dim, task_level=task_level, post_nn_kwargs=self.post_nn_kwargs
             )
             # Create a new dictionary without the task_level key-value pair, and pass it while initializing the FeedForwardNN instance for tasks
