@@ -354,7 +354,7 @@ class test_Multitask_NN(ut.TestCase):
                         pooling=pooling,
                     )
                 continue
-            
+
             try:
                 multitask_graph_nn = FullGraphMultiTaskNetwork(
                     gnn_kwargs=gnn_kwargs,
@@ -368,11 +368,7 @@ class test_Multitask_NN(ut.TestCase):
                 batch_out = multitask_graph_nn.forward(bg)
             except Exception as e:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                msg = (
-                    err_msg
-                    + "\n"
-                    + str(traceback.format_exception(exc_type, exc_value, exc_traceback))
-                )
+                msg = err_msg + "\n" + str(traceback.format_exception(exc_type, exc_value, exc_traceback))
                 self.fail(msg)
 
             if task_heads_kwargs is not None:
@@ -435,7 +431,7 @@ class test_Multitask_NN(ut.TestCase):
         self.assertListEqual(
             list(batch_out["task_1"].shape),
             [num_nodes, task_1_kwargs["out_dim"]],
-            )
+        )
         self.assertListEqual(
             list(batch_out["task_2"].shape),
             [num_edges, task_2_kwargs["out_dim"]],
@@ -448,6 +444,7 @@ class test_Multitask_NN(ut.TestCase):
             list(batch_out["task_4"].shape),
             [num_nodepairs, task_4_kwargs["out_dim"]],
         )
+
 
 if __name__ == "__main__":
     ut.main()

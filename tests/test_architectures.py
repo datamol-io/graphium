@@ -656,5 +656,6 @@ class test_FeedForwardGraph(ut.TestCase):
                             list(edge_feat_out.shape), [self.num_edges, out_dim_edges], msg=err_msg
                         )
 
+
 if __name__ == "__main__":
     ut.main()
