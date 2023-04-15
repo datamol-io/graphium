@@ -1738,20 +1738,3 @@ class TaskHeads(nn.Module, MupMixin):
             task_level = self.task_heads_kwargs[task_name].get("task_level", None)
             if task_level is None:
                 raise ValueError("task_level must be specified for each task head.")
-
-            # TODO Jama: Clarify what this is supposed to achieve, since head_kwargs[in_dim] is not
-            # even used other than overriding the actual in_dim coming from the post_nn
-            # if task_level == "nodepair":
-            #    level_in_dim = 2 * self.in_dim
-            # elif task_level == "edge":
-            #    level_in_dim = self.in_dim_edges
-            # elif task_level == "graph":
-            #    level_in_dim = self.out_pool_dim
-            # else:
-            #    level_in_dim = self.in_dim#
-
-            # head_in_dim = head_kwargs.pop("in_dim", None)
-            # if level_in_dim != head_in_dim:
-            #    raise ValueError(
-            #        f"`self.gnn.out_dim` must be equal to `self.post_nn.in_dim`. Provided {level_in_dim} and {head_in_dim}"
-            #    )
