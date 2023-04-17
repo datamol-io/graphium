@@ -36,7 +36,11 @@ class HybridCELoss(_WeightedLoss):
         """
         super().__init__(weight=weight, reduction=reduction)
 
-        if regression_loss not in ["mae", "mse"]:
+        if regression_loss == "mae":
+            self.regression_loss = F.l1_loss
+        elif regression_loss == "mse":
+            self.regression_loss = F.mse_loss
+        else:
             raise ValueError(
                 f"Expected regression_loss to be in {{'mae', 'mse'}}, received {regression_loss}."
             )
@@ -45,7 +49,6 @@ class HybridCELoss(_WeightedLoss):
             raise ValueError(f"Expected alpha to be in the [0, 1] range, received {alpha}.")
 
         self.brackets = Tensor(range(n_brackets))
-        self.regression_loss = F.l1_loss if regression_loss == "mae" else F.mse_loss
         self.alpha = alpha
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
