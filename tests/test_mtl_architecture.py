@@ -117,7 +117,7 @@ task_4_params.update(task_4_kwargs)
 task_4_params.update(kwargs)
 
 
-def toy_test_data(in_dim=7, in_dim_edges=3, task_level="node"):
+def toy_test_data(in_dim=7, in_dim_edges=3):
     edge_idx1 = torch.stack([torch.tensor([0, 1, 2, 3, 2]), torch.tensor([1, 2, 3, 0, 0])])
     edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
     x1 = torch.randn(edge_idx1.max() + 1, in_dim, dtype=torch.float32)

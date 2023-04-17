@@ -1587,6 +1587,7 @@ class TaskHeads(nn.Module, MupMixin):
         in_dim_edges: int,
         task_heads_kwargs: Dict[str, Any],
         post_nn_kwargs: Dict[str, Any],
+        last_layer_is_readout: bool = True,
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
@@ -1596,7 +1597,8 @@ class TaskHeads(nn.Module, MupMixin):
 
             in_dim_edges:
                 Input edge feature dimensions of the layer
-
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method
             task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to initialize a task-specific MLP.
@@ -1604,9 +1606,8 @@ class TaskHeads(nn.Module, MupMixin):
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
         """
-
         super().__init__()
-
+        self.last_layer_is_readout = last_layer_is_readout
         self.task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.post_nn_kwargs = deepcopy(post_nn_kwargs)
         self.task_levels = {head_kwargs["task_level"] for _, head_kwargs in self.task_heads_kwargs.items()}
@@ -1625,6 +1626,9 @@ class TaskHeads(nn.Module, MupMixin):
                 post_nn_kwargs=self.post_nn_kwargs,
             )
             head_kwargs.setdefault("name", f"NN-{task_name}")
+            head_kwargs.setdefault(
+                "last_layer_is_readout", last_layer_is_readout
+            )
             # Create a new dictionary without the task_level key-value pair,
             # and pass it while initializing the FeedForwardNN instance for tasks
             filtered_kwargs = {k: v for k, v in head_kwargs.items() if k != "task_level"}
@@ -1671,6 +1675,7 @@ class TaskHeads(nn.Module, MupMixin):
             task_heads_kwargs[task_name]["task_level"] = self.task_heads_kwargs[task_name]["task_level"]
         kwargs = dict(
             in_dim=self.in_dim,
+            last_layer_is_readout=self.last_layer_is_readout,
             task_heads_kwargs=task_heads_kwargs,
             post_nn_kwargs=self.post_nn_kwargs,
         )

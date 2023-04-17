@@ -154,7 +154,7 @@ class test_mup(ut.TestCase):
         # Load the model
         kwargs = {}
         for key, val in cfg["architecture"].items():
-            if key in ["model_type", "mup_base_path", "pooling"]:
+            if key in ["model_type", "mup_base_path"]:
                 continue
             kwargs[key + "_kwargs"] = val
         kwargs["pre_nn_kwargs"]["in_dim"] = in_dim + kwargs["pe_encoders_kwargs"]["out_dim"]
@@ -209,8 +209,7 @@ class test_mup(ut.TestCase):
                             "task_heads_kwargs:out_dim",
                         ]:
                             # No divide
-                            # TODO: changed from subsubelem to round(subsubelem / 2), please confirm?
-                            self.assertEqual(round(subsubelem / 2), kw_2[key][subkey][subsubkey], msg=match)
+                            self.assertEqual(subsubelem, kw_2[key][subkey][subsubkey], msg=match)
                         elif match in [
                             "task_heads_kwargs:in_dim",
                             "task_heads_kwargs:in_dim",
