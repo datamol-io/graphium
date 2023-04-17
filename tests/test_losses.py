@@ -71,7 +71,7 @@ class test_HybridCELoss(ut.TestCase):
     def test_loss_parser(self):
         # HybridCE cannot be parsed from a string because it requires specifying n_brackets
         loss_fun = "hybrid_ce"
-        self.assertRaises(ValueError, _parse, loss_fun=loss_fun)
+        self.assertRaises(TypeError, _parse, loss_fun=loss_fun)
 
         # HybridCE requires n_brackets to be specified
         loss_fun = {"name": "hybrid_ce"}

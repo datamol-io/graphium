@@ -47,15 +47,15 @@ RESIDUALS_DICT = {
 }
 
 LOSS_DICT = {
-    "mse": torch.nn.MSELoss(),
-    "bce": torch.nn.BCELoss(),
-    "l1": torch.nn.L1Loss(),
-    "mae": torch.nn.L1Loss(),
+    "mse": torch.nn.MSELoss,
+    "bce": torch.nn.BCELoss,
+    "l1": torch.nn.L1Loss,
+    "mae": torch.nn.L1Loss,
     "hybrid_ce": Losses.HybridCELoss,
-    "bce_ipu": IPULosses.BCELossIPU(),
-    "mse_ipu": IPULosses.MSELossIPU(),
-    "mae_ipu": IPULosses.L1LossIPU(),
-    "l1_ipu": IPULosses.L1LossIPU(),
+    "bce_ipu": IPULosses.BCELossIPU,
+    "mse_ipu": IPULosses.MSELossIPU,
+    "mae_ipu": IPULosses.L1LossIPU,
+    "l1_ipu": IPULosses.L1LossIPU,
 }
 
 

@@ -9,7 +9,6 @@ Replace the usage of **kwargs by adding checks to make sure that everything is t
 Add the post-init function to do the checks immediately.
 """
 
-import inspect
 from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
@@ -172,12 +171,7 @@ class EvalOptions:
                     f"`loss_fun` expected to be one of the strings in {LOSS_DICT.keys()}. "
                     f"Provided: {loss_fun}."
                 )
-            if inspect.isclass(LOSS_DICT[loss_fun]):
-                raise ValueError(
-                    f"`LOSS_DICT['{loss_fun}']` is a class and cannot be created using "
-                    f"a string. Use a dict and pass all required arguments."
-                )
-            loss_fun = LOSS_DICT[loss_fun]
+            loss_fun = LOSS_DICT[loss_fun]()
         elif isinstance(loss_fun, dict):
             if loss_fun.get("name") is None:
                 raise ValueError(f"`loss_fun` expected to have a key 'name'.")
@@ -188,10 +182,7 @@ class EvalOptions:
                 )
             loss_fun = deepcopy(loss_fun)
             loss_name = loss_fun.pop("name")
-            loss_class = LOSS_DICT[loss_name]
-            if not inspect.isclass(loss_class):
-                loss_class = loss_class.__class__
-            loss_fun = loss_class(**loss_fun)
+            loss_fun = LOSS_DICT[loss_name](**loss_fun)
         elif not callable(loss_fun):
             raise ValueError(f"`loss_fun` must be `str`, `dict` or `callable`. Provided: {type(loss_fun)}")
 
