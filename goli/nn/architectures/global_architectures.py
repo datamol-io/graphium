@@ -1400,7 +1400,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         if self.task_level == "graph":
             # pool features if the level is graph
             g["graph_feat"] = self._pool_layer_forward(g, g["feat"])
-        
+
         h = g[self.map_task_level[self.task_level]]
         # Run the output network
         if self.concat_last_layers is None:
@@ -1630,9 +1630,7 @@ class TaskHeads(nn.Module, MupMixin):
                 post_nn_kwargs=self.post_nn_kwargs,
             )
             head_kwargs.setdefault("name", f"NN-{task_name}")
-            head_kwargs.setdefault(
-                "last_layer_is_readout", last_layer_is_readout
-            )
+            head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)
             # Create a new dictionary without the task_level key-value pair,
             # and pass it while initializing the FeedForwardNN instance for tasks
             filtered_kwargs = {k: v for k, v in head_kwargs.items() if k != "task_level"}
