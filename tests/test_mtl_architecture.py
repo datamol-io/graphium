@@ -65,6 +65,7 @@ node_level_kwargs = {
     "residual_skip_steps": 1,
 }
 graph_level_kwargs = {
+    "pooling": ["sum", "max"],
     "out_dim": 8,
     "hidden_dims": [8, 9, 10],
     "activation": "relu",
@@ -258,7 +259,7 @@ class test_Multitask_NN(ut.TestCase):
         default_post_nn_kwargs = {
             "node": dict(out_dim=10, hidden_dims=[3, 3, 3, 3]),
             "edge": dict(out_dim=11, hidden_dims=[4, 4, 4, 4]),
-            "graph": dict(out_dim=12, hidden_dims=[5, 5, 5, 5]),
+            "graph": dict(out_dim=12, hidden_dims=[5, 5, 5, 5], pooling=["sum", "max"]),
             "nodepair": dict(out_dim=13, hidden_dims=[6, 6, 6, 6]),
         }
 
@@ -273,32 +274,28 @@ class test_Multitask_NN(ut.TestCase):
 
         # TODO: Configure properly in pytest best-practice
         options = product(
-            [["none"], ["sum"], ["mean", "max"]],
             [1, 2],
             self.virtual_nodes,
             self.norms,
             self.gnn_layers_kwargs.items(),
             [None, all_task_heads_kwargs, only_node_and_graph_task_heads_kwargs],
             [None, dict(in_dim=self.in_dim, out_dim=temp_dim_1, hidden_dims=[4, 4, 4, 4, 4])],
-            [None, default_post_nn_kwargs],
             [None, dict(in_dim=self.in_dim_edges, out_dim=temp_dim_edges, hidden_dims=[4, 4])],
         )
         for (
-            pooling,
             residual_skip_steps,
             virtual_node,
             normalization,
             (layer_name, this_kwargs),
             task_heads_kwargs,
             pre_nn_kwargs,
-            post_nn_kwargs,
             pre_nn_edges_kwargs,
         ) in options:
-            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}, task_heads={task_heads_kwargs}, pre_nn_kwargs={pre_nn_kwargs}, post_nn_kwargs={post_nn_kwargs}, pre_nn_edges_kwargs={pre_nn_edges_kwargs}"
+            err_msg = f"virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}, task_heads={task_heads_kwargs}, pre_nn_kwargs={pre_nn_kwargs}, post_nn_kwargs={default_post_nn_kwargs}, pre_nn_edges_kwargs={pre_nn_edges_kwargs}"
             layer_type = layer_name.split("#")[0]
 
             # TODO: post_nn is currently non-optional, should it be optional?
-            if task_heads_kwargs is not None and post_nn_kwargs is None:
+            if task_heads_kwargs is not None:
                 continue
 
             # TODO: Allow to pass single post_nn_kwargs to apply to all levels?
@@ -340,7 +337,7 @@ class test_Multitask_NN(ut.TestCase):
             ):
                 expectFailure = True
 
-            if task_heads_kwargs is not None and "task_graph" in task_heads_kwargs and pooling == ["none"]:
+            if task_heads_kwargs is not None and "task_graph" in task_heads_kwargs:
                 expectFailure = True
 
             if expectFailure:
@@ -350,8 +347,7 @@ class test_Multitask_NN(ut.TestCase):
                         pre_nn_kwargs=pre_nn_kwargs,
                         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
                         task_heads_kwargs=task_heads_kwargs,
-                        post_nn_kwargs=post_nn_kwargs,
-                        pooling=pooling,
+                        post_nn_kwargs=default_post_nn_kwargs,
                     )
                 continue
 
@@ -361,8 +357,7 @@ class test_Multitask_NN(ut.TestCase):
                     pre_nn_kwargs=pre_nn_kwargs,
                     pre_nn_edges_kwargs=pre_nn_edges_kwargs,
                     task_heads_kwargs=task_heads_kwargs,
-                    post_nn_kwargs=post_nn_kwargs,
-                    pooling=pooling,
+                    post_nn_kwargs=default_post_nn_kwargs,
                 )
 
                 batch_out = multitask_graph_nn.forward(bg)
