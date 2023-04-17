@@ -147,6 +147,22 @@ class EvalOptions:
     metrics_on_progress_bar: List[str] = field(default_factory=List[str])
     metrics_on_training_set: Optional[List[str]] = None
 
+    def check_metrics_validity(self):
+        """
+        Check that the metrics for the progress_par and training_set are valid
+        """
+        if self.metrics_on_progress_bar is not None:
+            selected = set(self.metrics_on_progress_bar)
+            assert selected.issubset(
+                set(self.metrics.keys())
+            ), f"Metrics {selected - set(self.metrics.keys())} not in `metrics` with choices {set(self.metrics.keys())}"
+
+        if self.metrics_on_training_set is not None:
+            selected = set(self.metrics_on_training_set)
+            assert selected.issubset(
+                set(self.metrics.keys())
+            ), f"Metrics {selected - set(self.metrics.keys())} not in `metrics` with choices {set(self.metrics.keys())}"
+
     # Parse before or after?
     @staticmethod
     def parse_loss_fun(loss_fun: Union[str, Dict, Callable]) -> Callable:
