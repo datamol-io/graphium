@@ -997,6 +997,8 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.post_nn_kwargs = post_nn_kwargs
         self.encoder_manager = EncoderManager(pe_encoders_kwargs)
+        self.max_num_nodes_per_graph = None
+        self.max_num_edges_per_graph = None
 
         # Initialize the pre-processing neural net for nodes (applied directly on node features)
         if pre_nn_kwargs is not None:
@@ -1268,6 +1270,8 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             max_edges: Maximum number of edges in the dataset.
                 This will be useful for certain architecture, but ignored by others.
         """
+        self.max_num_nodes_per_graph = max_nodes
+        self.max_num_edges_per_graph = max_edges
         if (self.encoder_manager is not None) and (self.encoder_manager.pe_encoders is not None):
             for encoder in self.encoder_manager.pe_encoders.values():
                 encoder.max_num_nodes_per_graph = max_nodes
@@ -1642,7 +1646,10 @@ class TaskHeads(nn.Module, MupMixin):
 
     def vectorized_nodepair_approach(self, feat: torch.tensor):
         r"""
-        Vectorized implementation of nodepair-level task. See approach here:(https://github.com/datamol-io/goli/issues/5#issuecomment-1502162544)
+        Vectorized implementation of nodepair-level task.
+        See approach here:(https://github.com/datamol-io/goli/issues/5#issuecomment-1502162544)
+        For each node pairs X,Y within the same graph, with features h_X, h_Y,
+        return the concatenation nodepair_h = [h_X + h_Y, |h_X - h_Y|].
         Parameters:
             feat: Node features
         Returns:
