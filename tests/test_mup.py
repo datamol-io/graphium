@@ -154,13 +154,12 @@ class test_mup(ut.TestCase):
         # Load the model
         kwargs = {}
         for key, val in cfg["architecture"].items():
-            if key in ["model_type", "mup_base_path", "pooling"]:
+            if key in ["model_type", "mup_base_path"]:
                 continue
             kwargs[key + "_kwargs"] = val
         kwargs["pre_nn_kwargs"]["in_dim"] = in_dim + kwargs["pe_encoders_kwargs"]["out_dim"]
         kwargs["pre_nn_edges_kwargs"]["in_dim"] = in_dim_edges
         kwargs["pe_encoders_kwargs"]["in_dims"] = pe_indims
-        kwargs["pooling"] = cfg["architecture"]["pooling"]
 
         model = FullGraphMultiTaskNetwork(**kwargs, last_layer_is_readout=True)
 

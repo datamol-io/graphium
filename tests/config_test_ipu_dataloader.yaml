@@ -80,7 +80,6 @@ datamodule:
 architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
-  pooling: [sum, mean, max]
 
   pre_nn:   # Set as null to avoid a pre-nn network
     out_dim: 16
@@ -162,6 +161,7 @@ architecture:
 
   post_nn:
     graph:
+      pooling: [sum, mean, max]
       out_dim: 8
       hidden_dims: 8
       depth: 1

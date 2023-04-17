@@ -915,7 +915,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
-        pooling: Union[List[str], List[Callable]] = ["sum"],
         name: str = "FullGNN",
     ):
         r"""
@@ -967,21 +966,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             last_layer_is_readout: Whether the last layer should be treated as a readout layer.
                 Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
 
-            pooling:
-                The pooling types to use. Multiple pooling can be used, and their
-                results will be concatenated.
-                For node feature predictions, use `["none"]`.
-                For graph feature predictions, see `self.parse_pooling_layer`.
-                The list must either contain Callables, or the string below
-
-                - "none": No pooling is applied
-                - "sum": `SumPooling`
-                - "mean": `MeanPooling`
-                - "max": `MaxPooling`
-                - "min": `MinPooling`
-                - "std": `StdPooling`
-                - "s2s": `Set2Set`
-
             name:
                 Name attributed to the current network, for display and printing
                 purposes.
@@ -991,7 +975,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         self.name = name
         self.num_inference_to_average = num_inference_to_average
         self.last_layer_is_readout = last_layer_is_readout
-        self.pooling = pooling
         self._concat_last_layers = None
         self.pre_nn, self.pre_nn_edges, self.task_heads = None, None, None
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
@@ -1031,8 +1014,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 in_dim_edges=self.out_dim_edges,
                 task_heads_kwargs=task_heads_kwargs,
                 post_nn_kwargs=post_nn_kwargs,
-                last_layer_is_readout=last_layer_is_readout,
-                pooling=pooling,
             )
             self._task_heads_kwargs = task_heads_kwargs
 
@@ -1081,17 +1062,16 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 raise ValueError(
                     f"Task heads have edge level tasks {', '.join(edge_level_tasks)}, but edge level tasks cannot be used with layer class `{self.gnn.layer_class}`"
                 )
-
-            if self.pooling == ["none"]:
-                graph_level_tasks = [
-                    task_name
-                    for task_name, head_kwargs in self._task_heads_kwargs.items()
-                    if head_kwargs["task_level"] == "graph"
-                ]
-                if len(graph_level_tasks) > 0:
-                    raise ValueError(
-                        f"Task heads have graph level tasks {', '.join(graph_level_tasks)}, but pooling is none."
-                    )
+            # TODO: Since pooling is now included in the post_nn_kwargs, changed below line. So, CHECK with me.
+            graph_level_tasks = [
+                task_name
+                for task_name, head_kwargs in self._task_heads_kwargs.items()
+                if head_kwargs["task_level"] == "graph"
+            ]
+            if len(graph_level_tasks) > 0 and self.post_nn_kwargs["graph"]["pooling"] == ["none"]:
+                raise ValueError(
+                    f"Task heads have graph level tasks {', '.join(graph_level_tasks)}, but pooling is none."
+                )
 
     def _apply_ipu_options(self, ipu_kwargs):
         gnn_layers_per_ipu = ipu_kwargs.get("gnn_layers_per_ipu")
@@ -1358,36 +1338,160 @@ class GraphOutputNN(nn.Module, MupMixin):
     def __init__(
         self,
         in_dim: int,
+        in_dim_edges: int,
         task_level: str,
-        post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        post_nn_kwargs: Dict[str, Any],
     ):
-        super().__init__()
-        self._concat_last_layers = None
-        self.post_nn = None
-        self.in_dim = in_dim
-        # Initialize the post-processing neural net (applied after the gnn)
-        if post_nn_kwargs is not None:
-            name = post_nn_kwargs[task_level].pop("name", "post-NN")
-            self.post_nn = FeedForwardNN(in_dim=self.in_dim, name=name, **post_nn_kwargs[task_level])
+        r"""
+        Parameters:
+            in_dim:
+                Input feature dimensions of the layer
 
-    def forward(self, h: torch.tensor):
+            in_dim_edges:
+                Input edge feature dimensions of the layer
+            task_level:
+                graph/node/edge/nodepair depending on wether it is graph/node/edge/nodepair level task
+            post_nn_kwargs:
+                key-word arguments to use for the initialization of the post-processing
+                MLP network after the GNN, using the class `FeedForwardNN`.
+        """
+        super().__init__()
+        self.task_level = task_level
+        self._concat_last_layers = None
+        self.in_dim = in_dim
+        self.in_dim_edges = in_dim_edges
+        self.map_task_level = {
+            "node": "feat",
+            "nodepair": "nodepair_feat",
+            "graph": "graph_feat",
+            "edge": "edge_feat",
+        }
+
+        if self.task_level == "nodepair":
+            level_in_dim = 2 * self.in_dim
+        elif self.task_level == "edge":
+            level_in_dim = self.in_dim_edges
+        elif self.task_level == "graph":
+            self.global_pool_layer, self.out_pool_dim = self._parse_pooling_layer(
+                self.in_dim, post_nn_kwargs[self.task_level]["pooling"]
+            )
+            level_in_dim = self.out_pool_dim
+        else:
+            level_in_dim = self.in_dim
+
+        if level_in_dim == 0:
+            raise ValueError(f"Task head has an input dimension of 0.")
+        # Initialize the post-processing neural net (applied after the gnn)
+        name = post_nn_kwargs[self.task_level].pop("name", "post-NN")
+        filtered_post_nn_kwargs = {k: v for k, v in post_nn_kwargs[self.task_level].items() if k != "pooling"}
+        self.post_nn = FeedForwardNN(in_dim=level_in_dim, name=name, **filtered_post_nn_kwargs)
+
+    def forward(self, g: Batch):
         """
         Parameters:
-            h: Node or Edge or Graph features depending on the task level
+            g: pyg Batch graph
         Returns:
-            h: Output features after applying post_nn FeedForwardNN
+            h: Output features after applying post_nn
         """
+        # Check if at least one nodepair task is present
+        if self.task_level == "nodepair":
+            g["nodepair_feat"] = self.vectorized_nodepair_approach(g["feat"])
+        # Check if at least one graph-level task is present
+        if self.task_level == "graph":
+            # pool features if the level is graph
+            g["graph_feat"] = self._pool_layer_forward(g, g["feat"])
+        
+        h = g[self.map_task_level[self.task_level]]
         # Run the output network
-        if self.post_nn is not None:
-            if self.concat_last_layers is None:
-                h = self.post_nn.forward(h)
-            else:
-                # Concatenate the output of the last layers according to `self._concat_last_layers``.
-                # Useful for generating fingerprints
-                h = [h]
-                for ii in range(len(self.post_nn.layers)):
-                    h.insert(0, self.post_nn.layers[ii].forward(h[0]))  # Append in reverse
+        if self.concat_last_layers is None:
+            h = self.post_nn.forward(h)
+        else:
+            # Concatenate the output of the last layers according to `self._concat_last_layers``.
+            # Useful for generating fingerprints
+            h = [h]
+            for ii in range(len(self.post_nn.layers)):
+                h.insert(0, self.post_nn.layers[ii].forward(h[0]))  # Append in reverse
         return h
+
+    def _parse_pooling_layer(
+        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
+    ) -> Tuple[nn.Module, int]:
+        r"""
+        Return the pooling layer
+        **This function is virtual, so it needs to be implemented by the child class.**
+
+        Parameters:
+
+            in_dim:
+                The dimension at the input layer of the pooling
+
+            pooling:
+                The list of pooling layers to use. The accepted strings are:
+
+                - "sum": `SumPooling`
+                - "mean": `MeanPooling`
+                - "max": `MaxPooling`
+                - "min": `MinPooling`
+                - "std": `StdPooling`
+                - "s2s": `Set2Set`
+                - "dir{int}": `DirPooling`
+
+            kwargs:
+                Kew-word arguments for the pooling layer initialization
+
+        Return:
+            pool_layer: Pooling layer module
+            out_pool_dim: Output dimension of the pooling layer
+
+        """
+        return parse_pooling_layer_pyg(in_dim, pooling, **kwargs)
+
+    def _pool_layer_forward(
+        self,
+        g: Batch,
+        feat: torch.Tensor,
+    ):
+        r"""
+        Apply the graph pooling layer, followed by the linear output layer.
+
+        Parameters:
+
+            g: pyg Batch graph on which the convolution is done
+
+            feat (torch.Tensor[..., N, Din]):
+                Node feature tensor, before convolution.
+                `N` is the number of nodes, `Din` is the output size of the last Graph layer
+
+        Returns:
+            torch.Tensor[..., M, Din] or torch.Tensor[..., N, Din]:
+                Node feature tensor, after convolution.
+                `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
+                If the pooling is `None`, the dimension is `N`, otherwise it is `M`
+
+        """
+
+        if len(self.global_pool_layer) > 0:
+            pooled_feat = self.global_pool_layer(g, feat)
+        else:
+            pooled_feat = feat
+
+        return pooled_feat
+
+    def vectorized_nodepair_approach(self, feat: torch.tensor):
+        r"""
+        Vectorized implementation of nodepair-level task. See approach here:(https://github.com/datamol-io/goli/issues/5#issuecomment-1502162544)
+        Parameters:
+            feat: Node features
+        Returns:
+            result: concatenation of node features
+        """
+        n = feat.size()[0]
+        h_X = feat[:, None].repeat(1, n, 1)
+        h_Y = feat[None, :].repeat(n, 1, 1)
+        nodepair_h = torch.cat((h_X + h_Y, torch.abs(h_X - h_Y)), dim=-1)
+        mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
+        result = nodepair_h[mask, :]
+        return result
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
@@ -1486,9 +1590,8 @@ class TaskHeads(nn.Module, MupMixin):
         in_dim: int,
         in_dim_edges: int,
         task_heads_kwargs: Dict[str, Any],
-        post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        post_nn_kwargs: Dict[str, Any],
         last_layer_is_readout: bool = True,
-        pooling: Union[str, List[str]] = "mean",
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
@@ -1498,193 +1601,54 @@ class TaskHeads(nn.Module, MupMixin):
 
             in_dim_edges:
                 Input edge feature dimensions of the layer
-
+            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
+                Allows to use the `mup.MuReadout` from the muTransfer method
             task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to initialize a task-specific MLP.
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
-                If `None`, there won't be a post-processing MLP.
-            last_layer_is_readout: Whether the last layer should be treated as a readout layer.
-                Allows to use the `mup.MuReadout` from the muTransfer method https://github.com/microsoft/mup
-            pooling:
-                The pooling types to use. Multiple pooling can be used, and their
-                results will be concatenated.
-                For node feature predictions, use `["none"]`.
-                For graph feature predictions see `self.parse_pooling_layer`.
-                The list must either contain Callables, or the string below
-
-            pooling:
-                The pooling types to use. Multiple pooling can be used, and their
-                results will be concatenated.
-                For node feature predictions, use `["none"]`.
-                For graph feature predictions, see `self.parse_pooling_layer`.
-                The list must either contain Callables, or the string below
-
-                - "none": No pooling is applied
-                - "sum": `SumPooling`
-                - "mean": `MeanPooling`
-                - "max": `MaxPooling`
-                - "min": `MinPooling`
-                - "std": `StdPooling`
-                - "s2s": `Set2Set`
         """
-
         super().__init__()
-
         self.last_layer_is_readout = last_layer_is_readout
         self.task_heads_kwargs = deepcopy(task_heads_kwargs)
-        self.post_nn_kwargs = deepcopy(post_nn_kwargs) if post_nn_kwargs is not None else None
+        self.post_nn_kwargs = deepcopy(post_nn_kwargs)
         self.task_levels = {head_kwargs["task_level"] for _, head_kwargs in self.task_heads_kwargs.items()}
-        self.map_task_level = {
-            "node": "feat",
-            "nodepair": "nodepair_feat",
-            "graph": "graph_feat",
-            "edge": "edge_feat",
-        }
         self.in_dim = in_dim
-        self.pooling = pooling
         self.in_dim_edges = in_dim_edges
         self.task_heads = nn.ModuleDict()
-        self.post_nn = nn.ModuleDict()
-        self.global_pool_layer, self.out_pool_dim = self._parse_pooling_layer(self.in_dim, self.pooling)
-        self._check_bad_arguments()  # helper function to check bad arguments
+        self.graph_output_nn = nn.ModuleDict()
+        self._check_bad_arguments()
 
         for task_name, head_kwargs in self.task_heads_kwargs.items():
             task_level = self.task_heads_kwargs[task_name].get("task_level")
-
-            if task_level == "nodepair":
-                level_in_dim = 2 * self.in_dim
-            elif task_level == "edge":
-                level_in_dim = self.in_dim_edges
-            elif task_level == "graph":
-                level_in_dim = self.out_pool_dim
-            else:
-                level_in_dim = in_dim
-
-            # TODO: Should we fail here, already or in the _check_bad_arguments in the
-            # FullGraphMultiTaskNetwork but accept that torch will then raise a
-            # warning due to zero-init. tensor.
-            if level_in_dim == 0:
-                raise ValueError(f"Task head for task {task_name} has an input dimension of 0.")
+            self.graph_output_nn[task_level] = GraphOutputNN(
+                in_dim=self.in_dim,
+                in_dim_edges=self.in_dim_edges,
+                task_level=task_level,
+                post_nn_kwargs=self.post_nn_kwargs,
+            )
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault(
                 "last_layer_is_readout", last_layer_is_readout
-            )  # I am not sure if this is necessary
-            self.post_nn[task_level] = GraphOutputNN(
-                in_dim=level_in_dim, task_level=task_level, post_nn_kwargs=self.post_nn_kwargs
             )
-            # Create a new dictionary without the task_level key-value pair, and pass it while initializing the FeedForwardNN instance for tasks
+            # Create a new dictionary without the task_level key-value pair,
+            # and pass it while initializing the FeedForwardNN instance for tasks
             filtered_kwargs = {k: v for k, v in head_kwargs.items() if k != "task_level"}
             filtered_kwargs["in_dim"] = self.post_nn_kwargs[task_level]["out_dim"]
             self.task_heads[task_name] = FeedForwardNN(**filtered_kwargs)
-
-    def _parse_pooling_layer(
-        self, in_dim: int, pooling: Union[str, List[str]], **kwargs
-    ) -> Tuple[nn.Module, int]:
-        r"""
-        Return the pooling layer
-        **This function is virtual, so it needs to be implemented by the child class.**
-
-        Parameters:
-
-            in_dim:
-                The dimension at the input layer of the pooling
-
-            pooling:
-                The list of pooling layers to use. The accepted strings are:
-
-                - "sum": `SumPooling`
-                - "mean": `MeanPooling`
-                - "max": `MaxPooling`
-                - "min": `MinPooling`
-                - "std": `StdPooling`
-                - "s2s": `Set2Set`
-                - "dir{int}": `DirPooling`
-
-            kwargs:
-                Kew-word arguments for the pooling layer initialization
-
-        Return:
-            pool_layer: Pooling layer module
-            out_pool_dim: Output dimension of the pooling layer
-
-        """
-        return parse_pooling_layer_pyg(in_dim, pooling, **kwargs)
-
-    def _pool_layer_forward(
-        self,
-        g: Batch,
-        feat: torch.Tensor,
-    ):
-        r"""
-        Apply the graph pooling layer, followed by the linear output layer.
-
-        Parameters:
-
-            g: pyg Batch graph on which the convolution is done
-
-            feat (torch.Tensor[..., N, Din]):
-                Node feature tensor, before convolution.
-                `N` is the number of nodes, `Din` is the output size of the last Graph layer
-
-        Returns:
-            torch.Tensor[..., M, Din] or torch.Tensor[..., N, Din]:
-                Node feature tensor, after convolution.
-                `N` is the number of nodes, `M` is the number of graphs, `Dout` is the output dimension ``self.out_dim``
-                If the pooling is `None`, the dimension is `N`, otherwise it is `M`
-
-        """
-
-        if len(self.global_pool_layer) > 0:
-            pooled_feat = self.global_pool_layer(g, feat)
-        else:
-            pooled_feat = feat
-
-        return pooled_feat
-
-    def vectorized_nodepair_approach(self, feat: torch.tensor):
-        r"""
-        Vectorized implementation of nodepair-level task.
-        See approach here:(https://github.com/datamol-io/goli/issues/5#issuecomment-1502162544)
-        For each node pairs X,Y within the same graph, with features h_X, h_Y,
-        return the concatenation nodepair_h = [h_X + h_Y, |h_X - h_Y|].
-        Parameters:
-            feat: Node features
-        Returns:
-            result: concatenation of node features
-        """
-        n = feat.size()[0]
-        h_X = feat[:, None].repeat(1, n, 1)
-        h_Y = feat[None, :].repeat(n, 1, 1)
-        nodepair_h = torch.cat((h_X + h_Y, torch.abs(h_X - h_Y)), dim=-1)
-        mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
-        result = nodepair_h[mask, :]
-        return result
 
     def forward(self, g: Batch) -> Dict[str, torch.Tensor]:
         r"""
         forward function of the task head
         Parameters:
-            feat: Node features
-            edge_feat: Edge features
+            g: pyg Batch graph
         Returns:
             task_head_outputs: Return a dictionary: Dict[task_name, Tensor]
         """
-        # Check if at least one nodepair task is present
-        if "nodepair" in self.task_levels:
-            g["nodepair_feat"] = self.vectorized_nodepair_approach(g["feat"])
+        features = {task_level: self.graph_output_nn[task_level](g) for task_level in self.task_levels}
 
-        # Check if at least one graph-level task is present
-        if "graph" in self.task_levels:
-            # pool features
-            g["graph_feat"] = self._pool_layer_forward(g, g["feat"])
-
-        features = {
-            task_level: self.post_nn[task_level](g[self.map_task_level[task_level]])
-            for task_level in self.task_levels
-        }
         task_head_outputs = {}
         for task_name, head in self.task_heads.items():
             task_level = self.task_heads_kwargs[task_name].get(
