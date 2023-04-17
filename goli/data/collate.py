@@ -169,7 +169,10 @@ def collate_labels(
         for this_label in labels:
             empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
             for task in empty_task_labels:
-                this_label[task] = torch.full((len(labels), *labels_size_dict[task]), torch.nan)
+                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
+            for task in this_label.keys():
+                if not isinstance(task, torch.Tensor):
+                    this_label[task] = torch.as_tensor(this_label[task])
     labels_dict = default_collate(labels)
 
     return labels_dict
