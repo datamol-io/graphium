@@ -99,7 +99,7 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: 32
+    out_dim: &pe_out_dim 32
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
@@ -108,7 +108,6 @@ architecture:
         input_keys: ["eigvecs", "eigvals"]
         output_keys: ["feat"]
         hidden_dim: 64
-        out_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
@@ -119,7 +118,6 @@ architecture:
         input_keys: ["rwse"]
         output_keys: ["feat"]
         hidden_dim: 64
-        out_dim: 32
         num_layers: 2
         dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
@@ -128,9 +126,9 @@ architecture:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
         output_keys: ["feat", "nodepair_gaussian_bias_3d"]
-        num_heads: 2
+        num_heads: &num_heads 2
         num_layers: 2
-        embed_dim: 16
+        embed_dim: *pe_out_dim
         use_input_keys_prefix: False
 
   gnn:  # Set as null to avoid a post-nn network
@@ -156,7 +154,9 @@ architecture:
         out_dim_edges: 16
       attn_type: "full-attention" # "full-attention", "none"
       # biased_attention: false
-      attn_kwargs: null
+      attn_kwargs:
+        num_heads: *num_heads
+      biased_attention_key: nodepair_gaussian_bias_3d
 
 
   post_nn: null
