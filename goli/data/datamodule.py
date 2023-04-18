@@ -591,6 +591,7 @@ class DatasetProcessingParams:
         split_seed: int = None,
         splits_path: Optional[Union[str, os.PathLike]] = None,
         split_names: Optional[List[str]] = ["train", "val", "test"],
+        label_normalization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
     ):
         """
         object to store the parameters for the dataset processing
@@ -621,6 +622,7 @@ class DatasetProcessingParams:
         self.split_seed = split_seed
         self.splits_path = splits_path
         self.split_names = split_names
+        self.label_normalization = label_normalization
 
 
 class IPUDataModuleModifier:
@@ -678,6 +680,82 @@ class IPUDataModuleModifier:
         )
 
         return loader
+
+
+class Normalization:
+    def __init__(
+        self,
+        method: Optional[str] = None,
+        min_clipping: Optional[int] = None,
+        max_clipping: Optional[int] = None,
+    ):
+        """
+        Parameters:
+        method: str
+            Normalization method. Supports the following values:
+            - `None` (default): No normalization applied
+            - `normal`: Normalize to have 0-mean and 1-variance
+            - `unit`: Normalize to have all values in the range 0-1
+
+        min_clipping: int
+            Minimum value to clip to. If `None` (default), no clipping is applied.
+            For example, if `min_clipping` is -2, all values below -2 will be clipped to -2.
+            This is applied before the normalization.
+
+        max_clipping: int
+            Maximum value to clip to. If `None` (default), no clipping is applied.
+            For example, if `max_clipping` is 2, all values above 2 will be clipped to 2.
+            This is applied before the normalization.
+        """
+
+        self.method = method
+        self.min_clipping = min_clipping
+        self.max_clipping = max_clipping
+
+    def calculate_statistic(self, tensor):
+        """
+        Saves the normalization parameters (e.g. mean and variance) to the object.
+        """
+        self.tensor_max = np.nanmax(tensor)
+        self.tensor_min = np.nanmin(tensor)
+        self.tensor_mean = np.nanmean(tensor)  # 5.380503871833475 for pcqm4mv2
+        self.tensor_std = np.nanstd(tensor)  # 1.17850688410978995 for pcqm4mv2
+        logger.info(f"Max value for normalization '{self.tensor_max}'")
+        logger.info(f"Min value for normalization '{self.tensor_min}'")
+        logger.info(f"Mean value for normalization '{self.tensor_mean}'")
+        logger.info(f"STD value for normalization '{self.tensor_std}'")
+
+    def normalize(self, tensor):
+        """
+        Apply the normalization method to the data.
+        Saves the normalization parameters (e.g. mean and variance) to the object.
+        """
+        if self.min_clipping is not None:
+            self.tensor_min = max(self.min_clipping, self.tensor_min)
+        if self.max_clipping is not None:
+            self.tensor_max = min(self.max_clipping, self.tensor_max)
+        np.clip(tensor, self.tensor_min, self.tensor_max)
+        if self.method is None:
+            return tensor
+        elif self.method == "normal":
+            return (tensor - self.tensor_mean) / self.tensor_std
+        elif self.method == "unit":
+            return (tensor - self.tensor_min) / (self.tensor_max - self.tensor_min)
+        else:
+            raise ValueError(f"normalization method {self.method} not recognised.")
+
+    def denormalize(self, tensor):
+        """
+        Apply the inverse of the normalization method to the data.
+        """
+        if self.method is None:
+            return tensor
+        elif self.method == "normal":
+            return (tensor * self.tensor_std) + self.tensor_mean
+        elif self.method == "unit":
+            return tensor * (self.tensor_max - self.tensor_min) + self.tensor_min
+        else:
+            raise ValueError(f"normalization method {self.method} not recognised.")
 
 
 class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
@@ -815,6 +893,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.cache_data_path = cache_data_path
         self.processed_graph_data_path = processed_graph_data_path
 
+        self.task_norms = {}
+
         if featurization is None:
             featurization = {}
 
@@ -858,6 +938,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """Load all single-task dataframes."""
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
+            if args.label_normalization is None:
+                args.label_normalization = {}
+            label_normalization = Normalization(**args.label_normalization)
             logger.info(f"Reading data for task '{task}'")
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
@@ -880,6 +963,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 task_df[task] = args.df
             task_df[task] = task_df[task]
             args.label_cols = label_cols
+            self.task_norms[task] = label_normalization
         logger.info("Done reading datasets")
 
         """Subsample the data frames and extract the necessary data to create SingleTaskDatasets for each task (smiles, labels, extras)."""
@@ -967,8 +1051,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["extras"],
                 this_unique_ids,
             )
+            normalization = self.task_norms[task]
+            normalization.calculate_statistic(labels)
             task_dataset_args[task]["smiles"] = smiles
-            task_dataset_args[task]["labels"] = labels
+            task_dataset_args[task]["labels"] = normalization.normalize(labels)
             task_dataset_args[task]["features"] = features
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
@@ -1117,6 +1203,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def get_folder_size(self, path):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
+
+    def normalize_label(self, dataset):
+        for i in range(len(dataset)):
+            for task, label in dataset[i]["labels"]:
+                normalized_label = self.task_norms[task].normalize(label)
+                dataset[i]["labels"][task] = normalized_label
+        return dataset
 
     def save_featurized_data(self, dataset, processed_data_path):
         for i in range(0, len(dataset), 1000):

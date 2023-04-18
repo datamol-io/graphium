@@ -306,6 +306,7 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
+    task_norms: Dict[str, Any],
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`
