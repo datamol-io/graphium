@@ -688,6 +688,7 @@ class Normalization:
         method: Optional[str] = None,
         min_clipping: Optional[int] = None,
         max_clipping: Optional[int] = None,
+        verbose: Optional[bool] = True,
     ):
         """
         Parameters:
@@ -711,49 +712,56 @@ class Normalization:
         self.method = method
         self.min_clipping = min_clipping
         self.max_clipping = max_clipping
+        self.verbose = verbose
+        self.data_max = None
+        self.data_min = None
+        self.data_mean = None
+        self.data_std = None
 
-    def calculate_statistic(self, tensor):
+    def calculate_statistics(self, array):
         """
         Saves the normalization parameters (e.g. mean and variance) to the object.
         """
-        self.tensor_max = np.nanmax(tensor)
-        self.tensor_min = np.nanmin(tensor)
-        self.tensor_mean = np.nanmean(tensor)  # 5.380503871833475 for pcqm4mv2
-        self.tensor_std = np.nanstd(tensor)  # 1.17850688410978995 for pcqm4mv2
-        logger.info(f"Max value for normalization '{self.tensor_max}'")
-        logger.info(f"Min value for normalization '{self.tensor_min}'")
-        logger.info(f"Mean value for normalization '{self.tensor_mean}'")
-        logger.info(f"STD value for normalization '{self.tensor_std}'")
+        self.data_max = np.nanmax(array)
+        self.data_min = np.nanmin(array)
+        self.data_mean = np.nanmean(array)  # 5.380503871833475 for pcqm4mv2
+        self.data_std = np.nanstd(array)  # 1.17850688410978995 for pcqm4mv2
+        if self.verbose:
+            logger.info(f"Max value for normalization '{self.data_max}'")
+            logger.info(f"Min value for normalization '{self.data_min}'")
+            logger.info(f"Mean value for normalization '{self.data_mean}'")
+            logger.info(f"STD value for normalization '{self.data_std}'")
 
-    def normalize(self, tensor):
+    def normalize(self, input):
         """
         Apply the normalization method to the data.
         Saves the normalization parameters (e.g. mean and variance) to the object.
         """
+        assert self.data_max is not None, "calculate_statistic must be called before applying normalization"
         if self.min_clipping is not None:
-            self.tensor_min = max(self.min_clipping, self.tensor_min)
+            self.data_min = max(self.min_clipping, self.data_min)
         if self.max_clipping is not None:
-            self.tensor_max = min(self.max_clipping, self.tensor_max)
-        np.clip(tensor, self.tensor_min, self.tensor_max)
+            self.data_max = min(self.max_clipping, self.data_max)
+        np.clip(input, self.data_min, self.data_max)
         if self.method is None:
-            return tensor
+            return input
         elif self.method == "normal":
-            return (tensor - self.tensor_mean) / self.tensor_std
+            return (input - self.data_mean) / self.data_std
         elif self.method == "unit":
-            return (tensor - self.tensor_min) / (self.tensor_max - self.tensor_min)
+            return (input - self.data_min) / (self.data_max - self.data_min)
         else:
             raise ValueError(f"normalization method {self.method} not recognised.")
 
-    def denormalize(self, tensor):
+    def denormalize(self, input):
         """
         Apply the inverse of the normalization method to the data.
         """
         if self.method is None:
-            return tensor
+            return input
         elif self.method == "normal":
-            return (tensor * self.tensor_std) + self.tensor_mean
+            return (input * self.data_std) + self.data_mean
         elif self.method == "unit":
-            return tensor * (self.tensor_max - self.tensor_min) + self.tensor_min
+            return input * (self.data_max - self.data_min) + self.data_min
         else:
             raise ValueError(f"normalization method {self.method} not recognised.")
 
@@ -1051,10 +1059,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["extras"],
                 this_unique_ids,
             )
-            normalization = self.task_norms[task]
-            normalization.calculate_statistic(labels)
             task_dataset_args[task]["smiles"] = smiles
-            task_dataset_args[task]["labels"] = normalization.normalize(labels)
+            task_dataset_args[task]["labels"] = labels
             task_dataset_args[task]["features"] = features
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
@@ -1143,6 +1149,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 data_path=processed_train_data_path,
                 load_from_file=train_load_from_file,
             )  # type: ignore
+            self.get_label_statistics(self.train_ds, processed_train_data_path)
+            self.normalize_label(self.train_ds)
             self.val_ds = Datasets.MultitaskDataset(
                 self.val_singletask_datasets,
                 n_jobs=self.featurization_n_jobs,
@@ -1154,6 +1162,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 data_path=processed_val_data_path,
                 load_from_file=val_load_from_file,
             )  # type: ignore
+            self.normalize_label(self.val_ds)
             logger.info(self.train_ds)
             logger.info(self.val_ds)
             if (self.processed_graph_data_path is not None) and (not train_load_from_file):
@@ -1188,6 +1197,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 data_path=processed_test_data_path,
                 load_from_file=test_load_from_file,
             )  # type: ignore
+            self.normalize_label(self.test_ds)
             logger.info(self.test_ds)
             if (self.processed_graph_data_path is not None) and (not test_load_from_file):
                 # save featurized test dataset to disk
@@ -1204,10 +1214,22 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
+
+    def get_label_statistics(self, dataset, processed_train_data_path):
+        os.makedirs(processed_train_data_path, exist_ok=True)
+        for task in dataset[0]["labels"].keys():
+            filename = os.path.join(processed_train_data_path, f"{task}.pkl")
+            if self.task_norms:
+                labels = np.stack(np.array([datum["labels"][task] for datum in self.train_ds]), axis = 0)
+                self.task_norms[task].calculate_statistics(labels)
+                torch.save(self.task_norms[task], filename, pickle_protocol=4)
+            else:
+                self.task_norms[task] = torch.load(filename)
+
     def normalize_label(self, dataset):
-        for i in range(len(dataset)):
-            for task, label in dataset[i]["labels"]:
-                normalized_label = self.task_norms[task].normalize(label)
+        for task in dataset[0]["labels"].keys():
+            for i in range(len(dataset)):
+                normalized_label = self.task_norms[task].normalize(dataset[i]["labels"][task])
                 dataset[i]["labels"][task] = normalized_label
         return dataset
 
