@@ -61,7 +61,7 @@ class test_MultiHeadAttention(ut.TestCase):
         # attn_bias [batch, num_heads, nodes, nodes]
         nodes = h_dense.size()[1]
         attn_bias_3d = torch.zeros(2, 2, nodes, nodes)
-        h_dense.graph_gaussian_bias_3d = attn_bias_3d
+        h_dense.nodepair_gaussian_bias_3d = attn_bias_3d
         # Apply attention layer and attention layer with bias.
         h_attn_output = attention_layer(
             h_dense,
