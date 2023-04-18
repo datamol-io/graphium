@@ -14,7 +14,7 @@ import traceback
 
 import goli
 from goli.config._loader import load_architecture
-from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork
+from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork, GraphOutputNN
 from goli.nn.base_layers import FCLayer
 
 from goli.utils.spaces import LAYERS_DICT
@@ -129,13 +129,56 @@ def toy_test_data(in_dim=7, in_dim_edges=3):
     g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
     g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
     bg = Batch.from_data_list([g1, g2])
-
+    num_nodes_per_graph = bg.batch.bincount()
     batch_node = bg["feat"].size()[0]
     batch_edge = bg["edge_feat"].size()[0]
     batch_graph = 2
-    batch_nodepair = ((batch_node**2) - batch_node) // 2
-
+    batch_nodepair = (
+        ((num_nodes_per_graph[0] ** 2) - num_nodes_per_graph[0]) // 2
+        + ((num_nodes_per_graph[1] ** 2) - num_nodes_per_graph[1]) // 2
+    ).item()
     return bg, batch_node, batch_edge, batch_graph, batch_nodepair
+
+
+def nodepair_test(in_dim, in_dim_edges, task_level, post_nn_kwargs):
+    # TODO: Do you think having this test case would be sufficient enough?
+    post_nn = GraphOutputNN(
+        in_dim=3, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
+    )
+    g_1 = torch.tensor([[2, 3, 4], [0, 1, 0], [0, 1, 1], [1, 0, 0]])
+    g_2 = torch.tensor([[3, 4, 0], [0, 1, 1], [1, 0, 0]])
+    g_3 = torch.tensor([[3, 4, 0], [0, 1, 1], [1, 0, 0], [2, 2, 2], [4, 4, 4]])
+
+    batch = torch.tensor([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2])
+    x = torch.concat([g_1, g_2, g_3])
+    max_nodes = batch.bincount().max().item()
+    expected_result = torch.tensor(
+        [
+            [2, 4, 4, 2, 2, 4],
+            [2, 4, 5, 2, 2, 3],
+            [3, 3, 4, 1, 3, 4],
+            [0, 2, 1, 0, 0, 1],
+            [1, 1, 0, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1],
+            [3, 5, 1, 3, 3, 1],
+            [4, 4, 0, 2, 4, 0],
+            [1, 1, 1, 1, 1, 1],
+            [3, 5, 1, 3, 3, 1],
+            [4, 4, 0, 2, 4, 0],
+            [5, 6, 2, 1, 2, 2],
+            [7, 8, 4, 1, 0, 4],
+            [1, 1, 1, 1, 1, 1],
+            [2, 3, 3, 2, 1, 1],
+            [4, 5, 5, 4, 3, 3],
+            [3, 2, 2, 1, 2, 2],
+            [5, 4, 4, 3, 4, 4],
+            [6, 6, 6, 2, 2, 2],
+        ]
+    )
+
+    nodepair_vec_res = post_nn.vectorized_nodepair_approach(node_fts=x, batch=batch, max_num_nodes=max_nodes)
+    if not (expected_result == nodepair_vec_res).all():
+        raise ValueError("Your nodepair implementation is wrong.")
 
 
 class test_TaskHeads(ut.TestCase):
@@ -206,7 +249,7 @@ class test_TaskHeads(ut.TestCase):
 
         # Check the output: It's a per-task prediction!
         bg, batch_node, batch_edge, batch_graph, batch_nodepair = toy_test_data(
-            in_dim=in_dim, in_dim_edges=in_dim
+            in_dim=in_dim, in_dim_edges=in_dim_edges
         )
         feat_out = multi_head_nn.forward(bg)
 
@@ -222,6 +265,11 @@ class test_TaskHeads(ut.TestCase):
         self.assertListEqual(
             list(feat_out["task_4"].shape), [batch_nodepair, task_4_kwargs["out_dim"]]
         )  # nodepair level task
+
+        # Test node-pair explicitly
+        nodepair_test(
+            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
+        )
 
 
 class test_Multitask_NN(ut.TestCase):
