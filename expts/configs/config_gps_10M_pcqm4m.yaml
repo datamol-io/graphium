@@ -32,6 +32,7 @@ datamodule:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
     # 'num_chiral_centers (not included yet)']
+      mask_nan: 0
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
