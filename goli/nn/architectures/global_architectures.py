@@ -1,5 +1,6 @@
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
+from torch_geometric.utils import to_dense_batch
 
 # Misc imports
 import inspect
@@ -1014,6 +1015,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 in_dim_edges=self.out_dim_edges,
                 task_heads_kwargs=task_heads_kwargs,
                 post_nn_kwargs=post_nn_kwargs,
+                max_num_nodes_per_graph=None,  # TODO: Luis, where can we get this value? shall we write a property in FullGraphMultiTaskNetwork ?
             )
             self._task_heads_kwargs = task_heads_kwargs
 
@@ -1341,6 +1343,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         in_dim_edges: int,
         task_level: str,
         post_nn_kwargs: Dict[str, Any],
+        max_num_nodes_per_graph: Optional[int] = None,
     ):
         r"""
         Parameters:
@@ -1354,12 +1357,15 @@ class GraphOutputNN(nn.Module, MupMixin):
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
+            max_num_nodes_per_graph:
+                Maximum number of nodes per graph if the task is graph-level task
         """
         super().__init__()
         self.task_level = task_level
         self._concat_last_layers = None
         self.in_dim = in_dim
         self.in_dim_edges = in_dim_edges
+        self.max_num_nodes_per_graph = max_num_nodes_per_graph
         self.map_task_level = {
             "node": "feat",
             "nodepair": "nodepair_feat",
@@ -1395,7 +1401,9 @@ class GraphOutputNN(nn.Module, MupMixin):
         """
         # Check if at least one nodepair task is present
         if self.task_level == "nodepair":
-            g["nodepair_feat"] = self.vectorized_nodepair_approach(g["feat"])
+            g["nodepair_feat"] = self.vectorized_nodepair_approach(
+                node_fts=g["feat"], batch=g.batch, max_num_nodes=self.max_num_nodes_per_graph
+            )
         # Check if at least one graph-level task is present
         if self.task_level == "graph":
             # pool features if the level is graph
@@ -1477,20 +1485,38 @@ class GraphOutputNN(nn.Module, MupMixin):
 
         return pooled_feat
 
-    def vectorized_nodepair_approach(self, feat: torch.tensor):
+    def vectorized_nodepair_approach(
+        self, node_fts: torch.Tensor, batch: torch.Tensor, max_num_nodes: int = None
+    ):
         r"""
-        Vectorized implementation of nodepair-level task. See approach here:(https://github.com/datamol-io/goli/issues/5#issuecomment-1502162544)
+        Vectorized implementation of nodepair-level task:
         Parameters:
-            feat: Node features
+            node_fts: Node features
+            batch: Batch vector
+            max_num_nodes: The maximum number of nodes per graph
         Returns:
             result: concatenation of node features
         """
-        n = feat.size()[0]
-        h_X = feat[:, None].repeat(1, n, 1)
-        h_Y = feat[None, :].repeat(n, 1, 1)
+        if max_num_nodes is None:
+            max_num_nodes = batch.bincount().max().item()
+
+        dense_feat, mask = to_dense_batch(node_fts, batch, max_num_nodes=max_num_nodes)
+        n = dense_feat.size(1)
+        h_X = dense_feat[:, :, None].repeat(1, 1, n, 1)
+        h_Y = dense_feat[:, None, :, :].repeat(1, n, 1, 1)
+
         nodepair_h = torch.cat((h_X + h_Y, torch.abs(h_X - h_Y)), dim=-1)
-        mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
-        result = nodepair_h[mask, :]
+        upper_tri_mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
+        upper_tri_mask = upper_tri_mask[None, :, :].repeat(mask.size(0), 1, 1)
+        # Mask nodepair_h using upper_tri_mask
+        masked_result = nodepair_h * upper_tri_mask.unsqueeze(-1)
+        # Get a mask for valid pairs
+        valid_pairs_mask = mask[:, :, None] * mask[:, None, :]
+        valid_pairs_mask *= upper_tri_mask
+        # Flatten the result and remove invalid indices
+        result = masked_result.view(-1, masked_result.shape[-1])
+        valid_indices = valid_pairs_mask.view(-1)
+        result = result[valid_indices]
         return result
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
@@ -1592,6 +1618,7 @@ class TaskHeads(nn.Module, MupMixin):
         task_heads_kwargs: Dict[str, Any],
         post_nn_kwargs: Dict[str, Any],
         last_layer_is_readout: bool = True,
+        max_num_nodes_per_graph: Optional[int] = None,
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
@@ -1609,9 +1636,12 @@ class TaskHeads(nn.Module, MupMixin):
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
+            max_num_nodes_per_graph:
+                Maximum number of nodes per graph if the task is graph-level task
         """
         super().__init__()
         self.last_layer_is_readout = last_layer_is_readout
+        self.max_num_nodes_per_graph = max_num_nodes_per_graph
         self.task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.post_nn_kwargs = deepcopy(post_nn_kwargs)
         self.task_levels = {head_kwargs["task_level"] for _, head_kwargs in self.task_heads_kwargs.items()}
@@ -1628,6 +1658,7 @@ class TaskHeads(nn.Module, MupMixin):
                 in_dim_edges=self.in_dim_edges,
                 task_level=task_level,
                 post_nn_kwargs=self.post_nn_kwargs,
+                max_num_nodes_per_graph=self.max_num_nodes_per_graph,
             )
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)
