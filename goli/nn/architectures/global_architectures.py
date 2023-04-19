@@ -948,6 +948,7 @@ class FeedForwardGraph(FeedForwardNN):
             hidden_dims_edges=self.hidden_dims_edges,
             pooling=self.pooling,
             virtual_node=self.virtual_node,
+            use_virtual_edges=self.use_virtual_edges,
         )
         kwargs.update(new_kwargs)
         return deepcopy(kwargs)
