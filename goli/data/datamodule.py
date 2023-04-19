@@ -832,7 +832,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             raise ValueError(
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
-
+        self.data_hash = self.get_data_hash()
+    
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -847,7 +848,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             - Create a corresponding SingletaskDataset
             - Split the SingletaskDataset according to the task-specific splits for train, val and test
         """
-        self.data_hash = self.get_data_hash()
         if self._data_is_prepared:
             logger.info("Data is already prepared. Skipping the preparation")
             return
