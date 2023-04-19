@@ -53,10 +53,10 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 
     datamodule.prepare_data()
 
-    metrics = load_metrics(cfg, datamodule.task_norms)
+    metrics = load_metrics(cfg)
     logger.info(metrics)
 
-    predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
+    predictor = load_predictor(cfg, model_class, model_kwargs, metrics, datamodule.task_norms)
 
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))

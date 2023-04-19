@@ -134,7 +134,6 @@ class MetricWrapper:
         threshold_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[str, int]] = None,
         multitask_handling: Optional[str] = None,
-        task_specific_norm: Dict[str, Any] = None,
         **kwargs,
     ):
         r"""
@@ -180,7 +179,6 @@ class MetricWrapper:
         self.target_nan_mask = self._parse_target_nan_mask(target_nan_mask)
         self.multitask_handling = self._parse_multitask_handling(multitask_handling, self.target_nan_mask)
         self.kwargs = kwargs
-        self.task_specific_norm = task_specific_norm
 
     @staticmethod
     def _parse_target_nan_mask(target_nan_mask):
@@ -253,9 +251,6 @@ class MetricWrapper:
         r"""
         Compute the metric, apply the thresholder if provided, and manage the NaNs
         """
-        if self.metric_name is not None:
-            self.task_specific_norm.denormalize(preds)
-            self.task_specific_norm.denormalize(target)
         if preds.ndim == 1:
             preds = preds.unsqueeze(-1)
 
