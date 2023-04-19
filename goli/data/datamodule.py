@@ -1168,8 +1168,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 # save featurized train dataset to disk
                 self.save_featurized_data(self.train_ds, processed_train_data_path)
             if (self.processed_graph_data_path is not None) and (not val_load_from_file):
-                self.get_label_statistics(self.val_ds, self.processed_graph_data_path)
-                self.normalize_label(self.val_ds)
                 # save featurized validation dataset to disk
                 self.save_featurized_data(self.val_ds, processed_val_data_path)
 
@@ -1200,8 +1198,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )  # type: ignore
             logger.info(self.test_ds)
             if (self.processed_graph_data_path is not None) and (not test_load_from_file):
-                self.get_label_statistics(self.test_ds, self.processed_graph_data_path)
-                self.normalize_label(self.test_ds)
                 # save featurized test dataset to disk
                 self.save_featurized_data(self.test_ds, processed_test_data_path)
 
