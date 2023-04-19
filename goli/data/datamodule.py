@@ -833,7 +833,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
         self.data_hash = self.get_data_hash()
-    
+
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
