@@ -254,7 +254,6 @@ class MetricWrapper:
         Compute the metric, apply the thresholder if provided, and manage the NaNs
         """
         if self.metric_name is not None:
-            print(self.metric_name)
             self.task_specific_norm.denormalize(preds)
             self.task_specific_norm.denormalize(target)
         if preds.ndim == 1:
