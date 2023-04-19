@@ -184,7 +184,9 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         return datamodule
 
 
-def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, MetricWrapper]:
+def load_metrics(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]], task_norms: Dict[str, Any] = None
+) -> Dict[str, MetricWrapper]:
     """
     Loading the metrics to be tracked.
     Parameters:
@@ -205,7 +207,7 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
             cfg_metrics[task] = []
         for this_metric in cfg_metrics[task]:
             name = this_metric.pop("name")
-            task_metrics[task][name] = MetricWrapper(**this_metric)
+            task_metrics[task][name] = MetricWrapper(**this_metric, task_specific_norm=task_norms[task])
 
     return task_metrics
 
@@ -306,7 +308,6 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
-    task_norms: Dict[str, Any],
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`

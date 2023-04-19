@@ -34,7 +34,7 @@ datamodule:
     featurization_progress: True
     featurization_backend: "loky"
     cache_data_path: "./datacache"
-    processed_graph_data_path: "goli/data/PCQM4Mv2_full/"
+    processed_graph_data_path: "goli/data/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',

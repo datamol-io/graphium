@@ -51,18 +51,18 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
         in_dims=datamodule.in_dims,
     )
 
-    metrics = load_metrics(cfg)
+    datamodule.prepare_data()
+
+    metrics = load_metrics(cfg, datamodule.task_norms)
     logger.info(metrics)
 
-    predictor = load_predictor(cfg, model_class, model_kwargs, metrics, datamodule.task_norms)
+    predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
 
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
 
     trainer = load_trainer(cfg, run_name, date_time_suffix)
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
-
-    datamodule.prepare_data()
 
     # Determine the max num nodes and edges in training and validation
     predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])

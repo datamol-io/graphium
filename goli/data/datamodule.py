@@ -937,9 +937,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # If a path for data caching is provided, try to load from the path.
         # If successful, skip the data preparation.
+        # For next task: load the single graph files for train, val and test data
         cache_data_exists = self.load_data_from_cache()
         # need to check if cache exist properly
         if cache_data_exists:
+            self.get_label_statistics(self.processed_graph_data_path)
             self._data_is_prepared = True
             return
 
@@ -1163,11 +1165,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info(self.train_ds)
             logger.info(self.val_ds)
             if (self.processed_graph_data_path is not None) and (not train_load_from_file):
-                self.get_label_statistics(self.train_ds, self.processed_graph_data_path, train=True)
+                self.get_label_statistics(self.processed_graph_data_path, self.train_ds, train=True)
                 self.normalize_label(self.train_ds)
                 # save featurized train dataset to disk
                 self.save_featurized_data(self.train_ds, processed_train_data_path)
             if (self.processed_graph_data_path is not None) and (not val_load_from_file):
+                self.get_label_statistics(self.processed_graph_data_path)
+                self.normalize_label(self.val_ds)
                 # save featurized validation dataset to disk
                 self.save_featurized_data(self.val_ds, processed_val_data_path)
 
@@ -1198,6 +1202,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )  # type: ignore
             logger.info(self.test_ds)
             if (self.processed_graph_data_path is not None) and (not test_load_from_file):
+                self.get_label_statistics(self.processed_graph_data_path)
+                self.normalize_label(self.test_ds)
                 # save featurized test dataset to disk
                 self.save_featurized_data(self.test_ds, processed_test_data_path)
 
@@ -1212,16 +1218,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
-    def get_label_statistics(self, dataset, data_path, train=False):
+    def get_label_statistics(self, data_path, dataset=None, train=False):
         os.makedirs(data_path, exist_ok=True)
-        for task in dataset[0]["labels"].keys():
-            filename = os.path.join(data_path, f"{task}.pkl")
-            if self.task_norms and train:
+        filename = os.path.join(data_path, "task_norms.pkl")
+        if self.task_norms and train:
+            for task in dataset[0]["labels"].keys():
                 labels = np.stack(np.array([datum["labels"][task] for datum in self.train_ds]), axis=0)
                 self.task_norms[task].calculate_statistics(labels)
-                torch.save(self.task_norms[task], filename, pickle_protocol=4)
-            else:
-                self.task_norms[task] = torch.load(filename)
+            torch.save(self.task_norms, filename, pickle_protocol=4)
+        else:
+            self.task_norms = torch.load(filename)
 
     def normalize_label(self, dataset):
         for task in dataset[0]["labels"].keys():
