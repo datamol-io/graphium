@@ -1402,7 +1402,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         # Check if at least one nodepair task is present
         if self.task_level == "nodepair":
             g["nodepair_feat"] = self.vectorized_nodepair_approach(
-                node_fts=g["feat"], batch=g.batch, max_num_nodes=self.max_num_nodes_per_graph
+                node_feats=g["feat"], batch=g.batch, max_num_nodes=self.max_num_nodes_per_graph
             )
         # Check if at least one graph-level task is present
         if self.task_level == "graph":
@@ -1486,21 +1486,18 @@ class GraphOutputNN(nn.Module, MupMixin):
         return pooled_feat
 
     def vectorized_nodepair_approach(
-        self, node_fts: torch.Tensor, batch: torch.Tensor, max_num_nodes: int = None
+        self, node_feats: torch.Tensor, batch: torch.Tensor, max_num_nodes: int = None
     ):
         r"""
         Vectorized implementation of nodepair-level task:
         Parameters:
-            node_fts: Node features
+            node_feats: Node features
             batch: Batch vector
             max_num_nodes: The maximum number of nodes per graph
         Returns:
             result: concatenation of node features
         """
-        if max_num_nodes is None:
-            max_num_nodes = batch.bincount().max().item()
-
-        dense_feat, mask = to_dense_batch(node_fts, batch, max_num_nodes=max_num_nodes)
+        dense_feat, mask = to_dense_batch(node_feats, batch, max_num_nodes=max_num_nodes)
         n = dense_feat.size(1)
         h_X = dense_feat[:, :, None].repeat(1, 1, n, 1)
         h_Y = dense_feat[:, None, :, :].repeat(1, n, 1, 1)
@@ -1508,11 +1505,14 @@ class GraphOutputNN(nn.Module, MupMixin):
         nodepair_h = torch.cat((h_X + h_Y, torch.abs(h_X - h_Y)), dim=-1)
         upper_tri_mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
         upper_tri_mask = upper_tri_mask[None, :, :].repeat(mask.size(0), 1, 1)
+
         # Mask nodepair_h using upper_tri_mask
         masked_result = nodepair_h * upper_tri_mask.unsqueeze(-1)
+
         # Get a mask for valid pairs
         valid_pairs_mask = mask[:, :, None] * mask[:, None, :]
         valid_pairs_mask *= upper_tri_mask
+
         # Flatten the result and remove invalid indices
         result = masked_result.view(-1, masked_result.shape[-1])
         valid_indices = valid_pairs_mask.view(-1)

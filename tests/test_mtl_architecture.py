@@ -140,29 +140,28 @@ def toy_test_data(in_dim=7, in_dim_edges=3):
     return bg, batch_node, batch_edge, batch_graph, batch_nodepair
 
 
-def nodepair_test(in_dim, in_dim_edges, task_level, post_nn_kwargs):
-    # TODO: Do you think having this test case would be sufficient enough?
-    post_nn = GraphOutputNN(
-        in_dim=3, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
-    )
-    g_1 = torch.tensor([[2, 3, 4], [0, 1, 0], [0, 1, 1], [1, 0, 0]])
-    g_2 = torch.tensor([[3, 4, 0], [0, 1, 1], [1, 0, 0]])
-    g_3 = torch.tensor([[3, 4, 0], [0, 1, 1], [1, 0, 0], [2, 2, 2], [4, 4, 4]])
+class test_GraphOutputNN(ut.TestCase):
+    def generate_test_data(self):
+        g_1 = torch.tensor([[2, 3, 4], [0, 1, 0], [0, 1, 1], [1, 0, 0]])
+        g_2 = torch.tensor([[3, 4, 0], [0, 1, 1], [1, 0, 0]])
+        g_3 = torch.tensor([[3, 4, 0], [0, 1, 1], [1, 0, 0], [2, 2, 2], [4, 4, 4]])
 
-    batch = torch.tensor([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2])
-    x = torch.concat([g_1, g_2, g_3])
-    max_nodes = batch.bincount().max().item()
-    expected_result = torch.tensor(
-        [
+        batch = torch.tensor([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2])
+        x = torch.concat([g_1, g_2, g_3])
+
+        expected_result = [
+            # Graph 1, 4 nodes
             [2, 4, 4, 2, 2, 4],
             [2, 4, 5, 2, 2, 3],
             [3, 3, 4, 1, 3, 4],
             [0, 2, 1, 0, 0, 1],
             [1, 1, 0, 1, 1, 0],
             [1, 1, 1, 1, 1, 1],
+            # Graph 2, 3 nodes
             [3, 5, 1, 3, 3, 1],
             [4, 4, 0, 2, 4, 0],
             [1, 1, 1, 1, 1, 1],
+            # Graph 3, first 4 nodes
             [3, 5, 1, 3, 3, 1],
             [4, 4, 0, 2, 4, 0],
             [5, 6, 2, 1, 2, 2],
@@ -174,11 +173,49 @@ def nodepair_test(in_dim, in_dim_edges, task_level, post_nn_kwargs):
             [5, 4, 4, 3, 4, 4],
             [6, 6, 6, 2, 2, 2],
         ]
-    )
 
-    nodepair_vec_res = post_nn.vectorized_nodepair_approach(node_fts=x, batch=batch, max_num_nodes=max_nodes)
-    if not (expected_result == nodepair_vec_res).all():
-        raise ValueError("Your nodepair implementation is wrong.")
+        return x, batch, expected_result
+
+    def test_nodepair_max_num_nodes_not_set(self):
+        in_dim = 3
+        in_dim_edges = 8
+
+        post_nn_kwargs = {
+            "node": node_level_kwargs,
+            "edge": edge_level_kwargs,
+            "graph": graph_level_kwargs,
+            "nodepair": nodepair_level_kwargs,
+        }
+
+        post_nn = GraphOutputNN(
+            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
+        )
+
+        x, batch, expected_result = self.generate_test_data()
+
+        out = post_nn.vectorized_nodepair_approach(x, batch)
+        self.assertListEqual(expected_result, out.tolist())
+
+    def test_nodepair_with_max_num_nodes(self):
+        in_dim = 3
+        in_dim_edges = 8
+
+        post_nn_kwargs = {
+            "node": node_level_kwargs,
+            "edge": edge_level_kwargs,
+            "graph": graph_level_kwargs,
+            "nodepair": nodepair_level_kwargs,
+        }
+
+        post_nn = GraphOutputNN(
+            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
+        )
+
+        max_num_nodes = 8
+        x, batch, expected_result = self.generate_test_data()
+
+        out = post_nn.vectorized_nodepair_approach(x, batch, max_num_nodes)
+        self.assertListEqual(expected_result, out.tolist())
 
 
 class test_TaskHeads(ut.TestCase):
@@ -265,11 +302,6 @@ class test_TaskHeads(ut.TestCase):
         self.assertListEqual(
             list(feat_out["task_4"].shape), [batch_nodepair, task_4_kwargs["out_dim"]]
         )  # nodepair level task
-
-        # Test node-pair explicitly
-        nodepair_test(
-            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
-        )
 
 
 class test_Multitask_NN(ut.TestCase):
