@@ -146,7 +146,6 @@ architecture:
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
-    pooling: [sum]
     virtual_node: 'none'
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
@@ -162,10 +161,22 @@ architecture:
       attn_kwargs: null
 
 
-  post_nn: null
+  post_nn:
+    graph:
+      pooling: [sum]
+      out_dim: 256
+      hidden_dims: 256
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
 
   task_heads:
     alphagap:
+      task_level: graph
       out_dim: 1
       hidden_dims: 256
       depth: 2                          # Not needed if we have hidden_dims
@@ -176,6 +187,7 @@ architecture:
       last_normalization: "none"
       residual_type: none
     betagap:
+      task_level: graph
       out_dim: 1
       hidden_dims: 256
       depth: 2                          # Not needed if we have hidden_dims

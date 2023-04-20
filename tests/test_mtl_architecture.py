@@ -303,6 +303,33 @@ class test_TaskHeads(ut.TestCase):
             list(feat_out["task_4"].shape), [batch_nodepair, task_4_kwargs["out_dim"]]
         )  # nodepair level task
 
+    def test_task_heads_non_supported_level(self):
+        in_dim = 8  # Dimension of the incoming data
+        in_dim_edges = 8
+
+        fake_task = deepcopy(task_1_params)
+        fake_task["task_level"] = "certainly_not_supported_level"
+        task_heads_params = {
+            "task_1": fake_task,
+            "task_2": task_2_params,
+            "task_3": task_3_params,
+            "task_4": task_4_params,
+        }
+        post_nn_kwargs = {
+            "certainly_not_supported_level": node_level_kwargs,
+            "edge": edge_level_kwargs,
+            "graph": graph_level_kwargs,
+            "nodepair": nodepair_level_kwargs,
+        }
+
+        with self.assertRaises(ValueError):
+            TaskHeads(
+                in_dim=in_dim,
+                in_dim_edges=in_dim_edges,
+                task_heads_kwargs=task_heads_params,
+                post_nn_kwargs=post_nn_kwargs,
+            )
+
 
 class test_Multitask_NN(ut.TestCase):
     pyg_kwargs = {

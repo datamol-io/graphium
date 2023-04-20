@@ -1015,7 +1015,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 in_dim_edges=self.out_dim_edges,
                 task_heads_kwargs=task_heads_kwargs,
                 post_nn_kwargs=post_nn_kwargs,
-                max_num_nodes_per_graph=None,  # TODO: Luis, where can we get this value? shall we write a property in FullGraphMultiTaskNetwork ?
             )
             self._task_heads_kwargs = task_heads_kwargs
 
@@ -1226,10 +1225,11 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             )
 
         if self.task_heads is not None:
-            kwargs["task_heads_kwargs"] = self.task_heads.make_mup_base_kwargs(
+            task_heads_kwargs = self.task_heads.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=True
-            )["task_heads_kwargs"]
-            kwargs["post_nn_kwargs"] = self.post_nn_kwargs
+            )
+            kwargs["task_heads_kwargs"] = task_heads_kwargs["task_heads_kwargs"]
+            kwargs["post_nn_kwargs"] = task_heads_kwargs["post_nn_kwargs"]
 
         # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
@@ -1264,17 +1264,13 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                     layer.max_num_nodes_per_graph = max_nodes
                     layer.max_num_edges_per_graph = max_edges
 
-        for task_head in self.task_heads.task_heads.values():
-            for layer in task_head.layers:
-                if isinstance(layer, BaseGraphStructure):
-                    layer.max_num_nodes_per_graph = max_nodes
-                    layer.max_num_edges_per_graph = max_edges
+        self.task_heads.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
     def __repr__(self) -> str:
         r"""
         Controls how the class is printed
         """
-        pre_nn_str, pre_nn_edges_str = "", "", ""
+        pre_nn_str, pre_nn_edges_str = "", ""
         if self.pre_nn is not None:
             pre_nn_str = self.pre_nn.__repr__() + "\n\n"
         if self.pre_nn_edges is not None:
@@ -1343,7 +1339,6 @@ class GraphOutputNN(nn.Module, MupMixin):
         in_dim_edges: int,
         task_level: str,
         post_nn_kwargs: Dict[str, Any],
-        max_num_nodes_per_graph: Optional[int] = None,
     ):
         r"""
         Parameters:
@@ -1357,15 +1352,15 @@ class GraphOutputNN(nn.Module, MupMixin):
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
-            max_num_nodes_per_graph:
-                Maximum number of nodes per graph if the task is graph-level task
         """
         super().__init__()
         self.task_level = task_level
         self._concat_last_layers = None
         self.in_dim = in_dim
         self.in_dim_edges = in_dim_edges
-        self.max_num_nodes_per_graph = max_num_nodes_per_graph
+        self.post_nn_kwargs = post_nn_kwargs
+        self.max_num_nodes_per_graph = None
+        self.max_num_edges_per_graph = None
         self.map_task_level = {
             "node": "feat",
             "nodepair": "nodepair_feat",
@@ -1389,7 +1384,9 @@ class GraphOutputNN(nn.Module, MupMixin):
             raise ValueError(f"Task head has an input dimension of 0.")
         # Initialize the post-processing neural net (applied after the gnn)
         name = post_nn_kwargs[self.task_level].pop("name", "post-NN")
-        filtered_post_nn_kwargs = {k: v for k, v in post_nn_kwargs[self.task_level].items() if k != "pooling"}
+        filtered_post_nn_kwargs = {
+            k: v for k, v in post_nn_kwargs[self.task_level].items() if k not in ["pooling", "in_dim"]
+        }
         self.post_nn = FeedForwardNN(in_dim=level_in_dim, name=name, **filtered_post_nn_kwargs)
 
     def forward(self, g: Batch):
@@ -1532,13 +1529,11 @@ class GraphOutputNN(nn.Module, MupMixin):
         Returns:
             Dictionary with the kwargs to create the base model.
         """
-        kwargs = dict(
-            # For the post-nn network, all the dimension are divided
-            post_nn_kwargs=self.post_nn.make_mup_base_kwargs(
-                divide_factor=divide_factor, factor_in_dim=factor_in_dim
-            ),
-            name=self.name,
+        # For the post-nn network, all the dimension are divided
+        post_nn_kwargs = self.post_nn.make_mup_base_kwargs(
+            divide_factor=divide_factor, factor_in_dim=factor_in_dim
         )
+        kwargs = {"pooling": self.post_nn_kwargs[self.task_level]["pooling"], **post_nn_kwargs}
         return kwargs
 
     def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
@@ -1566,6 +1561,20 @@ class GraphOutputNN(nn.Module, MupMixin):
             assert layers[0].in_dim == self.post_nn.layers.out_dim[-1]
 
         self.post_nn.extend(layers)
+
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
+        """
+        Set the maximum number of nodes and edges for all gnn layers and encoder layers
+
+        Parameters:
+            max_nodes: Maximum number of nodes in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+
+            max_edges: Maximum number of edges in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+        """
+        self.max_num_nodes_per_graph = max_nodes
+        self.max_num_edges_per_graph = max_edges
 
     @property
     def concat_last_layers(self) -> Optional[Iterable[int]]:
@@ -1615,7 +1624,6 @@ class TaskHeads(nn.Module, MupMixin):
         task_heads_kwargs: Dict[str, Any],
         post_nn_kwargs: Dict[str, Any],
         last_layer_is_readout: bool = True,
-        max_num_nodes_per_graph: Optional[int] = None,
     ):
         r"""
         Class that groups all multi-task output heads together to provide the task-specific outputs.
@@ -1633,12 +1641,9 @@ class TaskHeads(nn.Module, MupMixin):
             post_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
-            max_num_nodes_per_graph:
-                Maximum number of nodes per graph if the task is graph-level task
         """
         super().__init__()
         self.last_layer_is_readout = last_layer_is_readout
-        self.max_num_nodes_per_graph = max_num_nodes_per_graph
         self.task_heads_kwargs = deepcopy(task_heads_kwargs)
         self.post_nn_kwargs = deepcopy(post_nn_kwargs)
         self.task_levels = {head_kwargs["task_level"] for _, head_kwargs in self.task_heads_kwargs.items()}
@@ -1655,7 +1660,6 @@ class TaskHeads(nn.Module, MupMixin):
                 in_dim_edges=self.in_dim_edges,
                 task_level=task_level,
                 post_nn_kwargs=self.post_nn_kwargs,
-                max_num_nodes_per_graph=self.max_num_nodes_per_graph,
             )
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)
@@ -1697,8 +1701,16 @@ class TaskHeads(nn.Module, MupMixin):
         Returns:
             kwargs: Dictionary of arguments to be used to initialize the base model
         """
+        post_nn_kwargs = {}
+        for task_level, post_nn in self.graph_output_nn.items():
+            post_nn: GraphOutputNN
+            post_nn_kwargs[task_level] = post_nn.make_mup_base_kwargs(
+                divide_factor=divide_factor, factor_in_dim=factor_in_dim
+            )
+
         task_heads_kwargs = {}
         for task_name, task_nn in self.task_heads.items():
+            task_nn: FeedForwardNN
             task_heads_kwargs[task_name] = task_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=factor_in_dim
             )
@@ -1707,9 +1719,29 @@ class TaskHeads(nn.Module, MupMixin):
             in_dim=self.in_dim,
             last_layer_is_readout=self.last_layer_is_readout,
             task_heads_kwargs=task_heads_kwargs,
-            post_nn_kwargs=self.post_nn_kwargs,
+            post_nn_kwargs=post_nn_kwargs,
         )
         return kwargs
+
+    def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
+        """
+        Set the maximum number of nodes and edges for all gnn layers and encoder layers
+
+        Parameters:
+            max_nodes: Maximum number of nodes in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+
+            max_edges: Maximum number of edges in the dataset.
+                This will be useful for certain architecture, but ignored by others.
+        """
+        for _, graph_output_nn in self.graph_output_nn.task_heads.values():
+            graph_output_nn.set_max_num_nodes_edges_per_graphs(max_nodes, max_edges)
+
+        for task_head in self.task_heads.task_heads.values():
+            for layer in task_head.layers:
+                if isinstance(layer, BaseGraphStructure):
+                    layer.max_num_nodes_per_graph = max_nodes
+                    layer.max_num_edges_per_graph = max_edges
 
     @property
     def out_dim(self) -> Dict[str, int]:
@@ -1735,3 +1767,5 @@ class TaskHeads(nn.Module, MupMixin):
             task_level = self.task_heads_kwargs[task_name].get("task_level", None)
             if task_level is None:
                 raise ValueError("task_level must be specified for each task head.")
+            if task_level not in ["node", "edge", "graph", "nodepair"]:
+                raise ValueError(f"task_level {task_level} is not supported.")
