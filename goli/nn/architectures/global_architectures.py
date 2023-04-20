@@ -1533,15 +1533,12 @@ class GraphOutputNN(nn.Module, MupMixin):
             Dictionary with the kwargs to create the base model.
         """
         kwargs = dict(
-            post_nn_kwargs=None,
+            # For the post-nn network, all the dimension are divided
+            post_nn_kwargs=self.post_nn.make_mup_base_kwargs(
+                divide_factor=divide_factor, factor_in_dim=factor_in_dim
+            ),
             name=self.name,
         )
-
-        # For the post-nn network, all the dimension are divided
-        if self.post_nn is not None:
-            kwargs["post_nn_kwargs"] = self.post_nn.make_mup_base_kwargs(
-                divide_factor=divide_factor, factor_in_dim=factor_in_dim
-            )
         return kwargs
 
     def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
