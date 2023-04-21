@@ -147,9 +147,10 @@ class Summary(SummaryInterface):
 
         Note: This function requires that self.update_predictor_state() be called before it."""
         targets = self.targets.to(dtype=self.predictions.dtype, device=self.predictions.device)
-        # apply denormalization
-        self.predictions = self.task_specific_norm.denormalize(self.predictions)
-        targets = self.task_specific_norm.denormalize(targets)
+        if self.step_name == "train":
+            # apply denormalization
+            self.predictions = self.task_specific_norm.denormalize(self.predictions)
+            targets = self.task_specific_norm.denormalize(targets)
         # Compute the metrics always used in regression tasks
         metric_logs = {}
         metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(

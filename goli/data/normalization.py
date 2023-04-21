@@ -5,7 +5,7 @@ import torch
 from torch import Tensor
 
 
-class Normalization:
+class LabelNormalization:
     def __init__(
         self,
         method: Optional[str] = None,

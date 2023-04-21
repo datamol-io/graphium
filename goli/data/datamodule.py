@@ -45,7 +45,7 @@ from goli.data.smiles_transform import (
 )
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
-from goli.data.normalization import Normalization
+from goli.data.normalization import LabelNormalization
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -867,7 +867,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         for task, args in self.task_dataset_processing_params.items():
             if args.label_normalization is None:
                 args.label_normalization = {}
-            label_normalization = Normalization(**args.label_normalization)
+            label_normalization = LabelNormalization(**args.label_normalization)
             logger.info(f"Reading data for task '{task}'")
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
@@ -1090,8 +1090,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 # save featurized train dataset to disk
                 self.save_featurized_data(self.train_ds, processed_train_data_path)
             if (self.processed_graph_data_path is not None) and (not val_load_from_file):
-                self.get_label_statistics(self.processed_graph_data_path, self.data_hash)
-                self.normalize_label(self.val_ds)
                 # save featurized validation dataset to disk
                 self.save_featurized_data(self.val_ds, processed_val_data_path)
 
@@ -1122,8 +1120,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )  # type: ignore
             logger.info(self.test_ds)
             if (self.processed_graph_data_path is not None) and (not test_load_from_file):
-                self.get_label_statistics(self.processed_graph_data_path, self.data_hash)
-                self.normalize_label(self.test_ds)
                 # save featurized test dataset to disk
                 self.save_featurized_data(self.test_ds, processed_test_data_path)
 

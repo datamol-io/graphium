@@ -26,7 +26,7 @@ datamodule:
         label_normalization:
           method: "normal"
           min_clipping: 0
-          max_clipping: 20
+          max_clipping: 50
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
