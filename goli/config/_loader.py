@@ -1,4 +1,4 @@
-from typing import Dict, Mapping, Tuple, Type, Union, Any
+from typing import Dict, Mapping, Tuple, Type, Union, Any, Optional, Callable
 
 # Misc
 import os
@@ -306,6 +306,7 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
+    task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`
@@ -327,6 +328,7 @@ def load_predictor(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
+        task_norms=task_norms,
         **cfg_pred,
     )
 

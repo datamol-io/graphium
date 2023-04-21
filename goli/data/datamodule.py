@@ -45,6 +45,7 @@ from goli.data.smiles_transform import (
 )
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
+from goli.data.normalization import LabelNormalization
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -591,6 +592,7 @@ class DatasetProcessingParams:
         split_seed: int = None,
         splits_path: Optional[Union[str, os.PathLike]] = None,
         split_names: Optional[List[str]] = ["train", "val", "test"],
+        label_normalization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
     ):
         """
         object to store the parameters for the dataset processing
@@ -621,6 +623,7 @@ class DatasetProcessingParams:
         self.split_seed = split_seed
         self.splits_path = splits_path
         self.split_names = split_names
+        self.label_normalization = label_normalization
 
 
 class IPUDataModuleModifier:
@@ -815,6 +818,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.cache_data_path = cache_data_path
         self.processed_graph_data_path = processed_graph_data_path
 
+        self.task_norms = {}
+
         if featurization is None:
             featurization = {}
 
@@ -827,6 +832,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             raise ValueError(
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
+        self.data_hash = self.get_data_hash()
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -842,22 +848,26 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             - Create a corresponding SingletaskDataset
             - Split the SingletaskDataset according to the task-specific splits for train, val and test
         """
-
         if self._data_is_prepared:
             logger.info("Data is already prepared. Skipping the preparation")
             return
 
         # If a path for data caching is provided, try to load from the path.
         # If successful, skip the data preparation.
+        # For next task: load the single graph files for train, val and test data
         cache_data_exists = self.load_data_from_cache()
         # need to check if cache exist properly
         if cache_data_exists:
+            self.get_label_statistics(self.processed_graph_data_path, self.data_hash)
             self._data_is_prepared = True
             return
 
         """Load all single-task dataframes."""
         task_df = {}
         for task, args in self.task_dataset_processing_params.items():
+            if args.label_normalization is None:
+                args.label_normalization = {}
+            label_normalization = LabelNormalization(**args.label_normalization)
             logger.info(f"Reading data for task '{task}'")
             if args.df is None:
                 # Only load the useful columns, as some datasets can be very large when loading all columns.
@@ -880,6 +890,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 task_df[task] = args.df
             task_df[task] = task_df[task]
             args.label_cols = label_cols
+            self.task_norms[task] = label_normalization
         logger.info("Done reading datasets")
 
         """Subsample the data frames and extract the necessary data to create SingleTaskDatasets for each task (smiles, labels, extras)."""
@@ -1030,19 +1041,20 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         # Produce the label sizes to update the collate function
         labels_size = {}
-        data_hash = self.get_data_hash()
         if stage == "fit" or stage is None:
             train_load_from_file = False
             processed_train_data_path = None
             val_load_from_file = False
             processed_val_data_path = None
             if self.processed_graph_data_path is not None:
-                processed_train_data_path = osp.join(self.processed_graph_data_path, f"train_{data_hash}")
+                processed_train_data_path = osp.join(
+                    self.processed_graph_data_path, f"train_{self.data_hash}"
+                )
                 train_load_from_file = (
                     osp.exists(processed_train_data_path)
                     and self.get_folder_size(processed_train_data_path) > 0
                 )
-                processed_val_data_path = osp.join(self.processed_graph_data_path, f"val_{data_hash}")
+                processed_val_data_path = osp.join(self.processed_graph_data_path, f"val_{self.data_hash}")
                 val_load_from_file = (
                     osp.exists(processed_val_data_path) and self.get_folder_size(processed_val_data_path) > 0
                 )
@@ -1071,6 +1083,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info(self.train_ds)
             logger.info(self.val_ds)
             if (self.processed_graph_data_path is not None) and (not train_load_from_file):
+                self.get_label_statistics(
+                    self.processed_graph_data_path, self.data_hash, self.train_ds, train=True
+                )
+                self.normalize_label(self.train_ds)
                 # save featurized train dataset to disk
                 self.save_featurized_data(self.train_ds, processed_train_data_path)
             if (self.processed_graph_data_path is not None) and (not val_load_from_file):
@@ -1086,7 +1102,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             test_load_from_file = False
             processed_test_data_path = None
             if self.processed_graph_data_path is not None:
-                processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{data_hash}")
+                processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{self.data_hash}")
                 test_load_from_file = (
                     osp.exists(processed_test_data_path)
                     and self.get_folder_size(processed_test_data_path) > 0
@@ -1117,6 +1133,29 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def get_folder_size(self, path):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
+
+    def get_label_statistics(self, data_path, data_hash, dataset=None, train=False):
+        path_with_hash = os.path.join(data_path, data_hash)
+        os.makedirs(path_with_hash, exist_ok=True)
+        filename = os.path.join(path_with_hash, "task_norms.pkl")
+        # if self.task_norms was obtained from prepare_data step and
+        # this is training dataset split and the hash specific task_norms.pkl
+        # file does not exist, we recalculate the label statistics.
+        if self.task_norms and train and not os.path.isfile(filename):
+            for task in dataset[0]["labels"].keys():
+                labels = np.stack(np.array([datum["labels"][task] for datum in self.train_ds]), axis=0)
+                self.task_norms[task].calculate_statistics(labels)
+            torch.save(self.task_norms, filename, pickle_protocol=4)
+        # if any of the above three condition does not satisfy, we load from file.
+        else:
+            self.task_norms = torch.load(filename)
+
+    def normalize_label(self, dataset):
+        for task in dataset[0]["labels"].keys():
+            for i in range(len(dataset)):
+                normalized_label = self.task_norms[task].normalize(dataset[i]["labels"][task])
+                dataset[i]["labels"][task] = normalized_label
+        return dataset
 
     def save_featurized_data(self, dataset, processed_data_path):
         for i in range(0, len(dataset), 1000):
@@ -1630,11 +1669,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
         if self.cache_data_path is None:
             return
-        data_hash = self.get_data_hash()
         ext = ".datacache"
         if compress:
             ext += ".gz"
-        data_cache_fullname = fs.join(self.cache_data_path, data_hash + ext)
+        data_cache_fullname = fs.join(self.cache_data_path, self.data_hash + ext)
         return data_cache_fullname
 
     def save_data_to_cache(self, verbose: bool = True, compress: bool = False) -> None:

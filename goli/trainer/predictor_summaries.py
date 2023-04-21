@@ -41,6 +41,7 @@ class Summary(SummaryInterface):
         monitor="loss",
         mode: str = "min",
         task_name: Optional[str] = None,
+        task_specific_norm: Optional[Union[Callable, Any]] = None,
     ):
         self.loss_fun = loss_fun
         self.metrics = metrics
@@ -61,6 +62,7 @@ class Summary(SummaryInterface):
         self.n_epochs: int = None
 
         self.task_name = task_name
+        self.task_specific_norm = task_specific_norm
         self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
     def update_predictor_state(self, step_name, targets, predictions, loss, n_epochs):
@@ -145,7 +147,10 @@ class Summary(SummaryInterface):
 
         Note: This function requires that self.update_predictor_state() be called before it."""
         targets = self.targets.to(dtype=self.predictions.dtype, device=self.predictions.device)
-
+        if self.step_name == "train":
+            # apply denormalization
+            self.predictions = self.task_specific_norm.denormalize(self.predictions)
+            targets = self.task_specific_norm.denormalize(targets)
         # Compute the metrics always used in regression tasks
         metric_logs = {}
         metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(
@@ -171,7 +176,6 @@ class Summary(SummaryInterface):
             metrics_to_use = {
                 key: metric for key, metric in metrics_to_use.items() if key in self.metrics_on_training_set
             }
-
         # Compute the additional metrics
         for key, metric in metrics_to_use.items():
             metric_name = self.metric_log_name(
@@ -235,6 +239,7 @@ class TaskSummaries(SummaryInterface):
         task_metrics_on_progress_bar,
         monitor="loss",
         mode: str = "min",
+        task_norms: Optional[Dict[Callable, Any]] = None,
     ):
         self.task_loss_fun = task_loss_fun
         self.task_metrics = task_metrics
@@ -256,6 +261,7 @@ class TaskSummaries(SummaryInterface):
                 self.monitor,
                 self.mode,
                 task_name=task,
+                task_specific_norm=task_norms[task],
             )
 
         # Current predictor state
