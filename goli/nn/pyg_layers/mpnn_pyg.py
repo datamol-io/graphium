@@ -250,7 +250,7 @@ class MPNNPlusPyg(BaseGraphModule):
                 size of the aggregation, equals to the total number of nodes
 
         Returns:
-            Tensor: 
+            Tensor:
                 Aggregated node features
 
         """
@@ -283,10 +283,10 @@ class MPNNPlusPyg(BaseGraphModule):
         r"""
         Forward function of the MPNN Plus layer
         Parameters:
-            batch: 
+            batch:
                 pyg Batch graph to pass through the layer
         Returns:
-            batch: 
+            batch:
                 pyg Batch graph with updated node and edge features
         """
         senders = batch.edge_index[0]

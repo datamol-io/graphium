@@ -37,7 +37,7 @@ class Summary(SummaryInterface):
         loss_fun: Union[str, Callable],
         metrics: Dict[str, Callable],
         metrics_on_training_set: List[str] = [],
-        metrics_on_progress_bar:  List[str] = [],
+        metrics_on_progress_bar: List[str] = [],
         monitor: str = "loss",
         mode: str = "min",
         task_name: Optional[str] = None,
@@ -46,31 +46,31 @@ class Summary(SummaryInterface):
         r"""
         A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.
         Parameters:
-            loss_fun: 
+            loss_fun:
             Loss function used during training. Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
             Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
-            
+
             metrics:
             A dictionnary of metrics to compute on the prediction, other than the loss function.
             These metrics will be logged into TensorBoard.
-            
+
             metrics_on_training_set:
             The metrics names from `metrics` to be computed on the training set for each iteration.
             If `None`, all the metrics are computed. Using less metrics can significantly improve
             performance, depending on the number of readouts.
-            
+
             metrics_on_progress_bar:
             The metrics names from `metrics` to display also on the progress bar of the training
-            
+
             monitor:
             `str` metric to track (Default=`"loss/val"`)
-            
+
             task_name:
             name of the task (Default=`None`)
-            
+
             task_specific_norm:
-            task specific normalization (Default=`None`)            
-            
+            task specific normalization (Default=`None`)
+
         """
         self.loss_fun = loss_fun
         self.metrics = metrics
@@ -94,12 +94,9 @@ class Summary(SummaryInterface):
         self.task_specific_norm = task_specific_norm
         self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
-    def update_predictor_state(self, 
-                               step_name: str, 
-                               targets: Tensor, 
-                               predictions: Tensor, 
-                               loss: Tensor, 
-                               n_epochs: int):
+    def update_predictor_state(
+        self, step_name: str, targets: Tensor, predictions: Tensor, loss: Tensor, n_epochs: int
+    ):
         r"""
         update the state of the predictor
         Parameters:
@@ -115,9 +112,10 @@ class Summary(SummaryInterface):
         self.loss = loss
         self.n_epochs = n_epochs
 
-    def set_results(self, 
-                    metrics: Dict[str, Tensor],
-                        ):
+    def set_results(
+        self,
+        metrics: Dict[str, Tensor],
+    ):
         r"""
         set the reults from the metrics
         [!] This function requires that self.update_predictor_state() be called before it.
@@ -138,10 +136,7 @@ class Summary(SummaryInterface):
         if self.is_best_epoch(self.step_name, self.loss, metrics):
             self.best_summaries[self.step_name] = self.summaries[self.step_name]
 
-    def is_best_epoch(self, 
-                      step_name: str, 
-                      loss: Tensor, 
-                      metrics:  Dict[str, Tensor]) -> bool:
+    def is_best_epoch(self, step_name: str, loss: Tensor, metrics: Dict[str, Tensor]) -> bool:
         r"""
         check if the current epoch is the best epoch based on self.mode criteria
         Parameters:
@@ -149,9 +144,8 @@ class Summary(SummaryInterface):
             loss: the loss tensor
             metrics: a dictionary of metrics
         """
-        
-        
-        #TODO (Gabriela): Check for bugs related to monitor_name
+
+        # TODO (Gabriela): Check for bugs related to monitor_name
         if not (step_name in self.best_summaries.keys()):
             return True
 
@@ -170,21 +164,23 @@ class Summary(SummaryInterface):
         else:
             ValueError(f"Mode must be 'min' or 'max', provided `{self.mode}`")
 
-    def get_results(self, 
-                    step_name: str,
-                    ):
+    def get_results(
+        self,
+        step_name: str,
+    ):
         r"""
         retrieve the results for a given step
-        Parameters: 
+        Parameters:
             step_name: which stage you are in, e.g. "train"
         Returns:
             the results for the given step
         """
         return self.summaries[step_name]
 
-    def get_best_results(self, 
-                         step_name: str,
-                         ):
+    def get_best_results(
+        self,
+        step_name: str,
+    ):
         r"""
         retrieve the best results for a given step
         Parameters:
@@ -194,9 +190,10 @@ class Summary(SummaryInterface):
         """
         return self.best_summaries[step_name]
 
-    def get_results_on_progress_bar(self, 
-                                    step_name: str,
-                                    ) -> Dict[str, Tensor]:
+    def get_results_on_progress_bar(
+        self,
+        step_name: str,
+    ) -> Dict[str, Tensor]:
         r"""
         retrieve the results to be displayed on the progress bar for a given step
         Parameters:
@@ -217,7 +214,7 @@ class Summary(SummaryInterface):
     def get_dict_summary(self) -> Dict[str, Any]:
         r"""
         retrieve the full summary in a dictionary
-        Returns: 
+        Returns:
             the full summary in a dictionary
         """
         full_dict = {}
@@ -317,7 +314,7 @@ class Summary(SummaryInterface):
             Parameters:
                 targets: the targets
                 predictions: the prediction tensor
-                loss: the loss, float or tensor 
+                loss: the loss, float or tensor
                 metrics: the metrics
                 monitored_metric: the monitored metric
                 n_epochs: the number of epochs
@@ -384,16 +381,18 @@ class TaskSummaries(SummaryInterface):
         self.weighted_loss = None
         self.step_name = None
 
-    def update_predictor_state(self, 
-                               step_name: str, 
-                               targets: Dict[str, Tensor],
-                               predictions: Dict[str, Tensor],
-                               loss: Tensor, 
-                               task_losses: Dict[str, Tensor],
-                               n_epochs: int):
+    def update_predictor_state(
+        self,
+        step_name: str,
+        targets: Dict[str, Tensor],
+        predictions: Dict[str, Tensor],
+        loss: Tensor,
+        task_losses: Dict[str, Tensor],
+        n_epochs: int,
+    ):
         r"""
         update the state for all predictors
-        Parameters: 
+        Parameters:
             step_name: the name of the step
             targets: the target tensors
             predictions: the prediction tensors
@@ -412,8 +411,7 @@ class TaskSummaries(SummaryInterface):
                 n_epochs,
             )
 
-    def set_results(self, 
-                    task_metrics: Dict[str, Dict[str, Tensor]]):
+    def set_results(self, task_metrics: Dict[str, Dict[str, Tensor]]):
         """
         set the results for all tasks
         Parameters:
@@ -428,9 +426,10 @@ class TaskSummaries(SummaryInterface):
                     step_name
                 ]
 
-    def get_results(self, 
-                    step_name: str,
-                    ) -> Dict[str, Dict[str, Any]]:
+    def get_results(
+        self,
+        step_name: str,
+    ) -> Dict[str, Dict[str, Any]]:
         """
         retrieve the results
         Parameters:
@@ -443,9 +442,10 @@ class TaskSummaries(SummaryInterface):
             results[task] = self.task_summaries[task].get_results(step_name)
         return results
 
-    def get_best_results(self, 
-                         step_name: str,
-                         ) -> Dict[str, Dict[str, Any]]:
+    def get_best_results(
+        self,
+        step_name: str,
+    ) -> Dict[str, Dict[str, Any]]:
         """
         retrieve the best results
         Parameters:
@@ -458,9 +458,10 @@ class TaskSummaries(SummaryInterface):
             results[task] = self.task_summaries[task].get_best_results(step_name)
         return results
 
-    def get_results_on_progress_bar(self, 
-                                    step_name: str,
-                                    ) -> Dict[str, Dict[str, Any]]:
+    def get_results_on_progress_bar(
+        self,
+        step_name: str,
+    ) -> Dict[str, Dict[str, Any]]:
         r"""
         return all results from all tasks for the progress bar
         Combine the dictionaries. Instead of having keys as task names, we merge all the task-specific dictionaries.
@@ -475,8 +476,9 @@ class TaskSummaries(SummaryInterface):
             task_results_prog.update(self.task_summaries[task].get_results_on_progress_bar(step_name))
         return task_results_prog
 
-    def get_dict_summary(self,
-                         ) -> Dict[str, Dict[str, Any]]:
+    def get_dict_summary(
+        self,
+    ) -> Dict[str, Dict[str, Any]]:
         r"""
         get task summaries in a dictionary
         Returns:
@@ -487,8 +489,9 @@ class TaskSummaries(SummaryInterface):
             task_full_dict[task] = self.task_summaries[task].get_dict_summary()
         return task_full_dict
 
-    def get_metrics_logs(self,
-                         ) -> Dict[str, Dict[str, Tensor]]:
+    def get_metrics_logs(
+        self,
+    ) -> Dict[str, Dict[str, Tensor]]:
         r"""
         get the logs for the metrics
         Returns:
@@ -504,14 +507,15 @@ class TaskSummaries(SummaryInterface):
         return task_metrics_logs
 
     # TODO (Gabriela): This works to fix the logging on TB, but make it more efficient
-    def concatenate_metrics_logs(self, 
-                                 metrics_logs: Dict[str, Dict[str, Tensor]],
-                                 ) -> Dict[str, Tensor]:
+    def concatenate_metrics_logs(
+        self,
+        metrics_logs: Dict[str, Dict[str, Tensor]],
+    ) -> Dict[str, Tensor]:
         r"""
         concatenate the metrics logs
         Parameters:
             metrics_logs: the metrics logs
-        Returns: 
+        Returns:
             the concatenated metrics logs
         """
         concatenated_metrics_logs = {}
@@ -520,11 +524,12 @@ class TaskSummaries(SummaryInterface):
         concatenated_metrics_logs[f"loss/{self.step_name}"] = self.weighted_loss.detach().cpu()
         return concatenated_metrics_logs
 
-    def metric_log_name(self, 
-                        task_name: str,
-                        metric_name: str, 
-                        step_name: str,
-                        ) -> str:
+    def metric_log_name(
+        self,
+        task_name: str,
+        metric_name: str,
+        step_name: str,
+    ) -> str:
         r"""
         print the metric name, task name and step name
         Returns:
