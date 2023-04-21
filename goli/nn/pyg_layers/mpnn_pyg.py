@@ -107,7 +107,6 @@ class MPNNPlusPyg(BaseGraphModule):
 
             edge_dropout_rate:
                 dropout rate for the edges
-
         """
 
         super().__init__(
@@ -250,8 +249,9 @@ class MPNNPlusPyg(BaseGraphModule):
             size:
                 size of the aggregation, equals to the total number of nodes
 
-        Output:
-            Aggregated node features
+        Returns:
+            Tensor: 
+                Aggregated node features
 
         """
 
@@ -283,9 +283,11 @@ class MPNNPlusPyg(BaseGraphModule):
         r"""
         Forward function of the MPNN Plus layer
         Parameters:
-            batch: pyg Batch graph to pass through the layer
+            batch: 
+                pyg Batch graph to pass through the layer
         Returns:
-            batch: pyg Batch graph with updated node and edge features
+            batch: 
+                pyg Batch graph with updated node and edge features
         """
         senders = batch.edge_index[0]
         receivers = batch.edge_index[1]
