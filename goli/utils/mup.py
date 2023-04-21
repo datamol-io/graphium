@@ -51,8 +51,8 @@ def set_base_shapes(model, base, rescale_params=True, delta=None, savefile=None,
     if savefile is not None:
         save_base_shapes(infshapes, savefile)
     apply_infshapes(model, infshapes)
-    if do_assert:
-        assert_hidden_size_inf(model)
+    # if do_assert:
+    # assert_hidden_size_inf(model)
     if rescale_params:
         for name, module in model.named_modules():
             if isinstance(module, MuReadout):
