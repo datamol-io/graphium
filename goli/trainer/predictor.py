@@ -181,7 +181,7 @@ class PredictorModule(pl.LightningModule):
             impl = torch.optim.Adam
 
         # Define the optimizer and schedulers
-        optimiser = MuAdam(self.parameters(), **self.optim_options.optim_kwargs, impl=impl)
+        optimiser = torch.optim.Adam(self.parameters(), **self.optim_options.optim_kwargs, impl=impl)
         torch_scheduler = self.optim_options.scheduler_class(
             optimizer=optimiser, **self.optim_options.torch_scheduler_kwargs
         )

@@ -120,6 +120,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         super().__init__(**kwargs)
         self.biased_attention = biased_attention
 
+    '''
     def _reset_parameters(self):
         set_base_shapes(self, None, rescale_params=False)  # Set the shapes of the tensors, useful for mup
         if self._qkv_same_embed_dim:
@@ -136,6 +137,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             mupi.xavier_normal_(self.bias_k)
         if self.bias_v is not None:
             mupi.xavier_normal_(self.bias_v)
+    '''
 
     def forward(
         self,
@@ -439,6 +441,9 @@ class FCLayer(nn.Module):
         # Linear layer, or MuReadout layer
         if not is_readout_layer:
             self.linear = nn.Linear(in_dim, out_dim, bias=bias)
+        # if it is readout layer, what readout layer can we use without mup?
+        # Or do we just use the linear layer as readout?
+        '''
         else:
             self.linear = MuReadoutGoli(in_dim, out_dim, bias=bias)
 
@@ -449,9 +454,10 @@ class FCLayer(nn.Module):
                 )
             if (self.dropout is not None) and (self.dropout.p > 0):
                 logger.warning(f"Dropout is not `None` or `0` for the readout layer. Provided {self.dropout}")
+        '''
 
         # Define the initialization function based on `muTransfer`, and reset the parameters
-        self.init_fn = init_fn if init_fn is not None else mupi.xavier_uniform_
+        self.init_fn = init_fn if init_fn is not None else torch.nn.init.xavier_uniform_
         self.reset_parameters()
 
     def reset_parameters(self, init_fn=None):
