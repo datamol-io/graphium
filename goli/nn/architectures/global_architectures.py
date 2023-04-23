@@ -1398,7 +1398,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         """
         # Check if at least one nodepair task is present
         if self.task_level == "nodepair":
-            g["nodepair_feat"] = self.vectorized_nodepair_approach(
+            g["nodepair_feat"] = self.compute_nodepairs(
                 node_feats=g["feat"], batch=g.batch, max_num_nodes=self.max_num_nodes_per_graph
             )
         # Check if at least one graph-level task is present
@@ -1482,7 +1482,7 @@ class GraphOutputNN(nn.Module, MupMixin):
 
         return pooled_feat
 
-    def vectorized_nodepair_approach(
+    def compute_nodepairs(
         self,
         node_feats: torch.Tensor,
         batch: torch.Tensor,

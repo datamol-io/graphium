@@ -210,7 +210,7 @@ class test_GraphOutputNN(ut.TestCase):
 
         x, batch, expected_result = self.generate_test_data()
 
-        out = post_nn.vectorized_nodepair_approach(node_feats=x, batch=batch)
+        out = post_nn.compute_nodepairs(node_feats=x, batch=batch)
         out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
         self.assertListEqual(expected_result, out.tolist())
 
@@ -232,7 +232,7 @@ class test_GraphOutputNN(ut.TestCase):
         max_num_nodes = 5  # if we change this value, we also have to change the expected result.
         x, batch, expected_result = self.generate_test_data()
 
-        out = post_nn.vectorized_nodepair_approach(node_feats=x, batch=batch, max_num_nodes=max_num_nodes)
+        out = post_nn.compute_nodepairs(node_feats=x, batch=batch, max_num_nodes=max_num_nodes)
         out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
         self.assertListEqual(expected_result, out.tolist())
 
