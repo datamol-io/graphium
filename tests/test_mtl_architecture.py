@@ -133,10 +133,7 @@ def toy_test_data(in_dim=7, in_dim_edges=3):
     batch_node = bg["feat"].size()[0]
     batch_edge = bg["edge_feat"].size()[0]
     batch_graph = 2
-    batch_nodepair = (
-        ((num_nodes_per_graph[0] ** 2) - num_nodes_per_graph[0]) // 2
-        + ((num_nodes_per_graph[1] ** 2) - num_nodes_per_graph[1]) // 2
-    ).item()
+    batch_nodepair = ((num_nodes_per_graph.max().item() ** 2) - num_nodes_per_graph.max().item()) // 2
     return bg, batch_node, batch_edge, batch_graph, batch_nodepair
 
 
@@ -147,31 +144,51 @@ class test_GraphOutputNN(ut.TestCase):
         g_3 = torch.tensor([[3, 4, 0], [0, 1, 1], [1, 0, 0], [2, 2, 2], [4, 4, 4]])
 
         batch = torch.tensor([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2])
-        x = torch.concat([g_1, g_2, g_3])
+        x = torch.concat([g_1, g_2, g_3]).float()
 
+        nan = (
+            -1
+        )  # for testing purposes, we chose -1 since normal nans (i.e. nan == nan) will always return False
         expected_result = [
-            # Graph 1
-            [2, 4, 4, 2, 2, 4],
-            [2, 4, 5, 2, 2, 3],
-            [3, 3, 4, 1, 3, 4],
-            [0, 2, 1, 0, 0, 1],
-            [1, 1, 0, 1, 1, 0],
-            [1, 1, 1, 1, 1, 1],
-            # Graph 2
-            [3, 5, 1, 3, 3, 1],
-            [4, 4, 0, 2, 4, 0],
-            [1, 1, 1, 1, 1, 1],
-            # Graph 3
-            [3, 5, 1, 3, 3, 1],
-            [4, 4, 0, 2, 4, 0],
-            [5, 6, 2, 1, 2, 2],
-            [7, 8, 4, 1, 0, 4],
-            [1, 1, 1, 1, 1, 1],
-            [2, 3, 3, 2, 1, 1],
-            [4, 5, 5, 4, 3, 3],
-            [3, 2, 2, 1, 2, 2],
-            [5, 4, 4, 3, 4, 4],
-            [6, 6, 6, 2, 2, 2],
+            # graph 1
+            [
+                [2.0, 4.0, 4.0, 2.0, 2.0, 4.0],
+                [2.0, 4.0, 5.0, 2.0, 2.0, 3.0],
+                [3.0, 3.0, 4.0, 1.0, 3.0, 4.0],
+                [nan, nan, nan, nan, nan, nan],
+                [0.0, 2.0, 1.0, 0.0, 0.0, 1.0],
+                [1.0, 1.0, 0.0, 1.0, 1.0, 0.0],
+                [nan, nan, nan, nan, nan, nan],
+                [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                [nan, nan, nan, nan, nan, nan],
+                [nan, nan, nan, nan, nan, nan],
+            ],
+            # graph 2
+            [
+                [3.0, 5.0, 1.0, 3.0, 3.0, 1.0],
+                [4.0, 4.0, 0.0, 2.0, 4.0, 0.0],
+                [nan, nan, nan, nan, nan, nan],
+                [nan, nan, nan, nan, nan, nan],
+                [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                [nan, nan, nan, nan, nan, nan],
+                [nan, nan, nan, nan, nan, nan],
+                [nan, nan, nan, nan, nan, nan],
+                [nan, nan, nan, nan, nan, nan],
+                [nan, nan, nan, nan, nan, nan],
+            ],
+            # graph 3
+            [
+                [3.0, 5.0, 1.0, 3.0, 3.0, 1.0],
+                [4.0, 4.0, 0.0, 2.0, 4.0, 0.0],
+                [5.0, 6.0, 2.0, 1.0, 2.0, 2.0],
+                [7.0, 8.0, 4.0, 1.0, 0.0, 4.0],
+                [1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
+                [2.0, 3.0, 3.0, 2.0, 1.0, 1.0],
+                [4.0, 5.0, 5.0, 4.0, 3.0, 3.0],
+                [3.0, 2.0, 2.0, 1.0, 2.0, 2.0],
+                [5.0, 4.0, 4.0, 3.0, 4.0, 4.0],
+                [6.0, 6.0, 6.0, 2.0, 2.0, 2.0],
+            ],
         ]
 
         return x, batch, expected_result
@@ -193,7 +210,8 @@ class test_GraphOutputNN(ut.TestCase):
 
         x, batch, expected_result = self.generate_test_data()
 
-        out = post_nn.vectorized_nodepair_approach(x, batch)
+        out = post_nn.vectorized_nodepair_approach(node_feats=x, batch=batch)
+        out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
         self.assertListEqual(expected_result, out.tolist())
 
     def test_nodepair_with_max_num_nodes(self):
@@ -211,10 +229,11 @@ class test_GraphOutputNN(ut.TestCase):
             in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
         )
 
-        max_num_nodes = 8
+        max_num_nodes = 5  # if we change this value, we also have to change the expected result.
         x, batch, expected_result = self.generate_test_data()
 
-        out = post_nn.vectorized_nodepair_approach(x, batch, max_num_nodes)
+        out = post_nn.vectorized_nodepair_approach(node_feats=x, batch=batch, max_num_nodes=max_num_nodes)
+        out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
         self.assertListEqual(expected_result, out.tolist())
 
 
@@ -300,7 +319,7 @@ class test_TaskHeads(ut.TestCase):
             list(feat_out["task_3"].shape), [batch_graph, task_3_kwargs["out_dim"]]
         )  # graph level task
         self.assertListEqual(
-            list(feat_out["task_4"].shape), [batch_nodepair, task_4_kwargs["out_dim"]]
+            list(feat_out["task_4"].shape), [batch_graph, batch_nodepair, task_4_kwargs["out_dim"]]
         )  # nodepair level task
 
     def test_task_heads_non_supported_level(self):
@@ -549,7 +568,7 @@ class test_Multitask_NN(ut.TestCase):
         )
         self.assertListEqual(
             list(batch_out["task_4"].shape),
-            [num_nodepairs, task_4_kwargs["out_dim"]],
+            [num_graphs, num_nodepairs, task_4_kwargs["out_dim"]],
         )
 
 
