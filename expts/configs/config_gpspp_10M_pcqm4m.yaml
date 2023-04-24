@@ -1,4 +1,4 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# GPS++ model with the PCQMv2 dataset on IPU.
 constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
@@ -60,7 +60,7 @@ datamodule:
 
 
     # Data handling-related
-    batch_size_training: 8
+    batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: 20 # -1 to use all
@@ -244,5 +244,5 @@ trainer:
     precision: 32
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 16
+    accumulate_grad_batches: 2
     check_val_every_n_epoch: 20

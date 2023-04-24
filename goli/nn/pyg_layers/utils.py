@@ -91,7 +91,7 @@ class PreprocessPositions(nn.Module):
         # check nan with the pos from to_dense_batch,
         # and generate mask. 1 for nan, 0 for other values.
         # [batch, nodes]
-        nan_mask = torch.isnan(pos)
+        nan_mask = torch.isnan(pos)[:, :, 0]
         # we need the opposite of mask output
         padding_mask = ~mask
         # [batch, nodes]
