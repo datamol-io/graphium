@@ -148,6 +148,7 @@ class MPNNPlusPyg(BaseGraphModule):
             out_dim=self.out_dim,
             depth=self.num_node_mlp,
             activation=self.activation_layer,
+            last_dropout=self.dropout,
             normalization=self.normalization,
         )
 
