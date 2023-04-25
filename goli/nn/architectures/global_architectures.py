@@ -1063,7 +1063,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 raise ValueError(
                     f"Task heads have edge level tasks {', '.join(edge_level_tasks)}, but edge level tasks cannot be used with layer class `{self.gnn.layer_class}`"
                 )
-            # TODO: Since pooling is now included in the graph_output_nn_kwargs, changed below line. So, CHECK with me.
             graph_level_tasks = [
                 task_name
                 for task_name, head_kwargs in self._task_heads_kwargs.items()
@@ -1387,7 +1386,9 @@ class GraphOutputNN(nn.Module, MupMixin):
         filtered_graph_output_nn_kwargs = {
             k: v for k, v in graph_output_nn_kwargs[self.task_level].items() if k not in ["pooling", "in_dim"]
         }
-        self.graph_output_nn = FeedForwardNN(in_dim=level_in_dim, name=name, **filtered_graph_output_nn_kwargs)
+        self.graph_output_nn = FeedForwardNN(
+            in_dim=level_in_dim, name=name, **filtered_graph_output_nn_kwargs
+        )
 
     def forward(self, g: Batch):
         """
@@ -1541,7 +1542,10 @@ class GraphOutputNN(nn.Module, MupMixin):
         graph_output_nn_kwargs = self.graph_output_nn.make_mup_base_kwargs(
             divide_factor=divide_factor, factor_in_dim=factor_in_dim
         )
-        kwargs = {"pooling": self.graph_output_nn_kwargs[self.task_level]["pooling"], **graph_output_nn_kwargs}
+        kwargs = {
+            "pooling": self.graph_output_nn_kwargs[self.task_level]["pooling"],
+            **graph_output_nn_kwargs,
+        }
         return kwargs
 
     def drop_graph_output_nn_layers(self, num_layers_to_drop: int) -> None:

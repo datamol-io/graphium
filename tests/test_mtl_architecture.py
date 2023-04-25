@@ -146,9 +146,7 @@ class test_GraphOutputNN(ut.TestCase):
         batch = torch.tensor([0, 0, 0, 0, 1, 1, 1, 2, 2, 2, 2, 2])
         x = torch.concat([g_1, g_2, g_3]).float()
 
-        nan = (
-            -1
-        )  # for testing purposes, we chose -1 since normal nans (i.e. nan == nan) will always return False
+        nan = -1
         expected_result = [
             # graph 1
             [
@@ -205,13 +203,16 @@ class test_GraphOutputNN(ut.TestCase):
         }
 
         graph_output_nn = GraphOutputNN(
-            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", graph_output_nn_kwargs=graph_output_nn_kwargs
+            in_dim=in_dim,
+            in_dim_edges=in_dim_edges,
+            task_level="nodepair",
+            graph_output_nn_kwargs=graph_output_nn_kwargs,
         )
 
         x, batch, expected_result = self.generate_test_data()
 
         out = graph_output_nn.compute_nodepairs(node_feats=x, batch=batch)
-        out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
+        out = torch.nan_to_num(out, nan=-1)
         self.assertListEqual(expected_result, out.tolist())
 
     def test_nodepair_with_max_num_nodes(self):
@@ -226,14 +227,17 @@ class test_GraphOutputNN(ut.TestCase):
         }
 
         graph_output_nn = GraphOutputNN(
-            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", graph_output_nn_kwargs=graph_output_nn_kwargs
+            in_dim=in_dim,
+            in_dim_edges=in_dim_edges,
+            task_level="nodepair",
+            graph_output_nn_kwargs=graph_output_nn_kwargs,
         )
 
         max_num_nodes = 5  # if we change this value, we also have to change the expected result.
         x, batch, expected_result = self.generate_test_data()
 
         out = graph_output_nn.compute_nodepairs(node_feats=x, batch=batch, max_num_nodes=max_num_nodes)
-        out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
+        out = torch.nan_to_num(out, nan=-1)
         self.assertListEqual(expected_result, out.tolist())
 
 
