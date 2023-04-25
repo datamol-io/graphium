@@ -182,11 +182,11 @@ class test_mup(ut.TestCase):
                         "pre_nn_kwargs:out_dim",
                         "pre_nn_edges_kwargs:out_dim",
                         "gnn_kwargs:in_dim",
-                        "post_nn_kwargs:in_dim",
+                        "graph_output_nn_kwargs:in_dim",
                         "gnn_kwargs:out_dim",
                         "gnn_kwargs:in_dim_edges",
                         "pe_encoders_kwargs:out_dim",
-                        "post_nn_kwargs:out_dim",
+                        "graph_output_nn_kwargs:out_dim",
                     ]:
                         # Divide by 2
                         self.assertEqual(round(subelem / 2), kw_2[key][subkey], msg=match)
@@ -194,7 +194,7 @@ class test_mup(ut.TestCase):
                         "pre_nn_kwargs:hidden_dims",
                         "pre_nn_edges_kwargs:hidden_dims",
                         "gnn_kwargs:hidden_dims",
-                        "post_nn_kwargs:hidden_dims",
+                        "graph_output_nn_kwargs:hidden_dims",
                         "gnn_kwargs:hidden_dims_edges",
                     ]:
                         # Arrays divide by 2

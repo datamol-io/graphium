@@ -98,7 +98,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       aggregators: [mean, max]
       scalers: [identity, amplification, attenuation]
 
-  post_nn:
+  graph_output_nn:
     node:
       out_dim: 16
       hidden_dims: 32

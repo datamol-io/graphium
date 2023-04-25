@@ -912,7 +912,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         pre_nn_edges_kwargs: Optional[Dict[str, Any]] = None,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
         task_heads_kwargs: Optional[Dict[str, Any]] = None,
-        post_nn_kwargs: Optional[Dict[str, Any]] = None,
+        graph_output_nn_kwargs: Optional[Dict[str, Any]] = None,
         accelerator_kwargs: Optional[Dict[str, Any]] = None,
         num_inference_to_average: int = 1,
         last_layer_is_readout: bool = False,
@@ -930,7 +930,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 It must respect the following criteria:
 
                 - gnn_kwargs["in_dim"] must be equal to pre_nn_kwargs["out_dim"]
-                - gnn_kwargs["out_dim"] must be equal to post_nn_kwargs["in_dim"]
+                - gnn_kwargs["out_dim"] must be equal to graph_output_nn_kwargs["in_dim"]
 
             pe_encoders_kwargs:
                 key-word arguments to use for the initialization of all positional encoding encoders.
@@ -950,7 +950,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 This argument is a list of dictionaries containing the arguments for task heads. Each argument is used to
                 initialize a task-specific MLP.
 
-            post_nn_kwargs:
+            graph_output_nn_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to initialize a shared MLP.
 
@@ -979,7 +979,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         self._concat_last_layers = None
         self.pre_nn, self.pre_nn_edges, self.task_heads = None, None, None
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
-        self.post_nn_kwargs = post_nn_kwargs
+        self.graph_output_nn_kwargs = graph_output_nn_kwargs
         self.encoder_manager = EncoderManager(pe_encoders_kwargs)
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
@@ -1014,7 +1014,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 in_dim=self.out_dim,
                 in_dim_edges=self.out_dim_edges,
                 task_heads_kwargs=task_heads_kwargs,
-                post_nn_kwargs=post_nn_kwargs,
+                graph_output_nn_kwargs=graph_output_nn_kwargs,
             )
             self._task_heads_kwargs = task_heads_kwargs
 
@@ -1063,13 +1063,13 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 raise ValueError(
                     f"Task heads have edge level tasks {', '.join(edge_level_tasks)}, but edge level tasks cannot be used with layer class `{self.gnn.layer_class}`"
                 )
-            # TODO: Since pooling is now included in the post_nn_kwargs, changed below line. So, CHECK with me.
+            # TODO: Since pooling is now included in the graph_output_nn_kwargs, changed below line. So, CHECK with me.
             graph_level_tasks = [
                 task_name
                 for task_name, head_kwargs in self._task_heads_kwargs.items()
                 if head_kwargs["task_level"] == "graph"
             ]
-            if len(graph_level_tasks) > 0 and self.post_nn_kwargs["graph"]["pooling"] == ["none"]:
+            if len(graph_level_tasks) > 0 and self.graph_output_nn_kwargs["graph"]["pooling"] == ["none"]:
                 raise ValueError(
                     f"Task heads have graph level tasks {', '.join(graph_level_tasks)}, but pooling is none."
                 )
@@ -1142,7 +1142,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             `torch.Tensor[..., M, Dout]` or `torch.Tensor[..., N, Dout]`:
                 Node or graph feature tensor, after the network.
                 `N` is the number of nodes, `M` is the number of graphs,
-                `Dout` is the output dimension ``self.post_nn.out_dim``
+                `Dout` is the output dimension ``self.graph_output_nn.out_dim``
                 If the `self.gnn.pooling` is [`None`], then it returns node features and the output dimension is `N`,
                 otherwise it returns graph features and the output dimension is `M`
 
@@ -1229,7 +1229,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 divide_factor=divide_factor, factor_in_dim=True
             )
             kwargs["task_heads_kwargs"] = task_heads_kwargs["task_heads_kwargs"]
-            kwargs["post_nn_kwargs"] = task_heads_kwargs["post_nn_kwargs"]
+            kwargs["graph_output_nn_kwargs"] = task_heads_kwargs["graph_output_nn_kwargs"]
 
         # For the gnn network, all the dimension are divided, except the input dims if pre-nn are missing
         if self.gnn is not None:
@@ -1338,7 +1338,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         in_dim: int,
         in_dim_edges: int,
         task_level: str,
-        post_nn_kwargs: Dict[str, Any],
+        graph_output_nn_kwargs: Dict[str, Any],
     ):
         r"""
         Parameters:
@@ -1349,7 +1349,7 @@ class GraphOutputNN(nn.Module, MupMixin):
                 Input edge feature dimensions of the layer
             task_level:
                 graph/node/edge/nodepair depending on wether it is graph/node/edge/nodepair level task
-            post_nn_kwargs:
+            graph_output_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
         """
@@ -1358,7 +1358,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         self._concat_last_layers = None
         self.in_dim = in_dim
         self.in_dim_edges = in_dim_edges
-        self.post_nn_kwargs = post_nn_kwargs
+        self.graph_output_nn_kwargs = graph_output_nn_kwargs
         self.max_num_nodes_per_graph = None
         self.max_num_edges_per_graph = None
         self.map_task_level = {
@@ -1374,7 +1374,7 @@ class GraphOutputNN(nn.Module, MupMixin):
             level_in_dim = self.in_dim_edges
         elif self.task_level == "graph":
             self.global_pool_layer, self.out_pool_dim = self._parse_pooling_layer(
-                self.in_dim, post_nn_kwargs[self.task_level]["pooling"]
+                self.in_dim, graph_output_nn_kwargs[self.task_level]["pooling"]
             )
             level_in_dim = self.out_pool_dim
         else:
@@ -1383,18 +1383,18 @@ class GraphOutputNN(nn.Module, MupMixin):
         if level_in_dim == 0:
             raise ValueError(f"Task head has an input dimension of 0.")
         # Initialize the post-processing neural net (applied after the gnn)
-        name = post_nn_kwargs[self.task_level].pop("name", "post-NN")
-        filtered_post_nn_kwargs = {
-            k: v for k, v in post_nn_kwargs[self.task_level].items() if k not in ["pooling", "in_dim"]
+        name = graph_output_nn_kwargs[self.task_level].pop("name", "post-NN")
+        filtered_graph_output_nn_kwargs = {
+            k: v for k, v in graph_output_nn_kwargs[self.task_level].items() if k not in ["pooling", "in_dim"]
         }
-        self.post_nn = FeedForwardNN(in_dim=level_in_dim, name=name, **filtered_post_nn_kwargs)
+        self.graph_output_nn = FeedForwardNN(in_dim=level_in_dim, name=name, **filtered_graph_output_nn_kwargs)
 
     def forward(self, g: Batch):
         """
         Parameters:
             g: pyg Batch graph
         Returns:
-            h: Output features after applying post_nn
+            h: Output features after applying graph_output_nn
         """
         # Check if at least one nodepair task is present
         if self.task_level == "nodepair":
@@ -1409,13 +1409,13 @@ class GraphOutputNN(nn.Module, MupMixin):
         h = g[self.map_task_level[self.task_level]]
         # Run the output network
         if self.concat_last_layers is None:
-            h = self.post_nn.forward(h)
+            h = self.graph_output_nn.forward(h)
         else:
             # Concatenate the output of the last layers according to `self._concat_last_layers``.
             # Useful for generating fingerprints
             h = [h]
-            for ii in range(len(self.post_nn.layers)):
-                h.insert(0, self.post_nn.layers[ii].forward(h[0]))  # Append in reverse
+            for ii in range(len(self.graph_output_nn.layers)):
+                h.insert(0, self.graph_output_nn.layers[ii].forward(h[0]))  # Append in reverse
         return h
 
     def _parse_pooling_layer(
@@ -1538,26 +1538,26 @@ class GraphOutputNN(nn.Module, MupMixin):
             Dictionary with the kwargs to create the base model.
         """
         # For the post-nn network, all the dimension are divided
-        post_nn_kwargs = self.post_nn.make_mup_base_kwargs(
+        graph_output_nn_kwargs = self.graph_output_nn.make_mup_base_kwargs(
             divide_factor=divide_factor, factor_in_dim=factor_in_dim
         )
-        kwargs = {"pooling": self.post_nn_kwargs[self.task_level]["pooling"], **post_nn_kwargs}
+        kwargs = {"pooling": self.graph_output_nn_kwargs[self.task_level]["pooling"], **graph_output_nn_kwargs}
         return kwargs
 
-    def drop_post_nn_layers(self, num_layers_to_drop: int) -> None:
+    def drop_graph_output_nn_layers(self, num_layers_to_drop: int) -> None:
         r"""
         Remove the last layers of the model. Useful for Transfer Learning.
         Parameters:
-            num_layers_to_drop: The number of layers to drop from the `self.post_nn` network.
+            num_layers_to_drop: The number of layers to drop from the `self.graph_output_nn` network.
         """
 
         assert num_layers_to_drop >= 0
-        assert num_layers_to_drop <= len(self.post_nn.layers)
+        assert num_layers_to_drop <= len(self.graph_output_nn.layers)
 
         if num_layers_to_drop > 0:
-            self.post_nn.layers = self.post_nn.layers[:-num_layers_to_drop]
+            self.graph_output_nn.layers = self.graph_output_nn.layers[:-num_layers_to_drop]
 
-    def extend_post_nn_layers(self, layers: nn.ModuleList):
+    def extend_graph_output_nn_layers(self, layers: nn.ModuleList):
         r"""
         Add layers at the end of the model. Useful for Transfer Learning.
         Parameters:
@@ -1565,10 +1565,10 @@ class GraphOutputNN(nn.Module, MupMixin):
         """
 
         assert isinstance(layers, nn.ModuleList)
-        if len(self.post_nn.layers) > 0:
-            assert layers[0].in_dim == self.post_nn.layers.out_dim[-1]
+        if len(self.graph_output_nn.layers) > 0:
+            assert layers[0].in_dim == self.graph_output_nn.layers.out_dim[-1]
 
-        self.post_nn.extend(layers)
+        self.graph_output_nn.extend(layers)
 
     def set_max_num_nodes_edges_per_graph(self, max_nodes: Optional[int], max_edges: Optional[int]) -> None:
         """
@@ -1621,7 +1621,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         r"""
         Returns the output dimension of the network
         """
-        return self.post_nn.out_dim
+        return self.graph_output_nn.out_dim
 
 
 class TaskHeads(nn.Module, MupMixin):
@@ -1630,7 +1630,7 @@ class TaskHeads(nn.Module, MupMixin):
         in_dim: int,
         in_dim_edges: int,
         task_heads_kwargs: Dict[str, Any],
-        post_nn_kwargs: Dict[str, Any],
+        graph_output_nn_kwargs: Dict[str, Any],
         last_layer_is_readout: bool = True,
     ):
         r"""
@@ -1646,14 +1646,14 @@ class TaskHeads(nn.Module, MupMixin):
             task_heads_kwargs:
                 This argument is a list of dictionaries corresponding to the arguments for a FeedForwardNN.
                 Each dict of arguments is used to initialize a task-specific MLP.
-            post_nn_kwargs:
+            graph_output_nn_kwargs:
                 key-word arguments to use for the initialization of the post-processing
                 MLP network after the GNN, using the class `FeedForwardNN`.
         """
         super().__init__()
         self.last_layer_is_readout = last_layer_is_readout
         self.task_heads_kwargs = deepcopy(task_heads_kwargs)
-        self.post_nn_kwargs = deepcopy(post_nn_kwargs)
+        self.graph_output_nn_kwargs = deepcopy(graph_output_nn_kwargs)
         self.task_levels = {head_kwargs["task_level"] for _, head_kwargs in self.task_heads_kwargs.items()}
         self.in_dim = in_dim
         self.in_dim_edges = in_dim_edges
@@ -1667,14 +1667,14 @@ class TaskHeads(nn.Module, MupMixin):
                 in_dim=self.in_dim,
                 in_dim_edges=self.in_dim_edges,
                 task_level=task_level,
-                post_nn_kwargs=self.post_nn_kwargs,
+                graph_output_nn_kwargs=self.graph_output_nn_kwargs,
             )
             head_kwargs.setdefault("name", f"NN-{task_name}")
             head_kwargs.setdefault("last_layer_is_readout", last_layer_is_readout)
             # Create a new dictionary without the task_level key-value pair,
             # and pass it while initializing the FeedForwardNN instance for tasks
             filtered_kwargs = {k: v for k, v in head_kwargs.items() if k != "task_level"}
-            filtered_kwargs["in_dim"] = self.post_nn_kwargs[task_level]["out_dim"]
+            filtered_kwargs["in_dim"] = self.graph_output_nn_kwargs[task_level]["out_dim"]
             self.task_heads[task_name] = FeedForwardNN(**filtered_kwargs)
 
     def forward(self, g: Batch) -> Dict[str, torch.Tensor]:
@@ -1709,10 +1709,10 @@ class TaskHeads(nn.Module, MupMixin):
         Returns:
             kwargs: Dictionary of arguments to be used to initialize the base model
         """
-        post_nn_kwargs = {}
-        for task_level, post_nn in self.graph_output_nn.items():
-            post_nn: GraphOutputNN
-            post_nn_kwargs[task_level] = post_nn.make_mup_base_kwargs(
+        graph_output_nn_kwargs = {}
+        for task_level, graph_output_nn in self.graph_output_nn.items():
+            graph_output_nn: GraphOutputNN
+            graph_output_nn_kwargs[task_level] = graph_output_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=factor_in_dim
             )
 
@@ -1727,7 +1727,7 @@ class TaskHeads(nn.Module, MupMixin):
             in_dim=self.in_dim,
             last_layer_is_readout=self.last_layer_is_readout,
             task_heads_kwargs=task_heads_kwargs,
-            post_nn_kwargs=post_nn_kwargs,
+            graph_output_nn_kwargs=graph_output_nn_kwargs,
         )
         return kwargs
 

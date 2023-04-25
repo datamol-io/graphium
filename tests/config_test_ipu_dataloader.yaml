@@ -159,7 +159,7 @@ architecture:
       attn_type: "none" # "full-attention", "none"
       attn_kwargs: null
 
-  post_nn:
+  graph_output_nn:
     graph:
       pooling: [sum, mean, max]
       out_dim: 8

@@ -197,20 +197,20 @@ class test_GraphOutputNN(ut.TestCase):
         in_dim = 3
         in_dim_edges = 8
 
-        post_nn_kwargs = {
+        graph_output_nn_kwargs = {
             "node": node_level_kwargs,
             "edge": edge_level_kwargs,
             "graph": graph_level_kwargs,
             "nodepair": nodepair_level_kwargs,
         }
 
-        post_nn = GraphOutputNN(
-            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
+        graph_output_nn = GraphOutputNN(
+            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", graph_output_nn_kwargs=graph_output_nn_kwargs
         )
 
         x, batch, expected_result = self.generate_test_data()
 
-        out = post_nn.compute_nodepairs(node_feats=x, batch=batch)
+        out = graph_output_nn.compute_nodepairs(node_feats=x, batch=batch)
         out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
         self.assertListEqual(expected_result, out.tolist())
 
@@ -218,21 +218,21 @@ class test_GraphOutputNN(ut.TestCase):
         in_dim = 3
         in_dim_edges = 8
 
-        post_nn_kwargs = {
+        graph_output_nn_kwargs = {
             "node": node_level_kwargs,
             "edge": edge_level_kwargs,
             "graph": graph_level_kwargs,
             "nodepair": nodepair_level_kwargs,
         }
 
-        post_nn = GraphOutputNN(
-            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", post_nn_kwargs=post_nn_kwargs
+        graph_output_nn = GraphOutputNN(
+            in_dim=in_dim, in_dim_edges=in_dim_edges, task_level="nodepair", graph_output_nn_kwargs=graph_output_nn_kwargs
         )
 
         max_num_nodes = 5  # if we change this value, we also have to change the expected result.
         x, batch, expected_result = self.generate_test_data()
 
-        out = post_nn.compute_nodepairs(node_feats=x, batch=batch, max_num_nodes=max_num_nodes)
+        out = graph_output_nn.compute_nodepairs(node_feats=x, batch=batch, max_num_nodes=max_num_nodes)
         out = torch.nan_to_num(out, nan=-1)  # (see line 149 why we do this)
         self.assertListEqual(expected_result, out.tolist())
 
@@ -248,7 +248,7 @@ class test_TaskHeads(ut.TestCase):
             "task_3": task_3_params,
             "task_4": task_4_params,
         }
-        post_nn_kwargs = {
+        graph_output_nn_kwargs = {
             "node": node_level_kwargs,
             "edge": edge_level_kwargs,
             "graph": graph_level_kwargs,
@@ -259,7 +259,7 @@ class test_TaskHeads(ut.TestCase):
             in_dim=in_dim,
             in_dim_edges=in_dim_edges,
             task_heads_kwargs=task_heads_params,
-            post_nn_kwargs=post_nn_kwargs,
+            graph_output_nn_kwargs=graph_output_nn_kwargs,
         )
 
         # Test the sizes of the MLPs for each head
@@ -334,7 +334,7 @@ class test_TaskHeads(ut.TestCase):
             "task_3": task_3_params,
             "task_4": task_4_params,
         }
-        post_nn_kwargs = {
+        graph_output_nn_kwargs = {
             "certainly_not_supported_level": node_level_kwargs,
             "edge": edge_level_kwargs,
             "graph": graph_level_kwargs,
@@ -346,7 +346,7 @@ class test_TaskHeads(ut.TestCase):
                 in_dim=in_dim,
                 in_dim_edges=in_dim_edges,
                 task_heads_kwargs=task_heads_params,
-                post_nn_kwargs=post_nn_kwargs,
+                graph_output_nn_kwargs=graph_output_nn_kwargs,
             )
 
 
@@ -382,7 +382,7 @@ class test_Multitask_NN(ut.TestCase):
         temp_dim_2 = 7
         temp_dim_edges = 21
 
-        default_post_nn_kwargs = {
+        default_graph_output_nn_kwargs = {
             "node": dict(out_dim=10, hidden_dims=[3, 3, 3, 3]),
             "edge": dict(out_dim=11, hidden_dims=[4, 4, 4, 4]),
             "graph": dict(out_dim=12, hidden_dims=[5, 5, 5, 5]),
@@ -419,14 +419,14 @@ class test_Multitask_NN(ut.TestCase):
             pre_nn_kwargs,
             pre_nn_edges_kwargs,
         ) in options:
-            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}, task_heads={task_heads_kwargs}, pre_nn_kwargs={pre_nn_kwargs}, post_nn_kwargs={default_post_nn_kwargs}, pre_nn_edges_kwargs={pre_nn_edges_kwargs}"
+            err_msg = f"pooling={pooling}, virtual_node={virtual_node}, layer_name={layer_name}, residual_skip_steps={residual_skip_steps}, normalization={normalization}, task_heads={task_heads_kwargs}, pre_nn_kwargs={pre_nn_kwargs}, graph_output_nn_kwargs={default_graph_output_nn_kwargs}, pre_nn_edges_kwargs={pre_nn_edges_kwargs}"
             layer_type = layer_name.split("#")[0]
 
-            # TODO: post_nn is currently non-optional, should it be optional?
+            # TODO: graph_output_nn is currently non-optional, should it be optional?
             if task_heads_kwargs is not None:
                 continue
 
-            # TODO: Allow to pass single post_nn_kwargs to apply to all levels?
+            # TODO: Allow to pass single graph_output_nn_kwargs to apply to all levels?
 
             bg, num_nodes, num_edges, num_graphs, num_nodepairs = toy_test_data(
                 in_dim=self.in_dim, in_dim_edges=self.in_dim_edges
@@ -448,8 +448,8 @@ class test_Multitask_NN(ut.TestCase):
                 **self.pyg_kwargs,
             )
 
-            post_nn_kwargs = deepcopy(default_post_nn_kwargs)
-            post_nn_kwargs["graph"]["pooling"] = pooling
+            graph_output_nn_kwargs = deepcopy(default_graph_output_nn_kwargs)
+            graph_output_nn_kwargs["graph"]["pooling"] = pooling
 
             expectFailure = False
 
@@ -478,7 +478,7 @@ class test_Multitask_NN(ut.TestCase):
                         pre_nn_kwargs=pre_nn_kwargs,
                         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
                         task_heads_kwargs=task_heads_kwargs,
-                        post_nn_kwargs=post_nn_kwargs,
+                        graph_output_nn_kwargs=graph_output_nn_kwargs,
                     )
                 continue
 
@@ -488,7 +488,7 @@ class test_Multitask_NN(ut.TestCase):
                     pre_nn_kwargs=pre_nn_kwargs,
                     pre_nn_edges_kwargs=pre_nn_edges_kwargs,
                     task_heads_kwargs=task_heads_kwargs,
-                    post_nn_kwargs=post_nn_kwargs,
+                    graph_output_nn_kwargs=graph_output_nn_kwargs,
                 )
 
                 batch_out = multitask_graph_nn.forward(bg)

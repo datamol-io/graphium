@@ -161,7 +161,7 @@ architecture:
       attn_kwargs: null
 
 
-  post_nn:
+  graph_output_nn:
     graph:
       pooling: [sum]
       out_dim: 256

@@ -246,7 +246,7 @@ def load_architecture(
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
-    post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
+    graph_output_nn_kwargs = dict(cfg_arch["graph_output_nn"]) if cfg_arch["graph_output_nn"] is not None else None
     task_heads_kwargs = (
         cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None
     )  # This is of type ListConfig containing TaskHeadParams
@@ -293,7 +293,7 @@ def load_architecture(
         pre_nn_kwargs=pre_nn_kwargs,
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
-        post_nn_kwargs=post_nn_kwargs,
+        graph_output_nn_kwargs=graph_output_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
         accelerator_kwargs=accelerator_kwargs,
     )
