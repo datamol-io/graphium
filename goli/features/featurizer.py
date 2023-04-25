@@ -1034,11 +1034,8 @@ def mol_to_graph_dict(
 
             - "adj": A sparse int-array containing the adjacency matrix
 
-            - "ndata": A dictionnary containing different keys and numpy
-              arrays associated to the node features.
-
-            - "edata": A dictionnary containing different keys and numpy
-              arrays associated to the edge features.
+            - "data": A dictionnary containing different keys and numpy
+              arrays associated to the (node, edge & graph) features.
 
             - "dtype": The numpy dtype for the floating data.
     """
@@ -1087,27 +1084,27 @@ def mol_to_graph_dict(
         elif on_error.lower() == "ignore":
             return str(e)
 
-    graph_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
+    graph_dict = {"adj": adj, "data": {}, "dtype": dtype}
 
     # Assign the node data
     if ndata is not None:
-        graph_dict["ndata"]["feat"] = ndata
+        graph_dict["data"]["feat"] = ndata
 
     # Assign the edge data
     if edata is not None:
         if issparse(edata):
             edata = to_dense_array(edata, dtype=dtype)
         hetero_edata = edata.repeat(2, axis=0)
-        graph_dict["edata"]["edge_feat"] = hetero_edata
+        graph_dict["data"]["edge_feat"] = hetero_edata
 
     # Put the positional encodings as node features
     # TODO: add support for PE on edges
     for key, pe in pe_dict.items():
-        graph_dict["ndata"][key] = pe
+        graph_dict["data"][key] = pe
 
     # put the conformer positions here
     for key, val in conf_dict.items():
-        graph_dict["ndata"][key] = val
+        graph_dict["data"][key] = val
 
     graph_dict = GraphDict(graph_dict)
     return graph_dict

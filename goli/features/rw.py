@@ -20,7 +20,10 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix], ksteps: int, num_nodes: int) 
         num_nodes: Number of nodes in the graph
     Returns:
         2D array with shape (num_nodes, len(ksteps)) with Random-Walk landing probs
+        base_level [str]: Indicator of the output pos_level (node, edge, [node]pair, graph) -> here node
     """
+
+    base_level = 'node'
 
     # Manually handles edge case of 1 atom molecules here
     if num_nodes == 1:
@@ -39,7 +42,7 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix], ksteps: int, num_nodes: int) 
     )
     rw_landing = rw_landing.numpy()
 
-    return rw_landing
+    return rw_landing, base_level
 
 
 def get_rw_landing_probs(

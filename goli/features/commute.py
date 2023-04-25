@@ -6,7 +6,11 @@ from scipy.sparse import spmatrix, issparse
 from scipy.linalg import pinv
 
 
-def compute_commute_distances(adj: Union[np.ndarray, spmatrix], num_nodes: int) -> np.ndarray:
+def compute_commute_distances(
+        adj: Union[np.ndarray, spmatrix],
+        num_nodes: int,
+        cache: dict
+) -> np.ndarray:
     """
     Compute avg. commute time/distance between node pairs. This is the avg. number of steps a random walker, starting
     at node i, will take before reaching a given node j for the first time, and then return to node i.
@@ -15,19 +19,34 @@ def compute_commute_distances(adj: Union[np.ndarray, spmatrix], num_nodes: int) 
 
     Parameters:
         adj [num_nodes, num_nodes]: Adjacency matrix
-        num_nodes: Number of nodes in the graph
+        num_nodes [int]: Number of nodes in the graph
+        cache [dict]: Dictionary of cached objects
     Returns:
         dist [num_nodes, num_nodes]: 2D array with avg. commute distances between node pairs
+        base_level [str]: Indicator of the output pos_level (node, edge, [node]pair, graph) -> here pair
+        cache [dict]: Updated dictionary of cached objects
     """
+
+    base_level = 'pair'
+
+    if 'commute' in cache.keys():
+        dist = cache['commute']
+
+    else: 
+        if issparse(adj):
+            adj = adj.toarray()
+
+        volG = adj.sum()
+
+        if 'pinvL' in cache.keys():
+            pinvL = cache['pinvL']
+        
+        else:
+            L = np.diagflat(np.sum(adj, axis=1)) - adj
+            pinvL = pinv(L)
+            cache['pinvL'] = pinvL
+
+        dist = volG * np.asarray([[pinvL[i,i] + pinvL[j,j] - 2*pinvL[i,j] for j in range(num_nodes)] for i in range(num_nodes)])
+        cache['commute'] = dist
     
-    if issparse(adj):
-        adj = adj.toarray()
-
-    volG = adj.sum()
-
-    L = np.diagflat(np.sum(adj, axis=1)) - adj
-    pinvL = pinv(L)
-
-    dist = volG * np.asarray([[pinvL[i,i] + pinvL[j,j] - 2*pinvL[i,j] for j in range(num_nodes)] for i in range(num_nodes)])
-    
-    return dist
+    return dist, base_level, cache
