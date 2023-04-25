@@ -552,6 +552,22 @@ class test_Multitask_NN(ut.TestCase):
             [num_nodepairs, task_4_kwargs["out_dim"]],
         )
 
+    def test_full_graph_multi_task_set_max_num_nodes(self):
+        cfg = goli.load_config(name="zinc_default_multitask_pyg")
+
+        # Initialize the network
+        in_dims = {"feat": self.in_dim, "edge_feat": self.in_dim_edges}
+        model_class, model_kwargs = load_architecture(cfg, in_dims=in_dims)
+
+        multitask_full_graph_nn: FullGraphMultiTaskNetwork = model_class(**model_kwargs)
+        multitask_full_graph_nn.set_max_num_nodes_edges_per_graph(10, 4)
+
+        # Probing
+        self.assertEqual(
+            multitask_full_graph_nn.task_heads.graph_output_nn["nodepair"].max_num_nodes_per_graph, 10
+        )
+        self.assertEqual(multitask_full_graph_nn.gnn.layers[2].max_num_edges_per_graph, 4)
+
 
 if __name__ == "__main__":
     ut.main()

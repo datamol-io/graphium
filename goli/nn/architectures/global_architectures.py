@@ -1734,10 +1734,12 @@ class TaskHeads(nn.Module, MupMixin):
             max_edges: Maximum number of edges in the dataset.
                 This will be useful for certain architecture, but ignored by others.
         """
-        for _, graph_output_nn in self.graph_output_nn.task_heads.values():
-            graph_output_nn.set_max_num_nodes_edges_per_graphs(max_nodes, max_edges)
+        for graph_output_nn in self.graph_output_nn.values():
+            graph_output_nn: GraphOutputNN
+            graph_output_nn.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)
 
-        for task_head in self.task_heads.task_heads.values():
+        for task_head in self.task_heads.values():
+            task_head: FeedForwardNN
             for layer in task_head.layers:
                 if isinstance(layer, BaseGraphStructure):
                     layer.max_num_nodes_per_graph = max_nodes
