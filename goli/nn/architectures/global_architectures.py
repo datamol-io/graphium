@@ -1,6 +1,6 @@
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
-from torch_geometric.utils import to_dense_batch
+from goli.ipu.to_dense_batch import to_dense_batch
 
 # Misc imports
 import inspect
@@ -1398,7 +1398,7 @@ class GraphOutputNN(nn.Module, MupMixin):
         """
         # Check if at least one nodepair task is present
         if self.task_level == "nodepair":
-            g["nodepair_feat"] = self.vectorized_nodepair_approach(
+            g["nodepair_feat"] = self.compute_nodepairs(
                 node_feats=g["feat"], batch=g.batch, max_num_nodes=self.max_num_nodes_per_graph
             )
         # Check if at least one graph-level task is present
@@ -1482,39 +1482,47 @@ class GraphOutputNN(nn.Module, MupMixin):
 
         return pooled_feat
 
-    def vectorized_nodepair_approach(
-        self, node_feats: torch.Tensor, batch: torch.Tensor, max_num_nodes: int = None
-    ):
+    def compute_nodepairs(
+        self,
+        node_feats: torch.Tensor,
+        batch: torch.Tensor,
+        max_num_nodes: int = None,
+        fill_value: float = float("nan"),
+        batch_size: int = None,
+        drop_nodes_last_graph: bool = False,
+    ) -> torch.Tensor:
         r"""
         Vectorized implementation of nodepair-level task:
         Parameters:
             node_feats: Node features
             batch: Batch vector
             max_num_nodes: The maximum number of nodes per graph
+            fill_value: The value for invalid entries in the
+                resulting dense output tensor. (default: :obj:`NaN`)
+            batch_size: The batch size. (default: :obj:`None`)
+            drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
+                the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
         Returns:
-            result: concatenation of node features
+            result: concatenated node features of shape B * max_num_nodes * 2*h,
+            where B is number of graphs, max_num_nodes is the chosen maximum number nodes, and h is the feature dim
         """
-        dense_feat, mask = to_dense_batch(node_feats, batch, max_num_nodes=max_num_nodes)
+        dense_feat, mask, _ = to_dense_batch(
+            node_feats,
+            batch=batch,
+            fill_value=fill_value,
+            batch_size=batch_size,
+            max_num_nodes_per_graph=max_num_nodes,
+            drop_nodes_last_graph=drop_nodes_last_graph,
+        )
         n = dense_feat.size(1)
         h_X = dense_feat[:, :, None].repeat(1, 1, n, 1)
         h_Y = dense_feat[:, None, :, :].repeat(1, n, 1, 1)
 
         nodepair_h = torch.cat((h_X + h_Y, torch.abs(h_X - h_Y)), dim=-1)
         upper_tri_mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
-        upper_tri_mask = upper_tri_mask[None, :, :].repeat(mask.size(0), 1, 1)
-
         # Mask nodepair_h using upper_tri_mask
-        masked_result = nodepair_h * upper_tri_mask.unsqueeze(-1)
-
-        # Get a mask for valid pairs
-        valid_pairs_mask = mask[:, :, None] * mask[:, None, :]
-        valid_pairs_mask *= upper_tri_mask
-
-        # Flatten the result and remove invalid indices
-        result = masked_result.view(-1, masked_result.shape[-1])
-        valid_indices = valid_pairs_mask.view(-1)
-        result = result[valid_indices]
-        return result
+        batched_result = nodepair_h[:, upper_tri_mask, :]
+        return batched_result
 
     def make_mup_base_kwargs(self, divide_factor: float = 2.0, factor_in_dim: bool = False) -> Dict[str, Any]:
         """
