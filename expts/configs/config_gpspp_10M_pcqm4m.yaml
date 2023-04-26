@@ -60,7 +60,7 @@ datamodule:
 
 
     # Data handling-related
-    batch_size_training: 64
+    batch_size_training: 32
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: 20 # -1 to use all
@@ -135,7 +135,7 @@ architecture:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
         output_keys: ["feat", "graph_gaussian_bias_3d"]
-        num_heads: 1
+        num_heads: 32
         num_layers: 1 #2
         embed_dim: 32
         out_dim: 32 # need num of gaussian kernels 128
@@ -166,7 +166,8 @@ architecture:
         out_dim_edges: 128
       attn_type: "full-attention" # "full-attention", "none"
       biased_attention_key: "graph_gaussian_bias_3d" #same key from gaussian_pos/output_keys/"graph_xxx"
-      attn_kwargs: null
+      attn_kwargs:
+        num_heads: 32
       droppath_rate_attn: 0.0
       droppath_rate_ffn: 0.0
 
@@ -241,8 +242,8 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 32
+    precision: 16
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 4
     check_val_every_n_epoch: 20
