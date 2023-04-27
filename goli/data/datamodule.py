@@ -1634,9 +1634,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Sub-sample the dataframe
         if isinstance(sample_size, int):
             n = min(sample_size, df.shape[0])
-            df = df.sample(n=n)
+            df = df.sample(n=n, random_state=42)
         elif isinstance(sample_size, float):
-            df = df.sample(f=sample_size)
+            df = df.sample(f=sample_size, random_state=42)
         elif sample_size is None:
             pass
         else:
