@@ -1,4 +1,4 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# GPS++ model with the PCQMv2 dataset on IPU.
 constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
@@ -18,7 +18,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 80000 # use sample_size for test
+        sample_size: 80000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
@@ -41,6 +41,7 @@ datamodule:
     # 'num_chiral_centers (not included yet)']
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
+      conformer_property_list: [positions_3d]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
@@ -56,13 +57,13 @@ datamodule:
           rw_pos: # use same name as pe_encoder
             pos_type: rwse
             ksteps: 16
-      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
+
 
     # Data handling-related
-    batch_size_training: 64
+    batch_size_training: 32
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: 30 # -1 to use all
+    num_workers: 20 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
@@ -130,6 +131,16 @@ architecture:
         dropout: 0.18
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      gaussian_pos:
+        encoder_type: "gaussian_kernel"
+        input_keys: ["positions_3d"]
+        output_keys: ["feat", "graph_gaussian_bias_3d"]
+        num_heads: 32
+        num_layers: 1 #2
+        embed_dim: 32
+        out_dim: 32 # need num of gaussian kernels 128
+        # but currently it checks pe_out_dim == pe_out_dim in encoder_manager.py, line 128
+        use_input_keys_prefix: False
 
 
   gnn:  # Set as null to avoid a post-nn network
@@ -153,9 +164,12 @@ architecture:
         out_dim: 256
         in_dim_edges: 128
         out_dim_edges: 128
-      attn_type: "none" # "full-attention", "none"
-      # biased_attention: false
-      attn_kwargs: null
+      attn_type: "full-attention" # "full-attention", "none"
+      biased_attention_key: "graph_gaussian_bias_3d" #same key from gaussian_pos/output_keys/"graph_xxx"
+      attn_kwargs:
+        num_heads: 32
+      droppath_rate_attn: 0.0
+      droppath_rate_ffn: 0.0
 
 
   post_nn: null
@@ -231,5 +245,5 @@ trainer:
     precision: 16
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 4
     check_val_every_n_epoch: 20
