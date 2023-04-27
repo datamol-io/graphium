@@ -216,7 +216,7 @@ def get_mol_conformer_features(
                         positions[0].append(pos.x)
                         positions[1].append(pos.y)
                         positions[2].append(pos.z)
-                    positions = np.ndarray(positions, dtype=np.float16).T
+                    positions = np.array(positions, dtype=np.float16).T
                 prop_dict[prop] = positions
             else:
                 ValueError(
