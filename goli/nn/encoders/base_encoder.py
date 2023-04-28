@@ -52,7 +52,8 @@ class BaseEncoder(torch.nn.Module, MupMixin):
         """
         input_keys = self.input_keys
         if (key_prefix is not None) and (self.use_input_keys_prefix):
-            input_keys = [f"{key_prefix}/{k}" for k in input_keys]
+            input_keys = [f"{k}" for k in input_keys]
+            # input_keys = [f"{key_prefix}/{k}" for k in input_keys]
         return input_keys
 
     @abc.abstractmethod
