@@ -589,7 +589,7 @@ class DatasetProcessingParams:
         sample_size: Union[int, float, Type[None]] = None,
         split_val: float = 0.2,
         split_test: float = 0.2,
-        split_seed: int = None,
+        seed: int = None,
         splits_path: Optional[Union[str, os.PathLike]] = None,
         split_names: Optional[List[str]] = ["train", "val", "test"],
         label_normalization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
@@ -607,7 +607,7 @@ class DatasetProcessingParams:
             sample_size: The size of the sample
             split_val: The fraction of the data to use for validation
             split_test: The fraction of the data to use for testing
-            split_seed: The seed to use for the split
+            seed: The seed to use for the splits and subsampling
             splits_path: The path to the splits
         """
         self.df = df
@@ -620,7 +620,7 @@ class DatasetProcessingParams:
         self.sample_size = sample_size
         self.split_val = split_val
         self.split_test = split_test
-        self.split_seed = split_seed
+        self.seed = seed
         self.splits_path = splits_path
         self.split_names = split_names
         self.label_normalization = label_normalization
@@ -747,7 +747,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - `None`: all elements are considered.
             task_split_val: (value) Ratio for the validation split.
             task_split_test: (value) Ratio for the test split.
-            task_split_seed: (value) Seed to use for the random split. More complex splitting strategy
+            task_seed: (value) Seed to use for the random split and subsampling. More complex splitting strategy
                 should be implemented.
             task_splits_path: (value) A path a CSV file containing indices for the splits. The file must contains
                 3 columns "train", "val" and "test". It takes precedence over `split_val` and `split_test`.
@@ -901,7 +901,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         for task, df in task_df.items():
             # Subsample all the dataframes
             sample_size = self.task_dataset_processing_params[task].sample_size
-            df = self._sub_sample_df(df, sample_size)
+            df = self._sub_sample_df(df, sample_size, self.task_dataset_processing_params[task].seed)
 
             logger.info(f"Prepare single-task dataset for task '{task}' with {len(df)} data points.")
 
@@ -1003,7 +1003,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 len(df),
                 split_val=self.task_dataset_processing_params[task].split_val,
                 split_test=self.task_dataset_processing_params[task].split_test,
-                split_seed=self.task_dataset_processing_params[task].split_seed,
+                split_seed=self.task_dataset_processing_params[task].seed,
                 splits_path=self.task_dataset_processing_params[task].splits_path,
                 split_names=self.task_dataset_processing_params[task].split_names,
                 sample_idx=task_dataset_args[task]["sample_idx"],
@@ -1622,7 +1622,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return train_indices, val_indices, test_indices
 
-    def _sub_sample_df(self, df: pd.DataFrame, sample_size: Union[int, float, None]) -> pd.DataFrame:
+    def _sub_sample_df(self, df: pd.DataFrame, sample_size: Union[int, float, None], seed: Optional[int]=None) -> pd.DataFrame:
         r"""
         subsample from a pandas dataframe
         Parameters:
@@ -1634,9 +1634,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Sub-sample the dataframe
         if isinstance(sample_size, int):
             n = min(sample_size, df.shape[0])
-            df = df.sample(n=n, random_state=42)
+            df = df.sample(n=n, random_state=seed)
         elif isinstance(sample_size, float):
-            df = df.sample(f=sample_size, random_state=42)
+            df = df.sample(f=sample_size, random_state=seed)
         elif sample_size is None:
             pass
         else:

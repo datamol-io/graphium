@@ -23,6 +23,7 @@ datamodule:
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
         split_names: ["train", "valid", "test-dev"]
+        seed: *seed
         label_normalization:
           method: "normal"
           min_clipping: 0
