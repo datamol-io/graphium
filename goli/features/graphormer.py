@@ -15,18 +15,18 @@ def compute_graphormer_distances(
     Compute Graphormer distance between node pairs.
 
     Parameters:
-        adj [num_nodes, num_nodes]: Adjacency matrix
-        num_nodes [int]: Number of nodes in the graph
-        cache [dict]: Dictionary of cached objects
+        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix
+        num_nodes (int): Number of nodes in the graph
+        cache (dict): Dictionary of cached objects
     Returns:
-        dist [num_nodes, num_nodes]: 2D array with Graphormer distances between node pairs
-        base_level [str]: Indicator of the output pos_level (node, edge, [node]pair, graph) -> here pair
-        cache [dict]: Updated dictionary of cached objects
+        dist (np.ndarray, [num_nodes, num_nodes]): 2D array with Graphormer distances between node pairs
+        base_level (str): Indicator of the output pos_level (node, edge, [node]pair, graph) -> here pair
+        cache (dict): Updated dictionary of cached objects
     """
 
     base_level = 'pair'
 
-    if 'graphormer' in cache.keys():
+    if 'graphormer' in cache:
         dist = cache['graphormer']
 
     else:

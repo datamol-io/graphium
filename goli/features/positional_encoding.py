@@ -14,22 +14,22 @@ from goli.features.commute import compute_commute_distances
 from goli.features.graphormer import compute_graphormer_distances
 
 
-def get_all_positional_encoding(
-    adj: Union[np.ndarray, spmatrix],
-    num_nodes: int,
-    pos_encoding_as_features: Optional[Dict] = None,
+def get_all_positional_encodings(
+        adj: Union[np.ndarray, spmatrix],
+        num_nodes: int,
+        pos_encoding_as_features: Optional[Dict] = None,
 ) -> Tuple["OrderedDict[str, np.ndarray]", "OrderedDict[str, np.ndarray]"]:
     r"""
     Get features positional encoding.
 
     Parameters:
-        adj: Adjacency matrix of the graph
-        num_nodes: Number of nodes in the graph
-        pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
+        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
+        num_nodes (int): Number of nodes in the graph
+        pos_encoding_as_features (dict): keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
 
     Returns:
-        pe_dict: Dictionary of positional and structural encodings
+        pe_dict (dict): Dictionary of positional and structural encodings
     """
 
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
@@ -44,35 +44,49 @@ def get_all_positional_encoding(
         for pos_type in pos_encoding_as_features["pos_types"]:
             pos_args = pos_encoding_as_features["pos_types"][pos_type]
             pos_level = pos_args["pos_level"]
-            this_pe, cache = graph_positional_encoder(deepcopy(adj), num_nodes, pos_args, cache)
-            this_pe = {f"{pos_level}_{pos_type}": this_pe}
-            pe_dict.update(this_pe)
+            this_pe, cache = graph_positional_encoder(deepcopy(adj), num_nodes, pos_type, pos_args, cache)
+            if pos_level == 'node':
+                pe_dict.update({f"{pos_type}": this_pe})
+            else:
+                pe_dict.update({f"{pos_level}_{pos_type}": this_pe})
 
     return pe_dict
 
 
 def graph_positional_encoder(
-    adj: Union[np.ndarray, spmatrix], num_nodes: int, pos_arg: Dict, cache: dict[np.ndarray]
+        adj: Union[np.ndarray, spmatrix],
+        num_nodes: int,
+        pos_type: str,
+        pos_arg: dict,
+        cache: dict[np.ndarray]
 ) -> Dict[str, np.ndarray]:
     r"""
     Get a positional encoding that depends on the parameters.
 
     Parameters:
-        adj: Adjacency matrix of the graph
-
-        pos_type: The type of positional encoding to use. Supported types are:
-            - laplacian_eigvec              \
-            - laplacian_eigvec_eigval        \  -> cashe eigendecomp
-            - rwse
-            - electrostatic                 \
-            - commute                        \  -> cashe pinvL
-            - graphormer
+        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
+        num_nodes (int): Number of nodes in the graph
+        pos_type (str): Type of positional encoding
+        pos_args (dict): Arguments 
+            pos_type (str): The type of positional encoding to use. Supported types are:
+                - laplacian_eigvec              \
+                - laplacian_eigvec_eigval        \  -> cache eigendecomposition
+                - rwse
+                - electrostatic                 \
+                - commute                        \  -> cache pinvL
+                - graphormer
+            pos_level (str): Positional level to output
+                - node
+                - edge
+                - pair
+                - graph
+            cache (dict): Dictionary of cached objects
 
     Returns:
-        pe_dict: Dictionary of positional and structural encodings
-
+        pe (np.ndarray): Positional or structural encoding
+        cache (dict): Updated dictionary of cached objects
     """
-    pos_type = pos_arg["pos_type"]
+    
     pos_type = pos_type.lower()
     pos_level = pos_arg["pos_level"]
     pos_level = pos_level.lower()
@@ -114,9 +128,9 @@ def graph_positional_encoder(
             pe = pair_to_edge(pe, adj)
 
         elif pos_level == "node":
-            pe = pair_to_node(pe, stats_list=pos_arg["stats"])
+            pe = pair_to_node(pe)
 
-    # TODO: Implement conversion between other pos levels (e.g., node -> pair/edge)
+    # TODO: Implement conversion between other positional levels (e.g., node -> pair/edge)
 
     return pe, cache
 
@@ -129,17 +143,16 @@ def pair_to_edge(
     Get a edge-level positional encoding from a nodepair-level positional encoding.
 
     Parameters:
-        pe [num_nodes, num_nodes]: Nodepair-level positional encoding
-        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        pe (np.ndarray, [num_nodes, num_nodes]): Nodepair-level positional encoding
+        adj (np.nd.array, [num_nodes, num_nodes]): Adjacency matrix of the graph
     
     Returns:
-        pe [num_edges]: Edge-level positional encoding
-
+        pe (np.ndarray, [num_edges]): Edge-level positional encoding
     """
 
     edge_pe = np.where(adj != 0, pe, 0)
     edge_pe = torch.from_numpy(edge_pe)
-    edge_pe = dense_to_sparse(edge_pe)
+    _, edge_pe = dense_to_sparse(edge_pe)
 
     return edge_pe
 
@@ -152,18 +165,18 @@ def pair_to_node(
     Get a node-level positional encoding from a graph-level positional encoding.
 
     Parameters:
-        pe [num_nodes, num_nodes]: Nodepair-level positional encoding
-        num_nodes [int]: Number of nodes of graph
+        pe (np.ndarray, [num_nodes, num_nodes]): Nodepair-level positional encoding
+        num_nodes (int): Number of nodes of graph
     
     Returns:
-        pe [num_nodes, 2 * len(stats_list)]: Node-level positional encoding
-
+        pe (np.ndarray, [num_nodes, 2 * len(stats_list)]): Node-level positional encoding
     """
 
     node_pe_list = []
 
     for stat in stats_list:
-        node_pe_list.append(stat(pe, axis=0), stat(pe, axis=1))
+        node_pe_list.append(stat(pe, axis=0))
+        node_pe_list.append(stat(pe, axis=1))
     node_pe = np.stack(node_pe_list, axis=-1)
 
     return node_pe
@@ -177,12 +190,11 @@ def graph_to_node(
     Get a node-level positional encoding from a nodepair-level positional encoding.
 
     Parameters:
-        pe [float]: Nodepair-level positional encoding
-        num_nodes [int]: Number of nodes in the graph
+        pe (float): Nodepair-level positional encoding
+        num_nodes (int): Number of nodes in the graph
     
     Returns:
-        pe [num_nodes]: Node-level positional encoding
-
+        pe (np.ndarray, [num_nodes]): Node-level positional encoding
     """
 
     node_pe = None

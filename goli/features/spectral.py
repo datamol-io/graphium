@@ -41,16 +41,20 @@ def compute_laplacian_positional_eigvecs(
         adj = csr_matrix(adj, dtype=np.float64)
 
     # Compute tha Laplacian, and normalize it
-    D = np.array(np.sum(adj, axis=1)).flatten()
-    D_mat = diags(D)
-    L = -adj + D_mat
-    L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
+    if f'L_{normalization}_sp' not in cache:
+        D = np.array(np.sum(adj, axis=1)).flatten()
+        D_mat = diags(D)
+        L = -adj + D_mat
+        L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
+        cache[f'L_{normalization}_sp'] = L_norm
+    else:
+        L_norm = cache[f'L_{normalization}_sp']
 
     components = []
 
     if disconnected_comp:
 
-        if 'components' in cache.keys():
+        if 'components' not in cache:
             if disconnected_comp:
                 # Get the list of connected components
                 components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
@@ -62,7 +66,7 @@ def compute_laplacian_positional_eigvecs(
     # Compute the eigenvectors for each connected component, and stack them together
     if len(components) > 1:
 
-        if 'eig_comp' in cache.keys():
+        if 'eig_comp' not in cache:
             eigvals_tile = np.zeros((L_norm.shape[0], num_pos), dtype=np.float64)
             eigvecs = np.zeros_like(eigvals_tile)
             for component in components:
@@ -78,7 +82,7 @@ def compute_laplacian_positional_eigvecs(
     
     else:
 
-        if 'eig' in cache.keys():
+        if 'eig' not in cache:
             eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
             eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
             cache['eig'] = (eigvecs, eigvals_tile)

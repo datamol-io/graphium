@@ -14,7 +14,7 @@ import datamol as dm
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
-from goli.features.positional_encoding import get_all_positional_encoding
+from goli.features.positional_encoding import get_all_positional_encodings
 
 
 def to_dense_array(array: np.ndarray, dtype: str = None) -> np.ndarray:
@@ -765,7 +765,7 @@ def mol_to_adj_and_features(
         edata = None
 
     # Get all positional encodings
-    pe_dict = get_all_positional_encoding(adj, num_nodes, pos_encoding_as_features)
+    pe_dict = get_all_positional_encodings(adj, num_nodes, pos_encoding_as_features)
 
     # Mask the NaNs
     for pe_key, pe_val in pe_dict.items():
@@ -871,13 +871,15 @@ class GraphDict(dict):
             "dtype": np.float16,
             "mask_nan": "raise",
         }
-        ndata = dic.pop("ndata", {})
-        edata = dic.pop("edata", {})
-        for key in edata.keys():
-            assert key.startswith("edge_"), f"Edge features must start with 'edge_' but got {key}"
+        data = dic.pop("data", {})
+        # ndata = dic.pop("ndata", {})
+        # edata = dic.pop("edata", {})
+        # for key in edata.keys():
+        #     assert key.startswith("edge_"), f"Edge features must start with 'edge_' but got {key}"
         default_dic.update(dic)
-        default_dic.update(ndata)
-        default_dic.update(edata)
+        default_dic.update(data)
+        # default_dic.update(ndata)
+        # default_dic.update(edata)
         super().__init__(default_dic)
 
     def make_pyg_graph(self, **kwargs) -> Data:

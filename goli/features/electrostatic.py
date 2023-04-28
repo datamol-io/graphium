@@ -14,20 +14,21 @@ def compute_electrostatic_interactions(
     Compute electrostatic interaction of node pairs.
 
     Parameters:
-        adj [num_nodes, num_nodes]: Adjacency matrix
-        cache [dict]: Dictionary of cached objects
+        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix
+        cache (dict): Dictionary of cached objects
     Returns:
-        electrostatic [num_nodes, num_nodes]: 2D array with electrostatic interactions of node pairs
-        base_level [str]: Indicator of the output pos_level (node, edge, [node]pair, graph) -> here pair
-        cache [dict]: Updated dictionary of cached objects
+        electrostatic (np.ndarray, [num_nodes, num_nodes]): 2D array with electrostatic interactions of node pairs
+        base_level (str): Indicator of the output pos_level (node, edge, [node]pair, graph) -> here pair
+        cache (dict): Updated dictionary of cached objects
     """
 
     base_level = 'pair'
 
-    if 'electrostatic' in cache.keys():
+    if 'electrostatic' in cache:
         electrostatic = cache['electrostatic']
     
-        if 'pinvL' in cache.keys():
+    else:      
+        if 'pinvL' in cache:
             pinvL = cache['pinvL']
         
         else:
