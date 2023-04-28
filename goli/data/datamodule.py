@@ -1622,7 +1622,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         return train_indices, val_indices, test_indices
 
-    def _sub_sample_df(self, df: pd.DataFrame, sample_size: Union[int, float, None], seed: Optional[int]=None) -> pd.DataFrame:
+    def _sub_sample_df(
+        self, df: pd.DataFrame, sample_size: Union[int, float, None], seed: Optional[int] = None
+    ) -> pd.DataFrame:
         r"""
         subsample from a pandas dataframe
         Parameters:
