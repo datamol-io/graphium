@@ -183,6 +183,7 @@ predictor:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
+    loss_scaling: 1024
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100
     warmup_epochs: 10
