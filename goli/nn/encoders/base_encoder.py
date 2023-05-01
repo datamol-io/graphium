@@ -36,6 +36,9 @@ class BaseEncoder(torch.nn.Module, MupMixin):
         """
         super().__init__()
 
+        if type(in_dim) is list:
+            in_dim = sum(in_dim)
+
         self.input_keys = self.parse_input_keys(input_keys)
         self.output_keys = self.parse_output_keys(output_keys)
         self.in_dim = in_dim
@@ -50,10 +53,12 @@ class BaseEncoder(torch.nn.Module, MupMixin):
         Parse the `input_keys` argument, given a certain prefix.
         If the prefix is `None`, it is ignored
         """
+        ### TODO: redundant
         input_keys = self.input_keys
         if (key_prefix is not None) and (self.use_input_keys_prefix):
             input_keys = [f"{k}" for k in input_keys]
             # input_keys = [f"{key_prefix}/{k}" for k in input_keys]
+        ###
         return input_keys
 
     @abc.abstractmethod

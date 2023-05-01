@@ -134,6 +134,9 @@ class LapPENodeEncoder(BaseEncoder):
                 "edge_"
             ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
             assert not key.startswith(
+                "pair_"
+            ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
+            assert not key.startswith(
                 "graph_"
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
@@ -152,6 +155,9 @@ class LapPENodeEncoder(BaseEncoder):
         for key in output_keys:
             assert not key.startswith(
                 "edge_"
+            ), f"Edge encodings are not supported for encoder {self.__class__}"
+            assert not key.startswith(
+                "pair_"
             ), f"Edge encodings are not supported for encoder {self.__class__}"
             assert not key.startswith(
                 "graph_"

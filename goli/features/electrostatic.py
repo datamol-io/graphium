@@ -33,6 +33,7 @@ def compute_electrostatic_interactions(
         
         else:
             if issparse(adj):
+                adj = adj.astype(np.float64)
                 adj = adj.toarray()
 
             L = np.diagflat(np.sum(adj, axis=1)) - adj

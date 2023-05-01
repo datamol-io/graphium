@@ -2,7 +2,7 @@ from typing import Tuple, Optional, Dict, Union
 from copy import deepcopy
 import numpy as np
 import torch
-from scipy.sparse import spmatrix
+from scipy.sparse import spmatrix, issparse, csr_matrix
 from collections import OrderedDict
 
 from torch_geometric.utils.sparse import dense_to_sparse
@@ -124,8 +124,14 @@ def graph_positional_encoder(
     # Convert between different pos levels
     if base_level == "pair":
         
-        if pos_level == "edge":
+        if pos_level == "pair":
+            if len(pe.shape) == 2:
+                pe = np.expand_dims(pe, -1)
+
+        elif pos_level == "edge":
             pe = pair_to_edge(pe, adj)
+            if len(pe.shape) == 1:
+                pe = np.expand_dims(pe, -1)
 
         elif pos_level == "node":
             pe = pair_to_node(pe)
@@ -147,8 +153,12 @@ def pair_to_edge(
         adj (np.nd.array, [num_nodes, num_nodes]): Adjacency matrix of the graph
     
     Returns:
-        pe (np.ndarray, [num_edges]): Edge-level positional encoding
+        edge_pe (np.ndarray, [num_edges]): Edge-level positional encoding
     """
+
+    if issparse(adj):
+        adj = adj.astype(np.float64)
+        adj = adj.toarray()
 
     edge_pe = np.where(adj != 0, pe, 0)
     edge_pe = torch.from_numpy(edge_pe)
@@ -166,7 +176,7 @@ def pair_to_node(
 
     Parameters:
         pe (np.ndarray, [num_nodes, num_nodes]): Nodepair-level positional encoding
-        num_nodes (int): Number of nodes of graph
+        stats_list (list): List of statistics to calculate per row/col of nodepair-level pe
     
     Returns:
         pe (np.ndarray, [num_nodes, 2 * len(stats_list)]): Node-level positional encoding
@@ -200,3 +210,49 @@ def graph_to_node(
     node_pe = None
 
     return node_pe
+
+
+def node_to_pair(
+        pe:  np.ndarray,
+        num_nodes: int
+) ->  np.ndarray:
+    r"""
+    Get a nodepair-level positional encoding from a node-level positional encoding.
+
+    Parameters:
+        pe (float): Node-level positional encoding
+        num_nodes (int): Number of nodes in the graph
+    
+    Returns:
+        pair_pe (np.ndarray, [num_nodes, num_nodes]): Nodepair-level positional encoding
+    """
+
+    expanded_pe = np.expand_dims(pe, axis=1)
+    expanded_pe = np.repeat(expanded_pe, repeats=num_nodes, axis=1)
+
+    pair_pe = np.concatenate([expanded_pe, expanded_pe.transpose([1,0,2])], axis=-1)
+
+    return pair_pe
+
+
+def node_to_edge(
+        pe:  np.ndarray,
+        adj: np.ndarray
+) ->  np.ndarray:
+    r"""
+    Get an edge-level positional encoding from a node-level positional encoding.
+
+    Parameters:
+        pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
+        adj (np.ndarray, [num_nodes, num_nodes]): Number of nodes in the graph
+    
+    Returns:
+        edge_pe (np.ndarray, [2 * num_edges, 2 * num_feat]): Edge-level positional encoding
+    """
+
+    if not issparse(adj):
+        adj = csr_matrix(adj, dtype=np.float64)
+
+    edge_pe = np.concatenate((pe[adj.row], pe[adj.col]), axis=-1)
+
+    return edge_pe

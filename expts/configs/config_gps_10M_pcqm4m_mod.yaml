@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  # cpu or ipu or gpu
+    type: gpu  # cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -43,19 +43,25 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          laplacian_eigvec:
-            pos_level: node # node level
-            num_pos: 8
-            normalization: "none" # normalization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          laplacian_eigval:
-            pos_level: node # node
-            num_pos: 8
-            normalization: "none" # normalization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          # laplacian_eigvec:
+          #   pos_level: node # node level
+          #   num_pos: 8
+          #   normalization: "none" # normalization already applied on the eigen vectors
+          #   disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          # laplacian_eigval:
+          #   pos_level: node # node
+          #   num_pos: 8
+          #   normalization: "none" # normalization already applied on the eigen vectors
+          #   disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rwse: # use same name as pe_encoder
             pos_level: node
             ksteps: 16
+          electrostatic:
+            pos_level: edge
+          commute:
+            pos_level: edge
+          # graphormer:
+          #   pos_level: edge
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
@@ -106,19 +112,20 @@ architecture:
 
   pe_encoders:
     out_dim: &pe_out_dim 32
+    edge_out_dim: &edge_pe_out_dim 16
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
-      la_pos:  # Set as null to avoid a pre-nn network
-        encoder_type: "laplacian_pe"
-        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
-        output_keys: ["feat"]
-        hidden_dim: 64
-        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
-        num_layers: 2
-        num_layers_post: 1 # Num. layers to apply after pooling
-        dropout: 0.1
-        first_normalization: "none" #"batch_norm" or "layer_norm"
+      # la_pos:  # Set as null to avoid a pre-nn network
+      #   encoder_type: "laplacian_pe"
+      #   input_keys: ["laplacian_eigvec", "laplacian_eigval"]
+      #   output_keys: ["feat"]
+      #   hidden_dim: 64
+      #   model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+      #   num_layers: 2
+      #   num_layers_post: 1 # Num. layers to apply after pooling
+      #   dropout: 0.1
+      #   first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
         input_keys: ["rwse"]
@@ -128,10 +135,26 @@ architecture:
         dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_electrostatic:
+        encoder_type: "mlp"
+        input_keys: ["edge_electrostatic"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_edge_pes:
+        encoder_type: "edge_mlp"
+        input_keys: ["edge_electrostatic", "edge_commute"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
       gaussian_pos:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
-        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
+        output_keys: ["feat", "pair_gaussian_bias_3d"]
         num_heads: &num_heads 2
         num_layers: 2
         embed_dim: *pe_out_dim
@@ -162,7 +185,7 @@ architecture:
       # biased_attention: false
       attn_kwargs:
         num_heads: *num_heads
-      biased_attention_key: nodepair_gaussian_bias_3d
+      biased_attention_key: pair_gaussian_bias_3d
 
 
   post_nn: null

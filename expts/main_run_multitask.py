@@ -30,7 +30,7 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_b3lyp.yaml"
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
-CONFIG_FILE = "expts/configs/config_gps_10M_pcqm4m.yaml"
+CONFIG_FILE = "expts/configs/config_gps_10M_pcqm4m_mod.yaml"
 os.chdir(MAIN_DIR)
 
 

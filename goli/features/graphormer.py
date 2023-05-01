@@ -31,6 +31,7 @@ def compute_graphormer_distances(
 
     else:
         if issparse(adj):
+            adj = adj.astype(np.float64)
             adj = adj.toarray()
 
         G = nx.from_numpy_array(adj)

@@ -1289,7 +1289,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         graph = self.get_fake_graph()
         if isinstance(graph, (GraphDict)):
-            graph = graph.ndata
+            graph = graph.data
 
         # get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
