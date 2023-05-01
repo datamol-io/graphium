@@ -9,7 +9,7 @@ datamodule:
         label_cols: ["SA"]
         split_val: 0.2
         split_test: 0.2
-        split_seed: 19
+        seed: 19
         splits_path: null                 # This may not always be provided
         sample_size: null                 # This may not always be provided
         idx_col: null                     # This may not always be provided
@@ -22,7 +22,7 @@ datamodule:
         label_cols: ["logp"]
         split_val: 0.2
         split_test: 0.2
-        split_seed: 19
+        seed: 19
         splits_path: null
         sample_size: null
         idx_col: null
@@ -35,7 +35,7 @@ datamodule:
         label_cols: ["score"]
         split_val: 0.2
         split_test: 0.2
-        split_seed: 19
+        seed: 19
         splits_path: null
         sample_size: null
         idx_col: null
