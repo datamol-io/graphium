@@ -19,7 +19,7 @@ from goli.nn.encoders import (
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
-    "edge_mlp": mlp_encoder.MLPEncoder_edge,
+    "cat_mlp": mlp_encoder.MLPEncoder_cat,
     "signnet": signnet_pos_encoder.SignNetNodeEncoder,
     "gaussian_kernel": gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
 }
@@ -118,7 +118,7 @@ class EncoderManager(nn.Module):
             elif "in_dim" in accepted_keys:
                 if len(this_in_dims) == 1:
                     this_in_dims = {"in_dim": list(this_in_dims.values())[0]}
-                elif len(this_in_dims) > 1 and encoder_type == "edge_mlp":
+                elif len(this_in_dims) > 1 and encoder_type == "cat_mlp":
                     this_in_dims = {"in_dim": list(this_in_dims.values())}
                 else:
                     raise ValueError(
@@ -205,7 +205,7 @@ class EncoderManager(nn.Module):
             return {}
 
         encoder_outs = []
-        # Run every node positional-encoder
+        # Run every node and edge positional-encoder
         for encoder_name, encoder in self.pe_encoders.items():
             encoder_outs.append(encoder(g, key_prefix=encoder_name))
 
@@ -215,7 +215,7 @@ class EncoderManager(nn.Module):
             for key in set().union(*encoder_outs)
         }
 
-        # Pool the node positional encodings
+        # Pool the node and edge positional encodings
         pe_pooled = {}
         for key, pe_cat in pe_cats.items():
             pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pe_pool, dim=-1)

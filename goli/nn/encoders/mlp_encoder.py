@@ -157,7 +157,7 @@ class MLPEncoder(BaseEncoder):
         return base_kwargs
 
 
-class MLPEncoder_edge(BaseEncoder):
+class MLPEncoder_cat(BaseEncoder):
     def __init__(
         self,
         input_keys: List[str],
@@ -173,12 +173,13 @@ class MLPEncoder_edge(BaseEncoder):
         use_input_keys_prefix: bool = True,
     ):
         r"""
-        Configurable kernel-based Positional Encoding node encoder.
+        Configurable kernel-based Positional Encoding node/edge-level encoder.
+        Concatenates the list of input (node or edge) features in the feature dimension
 
         Parameters:
-            input_keys: List of input keys to use from pyg batch graph
+            input_keys: List of input keys; inputs are concatenated in feat dimension and passed through mlp
             output_keys: List of output keys to add to the pyg batch graph
-            in_dim : input dimension of the mlp encoder
+            in_dim : input dimension of the mlp encoder; sum of input dimensions of inputs
             hidden_dim : hidden dimension of the mlp encoder
             out_dim : output dimension of the mlp encoder
             num_layers : number of layers of the mlp encoder
