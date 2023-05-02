@@ -87,6 +87,8 @@ class PredictorModule(pl.LightningModule):
                 if metrics_on_training_set is not None
                 else None,
             )
+            eval_options[task].check_metrics_validity()
+
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         # Setting the flag options
         self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
