@@ -43,16 +43,6 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          # laplacian_eigvec:
-          #   pos_level: node # node level
-          #   num_pos: 8
-          #   normalization: "none" # normalization already applied on the eigen vectors
-          #   disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          # laplacian_eigval:
-          #   pos_level: node # node
-          #   num_pos: 8
-          #   normalization: "none" # normalization already applied on the eigen vectors
-          #   disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rwse: # use same name as pe_encoder
             pos_level: node
             ksteps: 16
@@ -60,6 +50,8 @@ datamodule:
             pos_level: edge
           commute:
             pos_level: edge
+          graphormer:
+            pos_level: pair
           # graphormer:
           #   pos_level: edge
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
@@ -115,17 +107,7 @@ architecture:
     edge_out_dim: &edge_pe_out_dim 16
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
-    encoders: #la_pos |  rw_pos
-      # la_pos:  # Set as null to avoid a pre-nn network
-      #   encoder_type: "laplacian_pe"
-      #   input_keys: ["laplacian_eigvec", "laplacian_eigval"]
-      #   output_keys: ["feat"]
-      #   hidden_dim: 64
-      #   model_type: 'DeepSet' #'Transformer' or 'DeepSet'
-      #   num_layers: 2
-      #   num_layers_post: 1 # Num. layers to apply after pooling
-      #   dropout: 0.1
-      #   first_normalization: "none" #"batch_norm" or "layer_norm"
+    encoders:
       rw_pos:
         encoder_type: "mlp"
         input_keys: ["rwse"]
@@ -135,16 +117,8 @@ architecture:
         dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
-      emb_electrostatic:
-        encoder_type: "mlp"
-        input_keys: ["edge_electrostatic"]
-        output_keys: ["edge_feat"]
-        hidden_dim: 32
-        num_layers: 1
-        dropout: 0.1
-        normalization: "layer_norm" #"batch_norm" or "layer_norm"
       emb_edge_pes:
-        encoder_type: "edge_mlp"
+        encoder_type: "cat_mlp"
         input_keys: ["edge_electrostatic", "edge_commute"]
         output_keys: ["edge_feat"]
         hidden_dim: 32

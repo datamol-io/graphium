@@ -117,6 +117,19 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
             This is useful for using packing with the Transformer,
     """
 
+    ########## Edit for nodepair-level features ###########
+    # We need pad matrices to size max_num_nodes_per_graph
+    # in current batch to allow standard pyg batching.
+    #######################################################
+
+    ### edit start
+    # calculate max_num_nodes_per_graph
+    num_nodes_list = []
+    for pyg_graph in pyg_graphs:
+        num_nodes_list.append(pyg_graph['num_nodes'])
+    max_num_nodes_per_graph = max(num_nodes_list)
+    ### edit end
+
     pyg_batch = []
     for pyg_graph in pyg_graphs:
         for pyg_key in pyg_graph.keys:
@@ -126,7 +139,20 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
             if isinstance(tensor, (ndarray, spmatrix)):
                 tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
 
-            pyg_graph[pyg_key] = tensor
+            ### edit start
+            # pad nodepair-level features
+            if pyg_key.startswith("pair_"):
+                padded_tensor = torch.zeros(
+                    (max_num_nodes_per_graph, max_num_nodes_per_graph, tensor.size(-1)),
+                    dtype=tensor.dtype
+                )
+                num_nodes = tensor.size(0)
+                padded_tensor[:num_nodes, :num_nodes] = tensor
+                pyg_graph[pyg_key] = padded_tensor
+            else:
+                pyg_graph[pyg_key] = tensor
+            ### edit end
+
 
         # Convert edge index to int64
         pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
