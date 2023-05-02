@@ -134,7 +134,7 @@ architecture:
       gaussian_pos:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
-        output_keys: ["feat", "graph_gaussian_bias_3d"]
+        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
         num_heads: 2
         num_layers: 2
         embed_dim: 16
