@@ -177,8 +177,8 @@ class LapPENodeEncoder(BaseEncoder):
         Returns:
             output dictionary with keys as specified in `output_keys` and their output embeddings.
         """
-        input_keys = self.parse_input_keys_with_prefix(key_prefix)
-        eigvals, eigvecs = batch[input_keys[0]], batch[input_keys[1]]
+        # input_keys = self.parse_input_keys_with_prefix(key_prefix)
+        eigvals, eigvecs = batch[self.input_keys[0]], batch[self.input_keys[1]]
 
         # Random flipping to the Laplacian encoder
         if self.training:

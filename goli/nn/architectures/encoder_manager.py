@@ -19,7 +19,7 @@ from goli.nn.encoders import (
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
-    "cat_mlp": mlp_encoder.MLPEncoder_cat,
+    "cat_mlp": mlp_encoder.CatMLPEncoder,
     "signnet": signnet_pos_encoder.SignNetNodeEncoder,
     "gaussian_kernel": gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
 }
@@ -116,7 +116,7 @@ class EncoderManager(nn.Module):
             if all([key in accepted_keys for key in this_in_dims.keys()]):
                 pass
             elif "in_dim" in accepted_keys:
-                if len(this_in_dims) == 1:
+                if len(this_in_dims) == 1 or encoder_type == "laplacian_pe":
                     this_in_dims = {"in_dim": list(this_in_dims.values())[0]}
                 elif len(this_in_dims) > 1 and encoder_type == "cat_mlp":
                     this_in_dims = {"in_dim": list(this_in_dims.values())}

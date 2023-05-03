@@ -23,7 +23,7 @@ class MLPEncoder(BaseEncoder):
         use_input_keys_prefix: bool = True,
     ):
         r"""
-        Configurable kernel-based Positional Encoding node encoder.
+        Configurable kernel-based Positional Encoding node/edge-level encoder.
 
         Parameters:
             input_keys: List of input keys to use from pyg batch graph
@@ -125,12 +125,16 @@ class MLPEncoder(BaseEncoder):
             output: Dictionary of output embeddings with keys specified by input_keys
         """
         # TODO: maybe we should also use the output key here? @Dom
-        input_keys = self.parse_input_keys_with_prefix(key_prefix)
+        # input_keys = self.parse_input_keys_with_prefix(key_prefix)
+
+        # TODO: maybe it makes sense to combine MLPEncoder and CatMLPEncoder into one class with
+        #   CatMLPEncoder being executed when the list input_keys contains more than one element.
+        #   Currently, the input_keys list can only contain one element in MLPEncoder.
 
         # Run the MLP for each input key
         output = {}
-        for input_key, output_key in zip(input_keys, self.output_keys):
-            output[output_key] = self.pe_encoder(batch[input_key])  # (Num nodes/edges/pairs) x dim_pe
+        for input_key, output_key in zip(self.input_keys, self.output_keys):
+            output[output_key] = self.pe_encoder(batch[input_key])  # (Num nodes/edges) x dim_pe
 
         return output
 
@@ -157,7 +161,7 @@ class MLPEncoder(BaseEncoder):
         return base_kwargs
 
 
-class MLPEncoder_cat(BaseEncoder):
+class CatMLPEncoder(BaseEncoder):
     def __init__(
         self,
         input_keys: List[str],
@@ -279,14 +283,14 @@ class MLPEncoder_cat(BaseEncoder):
             output: Dictionary of output embeddings with keys specified by input_keys
         """
         # TODO: maybe we should also use the output key here? @Dom
-        input_keys = self.parse_input_keys_with_prefix(key_prefix)
+        # input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
         # Concatenate selected pes
-        input = torch.cat([batch[input_key] for input_key in input_keys], dim=-1)
+        input = torch.cat([batch[input_key] for input_key in self.input_keys], dim=-1)  # [num_nodes/num_edges, sum(in_dims)]
 
         output = {}
         for output_key in self.output_keys:
-            output[output_key] = self.pe_encoder(input)  # [num_nodes/edges/pairs, sum(in_dims)]
+            output[output_key] = self.pe_encoder(input)
 
         return output
 

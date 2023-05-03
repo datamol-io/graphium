@@ -146,8 +146,11 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
                     (max_num_nodes_per_graph, max_num_nodes_per_graph, tensor.size(-1)),
                     dtype=tensor.dtype
                 )
-                num_nodes = tensor.size(0)
-                padded_tensor[:num_nodes, :num_nodes] = tensor
+                num_nodes = pyg_graph['num_nodes']
+                padded_tensor[:num_nodes, :num_nodes] = tensor[:num_nodes, :num_nodes]
+                # Here, tensor[:num_nodes, :num_nodes] is needed because nodepair-level positional encodings
+                # because the zero-padding from previous epoch is reused and needs to be "overwritten" above
+
                 pyg_graph[pyg_key] = padded_tensor
             else:
                 pyg_graph[pyg_key] = tensor
