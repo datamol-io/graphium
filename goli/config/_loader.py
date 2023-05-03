@@ -230,8 +230,6 @@ def load_architecture(
     kwargs = {}
 
     # Select the architecture
-    # TODO: Deprecate model_type or keep for future extension?
-    # TODO: Choose simpler name for base model
     model_type = cfg_arch["model_type"].lower()
     if model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork

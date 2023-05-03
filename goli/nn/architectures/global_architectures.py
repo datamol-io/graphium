@@ -22,8 +22,7 @@ from goli.nn.residual_connections import (
     ResidualConnectionRandom,
 )
 from goli.nn.utils import MupMixin
-
-from goli.ipu.ipu_utils import import_poptorch
+from goli.ipu.ipu_utils import import_poptorch, is_running_on_ipu
 
 poptorch = import_poptorch(raise_error=False)
 
@@ -1400,7 +1399,10 @@ class GraphOutputNN(nn.Module, MupMixin):
         # Check if at least one nodepair task is present
         if self.task_level == "nodepair":
             g["nodepair_feat"] = self.compute_nodepairs(
-                node_feats=g["feat"], batch=g.batch, max_num_nodes=self.max_num_nodes_per_graph
+                node_feats=g["feat"],
+                batch=g.batch,
+                max_num_nodes=self.max_num_nodes_per_graph,
+                drop_nodes_last_graph=is_running_on_ipu(),
             )
         # Check if at least one graph-level task is present
         if self.task_level == "graph":
