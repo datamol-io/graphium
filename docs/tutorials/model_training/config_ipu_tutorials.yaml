@@ -164,7 +164,7 @@ architecture:
       # scalers: [identity, amplification, attenuation]
       # num_heads: 3
 
-  post_nn:
+  graph_output_nn:
     out_dim: 32
     hidden_dims: 32
     depth: 1
