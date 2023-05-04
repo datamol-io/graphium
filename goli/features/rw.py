@@ -20,7 +20,7 @@ def compute_rwse(adj: Union[np.ndarray, spmatrix], ksteps: int, num_nodes: int) 
         num_nodes: Number of nodes in the graph
     Returns:
         2D array with shape (num_nodes, len(ksteps)) with Random-Walk landing probs
-        base_level [str]: Indicator of the output pos_level (node, edge, [node]pair, graph) -> here node
+        base_level [str]: Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
     """
 
     base_level = 'node'

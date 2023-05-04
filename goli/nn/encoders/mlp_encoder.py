@@ -101,10 +101,10 @@ class MLPEncoder(BaseEncoder):
                 assert out_key.startswith("edge_") and in_key.startswith(
                     "edge_"
                 ), f"The output key {out_key} and input key {in_key} must match the 'edge_' prefix for the class {self.__class__.__name__}"
-            if in_key.startswith("pair_") or out_key.startswith("pair_"):
-                assert out_key.startswith("pair_") and in_key.startswith(
-                    "pair_"
-                ), f"The output key {out_key} and input key {in_key} must match the 'pair_' prefix for the class {self.__class__.__name__}"
+            if in_key.startswith("nodepair_") or out_key.startswith("nodepair_"):
+                assert out_key.startswith("nodepair_") and in_key.startswith(
+                    "nodepair_"
+                ), f"The output key {out_key} and input key {in_key} must match the 'nodepair_' prefix for the class {self.__class__.__name__}"
             if in_key.startswith("graph_") or out_key.startswith("graph_"):
                 assert out_key.startswith("graph_") and in_key.startswith(
                     "graph_"
@@ -251,22 +251,7 @@ class CatMLPEncoder(BaseEncoder):
         Returns:
             parsed output_keys
         """
-        # assert len(output_keys) == len(
-        #     self.input_keys
-        # ), f"The number of input keys {len(self.input_keys)} and output keys {len(output_keys)} must be the same for the class {self.__class__.__name__}"
-        # for in_key, out_key in zip(self.input_keys, output_keys):
-        #     if in_key.startswith("edge_") or out_key.startswith("edge_"):
-        #         assert out_key.startswith("edge_") and in_key.startswith(
-        #             "edge_"
-        #         ), f"The output key {out_key} and input key {in_key} must match the 'edge_' prefix for the class {self.__class__.__name__}"
-        #     if in_key.startswith("pair_") or out_key.startswith("pair_"):
-        #         assert out_key.startswith("pair_") and in_key.startswith(
-        #             "pair_"
-        #         ), f"The output key {out_key} and input key {in_key} must match the 'pair_' prefix for the class {self.__class__.__name__}"
-        #     if in_key.startswith("graph_") or out_key.startswith("graph_"):
-        #         assert out_key.startswith("graph_") and in_key.startswith(
-        #             "graph_"
-        #         ), f"The output key {out_key} and input key {in_key} must match the 'graph_' prefix for the class {self.__class__.__name__}"
+        
         return output_keys
 
     def forward(

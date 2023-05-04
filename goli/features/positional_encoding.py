@@ -79,7 +79,7 @@ def graph_positional_encoder(
             pos_level (str): Positional level to output
                 - node
                 - edge
-                - pair
+                - nodepair
                 - graph
             cache (dict): Dictionary of cached objects
 
@@ -131,8 +131,8 @@ def graph_positional_encoder(
         elif pos_level == "edge":
             pe = node_to_edge(pe, adj)
         
-        elif pos_level == "pair":
-            pe = node_to_pair(pe, num_nodes)
+        elif pos_level == "nodepair":
+            pe = node_to_nodepair(pe, num_nodes)
 
         elif pos_level == "graph":
             raise NotImplementedError("Transfer function (node -> graph) not yet implemented.")
@@ -140,22 +140,22 @@ def graph_positional_encoder(
         else:
             raise ValueError(f"Unknown `pos_level`: {pos_level}")
      
-    elif base_level == "pair":
+    elif base_level == "nodepair":
 
         if pos_level == "node":
-            pe = pair_to_node(pe)
+            pe = nodepair_to_node(pe)
 
         elif pos_level == "edge":
-            pe = pair_to_edge(pe, adj)
+            pe = nodepair_to_edge(pe, adj)
             if len(pe.shape) == 1:
                 pe = np.expand_dims(pe, -1)
         
-        elif pos_level == "pair":
+        elif pos_level == "nodepair":
             if len(pe.shape) == 2:
                 pe = np.expand_dims(pe, -1)
 
         elif pos_level == "graph":
-            raise NotImplementedError("Transfer function (pair -> graph) not yet implemented.")
+            raise NotImplementedError("Transfer function (nodepair -> graph) not yet implemented.")
         
         else:
             raise ValueError(f"Unknown `pos_level`: {pos_level}")
@@ -175,7 +175,7 @@ def graph_positional_encoder(
 
 # TODO: 
 #   - Implement missing transfer functions below
-#   - Are transfer functions graph -> edge/pair and edge -> graph needed?
+#   - Are transfer functions graph -> edge/nodepair and edge -> graph needed?
 
 
 def node_to_edge(
@@ -202,20 +202,20 @@ def node_to_edge(
     return edge_pe
 
 
-def node_to_pair(
+def node_to_nodepair(
         pe: np.ndarray,
         num_nodes: int
 ) ->  np.ndarray:
     r"""
     Get a nodepair-level positional encoding from a node-level positional encoding.
-     -> Concatenate features from node i and j at position (i,j) in pair_pe.
+     -> Concatenate features from node i and j at position (i,j) in nodepair_pe.
 
     Parameters:
         pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
         num_nodes (int): Number of nodes in the graph
     
     Returns:
-        pair_pe (np.ndarray, [num_nodes, num_nodes, 2 * num_feat]): Nodepair-level positional encoding
+        nodepair_pe (np.ndarray, [num_nodes, num_nodes, 2 * num_feat]): Nodepair-level positional encoding
     """
     
     if pe.shape[0] != num_nodes:
@@ -224,9 +224,9 @@ def node_to_pair(
     expanded_pe = np.expand_dims(pe, axis=1)
     expanded_pe = np.repeat(expanded_pe, repeats=num_nodes, axis=1)
 
-    pair_pe = np.concatenate([expanded_pe, expanded_pe.transpose([1,0,2])], axis=-1)
+    nodepair_pe = np.concatenate([expanded_pe, expanded_pe.transpose([1,0,2])], axis=-1)
 
-    return pair_pe
+    return nodepair_pe
 
 
 def node_to_graph(
@@ -253,7 +253,7 @@ def edge_to_node(
         adj: np.ndarray
 ) ->  np.ndarray:
     r"""
-    Get a nodepair-level positional encoding from an edge-level positional encoding.
+    Get a node-level positional encoding from an edge-level positional encoding.
      -> E.g., min/max/mean-pooling of information from edges (i,j) that contain node i
 
     Parameters:
@@ -267,7 +267,7 @@ def edge_to_node(
     raise NotImplementedError("Transfer function (edge -> node) not yet implemented.")
 
 
-def edge_to_pair(
+def edge_to_nodepair(
         pe:  np.ndarray,
         adj: np.ndarray
 ) ->  np.ndarray:
@@ -280,10 +280,10 @@ def edge_to_pair(
         adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
     
     Returns:
-        pair_pe (np.ndarray, [num_edges, num_edges, num_feat]): Nodepair-level positional encoding
+        nodepair_pe (np.ndarray, [num_edges, num_edges, num_feat]): Nodepair-level positional encoding
     """
 
-    raise NotImplementedError("Transfer function (edge -> pair) not yet implemented.")
+    raise NotImplementedError("Transfer function (edge -> nodepair) not yet implemented.")
 
 
 def edge_to_graph(
@@ -302,7 +302,7 @@ def edge_to_graph(
     raise NotImplementedError("Transfer function (edge -> graph) not yet implemented.")
 
 
-def pair_to_node(
+def nodepair_to_node(
         pe:  np.ndarray,
         stats_list: list = [np.min, np.mean, np.std]
 ) ->  np.ndarray:
@@ -328,7 +328,7 @@ def pair_to_node(
     return node_pe
 
 
-def pair_to_edge(
+def nodepair_to_edge(
         pe: np.ndarray,
         adj: np.ndarray
 ) ->  np.ndarray:
@@ -356,7 +356,7 @@ def pair_to_edge(
     return edge_pe
 
 
-def pair_to_graph(
+def nodepair_to_graph(
         pe:  np.ndarray,
         num_nodes: int
 ) ->  np.ndarray:
@@ -372,7 +372,7 @@ def pair_to_graph(
         graph_pe (np.ndarray, [1, num_feat]): Graph-level positional encoding
     """
 
-    raise NotImplementedError("Transfer function (pair -> graph) not yet implemented.")
+    raise NotImplementedError("Transfer function (nodepair -> graph) not yet implemented.")
 
 
 def graph_to_node(

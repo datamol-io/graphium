@@ -82,7 +82,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
                 "edge_"
             ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
             assert not key.startswith(
-                "pair_"
+                "nodepair_"
             ), f"Input keys must be node features, not nodepair features, for encoder {self.__class__}"
             assert not key.startswith(
                 "graph_"
@@ -130,7 +130,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
         # Return `node_feature_3d` otherwise
         output = {}
         for key in self.output_keys:
-            if isinstance(key, str) and key.startswith("pair_"):
+            if isinstance(key, str) and key.startswith("nodepair_"):
                 output[key] = attn_bias_3d
             elif isinstance(key, str) and key.startswith("edge_"):
                 raise ValueError("Edge encodings are not supported for this encoder")

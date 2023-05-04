@@ -6,7 +6,7 @@ import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.positional_encoding import node_to_edge, node_to_pair, pair_to_node, pair_to_edge
+from goli.features.positional_encoding import node_to_edge, node_to_nodepair, nodepair_to_node, nodepair_to_edge
 
 
 class test_positional_encodings(ut.TestCase):
@@ -20,10 +20,10 @@ class test_positional_encodings(ut.TestCase):
 
     def test_dimensions(self):
         edge_pe1 = node_to_edge(self.node_pe, self.adj)
-        pair_pe = node_to_pair(self.node_pe, self.num_nodes)
+        nodepair_pe = node_to_nodepair(self.node_pe, self.num_nodes)
         feat_list = []
-        for dim in range(pair_pe.shape[-1]):
-            feat_list.append(pair_to_edge(pair_pe[..., dim], self.adj))
+        for dim in range(nodepair_pe.shape[-1]):
+            feat_list.append(nodepair_to_edge(nodepair_pe[..., dim], self.adj))
         edge_pe2 = np.stack(feat_list, axis=-1)
         np.testing.assert_array_almost_equal(edge_pe1, edge_pe2)
 

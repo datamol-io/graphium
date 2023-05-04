@@ -141,7 +141,7 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
             ### edit start
             # pad nodepair-level features
-            if pyg_key.startswith("pair_"):
+            if pyg_key.startswith("nodepair_"):
                 padded_tensor = torch.zeros(
                     (max_num_nodes_per_graph, max_num_nodes_per_graph, tensor.size(-1)),
                     dtype=tensor.dtype

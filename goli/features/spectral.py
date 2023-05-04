@@ -28,7 +28,7 @@ def compute_laplacian_positional_eigvecs(
     
     Returns:
         eigvals_tile: Eigenvalues of the Laplacian
-        base_level [str]: Indicator of the output pos_level (node, edge, [node]pair, graph) -> here node
+        base_level [str]: Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
         eigvecs: Eigenvectors of the Laplacian
     """
     

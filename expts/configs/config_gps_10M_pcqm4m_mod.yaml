@@ -13,7 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
+        df_path: ~/scratch/data/goli/data/PCQM4M/pcqm4mv2-20k.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv directly
         smiles_col: "cxsmiles"
@@ -63,9 +63,9 @@ datamodule:
             pos_type: rwse
             pos_level: edge
             ksteps: 8
-          pair_rwse:
+          nodepair_rwse:
             pos_type: rwse
-            pos_level: pair
+            pos_level: nodepair
             ksteps: 8
           electrostatic:
             pos_type: electrostatic
@@ -73,9 +73,9 @@ datamodule:
           edge_commute:
             pos_type: commute
             pos_level: edge
-          pair_graphormer:
+          nodepair_graphormer:
             pos_type: graphormer
-            pos_level: pair
+            pos_level: nodepair
       
     # Data handling-related
     batch_size_training: 64
@@ -176,7 +176,7 @@ architecture:
       gaussian_pos:
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
-        output_keys: ["feat", "pair_gaussian_bias_3d"]
+        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
         num_heads: &num_heads 2
         num_layers: 2
         embed_dim: *pe_out_dim
@@ -207,7 +207,7 @@ architecture:
       # biased_attention: false
       attn_kwargs:
         num_heads: *num_heads
-      biased_attention_key: pair_gaussian_bias_3d
+      biased_attention_key: nodepair_gaussian_bias_3d
 
 
   post_nn: null

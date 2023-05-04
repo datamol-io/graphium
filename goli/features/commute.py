@@ -12,7 +12,7 @@ def compute_commute_distances(
         cache: dict
 ) -> np.ndarray:
     """
-    Compute avg. commute time/distance between node pairs. This is the avg. number of steps a random walker, starting
+    Compute avg. commute time/distance between nodepairs. This is the avg. number of steps a random walker, starting
     at node i, will take before reaching a given node j for the first time, and then return to node i.
     
     Reference: Saerens et al. "The principal components analysis of a graph, and its relationships to spectral clustering." ECML. 2004.
@@ -22,12 +22,12 @@ def compute_commute_distances(
         num_nodes (int): Number of nodes in the graph
         cache (dict): Dictionary of cached objects
     Returns:
-        dist (np.ndarray, [num_nodes, num_nodes]): 2D array with avg. commute distances between node pairs
-        base_level (str): Indicator of the output pos_level (node, edge, [node]pair, graph) -> here pair
+        dist (np.ndarray, [num_nodes, num_nodes]): 2D array with avg. commute distances between nodepairs
+        base_level (str): Indicator of the output pos_level (node, edge, nodepair, graph) -> here nodepair
         cache (dict): Updated dictionary of cached objects
     """
 
-    base_level = 'pair'
+    base_level = 'nodepair'
 
     if 'commute' in cache:
         dist = cache['commute']
