@@ -218,7 +218,7 @@ class MetricWrapper:
         elif isinstance(multitask_handling, str):
             # Only a few str options are accepted
             multitask_handling = multitask_handling.lower()
-            accepted_str = ["flatten", "mean-per-label", "none"]
+            accepted_str = ["flatten", "mean-per-label", "classifigression", "none"]
             assert (
                 multitask_handling in accepted_str
             ), f"Provided {multitask_handling} not in accepted_str={accepted_str}"
@@ -289,6 +289,10 @@ class MetricWrapper:
                     pass
             # Average the metric
             metric_val = nan_mean(torch.stack(metric_val))
+        elif self.multitask_handling == "classifigression":
+            preds, target = self._filter_nans(preds, target)
+            target = target.argmax(-1).long()
+            metric_val = self.metric(preds, target, **self.kwargs)
         else:
             # Wrong option
             raise ValueError(f"Invalid option `self.multitask_handling={self.multitask_handling}`")
