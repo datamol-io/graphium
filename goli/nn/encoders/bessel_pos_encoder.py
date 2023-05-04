@@ -21,13 +21,13 @@ class BesselSphericalPosEncoder(BaseEncoder):
         in_dim: int,
         out_dim: int,
         num_layers: int,
-        out_dim_edges: int, 
+        out_dim_edges: int,
         num_output_layers: int,
-        num_spherical: int, 
-        num_radial: int,   
-        max_num_neighbors: int = 32,   
-        cutoff: float = 5.0,      
-        envelope_exponent: int = 5, 
+        num_spherical: int,
+        num_radial: int,
+        max_num_neighbors: int = 32,
+        cutoff: float = 5.0,
+        envelope_exponent: int = 5,
         activation: Union[str, Callable] = "gelu",
         first_normalization="none",
         use_input_keys_prefix: bool = True,
@@ -37,12 +37,12 @@ class BesselSphericalPosEncoder(BaseEncoder):
         `"Directional Message Passing for Molecular Graphs" <https://arxiv.org/abs/2003.03123> paper.
 
         [!] code uses the pytorch-geometric implementation of BesselBasisLayer & SphericalBasisLayer
-        
+
         Parameters:
             input_keys: The keys from the graph to use as input
             output_keys: The keys to return as output encodings
             in_dim: The input dimension for the encoder (**not used)
-            out_dim: The output dimension of the node encodings 
+            out_dim: The output dimension of the node encodings
             num_layers: The number of layers of the encoder (**not used)
             out_dim_edges: The output dimension of the edge encodings
             num_output_layers: The number of layers of the OutBlock
@@ -54,7 +54,7 @@ class BesselSphericalPosEncoder(BaseEncoder):
             activation: The activation function to use
             first_normalization: The normalization to use before the first layer
             use_input_keys_prefix: Whether to use the `key_prefix` argument in the `forward` method.
-            
+
         """
         super().__init__(
             input_keys=input_keys,
@@ -82,9 +82,10 @@ class BesselSphericalPosEncoder(BaseEncoder):
         # ***simplified version*** by removing atom type input
         self.rbf_proj = nn.Linear(num_radial, out_dim_edges)
         # node embedding from edge embedding (out_dim_edges -> out_dim)
-        self.output_block_0 = OutputBlock(num_radial, out_dim_edges, out_dim,
-                        num_output_layers, act)  # 1 outblock right after embedding in original dimenet
-        
+        self.output_block_0 = OutputBlock(
+            num_radial, out_dim_edges, out_dim, num_output_layers, act
+        )  # 1 outblock right after embedding in original dimenet
+
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
         r"""
         forward function of the DimeNetEncoder class
@@ -99,13 +100,13 @@ class BesselSphericalPosEncoder(BaseEncoder):
         # be in shape [num_nodes, 3]
         pos = batch[positions_3d_key]
         # Create radius graph in encoder (not use chemical topology of molecules)
-        radius_edge_index = radius_graph(pos, r=self.cutoff, batch=batch.batch,
-                                  max_num_neighbors=self.max_num_neighbors)
-        
+        radius_edge_index = radius_graph(
+            pos, r=self.cutoff, batch=batch.batch, max_num_neighbors=self.max_num_neighbors
+        )
+
         # Process edges and triplets.
-        i, j, idx_i, idx_j, idx_k, idx_kj, idx_ji = triplets(
-            radius_edge_index, num_nodes=pos.size(0))
-        
+        i, j, idx_i, idx_j, idx_k, idx_kj, idx_ji = triplets(radius_edge_index, num_nodes=pos.size(0))
+
         # Calculate distances.
         dist = (pos[i] - pos[j]).pow(2).sum(dim=-1).sqrt()
         # Calculate angles.
@@ -123,7 +124,7 @@ class BesselSphericalPosEncoder(BaseEncoder):
         edge_feature_3d = self.act(self.rbf_proj(rbf))
         # initial 3D node embedding [num_nodes, out_dim] (align with original DimeNet implementation)
         P = self.output_block_0(edge_feature_3d, rbf, i, num_nodes=pos.size(0))
-        
+
         # Crash if the key starts with 'graph_'
         # Return `rbf` and `sbf` for necessary message passing in DimeNet
         # Return `radius_edge_index` for necessary message passing in DimeNet
@@ -136,13 +137,13 @@ class BesselSphericalPosEncoder(BaseEncoder):
             elif key.startswith("node_"):
                 output[key] = P
             elif key == "edge_rbf":
-                output[key] = rbf  
+                output[key] = rbf
             elif key == "triplet_sbf":
                 output[key] = sbf
             elif key == "radius_edge_index":
                 output[key] = radius_edge_index
             else:
-                output[key] = edge_feature_3d   
+                output[key] = edge_feature_3d
         return output
 
     def make_mup_base_kwargs(
@@ -171,7 +172,7 @@ class BesselSphericalPosEncoder(BaseEncoder):
             )
         )
         return base_kwargs
-    
+
     # these two below aligned with `gaussian_kernel_pos_encoder``
     def parse_input_keys(
         self,

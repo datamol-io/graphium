@@ -17,10 +17,11 @@ from goli.nn.base_layers import MLP
 
 
 class InteractionBlock(nn.Module):
-    r"""Modified from  
+    r"""Modified from
     https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/models/dimenet.html
     (add output linear layer to allow change of dimension)
     """
+
     def __init__(
         self,
         hidden_dim: int,
@@ -42,15 +43,14 @@ class InteractionBlock(nn.Module):
         self.lin_kj = nn.Linear(hidden_dim, hidden_dim)
         self.lin_ji = nn.Linear(hidden_dim, hidden_dim)
 
-        self.W = nn.Parameter(
-            torch.Tensor(hidden_dim, num_bilinear, hidden_dim))
-        self.layers_before_skip = nn.ModuleList([
-            ResidualLayer(hidden_dim, act) for _ in range(num_before_skip)
-        ])
+        self.W = nn.Parameter(torch.Tensor(hidden_dim, num_bilinear, hidden_dim))
+        self.layers_before_skip = nn.ModuleList(
+            [ResidualLayer(hidden_dim, act) for _ in range(num_before_skip)]
+        )
         self.lin = nn.Linear(hidden_dim, hidden_dim)
-        self.layers_after_skip = nn.ModuleList([
-            ResidualLayer(hidden_dim, act) for _ in range(num_after_skip)
-        ])
+        self.layers_after_skip = nn.ModuleList(
+            [ResidualLayer(hidden_dim, act) for _ in range(num_after_skip)]
+        )
         self.lin_out = nn.Linear(hidden_dim, output_dim)
         self.reset_parameters()
 
@@ -69,8 +69,7 @@ class InteractionBlock(nn.Module):
         for res_layer in self.layers_after_skip:
             res_layer.reset_parameters()
 
-    def forward(self, x: Tensor, rbf: Tensor, sbf: Tensor, 
-                idx_kj: Tensor, idx_ji: Tensor) -> Tensor:
+    def forward(self, x: Tensor, rbf: Tensor, sbf: Tensor, idx_kj: Tensor, idx_ji: Tensor) -> Tensor:
         """
         Parameters:
             x: edge features after encodings [num_edges, hidden_dim]
@@ -79,15 +78,15 @@ class InteractionBlock(nn.Module):
             idx_kj: indices in edge of triplets [num_triplet] (value range from 0 to num_edges)
             idx_ji: indices in edge of triplets [num_triplet] (value range from 0 to num_edges)
         """
-        rbf = self.lin_rbf(rbf) # [num_edges, hidden_dim]
-        sbf = self.lin_sbf(sbf) # [num_triplet, hidden_dim]
+        rbf = self.lin_rbf(rbf)  # [num_edges, hidden_dim]
+        sbf = self.lin_sbf(sbf)  # [num_triplet, hidden_dim]
 
         x_ji = self.act(self.lin_ji(x))
         x_kj = self.act(self.lin_kj(x))
         x_kj = x_kj * rbf
-        
-        x_kj = torch.einsum('wj,wl,ijl->wi', sbf, x_kj[idx_kj], self.W)
-        x_kj = scatter(x_kj, idx_ji, dim=0, dim_size=x.size(0), reduce='sum')
+
+        x_kj = torch.einsum("wj,wl,ijl->wi", sbf, x_kj[idx_kj], self.W)
+        x_kj = scatter(x_kj, idx_ji, dim=0, dim_size=x.size(0), reduce="sum")
 
         h = x_ji + x_kj
         for layer in self.layers_before_skip:
@@ -95,7 +94,7 @@ class InteractionBlock(nn.Module):
         h = self.act(self.lin(h)) + x
         for layer in self.layers_after_skip:
             h = layer(h)
-        return self.act(self.lin_out(h))    #[num_edges, output_dim]
+        return self.act(self.lin_out(h))  # [num_edges, output_dim]
 
 
 class DimeNetPyg(BaseGraphModule):
@@ -110,7 +109,7 @@ class DimeNetPyg(BaseGraphModule):
         num_radial: int,
         num_before_skip: int = 1,
         num_after_skip: int = 2,
-        num_output_layers: int = 3, 
+        num_output_layers: int = 3,
         activation: Union[Callable, str] = "relu",
         dropout: float = 0.0,
         normalization: Union[str, Callable] = "none",
@@ -132,25 +131,25 @@ class DimeNetPyg(BaseGraphModule):
 
             out_dim_edges:
                 Output feature dimensions of the edges
-            
+
             num_bilinear:
                 The dimension of bilinear layer in the interaction block
-            
+
             num_spherical:
                 The number of spherical harmonics
-            
+
             num_radial:
                 The number of radial basis functions
-            
-            num_before_skip: 
+
+            num_before_skip:
                 The number of residual layers before skip connection (default: 1)
-            
+
             num_after_skip:
                 The number of residual layers after skip connection (default: 2)
-            
-            num_output_layers: 
+
+            num_output_layers:
                 The number of output layers for a single output block (default: 3)
-            
+
             activation:
                 activation function to use in the layer
 
@@ -181,10 +180,10 @@ class DimeNetPyg(BaseGraphModule):
             normalization=normalization,
             **kwargs,
         )
-        
+
         # get callable activation layer
         act = self.activation_layer
-        
+
         # transform old node feature
         self.node_model = MLP(
             in_dim=in_dim,
@@ -194,27 +193,27 @@ class DimeNetPyg(BaseGraphModule):
             activation=self.activation_layer,
             normalization=self.normalization,
         )
-        
-        # update edge feature 
+
+        # update edge feature
         self.interaction_block = InteractionBlock(
-                in_dim_edges,
-                out_dim_edges,
-                num_bilinear,
-                num_spherical,
-                num_radial,
-                num_before_skip,
-                num_after_skip,
-                act,
-            )
+            in_dim_edges,
+            out_dim_edges,
+            num_bilinear,
+            num_spherical,
+            num_radial,
+            num_before_skip,
+            num_after_skip,
+            act,
+        )
         # updated edge feature -> new node feature
         self.output_block = OutputBlock(
-                            num_radial=num_radial,
-                            hidden_channels=out_dim_edges,
-                            out_channels=out_dim,
-                            num_layers=num_output_layers,     
-                            act=act,
-                            )
-        
+            num_radial=num_radial,
+            hidden_channels=out_dim_edges,
+            out_channels=out_dim,
+            num_layers=num_output_layers,
+            act=act,
+        )
+
     def forward(self, batch: Union[Data, Batch]) -> Union[Data, Batch]:
         r"""
         forward function of the layer
@@ -223,26 +222,28 @@ class DimeNetPyg(BaseGraphModule):
         Returns:
             batch: pyg Batch graphs
         """
-        assert "radius_edge_index" in batch, "radius_edge_index not in batch, make sure to use 3D encoder firstly"
+        assert (
+            "radius_edge_index" in batch
+        ), "radius_edge_index not in batch, make sure to use 3D encoder firstly"
         # (j, i) = edge_index
         i, j, idx_i, idx_j, idx_k, idx_kj, idx_ji = triplets(
-                        batch.radius_edge_index, num_nodes=batch.feat.size(0)
+            batch.radius_edge_index, num_nodes=batch.feat.size(0)
         )
         x, P = batch.edge_feat, batch.feat
         rbf, sbf = batch.edge_rbf, batch.triplet_sbf
-        
+
         # apply MLP to node embeddings
-        P = self.node_model(P) # [num_nodes, out_dim]
-        
+        P = self.node_model(P)  # [num_nodes, out_dim]
+
         # rbf and sbf should be computed during pos encoder
         x = self.interaction_block(x, rbf, sbf, idx_kj, idx_ji)
         P = P + self.output_block(x, rbf, i, num_nodes=batch.feat.size(0))  # [num_nodes, out_dim]
-        
-        batch.edge_feat = x # updated edge features 
-        batch.feat = P    # updated node features
-        
+
+        batch.edge_feat = x  # updated edge features
+        batch.feat = P  # updated node features
+
         return batch
-    
+
     ############################################################################################################
     @classproperty
     def layer_supports_edges(cls) -> bool:

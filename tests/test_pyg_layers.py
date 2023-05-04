@@ -218,36 +218,43 @@ class test_Pyg_Layers(ut.TestCase):
 
     def test_dimenetlayer(self):
         from goli.nn.encoders.bessel_pos_encoder import BesselSphericalPosEncoder
+
         bg = deepcopy(self.bg)
         # dummy input pos
         bg.pos = torch.randn((bg.feat.shape[0], 3), dtype=torch.float32)
-        
+
         # position 3d encoder
         pos_enc = BesselSphericalPosEncoder(
             input_keys=["pos"],
-            output_keys=['node_feat', 'edge_feat', 'edge_rbf', 'triplet_sbf', 'radius_edge_index'],  # The keys to return
+            output_keys=[
+                "node_feat",
+                "edge_feat",
+                "edge_rbf",
+                "triplet_sbf",
+                "radius_edge_index",
+            ],  # The keys to return
             in_dim=3,
             out_dim=self.in_dim,
             out_dim_edges=self.in_dim_edges,
             num_output_layers=2,
-            num_layers=2,    
-            num_spherical=4, 
+            num_layers=2,
+            num_spherical=4,
             num_radial=32,
-        )        
-                
-        enc_output = pos_enc(bg, None)   # forward requires: pos, edge_index, batch
-        
+        )
+
+        enc_output = pos_enc(bg, None)  # forward requires: pos, edge_index, batch
+
         bg.feat = bg.feat + enc_output["node_feat"]  # [num_nodes, in_dim]
-        bg.edge_feat = enc_output["edge_feat"]    # [num_edges, out_dim_edges]
+        bg.edge_feat = enc_output["edge_feat"]  # [num_edges, out_dim_edges]
         bg.radius_edge_index = enc_output["radius_edge_index"]  # [2, num_edges]
-        bg.edge_rbf = enc_output["edge_rbf"]    # [num_edges, num_radial]
+        bg.edge_rbf = enc_output["edge_rbf"]  # [num_edges, num_radial]
         bg.triplet_sbf = enc_output["triplet_sbf"]  # [num_triplets, num_spherical * num_radial]
-        
+
         kwargs = deepcopy(self.kwargs)
         kwargs["num_bilinear"] = 32
         kwargs["num_spherical"] = 4
         kwargs["num_radial"] = 32
-        
+
         layer = DimeNetPyg(
             in_dim=self.in_dim,
             out_dim=self.out_dim,
@@ -261,7 +268,7 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertTrue(layer.layer_inputs_edges)
         self.assertTrue(layer.layer_outputs_edges)
         self.assertEqual(layer.out_dim_factor, 1)
-        
+
         # Apply layer with encoded feats as input
         bg2 = layer.forward(bg)
         # output sanity check
@@ -271,7 +278,7 @@ class test_Pyg_Layers(ut.TestCase):
         # not change rbf/sbf embedding
         self.assertTrue((bg2.edge_rbf == bg.edge_rbf).all)
         self.assertTrue((bg2.triplet_sbf == bg.triplet_sbf).all)
-        
+
     def test_preprocess3Dfeaturelayer(self):
         bg = deepcopy(self.bg)
         num_heads = 2

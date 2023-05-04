@@ -151,21 +151,21 @@ class GaussianLayer(nn.Module):
         # [batch, nodes, nodes, num_kernels]
         tensor_with_kernel = torch.exp(-0.5 * (((expanded_input - mean) / std) ** 2)) / (pre_exp_factor * std)
         return tensor_with_kernel
-    
+
 
 def triplets(
     edge_index: Tensor,
     num_nodes: int,
 ) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
-    r"""Generates triplets from the given edge indices. 
-        A triplet is defined as a path of length two, 
-        such that if node A is connected to node B, 
+    r"""Generates triplets from the given edge indices.
+        A triplet is defined as a path of length two,
+        such that if node A is connected to node B,
         and node B is connected to node C, then there is a triplet (A, B, C).
-    
+
     Parameters:
         edge_index (LongTensor): The edge indices.
         num_nodes (int): The number of nodes.
-        
+
     Returns:
         col: The sink node indices of edges from the edge indices.
         row: The source node indices of edges from the edge indices.
@@ -178,8 +178,7 @@ def triplets(
     row, col = edge_index  # j->i
 
     value = torch.arange(row.size(0), device=row.device)
-    adj_t = SparseTensor(row=col, col=row, value=value,
-                         sparse_sizes=(num_nodes, num_nodes))
+    adj_t = SparseTensor(row=col, col=row, value=value, sparse_sizes=(num_nodes, num_nodes))
     adj_t_row = adj_t[row]
     num_triplets = adj_t_row.set_value(None).sum(dim=1).to(torch.long)
 
@@ -187,11 +186,11 @@ def triplets(
     idx_i = col.repeat_interleave(num_triplets)
     idx_j = row.repeat_interleave(num_triplets)
     idx_k = adj_t_row.storage.col()
-    
+
     # Remove self-loop triplets d->b->d
     mask = idx_i != idx_k  # Remove i == k triplets.
     idx_i, idx_j, idx_k = idx_i[mask], idx_j[mask], idx_k[mask]
-    
+
     # Edge indices (k->j, j->i) for triplets.
     idx_kj = adj_t_row.storage.value()[mask]
     idx_ji = adj_t_row.storage.row()[mask]
