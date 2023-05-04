@@ -54,11 +54,13 @@ class HybridCELoss(_WeightedLoss):
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         """
         Parameters:
-            input: (batch_size x n_classes) tensor of probabilities predicted for each bracket.
+            input: (batch_size x n_classes) tensor of logits predicted for each bracket.
             target: (batch_size x n_classes) tensor of one-hot encoded target brackets.
         """
+        if self.brackets.device != input.device:
+            self.brackets = self.brackets.to(input.device)
         regression_input = torch.inner(input, self.brackets)
-        regression_target = target.argmax(-1)
+        regression_target = target.argmax(-1).float()
         regression_loss = self.regression_loss(regression_input, regression_target, reduction=self.reduction)
 
         ce_loss = F.cross_entropy(input, target, weight=self.weight, reduction=self.reduction)
