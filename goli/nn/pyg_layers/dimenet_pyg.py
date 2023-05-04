@@ -12,8 +12,8 @@ from torch_geometric.nn.models.dimenet import ResidualLayer, OutputBlock
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.utils.decorators import classproperty
-from goli.nn.base_layers import get_activation
 from goli.nn.pyg_layers.utils import triplets
+from goli.nn.base_layers import MLP
 
 
 class InteractionBlock(nn.Module):
@@ -182,8 +182,18 @@ class DimeNetPyg(BaseGraphModule):
             **kwargs,
         )
         
-        # get callable
-        act = get_activation(activation)
+        # get callable activation layer
+        act = self.activation_layer
+        
+        # transform old node feature
+        self.node_model = MLP(
+            in_dim=in_dim,
+            hidden_dims=in_dim,
+            out_dim=out_dim,
+            depth=2,
+            activation=self.activation_layer,
+            normalization=self.normalization,
+        )
         
         # update edge feature 
         self.interaction_block = InteractionBlock(
@@ -218,15 +228,18 @@ class DimeNetPyg(BaseGraphModule):
         i, j, idx_i, idx_j, idx_k, idx_kj, idx_ji = triplets(
                         batch.radius_edge_index, num_nodes=batch.feat.size(0)
         )
-        x, P = batch.edge_feat, batch.node_P
+        x, P = batch.edge_feat, batch.feat
         rbf, sbf = batch.edge_rbf, batch.triplet_sbf
+        
+        # apply MLP to node embeddings
+        P = self.node_model(P) # [num_nodes, out_dim]
         
         # rbf and sbf should be computed during pos encoder
         x = self.interaction_block(x, rbf, sbf, idx_kj, idx_ji)
-        P = P + self.output_block(x, rbf, i, num_nodes=batch.feat.size(0))
+        P = P + self.output_block(x, rbf, i, num_nodes=batch.feat.size(0))  # [num_nodes, out_dim]
         
         batch.edge_feat = x # updated edge features 
-        batch.node_P = P    # updated node features
+        batch.feat = P    # updated node features
         
         return batch
     

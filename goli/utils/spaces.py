@@ -18,7 +18,7 @@ PE_ENCODERS_DICT = {
     "mlp": Encoders.mlp_encoder.MLPEncoder,
     "signnet": Encoders.signnet_pos_encoder.SignNetNodeEncoder,
     "gaussian_kernel": Encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
-    "bessel_kernel": Encoders.bessel_pos_encoder.BesselKernelPosEncoder,
+    "bessel_kernel": Encoders.bessel_pos_encoder.BesselSphericalPosEncoder,
 }
 
 

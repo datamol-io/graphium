@@ -21,13 +21,13 @@ class BesselSphericalPosEncoder(BaseEncoder):
         in_dim: int,
         out_dim: int,
         num_layers: int,
-        out_dim_edges: int, # new
-        num_output_layers: int,# new
-        num_spherical: int, # new
-        num_radial: int,    # new
-        max_num_neighbors: int = 32,    # new
-        cutoff: float = 5.0,      # new
-        envelope_exponent: int = 5, # new
+        out_dim_edges: int, 
+        num_output_layers: int,
+        num_spherical: int, 
+        num_radial: int,   
+        max_num_neighbors: int = 32,   
+        cutoff: float = 5.0,      
+        envelope_exponent: int = 5, 
         activation: Union[str, Callable] = "gelu",
         first_normalization="none",
         use_input_keys_prefix: bool = True,
@@ -41,9 +41,9 @@ class BesselSphericalPosEncoder(BaseEncoder):
         Parameters:
             input_keys: The keys from the graph to use as input
             output_keys: The keys to return as output encodings
-            in_dim: The input dimension for the encoder (not used)
+            in_dim: The input dimension for the encoder (**not used)
             out_dim: The output dimension of the node encodings 
-            num_layers: The number of layers of the encoder (not used)
+            num_layers: The number of layers of the encoder (**not used)
             out_dim_edges: The output dimension of the edge encodings
             num_output_layers: The number of layers of the OutBlock
             num_spherical (int): Number of spherical harmonics.
@@ -99,12 +99,12 @@ class BesselSphericalPosEncoder(BaseEncoder):
         # be in shape [num_nodes, 3]
         pos = batch[positions_3d_key]
         # Create radius graph in encoder (not use chemical topology of molecules)
-        edge_index = radius_graph(pos, r=self.cutoff, batch=batch.batch,
+        radius_edge_index = radius_graph(pos, r=self.cutoff, batch=batch.batch,
                                   max_num_neighbors=self.max_num_neighbors)
         
         # Process edges and triplets.
         i, j, idx_i, idx_j, idx_k, idx_kj, idx_ji = triplets(
-            edge_index, num_nodes=pos.size(0))
+            radius_edge_index, num_nodes=pos.size(0))
         
         # Calculate distances.
         dist = (pos[i] - pos[j]).pow(2).sum(dim=-1).sqrt()
@@ -119,13 +119,15 @@ class BesselSphericalPosEncoder(BaseEncoder):
         rbf = self.rbf(dist)
         # [num_triplets, num_spherical * num_radial]
         sbf = self.sbf(dist, angle, idx_kj)
-        # initial 3D node feature embedding [num_edges, out_dim] (may merge with other edge encoder's output)
+        # initial 3D edge embedding [num_edges, out_dim] (may merge with other edge encoder's output)
         edge_feature_3d = self.act(self.rbf_proj(rbf))
-        
+        # initial 3D node embedding [num_nodes, out_dim] (align with original DimeNet implementation)
         P = self.output_block_0(edge_feature_3d, rbf, i, num_nodes=pos.size(0))
         
-        # Crash if the key starts with 'node_' or 'graph_'
+        # Crash if the key starts with 'graph_'
         # Return `rbf` and `sbf` for necessary message passing in DimeNet
+        # Return `radius_edge_index` for necessary message passing in DimeNet
+        # Return `P` as node embedding (if the key starts with 'node_')
         # Return `edge_feature_3d` otherwise
         output = {}
         for key in self.output_keys:
@@ -138,7 +140,7 @@ class BesselSphericalPosEncoder(BaseEncoder):
             elif key == "triplet_sbf":
                 output[key] = sbf
             elif key == "radius_edge_index":
-                output[key] = edge_index
+                output[key] = radius_edge_index
             else:
                 output[key] = edge_feature_3d   
         return output
@@ -205,6 +207,5 @@ class BesselSphericalPosEncoder(BaseEncoder):
             The parsed output keys
         """
         for key in output_keys:
-            # assert not key.startswith("node_"), "Node encodings are not supported for this encoder"
             assert not key.startswith("graph_"), "Graph encodings are not supported for this encoder"
         return output_keys
