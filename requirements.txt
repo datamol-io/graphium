@@ -48,3 +48,6 @@ google-cloud-storage
 mup
 pyg-nightly
 fastparquet
+torch-sparse 
+torch-scatter 
+torch-cluster
