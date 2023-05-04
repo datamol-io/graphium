@@ -856,7 +856,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         if self.load_from_file:
 
-            if self._ready_to_load_from_file():
+            if self._ready_to_load_all_from_file():
                 self._data_is_prepared = True
                 return
 
@@ -1031,7 +1031,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         )
 
         if self.load_from_file:
-            pass
+            self._save_data_to_files()
 
         else:
             # When a path is provided but no cache is found, save to cache
@@ -1039,7 +1039,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 self.save_data_to_cache()
 
         self._data_is_prepared = True
-        # TODO (Gabriela): Implement the ability to save to cache.
 
     def setup(
         self,
@@ -1056,11 +1055,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Produce the label sizes to update the collate function
         labels_size = {}
         if stage == "fit" or stage is None:
-            processed_train_data_path = None
-            processed_val_data_path = None
-            if self.processed_graph_data_path is not None:
+            if self.load_from_file:
                 processed_train_data_path = self._path_to_load_from_file("train")
+                assert self._data_ready_at_path(processed_train_data_path), "Loading from file + setup() called but training data not ready"
                 processed_val_data_path = self._path_to_load_from_file("val")
+                assert self._data_ready_at_path(processed_val_data_path), "Loading from file + setup() called but validation data not ready"
+            else:
+                processed_train_data_path = None
+                processed_val_data_path = None
+                
             self.train_ds = Datasets.MultitaskDataset(
                 self.train_singletask_datasets,
                 n_jobs=self.featurization_n_jobs,
@@ -1070,7 +1073,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 about="training set",
                 save_smiles_and_ids=save_smiles_and_ids,
                 data_path=processed_train_data_path,
-                load_from_file=processed_train_data_path is not None,
+                load_from_file=self.load_from_file
             )  # type: ignore
             self.val_ds = Datasets.MultitaskDataset(
                 self.val_singletask_datasets,
@@ -1081,30 +1084,21 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 about="validation set",
                 save_smiles_and_ids=save_smiles_and_ids,
                 data_path=processed_val_data_path,
-                load_from_file=processed_val_data_path is not None,
+                load_from_file=self.load_from_file
             )  # type: ignore
             logger.info(self.train_ds)
             logger.info(self.val_ds)
-            if (self.processed_graph_data_path is not None) and (not train_load_from_file):
-                self.get_label_statistics(
-                    self.processed_graph_data_path, self.data_hash, self.train_ds, train=True
-                )
-                self.normalize_label(self.train_ds)
-                # save featurized train dataset to disk
-                self.save_featurized_data(self.train_ds, processed_train_data_path)
-            if (self.processed_graph_data_path is not None) and (not val_load_from_file):
-                # save featurized validation dataset to disk
-                self.save_featurized_data(self.val_ds, processed_val_data_path)
-
             labels_size.update(
                 self.train_ds.labels_size
             )  # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
 
         if stage == "test" or stage is None:
-            processed_test_data_path = None
-            if self.processed_graph_data_path is not None:
-                processed_test_data_path = osp.join(self.processed_graph_data_path, f"test_{self.data_hash}")
+            if self.load_from_file:
+                processed_test_data_path = self._path_to_load_from_file("test")
+                assert self._data_ready_at_path(processed_test_data_path), "Loading from file + setup() called but test data not ready"
+            else:
+                processed_test_data_path = None
             self.test_ds = Datasets.MultitaskDataset(
                 self.test_singletask_datasets,
                 n_jobs=self.featurization_n_jobs,
@@ -1114,12 +1108,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 about="test set",
                 save_smiles_and_ids=save_smiles_and_ids,
                 data_path=processed_test_data_path,
-                load_from_file=processed_test_data_path is not None,
+                load_from_file=self.load_from_file
             )  # type: ignore
             logger.info(self.test_ds)
-            if (self.processed_graph_data_path is not None) and (not test_load_from_file):
-                # save featurized test dataset to disk
-                self.save_featurized_data(self.test_ds, processed_test_data_path)
 
             labels_size.update(self.test_ds.labels_size)
 
@@ -1128,26 +1119,49 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
 
-    def _ready_to_load_from_file(self):
+    def _ready_to_load_all_from_file(self):
         """
         Check if the data for all stages is ready to be loaded from files
         """
-        return all(self._path_to_load_from_file(stage) is not None for stage in ["train", "val", "test"])
+
+        paths = [self._path_to_load_from_file(stage) for stage in ["train", "val", "test"]]
+        ready = all(self._data_ready_at_path(path) for path in paths)
+
+        return ready
 
     def _path_to_load_from_file(self, stage: Literal["train", "val", "test"]) -> Optional[str]:
-        """
-        If the data for this stage is ready, this method returns a path to the data.
-        If the data is not ready, this method returns `None`.
-        """
-        assert (
-            self.processed_graph_data_path is not None
-        ), "_path_to_load_from_file should only be called when loading data from file"
-        processed_stage_data_path = osp.join(self.processed_graph_data_path, f"{stage}_{self.data_hash}")
+        '''
+        Get path from which to load the data from files
+        '''
+        return osp.join(self.processed_graph_data_path, f"{stage}_{self.data_hash}")
+
+    def _data_ready_at_path(self, path: str) -> bool:
+        '''
+        Check if data can be loaded from this path
+        '''
         can_load_from_file = (
             osp.exists(processed_stage_data_path) and self.get_folder_size(processed_stage_data_path) > 0
         )
 
-        return processed_stage_data_path if can_load_from_file else None
+        return can_load_from_file
+
+    def _save_data_to_files(self):
+
+        '''
+        Save data to files so that they can be loaded from file during training etc
+        '''
+
+        processed_train_data_path = self._path_to_load_from_file('train')
+        processed_val_data_path = self._path_to_load_from_file('val')
+        processed_test_data_path = self._path_to_load_from_file('test')
+
+        self.get_label_statistics(
+            self.processed_graph_data_path, self.data_hash, self.train_ds, train=True
+        )
+        self.normalize_label(self.train_ds)
+        self.save_featurized_data(self.train_ds, processed_train_data_path)
+        self.save_featurized_data(self.val_ds, processed_val_data_path)
+        self.save_featurized_data(self.test_ds, processed_test_data_path)
 
     def get_folder_size(self, path):
         # check if the data items are actually saved into the folders
