@@ -182,7 +182,7 @@ class test_MetricWrapper(ut.TestCase):
 
     def test_classifigression(self):
         preds = torch.Tensor([[0.1, 0.1, 0.3, 0.5, 0.0], [0.1, 0.0, 0.7, 0.2, 0.0]])
-        target = torch.Tensor([[0, 0, 0, 1, 0], [1, 0, 0, 0, 0]])
+        target = torch.Tensor([3, 0])
         expected_scores = [0.5, 0.75]
         n_brackets = preds.shape[1]
         metrics = ["accuracy", "averageprecision"]

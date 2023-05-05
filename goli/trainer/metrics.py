@@ -291,7 +291,7 @@ class MetricWrapper:
             metric_val = nan_mean(torch.stack(metric_val))
         elif self.multitask_handling == "classifigression":
             preds, target = self._filter_nans(preds, target)
-            target = target.argmax(-1).long()
+            target = target.squeeze().long()
             metric_val = self.metric(preds, target, **self.kwargs)
         else:
             # Wrong option

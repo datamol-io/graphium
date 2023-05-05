@@ -17,7 +17,7 @@ datamodule:
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
         # and run notebook in goli/data/PCQM4M/classifigression.ipynb
         smiles_col: "cxsmiles"
-        label_cols: ["homo_lumo_gap_b0", "homo_lumo_gap_b1", "homo_lumo_gap_b2", "homo_lumo_gap_b3", "homo_lumo_gap_b4"]
+        label_cols: ["brackets"]
         # sample_size: 30000 # use sample_size for test
         # splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
         split_val: 0.1
