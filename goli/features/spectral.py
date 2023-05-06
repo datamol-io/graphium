@@ -1,6 +1,5 @@
 from typing import Tuple, Union
 
-from scipy.sparse.linalg import eigs
 from scipy.linalg import eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix
 import numpy as np
@@ -10,35 +9,42 @@ import networkx as nx
 from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
-def compute_laplacian_positional_eigvecs(
-    adj: Union[np.ndarray, spmatrix],
-    num_pos: int,
-    cache: dict,
-    disconnected_comp: bool = True,
-    normalization: str = "none"
+def compute_laplacian_pe(
+        adj: Union[np.ndarray, spmatrix],
+        num_pos: int,
+        cache: dict,
+        pos_type: str = "laplacian_eigvec" or "laplacian_eigval",
+        disconnected_comp: bool = True,
+        normalization: str = "none"
 ) -> Tuple[np.ndarray, np.ndarray]:
     r"""
     Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.
     
     Parameters:
-        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
-        num_pos [int]: Number of Laplacian eigenvectors to compute
-        disconnected_comp [bool]: Whether to compute the eigenvectors for each connected component
-        normalization [str]: Normalization to apply to the Laplacian
+        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
+        num_pos (int): Number of Laplacian eigenvectors to compute
+        cache (dict): Dictionary of cached objects
+        pos_type (str): Desired output
+        disconnected_comp (bool): Whether to compute the eigenvectors for each connected component
+        normalization (str): Normalization to apply to the Laplacian
     
     Returns:
-        eigvals_tile: Eigenvalues of the Laplacian
-        base_level [str]: Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
-        eigvecs: Eigenvectors of the Laplacian
+        Two possible outputs:
+            eigvals (np.ndarray, [num_pos]): Eigenvalues of the Laplacian
+            eigvecs (np.ndarray, [num_nodes, num_pos]): Eigenvectors of the Laplacian
+        base_level (str): Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
+        cache (dict): Updated dictionary of cached objects
     """
-    
-    base_level = 'node'
+
+    base_level = 'graph' if pos_type == "laplacian_eigval" else 'node'
 
     # Sparsify the adjacency patrix
-    if issparse(adj):
-        adj = adj.astype(np.float64)
-    else:
-        adj = csr_matrix(adj, dtype=np.float64)
+    if not issparse(adj):
+        if 'csr_adj' not in cache:
+            adj = csr_matrix(adj, dtype=np.float64)
+            cache['csr_adj'] = adj
+        else:
+            adj = cache['csr_adj']
 
     # Compute tha Laplacian, and normalize it
     if f'L_{normalization}_sp' not in cache:
@@ -55,9 +61,8 @@ def compute_laplacian_positional_eigvecs(
     if disconnected_comp:
 
         if 'components' not in cache:
-            if disconnected_comp:
-                # Get the list of connected components
-                components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
+            # Get the list of connected components
+            components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
             cache['components'] = components
         
         else:
@@ -66,36 +71,46 @@ def compute_laplacian_positional_eigvecs(
     # Compute the eigenvectors for each connected component, and stack them together
     if len(components) > 1:
 
-        if 'eig_comp' not in cache:
-            eigvals_tile = np.zeros((L_norm.shape[0], num_pos), dtype=np.float64)
-            eigvecs = np.zeros_like(eigvals_tile)
+        if 'lap_eig_comp' not in cache:
+            eigvals, eigvecs = [], []
             for component in components:
                 comp = list(component)
                 this_L = L_norm[comp][:, comp]
                 this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
-                eigvecs[comp, :] = np.real(this_eigvecs)
-                eigvals_tile[comp, :] = np.real(this_eigvals)
-            cache['eig_comp'] = (eigvecs, eigvals_tile)
+
+                # Eigenvalues previously set to infinity are now set to 0
+                # Any NaN in the eigvals or eigvecs will be set to 0
+                this_eigvecs[~np.isfinite(this_eigvecs)] = 0.0
+                this_eigvals[~np.isfinite(this_eigvals)] = 0.0
+            
+                eigvals.append(this_eigvals)
+                eigvecs.append(this_eigvecs)
+            cache['lap_eig_comp'] = (eigvals, eigvecs)
 
         else:
-            eigvecs, eigvals_tile = cache['eig_comp']
+            eigvals, eigvecs = cache['lap_eig_comp']
     
     else:
 
-        if 'eig' not in cache:
+        if 'lap_eig' not in cache:
             eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
-            eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
-            cache['eig'] = (eigvecs, eigvals_tile)
+
+            # Eigenvalues previously set to infinity are now set to 0
+            # Any NaN in the eigvals or eigvecs will be set to 0
+            eigvecs[~np.isfinite(eigvecs)] = 0.0
+            eigvals[~np.isfinite(eigvals)] = 0.0
+
+            cache['lap_eig'] = (eigvals, eigvecs)
 
         else:
-            eigvecs, eigvals_tile = cache['eig']
+            eigvals, eigvecs = cache['lap_eig']
 
-    # Eigenvalues previously set to infinite are now set to 0
-    # Any NaN in the eigvals or eigvecs will be set to 0
-    eigvecs[~np.isfinite(eigvecs)] = 0.0
-    eigvals_tile[~np.isfinite(eigvals_tile)] = 0.0
 
-    return eigvals_tile, eigvecs, base_level, cache
+    if pos_type == "laplacian_eigval":
+        return eigvals, base_level, cache
+    
+    else:
+        return eigvecs, base_level, cache
 
 
 def _get_positional_eigvecs(

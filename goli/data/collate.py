@@ -138,7 +138,6 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
             else:
                 pyg_graph[pyg_key] = tensor
 
-
         # Convert edge index to int64
         pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
         pyg_batch.append(pyg_graph)

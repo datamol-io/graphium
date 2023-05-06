@@ -43,30 +43,30 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          laplacian_eigvec:
+          node_laplacian_eigvec:
             pos_type: laplacian_eigvec
             pos_level: node
             num_pos: 8
             normalization: "none"
             disconnected_comp: True
-          laplacian_eigval:
+          node_laplacian_eigval:
             pos_type: laplacian_eigval
             pos_level: node
             num_pos: 8
             normalization: "none"
             disconnected_comp: True
-          rwse:
-            pos_type: rwse
+          rw_return_probs:
+            pos_type: rw_return_probs
             pos_level: node
-            ksteps: 8
-          edge_rwse:
-            pos_type: rwse
+            ksteps: [4, 8]
+          nodepair_rw_transition_probs:
+            pos_type: rw_transition_probs
             pos_level: edge
-            ksteps: 8
-          nodepair_rwse:
-            pos_type: rwse
+            ksteps: [2, 4]
+          nodepair_rw_return_probs:
+            pos_type: rw_return_probs
             pos_level: nodepair
-            ksteps: 8
+            ksteps: [4]
           electrostatic:
             pos_type: electrostatic
             pos_level: node
@@ -141,7 +141,7 @@ architecture:
         first_normalization: "none" #"batch_norm" or "layer_norm"
       emb_rwse:
         encoder_type: "mlp"
-        input_keys: ["rwse"]
+        input_keys: ["rw_return_probs"]
         output_keys: ["feat"]
         hidden_dim: 32
         num_layers: 2
@@ -159,7 +159,7 @@ architecture:
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
       emb_edge_rwse:
         encoder_type: "mlp"
-        input_keys: ["edge_rwse"]
+        input_keys: ["edge_rw_transition_probs"]
         output_keys: ["edge_feat"]
         hidden_dim: 32
         num_layers: 1
@@ -167,7 +167,7 @@ architecture:
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
       emb_edge_pes:
         encoder_type: "cat_mlp"
-        input_keys: ["edge_rwse", "edge_commute"]
+        input_keys: ["edge_rw_transition_probs", "edge_commute"]
         output_keys: ["edge_feat"]
         hidden_dim: 32
         num_layers: 1
@@ -236,7 +236,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 2
+    max_num_epochs: &max_epochs 5
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:

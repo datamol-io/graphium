@@ -34,7 +34,6 @@ def compute_commute_distances(
 
     else: 
         if issparse(adj):
-            adj = adj.astype(np.float64)
             adj = adj.toarray()
 
         volG = adj.sum()
