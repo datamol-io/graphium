@@ -94,7 +94,7 @@ def node_to_edge(
 ) ->  np.ndarray:
     r"""
     Get an edge-level positional encoding from a node-level positional encoding.
-     -> For each edge, concatenate features from sender and receiver node.
+     -> For each edge, concatenate the sum and absolute difference of pe of source and destination node.
 
     Parameters:
         pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
@@ -118,7 +118,10 @@ def node_to_edge(
     edge_index, _ = from_scipy_sparse_matrix(adj)
     src, dst = edge_index[0], edge_index[1]
 
-    edge_pe = np.concatenate((pe[src], pe[dst]), axis=-1)
+    pe_sum = pe[src] + pe[dst]
+    pe_abs_diff = np.abs(pe[src] - pe[dst])
+
+    edge_pe = np.concatenate((pe_sum, pe_abs_diff), axis=-1)
 
     return edge_pe, cache
 
@@ -129,7 +132,7 @@ def node_to_nodepair(
 ) ->  np.ndarray:
     r"""
     Get a nodepair-level positional encoding from a node-level positional encoding.
-     -> Concatenate features from node i and j at position (i,j) in nodepair_pe.
+     -> For each nodepair (i,j) concatenate the sum and absolute difference of pe at node i and j.
 
     Parameters:
         pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
@@ -142,7 +145,10 @@ def node_to_nodepair(
     expanded_pe = np.expand_dims(pe, axis=1)
     expanded_pe = np.repeat(expanded_pe, repeats=num_nodes, axis=1)
 
-    nodepair_pe = np.concatenate([expanded_pe, expanded_pe.transpose([1,0,2])], axis=-1)
+    pe_sum = expanded_pe + expanded_pe.transpose([1,0,2])
+    pe_abs_diff = np.abs(expanded_pe - expanded_pe.transpose([1,0,2]))
+
+    nodepair_pe = np.concatenate((pe_sum, pe_abs_diff), axis=-1)
 
     return nodepair_pe
 
