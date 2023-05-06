@@ -6,20 +6,63 @@ import torch.nn as nn
 from torch import Tensor
 
 from torch_geometric.data import Data, Batch
-from torch_geometric.nn.inits import glorot_orthogonal
 from torch_geometric.utils import scatter
-from torch_geometric.nn.models.dimenet import ResidualLayer, OutputBlock
 
 from goli.nn.base_graph_layer import BaseGraphModule
 from goli.utils.decorators import classproperty
 from goli.nn.pyg_layers.utils import triplets
-from goli.nn.base_layers import MLP
+from goli.nn.base_layers import MLP, FCLayer
+
+
+class ResidualLayer(torch.nn.Module):
+    r"""Modified from
+    https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/models/dimenet.html
+    (align style with our codebase)
+    """
+
+    def __init__(self, hidden_channels: int, activation: Union[Callable, str]):
+        super().__init__()
+        self.lin1 = FCLayer(hidden_channels, hidden_channels, activation=activation)
+        self.lin2 = FCLayer(hidden_channels, hidden_channels, activation=activation)
+
+    def forward(self, x: Tensor) -> Tensor:
+        return x + self.lin2(self.lin1(x))
+
+
+class OutputBlock(torch.nn.Module):
+    r"""Modified from
+    https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/models/dimenet.html
+    (align style)
+    """
+
+    def __init__(
+        self,
+        num_radial: int,
+        hidden_channels: int,
+        out_channels: int,
+        num_layers: int,
+        activation: Union[Callable, str],
+    ):
+        super().__init__()
+
+        self.lin_rbf = FCLayer(num_radial, hidden_channels, bias=False, activation=None)
+        self.lins = nn.ModuleList()
+        for _ in range(num_layers):
+            self.lins.append(FCLayer(hidden_channels, hidden_channels, activation=activation))
+        self.lin = FCLayer(hidden_channels, out_channels, bias=False, activation=None)
+
+    def forward(self, x: Tensor, rbf: Tensor, i: Tensor, num_nodes: Optional[int] = None) -> Tensor:
+        x = self.lin_rbf(rbf) * x
+        x = scatter(x, i, dim=0, dim_size=num_nodes, reduce="sum")
+        for lin in self.lins:
+            x = lin(x)
+        return self.lin(x)
 
 
 class InteractionBlock(nn.Module):
     r"""Modified from
     https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/models/dimenet.html
-    (add output linear layer to allow change of dimension)
+    (align style; add output linear layer to allow change of dimension)
     """
 
     def __init__(
@@ -31,43 +74,28 @@ class InteractionBlock(nn.Module):
         num_radial: int,
         num_before_skip: int,
         num_after_skip: int,
-        act: Callable,
+        activation: Union[Callable, str],
     ):
         super().__init__()
-        self.act = act
 
-        self.lin_rbf = nn.Linear(num_radial, hidden_dim, bias=False)
-        self.lin_sbf = nn.Linear(num_spherical * num_radial, num_bilinear, bias=False)
+        self.lin_rbf = FCLayer(num_radial, hidden_dim, activation=None, bias=False)
+        self.lin_sbf = FCLayer(num_spherical * num_radial, num_bilinear, activation=None, bias=False)
 
         # Dense transformations of input messages.
-        self.lin_kj = nn.Linear(hidden_dim, hidden_dim)
-        self.lin_ji = nn.Linear(hidden_dim, hidden_dim)
+        self.lin_kj = FCLayer(hidden_dim, hidden_dim, activation=activation)
+        self.lin_ji = FCLayer(hidden_dim, hidden_dim, activation=activation)
 
         self.W = nn.Parameter(torch.Tensor(hidden_dim, num_bilinear, hidden_dim))
-        self.layers_before_skip = nn.ModuleList(
-            [ResidualLayer(hidden_dim, act) for _ in range(num_before_skip)]
-        )
-        self.lin = nn.Linear(hidden_dim, hidden_dim)
-        self.layers_after_skip = nn.ModuleList(
-            [ResidualLayer(hidden_dim, act) for _ in range(num_after_skip)]
-        )
-        self.lin_out = nn.Linear(hidden_dim, output_dim)
-        self.reset_parameters()
-
-    def reset_parameters(self):
-        glorot_orthogonal(self.lin_rbf.weight, scale=2.0)
-        glorot_orthogonal(self.lin_sbf.weight, scale=2.0)
-        glorot_orthogonal(self.lin_kj.weight, scale=2.0)
-        self.lin_kj.bias.data.fill_(0)
-        glorot_orthogonal(self.lin_ji.weight, scale=2.0)
-        self.lin_ji.bias.data.fill_(0)
         self.W.data.normal_(mean=0, std=2 / self.W.size(0))
-        for res_layer in self.layers_before_skip:
-            res_layer.reset_parameters()
-        glorot_orthogonal(self.lin.weight, scale=2.0)
-        self.lin.bias.data.fill_(0)
-        for res_layer in self.layers_after_skip:
-            res_layer.reset_parameters()
+
+        self.layers_before_skip = nn.ModuleList(
+            [ResidualLayer(hidden_dim, activation) for _ in range(num_before_skip)]
+        )
+        self.lin = FCLayer(hidden_dim, hidden_dim, activation=activation)
+        self.layers_after_skip = nn.ModuleList(
+            [ResidualLayer(hidden_dim, activation) for _ in range(num_after_skip)]
+        )
+        self.lin_out = FCLayer(hidden_dim, output_dim, activation=activation)
 
     def forward(self, x: Tensor, rbf: Tensor, sbf: Tensor, idx_kj: Tensor, idx_ji: Tensor) -> Tensor:
         """
@@ -81,8 +109,8 @@ class InteractionBlock(nn.Module):
         rbf = self.lin_rbf(rbf)  # [num_edges, hidden_dim]
         sbf = self.lin_sbf(sbf)  # [num_triplet, hidden_dim]
 
-        x_ji = self.act(self.lin_ji(x))
-        x_kj = self.act(self.lin_kj(x))
+        x_ji = self.lin_ji(x)
+        x_kj = self.lin_kj(x)
         x_kj = x_kj * rbf
 
         x_kj = torch.einsum("wj,wl,ijl->wi", sbf, x_kj[idx_kj], self.W)
@@ -91,10 +119,10 @@ class InteractionBlock(nn.Module):
         h = x_ji + x_kj
         for layer in self.layers_before_skip:
             h = layer(h)
-        h = self.act(self.lin(h)) + x
+        h = self.lin(h) + x
         for layer in self.layers_after_skip:
             h = layer(h)
-        return self.act(self.lin_out(h))  # [num_edges, output_dim]
+        return self.lin_out(h)  # [num_edges, output_dim]
 
 
 class DimeNetPyg(BaseGraphModule):
@@ -181,16 +209,13 @@ class DimeNetPyg(BaseGraphModule):
             **kwargs,
         )
 
-        # get callable activation layer
-        act = self.activation_layer
-
         # transform old node feature
         self.node_model = MLP(
             in_dim=in_dim,
             hidden_dims=in_dim,
             out_dim=out_dim,
             depth=2,
-            activation=self.activation_layer,
+            activation=activation,
             normalization=self.normalization,
         )
 
@@ -203,7 +228,7 @@ class DimeNetPyg(BaseGraphModule):
             num_radial,
             num_before_skip,
             num_after_skip,
-            act,
+            activation,
         )
         # updated edge feature -> new node feature
         self.output_block = OutputBlock(
@@ -211,7 +236,7 @@ class DimeNetPyg(BaseGraphModule):
             hidden_channels=out_dim_edges,
             out_channels=out_dim,
             num_layers=num_output_layers,
-            act=act,
+            activation=activation,
         )
 
     def forward(self, batch: Union[Data, Batch]) -> Union[Data, Batch]:
@@ -253,7 +278,7 @@ class DimeNetPyg(BaseGraphModule):
         Returns:
 
             supports_edges: bool
-                Always ``False`` for the current class
+                Always ``True`` for the current class
         """
         return True
 
@@ -268,7 +293,7 @@ class DimeNetPyg(BaseGraphModule):
         Returns:
 
             bool:
-                Always ``False`` for the current class
+                Always ``True`` for the current class
         """
         return True
 
@@ -283,7 +308,7 @@ class DimeNetPyg(BaseGraphModule):
         Returns:
 
             bool:
-                Always ``False`` for the current class
+                Always ``True`` for the current class
         """
         return True
 

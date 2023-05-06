@@ -4,13 +4,13 @@ from torch import Tensor
 
 from typing import Union, Callable, List, Dict, Any, Optional, Tuple
 from torch_geometric.data import Batch
-from torch_geometric.nn.models.dimenet import BesselBasisLayer, SphericalBasisLayer, OutputBlock
+from torch_geometric.nn.models.dimenet import BesselBasisLayer, SphericalBasisLayer
 from torch_geometric.nn import radius_graph
 
 from goli.nn.encoders.base_encoder import BaseEncoder
 from goli.nn.pyg_layers.utils import triplets
 from goli.nn.pyg_layers.dimenet_pyg import OutputBlock
-from goli.nn.base_layers import get_activation
+from goli.nn.base_layers import FCLayer
 
 
 class BesselSphericalPosEncoder(BaseEncoder):
@@ -41,6 +41,7 @@ class BesselSphericalPosEncoder(BaseEncoder):
         Parameters:
             input_keys: The keys from the graph to use as input
             output_keys: The keys to return as output encodings
+                (**should at least contain: `edge_rbf`, `triplet_sbf`, `radius_edge_index`; Optional: `node_*`, `edge_*`)
             in_dim: The input dimension for the encoder (**not used)
             out_dim: The output dimension of the node encodings
             num_layers: The number of layers of the encoder (**not used)
@@ -66,8 +67,6 @@ class BesselSphericalPosEncoder(BaseEncoder):
             first_normalization=first_normalization,
             use_input_keys_prefix=use_input_keys_prefix,
         )
-        act = get_activation(activation)
-        self.act = act
         self.num_radial = num_radial
         self.cutoff = cutoff
         self.envelope_exponent = envelope_exponent
@@ -80,10 +79,10 @@ class BesselSphericalPosEncoder(BaseEncoder):
 
         # edge embedding (num_radial -> out_dim)
         # ***simplified version*** by removing atom type input
-        self.rbf_proj = nn.Linear(num_radial, out_dim_edges)
+        self.rbf_proj = FCLayer(num_radial, out_dim_edges, activation=activation)
         # node embedding from edge embedding (out_dim_edges -> out_dim)
         self.output_block_0 = OutputBlock(
-            num_radial, out_dim_edges, out_dim, num_output_layers, act
+            num_radial, out_dim_edges, out_dim, num_output_layers, activation
         )  # 1 outblock right after embedding in original dimenet
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
@@ -93,7 +92,7 @@ class BesselSphericalPosEncoder(BaseEncoder):
             batch: The batch of pyg graphs
             key_prefix: The prefix to use for the input keys
         Returns:
-            A dictionary of the output encodings with keys specified by `output_keys`
+            A dictionary of the outpaut encodings with keys specified by `output_keys`
         """
         ### Get the input keys ###
         positions_3d_key = self.parse_input_keys_with_prefix(key_prefix)[0]
@@ -121,7 +120,7 @@ class BesselSphericalPosEncoder(BaseEncoder):
         # [num_triplets, num_spherical * num_radial]
         sbf = self.sbf(dist, angle, idx_kj)
         # initial 3D edge embedding [num_edges, out_dim] (may merge with other edge encoder's output)
-        edge_feature_3d = self.act(self.rbf_proj(rbf))
+        edge_feature_3d = self.rbf_proj(rbf)
         # initial 3D node embedding [num_nodes, out_dim] (align with original DimeNet implementation)
         P = self.output_block_0(edge_feature_3d, rbf, i, num_nodes=pos.size(0))
 
@@ -207,6 +206,15 @@ class BesselSphericalPosEncoder(BaseEncoder):
         Returns:
             The parsed output keys
         """
+        # all of three are required to do DimeNet-style message passing
+        assert "edge_rbf" in output_keys, "Edge radial basis feature should present for this encoder"
+        assert (
+            "triplet_sbf" in output_keys
+        ), "Triplet(angle) spherical radial basis feature should present for this encoder"
+        assert (
+            "radius_edge_index" in output_keys
+        ), "Radius edge index (graph) should be built in forward of this encoder"
+
         for key in output_keys:
             assert not key.startswith("graph_"), "Graph encodings are not supported for this encoder"
         return output_keys
