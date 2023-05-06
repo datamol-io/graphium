@@ -1,4 +1,4 @@
-from typing import Tuple, Optional, Dict, Union
+from typing import Tuple, Union, Optional, Dict, Any
 from copy import deepcopy
 import numpy as np
 import torch
@@ -17,18 +17,18 @@ def get_all_positional_encodings(
         adj: Union[np.ndarray, spmatrix],
         num_nodes: int,
         pos_encoding_as_features: Optional[Dict] = None,
-) -> Tuple["OrderedDict[str, np.ndarray]", "OrderedDict[str, np.ndarray]"]:
+) -> Tuple[OrderedDict[str, np.ndarray]]:
     r"""
     Get features positional encoding.
 
     Parameters:
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
-        num_nodes (int): Number of nodes in the graph
-        pos_encoding_as_features (dict): keyword arguments for function `graph_positional_encoder`
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        num_nodes: Number of nodes in the graph
+        pos_encoding_as_features: keyword arguments for function `graph_positional_encoder`
             to generate positional encoding for node features.
 
     Returns:
-        pe_dict (dict): Dictionary of positional and structural encodings
+        pe_dict: Dictionary of positional and structural encodings
     """
 
     pos_encoding_as_features = {} if pos_encoding_as_features is None else pos_encoding_as_features
@@ -57,34 +57,34 @@ def graph_positional_encoder(
         adj: Union[np.ndarray, spmatrix],
         num_nodes: int,
         pos_type: str,
-        pos_arg: dict,
-        cache: dict[np.ndarray]
-) -> Dict[str, np.ndarray]:
+        pos_arg: Dict[str, Any],
+        cache: Dict[str, Any]
+) -> Tuple[Dict[str, np.ndarray], Dict[str, Any]]:
     r"""
     Get a positional encoding that depends on the parameters.
 
     Parameters:
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
-        num_nodes (int): Number of nodes in the graph
-        pos_type (str): Type of positional encoding
-        pos_args (dict): Arguments 
-            pos_type (str): The type of positional encoding to use. Supported types are:
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        num_nodes: Number of nodes in the graph
+        pos_type: Type of positional encoding
+        pos_args: Arguments 
+            pos_type: The type of positional encoding to use. Supported types are:
                 - laplacian_eigvec              \
                 - laplacian_eigval               \  -> cache connected comps. & eigendecomp.
                 - rwse
                 - electrostatic                 \
                 - commute                        \  -> cache pinvL
                 - graphormer
-            pos_level (str): Positional level to output
+            pos_level: Positional level to output
                 - node
                 - edge
                 - nodepair
                 - graph
-            cache (dict): Dictionary of cached objects
+            cache: Dictionary of cached objects
 
     Returns:
-        pe (np.ndarray): Positional or structural encoding
-        cache (dict): Updated dictionary of cached objects
+        pe: Positional or structural encoding
+        cache: Updated dictionary of cached objects
     """
     
     pos_type = pos_type.lower()

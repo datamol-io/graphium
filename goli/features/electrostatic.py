@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Tuple, Union, Dict, Any
 
 import numpy as np
 
@@ -8,18 +8,18 @@ from scipy.sparse import spmatrix, issparse
 
 def compute_electrostatic_interactions(
         adj: Union[np.ndarray, spmatrix],
-        cache: dict
-) -> np.ndarray:
+        cache: Dict[str, Any]
+) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     """
     Compute electrostatic interaction of nodepairs.
 
     Parameters:
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix
-        cache (dict): Dictionary of cached objects
+        adj [num_nodes, num_nodes]: Adjacency matrix
+        cache: Dictionary of cached objects
     Returns:
-        electrostatic (np.ndarray, [num_nodes, num_nodes]): 2D array with electrostatic interactions of node nodepairs
-        base_level (str): Indicator of the output pos_level (node, edge, nodepair, graph) -> here nodepair
-        cache (dict): Updated dictionary of cached objects
+        electrostatic [num_nodes, num_nodes]: 2D array with electrostatic interactions of node nodepairs
+        base_level: Indicator of the output pos_level (node, edge, nodepair, graph) -> here nodepair
+        cache: Updated dictionary of cached objects
     """
 
     base_level = 'nodepair'

@@ -69,7 +69,6 @@ class EncoderManager(nn.Module):
         Returns:
             pe_encoders: a nn.ModuleDict containing all positional encoders specified by encoder_name in pe_encoders_kwargs["encoders"]
         """
-        # TODO: Currently only supports PE/SE on the nodes. Need to add edges.
 
         if (pe_encoders_kwargs is None) or (len(pe_encoders_kwargs) == 0):
             return
@@ -93,15 +92,6 @@ class EncoderManager(nn.Module):
             # Then check for the exact key
 
             this_in_dims = {}
-
-            ### TODO: this part is obsolete now
-            # for key, dim in in_dim_dict.items():
-            #     if isinstance(key, str) and key.startswith(f"{encoder_name}/"):
-            #         key_name = "in_dim_" + key[len(encoder_name) + 1 :]
-            #         this_in_dims[key_name] = dim
-
-            # if len(this_in_dims) == 0:
-            ###
 
             for key in encoder_kwargs.get("input_keys", []):
                 if key in in_dim_dict:

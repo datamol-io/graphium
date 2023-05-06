@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Tuple, Union, Dict, Any
 
 import numpy as np
 import networkx as nx
@@ -9,19 +9,19 @@ from scipy.sparse import spmatrix, issparse
 def compute_graphormer_distances(
         adj: Union[np.ndarray, spmatrix], 
         num_nodes: int,
-        cache: dict
-) -> np.ndarray:
+        cache: Dict[str, Any]
+) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     """
     Compute Graphormer distance between nodepairs.
 
     Parameters:
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix
-        num_nodes (int): Number of nodes in the graph
-        cache (dict): Dictionary of cached objects
+        adj [num_nodes, num_nodes]: Adjacency matrix
+        num_nodes: Number of nodes in the graph
+        cache: Dictionary of cached objects
     Returns:
-        dist (np.ndarray, [num_nodes, num_nodes]): 2D array with Graphormer distances between nodepairs
-        base_level (str): Indicator of the output pos_level (node, edge, nodepair, graph) -> here nodepair
-        cache (dict): Updated dictionary of cached objects
+        dist [num_nodes, num_nodes]: 2D array with Graphormer distances between nodepairs
+        base_level: Indicator of the output pos_level (node, edge, nodepair, graph) -> here nodepair
+        cache: Updated dictionary of cached objects
     """
 
     base_level = 'nodepair'

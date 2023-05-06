@@ -1,6 +1,5 @@
-from typing import Union
+from typing import Tuple, Union, List, Dict, Any
 
-import torch
 import numpy as np
 
 from scipy.sparse import spmatrix, issparse, coo_matrix
@@ -8,20 +7,22 @@ from scipy.sparse import spmatrix, issparse, coo_matrix
 from torch_geometric.utils import from_scipy_sparse_matrix
 
 
-def transfer_pos_level(pe: np.ndarray, in_level: str, out_level: str, adj: Union[np.ndarray, spmatrix], num_nodes: int, cache: dict):
+def transfer_pos_level(
+        pe: np.ndarray, in_level: str, out_level: str, adj: Union[np.ndarray, spmatrix], num_nodes: int, cache: Dict[str, Any]
+) -> np.ndarray:
     r"""
     Transfer positional encoding between different positional levels (node, edge, nodepair, graph)
 
     Parameters:
-        pe (np.ndarray): Input pe with pos_level defined by in_level
-        in_level (str): pos_level of input pe
-        out_level (str): desired pos_level of output pe
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
-        num_nodes (int): Number of nodes in the graph
-        cache (dict): Dictionary of cached objects
+        pe: Input pe with pos_level defined by in_level
+        in_level: pos_level of input pe
+        out_level: desired pos_level of output pe
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        num_nodes: Number of nodes in the graph
+        cache: Dictionary of cached objects
 
     Returns:
-        pe (np.ndarry): Output pe with pos_level defined by out_level
+        pe: Output pe with pos_level defined by out_level
     """
 
     if in_level == "node":
@@ -90,20 +91,20 @@ def transfer_pos_level(pe: np.ndarray, in_level: str, out_level: str, adj: Union
 def node_to_edge(
         pe:  np.ndarray,
         adj: Union[np.ndarray, spmatrix],
-        cache: dict
-) ->  np.ndarray:
+        cache: Dict[str, Any]
+) ->  Tuple[np.ndarray, Dict[str, Any]]:
     r"""
     Get an edge-level positional encoding from a node-level positional encoding.
      -> For each edge, concatenate the sum and absolute difference of pe of source and destination node.
 
     Parameters:
-        pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
-        cache (dict): Dictionary of cached objects
+        pe [num_nodes, num_feat]: Node-level positional encoding
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        cache: Dictionary of cached objects
     
     Returns:
-        edge_pe (np.ndarray, [2 * num_edges, 2 * num_feat]): Edge-level positional encoding
-        cache (dict): Updated dictionary of cached objects
+        edge_pe [2 * num_edges, 2 * num_feat]: Edge-level positional encoding
+        cache: Updated dictionary of cached objects
     """
 
     if not issparse(adj):
@@ -135,11 +136,11 @@ def node_to_nodepair(
      -> For each nodepair (i,j) concatenate the sum and absolute difference of pe at node i and j.
 
     Parameters:
-        pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
-        num_nodes (int): Number of nodes in the graph
+        pe [num_nodes, num_feat]: Node-level positional encoding
+        num_nodes: Number of nodes in the graph
     
     Returns:
-        nodepair_pe (np.ndarray, [num_nodes, num_nodes, 2 * num_feat]): Nodepair-level positional encoding
+        nodepair_pe [num_nodes, num_nodes, 2 * num_feat]: Nodepair-level positional encoding
     """
     
     expanded_pe = np.expand_dims(pe, axis=1)
@@ -162,11 +163,11 @@ def node_to_graph(
      -> E.g., min/max/mean-pooling of node features.
 
     Parameters:
-        pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
-        num_nodes (int): Number of nodes in the graph
+        pe [num_nodes, num_feat]: Node-level positional encoding
+        num_nodes: Number of nodes in the graph
     
     Returns:
-        graph_pe (np.ndarray, [1, num_feat]): Graph-level positional encoding
+        graph_pe [1, num_feat]: Graph-level positional encoding
     """
 
     raise NotImplementedError("Transfer function (node -> graph) not yet implemented.")
@@ -181,11 +182,11 @@ def edge_to_node(
      -> E.g., min/max/mean-pooling of information from edges (i,j) that contain node i
 
     Parameters:
-        pe (np.ndarray, [num_edges, num_feat]): Edge-level positional encoding
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
+        pe [num_edges, num_feat]: Edge-level positional encoding
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
     
     Returns:
-        node_pe (np.ndarray, [num_edges, num_feat]): Node-level positional encoding
+        node_pe [num_edges, num_feat]: Node-level positional encoding
     """
 
     raise NotImplementedError("Transfer function (edge -> node) not yet implemented.")
@@ -200,11 +201,11 @@ def edge_to_nodepair(
      -> E.g., zero-padding of non-existing edges.
 
     Parameters:
-        pe (np.ndarray, [num_edges, num_feat]): Edge-level positional encoding
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
+        pe [num_edges, num_feat]: Edge-level positional encoding
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
     
     Returns:
-        nodepair_pe (np.ndarray, [num_edges, num_edges, num_feat]): Nodepair-level positional encoding
+        nodepair_pe [num_edges, num_edges, num_feat]: Nodepair-level positional encoding
     """
 
     raise NotImplementedError("Transfer function (edge -> nodepair) not yet implemented.")
@@ -217,10 +218,10 @@ def edge_to_graph(
     Get a graph-level positional encoding from an edge-level positional encoding.
 
     Parameters:
-        pe (np.ndarray, [num_edges, num_feat]): Edge-level positional encoding
+        pe [num_edges, num_feat]: Edge-level positional encoding
     
     Returns:
-        graph_pe (np.ndarray, [1, num_feat]): Graph-level positional encoding
+        graph_pe [1, num_feat]: Graph-level positional encoding
     """
 
     raise NotImplementedError("Transfer function (edge -> graph) not yet implemented.")
@@ -228,21 +229,19 @@ def edge_to_graph(
 
 def nodepair_to_node(
         pe:  np.ndarray,
-        stats_list: list = [np.min, np.mean, np.std]
+        stats_list: List = [np.min, np.mean, np.std]
 ) ->  np.ndarray:
     r"""
     Get a node-level positional encoding from a graph-level positional encoding.
      -> Calculate statistics over rows & cols of input positional encoding
 
     Parameters:
-        pe (np.ndarray, [num_nodes, num_nodes, num_feat]): Nodepair-level positional encoding
-        stats_list (list): List of statistics to calculate per row/col of nodepair-level pe
+        pe [num_nodes, num_nodes, num_feat]: Nodepair-level positional encoding
+        stats_list: List of statistics to calculate per row/col of nodepair-level pe
     
     Returns:
-        node_pe (np.ndarray, [num_nodes, 2 * len(stats_list) * num_feat]): Node-level positional encoding
+        node_pe [num_nodes, 2 * len(stats_list) * num_feat]: Node-level positional encoding
     """
-    # TODO: Support multi-dim. nodepair-level pes (np.ndarray, [num_nodes, num_nodes, num_feat])
-    # Done
 
     num_feat = pe.shape[-1]
 
@@ -260,22 +259,20 @@ def nodepair_to_node(
 def nodepair_to_edge(
         pe: np.ndarray,
         adj: Union[np.ndarray, spmatrix],
-        cache: dict
+        cache: Dict[str, Any]
 ) ->  np.ndarray:
     r"""
     Get a edge-level positional encoding from a nodepair-level positional encoding.
      -> Mask and sparsify nodepair-level positional encoding
 
     Parameters:
-        pe (np.ndarray, [num_nodes, num_nodes, num_feat]): Nodepair-level positional encoding
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
-        cache (dict): Dictionary of cached objects
+        pe [num_nodes, num_nodes, num_feat]: Nodepair-level positional encoding
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        cache: Dictionary of cached objects
     
     Returns:
-        edge_pe (np.ndarray, [num_edges, num_feat]): Edge-level positional encoding
+        edge_pe [num_edges, num_feat]: Edge-level positional encoding
     """
-    # TODO: Support multi-dim. nodepair-level pes (np.ndarray, [num_nodes, num_nodes, num_feat])
-    # Done
 
     num_feat = pe.shape[-1]
     
@@ -305,32 +302,32 @@ def nodepair_to_graph(
      -> E.g., min/max/mean-pooling of entries of input pe
 
     Parameters:
-        pe (np.ndarray, [num_nodes, num_nodes, num_feat]): Nodepair-level positional encoding
-        num_nodes (int): Number of nodes in the graph
+        pe [num_nodes, num_nodes, num_feat]: Nodepair-level positional encoding
+        num_nodes: Number of nodes in the graph
     
     Returns:
-        graph_pe (np.ndarray, [1, num_feat]): Graph-level positional encoding
+        graph_pe [1, num_feat]: Graph-level positional encoding
     """
 
     raise NotImplementedError("Transfer function (nodepair -> graph) not yet implemented.")
 
 
 def graph_to_node(
-        pe:  Union[np.ndarray, list],
+        pe:  Union[np.ndarray, List],
         num_nodes: int,
-        cache: dict
+        cache: Dict[str, Any]
 ) ->  np.ndarray:
     r"""
     Get a node-level positional encoding from a nodepair-level positional encoding.
      -> E.g., expand dimension of graph-level pe
 
     Parameters:
-        pe (np.ndarray, [num_feat]): Nodepair-level positional encoding (or list of them if graph disconnected)
-        num_nodes (int): Number of nodes in the graph
-        cache (dict): Dictionary of cached objects
+        pe [num_feat]: Nodepair-level positional encoding (or list of them if graph disconnected)
+        num_nodes: Number of nodes in the graph
+        cache: Dictionary of cached objects
     
     Returns:
-        node_pe (np.ndarray, [num_nodes, num_feat]): Node-level positional encoding
+        node_pe [num_nodes, num_feat]: Node-level positional encoding
     """
 
     node_pe = None

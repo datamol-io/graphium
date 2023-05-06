@@ -1,5 +1,4 @@
-from typing import Tuple, Union
-
+from typing import Tuple, Union, Dict, Any
 from scipy.linalg import eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix
 import numpy as np
@@ -12,28 +11,28 @@ from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 def compute_laplacian_pe(
         adj: Union[np.ndarray, spmatrix],
         num_pos: int,
-        cache: dict,
+        cache: Dict[str, Any],
         pos_type: str = "laplacian_eigvec" or "laplacian_eigval",
         disconnected_comp: bool = True,
         normalization: str = "none"
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     r"""
     Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.
     
     Parameters:
-        adj (np.ndarray, [num_nodes, num_nodes]): Adjacency matrix of the graph
-        num_pos (int): Number of Laplacian eigenvectors to compute
-        cache (dict): Dictionary of cached objects
-        pos_type (str): Desired output
-        disconnected_comp (bool): Whether to compute the eigenvectors for each connected component
-        normalization (str): Normalization to apply to the Laplacian
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        num_pos: Number of Laplacian eigenvectors to compute
+        cache: Dictionary of cached objects
+        pos_type: Desired output
+        disconnected_comp: Whether to compute the eigenvectors for each connected component
+        normalization: Normalization to apply to the Laplacian
     
     Returns:
         Two possible outputs:
-            eigvals (np.ndarray, [num_pos]): Eigenvalues of the Laplacian
-            eigvecs (np.ndarray, [num_nodes, num_pos]): Eigenvectors of the Laplacian
-        base_level (str): Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
-        cache (dict): Updated dictionary of cached objects
+            eigvals [num_pos]: Eigenvalues of the Laplacian
+            eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian
+        base_level: Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
+        cache: Updated dictionary of cached objects
     """
 
     base_level = 'graph' if pos_type == "laplacian_eigval" else 'node'
@@ -114,8 +113,8 @@ def compute_laplacian_pe(
 
 
 def _get_positional_eigvecs(
-    matrix: Union[np.ndarray, spmatrix],
-    num_pos: int,
+        matrix: Union[np.ndarray, spmatrix],
+        num_pos: int,
 ) -> Tuple[np.ndarray, np.ndarray]:
     r"""
     compute the eigenvalues and eigenvectors of a matrix
@@ -150,9 +149,9 @@ def _get_positional_eigvecs(
 
 
 def normalize_matrix(
-    matrix: Union[np.ndarray, spmatrix],
-    degree_vector=None,
-    normalization: str = None,
+        matrix: Union[np.ndarray, spmatrix],
+        degree_vector=None,
+        normalization: str = None,
 ) -> Union[np.ndarray, spmatrix]:
     r"""
     Normalize a given matrix using its degree vector

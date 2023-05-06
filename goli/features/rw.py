@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Optional
+from typing import Tuple, Union, Optional, List, Dict, Any
 
 from scipy.sparse import issparse, spmatrix, coo_matrix
 import numpy as np
@@ -11,32 +11,32 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 
 def compute_rwse(
             adj: Union[np.ndarray, spmatrix], 
-            ksteps: list[int],
+            ksteps: List[int],
             num_nodes: int,
-            cache: dict,
+            cache: Dict[str, Any],
             pos_type: str = "rw_return_probs" or "rw_transition_probs",
             space_dim: int = 0
-) -> np.ndarray:
+) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     """
     Compute Random Walk Spectral Embedding (RWSE) for given list of K steps.
 
     Parameters:
-        adj (np.ndarray [num_nodes, num_nodes]): Adjacency matrix
-        ksteps (list): List of numbers of steps for the random walks
-        num_nodes (int): Number of nodes in the graph
-        cache (dict): Dictionary of cached objects
-        pos_type (str): Desired output
-        space_dim (int): Estimated dimensionality of the space. Used to
+        adj [num_nodes, num_nodes]: Adjacency matrix
+        ksteps: List of numbers of steps for the random walks
+        num_nodes: Number of nodes in the graph
+        cache: Dictionary of cached objects
+        pos_type: Desired output
+        space_dim: Estimated dimensionality of the space. Used to
             correct the random-walk diagonal by a factor `k^(space_dim/2)`.
             In euclidean space, this correction means that the height of
             the gaussian distribution stays almost constant across the number of
             steps, if `space_dim` is the dimension of the euclidean space.
     Returns:
         Two possible outputs:
-            rw_return_probs (np.ndarray, [num_nodes, len(ksteps)]): Random-Walk k-step landing probabilities
-            rw_transition_probs (np.ndarray, [num_nodes, num_nodes, len(ksteps)]):  Random-Walk k-step transition probabilities
-        base_level [str]: Indicator of the output pos_level (node, edge, nodepair, graph) -> here either node or nodepair
-        cache (dict): Updated dictionary of cached objects
+            rw_return_probs [num_nodes, len(ksteps)]: Random-Walk k-step landing probabilities
+            rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step transition probabilities
+        base_level: Indicator of the output pos_level (node, edge, nodepair, graph) -> here either node or nodepair
+        cache: Updated dictionary of cached objects
     """
 
     base_level = 'node' if pos_type == "rw_return_probs" else 'nodepair'
@@ -104,21 +104,21 @@ def compute_rwse(
 
 
 def get_Pks(
-    ksteps: list,
-    edge_index: Tuple[torch.Tensor, torch.Tensor],
-    edge_weight: Optional[torch.Tensor] = None,
-    num_nodes: Optional[int] = None,
-    start_Pk: Optional[torch.Tensor] = None,
-    start_k: Optional[int] = None
-):
+        ksteps: List[int],
+        edge_index: Tuple[torch.Tensor, torch.Tensor],
+        edge_weight: Optional[torch.Tensor] = None,
+        num_nodes: Optional[int] = None,
+        start_Pk: Optional[torch.Tensor] = None,
+        start_k: Optional[int] = None
+) -> Dict[int, np.ndarray]:
     """
     Compute Random Walk landing probabilities for given list of K steps.
 
     Parameters:
-        ksteps (list): List of numbers of k-steps for which to compute the RW landings
+        ksteps: List of numbers of k-steps for which to compute the RW landings
         edge_index: PyG sparse representation of the graph
         edge_weight: Edge weights
-        num_nodes (int): Number of nodes in the graph
+        num_nodes: Number of nodes in the graph
     
     Returns:
         2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs
