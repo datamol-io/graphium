@@ -180,7 +180,7 @@ class test_MetricWrapper(ut.TestCase):
                                 if isinstance(metric, str):
                                     self.assertIsInstance(state["metric"], str, msg=err_msg)
 
-    def test_classifigression(self):
+    def test_classifigression_target_squeezing(self):
         preds = torch.Tensor([[0.1, 0.1, 0.3, 0.5, 0.0], [0.1, 0.0, 0.7, 0.2, 0.0]])
         target = torch.Tensor([3, 0])
         expected_scores = [0.5, 0.75]
@@ -194,7 +194,8 @@ class test_MetricWrapper(ut.TestCase):
         for metric, kwargs, expected_score in zip(metrics, other_kwargs, expected_scores):
             metric_wrapper = MetricWrapper(
                 metric=metric,
-                multitask_handling="classifigression",
+                threshold_kwargs={"threshold": 0.5, "target_to_int": True, "th_on_preds": False},
+                squeeze_targets=True,
                 **kwargs,
             )
             score = metric_wrapper(preds, target)

@@ -134,6 +134,7 @@ class MetricWrapper:
         threshold_kwargs: Optional[Dict[str, Any]] = None,
         target_nan_mask: Optional[Union[str, int]] = None,
         multitask_handling: Optional[str] = None,
+        squeeze_targets: bool = False,
         **kwargs,
     ):
         r"""
@@ -167,6 +168,10 @@ class MetricWrapper:
                     and average the results over each task
                   *This option might slowdown the computation if there are too many labels*
 
+            squeeze_targets:
+                If true, targets will be squeezed prior to computing the metric.
+                Required in classifigression task.
+
             kwargs:
                 Other arguments to call with the metric
         """
@@ -178,6 +183,7 @@ class MetricWrapper:
 
         self.target_nan_mask = self._parse_target_nan_mask(target_nan_mask)
         self.multitask_handling = self._parse_multitask_handling(multitask_handling, self.target_nan_mask)
+        self.squeeze_targets = squeeze_targets
         self.kwargs = kwargs
 
     @staticmethod
@@ -218,7 +224,7 @@ class MetricWrapper:
         elif isinstance(multitask_handling, str):
             # Only a few str options are accepted
             multitask_handling = multitask_handling.lower()
-            accepted_str = ["flatten", "mean-per-label", "classifigression", "none"]
+            accepted_str = ["flatten", "mean-per-label", "none"]
             assert (
                 multitask_handling in accepted_str
             ), f"Provided {multitask_handling} not in accepted_str={accepted_str}"
@@ -270,11 +276,15 @@ class MetricWrapper:
                 self.target_nan_mask != "ignore"
             ), f"Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`. Use either 'flatten' or 'mean-per-label'"
             preds, target = self._filter_nans(preds, target)
+            if self.squeeze_targets:
+                target = target.squeeze()
             metric_val = self.metric(preds, target, **self.kwargs)
         elif self.multitask_handling == "flatten":
             # Flatten the tensors, apply the nan filtering, then compute the metrics
             preds, target = preds.flatten(), target.flatten()
             preds, target = self._filter_nans(preds, target)
+            if self.squeeze_targets:
+                target = target.squeeze()
             metric_val = self.metric(preds, target, **self.kwargs)
         elif self.multitask_handling == "mean-per-label":
             # Loop the columns (last dim) of the tensors, apply the nan filtering, compute the metrics per column, then average the metrics
@@ -284,15 +294,13 @@ class MetricWrapper:
             for ii in range(len(target_list)):
                 try:
                     this_preds, this_target = self._filter_nans(preds_list[ii], target_list[ii])
+                    if self.squeeze_targets:
+                        this_target = this_target.squeeze()
                     metric_val.append(self.metric(this_preds, this_target, **self.kwargs))
                 except:
                     pass
             # Average the metric
             metric_val = nan_mean(torch.stack(metric_val))
-        elif self.multitask_handling == "classifigression":
-            preds, target = self._filter_nans(preds, target)
-            target = target.squeeze().long()
-            metric_val = self.metric(preds, target, **self.kwargs)
         else:
             # Wrong option
             raise ValueError(f"Invalid option `self.multitask_handling={self.multitask_handling}`")
