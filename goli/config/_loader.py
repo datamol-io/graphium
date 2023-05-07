@@ -23,7 +23,7 @@ from pytorch_lightning.loggers import WandbLogger, Logger
 from goli.utils.mup import set_base_shapes
 from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullGraphMultiTaskNetwork
+from goli.nn.architectures import FullGraphMultiTaskNetwork
 from goli.nn.utils import MupMixin
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
@@ -213,7 +213,7 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
 def load_architecture(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     in_dims: Dict[str, int],
-) -> Union[FullGraphNetwork, torch.nn.Module]:
+) -> Union[FullGraphMultiTaskNetwork, torch.nn.Module]:
     """
     Loading the architecture used for training.
     Parameters:
@@ -231,9 +231,7 @@ def load_architecture(
 
     # Select the architecture
     model_type = cfg_arch["model_type"].lower()
-    if model_type == "fullgraphnetwork":
-        model_class = FullGraphNetwork
-    elif model_type == "fullgraphmultitasknetwork":
+    if model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
@@ -246,7 +244,9 @@ def load_architecture(
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
-    post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
+    graph_output_nn_kwargs = (
+        dict(cfg_arch["graph_output_nn"]) if cfg_arch["graph_output_nn"] is not None else None
+    )
     task_heads_kwargs = (
         cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None
     )  # This is of type ListConfig containing TaskHeadParams
@@ -294,7 +294,7 @@ def load_architecture(
         pre_nn_kwargs=pre_nn_kwargs,
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
-        post_nn_kwargs=post_nn_kwargs,
+        graph_output_nn_kwargs=graph_output_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
         accelerator_kwargs=accelerator_kwargs,
     )

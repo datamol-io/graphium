@@ -7,7 +7,7 @@ def update_configuration(trial, cfg):
     # normalization = trial.suggest_categorical("batch_norm", ["none", "batch_norm", "layer_norm"])
     # cfg["architecture"]["gnn"]["normalization"] = normalization
     # cfg["architecture"]["pre_nn"]["normalization"] = normalization
-    # cfg["architecture"]["post_nn"]["normalization"] = normalization
+    # cfg["architecture"]["graph_output_nn"]["normalization"] = normalization
     # feature_count = embed_dim * 7 #7
     # hidden_neurons = trial.suggest_categorical("hidden_neurons", [[16, 32, 16], [16, 32, 16], [16, 32, 64, 32, 16], [16, 32, 64, 128, 64, 32, 16]]) #[64, 32], [16, 32, 16]
     # bidirectional = trial.suggest_categorical("bidirectional", [True, False]) # True
