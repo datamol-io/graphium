@@ -1,6 +1,7 @@
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
 
 import os
+import glob
 from functools import partial
 import importlib.resources
 import zipfile
@@ -414,15 +415,24 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
-        file_type = self._get_data_file_type(path)
-        if file_type == "parquet":
-            return self._read_parquet(path, **kwargs)
-        elif file_type == "sdf":  # support compressed sdf files
-            return self._read_sdf(path, **kwargs)
-        elif file_type in ["csv", "tsv"]:  # support compressed csv and tsv files
-            return self._read_csv(path, **kwargs)
-        else:
-            raise ValueError(f"unsupported file `{path}`")
+        files = glob.glob(path)
+        if len(files) == 0:
+            raise FileNotFoundError("No such file or directory `{path}`")
+
+        dfs = []
+        for file in sorted(files):
+            file_type = self._get_data_file_type(file)
+            if file_type == "parquet":
+                df = self._read_parquet(file, **kwargs)
+            elif file_type == "sdf":  # support compressed sdf files
+                df = self._read_sdf(file, **kwargs)
+            elif file_type in ["csv", "tsv"]:  # support compressed csv and tsv files
+                df = self._read_csv(file, **kwargs)
+            else:
+                raise ValueError(f"unsupported file `{file}`")
+            dfs.append(df)
+
+        return pd.concat(dfs, ignore_index=True)
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
@@ -677,6 +687,7 @@ class IPUDataModuleModifier:
 
 
 class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
+
     def __init__(
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
@@ -1241,7 +1252,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             the parsed label columns
         """
         if df is None:
-            cols = BaseDataModule._get_table_columns(df_path)
+            files = glob.glob(df_path)
+            if len(files) == 0:
+                raise FileNotFoundError("No such file or directory `{path}`")
+
+            cols = BaseDataModule._get_table_columns(files[0])
+            for file in files[1:]:
+                _cols = BaseDataModule._get_table_columns(file)
+                if (cols != _cols).all():
+                    raise RuntimeError("Multiple data files have different columns!")
         else:
             cols = list(df.columns)
 

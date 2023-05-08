@@ -12,6 +12,7 @@ TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
 
 class Test_DataModule(ut.TestCase):
+
     def test_ogb_datamodule(self):
         # other datasets are too large to be tested
         dataset_names = ["ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv"]
@@ -311,6 +312,17 @@ class Test_DataModule(ut.TestCase):
         np.testing.assert_array_almost_equal(
             labels, true_labels, decimal=5
         )  # Check that the label values are correct
+
+    def test_datamodule_multiple_data_files(self):
+        csv_file = "tests/data/micro_ZINC_shard_*.csv"
+        task_kwargs = {"df_path": csv_file, "split_val": 0.0, "split_test": 0.0}
+        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds.prepare_data()
+        ds.setup()
+
+        self.assertEqual(len(ds.train_ds), 20)
 
 
 if __name__ == "__main__":
