@@ -687,7 +687,6 @@ class IPUDataModuleModifier:
 
 
 class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
-
     def __init__(
         self,
         task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams

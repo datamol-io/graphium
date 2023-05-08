@@ -12,7 +12,6 @@ TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
 
 class Test_DataModule(ut.TestCase):
-
     def test_ogb_datamodule(self):
         # other datasets are too large to be tested
         dataset_names = ["ogbg-molhiv", "ogbg-molpcba", "ogbg-moltox21", "ogbg-molfreesolv"]
