@@ -147,7 +147,7 @@ class MultitaskDataset(Dataset):
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
         load_from_file: bool = False,
-        files_already_ready: bool = False
+        files_already_ready: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -189,7 +189,7 @@ class MultitaskDataset(Dataset):
             self._load_metadata()
             self.features = None
             self.labels = None
-            
+
         else:
             task = next(iter(datasets))
             self.features = None
@@ -213,22 +213,36 @@ class MultitaskDataset(Dataset):
                 self.labels = None
 
     def save_metadata(self, directory: str):
-        '''
+        """
         Save everything other than features/labels
-        '''
-        attrs_to_save = ['mol_ids', 'smiles', 'labels_size', 'dataset_length', 'num_nodes_list', 'num_edges_list']
+        """
+        attrs_to_save = [
+            "mol_ids",
+            "smiles",
+            "labels_size",
+            "dataset_length",
+            "num_nodes_list",
+            "num_edges_list",
+        ]
         attrs = {attr: getattr(self, attr) for attr in attrs_to_save}
 
-        path = os.path.join(directory, 'multitask_metadata.pkl')
+        path = os.path.join(directory, "multitask_metadata.pkl")
 
         torch.save(attrs, path, pickle_protocol=4)
 
     def _load_metadata(self):
-        '''
+        """
         Load everything other than features/labels
-        '''
-        attrs_to_load = ['mol_ids', 'smiles', 'labels_size', 'dataset_length', 'num_nodes_list', 'num_edges_list']
-        path = os.path.join(self.data_path, 'multitask_metadata.pkl')
+        """
+        attrs_to_load = [
+            "mol_ids",
+            "smiles",
+            "labels_size",
+            "dataset_length",
+            "num_nodes_list",
+            "num_edges_list",
+        ]
+        path = os.path.join(self.data_path, "multitask_metadata.pkl")
         attrs = torch.load(path)
 
         for attr, value in attrs.items():

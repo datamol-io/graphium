@@ -1099,7 +1099,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.collate_fn.keywords["labels_size_dict"] = labels_size
 
     def _make_multitask_dataset(
-            self, stage: Literal["train", "val", "test"], save_smiles_and_ids: bool, load_from_file: Optional[bool] = None
+        self,
+        stage: Literal["train", "val", "test"],
+        save_smiles_and_ids: bool,
+        load_from_file: Optional[bool] = None,
     ) -> Datasets.MultitaskDataset:
         """
         Create a MultitaskDataset for the given stage using single task datasets
@@ -1128,10 +1131,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if load_from_file is None:
             load_from_file = self.load_from_file
 
-        #assert singletask_datasets is not None, "Single task datasets must exist to make multitask dataset"
+        # assert singletask_datasets is not None, "Single task datasets must exist to make multitask dataset"
         if singletask_datasets is None:
             assert load_from_file
-            assert self._data_ready_at_path(self._path_to_load_from_file(stage)), "Trying to create multitask dataset without single-task datasets but data not ready"
+            assert self._data_ready_at_path(
+                self._path_to_load_from_file(stage)
+            ), "Trying to create multitask dataset without single-task datasets but data not ready"
             files_already_ready = True
         else:
             files_already_ready = False
@@ -1146,7 +1151,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             save_smiles_and_ids=save_smiles_and_ids,
             data_path=self._path_to_load_from_file(stage) if load_from_file else None,
             load_from_file=load_from_file,
-            files_already_ready=files_already_ready
+            files_already_ready=files_already_ready,
         )  # type: ignore
 
     def _ready_to_load_all_from_file(self) -> bool:
@@ -1186,9 +1191,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # At the moment, we need to merge the `SingleTaskDataset`'s into `MultitaskDataset`s in order to save to file
         #     This is because the combined labels need to be stored together. We can investigate not doing this if this is a problem
         temp_datasets = {
-            stage: self._make_multitask_dataset(
-                stage, save_smiles_and_ids=False, load_from_file=False
-            )
+            stage: self._make_multitask_dataset(stage, save_smiles_and_ids=False, load_from_file=False)
             for stage in stages
         }
 
@@ -1792,12 +1795,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # At the moment, we need to merge the `SingleTaskDataset`'s into `MultitaskDataset`s in order to save label stats
         #     This is because the combined labels need to be stored together. We can investigate not doing this if this is a problem
-        temp_train_dataset = self._make_multitask_dataset(stage='train', save_smiles_and_ids=False, load_from_file=False)
-
-        self.get_label_statistics(
-            self.cache_data_path, self.data_hash, temp_train_dataset, train=True
+        temp_train_dataset = self._make_multitask_dataset(
+            stage="train", save_smiles_and_ids=False, load_from_file=False
         )
 
+        self.get_label_statistics(self.cache_data_path, self.data_hash, temp_train_dataset, train=True)
 
     def load_data_from_cache(self, verbose: bool = True, compress: bool = False) -> bool:
         """
