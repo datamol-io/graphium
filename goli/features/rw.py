@@ -1,4 +1,4 @@
-from typing import Tuple, Union, Optional, List, Dict, Any
+from typing import Tuple, Union, Optional, List, Dict, Any, Iterable
 
 from scipy.sparse import issparse, spmatrix, coo_matrix
 import numpy as np
@@ -10,8 +10,8 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 
 
 def compute_rwse(
-            adj: Union[np.ndarray, spmatrix], 
-            ksteps: List[int],
+            adj: Union[np.ndarray, spmatrix],
+            ksteps: Union[int, List[int]],
             num_nodes: int,
             cache: Dict[str, Any],
             pos_type: str = "rw_return_probs" or "rw_transition_probs",
@@ -22,7 +22,7 @@ def compute_rwse(
 
     Parameters:
         adj [num_nodes, num_nodes]: Adjacency matrix
-        ksteps: List of numbers of steps for the random walks
+        ksteps: List of numbers of steps for the random walks. If int, a list is generated from 1 to ksteps.
         num_nodes: Number of nodes in the graph
         cache: Dictionary of cached objects
         pos_type: Desired output
@@ -42,6 +42,8 @@ def compute_rwse(
     base_level = 'node' if pos_type == "rw_return_probs" else 'nodepair'
 
     # Manually handles edge case of 1 atom molecules here
+    if not isinstance(ksteps, Iterable):
+        ksteps = list(range(1, ksteps + 1))
     if num_nodes == 1:
         if pos_type == "rw_return_probs":
             return np.ones((1, len(ksteps))), base_level, cache
@@ -57,7 +59,7 @@ def compute_rwse(
         else:
             adj = coo_matrix(adj, dtype=np.float64)
             cache['coo_adj'] = adj
-    
+
     edge_index, edge_weight = from_scipy_sparse_matrix(adj)
 
     # Compute the random-walk transition probabilities
@@ -66,7 +68,7 @@ def compute_rwse(
         missing_k = [k for k in ksteps if k not in cached_k]
         if missing_k == []:
             pass
-        elif min(missing_k) <  min(cached_k):      
+        elif min(missing_k) <  min(cached_k):
             Pk_dict = get_Pks(
                 missing_k, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes
             )
@@ -86,7 +88,7 @@ def compute_rwse(
         Pk_dict = get_Pks(
             ksteps, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes
         )
-    
+
         cache['ksteps'] = list(Pk_dict.keys())
         cache['Pk'] = Pk_dict
 
@@ -119,7 +121,7 @@ def get_Pks(
         edge_index: PyG sparse representation of the graph
         edge_weight: Edge weights
         num_nodes: Number of nodes in the graph
-    
+
     Returns:
         2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs
     """

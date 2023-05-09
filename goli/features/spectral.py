@@ -18,7 +18,7 @@ def compute_laplacian_pe(
 ) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     r"""
     Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.
-    
+
     Parameters:
         adj [num_nodes, num_nodes]: Adjacency matrix of the graph
         num_pos: Number of Laplacian eigenvectors to compute
@@ -26,7 +26,7 @@ def compute_laplacian_pe(
         pos_type: Desired output
         disconnected_comp: Whether to compute the eigenvectors for each connected component
         normalization: Normalization to apply to the Laplacian
-    
+
     Returns:
         Two possible outputs:
             eigvals [num_pos]: Eigenvalues of the Laplacian
@@ -63,7 +63,7 @@ def compute_laplacian_pe(
             # Get the list of connected components
             components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
             cache['components'] = components
-        
+
         else:
             components = cache['components']
 
@@ -81,14 +81,14 @@ def compute_laplacian_pe(
                 # Any NaN in the eigvals or eigvecs will be set to 0
                 this_eigvecs[~np.isfinite(this_eigvecs)] = 0.0
                 this_eigvals[~np.isfinite(this_eigvals)] = 0.0
-            
+
                 eigvals.append(this_eigvals)
                 eigvecs.append(this_eigvecs)
             cache['lap_eig_comp'] = (eigvals, eigvecs)
 
         else:
             eigvals, eigvecs = cache['lap_eig_comp']
-    
+
     else:
 
         if 'lap_eig' not in cache:
@@ -104,12 +104,7 @@ def compute_laplacian_pe(
         else:
             eigvals, eigvecs = cache['lap_eig']
 
-
-    if pos_type == "laplacian_eigval":
-        return eigvals, base_level, cache
-    
-    else:
-        return eigvecs, base_level, cache
+    return eigvecs, eigvals, base_level, cache
 
 
 def _get_positional_eigvecs(

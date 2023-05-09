@@ -6,15 +6,15 @@ import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.spectral import compute_laplacian_positional_eigvecs
-from goli.features.rw import compute_rwse
+# from goli.features.spectral import compute_laplacian_positional_eigvecs # TODO: add tests
+# from goli.features.rw import compute_rwse # TODO: add tests
 from goli.features.electrostatic import compute_electrostatic_interactions
 from goli.features.commute import compute_commute_distances
 from goli.features.graphormer import compute_graphormer_distances
 
 
 class test_positional_encodings(ut.TestCase):
-    
+
     # Test graphs
     adj_dict = {}
     max_dict = {}

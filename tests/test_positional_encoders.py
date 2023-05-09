@@ -36,13 +36,14 @@ class test_positional_encoder(ut.TestCase):
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
                     # returns a dictionary of computed pe
-                    pos_encoding_as_features = {
+                    pos_kwargs = {
                         "pos_type": "laplacian_eigvec",
                         "num_pos": num_pos,
                         "disconnected_comp": disconnected_comp,
+                        "pos_level": "node",
                     }
                     num_nodes = adj.shape[0]
-                    pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
+                    pe_dict = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
                     pos_enc_sign_flip = pe_dict["eigvecs"]
                     pos_enc_no_flip = pe_dict["eigvals"]
 
@@ -76,13 +77,14 @@ class test_positional_encoder(ut.TestCase):
                     err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
                     # returns a dictionary of computed pe
-                    pos_encoding_as_features = {
+                    pos_kwargs = {
                         "pos_type": "laplacian_eigvec_eigval",
                         "num_pos": num_pos,
                         "disconnected_comp": disconnected_comp,
+                        "pos_level": "node",
                     }
                     num_nodes = adj.shape[0]
-                    pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
+                    pe_dict = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
                     pos_enc_sign_flip = pe_dict["eigvecs"]
                     pos_enc_no_flip = pe_dict["eigvals"]
 
@@ -116,9 +118,8 @@ class test_positional_encoder(ut.TestCase):
                 err_msg = f"adj_id={ii}, ksteps={ksteps}"
 
                 num_nodes = adj.shape[0]
-                pos_encoding_as_features = {"pos_type": "rwse", "ksteps": ksteps}
-                pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
-                rwse_embed = pe_dict["rwse"]
+                pos_kwargs = {"pos_type": "rw_return_probs", "ksteps": ksteps, "pos_level": "node"}
+                rwse_embed, cache = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
                 self.assertEqual(list(rwse_embed.shape), [num_nodes, ksteps], msg=err_msg)
 
     # TODO: work in progress
@@ -136,31 +137,30 @@ class test_positional_encoder(ut.TestCase):
                         err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
 
                         # returns a dictionary of computed pe
-                        pos_encoding_as_features = {
-                            "pos_type": "laplacian_eigvec_eigval",
+                        pos_kwargs = {
+                            "pos_type": "laplacian_eigvec",
                             "num_pos": num_pos,
                             "disconnected_comp": disconnected_comp,
+                            "pos_level": "node",
                         }
                         num_nodes = adj.shape[0]
-                        pe_dict = graph_positional_encoder(adj, num_nodes, pos_encoding_as_features)
+                        eigvecs, cache = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
+                        pos_kwargs["pos_type"] = "laplacian_eigval"
+                        eigvals, cache = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
 
-                        input_keys = ["eigvecs", "eigvals"]
+                        input_keys = ["laplacian_eigvec", "laplacian_eigval"]
                         in_dim = num_pos
                         hidden_dim = 64
                         out_dim = 64
                         num_layers = 1
 
-                        pos_enc_sign_flip = torch.from_numpy(pe_dict["eigvecs"])
+                        eigvecs = torch.from_numpy(eigvecs)
+                        eigvals = torch.from_numpy(eigvals)
 
-                        pos_enc_no_flip = torch.from_numpy(pe_dict["eigvals"])
-
-                        eigvecs = pos_enc_sign_flip
-                        eigvals = pos_enc_no_flip
                         g = GraphDict(
                             {
                                 "adj": coo_matrix(adj),
-                                "ndata": {"eigvals": eigvals, "eigvecs": eigvecs},
-                                "edata": {},
+                                "data": {"laplacian_eigval": eigvals, "laplacian_eigvec": eigvecs},
                             }
                         )
                         batch = g.make_pyg_graph()
