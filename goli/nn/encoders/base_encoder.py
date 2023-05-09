@@ -18,7 +18,7 @@ class BaseEncoder(torch.nn.Module, MupMixin):
         num_layers: int,
         activation: Union[str, Callable] = "relu",
         first_normalization=None,
-        use_input_keys_prefix: bool = True,             # TODO: might be redundant along with parse_input_keys_with_prefix function
+        use_input_keys_prefix: bool = True,  # TODO: might be redundant along with parse_input_keys_with_prefix function
     ):
         r"""
         Base class for all positional and structural encoders.

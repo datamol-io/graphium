@@ -85,7 +85,7 @@ class EncoderManager(nn.Module):
         for encoder_name, encoder_kwargs in pe_encoders_kwargs["encoders"].items():
             encoder_kwargs = deepcopy(encoder_kwargs)
             encoder_type = encoder_kwargs.pop("encoder_type")
-            output_keys = encoder_kwargs['output_keys']
+            output_keys = encoder_kwargs["output_keys"]
             encoder = PE_ENCODERS_DICT[encoder_type]
 
             # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name/`
@@ -134,7 +134,7 @@ class EncoderManager(nn.Module):
                 if pe_out_dim2 is not None:
                     assert edge_pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
                 pe_encoders[encoder_name] = encoder(out_dim=edge_pe_out_dim, **this_in_dims, **encoder_kwargs)
-        
+
         return pe_encoders
 
     def forward(self, g: Batch) -> Batch:

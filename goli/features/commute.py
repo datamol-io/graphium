@@ -7,14 +7,12 @@ from scipy.linalg import pinv
 
 
 def compute_commute_distances(
-        adj: Union[np.ndarray, spmatrix],
-        num_nodes: int,
-        cache: Dict[str, Any]
+    adj: Union[np.ndarray, spmatrix], num_nodes: int, cache: Dict[str, Any]
 ) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     """
     Compute avg. commute time/distance between nodepairs. This is the avg. number of steps a random walker, starting
     at node i, will take before reaching a given node j for the first time, and then return to node i.
-    
+
     Reference: Saerens et al. "The principal components analysis of a graph, and its relationships to spectral clustering." ECML. 2004.
 
     Parameters:
@@ -27,26 +25,31 @@ def compute_commute_distances(
         cache: Updated dictionary of cached objects
     """
 
-    base_level = 'nodepair'
+    base_level = "nodepair"
 
-    if 'commute' in cache:
-        dist = cache['commute']
+    if "commute" in cache:
+        dist = cache["commute"]
 
-    else: 
+    else:
         if issparse(adj):
             adj = adj.toarray()
 
         volG = adj.sum()
 
-        if 'pinvL' in cache:
-            pinvL = cache['pinvL']
-        
+        if "pinvL" in cache:
+            pinvL = cache["pinvL"]
+
         else:
             L = np.diagflat(np.sum(adj, axis=1)) - adj
             pinvL = pinv(L)
-            cache['pinvL'] = pinvL
+            cache["pinvL"] = pinvL
 
-        dist = volG * np.asarray([[pinvL[i,i] + pinvL[j,j] - 2*pinvL[i,j] for j in range(num_nodes)] for i in range(num_nodes)])
-        cache['commute'] = dist
-    
+        dist = volG * np.asarray(
+            [
+                [pinvL[i, i] + pinvL[j, j] - 2 * pinvL[i, j] for j in range(num_nodes)]
+                for i in range(num_nodes)
+            ]
+        )
+        cache["commute"] = dist
+
     return dist, base_level, cache

@@ -10,12 +10,12 @@ from torch_geometric.utils.num_nodes import maybe_num_nodes
 
 
 def compute_rwse(
-            adj: Union[np.ndarray, spmatrix],
-            ksteps: Union[int, List[int]],
-            num_nodes: int,
-            cache: Dict[str, Any],
-            pos_type: str = "rw_return_probs" or "rw_transition_probs",
-            space_dim: int = 0
+    adj: Union[np.ndarray, spmatrix],
+    ksteps: Union[int, List[int]],
+    num_nodes: int,
+    cache: Dict[str, Any],
+    pos_type: str = "rw_return_probs" or "rw_transition_probs",
+    space_dim: int = 0,
 ) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     """
     Compute Random Walk Spectral Embedding (RWSE) for given list of K steps.
@@ -39,7 +39,7 @@ def compute_rwse(
         cache: Updated dictionary of cached objects
     """
 
-    base_level = 'node' if pos_type == "rw_return_probs" else 'nodepair'
+    base_level = "node" if pos_type == "rw_return_probs" else "nodepair"
 
     # Manually handles edge case of 1 atom molecules here
     if not isinstance(ksteps, Iterable):
@@ -52,53 +52,54 @@ def compute_rwse(
 
     # Get the edge indices from the adjacency matrix
     if not issparse(adj):
-        if 'coo_adj' in cache:
-            adj = cache['coo_adj']
-        elif 'csr_adj' in cache:
-            adj = cache['csr_adj']
+        if "coo_adj" in cache:
+            adj = cache["coo_adj"]
+        elif "csr_adj" in cache:
+            adj = cache["csr_adj"]
         else:
             adj = coo_matrix(adj, dtype=np.float64)
-            cache['coo_adj'] = adj
+            cache["coo_adj"] = adj
 
     edge_index, edge_weight = from_scipy_sparse_matrix(adj)
 
     # Compute the random-walk transition probabilities
-    if 'ksteps' in cache:
-        cached_k = cache['ksteps']
+    if "ksteps" in cache:
+        cached_k = cache["ksteps"]
         missing_k = [k for k in ksteps if k not in cached_k]
         if missing_k == []:
             pass
-        elif min(missing_k) <  min(cached_k):
-            Pk_dict = get_Pks(
-                missing_k, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes
-            )
-            cache['ksteps'] = sorted(missing_k + cache['ksteps'])
+        elif min(missing_k) < min(cached_k):
+            Pk_dict = get_Pks(missing_k, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes)
+            cache["ksteps"] = sorted(missing_k + cache["ksteps"])
             for k in missing_k:
-                cache['Pk'][k] = Pk_dict[k]
+                cache["Pk"][k] = Pk_dict[k]
         else:
             start_k = min([max(cached_k), min(missing_k)])
-            start_Pk = cache['Pk'][start_k]
+            start_Pk = cache["Pk"][start_k]
             Pk_dict = get_Pks(
-                missing_k, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes, start_Pk=start_Pk, start_k=start_k
+                missing_k,
+                edge_index=edge_index,
+                edge_weight=edge_weight,
+                num_nodes=num_nodes,
+                start_Pk=start_Pk,
+                start_k=start_k,
             )
-            cache['ksteps'] = sorted(cache['ksteps'] + missing_k)
+            cache["ksteps"] = sorted(cache["ksteps"] + missing_k)
             for k in missing_k:
-                cache['Pk'][k] = Pk_dict[k]
+                cache["Pk"][k] = Pk_dict[k]
     else:
-        Pk_dict = get_Pks(
-            ksteps, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes
-        )
+        Pk_dict = get_Pks(ksteps, edge_index=edge_index, edge_weight=edge_weight, num_nodes=num_nodes)
 
-        cache['ksteps'] = list(Pk_dict.keys())
-        cache['Pk'] = Pk_dict
+        cache["ksteps"] = list(Pk_dict.keys())
+        cache["Pk"] = Pk_dict
 
     pe_list = []
     if pos_type == "rw_return_probs":
         for k in ksteps:
-            pe_list.append(torch.diagonal(cache['Pk'][k], dim1=-2, dim2=-1) * (k ** (space_dim / 2)))
+            pe_list.append(torch.diagonal(cache["Pk"][k], dim1=-2, dim2=-1) * (k ** (space_dim / 2)))
     else:
         for k in ksteps:
-            pe_list.append(cache['Pk'][k])
+            pe_list.append(cache["Pk"][k])
 
     pe = torch.stack(pe_list, dim=-1).numpy()
 
@@ -106,12 +107,12 @@ def compute_rwse(
 
 
 def get_Pks(
-        ksteps: List[int],
-        edge_index: Tuple[torch.Tensor, torch.Tensor],
-        edge_weight: Optional[torch.Tensor] = None,
-        num_nodes: Optional[int] = None,
-        start_Pk: Optional[torch.Tensor] = None,
-        start_k: Optional[int] = None
+    ksteps: List[int],
+    edge_index: Tuple[torch.Tensor, torch.Tensor],
+    edge_weight: Optional[torch.Tensor] = None,
+    num_nodes: Optional[int] = None,
+    start_Pk: Optional[torch.Tensor] = None,
+    start_k: Optional[int] = None,
 ) -> Dict[int, np.ndarray]:
     """
     Compute Random Walk landing probabilities for given list of K steps.

@@ -251,7 +251,7 @@ class CatMLPEncoder(BaseEncoder):
         Returns:
             parsed output_keys
         """
-        
+
         return output_keys
 
     def forward(
@@ -271,7 +271,9 @@ class CatMLPEncoder(BaseEncoder):
         # input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
         # Concatenate selected pes
-        input = torch.cat([batch[input_key] for input_key in self.input_keys], dim=-1)  # [num_nodes/num_edges, sum(in_dims)]
+        input = torch.cat(
+            [batch[input_key] for input_key in self.input_keys], dim=-1
+        )  # [num_nodes/num_edges, sum(in_dims)]
 
         output = {}
         for output_key in self.output_keys:

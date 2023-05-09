@@ -10,16 +10,14 @@ from goli.features.spectral import compute_laplacian_pe
 
 
 class test_pe_spectral(ut.TestCase):
-
     # 2 disconnected 3 cliques
-    adj1 = np.zeros((6,6))
+    adj1 = np.zeros((6, 6))
     adj_3clq = 1 - np.eye(3)
-    adj1[:3,:3] = adj_3clq
-    adj1[3:,3:] = adj_3clq
+    adj1[:3, :3] = adj_3clq
+    adj1[3:, 3:] = adj_3clq
 
     # 3-clique
     adj2 = 1 - np.eye(3)
-
 
     def test_for_connected_vs_disconnected_graph(self):
         num_pos = 3
@@ -31,7 +29,7 @@ class test_pe_spectral(ut.TestCase):
 
         # We expect to cache 4 objects in when running the functon for the first time
         self.assertEqual(len(cache.keys()), 4)
-        
+
         graph_pe2, _, _ = compute_laplacian_pe(self.adj2, num_pos, cache={}, pos_type="laplacian_eigval")
         node_pe2, _, _ = compute_laplacian_pe(self.adj2, num_pos, cache={}, pos_type="laplacian_eigvec")
         graph_pe2 = np.real(graph_pe2).astype(np.float32)

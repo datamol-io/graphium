@@ -6,17 +6,20 @@ import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.positional_encoding import node_to_edge, node_to_nodepair, nodepair_to_node, nodepair_to_edge
+from goli.features.positional_encoding import (
+    node_to_edge,
+    node_to_nodepair,
+    nodepair_to_node,
+    nodepair_to_edge,
+)
 
 
 class test_positional_encodings(ut.TestCase):
-
     # 4-barbell
     H = nx.barbell_graph(4, 0)
     adj = nx.to_numpy_array(H)
     num_nodes, num_feat = 8, 5
     node_pe = np.random.rand(num_nodes, num_feat)
-
 
     def test_dimensions(self):
         edge_pe1 = node_to_edge(self.node_pe, self.adj)

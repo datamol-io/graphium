@@ -9,12 +9,12 @@ from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
 def compute_laplacian_pe(
-        adj: Union[np.ndarray, spmatrix],
-        num_pos: int,
-        cache: Dict[str, Any],
-        pos_type: str = "laplacian_eigvec" or "laplacian_eigval",
-        disconnected_comp: bool = True,
-        normalization: str = "none"
+    adj: Union[np.ndarray, spmatrix],
+    num_pos: int,
+    cache: Dict[str, Any],
+    pos_type: str = "laplacian_eigvec" or "laplacian_eigval",
+    disconnected_comp: bool = True,
+    normalization: str = "none",
 ) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     r"""
     Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.
@@ -35,42 +35,40 @@ def compute_laplacian_pe(
         cache: Updated dictionary of cached objects
     """
 
-    base_level = 'graph' if pos_type == "laplacian_eigval" else 'node'
+    base_level = "graph" if pos_type == "laplacian_eigval" else "node"
 
     # Sparsify the adjacency patrix
     if not issparse(adj):
-        if 'csr_adj' not in cache:
+        if "csr_adj" not in cache:
             adj = csr_matrix(adj, dtype=np.float64)
-            cache['csr_adj'] = adj
+            cache["csr_adj"] = adj
         else:
-            adj = cache['csr_adj']
+            adj = cache["csr_adj"]
 
     # Compute tha Laplacian, and normalize it
-    if f'L_{normalization}_sp' not in cache:
+    if f"L_{normalization}_sp" not in cache:
         D = np.array(np.sum(adj, axis=1)).flatten()
         D_mat = diags(D)
         L = -adj + D_mat
         L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
-        cache[f'L_{normalization}_sp'] = L_norm
+        cache[f"L_{normalization}_sp"] = L_norm
     else:
-        L_norm = cache[f'L_{normalization}_sp']
+        L_norm = cache[f"L_{normalization}_sp"]
 
     components = []
 
     if disconnected_comp:
-
-        if 'components' not in cache:
+        if "components" not in cache:
             # Get the list of connected components
             components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
-            cache['components'] = components
+            cache["components"] = components
 
         else:
-            components = cache['components']
+            components = cache["components"]
 
     # Compute the eigenvectors for each connected component, and stack them together
     if len(components) > 1:
-
-        if 'lap_eig_comp' not in cache:
+        if "lap_eig_comp" not in cache:
             eigvals, eigvecs = [], []
             for component in components:
                 comp = list(component)
@@ -84,14 +82,13 @@ def compute_laplacian_pe(
 
                 eigvals.append(this_eigvals)
                 eigvecs.append(this_eigvecs)
-            cache['lap_eig_comp'] = (eigvals, eigvecs)
+            cache["lap_eig_comp"] = (eigvals, eigvecs)
 
         else:
-            eigvals, eigvecs = cache['lap_eig_comp']
+            eigvals, eigvecs = cache["lap_eig_comp"]
 
     else:
-
-        if 'lap_eig' not in cache:
+        if "lap_eig" not in cache:
             eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
 
             # Eigenvalues previously set to infinity are now set to 0
@@ -99,17 +96,17 @@ def compute_laplacian_pe(
             eigvecs[~np.isfinite(eigvecs)] = 0.0
             eigvals[~np.isfinite(eigvals)] = 0.0
 
-            cache['lap_eig'] = (eigvals, eigvecs)
+            cache["lap_eig"] = (eigvals, eigvecs)
 
         else:
-            eigvals, eigvecs = cache['lap_eig']
+            eigvals, eigvecs = cache["lap_eig"]
 
     return eigvecs, eigvals, base_level, cache
 
 
 def _get_positional_eigvecs(
-        matrix: Union[np.ndarray, spmatrix],
-        num_pos: int,
+    matrix: Union[np.ndarray, spmatrix],
+    num_pos: int,
 ) -> Tuple[np.ndarray, np.ndarray]:
     r"""
     compute the eigenvalues and eigenvectors of a matrix
@@ -144,9 +141,9 @@ def _get_positional_eigvecs(
 
 
 def normalize_matrix(
-        matrix: Union[np.ndarray, spmatrix],
-        degree_vector=None,
-        normalization: str = None,
+    matrix: Union[np.ndarray, spmatrix],
+    degree_vector=None,
+    normalization: str = None,
 ) -> Union[np.ndarray, spmatrix]:
     r"""
     Normalize a given matrix using its degree vector

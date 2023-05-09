@@ -7,8 +7,7 @@ from scipy.sparse import spmatrix, issparse
 
 
 def compute_electrostatic_interactions(
-        adj: Union[np.ndarray, spmatrix],
-        cache: Dict[str, Any]
+    adj: Union[np.ndarray, spmatrix], cache: Dict[str, Any]
 ) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     """
     Compute electrostatic interaction of nodepairs.
@@ -22,24 +21,24 @@ def compute_electrostatic_interactions(
         cache: Updated dictionary of cached objects
     """
 
-    base_level = 'nodepair'
+    base_level = "nodepair"
 
-    if 'electrostatic' in cache:
-        electrostatic = cache['electrostatic']
-    
-    else:      
-        if 'pinvL' in cache:
-            pinvL = cache['pinvL']
-        
+    if "electrostatic" in cache:
+        electrostatic = cache["electrostatic"]
+
+    else:
+        if "pinvL" in cache:
+            pinvL = cache["pinvL"]
+
         else:
             if issparse(adj):
                 adj = adj.toarray()
 
             L = np.diagflat(np.sum(adj, axis=1)) - adj
             pinvL = pinv(L)
-            cache['pinvL'] = pinvL
-    
-        electrostatic = pinvL - np.diag(pinvL) # This means that the "ground" is set to any given atom
-        cache['electrostatic'] = electrostatic
+            cache["pinvL"] = pinvL
+
+        electrostatic = pinvL - np.diag(pinvL)  # This means that the "ground" is set to any given atom
+        cache["electrostatic"] = electrostatic
 
     return electrostatic, base_level, cache
