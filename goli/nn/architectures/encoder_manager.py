@@ -77,8 +77,8 @@ class EncoderManager(nn.Module):
 
         # Pooling options here for pe encoders
         self.pe_pool = pe_encoders_kwargs["pool"]
-        pe_out_dim = pe_encoders_kwargs["out_dim"]
-        edge_pe_out_dim = pe_encoders_kwargs["edge_out_dim"]
+        pe_out_dim = pe_encoders_kwargs.get("out_dim", None)
+        edge_pe_out_dim = pe_encoders_kwargs.get("edge_out_dim", None)
         in_dim_dict = pe_encoders_kwargs["in_dims"]
 
         # Loop every positional encoding to assign it
