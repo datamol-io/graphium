@@ -39,8 +39,7 @@ def get_accelerator(
 ) -> str:
     """
     Get the accelerator from the config file, and ensure that they are
-    consistant. For example, specifying `cpu` as the accelerators, but
-    `gpus>0` as a Trainer option will yield an error.
+    consistant.
     """
 
     # Get the accelerator type
@@ -52,20 +51,11 @@ def get_accelerator(
         acc_type = acc_type.lower()
 
     # Get the GPU info
-    gpus = config["trainer"]["trainer"].get("gpus", 0)
-    if gpus > 0:
-        assert (acc_type is None) or (acc_type == "gpu"), "Accelerator mismatch"
-        acc_type = "gpu"
-
     if (acc_type == "gpu") and (not torch.cuda.is_available()):
         logger.warning(f"GPUs selected, but will be ignored since no GPU are available on this device")
         acc_type = "cpu"
 
     # Get the IPU info
-    ipus = config["trainer"]["trainer"].get("ipus", 0)
-    if ipus > 0:
-        assert (acc_type is None) or (acc_type == "ipu"), "Accelerator mismatch"
-        acc_type = "ipu"
     if acc_type == "ipu":
         poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
@@ -406,18 +396,10 @@ def load_trainer(
 
         strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
-    # Set the number of gpus to 0 if no GPU is available
-    _ = cfg_trainer["trainer"].pop("accelerator", None)
-    gpus = cfg_trainer["trainer"].pop("gpus", None)
-    ipus = cfg_trainer["trainer"].pop("ipus", None)
-    if (accelerator == "gpu") and (gpus is None):
-        gpus = 1
-    if (accelerator == "ipu") and (ipus is None):
-        ipus = 1
-    if accelerator != "gpu":
-        gpus = 0
-    if accelerator != "ipu":
-        ipus = 0
+    # Get devices
+    devices = cfg_trainer["trainer"].pop('devices', 1)
+    if accelerator == "ipu":
+        devices = 1 # number of IPUs used is defined in the ipu options files
 
     # Remove the gradient accumulation from IPUs, since it's handled by the device
     if accelerator == "ipu":
@@ -447,8 +429,7 @@ def load_trainer(
         detect_anomaly=True,
         strategy=strategy,
         accelerator=accelerator,
-        ipus=ipus,
-        gpus=gpus,
+        devices=devices,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
