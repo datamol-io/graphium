@@ -820,7 +820,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         self.load_from_file = processed_graph_data_path is not None
 
-        print("Initializing task_norms")
         self.task_norms = {}
 
         if featurization is None:
@@ -902,7 +901,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 task_df[task] = args.df
             task_df[task] = task_df[task]
             args.label_cols = label_cols
-            print("Setting task_norms in prepare_data")
             self.task_norms[task] = label_normalization
         logger.info("Done reading datasets")
 
@@ -1217,26 +1215,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # if self.task_norms was obtained from prepare_data step and
         # this is training dataset split and the hash specific task_norms.pkl
         # file does not exist, we recalculate the label statistics.
-        print("In get_label_statistics")
-        print(f"{self.task_norms = }")
-        print(f"{train = }")
-        print(f"{filename = }")
-        print(f"{os.path.isfile(filename) = }")
         if self.task_norms and train and not os.path.isfile(filename):
-            print("Saving task norms")
             for task in dataset[0]["labels"].keys():
                 labels = np.stack(np.array([datum["labels"][task] for datum in dataset]), axis=0)
                 self.task_norms[task].calculate_statistics(labels)
             torch.save(self.task_norms, filename, pickle_protocol=4)
         # if any of the above three condition does not satisfy, we load from file.
         else:
-            print("Loading task norms")
             self.task_norms = torch.load(filename)
 
     def normalize_label(self, dataset):
         for task in dataset[0]["labels"].keys():
             for i in range(len(dataset)):
-                print("Normalizing labels")
                 normalized_label = self.task_norms[task].normalize(dataset[i]["labels"][task])
                 dataset[i]["labels"][task] = normalized_label
         return dataset
