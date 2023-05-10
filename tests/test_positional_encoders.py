@@ -62,7 +62,10 @@ class test_positional_encoder(ut.TestCase):
 
                     if not ("." in self.smiles[ii]):
                         np.testing.assert_array_almost_equal(
-                            np.abs(true_eigvecs), np.abs(eigvecs[:, :true_num_pos]), decimal=6, err_msg=err_msg
+                            np.abs(true_eigvecs),
+                            np.abs(eigvecs[:, :true_num_pos]),
+                            decimal=6,
+                            err_msg=err_msg,
                         )
                         self.assertAlmostEqual(np.sum(true_eigvecs[:, 1:]), 0, places=6, msg=err_msg)
                         np.testing.assert_array_almost_equal(
