@@ -2,9 +2,9 @@ from typing import Dict, Any, Optional, Callable, Union, Type, Tuple, Iterable
 
 from torch_geometric.data import Batch
 from torch import Tensor
-from pytorch_lightning.strategies import IPUStrategy
-from pytorch_lightning.utilities.types import STEP_OUTPUT
-from pytorch_lightning.trainer.states import RunningStage
+from lightning_graphcore import IPUStrategy
+from lightning.pytorch.utilities.types import STEP_OUTPUT
+from lightning.pytorch.trainer.states import RunningStage
 
 from goli.trainer.predictor import PredictorModule
 from goli.ipu.ipu_utils import import_poptorch
