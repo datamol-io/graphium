@@ -855,14 +855,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             return
 
         if self.load_from_file:
-
             if self._ready_to_load_all_from_file():
                 self.get_label_statistics(self.processed_graph_data_path, self.data_hash, dataset=None)
                 self._data_is_prepared = True
                 return
 
         else:
-
             # If a path for data caching is provided, try to load from the path.
             # If successful, skip the data preparation.
             # For next task: load the single graph files for train, val and test data
@@ -1179,7 +1177,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         return can_load_from_file
 
     def _save_data_to_files(self) -> None:
-
         """
         Save data to files so that they can be loaded from file during training/validation/test
         """
