@@ -6,7 +6,7 @@ import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.positional_encoding import (
+from goli.features.transfer_pos_level import (
     node_to_edge,
     node_to_nodepair,
     nodepair_to_node,
@@ -22,7 +22,7 @@ class test_positional_encodings(ut.TestCase):
     node_pe = np.random.rand(num_nodes, num_feat)
 
     def test_dimensions(self):
-        edge_pe1 = node_to_edge(self.node_pe, self.adj)
+        edge_pe1, cache = node_to_edge(self.node_pe, self.adj)
         nodepair_pe = node_to_nodepair(self.node_pe, self.num_nodes)
         feat_list = []
         for dim in range(nodepair_pe.shape[-1]):

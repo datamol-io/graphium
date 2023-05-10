@@ -45,7 +45,7 @@ def compute_laplacian_pe(
         else:
             adj = cache["csr_adj"]
 
-    # Compute tha Laplacian, and normalize it
+    # Compute the Laplacian, and normalize it
     if f"L_{normalization}_sp" not in cache:
         D = np.array(np.sum(adj, axis=1)).flatten()
         D_mat = diags(D)

@@ -1,4 +1,4 @@
-from typing import Tuple, Union, List, Dict, Any
+from typing import Tuple, Union, List, Dict, Any, Optional
 
 import numpy as np
 
@@ -13,7 +13,7 @@ def transfer_pos_level(
     out_level: str,
     adj: Union[np.ndarray, spmatrix],
     num_nodes: int,
-    cache: Dict[str, Any],
+    cache: Optional[Dict[str, Any]] = None,
 ) -> np.ndarray:
     r"""
     Transfer positional encoding between different positional levels (node, edge, nodepair, graph)
@@ -29,6 +29,9 @@ def transfer_pos_level(
     Returns:
         pe: Output pe with pos_level defined by out_level
     """
+
+    if cache is None:
+        cache = {}
 
     if in_level == "node":
         if out_level == "node":
@@ -92,7 +95,7 @@ def transfer_pos_level(
 
 
 def node_to_edge(
-    pe: np.ndarray, adj: Union[np.ndarray, spmatrix], cache: Dict[str, Any]
+    pe: np.ndarray, adj: Union[np.ndarray, spmatrix], cache: Optional[Dict[str, Any]] = None
 ) -> Tuple[np.ndarray, Dict[str, Any]]:
     r"""
     Get an edge-level positional encoding from a node-level positional encoding.
@@ -107,6 +110,9 @@ def node_to_edge(
         edge_pe [2 * num_edges, 2 * num_feat]: Edge-level positional encoding
         cache: Updated dictionary of cached objects
     """
+
+    if cache is None:
+        cache = {}
 
     if not issparse(adj):
         if "coo_adj" in cache:
@@ -240,7 +246,9 @@ def nodepair_to_node(pe: np.ndarray, stats_list: List = [np.min, np.mean, np.std
     return node_pe
 
 
-def nodepair_to_edge(pe: np.ndarray, adj: Union[np.ndarray, spmatrix], cache: Dict[str, Any]) -> np.ndarray:
+def nodepair_to_edge(
+    pe: np.ndarray, adj: Union[np.ndarray, spmatrix], cache: Optional[Dict[str, Any]] = None
+) -> np.ndarray:
     r"""
     Get a edge-level positional encoding from a nodepair-level positional encoding.
      -> Mask and sparsify nodepair-level positional encoding
@@ -253,6 +261,9 @@ def nodepair_to_edge(pe: np.ndarray, adj: Union[np.ndarray, spmatrix], cache: Di
     Returns:
         edge_pe [num_edges, num_feat]: Edge-level positional encoding
     """
+
+    if cache is None:
+        cache = {}
 
     num_feat = pe.shape[-1]
 
@@ -289,7 +300,9 @@ def nodepair_to_graph(pe: np.ndarray, num_nodes: int) -> np.ndarray:
     raise NotImplementedError("Transfer function (nodepair -> graph) not yet implemented.")
 
 
-def graph_to_node(pe: Union[np.ndarray, List], num_nodes: int, cache: Dict[str, Any]) -> np.ndarray:
+def graph_to_node(
+    pe: Union[np.ndarray, List], num_nodes: int, cache: Optional[Dict[str, Any]] = None
+) -> np.ndarray:
     r"""
     Get a node-level positional encoding from a nodepair-level positional encoding.
      -> E.g., expand dimension of graph-level pe
@@ -302,6 +315,9 @@ def graph_to_node(pe: Union[np.ndarray, List], num_nodes: int, cache: Dict[str, 
     Returns:
         node_pe [num_nodes, num_feat]: Node-level positional encoding
     """
+
+    if cache is None:
+        cache = {}
 
     node_pe = None
 
