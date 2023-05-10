@@ -14,9 +14,9 @@ from goli.features.transfer_pos_level import transfer_pos_level
 
 
 def get_all_positional_encodings(
-    adj: Union[np.ndarray, spmatrix],
-    num_nodes: int,
-    pos_kwargs: Optional[Dict] = None,
+        adj: Union[np.ndarray, spmatrix],
+        num_nodes: int,
+        pos_kwargs: Optional[Dict] = None,
 ) -> Tuple["OrderedDict[str, np.ndarray]"]:
     r"""
     Get features positional encoding.
@@ -44,15 +44,8 @@ def get_all_positional_encodings(
             pos_kwargs = deepcopy(pos_kwargs["pos_types"][pos_name])
             pos_type = pos_kwargs.pop("pos_type")
             pos_level = pos_kwargs.pop("pos_level")
-            this_pe, cache = graph_positional_encoder(
-                deepcopy(adj),
-                num_nodes,
-                pos_type=pos_type,
-                pos_level=pos_level,
-                pos_kwargs=pos_kwargs,
-                cache=cache,
-            )
-            if pos_level == "node":
+            this_pe, cache = graph_positional_encoder(deepcopy(adj), num_nodes, pos_type=pos_type, pos_level=pos_level, pos_kwargs=pos_kwargs, cache=cache)
+            if pos_level == 'node':
                 pe_dict.update({f"{pos_type}": this_pe})
             else:
                 pe_dict.update({f"{pos_level}_{pos_type}": this_pe})
@@ -61,12 +54,12 @@ def get_all_positional_encodings(
 
 
 def graph_positional_encoder(
-    adj: Union[np.ndarray, spmatrix],
-    num_nodes: int,
-    pos_type: Optional[str] = None,
-    pos_level: Optional[str] = None,
-    pos_kwargs: Optional[Dict[str, Any]] = None,
-    cache: Optional[Dict[str, Any]] = None,
+        adj: Union[np.ndarray, spmatrix],
+        num_nodes: int,
+        pos_type: Optional[str] = None,
+        pos_level: Optional[str] = None,
+        pos_kwargs: Optional[Dict[str, Any]] = None,
+        cache: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Dict[str, np.ndarray], Dict[str, Any]]:
     r"""
     Get a positional encoding that depends on the parameters.
@@ -105,9 +98,7 @@ def graph_positional_encoder(
     if pos_type is None:
         pos_type = pos_type2
     if pos_type2 is not None:
-        assert (
-            pos_type == pos_type2
-        ), f"The positional type must be the same in `pos_type` and `pos_kwargs['pos_type']`. Provided: {pos_type} and {pos_type2}"
+        assert pos_type == pos_type2, f"The positional type must be the same in `pos_type` and `pos_kwargs['pos_type']`. Provided: {pos_type} and {pos_type2}"
     assert pos_type is not None, "Either `pos_type` or `pos_kwargs['pos_type']` must be provided."
 
     # Get the positional level
@@ -115,9 +106,7 @@ def graph_positional_encoder(
     if pos_level is None:
         pos_level = pos_level2
     if pos_level2 is not None:
-        assert (
-            pos_level == pos_level2
-        ), f"The positional level must be the same in `pos_level` and `pos_kwargs['pos_level']`. Provided: {pos_level} and {pos_level2}"
+        assert pos_level == pos_level2, f"The positional level must be the same in `pos_level` and `pos_kwargs['pos_level']`. Provided: {pos_level} and {pos_level2}"
     assert pos_level is not None, "Either `pos_level` or `pos_kwargs['pos_level']` must be provided."
 
     # Convert to numpy array
@@ -129,20 +118,16 @@ def graph_positional_encoder(
 
     # Calculate positional encoding
     if pos_type == "laplacian_eigvec":
-        pe, _, base_level, cache = compute_laplacian_pe(adj, cache=cache, pos_type=pos_type, **pos_kwargs)
+        _, pe, base_level, cache = compute_laplacian_pe(adj, cache=cache, **pos_kwargs)
 
     elif pos_type == "laplacian_eigval":
-        _, pe, base_level, cache = compute_laplacian_pe(adj, cache=cache, pos_type=pos_type, **pos_kwargs)
+        pe, _, base_level, cache = compute_laplacian_pe(adj, cache=cache, **pos_kwargs)
 
     elif pos_type == "rw_return_probs":
-        pe, base_level, cache = compute_rwse(
-            adj.astype(np.float32), num_nodes=num_nodes, cache=cache, pos_type=pos_type, **pos_kwargs
-        )
+        pe, base_level, cache = compute_rwse(adj.astype(np.float32), num_nodes=num_nodes, cache=cache, pos_type=pos_type, **pos_kwargs)
 
     elif pos_type == "rw_transition_probs":
-        pe, base_level, cache = compute_rwse(
-            adj.astype(np.float32), num_nodes=num_nodes, cache=cache, pos_type=pos_type, **pos_kwargs
-        )
+        pe, base_level, cache = compute_rwse(adj.astype(np.float32), num_nodes=num_nodes, cache=cache, pos_type=pos_type, **pos_kwargs)
 
     elif pos_type == "electrostatic":
         pe, base_level, cache = compute_electrostatic_interactions(adj, cache, **pos_kwargs)
@@ -157,7 +142,12 @@ def graph_positional_encoder(
         raise ValueError(f"Unknown `pos_type`: {pos_type}")
 
     # Convert to float32 and Convert between different pos levels
-    pe = np.real(pe).astype(np.float32)
-    pe = transfer_pos_level(pe, base_level, pos_level, adj, num_nodes, cache)
+    if isinstance(pe, (list, tuple)):
+        pe = [this_pe.astype(np.float32) for this_pe in pe]
+        pe = [transfer_pos_level(this_pe, base_level, pos_level, adj, num_nodes, cache) for this_pe in pe]
+    else:
+        pe = np.real(pe).astype(np.float32)
+        pe = transfer_pos_level(pe, base_level, pos_level, adj, num_nodes, cache)
+
 
     return pe, cache

@@ -29,7 +29,7 @@ class test_positional_encoder(ut.TestCase):
     mols = [dm.to_mol(s) for s in smiles]
     adjs = [Chem.rdmolops.GetAdjacencyMatrix(mol) for mol in mols]
 
-    def test_laplacian_eigvec(self):
+    def test_laplacian_eigvec_eigval(self):
         for ii, adj in enumerate(deepcopy(self.adjs)):
             for num_pos in [1, 2, 4]:  # Can't test too much eigs because of multiplicities
                 for disconnected_comp in [True, False]:
@@ -43,72 +43,30 @@ class test_positional_encoder(ut.TestCase):
                         "pos_level": "node",
                     }
                     num_nodes = adj.shape[0]
-                    pe_dict = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
-                    pos_enc_sign_flip = pe_dict["eigvecs"]
-                    pos_enc_no_flip = pe_dict["eigvals"]
+                    eigvecs, cache = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
+                    pos_kwargs["pos_type"] = "laplacian_eigval"
+                    eigvals, cache = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
 
-                    self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
-                    self.assertIsNone(pos_enc_no_flip)
-
-                    # Compute eigvals and eigvecs
-                    lap = np.diag(np.sum(adj, axis=1)) - adj
-                    eigvals, eigvecs = np.linalg.eig(lap)
-                    sort_idx = np.argsort(eigvals)
-                    eigvals, eigvecs = eigvals[sort_idx], eigvecs[:, sort_idx]
-                    eigvecs = eigvecs / (np.sum(eigvecs**2, axis=0, keepdims=True) + 1e-8)
-
-                    true_num_pos = min(num_pos, len(eigvals))
-                    eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
-                    eigvecs = np.sign(eigvecs[0:1, :]) * eigvecs
-                    pos_enc_sign_flip = np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip
-
-                    # Compare the positional encoding
-                    if disconnected_comp and ("." in self.smiles[ii]):
-                        self.assertGreater(np.max(np.abs(eigvecs - pos_enc_sign_flip)), 1e-3)
-                    elif not ("." in self.smiles[ii]):
-                        np.testing.assert_array_almost_equal(
-                            eigvecs, pos_enc_sign_flip[:, :true_num_pos], decimal=6, err_msg=err_msg
-                        )
-
-    def test_laplacian_eigvec_eigval(self):
-        for ii, adj in enumerate(deepcopy(self.adjs)):
-            for num_pos in [1, 2, 4]:  # Can't test too much eigs because of multiplicities
-                for disconnected_comp in [True, False]:
-                    err_msg = f"adj_id={ii}, num_pos={num_pos}, disconnected_comp={disconnected_comp}"
-
-                    # returns a dictionary of computed pe
-                    pos_kwargs = {
-                        "pos_type": "laplacian_eigvec_eigval",
-                        "num_pos": num_pos,
-                        "disconnected_comp": disconnected_comp,
-                        "pos_level": "node",
-                    }
-                    num_nodes = adj.shape[0]
-                    pe_dict = graph_positional_encoder(adj, num_nodes, pos_kwargs=pos_kwargs)
-                    pos_enc_sign_flip = pe_dict["eigvecs"]
-                    pos_enc_no_flip = pe_dict["eigvals"]
-
-                    self.assertEqual(list(pos_enc_sign_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
-                    self.assertEqual(list(pos_enc_no_flip.shape), [adj.shape[0], num_pos], msg=err_msg)
+                    self.assertEqual(list(eigvecs.shape), [adj.shape[0], num_pos], msg=err_msg)
+                    self.assertEqual(list(eigvals.shape), [adj.shape[0], num_pos], msg=err_msg)
 
                     # Compute eigvals and eigvecs
                     lap = np.diag(np.sum(adj, axis=1)) - adj
-                    eigvals, eigvecs = np.linalg.eig(lap)
-                    sort_idx = np.argsort(eigvals)
-                    eigvals, eigvecs = eigvals[sort_idx], eigvecs[:, sort_idx]
-                    eigvecs = eigvecs / (np.sum(eigvecs**2, axis=0, keepdims=True) + 1e-8)
+                    true_eigvals, true_eigvecs = np.linalg.eig(lap)
+                    sort_idx = np.argsort(true_eigvals)
+                    true_eigvals, true_eigvecs = true_eigvals[sort_idx], true_eigvecs[:, sort_idx]
+                    true_eigvecs = true_eigvecs / (np.sum(true_eigvecs**2, axis=0, keepdims=True) + 1e-8)
 
-                    true_num_pos = min(num_pos, len(eigvals))
-                    eigvals, eigvecs = eigvals[:true_num_pos], eigvecs[:, :true_num_pos]
-                    eigvecs = np.sign(eigvecs[0:1, :]) * eigvecs
-                    pos_enc_sign_flip = np.sign(pos_enc_sign_flip[0:1, :]) * pos_enc_sign_flip
+                    true_num_pos = min(num_pos, len(true_eigvals))
+                    true_eigvals, true_eigvecs = true_eigvals[:true_num_pos], true_eigvecs[:, :true_num_pos]
 
                     if not ("." in self.smiles[ii]):
                         np.testing.assert_array_almost_equal(
-                            eigvecs, pos_enc_sign_flip[:, :true_num_pos], decimal=6, err_msg=err_msg
+                            np.abs(true_eigvecs), np.abs(eigvecs[:, :true_num_pos]), decimal=6, err_msg=err_msg
                         )
+                        self.assertAlmostEqual(np.sum(true_eigvecs[:, 1:]), 0, places=6, msg=err_msg)
                         np.testing.assert_array_almost_equal(
-                            eigvals, pos_enc_no_flip[0, :true_num_pos], decimal=6, err_msg=err_msg
+                            true_eigvals, eigvals[0, :true_num_pos], decimal=6, err_msg=err_msg
                         )
 
     # didn't actually check the exact computation result because the code was adapted

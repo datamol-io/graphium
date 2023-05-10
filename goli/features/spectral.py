@@ -12,7 +12,6 @@ def compute_laplacian_pe(
     adj: Union[np.ndarray, spmatrix],
     num_pos: int,
     cache: Dict[str, Any],
-    pos_type: str = "laplacian_eigvec" or "laplacian_eigval",
     disconnected_comp: bool = True,
     normalization: str = "none",
 ) -> Tuple[np.ndarray, str, Dict[str, Any]]:
@@ -23,19 +22,20 @@ def compute_laplacian_pe(
         adj [num_nodes, num_nodes]: Adjacency matrix of the graph
         num_pos: Number of Laplacian eigenvectors to compute
         cache: Dictionary of cached objects
-        pos_type: Desired output
         disconnected_comp: Whether to compute the eigenvectors for each connected component
         normalization: Normalization to apply to the Laplacian
 
     Returns:
         Two possible outputs:
-            eigvals [num_pos]: Eigenvalues of the Laplacian
+            eigvals [num_nodes, num_pos]: Eigenvalues of the Laplacian repeated for each node.
+                This repetition is necessary in case of disconnected components, where
+                the eigenvalues of the Laplacian are not the same for each node.
             eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian
         base_level: Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
         cache: Updated dictionary of cached objects
     """
 
-    base_level = "graph" if pos_type == "laplacian_eigval" else "node"
+    base_level = "node"
 
     # Sparsify the adjacency patrix
     if not issparse(adj):
@@ -69,7 +69,8 @@ def compute_laplacian_pe(
     # Compute the eigenvectors for each connected component, and stack them together
     if len(components) > 1:
         if "lap_eig_comp" not in cache:
-            eigvals, eigvecs = [], []
+            eigvals = np.zeros((adj.shape[0], num_pos), dtype=np.complex64)
+            eigvecs = np.zeros((adj.shape[0], num_pos), dtype=np.complex64)
             for component in components:
                 comp = list(component)
                 this_L = L_norm[comp][:, comp]
@@ -80,8 +81,8 @@ def compute_laplacian_pe(
                 this_eigvecs[~np.isfinite(this_eigvecs)] = 0.0
                 this_eigvals[~np.isfinite(this_eigvals)] = 0.0
 
-                eigvals.append(this_eigvals)
-                eigvecs.append(this_eigvecs)
+                eigvals[comp, :] = np.expand_dims(this_eigvals, axis=0)
+                eigvecs[comp, :] = this_eigvecs
             cache["lap_eig_comp"] = (eigvals, eigvecs)
 
         else:
@@ -95,13 +96,14 @@ def compute_laplacian_pe(
             # Any NaN in the eigvals or eigvecs will be set to 0
             eigvecs[~np.isfinite(eigvecs)] = 0.0
             eigvals[~np.isfinite(eigvals)] = 0.0
+            eigvals = np.repeat(np.expand_dims(eigvals, axis=0), adj.shape[0], axis=0)
 
             cache["lap_eig"] = (eigvals, eigvecs)
 
         else:
             eigvals, eigvecs = cache["lap_eig"]
 
-    return eigvecs, eigvals, base_level, cache
+    return eigvals, eigvecs, base_level, cache
 
 
 def _get_positional_eigvecs(
