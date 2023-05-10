@@ -157,7 +157,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
-            ipu_inference_overrides=ipu_inference_config_overrides_file
+            ipu_inference_overrides=ipu_inference_config_overrides_file,
         )
 
         # Define the Dataloader options for the IPU on the training sets
