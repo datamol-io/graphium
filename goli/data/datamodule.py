@@ -406,6 +406,20 @@ class BaseDataModule(pl.LightningDataModule):
 
         return df
 
+    @staticmethod
+    def _glob(path: str) -> List[str]:
+        """
+        glob a given path
+        Parameters:
+            path: path to glob
+        Returns:
+            List[str]: list of paths
+        """
+        files = dm.fs.glob(path)
+        for file in files:
+            file = file.replace("file://", "")
+        return files
+
     def _read_table(self, path: str, **kwargs) -> pd.DataFrame:
         """
         a general read file function which determines if which function to use, either _read_csv or _read_parquet
@@ -415,7 +429,7 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
-        files = dm.fs.glob(path)
+        files = self._glob(path)
         if len(files) == 0:
             raise FileNotFoundError("No such file or directory `{path}`")
 
@@ -423,7 +437,6 @@ class BaseDataModule(pl.LightningDataModule):
             files = tqdm(sorted(files), desc=f"Reading files at `{path}`")
         dfs = []
         for file in files:
-            file = file.replace("file://", "")
 
             file_type = self._get_data_file_type(file)
             if file_type == "parquet":
@@ -1255,7 +1268,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             the parsed label columns
         """
         if df is None:
-            files = glob.glob(df_path)
+            files = self._glob(df_path)
             if len(files) == 0:
                 raise FileNotFoundError(f"No such file or directory `{df_path}`")
 
