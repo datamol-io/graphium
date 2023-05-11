@@ -415,12 +415,16 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
-        files = glob.glob(path)
+        files = dm.fs.glob(path)
         if len(files) == 0:
             raise FileNotFoundError("No such file or directory `{path}`")
 
+        if len(files) > 1:
+            files = tqdm(sorted(files), desc=f"Reading files at `{path}`")
         dfs = []
-        for file in sorted(files):
+        for file in files:
+            file = file.replace("file://", "")
+
             file_type = self._get_data_file_type(file)
             if file_type == "parquet":
                 df = self._read_parquet(file, **kwargs)
@@ -1258,8 +1262,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             cols = BaseDataModule._get_table_columns(files[0])
             for file in files[1:]:
                 _cols = BaseDataModule._get_table_columns(file)
-                if (cols != _cols).all():
-                    raise RuntimeError("Multiple data files have different columns!")
+                if set(cols) != set(_cols):
+                    raise RuntimeError(
+                        f"Multiple data files have different columns. \nColumn set 1: {cols}\nColumn set 2: {_cols}"
+                    )
         else:
             cols = list(df.columns)
 
