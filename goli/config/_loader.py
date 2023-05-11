@@ -15,9 +15,9 @@ import torch
 import mup
 
 # Lightning
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger, Logger
+from lightning import Trainer
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import WandbLogger, Logger
 
 # Goli
 from goli.utils.mup import set_base_shapes
@@ -29,9 +29,6 @@ from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
 from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
 from goli.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
-
-# Weights and Biases
-from pytorch_lightning import Trainer
 
 
 def get_accelerator(

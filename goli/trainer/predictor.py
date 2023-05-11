@@ -6,7 +6,7 @@ import time
 
 import torch
 from torch import nn, Tensor
-import pytorch_lightning as pl
+import lightning
 from torch_geometric.data import Data, Batch
 from mup.optim import MuAdam
 
@@ -21,7 +21,7 @@ GOLI_PRETRAINED_MODELS = {
 }
 
 
-class PredictorModule(pl.LightningModule):
+class PredictorModule(lightning.LightningModule):
     def __init__(
         self,
         model_class: Type[nn.Module],
@@ -141,6 +141,7 @@ class PredictorModule(pl.LightningModule):
         # throughput estimation
         self.mean_val_time_tracker = MovingAverageTracker()
         self.mean_val_tput_tracker = MovingAverageTracker()
+        self.validation_step_outputs = []
 
     def forward(
         self, inputs: Dict
@@ -483,39 +484,35 @@ class PredictorModule(pl.LightningModule):
 
         return metrics_logs  # Consider returning concatenated dict for tensorboard
 
-    def training_epoch_end(self, outputs: Dict):
-        """
-        Nothing happens at the end of the training epoch.
-        It serves no purpose to do a general step for the training,
-        but it can explode the RAM when using a large dataset.
-        """
-        pass
 
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
         self.mean_val_tput_tracker.reset()
         return super().on_validation_epoch_start()
 
-    def on_validation_batch_start(self, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
+    def on_validation_batch_start(self, batch: Any, batch_idx: int) -> None:
         self.validation_batch_start_time = time.time()
-        return super().on_validation_batch_start(batch, batch_idx, dataloader_idx)
+        return super().on_validation_batch_start(batch, batch_idx)
 
-    def on_validation_batch_end(self, outputs, batch: Any, batch_idx: int, dataloader_idx: int) -> None:
+    def on_validation_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
         val_batch_time = time.time() - self.validation_batch_start_time
+        self.validation_step_outputs.append(outputs)
         self.mean_val_time_tracker.update(val_batch_time)
         num_graphs = self.get_num_graphs(batch["features"])
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
-        return super().on_validation_batch_end(outputs, batch, batch_idx, dataloader_idx)
+        return super().on_validation_batch_end(outputs, batch, batch_idx)
 
-    def validation_epoch_end(self, outputs: Dict[str, Any]):
-        metrics_logs = self._general_epoch_end(outputs=outputs, step_name="val")
+    def on_validation_epoch_end(self):
+        metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val")
+        self.validation_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        concatenated_metrics_logs["val/mean_time"] = self.mean_val_time_tracker.mean_value
+        concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
         lr = self.optimizers().param_groups[0]["lr"]
         metrics_logs["lr"] = lr
         metrics_logs["n_epochs"] = self.current_epoch
+        print(f"{concatenated_metrics_logs=}")
         self.log_dict(concatenated_metrics_logs)
 
         # Save yaml file with the per-task metrics summaries
