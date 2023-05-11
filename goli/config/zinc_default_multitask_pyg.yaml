@@ -4,7 +4,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       SA:
         df: null
-        df_path: "goli://goli.data.multitask/tiny_ZINC_SA.csv"
+        df_path: "goli/data/multitask/tiny_ZINC_SA.csv"
         smiles_col: "SMILES"
         label_cols: ["SA"]
         split_val: 0.2
@@ -16,7 +16,7 @@ datamodule:
         weights_col: null                 # This may not always be provided
       logp:
         df: null
-        df_path: "goli://goli.data.multitask/tiny_ZINC_logp.csv"
+        df_path: "goli/data/multitask/tiny_ZINC_logp.csv"
         smiles_col: "SMILES"
         label_cols: ["logp"]
         split_val: 0.2
@@ -29,7 +29,7 @@ datamodule:
         weights_type: null
       score:
         df: null
-        df_path: "goli://goli.data.multitask/tiny_ZINC_score.csv"
+        df_path: "goli/data/multitask/tiny_ZINC_score.csv"
         smiles_col: "SMILES"
         label_cols: ["score"]
         split_val: 0.2
