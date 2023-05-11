@@ -416,8 +416,7 @@ class BaseDataModule(pl.LightningDataModule):
             List[str]: list of paths
         """
         files = dm.fs.glob(path)
-        for file in files:
-            file = file.replace("file://", "")
+        files = [f.replace("file://", "") for f in files]
         return files
 
     def _read_table(self, path: str, **kwargs) -> pd.DataFrame:
