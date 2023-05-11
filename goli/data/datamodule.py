@@ -437,7 +437,6 @@ class BaseDataModule(pl.LightningDataModule):
             files = tqdm(sorted(files), desc=f"Reading files at `{path}`")
         dfs = []
         for file in files:
-
             file_type = self._get_data_file_type(file)
             if file_type == "parquet":
                 df = self._read_parquet(file, **kwargs)
