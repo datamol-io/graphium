@@ -1257,7 +1257,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if df is None:
             files = glob.glob(df_path)
             if len(files) == 0:
-                raise FileNotFoundError("No such file or directory `{path}`")
+                raise FileNotFoundError(f"No such file or directory `{df_path}`")
 
             cols = BaseDataModule._get_table_columns(files[0])
             for file in files[1:]:
