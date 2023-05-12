@@ -574,6 +574,7 @@ class BaseDataModule(pl.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
+        task_level: str = None,
         df: pd.DataFrame = None,
         df_path: Optional[Union[str, os.PathLike]] = None,
         smiles_col: str = None,
@@ -591,6 +592,7 @@ class DatasetProcessingParams:
         """
         object to store the parameters for the dataset processing
         Parameters:
+            task_level: The task level, wether it is graph, node, edge or nodepair
             df: The dataframe containing the data
             df_path: The path to the dataframe containing the data
             smiles_col: The column name of the smiles
@@ -605,6 +607,7 @@ class DatasetProcessingParams:
             splits_path: The path to the splits
         """
         self.df = df
+        self.task_level = task_level
         self.df_path = df_path
         self.smiles_col = smiles_col
         self.label_cols = label_cols
