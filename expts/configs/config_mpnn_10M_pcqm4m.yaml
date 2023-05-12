@@ -3,8 +3,22 @@ constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  accelerator:
-    type: ipu  # cpu or ipu or gpu
+
+accelerator:
+  type: ipu  # cpu or ipu or gpu
+  datamodule:
+    ipu_dataloader_training_opts:
+      mode: async
+      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+      max_num_edges_per_graph: 60
+    ipu_dataloader_inference_opts:
+      mode: async
+      max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+      max_num_edges_per_graph: 120
+  predictor:
+    optim_kwargs:
+      loss_scaling: 1024
+
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -68,17 +82,6 @@ datamodule:
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
-    ipu_dataloader_training_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-      max_num_edges_per_graph: 60
-
-    ipu_dataloader_inference_opts:
-      mode: async
-      max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
-      max_num_edges_per_graph: 120
-      # test-dev max nodes: 50, max_edges: 116
-      # test-challenge max nodes: 51, max_edges: 106
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -183,7 +186,6 @@ predictor:
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
-    loss_scaling: 1024
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100

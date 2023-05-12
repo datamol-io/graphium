@@ -493,3 +493,41 @@ def save_params_to_wandb(
     if wandb_run is not None:
         wandb_run.save("*.yaml")
         wandb_run.save("*.pickle")
+
+
+def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+    config = deepcopy(config)
+    confic_acc = config.pop("accelerator", {})
+
+
+
+def merge_dicts(dict_a, dict_b, previous_key_path=""):
+    """
+    Recursively merges dict_b into dict_a. If a key is missing from dict_a,
+    it is added from dict_b. If a key exists in both, an error is raised.
+
+    Parameters:
+        dict_a (dict): The dictionary to merge into. Modified in-place.
+        dict_b (dict): The dictionary to merge from.
+        previous_key_path (str): The key path of the parent dictionary,
+        used to track the recursive calls.
+
+    Raises:
+        ValueError: If a key path already exists in dict_a.
+
+    Returns:
+        None
+    """
+    for key, value_b in dict_b.items():
+        if key not in dict_a:
+            dict_a[key] = value_b
+        else:
+            value_a = dict_a[key]
+            if previous_key_path == "":
+                previous_key_path = key
+            else:
+                previous_key_path=f"{previous_key_path}/{key}"
+            if isinstance(value_a, dict) and isinstance(value_b, dict):
+                merge_dicts(value_a, value_b, previous_key_path=previous_key_path)
+            else:
+                raise ValueError(f"Key path already exists: {previous_key_path}")
