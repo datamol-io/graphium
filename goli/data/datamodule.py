@@ -1034,7 +1034,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # When a cache path is provided but no cache is found, save to cache
         elif (self.cache_data_path is not None) and (not cache_data_exists):
-                self.save_data_to_cache()
+            self.save_data_to_cache()
 
         self._data_is_prepared = True
 
