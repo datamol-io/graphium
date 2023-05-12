@@ -1032,9 +1032,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if self.load_from_file:
             self._save_data_to_files()
 
-        else:
-            # When a path is provided but no cache is found, save to cache
-            if (self.cache_data_path is not None) and (not cache_data_exists):
+        # When a cache path is provided but no cache is found, save to cache
+        elif (self.cache_data_path is not None) and (not cache_data_exists):
                 self.save_data_to_cache()
 
         self._data_is_prepared = True
@@ -1112,7 +1111,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
 
         allowed_stages = ["train", "val", "test"]
-        assert stage in allowed_stages, f"Multitask dataset stage must be in {allowed_stages}"
+        assert stage in allowed_stages, f"Multitask dataset stage `{stage}` not in {allowed_stages}"
 
         if stage == "train":
             singletask_datasets = self.train_singletask_datasets
@@ -1133,9 +1132,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             assert self._data_ready_at_path(
                 self._path_to_load_from_file(stage)
             ), "Trying to create multitask dataset without single-task datasets but data not ready"
-            files_already_ready = True
+            files_ready = True
         else:
-            files_already_ready = False
+            files_ready = False
 
         return Datasets.MultitaskDataset(
             singletask_datasets,
@@ -1147,7 +1146,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             save_smiles_and_ids=save_smiles_and_ids,
             data_path=self._path_to_load_from_file(stage) if load_from_file else None,
             load_from_file=load_from_file,
-            files_already_ready=files_already_ready,
+            files_ready=files_ready,
         )  # type: ignore
 
     def _ready_to_load_all_from_file(self) -> bool:

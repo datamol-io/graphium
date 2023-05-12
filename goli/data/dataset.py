@@ -147,7 +147,7 @@ class MultitaskDataset(Dataset):
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
         load_from_file: bool = False,
-        files_already_ready: bool = False,
+        files_ready: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -169,10 +169,9 @@ class MultitaskDataset(Dataset):
             progress: Whether to display the progress bar
             save_smiles_and_ids: Whether to save the smiles and ids for the dataset. If `False`, `mol_ids` and `smiles` are set to `None`
             about: A description of the dataset
-
-        progress: Whether to display the progress bar
+            progress: Whether to display the progress bar
             about: A description of the dataset
-            files_already_ready: Whether the files to load from were prepared ahead of time
+            files_ready: Whether the files to load from were prepared ahead of time
         """
         super().__init__()
         # self.datasets = datasets
@@ -184,7 +183,7 @@ class MultitaskDataset(Dataset):
         self.data_path = data_path
         self.load_from_file = load_from_file
 
-        if files_already_ready:
+        if files_ready:
             assert load_from_file
             self._load_metadata()
             self.features = None
