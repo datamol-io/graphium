@@ -144,12 +144,25 @@ class test_mup(ut.TestCase):
         # Make fake graphs
         in_dim = 12
         in_dim_edges = 12
-        pe_indims = {"rw_pos/rwse": 16, "la_pos/eigvecs": 3, "la_pos/eigvals": 3, "positions_3d": 3}
+        pe_indims = {
+            "laplacian_eigvec": 5,
+            "laplacian_eigval": 5,
+            "rw_return_probs": 2,
+            "edge_rw_transition_probs": 2,
+            "nodepair_rw_return_probs": 1,
+            "electrostatic": 6,
+            "edge_commute": 1,
+            "nodepair_graphormer": 1,
+            "positions_3d": 3
+        }
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
-        in_features["feat"] = in_features["feat"]
-        in_features["edge_feat"] = in_features["edge_feat"]
         for key, dim in pe_indims.items():
-            in_features[key] = torch.randn(in_features.num_nodes, dim)
+            if key.startswith("edge_"):
+                in_features[key] = torch.randn(in_features.num_edges, dim)
+            elif key.startswith("nodepair_"):
+                in_features[key] = torch.randn(in_features.num_nodes, in_features.num_nodes, dim)
+            else:
+                in_features[key] = torch.randn(in_features.num_nodes, dim)
 
         # Load the model
         kwargs = {}
@@ -158,7 +171,7 @@ class test_mup(ut.TestCase):
                 continue
             kwargs[key + "_kwargs"] = val
         kwargs["pre_nn_kwargs"]["in_dim"] = in_dim + kwargs["pe_encoders_kwargs"]["out_dim"]
-        kwargs["pre_nn_edges_kwargs"]["in_dim"] = in_dim_edges
+        kwargs["pre_nn_edges_kwargs"]["in_dim"] = in_dim_edges + kwargs["pe_encoders_kwargs"]["edge_out_dim"]
         kwargs["pe_encoders_kwargs"]["in_dims"] = pe_indims
 
         model = FullGraphMultiTaskNetwork(**kwargs, last_layer_is_readout=True)
@@ -173,10 +186,7 @@ class test_mup(ut.TestCase):
             for subkey, subelem in elem.items():
                 if "dim" in subkey:
                     match = f"{key}:{subkey}"
-                    if match in ["pre_nn_edges_kwargs:in_dim"]:
-                        # Constants
-                        self.assertEqual(subelem, kw_2[key][subkey], msg=match)
-                    elif match in ["pre_nn_kwargs:in_dim"]:
+                    if match in ["pre_nn_kwargs:in_dim"]:
                         self.assertNotEqual(subelem, kw_2[key][subkey], msg=match)
                     elif match in [
                         "pre_nn_kwargs:out_dim",

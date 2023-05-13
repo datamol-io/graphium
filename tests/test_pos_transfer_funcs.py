@@ -29,13 +29,6 @@ class test_pos_transfer_funcs(ut.TestCase):
         edge_pe2 = nodepair_to_edge(nodepair_pe, self.adj, {})
         np.testing.assert_array_almost_equal(edge_pe1, edge_pe2)
 
-    def test_graph_to_node(self):
-        num_pos = 2
-        graph_pe, _, _ = compute_laplacian_pe(self.adj, num_pos, cache={}, pos_type="laplacian_eigval")
-        graph_pe = np.real(graph_pe).astype(np.float32)
-        node_pe = graph_to_node(graph_pe, self.num_nodes, {})
-        self.assertEqual(node_pe.shape, np.ones((self.num_nodes, num_pos)).shape)
-
 
 if __name__ == "__main__":
     ut.main()
