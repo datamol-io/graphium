@@ -153,7 +153,7 @@ class test_mup(ut.TestCase):
             "electrostatic": 6,
             "edge_commute": 1,
             "nodepair_graphormer": 1,
-            "positions_3d": 3
+            "positions_3d": 3,
         }
         in_features = get_pyg_graphs(in_dim=in_dim, in_dim_edges=in_dim_edges)
         for key, dim in pe_indims.items():
