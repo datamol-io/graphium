@@ -8,3 +8,4 @@ from .pooling_pyg import scatter_logsum_pool
 from .pooling_pyg import scatter_std_pool
 from .pooling_pyg import parse_pooling_layer_pyg
 from .pooling_pyg import VirtualNodePyg
+from .dimenet_pyg import DimeNetPyg

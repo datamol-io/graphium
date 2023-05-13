@@ -312,6 +312,51 @@ class Test_DataModule(ut.TestCase):
             labels, true_labels, decimal=5
         )  # Check that the label values are correct
 
+    def test_datamodule_multiple_data_files(self):
+        # Test single CSV files
+        csv_file = "tests/data/micro_ZINC_shard_1.csv"
+        task_kwargs = {"df_path": csv_file, "split_val": 0.0, "split_test": 0.0}
+        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds.prepare_data()
+        ds.setup()
+
+        self.assertEqual(len(ds.train_ds), 10)
+
+        # Test multi CSV files
+        csv_file = "tests/data/micro_ZINC_shard_*.csv"
+        task_kwargs = {"df_path": csv_file, "split_val": 0.0, "split_test": 0.0}
+        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds.prepare_data()
+        ds.setup()
+
+        self.assertEqual(len(ds.train_ds), 20)
+
+        # Test single Parquet files
+        parquet_file = "tests/data/micro_ZINC_shard_1.parquet"
+        task_kwargs = {"df_path": parquet_file, "split_val": 0.0, "split_test": 0.0}
+        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds.prepare_data()
+        ds.setup()
+
+        self.assertEqual(len(ds.train_ds), 10)
+
+        # Test multi Parquet files
+        parquet_file = "tests/data/micro_ZINC_shard_*.parquet"
+        task_kwargs = {"df_path": parquet_file, "split_val": 0.0, "split_test": 0.0}
+        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+
+        ds = MultitaskFromSmilesDataModule(task_specific_args)
+        ds.prepare_data()
+        ds.setup()
+
+        self.assertEqual(len(ds.train_ds), 20)
+
 
 if __name__ == "__main__":
     ut.main()

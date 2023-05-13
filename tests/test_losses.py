@@ -17,10 +17,10 @@ def _parse(loss_fun):
 
 class test_HybridCELoss(ut.TestCase):
     input = torch.Tensor([[0.1, 0.1, 0.3, 0.5, 0.0], [0.1, 0.0, 0.7, 0.2, 0.0]])
-    target = torch.Tensor([[0, 0, 0, 1, 0], [1, 0, 0, 0, 0]])
+    target = torch.Tensor([3, 0]).long()
     brackets = torch.Tensor([0, 1, 2, 3, 4])
     regression_input = torch.Tensor([2.2, 2.0])  # inner product of input and brackets
-    regression_target = torch.Tensor([3, 0])  # argmax over target
+    regression_target = torch.Tensor([3, 0]).float()
 
     def test_pure_ce_loss(self):
         loss = HybridCELoss(n_brackets=len(self.brackets), alpha=1.0, reduction="none")

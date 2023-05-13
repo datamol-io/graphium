@@ -18,6 +18,7 @@ PE_ENCODERS_DICT = {
     "mlp": Encoders.mlp_encoder.MLPEncoder,
     "signnet": Encoders.signnet_pos_encoder.SignNetNodeEncoder,
     "gaussian_kernel": Encoders.gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
+    "bessel_kernel": Encoders.bessel_pos_encoder.BesselSphericalPosEncoder,
 }
 
 
@@ -31,6 +32,7 @@ PYG_LAYERS_DICT = {
     "pyg:gated-gcn": PygLayers.GatedGCNPyg,
     "pyg:pna-msgpass": PygLayers.PNAMessagePassingPyg,
     "pyg:gps": PygLayers.GPSLayerPyg,
+    "pyg:dimenet": PygLayers.DimeNetPyg,
 }
 
 LAYERS_DICT = deepcopy(FC_LAYERS_DICT)
