@@ -495,39 +495,44 @@ def save_params_to_wandb(
         wandb_run.save("*.pickle")
 
 
-def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]):
+def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, Any]:
     config = deepcopy(config)
-    confic_acc = config.pop("accelerator", {})
+    config_acc = config.pop("accelerator", {})
+
+    merge_dicts(config, config_acc)
+    acc_type = get_accelerator(config_acc)
+
+    return config, acc_type
 
 
 
-def merge_dicts(dict_a, dict_b, previous_key_path=""):
+def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_path:str="") -> None:
     """
     Recursively merges dict_b into dict_a. If a key is missing from dict_a,
     it is added from dict_b. If a key exists in both, an error is raised.
+    `dict_a` is modified in-place.
 
     Parameters:
-        dict_a (dict): The dictionary to merge into. Modified in-place.
-        dict_b (dict): The dictionary to merge from.
-        previous_key_path (str): The key path of the parent dictionary,
+        dict_a: The dictionary to merge into. Modified in-place.
+        dict_b: The dictionary to merge from.
+        previous_dict_path: The key path of the parent dictionary,
         used to track the recursive calls.
 
     Raises:
         ValueError: If a key path already exists in dict_a.
 
-    Returns:
-        None
     """
     for key, value_b in dict_b.items():
         if key not in dict_a:
             dict_a[key] = value_b
         else:
             value_a = dict_a[key]
-            if previous_key_path == "":
-                previous_key_path = key
+            if previous_dict_path == "":
+                previous_dict_path = key
             else:
-                previous_key_path=f"{previous_key_path}/{key}"
+                previous_dict_path=f"{previous_dict_path}/{key}"
             if isinstance(value_a, dict) and isinstance(value_b, dict):
-                merge_dicts(value_a, value_b, previous_key_path=previous_key_path)
+                merge_dicts(value_a, value_b, previous_dict_path=previous_dict_path)
             else:
-                raise ValueError(f"Key path already exists: {previous_key_path}")
+                if value_a != value_b:
+                    raise ValueError(f"Dict path already exists: {previous_dict_path}")
