@@ -82,6 +82,9 @@ class GaussianKernelPosEncoder(BaseEncoder):
                 "edge_"
             ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
             assert not key.startswith(
+                "nodepair_"
+            ), f"Input keys must be node features, not nodepair features, for encoder {self.__class__}"
+            assert not key.startswith(
                 "graph_"
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys

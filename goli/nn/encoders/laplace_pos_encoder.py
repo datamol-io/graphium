@@ -134,6 +134,9 @@ class LapPENodeEncoder(BaseEncoder):
                 "edge_"
             ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
             assert not key.startswith(
+                "nodepair_"
+            ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
+            assert not key.startswith(
                 "graph_"
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
@@ -154,6 +157,9 @@ class LapPENodeEncoder(BaseEncoder):
                 "edge_"
             ), f"Edge encodings are not supported for encoder {self.__class__}"
             assert not key.startswith(
+                "nodepair_"
+            ), f"Edge encodings are not supported for encoder {self.__class__}"
+            assert not key.startswith(
                 "graph_"
             ), f"Graph encodings are not supported for encoder {self.__class__}"
         return output_keys
@@ -171,8 +177,8 @@ class LapPENodeEncoder(BaseEncoder):
         Returns:
             output dictionary with keys as specified in `output_keys` and their output embeddings.
         """
-        input_keys = self.parse_input_keys_with_prefix(key_prefix)
-        eigvals, eigvecs = batch[input_keys[0]], batch[input_keys[1]]
+        # input_keys = self.parse_input_keys_with_prefix(key_prefix)
+        eigvals, eigvecs = batch[self.input_keys[0]], batch[self.input_keys[1]]
 
         # Random flipping to the Laplacian encoder
         if self.training:

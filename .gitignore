@@ -36,6 +36,7 @@ predictions/
 expts_untracked/
 debug/
 change_commits.sh
+goli/features/test_new_pes.ipynb
 
 # IPU related ignores and profiler outputs
 *.a
