@@ -4,6 +4,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       SA:
         df: null
+        task_level: "graph"
         df_path: "goli/data/multitask/tiny_ZINC_SA.csv"
         smiles_col: "SMILES"
         label_cols: ["SA"]
@@ -16,6 +17,7 @@ datamodule:
         weights_col: null                 # This may not always be provided
       logp:
         df: null
+        task_level: "graph"
         df_path: "goli/data/multitask/tiny_ZINC_logp.csv"
         smiles_col: "SMILES"
         label_cols: ["logp"]
@@ -29,6 +31,7 @@ datamodule:
         weights_type: null
       score:
         df: null
+        task_level: "graph"
         df_path: "goli/data/multitask/tiny_ZINC_score.csv"
         smiles_col: "SMILES"
         label_cols: ["score"]
