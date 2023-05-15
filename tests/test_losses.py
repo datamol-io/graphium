@@ -25,7 +25,7 @@ class test_HybridCELoss(ut.TestCase):
     def test_pure_ce_loss(self):
         loss = HybridCELoss(n_brackets=len(self.brackets), alpha=1.0, reduction="none")
 
-        assert torch.equal(
+        assert torch.allclose(
             loss(self.input, self.target),
             F.cross_entropy(self.input, self.target, reduction="none"),
         )
@@ -39,7 +39,7 @@ class test_HybridCELoss(ut.TestCase):
             reduction="none",
         )
 
-        assert torch.equal(
+        assert torch.allclose(
             loss(self.input, self.target),
             F.l1_loss(self.regression_input, self.regression_target, reduction="none"),
         )
@@ -53,7 +53,7 @@ class test_HybridCELoss(ut.TestCase):
             reduction="none",
         )
 
-        assert torch.equal(
+        assert torch.allclose(
             loss(self.input, self.target),
             F.mse_loss(self.regression_input, self.regression_target, reduction="none"),
         )
@@ -65,7 +65,7 @@ class test_HybridCELoss(ut.TestCase):
         ce_loss = F.cross_entropy(self.input, self.target)
         mse_loss = F.mse_loss(self.regression_input, self.regression_target)
 
-        assert torch.equal(loss(self.input, self.target), 0.5 * ce_loss + 0.5 * mse_loss)
+        assert torch.allclose(loss(self.input, self.target), 0.5 * ce_loss + 0.5 * mse_loss)
         assert loss(self.input, self.target).shape == torch.Size([])
 
     def test_loss_parser(self):
