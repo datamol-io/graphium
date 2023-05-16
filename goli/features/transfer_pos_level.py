@@ -60,7 +60,7 @@ def transfer_pos_level(
             pe = nodepair_to_node(pe)
 
         elif out_level == "edge":
-            pe = nodepair_to_edge(pe, adj, cache)
+            pe, cache = nodepair_to_edge(pe, adj, cache)
 
         elif out_level == "nodepair":
             pass
@@ -190,20 +190,44 @@ def edge_to_node(pe: np.ndarray, adj: Union[np.ndarray, spmatrix]) -> np.ndarray
     raise NotImplementedError("Transfer function (edge -> node) not yet implemented.")
 
 
-def edge_to_nodepair(pe: np.ndarray, adj: Union[np.ndarray, spmatrix]) -> np.ndarray:
+def edge_to_nodepair(
+    pe: np.ndarray, adj: Union[np.ndarray, spmatrix], num_nodes: int, cache: Optional[Dict[str, Any]] = None
+) -> np.ndarray:
     r"""
     Get a nodepair-level positional encoding from an edge-level positional encoding.
-     -> E.g., zero-padding of non-existing edges.
+     -> Zero-padding of non-existing edges.
 
     Parameters:
         pe [num_edges, num_feat]: Edge-level positional encoding
         adj [num_nodes, num_nodes]: Adjacency matrix of the graph
+        num_nodes: Number of nodes in the graph
+        cache: Dictionary of cached objects
 
     Returns:
         nodepair_pe [num_edges, num_edges, num_feat]: Nodepair-level positional encoding
+        cache: Updated dictionary of cached objects
     """
 
-    raise NotImplementedError("Transfer function (edge -> nodepair) not yet implemented.")
+    if cache is None:
+        cache = {}
+
+    num_feat = pe.shape[-1]
+
+    if not isinstance(adj, coo_matrix):
+        if "coo_adj" in cache:
+            adj = cache["coo_adj"]
+        else:
+            adj = coo_matrix(adj, dtype=np.float64)
+        cache["coo_adj"] = adj
+
+    dst, src = adj.row, adj.col
+
+    nodepair_pe = np.zeros((num_nodes, num_nodes, num_feat))
+
+    for i in range(len(dst)):
+        nodepair_pe[dst[i], src[i], ...] = pe[i, ...]
+
+    return nodepair_pe, cache
 
 
 def edge_to_graph(pe: np.ndarray) -> np.ndarray:
@@ -260,6 +284,7 @@ def nodepair_to_edge(
 
     Returns:
         edge_pe [num_edges, num_feat]: Edge-level positional encoding
+        cache: Updated dictionary of cached objects
     """
 
     if cache is None:
@@ -274,14 +299,14 @@ def nodepair_to_edge(
             adj = coo_matrix(adj, dtype=np.float64)
         cache["coo_adj"] = adj
 
-    src, dst = adj.row, adj.col
+    dst, src = adj.row, adj.col
 
-    edge_pe = np.zeros((len(src), num_feat))
+    edge_pe = np.zeros((len(dst), num_feat))
 
     for i in range(len(src)):
-        edge_pe[i, ...] = pe[src[i], dst[i]]
+        edge_pe[i, ...] = pe[dst[i], src[i]]
 
-    return edge_pe
+    return edge_pe, cache
 
 
 def nodepair_to_graph(pe: np.ndarray, num_nodes: int) -> np.ndarray:
