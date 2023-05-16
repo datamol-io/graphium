@@ -257,7 +257,6 @@ class MetricWrapper:
         r"""
         Compute the metric, apply the thresholder if provided, and manage the NaNs
         """
-
         if preds.ndim == 1:
             preds = preds.unsqueeze(-1)
 

@@ -2,7 +2,6 @@ import os
 from os.path import dirname, abspath
 import yaml
 from omegaconf import DictConfig
-import timeit
 from datetime import datetime
 from copy import deepcopy
 
@@ -13,6 +12,8 @@ from typing import Optional, List, Sequence
 import wandb
 import statistics
 import tqdm
+import torch
+import numpy as np
 
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
@@ -43,9 +44,9 @@ def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
         start = time.time()
         for data in tqdm.tqdm(dataloader):
             n_batches[i] += 1
-            n_graphs[i] += data["features"]["batch"].max().item()
-            n_nodes[i] += data["features"]["feat"].shape[-2]
-            n_edges[i] += data["features"]["edge_index"].shape[-1]
+            n_graphs[i] += torch.sum(torch.max(data["features"]["batch"], dim=-1).values).item()
+            n_nodes[i] += np.prod(data["features"]["batch"].shape)
+            n_edges[i] += np.prod(data["features"]["edge_weight"].shape)
         epoch_times[i] = time.time() - start
         tputs[i] = n_graphs[i] / epoch_times[i]
 
@@ -66,7 +67,7 @@ def benchmark_dataloader(dataloader, name, n_epochs=5, log2wandb=False):
                 "epoch": i,
                 "tput per epoch": tputs[i],
                 "epoch times ": epoch_times[i],
-                "samples per epoch": n_batches[i],
+                "batches per epoch": n_batches[i],
                 "graphs per epoch": n_graphs[i],
                 "nodes per epoch": n_nodes[i],
                 "edges per epoch": n_edges[i],

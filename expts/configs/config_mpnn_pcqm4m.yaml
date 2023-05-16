@@ -14,20 +14,15 @@ datamodule:
       homolumo:
         df: null
         df_path: goli/data/PCQM4M/pcqm4mv2-20k.csv
-        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
+        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 80000 # use sample_size for test
+        # sample_size: 6000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
         split_names: ["train", "valid", "test-dev"]
-        seed: *seed
-        label_normalization:
-          method: "normal"
-          min_clipping: 0
-          max_clipping: 50
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -63,40 +58,40 @@ datamodule:
     batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: 30 # -1 to use all
+    num_workers: 40 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
-    ipu_dataloader_training_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-      max_num_edges_per_graph: 60
+    # ipu_dataloader_training_opts:
+    #   mode: async
+    #   max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+    #   max_num_edges_per_graph: 60
 
-    ipu_dataloader_inference_opts:
-      mode: async
-      max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
-      max_num_edges_per_graph: 120
-      # test-dev max nodes: 50, max_edges: 116
-      # test-challenge max nodes: 51, max_edges: 106
+    # ipu_dataloader_inference_opts:
+    #   mode: async
+    #   max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
+    #   max_num_edges_per_graph: 120
+    #   # test-dev max nodes: 50, max_edges: 116
+    #   # test-challenge max nodes: 51, max_edges: 106
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
   mup_base_path: null
   pre_nn:   # Set as null to avoid a pre-nn network
-    out_dim: 256
-    hidden_dims: 1024
+    out_dim: 32
+    hidden_dims: 64
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
+    dropout: &dropout 0.1
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
 
   pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 128
-    hidden_dims: 512
+    out_dim: 16
+    hidden_dims: 32
     depth: 2
     activation: relu
     last_activation: none
@@ -119,7 +114,7 @@ architecture:
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
-        dropout: 0.18
+        dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
@@ -128,52 +123,41 @@ architecture:
         hidden_dim: 64
         out_dim: 32
         num_layers: 2
-        dropout: 0.18
+        dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: 256
-    hidden_dims: 256
+    out_dim: 32
+    hidden_dims: 32
     depth: 4
     activation: gelu
     last_activation: none
-    dropout: 0.3
+    dropout: 0.0
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
+    pooling: [sum]
     virtual_node: 'none'
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
       node_residual: false
       mpnn_type: 'pyg:mpnnplus'
       mpnn_kwargs:
-        in_dim: 256
-        out_dim: 256
-        in_dim_edges: 128
-        out_dim_edges: 128
+        in_dim: 32
+        out_dim: 32
+        in_dim_edges: 16
+        out_dim_edges: 16
       attn_type: "none" # "full-attention", "none"
       # biased_attention: false
       attn_kwargs: null
 
 
-  graph_output_nn:
-    graph:
-      pooling: [sum]
-      out_dim: 256
-      hidden_dims: 256
-      depth: 1
-      activation: relu
-      last_activation: none
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
+  post_nn: null
 
   task_heads:
     homolumo:
-      task_level: graph
       out_dim: 1
       hidden_dims: 256
       depth: 2                          # Not needed if we have hidden_dims
@@ -189,13 +173,12 @@ predictor:
   metrics_on_progress_bar:
     homolumo: ["mae", "pearsonr"]
   loss_fun:
-    homolumo: mae_ipu
+    homolumo: mse_ipu
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
-    loss_scaling: 1024
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100
     warmup_epochs: 10
@@ -241,7 +224,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 16
+    precision: 32
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 2

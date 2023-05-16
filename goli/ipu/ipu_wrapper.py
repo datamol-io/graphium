@@ -38,9 +38,6 @@ class DictIPUStrategy(IPUStrategy):
         args = args[0]
         poptorch_model = self.poptorch_models[stage]
         self.lightning_module._running_torchscript = True
-        for key_to_drop in ["_batch_idx"]:
-            if key_to_drop in args.keys():
-                args.pop(key_to_drop)
         out = poptorch_model(**args)
         self.lightning_module._running_torchscript = False
         return out

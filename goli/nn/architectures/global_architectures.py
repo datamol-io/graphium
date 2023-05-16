@@ -852,6 +852,7 @@ class FeedForwardGraph(FeedForwardNN):
             in_dim_edges=self.in_dim_edges,
             hidden_dims_edges=self.hidden_dims_edges,
             virtual_node=self.virtual_node,
+            use_virtual_edges=self.use_virtual_edges,
         )
         kwargs.update(new_kwargs)
         return deepcopy(kwargs)
