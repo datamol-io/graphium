@@ -7,7 +7,7 @@ import math
 
 
 def np_repr_to_np(string: str):
-    """Converts a string in numpy reprsentation 
+    """Converts a string in numpy reprsentation
     (output of print(array)) to a numpy array."""
     if "." in string:
         dtype = float
@@ -27,6 +27,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     Returns a list of numpy arrays converted to the correct shape. Multiple
     targets are concatenated for each graph.
     """
+
     def unpack(graph_data, base_type: str):
         if isinstance(graph_data, str):
             if base_type == "list":
@@ -41,7 +42,9 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
         elif isinstance(graph_data, np.ndarray):
             return graph_data
         else:
-            raise ValueError(f"Graph data should be one of str, float, int, list, np.ndarray, got {type(graph_data)}")
+            raise ValueError(
+                f"Graph data should be one of str, float, int, list, np.ndarray, got {type(graph_data)}"
+            )
 
     def unpack_column(data: pd.Series):
         base_type = None
@@ -69,9 +72,13 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
             data = data.reshape(num_nodes, num_nodes, -1)
 
         return data
-    
+
     unpacked_df: pd.DataFrame = df[label_cols].apply(unpack_column)
-    return unpacked_df.apply(merge_columns, axis="columns").to_list()
+    output = unpacked_df.apply(merge_columns, axis="columns").to_list()
+
+    if task_level == "graph":
+        return np.stack(output)
+    return output
 
 
 def test_extract_graph_level():
@@ -80,10 +87,10 @@ def test_extract_graph_level():
     label_cols = ["graph_label"]
     output = extract_labels(df, "graph", label_cols)
 
-    assert isinstance(output, list)
-    assert len(output) == num_graphs
-    assert len(output[0].shape) == 1
-    assert output[0].shape[0] == 1
+    assert isinstance(output, np.ndarray)
+    assert output.shape[0] == num_graphs
+    assert output.shape[1] == len(label_cols)
+
 
 def test_extract_node_level():
     df = pd.read_csv("tests/fake_multilevel_data.csv")
@@ -93,6 +100,7 @@ def test_extract_node_level():
     assert isinstance(output, list)
     assert len(output[0].shape) == 2
     assert output[0].shape[1] == len(label_cols)
+
 
 def test_extract_edge_level():
     df = pd.read_csv("tests/fake_multilevel_data.csv")
@@ -104,6 +112,7 @@ def test_extract_edge_level():
     assert isinstance(output, list)
     assert len(output[0].shape) == 2
     assert output[0].shape[1] == len(label_cols)
+
 
 def test_extract_nodepair_level():
     df = pd.read_csv("tests/fake_multilevel_data.csv")
