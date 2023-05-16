@@ -81,48 +81,61 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     return output
 
 
-def test_extract_graph_level():
-    df = pd.read_csv("tests/fake_multilevel_data.csv")
-    num_graphs = len(df)
-    label_cols = ["graph_label"]
-    output = extract_labels(df, "graph", label_cols)
+def read_test_data(file_type):
+    if file_type == "csv":
+        return pd.read_csv(f"tests/fake_multilevel_data.{file_type}")
+    elif file_type == "parquet":
+        return pd.read_parquet(f"tests/fake_multilevel_data.{file_type}")
+    else:
+        raise ValueError(f"File type {file_type} not supported")
 
-    assert isinstance(output, np.ndarray)
-    assert output.shape[0] == num_graphs
-    assert output.shape[1] == len(label_cols)
+
+def test_extract_graph_level():
+    for file_type in ["csv", "parquet"]:
+        df = read_test_data(file_type)
+        num_graphs = len(df)
+        label_cols = ["graph_label"]
+        output = extract_labels(df, "graph", label_cols)
+
+        assert isinstance(output, np.ndarray)
+        assert output.shape[0] == num_graphs
+        assert output.shape[1] == len(label_cols)
 
 
 def test_extract_node_level():
-    df = pd.read_csv("tests/fake_multilevel_data.csv")
-    label_cols = [f"node_label_{suffix}" for suffix in ["list", "np"]]
-    output = extract_labels(df, "node", label_cols)
+    for file_type in ["csv", "parquet"]:
+        df = read_test_data(file_type)
+        label_cols = [f"node_label_{suffix}" for suffix in ["list", "np"]]
+        output = extract_labels(df, "node", label_cols)
 
-    assert isinstance(output, list)
-    assert len(output[0].shape) == 2
-    assert output[0].shape[1] == len(label_cols)
+        assert isinstance(output, list)
+        assert len(output[0].shape) == 2
+        assert output[0].shape[1] == len(label_cols)
 
 
 def test_extract_edge_level():
-    df = pd.read_csv("tests/fake_multilevel_data.csv")
+    for file_type in ["csv", "parquet"]:
+        df = read_test_data(file_type)
 
-    # NOTE: Currently, we can't read the numpy repr since it contains ''
-    label_cols = [f"edge_label_{suffix}" for suffix in ["list", "np"]]
-    output = extract_labels(df, "edge", label_cols)
+        # NOTE: Currently, we can't read the numpy repr since it contains ''
+        label_cols = [f"edge_label_{suffix}" for suffix in ["list", "np"]]
+        output = extract_labels(df, "edge", label_cols)
 
-    assert isinstance(output, list)
-    assert len(output[0].shape) == 2
-    assert output[0].shape[1] == len(label_cols)
+        assert isinstance(output, list)
+        assert len(output[0].shape) == 2
+        assert output[0].shape[1] == len(label_cols)
 
 
 def test_extract_nodepair_level():
-    df = pd.read_csv("tests/fake_multilevel_data.csv")
+    for file_type in ["csv", "parquet"]:
+        df = read_test_data(file_type)
 
-    # NOTE: Currently, we can't read the numpy repr since it contains "..."
-    # NOTE: If desired, we can pad the output and just "remove" the "..."
-    label_cols = [f"nodepair_label_{suffix}" for suffix in ["list", "list"]]
-    output = extract_labels(df, "nodepair", label_cols)
+        # NOTE: Currently, we can't read the numpy repr since it contains "..."
+        # NOTE: If desired, we can pad the output and just "remove" the "..."
+        label_cols = [f"nodepair_label_{suffix}" for suffix in ["list", "list"]]
+        output = extract_labels(df, "nodepair", label_cols)
 
-    assert isinstance(output, list)
-    assert len(output[0].shape) == 3
-    assert output[0].shape[0] == output[0].shape[1]
-    assert output[0].shape[2] == len(label_cols)
+        assert isinstance(output, list)
+        assert len(output[0].shape) == 3
+        assert output[0].shape[0] == output[0].shape[1]
+        assert output[0].shape[2] == len(label_cols)
