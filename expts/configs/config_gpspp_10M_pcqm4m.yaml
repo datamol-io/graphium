@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  # cpu or ipu or gpu
+    type: ipu  # cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -18,7 +18,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        sample_size: 20000 # use sample_size for test
+        # sample_size: 20000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
@@ -33,7 +33,7 @@ datamodule:
     featurization_n_jobs: 20
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "goli/data/PCQM4Mv2_20k/"
+    processed_graph_data_path: "goli/data/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -198,7 +198,7 @@ predictor:
     # loss_scaling: 1024
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 20
+    max_num_epochs: &max_epochs 100
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
