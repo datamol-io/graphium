@@ -44,6 +44,13 @@ from goli.data.smiles_transform import (
 )
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
+from tests.test_multilevel_dataloading import (
+    extract_labels,
+    test_extract_graph_level,
+    test_extract_node_level,
+    test_extract_node_level,
+    test_extract_nodepair_level,
+)
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -919,6 +926,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(
                 df,
+                task_level=args.task_level,
                 smiles_col=args.smiles_col,
                 label_cols=args.label_cols,
                 idx_col=args.idx_col,
@@ -1373,6 +1381,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def _extract_smiles_labels(
         self,
         df: pd.DataFrame,
+        task_level: str,
         smiles_col: str = None,
         label_cols: List[str] = [],
         idx_col: str = None,
@@ -1410,13 +1419,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if label_cols is None:
             label_cols = df.columns.drop(smiles_col)
 
-        label_cols = check_arg_iterator(label_cols, enforce_type=list)
         smiles = df[smiles_col].values
-        if len(label_cols) > 0:
-            labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
-            labels = np.stack(labels, axis=1)
+        label_cols = check_arg_iterator(label_cols, enforce_type=list)
+        if task_level == "graph":
+            labels = extract_labels(df, "graph", label_cols)
+        elif task_level == "node":
+            labels = extract_labels(df, "node", label_cols)
+        elif task_level == "edge":
+            labels = extract_labels(df, "edge", label_cols)
+        elif task_level == "nodepair":
+            labels = extract_labels(df, "nodepair", label_cols)
         else:
-            labels = np.zeros([len(smiles), 0])
+            raise ValueError(f"Unknown task level: {task_level}")
 
         indices = None  # What are indices for?
         if idx_col is not None:
@@ -2091,6 +2105,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(
                 df,
+                task_level=args.task_level,
                 smiles_col=args.smiles_col,
                 label_cols=args.label_cols,
                 idx_col=args.idx_col,
@@ -2195,6 +2210,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
 
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
+            task_level=args.task_level,
             smiles_col=args.smiles_col,
             label_cols=label_cols,
             idx_col=args.idx_col,

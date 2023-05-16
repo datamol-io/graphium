@@ -65,12 +65,6 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
         else:
             data = data[0]
 
-        if task_level == "nodepair":
-            sqrt_pairs = math.sqrt(data.shape[0])
-            num_nodes = int(sqrt_pairs)
-            assert num_nodes == sqrt_pairs, f"Number of nodepairs is not square"
-            data = data.reshape(num_nodes, num_nodes, -1)
-
         return data
 
     unpacked_df: pd.DataFrame = df[label_cols].apply(unpack_column)
