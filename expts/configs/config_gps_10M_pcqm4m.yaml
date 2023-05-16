@@ -40,7 +40,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4M/pcqm4mv2-20k.csv
+        df_path: ~/scratch/data/goli/data/PCQM4M/pcqm4mv2-20k.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv directly
         smiles_col: "cxsmiles"
@@ -213,7 +213,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
+    max_num_epochs: &max_epochs 5
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:

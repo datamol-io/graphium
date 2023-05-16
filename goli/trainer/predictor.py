@@ -37,6 +37,7 @@ class PredictorModule(pl.LightningModule):
         metrics_on_progress_bar: Dict[str, List[str]] = [],
         metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
+        task_norms: Optional[Dict[Callable, Any]] = None,
     ):
         """
         The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
@@ -133,6 +134,7 @@ class PredictorModule(pl.LightningModule):
             task_metrics_on_progress_bar=self.metrics_on_progress_bar,
             monitor=monitor,
             mode=mode,
+            task_norms=task_norms,
         )
 
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats

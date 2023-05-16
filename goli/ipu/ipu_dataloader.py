@@ -234,8 +234,7 @@ def create_ipu_dataloader(
     num_batches = len(dataset) // combined_batch_size
     num_workers = min(num_batches, num_workers)
     buffer_size = num_batches // num_workers if num_workers > 0 else None
-    buffer_size = 1 if buffer_size is None else buffer_size
-    buffer_size = min(3, buffer_size)
+    buffer_size = 3 if buffer_size is None else buffer_size
     async_options = {
         "sharing_strategy": poptorch.SharingStrategy.ForkServer,
         "early_preload": True,

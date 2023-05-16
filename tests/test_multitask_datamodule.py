@@ -32,7 +32,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_task_args_SA["label_cols"] = ["SA"]
         dm_task_args_SA["split_val"] = 0.2
         dm_task_args_SA["split_test"] = 0.2
-        dm_task_args_SA["split_seed"] = 19
+        dm_task_args_SA["seed"] = 19
         dm_task_args_SA["splits_path"] = None  # This may not always be provided
         dm_task_args_SA["sample_size"] = None  # This may not always be provided
         dm_task_args_SA["idx_col"] = None  # This may not always be provided
@@ -45,7 +45,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_task_args_logp["label_cols"] = ["logp"]
         dm_task_args_logp["split_val"] = 0.2
         dm_task_args_logp["split_test"] = 0.2
-        dm_task_args_logp["split_seed"] = 19
+        dm_task_args_logp["seed"] = 19
         dm_task_args_logp["splits_path"] = None  # This may not always be provided
         dm_task_args_logp["sample_size"] = None  # This may not always be provided
         dm_task_args_logp["idx_col"] = None  # This may not always be provided
@@ -58,7 +58,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_task_args_score["label_cols"] = ["score"]
         dm_task_args_score["split_val"] = 0.2
         dm_task_args_score["split_test"] = 0.2
-        dm_task_args_score["split_seed"] = 19
+        dm_task_args_score["seed"] = 19
         dm_task_args_score["splits_path"] = None  # This may not always be provided
         dm_task_args_score["sample_size"] = None  # This may not always be provided
         dm_task_args_score["idx_col"] = None  # This may not always be provided
