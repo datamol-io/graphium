@@ -11,6 +11,19 @@ docs_dir: "docs"
 
 nav:
   - Overview: index.md
+  - API:
+    - goli.nn:
+      - goli.nn: api/goli.nn/goli.nn.md
+      - goli.nn.architectures: api/goli.nn/architectures.md
+      - goli.nn.encoders: api/goli.nn/encoders.md
+      - goli.nn.pyg_layers: api/goli.nn/pyg_layers.md
+    - goli.features: api/goli.features.md
+    - goli.trainer: api/goli.trainer.md
+    - goli.data: api/goli.data.md
+    - goli.utils: api/goli.utils.md
+    - goli.config: api/goli.config.md
+    - goli.ipu: api/goli.ipu.md
+    - goli.visualization: api/goli.visualization.md
   - Tutorials:
     - feature_processing:
       - Add new positional encoding: tutorials/feature_processing/add_new_positional_encoding.ipynb
@@ -29,19 +42,6 @@ nav:
   - Pretrained Models: pretrained_models.md
   - Contribute: contribute.md
   - License: license.md
-  - API:
-    - goli.nn:
-      - goli.nn: api/goli.nn/goli.nn.md
-      - goli.nn.architectures: api/goli.nn/architectures.md
-      - goli.nn.encoders: api/goli.nn/encoders.md
-      - goli.nn.pyg_layers: api/goli.nn/pyg_layers.md
-    - goli.features: api/goli.features.md
-    - goli.trainer: api/goli.trainer.md
-    - goli.data: api/goli.data.md
-    - goli.utils: api/goli.utils.md
-    - goli.config: api/goli.config.md
-    - goli.ipu: api/goli.ipu.md
-    - goli.visualization: api/goli.visualization.md
   - CLI: cli_references.md
 
 theme:
@@ -50,6 +50,7 @@ theme:
     primary: red
     accent: indigo
   features:
+    - navigation.tabs
     - navigation.expand
   favicon: images/logo.png
   logo: images/logo.png

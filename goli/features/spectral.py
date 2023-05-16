@@ -1,6 +1,4 @@
-from typing import Tuple, Union
-
-from scipy.sparse.linalg import eigs
+from typing import Tuple, Union, Dict, Any
 from scipy.linalg import eig
 from scipy.sparse import csr_matrix, diags, issparse, spmatrix
 import numpy as np
@@ -10,60 +8,102 @@ import networkx as nx
 from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
-def compute_laplacian_positional_eigvecs(
+def compute_laplacian_pe(
     adj: Union[np.ndarray, spmatrix],
     num_pos: int,
+    cache: Dict[str, Any],
     disconnected_comp: bool = True,
     normalization: str = "none",
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> Tuple[np.ndarray, str, Dict[str, Any]]:
     r"""
     Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.
+
     Parameters:
-        adj: Adjacency matrix of the graph
+        adj [num_nodes, num_nodes]: Adjacency matrix of the graph
         num_pos: Number of Laplacian eigenvectors to compute
+        cache: Dictionary of cached objects
         disconnected_comp: Whether to compute the eigenvectors for each connected component
         normalization: Normalization to apply to the Laplacian
-    Returns:
-        eigvals_tile: Eigenvalues of the Laplacian
-        eigvecs: Eigenvectors of the Laplacian
-    """
-    # Sparsify the adjacency patrix
-    if issparse(adj):
-        adj = adj.astype(np.float64)
-    else:
-        adj = csr_matrix(adj, dtype=np.float64)
 
-    # Compute tha Laplacian, and normalize it
-    D = np.array(np.sum(adj, axis=1)).flatten()
-    D_mat = diags(D)
-    L = -adj + D_mat
-    L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
+    Returns:
+        Two possible outputs:
+            eigvals [num_nodes, num_pos]: Eigenvalues of the Laplacian repeated for each node.
+                This repetition is necessary in case of disconnected components, where
+                the eigenvalues of the Laplacian are not the same for each node.
+            eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian
+        base_level: Indicator of the output pos_level (node, edge, nodepair, graph) -> here node
+        cache: Updated dictionary of cached objects
+    """
+
+    base_level = "node"
+
+    # Sparsify the adjacency patrix
+    if not issparse(adj):
+        if "csr_adj" not in cache:
+            adj = csr_matrix(adj, dtype=np.float64)
+            cache["csr_adj"] = adj
+        else:
+            adj = cache["csr_adj"]
+
+    # Compute the Laplacian, and normalize it
+    if f"L_{normalization}_sp" not in cache:
+        D = np.array(np.sum(adj, axis=1)).flatten()
+        D_mat = diags(D)
+        L = -adj + D_mat
+        L_norm = normalize_matrix(L, degree_vector=D, normalization=normalization)
+        cache[f"L_{normalization}_sp"] = L_norm
+    else:
+        L_norm = cache[f"L_{normalization}_sp"]
 
     components = []
+
     if disconnected_comp:
-        # Get the list of connected components
-        components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
+        if "components" not in cache:
+            # Get the list of connected components
+            components = list(nx.connected_components(nx.from_scipy_sparse_array(adj)))
+            cache["components"] = components
+
+        else:
+            components = cache["components"]
 
     # Compute the eigenvectors for each connected component, and stack them together
     if len(components) > 1:
-        eigvals_tile = np.zeros((L_norm.shape[0], num_pos), dtype=np.float64)
-        eigvecs = np.zeros_like(eigvals_tile)
-        for component in components:
-            comp = list(component)
-            this_L = L_norm[comp][:, comp]
-            this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
-            eigvecs[comp, :] = np.real(this_eigvecs)
-            eigvals_tile[comp, :] = np.real(this_eigvals)
+        if "lap_eig_comp" not in cache:
+            eigvals = np.zeros((adj.shape[0], num_pos), dtype=np.complex64)
+            eigvecs = np.zeros((adj.shape[0], num_pos), dtype=np.complex64)
+            for component in components:
+                comp = list(component)
+                this_L = L_norm[comp][:, comp]
+                this_eigvals, this_eigvecs = _get_positional_eigvecs(this_L, num_pos=num_pos)
+
+                # Eigenvalues previously set to infinity are now set to 0
+                # Any NaN in the eigvals or eigvecs will be set to 0
+                this_eigvecs[~np.isfinite(this_eigvecs)] = 0.0
+                this_eigvals[~np.isfinite(this_eigvals)] = 0.0
+
+                eigvals[comp, :] = np.expand_dims(this_eigvals, axis=0)
+                eigvecs[comp, :] = this_eigvecs
+            cache["lap_eig_comp"] = (eigvals, eigvecs)
+
+        else:
+            eigvals, eigvecs = cache["lap_eig_comp"]
+
     else:
-        eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
-        eigvals_tile = np.tile(eigvals, (L_norm.shape[0], 1))
+        if "lap_eig" not in cache:
+            eigvals, eigvecs = _get_positional_eigvecs(L, num_pos=num_pos)
 
-    # Eigenvalues previously set to infinite are now set to 0
-    # Any NaN in the eigvals or eigvecs will be set to 0
-    eigvecs[~np.isfinite(eigvecs)] = 0.0
-    eigvals_tile[~np.isfinite(eigvals_tile)] = 0.0
+            # Eigenvalues previously set to infinity are now set to 0
+            # Any NaN in the eigvals or eigvecs will be set to 0
+            eigvecs[~np.isfinite(eigvecs)] = 0.0
+            eigvals[~np.isfinite(eigvals)] = 0.0
+            eigvals = np.repeat(np.expand_dims(eigvals, axis=0), adj.shape[0], axis=0)
 
-    return eigvals_tile, eigvecs
+            cache["lap_eig"] = (eigvals, eigvecs)
+
+        else:
+            eigvals, eigvecs = cache["lap_eig"]
+
+    return eigvals, eigvecs, base_level, cache
 
 
 def _get_positional_eigvecs(

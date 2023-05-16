@@ -5,6 +5,8 @@ import numpy as np
 from functools import lru_cache
 from loguru import logger
 from copy import deepcopy
+import os
+import numpy as np
 
 import torch
 from torch.utils.data.dataloader import Dataset
@@ -143,6 +145,8 @@ class MultitaskDataset(Dataset):
         progress: bool = True,
         save_smiles_and_ids: bool = False,
         about: str = "",
+        data_path: Optional[Union[str, os.PathLike]] = None,
+        load_from_file: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -175,13 +179,15 @@ class MultitaskDataset(Dataset):
         self.featurization_batch_size = featurization_batch_size
         self.progress = progress
         self.about = about
+        self.data_path = data_path
+        self.load_from_file = load_from_file
 
         task = next(iter(datasets))
+        self.features = None
         if (len(datasets[task]) > 0) and ("features" in datasets[task][0]):
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
-
         # Set mol_ids and smiles to None to save memory as they are not needed.
         if not save_smiles_and_ids:
             self.mol_ids = None
@@ -189,12 +195,19 @@ class MultitaskDataset(Dataset):
 
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
+        self.dataset_length = len(self.labels)
+        if self.features is not None:
+            self.num_nodes_list = get_num_nodes_per_graph(self.features)
+            self.num_edges_list = get_num_edges_per_graph(self.features)
+        if self.load_from_file:
+            self.features = None
+            self.labels = None
 
     def __len__(self):
         r"""
         Returns the number of molecules
         """
-        return len(self.labels)
+        return self.dataset_length
 
     @property
     def num_graphs_total(self):
@@ -206,22 +219,22 @@ class MultitaskDataset(Dataset):
     @property
     def num_nodes_total(self):
         """Total number of nodes for all graphs"""
-        return sum(get_num_nodes_per_graph(self.features))
+        return sum(self.num_nodes_list)
 
     @property
     def max_num_nodes_per_graph(self):
         """Maximum number of nodes per graph"""
-        return max(get_num_nodes_per_graph(self.features))
+        return max(self.num_nodes_list)
 
     @property
     def std_num_nodes_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        return np.std(get_num_nodes_per_graph(self.features))
+        return np.std(self.num_nodes_list)
 
     @property
     def min_num_nodes_per_graph(self):
         """Minimum number of nodes per graph"""
-        return min(get_num_nodes_per_graph(self.features))
+        return min(self.num_nodes_list)
 
     @property
     def mean_num_nodes_per_graph(self):
@@ -231,22 +244,22 @@ class MultitaskDataset(Dataset):
     @property
     def num_edges_total(self):
         """Total number of edges for all graphs"""
-        return sum(get_num_edges_per_graph(self.features))
+        return sum(self.num_edges_list)
 
     @property
     def max_num_edges_per_graph(self):
         """Maximum number of edges per graph"""
-        return max(get_num_edges_per_graph(self.features))
+        return max(self.num_edges_list)
 
     @property
     def min_num_edges_per_graph(self):
         """Minimum number of edges per graph"""
-        return min(get_num_edges_per_graph(self.features))
+        return min(self.num_edges_list)
 
     @property
     def std_num_edges_per_graph(self):
         """Standard deviation of number of nodes per graph"""
-        return np.std(get_num_edges_per_graph(self.features))
+        return np.std(self.num_edges_list)
 
     @property
     def mean_num_edges_per_graph(self):
@@ -263,20 +276,40 @@ class MultitaskDataset(Dataset):
             A dictionary containing the data for the specified index with keys "mol_ids", "smiles", "labels", and "features"
         """
         datum = {}
+        if self.load_from_file:
+            data_dict = self.load_graph_from_index(idx)
+            datum["features"] = data_dict["graph_with_features"]
+            datum["labels"] = data_dict["labels"]
+            if "smiles" in data_dict.keys():
+                datum["smiles"] = data_dict["smiles"]
+        else:
+            if self.mol_ids is not None:
+                datum["mol_ids"] = self.mol_ids[idx]
 
-        if self.mol_ids is not None:
-            datum["mol_ids"] = self.mol_ids[idx]
+            if self.smiles is not None:
+                datum["smiles"] = self.smiles[idx]
 
-        if self.smiles is not None:
-            datum["smiles"] = self.smiles[idx]
+            if self.labels is not None:
+                datum["labels"] = self.labels[idx]
 
-        if self.labels is not None:
-            datum["labels"] = self.labels[idx]
-
-        if self.features is not None:
-            datum["features"] = self.features[idx]
+            if self.features is not None:
+                datum["features"] = self.features[idx]
 
         return datum
+
+    def load_graph_from_index(self, data_idx):
+        r"""
+        load the graph (in pickle file) from the disk
+        Parameters:
+            data_idx: The index of the data to retrieve
+        Returns:
+            A dictionary containing the data for the specified index with keys "graph_with_features", "labels" and "smiles" (optional).
+        """
+        filename = os.path.join(
+            self.data_path, format(data_idx // 1000, "04d"), format(data_idx, "07d") + ".pkl"
+        )
+        data_dict = torch.load(filename)
+        return data_dict
 
     def merge(
         self, datasets: Dict[str, SingleTaskDataset]
@@ -513,7 +546,6 @@ class FakeDataset(MultitaskDataset):
         """
         return self.num_mols
 
-    # @lru_cache(maxsize=16)
     def __getitem__(self, idx):
         r"""
         get the data for at the specified index

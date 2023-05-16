@@ -1,4 +1,4 @@
-from typing import Dict, Mapping, Tuple, Type, Union, Any
+from typing import Dict, Mapping, Tuple, Type, Union, Any, Optional, Callable
 
 # Misc
 import os
@@ -260,6 +260,7 @@ def load_architecture(
             "in_dims", in_dims
         )  # set the input dimensions of all pe with info from the data-module
     pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs["out_dim"]
+    edge_pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs["edge_out_dim"]
 
     # Set the default `node` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_kwargs is not None:
@@ -271,9 +272,9 @@ def load_architecture(
     # Set the default `edge` input dimension for the pre-processing neural net and graph neural net
     if pre_nn_edges_kwargs is not None:
         pre_nn_edges_kwargs = dict(pre_nn_edges_kwargs)
-        pre_nn_edges_kwargs.setdefault("in_dim", in_dims["edge_feat"])
+        pre_nn_edges_kwargs.setdefault("in_dim", in_dims["edge_feat"] + edge_pe_out_dim)
     else:
-        gnn_kwargs.setdefault("in_dim_edges", in_dims["edge_feat"])
+        gnn_kwargs.setdefault("in_dim", in_dims["edge_feat"] + edge_pe_out_dim)
 
     # Set the parameters for the full network
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
@@ -306,6 +307,7 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
+    task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`
@@ -327,6 +329,7 @@ def load_predictor(
         model_class=model_class,
         model_kwargs=model_kwargs,
         metrics=metrics,
+        task_norms=task_norms,
         **cfg_pred,
     )
 

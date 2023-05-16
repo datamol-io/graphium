@@ -90,6 +90,10 @@ class PreprocessPositions(nn.Module):
             max_num_nodes_per_graph=max_num_nodes_per_graph,
             drop_nodes_last_graph=on_ipu,
         )
+        # check nan with the pos from to_dense_batch,
+        # and generate mask. 1 for nan, 0 for other values.
+        # [batch, nodes]
+        nan_mask = torch.isnan(pos)[:, :, 0]
         # we need the opposite of mask output
         padding_mask = ~mask
         # [batch, nodes]
@@ -104,11 +108,19 @@ class PreprocessPositions(nn.Module):
         attn_bias = self.gaussian_proj(distance_feature)
         # [batch, num_heads, nodes, nodes]
         attn_bias = attn_bias.permute(0, 3, 1, 2).contiguous()
+        # apply padding_mask on attn_bias
         # unsqueezed mask size: [batch, 1, 1, nodes] apply on tensor [batch, num_heads, nodes, nodes]
         attn_bias.masked_fill_(
             padding_mask.unsqueeze(1).unsqueeze(2),
             float("-1000"),
         )
+        # apply nan_mask on attn_bias
+        # unsqueezed mask size: [batch, 1, 1, nodes] apply on tensor [batch, num_heads, nodes, nodes]
+        attn_bias.masked_fill_(
+            nan_mask.unsqueeze(1).unsqueeze(2),
+            0.0,
+        )
+        # apply padding_mask on distance_feature
         # unsqueezed mask size: [batch, 1, nodes, 1] apply on tensor [batch, nodes, nodes, num_kernel]
         distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
         # [batch, nodes, num_kernel]
@@ -117,6 +129,9 @@ class PreprocessPositions(nn.Module):
         distance_feature_sum = distance_feature_sum.to(self.node_proj.weight.dtype)
         # [batch, nodes, embed_dim]
         node_feature = self.node_proj(distance_feature_sum)
+        # apply nan_mask on node_feature
+        # unsqueezed mask size: [batch, nodes, 1] apply on tensor [batch, nodes, embed_dim]
+        node_feature.masked_fill(nan_mask.unsqueeze(-1).to(torch.bool), 0.0)
         # [total_nodes, embed_dim]
         node_feature = to_sparse_batch(node_feature, idx)
 
