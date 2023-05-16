@@ -90,8 +90,11 @@ class PreprocessPositions(nn.Module):
         )
         # check nan with the pos from to_dense_batch,
         # and generate mask. 1 for nan, 0 for other values.
-        # [batch, nodes]
-        nan_mask = torch.isnan(pos)[:, :, 0]
+        # pos consists of real nodes and padding nodes
+        # for real nodes, if 3d position does not exit, it is nans. For padding nodes, 3d positions will be 0
+        # if the first node of a molecule has 3d position as nan, the whole molecule will be masked out.
+        # [batch]
+        nan_mask = torch.isnan(pos)[:, 0, 0]
         # we need the opposite of mask output
         padding_mask = ~mask
         # [batch, nodes]
@@ -113,14 +116,14 @@ class PreprocessPositions(nn.Module):
             float("-1000"),
         )
         # apply nan_mask on attn_bias
-        # unsqueezed mask size: [batch, 1, 1, nodes] apply on tensor [batch, num_heads, nodes, nodes]
+        # unsqueezed mask size: [batch, 1, 1, 1] apply on tensor [batch, num_heads, nodes, nodes]
         attn_bias.masked_fill_(
-            nan_mask.unsqueeze(1).unsqueeze(2),
-            0.0,
+            nan_mask.unsqueeze(1).unsqueeze(2).unsqueeze(3),
+            float("-1000"),
         )
         # apply padding_mask on distance_feature
         # unsqueezed mask size: [batch, 1, nodes, 1] apply on tensor [batch, nodes, nodes, num_kernel]
-        distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
+        distance_feature.masked_fill_(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
         # [batch, nodes, num_kernel]
         distance_feature_sum = distance_feature.sum(dim=-2)
         # Output of GaussianLayer is FP32, cast to dtype of self.node_proj here
@@ -128,8 +131,8 @@ class PreprocessPositions(nn.Module):
         # [batch, nodes, embed_dim]
         node_feature = self.node_proj(distance_feature_sum)
         # apply nan_mask on node_feature
-        # unsqueezed mask size: [batch, nodes, 1] apply on tensor [batch, nodes, embed_dim]
-        node_feature.masked_fill(nan_mask.unsqueeze(-1).to(torch.bool), 0.0)
+        # unsqueezed mask size: [batch, 1, 1] apply on tensor [batch, nodes, embed_dim]
+        node_feature.masked_fill_(nan_mask.unsqueeze(1).unsqueeze(2).to(torch.bool), 0.0)
         # [total_nodes, embed_dim]
         node_feature = to_sparse_batch(node_feature, idx)
 

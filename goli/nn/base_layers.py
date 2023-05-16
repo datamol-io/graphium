@@ -175,7 +175,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
             if key_padding_mask is not None:
                 masked_attn_weights = attn_weights.masked_fill(
                     key_padding_mask.unsqueeze(1).unsqueeze(2),
-                    float("-inf"),
+                    float("-10000"),
                 )
             masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
             attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
