@@ -226,7 +226,7 @@ def create_ipu_dataloader(
     )
 
     # Get the global batch size
-    num_nodes = np.asarray([dataset[ii]["features"].num_nodes for ii in range(len(dataset))])
+    num_nodes = np.asarray(dataset.num_nodes_list)
     accum = ipu_options.Training.gradient_accumulation
     repli = ipu_options._values["replication_factor"]
     device_iter = ipu_options._values["device_iterations"]
