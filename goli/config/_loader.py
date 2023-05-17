@@ -376,7 +376,7 @@ def load_trainer(
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    strategy = None
+    strategy = 'auto'
     accelerator = get_accelerator(config)
     if accelerator == "ipu":
         ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
@@ -389,9 +389,8 @@ def load_trainer(
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
 
-        from goli.ipu.ipu_wrapper import DictIPUStrategy
-
-        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
+        from lightning_graphcore import IPUStrategy
+        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     # Get devices
     devices = cfg_trainer["trainer"].pop('devices', 1)

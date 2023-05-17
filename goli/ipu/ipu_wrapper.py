@@ -31,18 +31,6 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
             preds[task] = preds[task][:-1]
     return preds
 
-
-class DictIPUStrategy(IPUStrategy):
-    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
-        args = self._prepare_input(args)
-        args = args[0]
-        poptorch_model = self.poptorch_models[stage]
-        self.lightning_module._running_torchscript = True
-        out = poptorch_model(**args)
-        self.lightning_module._running_torchscript = False
-        return out
-
-
 class PyGArgsParser(poptorch.ICustomArgParser):
     """
     This class is responsible for converting a PyG Batch from and to
