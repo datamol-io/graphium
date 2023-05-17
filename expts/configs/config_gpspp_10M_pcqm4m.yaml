@@ -18,7 +18,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 20000 # use sample_size for test
+        # sample_size: 80000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
@@ -148,7 +148,7 @@ architecture:
     depth: 4
     activation: gelu
     last_activation: none
-    dropout: 0.3
+    dropout: 0.1
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
@@ -164,6 +164,7 @@ architecture:
         in_dim_edges: 128
         out_dim_edges: 128
       attn_type: "full-attention" # "full-attention", "none"
+      precision: &precision 16
       biased_attention_key: "graph_gaussian_bias_3d" # 3D_bias
       attn_kwargs:
         num_heads: 32
@@ -242,7 +243,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 32
+    precision: *precision
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 4
