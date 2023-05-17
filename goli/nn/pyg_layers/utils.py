@@ -118,7 +118,7 @@ class PreprocessPositions(nn.Module):
         # apply nan_mask on attn_bias
         # unsqueezed mask size: [batch, 1, 1, 1] apply on tensor [batch, num_heads, nodes, nodes]
         attn_bias.masked_fill_(
-            nan_mask.unsqueeze(1).unsqueeze(2).unsqueeze(3),
+            nan_mask.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1),
             0.0,
         )
         # apply padding_mask on distance_feature
