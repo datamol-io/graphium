@@ -124,6 +124,7 @@ metrics:
 
   - name: f1 < 0
     metric: f1
+    target_to_int: True
     num_classes: 2
     average: micro
     threshold_kwargs: &threshold_0
@@ -131,10 +132,10 @@ metrics:
       threshold: 0
       th_on_preds: True
       th_on_target: True
-      target_to_int: True
 
   - name: f1 < -1
     metric: f1
+    target_to_int: True
     num_classes: 2
     average: micro
     threshold_kwargs:
@@ -142,7 +143,6 @@ metrics:
       threshold: -1
       th_on_preds: True
       th_on_target: True
-      target_to_int: True
 
   - name: precision < 0
     metric: precision
