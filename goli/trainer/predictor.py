@@ -142,6 +142,7 @@ class PredictorModule(lightning.LightningModule):
         self.mean_val_time_tracker = MovingAverageTracker()
         self.mean_val_tput_tracker = MovingAverageTracker()
         self.validation_step_outputs = []
+        self.test_step_outputs = []
 
     def forward(
         self, inputs: Dict
@@ -484,7 +485,6 @@ class PredictorModule(lightning.LightningModule):
 
         return metrics_logs  # Consider returning concatenated dict for tensorboard
 
-
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
         self.mean_val_tput_tracker.reset()
@@ -494,7 +494,7 @@ class PredictorModule(lightning.LightningModule):
         self.validation_batch_start_time = time.time()
         return super().on_validation_batch_start(batch, batch_idx)
 
-    def on_validation_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
+    def on_validation_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
         val_batch_time = time.time() - self.validation_batch_start_time
         self.validation_step_outputs.append(outputs)
         self.mean_val_time_tracker.update(val_batch_time)
@@ -502,25 +502,28 @@ class PredictorModule(lightning.LightningModule):
         self.mean_val_tput_tracker.update(num_graphs / val_batch_time)
         return super().on_validation_batch_end(outputs, batch, batch_idx)
 
-    def on_validation_epoch_end(self):
+    def on_validation_epoch_end(self) -> None:
         metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val")
         self.validation_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
+        concatenated_metrics_logs["val/mean_time"] = self.mean_val_time_tracker.mean_value
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
         lr = self.optimizers().param_groups[0]["lr"]
         metrics_logs["lr"] = lr
         metrics_logs["n_epochs"] = self.current_epoch
-        print(f"{concatenated_metrics_logs=}")
         self.log_dict(concatenated_metrics_logs)
 
         # Save yaml file with the per-task metrics summaries
         full_dict = {}
         full_dict.update(self.task_epoch_summary.get_dict_summary())
 
-    def test_epoch_end(self, outputs: Dict[str, Any]):
-        metrics_logs = self._general_epoch_end(outputs=outputs, step_name="test")
+    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+        self.test_step_outputs.append(outputs)
+
+    def on_test_epoch_end(self) -> None:
+        metrics_logs = self._general_epoch_end(outputs=self.test_step_outputs, step_name="test")
+        self.test_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
 
         self.log_dict(concatenated_metrics_logs)

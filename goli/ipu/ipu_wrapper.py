@@ -117,7 +117,8 @@ class PredictorModuleIPU(PredictorModule):
         outputs["loss"] = outputs["loss"].mean()
         super().on_train_batch_end(outputs, batch, batch_idx)
 
-    def training_step(self, features, labels) -> Dict[str, Any]:
+    def training_step(self, batch, batch_idx) -> Dict[str, Any]:
+        features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
         step_dict = super().training_step(dict_input, to_cpu=False)
@@ -126,15 +127,17 @@ class PredictorModuleIPU(PredictorModule):
         step_dict["loss"] = self.poptorch.identity_loss(loss, reduction="mean")
         return step_dict
 
-    def validation_step(self, features, labels) -> Dict[str, Any]:
+    def validation_step(self, batch, batch_idx) -> Dict[str, Any]:
+        features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
         step_dict = super().validation_step(dict_input, to_cpu=False)
 
         return step_dict
 
-    def test_step(self, features, labels) -> Dict[str, Any]:
+    def test_step(self, batch, batch_idx) -> Dict[str, Any]:
         # Build a dictionary from the tuples
+        features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
         step_dict = super().test_step(dict_input, to_cpu=False)
@@ -148,17 +151,18 @@ class PredictorModuleIPU(PredictorModule):
 
         return step_dict
 
-    def validation_epoch_end(self, outputs: Dict[str, Any]):
+    def on_validation_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+        # convert data that will be tracked
         outputs = self.convert_from_fp16(outputs)
-        super().validation_epoch_end(outputs)
+        super().on_validation_batch_end(outputs, batch, batch_idx)
 
-    def evaluation_epoch_end(self, outputs: Dict[str, Any]):
+    def evaluation_epoch_end(self, outputs: Any):
         outputs = self.convert_from_fp16(outputs)
         super().evaluation_epoch_end(outputs)
 
-    def test_epoch_end(self, outputs: Dict[str, Any]):
+    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
         outputs = self.convert_from_fp16(outputs)
-        super().test_epoch_end(outputs)
+        super().on_test_batch_end(outputs, batch, batch_idx)
 
     def configure_optimizers(self, impl=None):
         if impl is None:
