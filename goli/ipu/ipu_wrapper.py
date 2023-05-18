@@ -218,7 +218,7 @@ class PredictorModuleIPU(PredictorModule):
         return feats
 
     def precision_to_dtype(self, precision):
-        return torch.half if precision in (16, "16") else torch.float
+        return torch.half if precision == "16-true" else torch.float
 
     def get_num_graphs(self, data: Batch):
         """
