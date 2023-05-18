@@ -31,7 +31,12 @@ class WarmUpLinearLR(_LRScheduler):
         if self.warmup_epochs > 0 and (self.last_epoch + 1) < self.warmup_epochs:
             return [(self.last_epoch + 1) * base_lr / self.warmup_epochs for base_lr in self.base_lrs]
         else:
-            factor = ((self.last_epoch + 1) - self.warmup_epochs) / (self.max_num_epochs - self.warmup_epochs)
+            # check epoch_diff in case there is a division by zero error
+            epoch_diff = self.max_num_epochs - self.warmup_epochs
+            if epoch_diff == 0:
+                factor = 0
+            else:
+                factor = ((self.last_epoch + 1) - self.warmup_epochs) / epoch_diff
             return [factor * self.min_lr + (1 - factor) * base_lr for base_lr in self.base_lrs]
 
     def _get_closed_form_lr(self):
