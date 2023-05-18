@@ -506,7 +506,7 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs = self._general_epoch_end(outputs=self.validation_step_outputs, step_name="val")
         self.validation_step_outputs.clear()
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
-        concatenated_metrics_logs["val/mean_time"] = self.mean_val_time_tracker.mean_value
+        concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
         lr = self.optimizers().param_groups[0]["lr"]
