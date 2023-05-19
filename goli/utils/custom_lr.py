@@ -33,7 +33,7 @@ class WarmUpLinearLR(_LRScheduler):
         else:
             # check epoch_diff in case there is a division by zero error
             epoch_diff = self.max_num_epochs - self.warmup_epochs
-            if epoch_diff == 0:
+            if epoch_diff <= 0:
                 factor = 0
             else:
                 factor = ((self.last_epoch + 1) - self.warmup_epochs) / epoch_diff
