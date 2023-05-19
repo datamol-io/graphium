@@ -3,6 +3,7 @@ from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import numpy as np
 from copy import deepcopy
 import time
+from loguru import logger
 
 import torch
 from torch import nn, Tensor
@@ -488,10 +489,12 @@ class PredictorModule(pl.LightningModule):
         self.epoch_start_time = time.time()
 
     def on_train_epoch_end(self) -> None:
-        assert self.epoch_start_time is not None, "epoch timer not initialized"
-        epoch_time = time.time() - self.epoch_start_time
-        self.epoch_start_time = None
-        self.log("epoch_time", torch.tensor(epoch_time))
+        if self.epoch_start_time is None:
+            logger.warning("epoch timer not initialized")
+        else:
+            epoch_time = time.time() - self.epoch_start_time
+            self.epoch_start_time = None
+            self.log("epoch_time", torch.tensor(epoch_time))
 
     def training_epoch_end(self, outputs: Dict):
         """
