@@ -141,7 +141,7 @@ class PredictorModule(pl.LightningModule):
         # throughput estimation
         self.mean_val_time_tracker = MovingAverageTracker()
         self.mean_val_tput_tracker = MovingAverageTracker()
-        self.train_epoch_start_time = None
+        self.epoch_start_time = None
 
     def forward(
         self, inputs: Dict
@@ -485,13 +485,13 @@ class PredictorModule(pl.LightningModule):
         return metrics_logs  # Consider returning concatenated dict for tensorboard
 
     def on_train_epoch_start(self) -> None:
-        self.train_epoch_start_time = time.time()
+        self.epoch_start_time = time.time()
 
     def on_train_epoch_end(self) -> None:
-        assert self.train_epoch_start_time is not None, "epoch timer not initialized"
-        epoch_time = time.time() - self.train_epoch_start_time
-        self.train_epoch_start_time = None
-        self.log("train/epoch_time", torch.tensor(epoch_time))
+        assert self.epoch_start_time is not None, "epoch timer not initialized"
+        epoch_time = time.time() - self.epoch_start_time
+        self.epoch_start_time = None
+        self.log("epoch_time", torch.tensor(epoch_time))
 
     def training_epoch_end(self, outputs: Dict):
         """
