@@ -931,15 +931,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def get_non_hydrogen_edge_labels(self, smiles, edge_labels):
         mol = Chem.MolFromSmiles(smiles)
 
-        non_hydrogen_edge_labels = []
-
-        for i, bond in enumerate(mol.GetBonds()):
-            atom1 = bond.GetBeginAtom()
-            atom2 = bond.GetEndAtom()
-
-            if atom1.GetSymbol() != "H" and atom2.GetSymbol() != "H":
-                non_hydrogen_edge_labels.append(edge_labels[i])  # Bond from atom1 to atom2
-                non_hydrogen_edge_labels.append(edge_labels[i])  # Bond from atom2 to atom1
+        non_hydrogen_edge_labels = [
+            label
+            for i, bond in enumerate(mol.GetBonds())
+            for label in (edge_labels[i], edge_labels[i])  # duplicate the label for both directions
+            if bond.GetBeginAtom().GetSymbol() != "H" and bond.GetEndAtom().GetSymbol() != "H"
+        ]
 
         return np.array(non_hydrogen_edge_labels)
 
