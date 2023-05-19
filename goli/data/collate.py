@@ -2,6 +2,7 @@ from collections.abc import Mapping, Sequence
 
 # from pprint import pprint
 import torch
+import pdb
 from numpy import ndarray
 from scipy.sparse import spmatrix
 from torch.utils.data.dataloader import default_collate
@@ -69,9 +70,14 @@ def goli_collate_fn(
     if isinstance(elem, Mapping):
         batch = {}
         for key in elem:
+            # Multitask setting: We have to pad the missing labels
+            if key == "labels":
+                labels = [d[key] for d in elements]
+                batch[key] = collate_labels(labels, labels_size_dict)
+
             # If the features are a dictionary containing GraphDict elements,
             # Convert to pyg graphs and use the pyg batching.
-            if isinstance(elem[key], GraphDict):
+            elif isinstance(elem[key], GraphDict):
                 pyg_graphs = [d[key].make_pyg_graph(mask_nan=mask_nan) for d in elements]
                 batch[key] = collage_pyg_graph(pyg_graphs)
 
@@ -83,12 +89,6 @@ def goli_collate_fn(
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
                 batch[key] = [d[key] for d in elements]
-
-            # Multitask setting: We have to pad the missing labels
-            elif key == "labels":
-                labels = [d[key] for d in elements]
-                batch[key] = collate_labels(labels, labels_size_dict)
-
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
@@ -157,8 +157,32 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
     return Batch.from_data_list(pyg_batch)
 
 
+def collage_pyg_graph_labels(pyg_labels: List[Data]):
+    """
+    Function to collate pytorch geometric labels.
+    Convert all numpy types to torch
+
+    Parameters:
+        pyg_labels: Iterable of PyG label Data objects
+    """
+
+    pyg_batch = []
+    for pyg_label in pyg_labels:
+        tensor = pyg_label.y
+
+        # Convert numpy/scipy to Pytorch
+        if isinstance(tensor, (ndarray, spmatrix)):
+            tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+
+        pyg_label.y = tensor
+
+        pyg_batch.append(pyg_label)
+
+    return Batch.from_data_list(pyg_batch)
+
+
 def collate_labels(
-    labels: List[Dict[str, torch.Tensor]],
+    labels: List[Dict[str, Data]],
     labels_size_dict: Optional[Dict[str, Any]] = None,
 ):
     """Collate labels for multitask learning.
@@ -174,17 +198,18 @@ def collate_labels(
         is a tensor of shape (batch_size, *labels_size_dict[task]).
     """
     labels_dict = {}
-
     if labels_size_dict is not None:
         for this_label in labels:
             empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
             for task in empty_task_labels:
-                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
-            for task in this_label.keys():
-                if not isinstance(task, torch.Tensor):
-                    this_label[task] = torch.as_tensor(this_label[task])
-    labels_dict = default_collate(labels)
+                this_label[task] = Data(y=torch.full([*labels_size_dict[task]], torch.nan))
 
+    # Convert labels from List[Dict[str, Data]] to Dict[str, List[Data]]
+    labels_by_task = {}
+    for task in labels[0].keys():
+        labels_by_task[task] = [label_dict[task] for label_dict in labels]
+    for task, task_labels in labels_by_task.items():
+        labels_dict[task] = collage_pyg_graph_labels(task_labels)
     return labels_dict
 
 

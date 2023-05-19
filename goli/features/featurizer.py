@@ -827,7 +827,7 @@ def mol_to_adjacency_matrix(
         (torch.as_tensor(adj_val), torch.as_tensor(adj_idx).T.reshape(2, -1)),
         shape=(mol.GetNumAtoms(), mol.GetNumAtoms()),
         dtype=dtype,
-    )
+    )  # TODO: .T sends User Warning. need to be debugged or changed to .mT
 
     # Add self loops
     if add_self_loop:

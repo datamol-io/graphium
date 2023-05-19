@@ -9,6 +9,8 @@ from copy import deepcopy
 import time
 from tqdm import tqdm
 import gc
+import pdb
+from rdkit import Chem
 
 from loguru import logger
 import fsspec
@@ -27,6 +29,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.trainer.states import RunningStage
 
 import torch
+from torch_geometric.data import Data
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
@@ -47,15 +50,10 @@ from goli.data.smiles_transform import (
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
 from goli.data.normalization import LabelNormalization
+from goli.data.multilevel_utils import extract_labels
 
 torch.multiprocessing.set_sharing_strategy("file_system")
-from tests.test_multilevel_dataloading import (
-    extract_labels,
-    test_extract_graph_level,
-    test_extract_node_level,
-    test_extract_node_level,
-    test_extract_nodepair_level,
-)
+
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -869,6 +867,82 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )
         self.data_hash = self.get_data_hash()
 
+    def remove_hydrogen_labels_2(
+        self, labels, task_level
+    ):  # TODO: confirm with me if this approach or below one is correct
+        if task_level == "graph":
+            return labels
+        elif task_level == "edge" or task_level == "node":
+            # Find the indices of rows that are not equal to [1, 1]
+            indices = np.where(~np.all(labels == 1, axis=1))
+
+            # Keep only those rows
+            labels_no_hydrogen = labels[indices]
+
+            return labels_no_hydrogen
+        elif task_level == "nodepair":
+            raise NotImplementedError
+        else:
+            raise ValueError(f"Unknown task level: {task_level}")
+
+    def remove_hydrogen_labels_1(
+        self, labels, task_level
+    ):  # TODO: both 1 & 2 (above) doesnt work, discuss with Dom
+        if task_level == "graph":
+            return labels
+        elif task_level == "edge" or task_level == "node":
+            # Start from the last label and move backwards
+            for i in range(len(labels) - 1, -1, -1):
+                # If the label is not [1, 1], break the loop
+                if np.any(labels[i] != [1, 1]):
+                    break
+            # Return the labels up to the last non-[1, 1] label
+            return labels[: i + 1]
+        elif task_level == "nodepair":
+            raise NotImplementedError
+        else:
+            raise ValueError(f"Unknown task level: {task_level}")
+
+    def get_non_hydrogen_labels(
+        self, labels, smiles, task_level
+    ):  # TODO: Temporary function for testing, later we will remove hydrogen labels from data level
+        if task_level == "graph":
+            return labels
+        elif task_level == "node":
+            return self.get_non_hydrogen_node_labels(smiles, node_labels=labels)
+        elif task_level == "edge":
+            return self.get_non_hydrogen_edge_labels(smiles, edge_labels=labels)
+        elif task_level == "nodepair":
+            raise NotImplementedError
+        else:
+            raise ValueError(f"Unknown task level: {task_level}")
+
+    def get_non_hydrogen_node_labels(self, smiles, node_labels):
+        # Parse SMILES string into a molecule object
+        mol = Chem.MolFromSmiles(smiles)
+
+        # Filter labels to keep only non-Hydrogen labels
+        non_hydrogen_labels = np.array(
+            [node_labels[i] for i, atom in enumerate(mol.GetAtoms()) if atom.GetAtomicNum() != 1]
+        )
+
+        return non_hydrogen_labels
+
+    def get_non_hydrogen_edge_labels(self, smiles, edge_labels):
+        mol = Chem.MolFromSmiles(smiles)
+
+        non_hydrogen_edge_labels = []
+
+        for i, bond in enumerate(mol.GetBonds()):
+            atom1 = bond.GetBeginAtom()
+            atom2 = bond.GetEndAtom()
+
+            if atom1.GetSymbol() != "H" and atom2.GetSymbol() != "H":
+                non_hydrogen_edge_labels.append(edge_labels[i])  # Bond from atom1 to atom2
+                non_hydrogen_edge_labels.append(edge_labels[i])  # Bond from atom2 to atom1
+
+        return np.array(non_hydrogen_edge_labels)
+
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -1014,8 +1088,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["extras"],
                 this_unique_ids,
             )
+            task_level = self.task_dataset_processing_params[task].task_level
+            labels_ = [
+                Data(
+                    y=self.get_non_hydrogen_labels(labels=labels[i], smiles=smiles[i], task_level=task_level)
+                )
+                for i in range(len(labels))
+            ]  # TODO: This can further be optimized by removing the hydrogen labels at data level
             task_dataset_args[task]["smiles"] = smiles
-            task_dataset_args[task]["labels"] = labels
+            task_dataset_args[task]["labels"] = labels_
             task_dataset_args[task]["features"] = features
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras
@@ -1055,7 +1136,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         ) = self.get_subsets_of_datasets(
             self.single_task_datasets, self.task_train_indices, self.task_val_indices, self.task_test_indices
         )
-
         # When a path is provided but no cache is found, save to cache
         if (self.cache_data_path is not None) and (not cache_data_exists):
             self.save_data_to_cache()
@@ -2269,6 +2349,16 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
         for task, args in task_dataset_args.items():
+            task_level = self.task_dataset_processing_params[task].task_level
+            task_dataset_args[task]["labels"] = [
+                Data(
+                    y=self.get_non_hydrogen_labels(
+                        labels=task_dataset_args[task]["labels"][i], smiles=smiles[i], task_level=task_level
+                    )
+                )
+                for i in range(len(task_dataset_args[task]["labels"]))
+            ]  # TODO: This can further be optimized by removing the hydrogen labels at data level
+
             self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],

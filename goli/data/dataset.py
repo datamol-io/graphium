@@ -6,6 +6,7 @@ from functools import lru_cache
 from loguru import logger
 from copy import deepcopy
 import os
+import pdb
 import numpy as np
 
 import torch
@@ -19,7 +20,7 @@ from goli.features import GraphDict
 class SingleTaskDataset(Dataset):
     def __init__(
         self,
-        labels: Union[torch.Tensor, np.ndarray],
+        labels: List[Data],
         features: Optional[List[Union[Data, "GraphDict"]]] = None,
         smiles: Optional[List[str]] = None,
         indices: Optional[List[str]] = None,
@@ -189,11 +190,10 @@ class MultitaskDataset(Dataset):
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
         # Set mol_ids and smiles to None to save memory as they are not needed.
+        assert len(self.labels) == len(self.features), "mismatch features and labels"
         if not save_smiles_and_ids:
             self.mol_ids = None
             self.smiles = None
-
-        self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
         self.dataset_length = len(self.labels)
         if self.features is not None:
@@ -384,7 +384,6 @@ class MultitaskDataset(Dataset):
                 ds_features = [ds[i]["features"] for i in range(len(ds))]
             else:
                 ds_features = None
-
             all_smiles.extend(ds_smiles)
             all_labels.extend(ds_labels)
             all_mol_ids.extend(ds_mol_ids)
@@ -418,7 +417,7 @@ class MultitaskDataset(Dataset):
                 continue
             label = ds[0][
                 "labels"
-            ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
+            ].y  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
             torch_label = torch.as_tensor(label)
             # torch_label = label
             task_labels_size[task] = torch_label.size()
@@ -504,7 +503,7 @@ class FakeDataset(MultitaskDataset):
                 self.mol_ids, self.smiles, self.labels, _ = self.deepcopy_mol(
                     self.mol_ids, self.smiles, self.labels
                 )
-        self.labels = np.array(self.labels)
+
         self.labels_size = self.set_label_size_dict(datasets)
         self.features = self.features
 
