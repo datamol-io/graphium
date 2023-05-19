@@ -34,7 +34,6 @@ datamodule:
     featurization_n_jobs: 20
     featurization_progress: True
     featurization_backend: "loky"
-    cache_data_path: "./datacache"
     processed_graph_data_path: "goli/data/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
@@ -147,7 +146,7 @@ architecture:
     depth: 4
     activation: gelu
     last_activation: none
-    dropout: 0.3
+    dropout: 0.1
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
@@ -202,8 +201,8 @@ predictor:
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
+    loss_scaling: 1
   torch_scheduler_kwargs:
-    loss_scaling: 1024
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100
     warmup_epochs: 10
@@ -249,8 +248,8 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 16
+    precision: 16 # changes to 32 when running on cpu
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 1
     check_val_every_n_epoch: 20

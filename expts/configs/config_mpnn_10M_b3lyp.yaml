@@ -1,6 +1,6 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Testing the mpnn only model with the b3lyp dataset on IPU.
 constants:
-  name: &name pcqm4mv2_mpnn_4layer
+  name: &name b3lyp_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -19,7 +19,6 @@ datamodule:
         smiles_col: "smiles"
         label_cols: ["beta_gap"]
         # sample_size: 30000 # use sample_size for test
-        # splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
         split_val: 0.1
         split_test: 0.1
       alphagap:
@@ -70,23 +69,23 @@ datamodule:
             ksteps: 16
 
     # Data handling-related
-    batch_size_training: 64
-    batch_size_inference: 16
+    batch_size_training: 128
+    batch_size_inference: 32
     # cache_data_path: .
     num_workers: 0 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
-    # ipu_dataloader_training_opts:
-    #   mode: async
-    #   max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-    #   max_num_edges_per_graph: 60
+    ipu_dataloader_training_opts:
+      mode: async
+      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+      max_num_edges_per_graph: 60
 
-    # ipu_dataloader_inference_opts:
-    #   mode: async
-    #   max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
-    #   max_num_edges_per_graph: 120
+    ipu_dataloader_inference_opts:
+      mode: async
+      max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
+      max_num_edges_per_graph: 120
     #   # test-dev max nodes: 50, max_edges: 116
     #   # test-challenge max nodes: 51, max_edges: 106
 
@@ -248,7 +247,7 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/PCQMv2
+    save_dir: logs/b3lyp
     name: *name
     project: PCQMv2_mpnn
   #early_stopping:
@@ -257,7 +256,7 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/PCMQv2/
+    dirpath: models_checkpoints/b3lyp/
     filename: *name
     #monitor: *monitor
     #mode: *mode
@@ -267,5 +266,5 @@ trainer:
     precision: 32
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 1
     check_val_every_n_epoch: 20

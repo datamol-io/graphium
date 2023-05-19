@@ -65,10 +65,13 @@ class LabelNormalization:
             self.data_min = max(self.min_clipping, self.data_min)
         if self.max_clipping is not None:
             self.data_max = min(self.max_clipping, self.data_max)
-        if isinstance(input, np.ndarray):
-            np.clip(input, a_min=self.data_min, a_max=self.data_max)
-        elif isinstance(input, Tensor):
-            torch.clip(input, min=self.data_min, max=self.data_max)
+        clipping = self.min_clipping is not None and self.max_clipping is not None
+        # Need to check since np.clip fails if both a_min and a_max are None
+        if clipping:
+            if isinstance(input, np.ndarray):
+                input = np.clip(input, a_min=self.data_min, a_max=self.data_max)
+            elif isinstance(input, Tensor):
+                input = torch.clip(input, min=self.data_min, max=self.data_max)
         if self.method is None:
             return input
         elif self.method == "normal":
