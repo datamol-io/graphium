@@ -1,24 +1,7 @@
 import pandas as pd
 import ast
-from functools import partial
 import numpy as np
 from typing import List
-
-
-def np_repr_to_np(string: str):  # TODO: this needs to be removed.
-    """Converts a string in numpy reprsentation
-    (output of print(array)) to a numpy array."""
-    if "." in string:
-        dtype = float
-    else:
-        dtype = int
-
-    translation = str.maketrans({c: None for c in "[]\n"})
-    clean_string = string.translate(translation)
-
-    char_list = clean_string.split(" ")
-    clean_list = [c for c in char_list if c != ""]
-    return np.fromiter(clean_list, dtype=dtype)
 
 
 def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
@@ -27,13 +10,10 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     targets are concatenated for each graph.
     """
 
-    def unpack(graph_data, base_type: str):
+    def unpack(graph_data):
         if isinstance(graph_data, str):
-            if base_type == "list":
-                graph_data_list = ast.literal_eval(graph_data)
-                return np.array(graph_data_list)
-            elif base_type == "np":
-                return np_repr_to_np(graph_data)
+            graph_data_list = ast.literal_eval(graph_data)
+            return np.array(graph_data_list)
         elif isinstance(graph_data, (int, float)):
             return np.array([graph_data])
         elif isinstance(graph_data, list):
@@ -46,16 +26,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
             )
 
     def unpack_column(data: pd.Series):
-        base_type = None
-        if task_level != "graph":
-            name: str = data.name
-            if name.endswith("np"):
-                base_type = "np"
-            elif name.endswith("list"):
-                base_type = "list"
-            else:
-                raise ValueError(f"Expected {name} to indicate np or list.")
-        return data.apply(partial(unpack, base_type=base_type))
+        return data.apply(unpack)
 
     def merge_columns(data: pd.Series):
         data = data.to_list()
