@@ -19,7 +19,7 @@ datamodule:
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 80000 # use sample_size for test
-        splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
         split_names: ["train", "valid", "test-dev"]
@@ -49,15 +49,22 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          la_pos: &pos_enc
-            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+          lap_eigvec:
+            pos_level: node
+            pos_type: laplacian_eigvec
+            num_pos: 8
+            normalization: "none" # nomrlization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          lap_eigval:
+            pos_level: node
+            pos_type: laplacian_eigval
             num_pos: 8
             normalization: "none" # nomrlization already applied on the eigen vectors
             disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rw_pos: # use same name as pe_encoder
-            pos_type: rwse
+            pos_level: node
+            pos_type: rw_return_probs
             ksteps: 16
-      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # Data handling-related
     batch_size_training: 64
@@ -119,7 +126,7 @@ architecture:
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
-        dropout: 0.18
+        dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
@@ -128,9 +135,10 @@ architecture:
         hidden_dim: 64
         out_dim: 32
         num_layers: 2
-        dropout: 0.18
+        dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+
 
 
   gnn:  # Set as null to avoid a post-nn network

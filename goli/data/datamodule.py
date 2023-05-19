@@ -1485,7 +1485,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
 
         smiles = "C1=CC=CC=C1"
-        graph = self.smiles_transformer(smiles, mask_nan=0.0)
+        trans = deepcopy(self.smiles_transformer)
+        trans.keywords.setdefault("on_error", "raise")
+        trans.keywords.setdefault("mask_nan", 0.0)
+        graph = trans(smiles)
         return graph
 
     ########################## Private methods ######################################
