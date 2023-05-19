@@ -196,9 +196,8 @@ class MultitaskDataset(Dataset):
         self.labels = np.array(self.labels)
         self.labels_size = self.set_label_size_dict(datasets)
         self.dataset_length = len(self.labels)
-        if self.features is not None:
-            self.num_nodes_list = get_num_nodes_per_graph(self.features)
-            self.num_edges_list = get_num_edges_per_graph(self.features)
+        self._num_nodes_list = None
+        self._num_edges_list = None
         if self.load_from_file:
             self.features = None
             self.labels = None
@@ -208,6 +207,24 @@ class MultitaskDataset(Dataset):
         Returns the number of molecules
         """
         return self.dataset_length
+
+    @property
+    def num_nodes_list(self):
+        """
+        The number of nodes per graph
+        """
+        if self._num_edges_list is None:
+            self._num_nodes_list = get_num_nodes_per_graph(self.features)
+        return self._num_nodes_list
+
+    @property
+    def num_edges_list(self):
+        """
+        The number of edges per graph
+        """
+        if self._num_edges_list is None:
+            self._num_edges_list = get_num_edges_per_graph(self.features)
+        return self._num_edges_list
 
     @property
     def num_graphs_total(self):

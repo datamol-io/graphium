@@ -253,8 +253,8 @@ class EncoderManager(nn.Module):
                 key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
                 for key, encoder in self.pe_encoders.items()
             }
-            pe_kw["out_dim"] = round(pe_kw["out_dim"] / divide_factor)
-            pe_kw["edge_out_dim"] = round(pe_kw["edge_out_dim"] / divide_factor)
+            pe_kw["out_dim"] = round(pe_kw.get("out_dim", 0) / divide_factor)
+            pe_kw["edge_out_dim"] = round(pe_kw.get("edge_out_dim", 0) / divide_factor)
             for key, enc in pe_kw["encoders"].items():
                 new_pe_kw[key].pop("in_dim", None)
                 new_pe_kw[key].pop("in_dim_edges", None)
