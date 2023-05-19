@@ -88,7 +88,7 @@ class EncoderManager(nn.Module):
             output_keys = encoder_kwargs["output_keys"]
             encoder = PE_ENCODERS_DICT[encoder_type]
 
-            # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name/`
+            # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name`
             # Then check for the exact key
 
             this_in_dims = {}
@@ -98,7 +98,7 @@ class EncoderManager(nn.Module):
                     this_in_dims[key] = in_dim_dict[key]
                 else:
                     raise ValueError(
-                        f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}/' is also not found.\n Available keys: {in_dim_dict.keys()}"
+                        f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}' is also not found.\n Available keys: {in_dim_dict.keys()}"
                     )
 
             # Parse the in_dims based on Encoder's signature

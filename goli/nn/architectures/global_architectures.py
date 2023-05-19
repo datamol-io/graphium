@@ -1207,7 +1207,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=False
             )
-            pe_enc_outdim = 0 if self.encoder_manager is None else self.pe_encoders_kwargs["out_dim"]
+            pe_enc_outdim = 0 if self.encoder_manager is None else self.pe_encoders_kwargs.get("out_dim", 0)
             pre_nn_indim = kwargs["pre_nn_kwargs"]["in_dim"] - pe_enc_outdim
             kwargs["pre_nn_kwargs"]["in_dim"] = round(pre_nn_indim + (pe_enc_outdim / divide_factor))
 
@@ -1217,7 +1217,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 divide_factor=divide_factor, factor_in_dim=False
             )
             pe_enc_edge_outdim = (
-                0 if self.encoder_manager is None else self.pe_encoders_kwargs["edge_out_dim"]
+                0 if self.encoder_manager is None else self.pe_encoders_kwargs.get("edge_out_dim", 0)
             )
             pre_nn_edge_indim = kwargs["pre_nn_edges_kwargs"]["in_dim"] - pe_enc_edge_outdim
             kwargs["pre_nn_edges_kwargs"]["in_dim"] = round(
