@@ -144,7 +144,10 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
     # Apply the packing at the mini-batch level. This is useful for using packing with the Transformer,
     # especially in the case of the large graphs being much larger than the small graphs.
+    # CAREFUL!!! This changes the order of the graphs in the batch, without changing the order of the labels or other objects.
+    # An error is raised temporarily.
     if batch_size_per_pack is not None:
+        raise NotImplementedError("Packing is not yet functional, as it changes the order of the graphs in the batch without changing the label order")
         num_nodes = [g.num_nodes for g in pyg_batch]
         packed_graph_idx = fast_packing(num_nodes, batch_size_per_pack)
 
