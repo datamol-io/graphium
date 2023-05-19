@@ -5,6 +5,8 @@ from torch_geometric.data import Batch
 from typing import Tuple
 from torch import Tensor
 
+from torch_geometric.typing import SparseTensor
+
 from goli.nn.base_layers import MLP, get_norm
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
@@ -170,3 +172,47 @@ class GaussianLayer(nn.Module):
         # [batch, nodes, nodes, num_kernels]
         tensor_with_kernel = torch.exp(-0.5 * (((expanded_input - mean) / std) ** 2)) / (pre_exp_factor * std)
         return tensor_with_kernel
+
+
+def triplets(
+    edge_index: Tensor,
+    num_nodes: int,
+) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
+    r"""Generates triplets from the given edge indices.
+        A triplet is defined as a path of length two,
+        such that if node A is connected to node B,
+        and node B is connected to node C, then there is a triplet (A, B, C).
+
+    Parameters:
+        edge_index (LongTensor): The edge indices.
+        num_nodes (int): The number of nodes.
+
+    Returns:
+        col: The sink node indices of edges from the edge indices.
+        row: The source node indices of edges from the edge indices.
+        idx_i: The sink node indices of the triplets.
+        idx_j: The middle node indices of the triplets.
+        idx_k: The source node indices of the triplets.
+        idx_kj: The indices of edges those from the source node to the middle node.
+        idx_ji: The indices of edges those from the middle node to the sink node.
+    """
+    row, col = edge_index  # j->i
+
+    value = torch.arange(row.size(0), device=row.device)
+    adj_t = SparseTensor(row=col, col=row, value=value, sparse_sizes=(num_nodes, num_nodes))
+    adj_t_row = adj_t[row]
+    num_triplets = adj_t_row.set_value(None).sum(dim=1).to(torch.long)
+
+    # Node indices (k->j->i) for triplets.
+    idx_i = col.repeat_interleave(num_triplets)
+    idx_j = row.repeat_interleave(num_triplets)
+    idx_k = adj_t_row.storage.col()
+
+    # Remove self-loop triplets d->b->d
+    mask = idx_i != idx_k  # Remove i == k triplets.
+    idx_i, idx_j, idx_k = idx_i[mask], idx_j[mask], idx_k[mask]
+
+    # Edge indices (k->j, j->i) for triplets.
+    idx_kj = adj_t_row.storage.value()[mask]
+    idx_ji = adj_t_row.storage.row()[mask]
+    return col, row, idx_i, idx_j, idx_k, idx_kj, idx_ji

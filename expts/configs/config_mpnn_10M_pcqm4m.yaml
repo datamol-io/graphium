@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: ipu  # cpu or ipu or gpu
+    type: cpu  # cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -13,7 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homolumo:
         df: null
-        df_path: goli/data/PCQM4Mv2/pcqm4mv2.csv #goli/data/PCQM4Mv2/pcqm4mv2.csv
+        df_path: goli/data/PCQM4M/pcqm4mv2-20k.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
@@ -142,7 +142,6 @@ architecture:
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
-    pooling: [sum]
     virtual_node: 'none'
     layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
@@ -158,10 +157,22 @@ architecture:
       attn_kwargs: null
 
 
-  post_nn: null
+  graph_output_nn:
+    graph:
+      pooling: [sum]
+      out_dim: 256
+      hidden_dims: 256
+      depth: 1
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
 
   task_heads:
     homolumo:
+      task_level: graph
       out_dim: 1
       hidden_dims: 256
       depth: 2                          # Not needed if we have hidden_dims
