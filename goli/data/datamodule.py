@@ -7,7 +7,6 @@ import importlib.resources
 import zipfile
 from copy import deepcopy
 import time
-from tqdm import tqdm
 import gc
 
 from loguru import logger
@@ -1187,7 +1186,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
         process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
 
-        for param in tqdm(process_params):
+        for param in tqdm(process_params, desc="Saving featurized data"):
             self.process_func(param)
         return
 
