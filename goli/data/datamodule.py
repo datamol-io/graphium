@@ -349,9 +349,9 @@ class BaseDataModule(pl.LightningDataModule):
             # Convert floats to float16
             if is_float:
                 if isinstance(first_elem, np.ndarray):
-                    this_series.update([elem.astype(np.float16) for elem in this_series])
+                    this_series.update(pd.Series([elem.astype(np.float16) for elem in this_series]))
                 elif isinstance(first_elem, list):
-                    this_series.update([np.asarray(elem).astype(np.float16) for elem in this_series])
+                    this_series.update(pd.Series([np.asarray(elem).astype(np.float16) for elem in this_series]))
                 else:
                     this_series = this_series.astype(np.float16)
 
