@@ -213,7 +213,7 @@ class MultitaskDataset(Dataset):
         """
         The number of nodes per graph
         """
-        if self._num_edges_list is None:
+        if self._num_nodes_list is None:
             self._num_nodes_list = get_num_nodes_per_graph(self.features)
         return self._num_nodes_list
 
