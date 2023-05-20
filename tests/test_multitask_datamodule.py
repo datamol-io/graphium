@@ -115,9 +115,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].y.shape == (16, 1)
-            assert batch["labels"]["logp"].y.shape == (16, 1)
-            assert batch["labels"]["score"].y.shape == (16, 1)
+            assert batch["labels"]["SA"].y.shape == (16,)
+            assert batch["labels"]["logp"].y.shape == (16,)
+            assert batch["labels"]["score"].y.shape == (16,)
 
     def test_multitask_fromsmiles_from_config(self):
         config = goli.load_config(name="zinc_default_multitask_pyg")
@@ -170,9 +170,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].y.shape == (16, 1)
-            assert batch["labels"]["logp"].y.shape == (16, 1)
-            assert batch["labels"]["score"].y.shape == (16, 1)
+            assert batch["labels"]["SA"].y.shape == (16,)
+            assert batch["labels"]["logp"].y.shape == (16,)
+            assert batch["labels"]["score"].y.shape == (16,)
 
     def test_multitask_fromsmiles_from_config_csv(self):
         config = goli.load_config(name="zinc_default_multitask_pyg")
@@ -197,9 +197,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].y.shape == (16, 1)
-            assert batch["labels"]["logp"].y.shape == (16, 1)
-            assert batch["labels"]["score"].y.shape == (16, 1)
+            assert batch["labels"]["SA"].y.shape == (16,)
+            assert batch["labels"]["logp"].y.shape == (16,)
+            assert batch["labels"]["score"].y.shape == (16,)
 
     def test_multitask_fromsmiles_from_config_parquet(self):
         config = goli.load_config(name="fake_multilevel_multitask_pyg")
@@ -225,24 +225,34 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].y.shape == (16, 1)
+            assert batch["labels"]["SA"].y.shape == (16,)
             assert batch["labels"]["logp"].y.shape == (batch["features"].feat.size(0), 2)  # test node level
             assert batch["labels"]["score"].y.shape == (
                 batch["features"].edge_feat.size(0),
                 2,
             )  # test edge level
 
-    def test_extract_graph_level(self):
+    def test_extract_graph_level_singletask(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
         num_graphs = len(df)
         label_cols = ["graph_label"]
         output = goli.data.datamodule.extract_labels(df, "graph", label_cols)
 
         assert isinstance(output, np.ndarray)
-        assert len(output.shape) == 3
+        assert len(output.shape) == 2
         assert output.shape[0] == num_graphs
         assert output.shape[1] == 1
-        assert output.shape[2] == len(label_cols)
+
+    def test_extract_graph_level_multitask(self):
+        df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
+        num_graphs = len(df)
+        label_cols = ["graph_label", "graph_label"]
+        output = goli.data.datamodule.extract_labels(df, "graph", label_cols)
+
+        assert isinstance(output, np.ndarray)
+        assert len(output.shape) == 2
+        assert output.shape[0] == num_graphs
+        assert output.shape[1] == len(label_cols)
 
     def test_extract_node_level(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")

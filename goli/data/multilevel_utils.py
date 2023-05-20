@@ -11,6 +11,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     """
 
     def unpack(graph_data):
+        graph_data = pd.to_numeric(graph_data, errors="coerce")
         if isinstance(graph_data, str):
             graph_data_list = ast.literal_eval(graph_data)
             return np.array(graph_data_list)
@@ -37,5 +38,5 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
     output = unpacked_df.apply(merge_columns, axis="columns").to_list()
 
     if task_level == "graph":
-        return np.stack(output)
+        return np.concatenate(output)
     return output

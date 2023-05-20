@@ -317,7 +317,7 @@ class Test_DataModule(ut.TestCase):
 
         # Check that the labels are correct
         df2 = df.reset_index()[~bad_smiles].set_index("idx_smiles").sort_index()
-        labels = train_labels_df[["SA", "logp", "score"]].values.astype(float)
+        labels = train_labels_df[["SA", "logp", "score"]].values
         nans = np.isnan(labels)
         true_nans = df2[["SMILES1", "SMILES2", "SMILES3"]].values == "XXX"
         true_labels = df2[["SA", "logp", "score"]].values
