@@ -249,6 +249,7 @@ metrics:
       multitask_handling: mean-per-label
     # - name: f1 > 0.5
     #   metric: f1
+    #   target_to_int: True
     #   num_classes: 2
     #   average: micro
     #   threshold_kwargs: &threshold_05
@@ -256,7 +257,6 @@ metrics:
     #     threshold: 0.5
     #     th_on_preds: True
     #     th_on_target: True
-    #     target_to_int: True
     # - name: precision > 0.5
     #   metric: precision
     #   average: micro

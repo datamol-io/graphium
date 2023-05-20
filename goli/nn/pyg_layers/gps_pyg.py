@@ -50,6 +50,7 @@ class GPSLayerPyg(BaseGraphModule):
         mpnn_type: str = "pyg:gine",
         mpnn_kwargs=None,
         attn_type: str = "full-attention",
+        precision: str = "32",
         biased_attention_key: Optional[str] = None,
         attn_kwargs=None,
         droppath_rate_attn: float = 0.0,
@@ -163,6 +164,8 @@ class GPSLayerPyg(BaseGraphModule):
 
         # Residual connections
         self.node_residual = node_residual
+
+        self.precision = precision
 
         # MLP applied at the end of the GPS layer
         self.mlp = MLP(
@@ -406,6 +409,7 @@ class GPSLayerPyg(BaseGraphModule):
             x,
             x,
             attn_bias=attn_bias,
+            precision=self.precision,
             attn_mask=attn_mask,
             key_padding_mask=key_padding_mask,
             need_weights=False,

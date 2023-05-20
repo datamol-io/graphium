@@ -27,13 +27,11 @@ class Thresholder:
         operator: Union[str, Callable] = "greater",
         th_on_preds: bool = True,
         th_on_target: bool = False,
-        target_to_int: bool = False,
     ):
         # Basic params
         self.threshold = threshold
         self.th_on_target = th_on_target
         self.th_on_preds = th_on_preds
-        self.target_to_int = target_to_int
         self.operator, self.op_str = self._get_operator(operator)
 
     def compute(self, preds: Tensor, target: Tensor):
@@ -44,9 +42,6 @@ class Thresholder:
         # Apply the threshold on the targets
         if self.th_on_target:
             target = self.operator(target, self.threshold)
-
-        if self.target_to_int:
-            target = target.to(int)
 
         return preds, target
 
@@ -92,7 +87,6 @@ class Thresholder:
         state["threshold"] = self.threshold
         state["th_on_target"] = self.th_on_target
         state["th_on_preds"] = self.th_on_preds
-        state["target_to_int"] = self.target_to_int
 
         # Set the operator state.
         # If it's a callable, it's up to the user to ensure it unserializes well
@@ -115,7 +109,6 @@ class Thresholder:
             self.threshold == obj.threshold,
             self.th_on_target == obj.th_on_target,
             self.th_on_preds == obj.th_on_preds,
-            self.target_to_int == obj.target_to_int,
             self.operator == obj.operator,
             self.op_str == obj.op_str,
         ]
@@ -135,6 +128,7 @@ class MetricWrapper:
         target_nan_mask: Optional[Union[str, int]] = None,
         multitask_handling: Optional[str] = None,
         squeeze_targets: bool = False,
+        target_to_int: bool = False,
         **kwargs,
     ):
         r"""
@@ -166,11 +160,14 @@ class MetricWrapper:
 
                 - 'mean-per-label': Loop all the labels columns, process them as a single task,
                     and average the results over each task
-                  *This option might slowdown the computation if there are too many labels*
+                  *This option might slow down the computation if there are too many labels*
 
             squeeze_targets:
                 If true, targets will be squeezed prior to computing the metric.
                 Required in classifigression task.
+
+            target_to_int:
+                If true, targets will be converted to integers prior to computing the metric.
 
             kwargs:
                 Other arguments to call with the metric
@@ -184,6 +181,7 @@ class MetricWrapper:
         self.target_nan_mask = self._parse_target_nan_mask(target_nan_mask)
         self.multitask_handling = self._parse_multitask_handling(multitask_handling, self.target_nan_mask)
         self.squeeze_targets = squeeze_targets
+        self.target_to_int = target_to_int
         self.kwargs = kwargs
 
     @staticmethod
@@ -267,6 +265,9 @@ class MetricWrapper:
         if self.thresholder is not None:
             preds, target = self.thresholder(preds, target)
 
+        if self.target_to_int:
+            target = target.to(int)
+
         target_nans = torch.isnan(target)
 
         if self.multitask_handling is None:
@@ -344,9 +345,12 @@ class MetricWrapper:
             self.metric_name == obj.metric_name,
             self.thresholder == obj.thresholder,
             self.target_nan_mask == obj.target_nan_mask,
+            self.multitask_handling == obj.multitask_handling,
+            self.squeeze_targets == obj.squeeze_targets,
+            self.target_to_int == obj.target_to_int,
             self.kwargs == obj.kwargs,
         ]
-        return is_eq
+        return all(is_eq)
 
     def __getstate__(self):
         """Serialize the class for pickling."""
@@ -356,6 +360,9 @@ class MetricWrapper:
         else:
             state["metric"] = self.metric_name
         state["target_nan_mask"] = self.target_nan_mask
+        state["multitask_handling"] = self.multitask_handling
+        state["squeeze_targets"] = self.squeeze_targets
+        state["target_to_int"] = self.target_to_int
         state["kwargs"] = self.kwargs
         state["threshold_kwargs"] = None
         if self.thresholder is not None:
