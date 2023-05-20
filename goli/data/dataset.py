@@ -203,7 +203,6 @@ class MultitaskDataset(Dataset):
         self.data_path = data_path
         self.load_from_file = load_from_file
 
-
         if files_ready:
             assert load_from_file
             self._load_metadata()
