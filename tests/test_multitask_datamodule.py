@@ -1,6 +1,7 @@
 import unittest as ut
 from omegaconf import OmegaConf
-
+import pandas as pd
+import numpy as np
 import goli
 
 
@@ -114,13 +115,11 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].y.shape == (16,)
-            assert batch["labels"]["logp"].y.shape == (16,)
-            assert batch["labels"]["score"].y.shape == (16,)
+            assert batch["labels"]["SA"].y.shape == (16, 1)
+            assert batch["labels"]["logp"].y.shape == (16, 1)
+            assert batch["labels"]["score"].y.shape == (16, 1)
 
-    def test_multitask_fromsmiles_from_config(
-        self,
-    ):  # TODO: I think we can remove this as it tests tiny_zinc which only contain graph level labels
+    def test_multitask_fromsmiles_from_config(self):
         config = goli.load_config(name="zinc_default_multitask_pyg")
 
         df = goli.data.load_tiny_zinc()  # 100 molecules
@@ -140,10 +139,6 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["task_specific_args"]["SA"]["smiles_col"] = "SMILES"
         dm_args["task_specific_args"]["logp"]["smiles_col"] = "SMILES"
         dm_args["task_specific_args"]["score"]["smiles_col"] = "SMILES"
-
-        dm_args["task_specific_args"]["SA"]["task_level"] = "graph"
-        dm_args["task_specific_args"]["logp"]["task_level"] = "graph"
-        dm_args["task_specific_args"]["score"]["task_level"] = "graph"
 
         dm_args["task_specific_args"]["SA"]["label_cols"] = ["SA"]
         dm_args["task_specific_args"]["logp"]["label_cols"] = ["logp"]
@@ -175,12 +170,39 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].y.shape == (16,)
-            assert batch["labels"]["logp"].y.shape == (16,)
-            assert batch["labels"]["score"].y.shape == (16,)
+            assert batch["labels"]["SA"].y.shape == (16, 1)
+            assert batch["labels"]["logp"].y.shape == (16, 1)
+            assert batch["labels"]["score"].y.shape == (16, 1)
 
-    def test_multitask_fromsmiles_from_config_parquat(self):
+    def test_multitask_fromsmiles_from_config_csv(self):
         config = goli.load_config(name="zinc_default_multitask_pyg")
+
+        dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
+        dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)
+
+        dm.prepare_data()
+        dm.setup()
+
+        # self.assertEqual(len(dm), 100)                      # Should this have a fixed value for when it's initialized? MTL dataset only gets created after.
+        self.assertEqual(len(dm.train_ds), 60)  # type: ignore
+        self.assertEqual(len(dm.val_ds), 20)  # type: ignore
+        self.assertEqual(len(dm.test_ds), 20)  # type: ignore
+        # assert dm.num_node_feats == 50
+        # assert dm.num_edge_feats == 6
+
+        for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
+            it = iter(dl)
+            batch = next(it)
+
+            assert set(batch.keys()) == {"labels", "features"}
+
+            # assert batch["labels"].shape == (16, 1)            # Single-task case
+            assert batch["labels"]["SA"].y.shape == (16, 1)
+            assert batch["labels"]["logp"].y.shape == (16, 1)
+            assert batch["labels"]["score"].y.shape == (16, 1)
+
+    def test_multitask_fromsmiles_from_config_parquet(self):
+        config = goli.load_config(name="fake_multilevel_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
         dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)
@@ -203,12 +225,51 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].y.shape == (16,)
+            assert batch["labels"]["SA"].y.shape == (16, 1)
             assert batch["labels"]["logp"].y.shape == (batch["features"].feat.size(0), 2)  # test node level
             assert batch["labels"]["score"].y.shape == (
                 batch["features"].edge_feat.size(0),
                 2,
             )  # test edge level
+
+    def test_extract_graph_level(self):
+        df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
+        num_graphs = len(df)
+        label_cols = ["graph_label"]
+        output = goli.data.datamodule.extract_labels(df, "graph", label_cols)
+
+        assert isinstance(output, np.ndarray)
+        assert len(output.shape) == 3
+        assert output.shape[0] == num_graphs
+        assert output.shape[1] == 1
+        assert output.shape[2] == len(label_cols)
+
+    def test_extract_node_level(self):
+        df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
+        label_cols = [f"node_label_{suffix}" for suffix in ["list", "np"]]
+        output = goli.data.datamodule.extract_labels(df, "node", label_cols)
+
+        assert isinstance(output, list)
+        assert len(output[0].shape) == 2
+        assert output[0].shape[1] == len(label_cols)
+
+    def test_extract_edge_level(self):
+        df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
+        label_cols = [f"edge_label_{suffix}" for suffix in ["list", "np"]]
+        output = goli.data.datamodule.extract_labels(df, "edge", label_cols)
+
+        assert isinstance(output, list)
+        assert len(output[0].shape) == 2
+        assert output[0].shape[1] == len(label_cols)
+
+    def test_extract_nodepair_level(self):
+        df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
+        label_cols = [f"nodepair_label_{suffix}" for suffix in ["list", "list"]]
+        output = goli.data.datamodule.extract_labels(df, "nodepair", label_cols)
+
+        assert isinstance(output, list)
+        assert len(output[0].shape) == 2
+        assert output[0].shape[1] == len(label_cols)
 
 
 if __name__ == "__main__":

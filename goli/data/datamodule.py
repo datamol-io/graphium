@@ -867,79 +867,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             )
         self.data_hash = self.get_data_hash()
 
-    def remove_hydrogen_labels_2(
-        self, labels, task_level
-    ):  # TODO: confirm with me if this approach or below one is correct
-        if task_level == "graph":
-            return labels
-        elif task_level == "edge" or task_level == "node":
-            # Find the indices of rows that are not equal to [1, 1]
-            indices = np.where(~np.all(labels == 1, axis=1))
-
-            # Keep only those rows
-            labels_no_hydrogen = labels[indices]
-
-            return labels_no_hydrogen
-        elif task_level == "nodepair":
-            raise NotImplementedError
-        else:
-            raise ValueError(f"Unknown task level: {task_level}")
-
-    def remove_hydrogen_labels_1(
-        self, labels, task_level
-    ):  # TODO: both 1 & 2 (above) doesnt work, discuss with Dom
-        if task_level == "graph":
-            return labels
-        elif task_level == "edge" or task_level == "node":
-            # Start from the last label and move backwards
-            for i in range(len(labels) - 1, -1, -1):
-                # If the label is not [1, 1], break the loop
-                if np.any(labels[i] != [1, 1]):
-                    break
-            # Return the labels up to the last non-[1, 1] label
-            return labels[: i + 1]
-        elif task_level == "nodepair":
-            raise NotImplementedError
-        else:
-            raise ValueError(f"Unknown task level: {task_level}")
-
-    def get_non_hydrogen_labels(
-        self, labels, smiles, task_level
-    ):  # TODO: Temporary function for testing, later we will remove hydrogen labels from data level
-        if task_level == "graph":
-            return labels
-        elif task_level == "node":
-            return self.get_non_hydrogen_node_labels(smiles, node_labels=labels)
-        elif task_level == "edge":
-            return self.get_non_hydrogen_edge_labels(smiles, edge_labels=labels)
-        elif task_level == "nodepair":
-            raise NotImplementedError
-        else:
-            raise ValueError(f"Unknown task level: {task_level}")
-
-    def get_non_hydrogen_node_labels(self, smiles, node_labels):
-        # Parse SMILES string into a molecule object
-        mol = Chem.MolFromSmiles(smiles)
-
-        # Filter labels to keep only non-Hydrogen labels
-        non_hydrogen_labels = np.array(
-            [node_labels[i] for i, atom in enumerate(mol.GetAtoms()) if atom.GetAtomicNum() != 1]
-        )
-
-        return non_hydrogen_labels
-
-    def get_non_hydrogen_edge_labels(self, smiles, edge_labels):
-        mol = Chem.MolFromSmiles(smiles)
-
-        non_hydrogen_edge_labels = [
-            label
-            for i, bond in enumerate(mol.GetBonds())
-            for label in (edge_labels[i], edge_labels[i])  # duplicate the label for both directions
-            if bond.GetBeginAtom().GetSymbol() != "H" and bond.GetEndAtom().GetSymbol() != "H"
-        ]
-
-        return np.array(non_hydrogen_edge_labels)
-
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -1085,13 +1012,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["extras"],
                 this_unique_ids,
             )
-            task_level = self.task_dataset_processing_params[task].task_level
-            labels_ = [
-                Data(
-                    y=self.get_non_hydrogen_labels(labels=labels[i], smiles=smiles[i], task_level=task_level)
-                )
-                for i in range(len(labels))
-            ]  # TODO: This can further be optimized by removing the hydrogen labels at data level
+            labels_ = [Data(y=labels[i]) for i in range(len(labels))]
             task_dataset_args[task]["smiles"] = smiles
             task_dataset_args[task]["labels"] = labels_
             task_dataset_args[task]["features"] = features
@@ -2045,6 +1966,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 "smiles_col": smiles_col,
                 "label_cols": label_cols,
                 "splits_path": splits_path,
+                "task_level": task_args["task_level"],
             }
             self.metadata[task_name] = this_metadata
 

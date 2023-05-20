@@ -157,7 +157,7 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
     return Batch.from_data_list(pyg_batch)
 
 
-def collage_pyg_graph_labels(pyg_labels: List[Data]):
+def collate_pyg_graph_labels(pyg_labels: List[Data]):
     """
     Function to collate pytorch geometric labels.
     Convert all numpy types to torch
@@ -202,14 +202,19 @@ def collate_labels(
         for this_label in labels:
             empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
             for task in empty_task_labels:
-                this_label[task] = Data(y=torch.full([*labels_size_dict[task]], torch.nan))
+                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
+            for task in this_label.keys():
+                if not isinstance(this_label[task], Data):
+                    if not isinstance(task, (torch.Tensor)):
+                        this_label[task] = torch.as_tensor(this_label[task])
+                    this_label[task] = Data(y=this_label[task])
 
     # Convert labels from List[Dict[str, Data]] to Dict[str, List[Data]]
     labels_by_task = {}
     for task in labels[0].keys():
         labels_by_task[task] = [label_dict[task] for label_dict in labels]
     for task, task_labels in labels_by_task.items():
-        labels_dict[task] = collage_pyg_graph_labels(task_labels)
+        labels_dict[task] = collate_pyg_graph_labels(task_labels)
     return labels_dict
 
 

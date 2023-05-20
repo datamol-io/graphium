@@ -17,6 +17,25 @@ from goli.data.smiles_transform import smiles_to_unique_mol_ids
 from goli.features import GraphDict
 
 
+def prepare_labels(labels: List):
+    """Prepares labels by optionally wrapping
+    into Data object and ensuring that labels
+    are set via ``data.y``.
+    """
+    prepared_labels = []
+    for label in labels:
+        if isinstance(label, (int, float)):
+            prepared_labels.append(Data(y=torch.tensor([label])))
+        elif isinstance(label, (torch.Tensor, np.ndarray)):
+            prepared_labels.append(Data(y=label))
+        elif isinstance(label, Data):
+            assert hasattr(label, "y") and label.y is not None, f"Label 'y' is missing for Data object"
+            prepared_labels.append(label)
+        else:
+            raise ValueError("Unsupported type for label")
+    return prepared_labels
+
+
 class SingleTaskDataset(Dataset):
     def __init__(
         self,
@@ -61,7 +80,7 @@ class SingleTaskDataset(Dataset):
                 len(unique_ids) == numel
             ), f"unique_ids must be the same length as labels, got {len(unique_ids)} and {numel}"
 
-        self.labels = labels
+        self.labels = prepare_labels(labels)
         if smiles is not None:
             manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
             self.smiles = manager.list(smiles)
@@ -187,10 +206,10 @@ class MultitaskDataset(Dataset):
         self.features = None
         if (len(datasets[task]) > 0) and ("features" in datasets[task][0]):
             self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
+            assert len(self.labels) == len(self.features), "mismatch features and labels"
         else:
             self.mol_ids, self.smiles, self.labels = self.merge(datasets)
         # Set mol_ids and smiles to None to save memory as they are not needed.
-        assert len(self.labels) == len(self.features), "mismatch features and labels"
         if not save_smiles_and_ids:
             self.mol_ids = None
             self.smiles = None

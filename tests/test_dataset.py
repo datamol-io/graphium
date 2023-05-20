@@ -139,15 +139,15 @@ class Test_Multitask_Dataset(ut.TestCase):
                     found_idx = i
 
             if task == "SA":
-                self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]["SA"])
+                self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]["SA"].y)
                 self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys())
                 self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys())
             elif task == "logp":
-                self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]["logp"])
+                self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]["logp"].y)
                 self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys())
                 self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys())
             elif task == "score":
-                self.assertEqual(label_score, multitask_microzinc.labels[found_idx]["score"])
+                self.assertEqual(label_score, multitask_microzinc.labels[found_idx]["score"].y)
                 self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys())
                 self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys())
 

@@ -30,11 +30,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
 
     def merge_columns(data: pd.Series):
         data = data.to_list()
-        if len(data) > 1:
-            data = np.stack(data, 1)
-        else:
-            data = data[0]
-
+        data = np.stack(data, 1)
         return data
 
     unpacked_df: pd.DataFrame = df[label_cols].apply(unpack_column)
