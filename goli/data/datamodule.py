@@ -339,7 +339,7 @@ class BaseDataModule(pl.LightningDataModule):
             this_series = pd.read_parquet(path, columns=[col], engine="fastparquet", **kwargs)[col]
 
             # Check if the data is float
-            first_elem = this_series.iloc[0]
+            first_elem = this_series.values[0]
             is_float = False
             if isinstance(first_elem, (list, tuple)):
                 is_float = isinstance(first_elem[0], np.floating)
@@ -348,10 +348,10 @@ class BaseDataModule(pl.LightningDataModule):
 
             # Convert floats to float16
             if is_float:
-                if isinstance(first_elem, np.ndarray):
-                    this_series.update(pd.Series([elem.astype(np.float16) for elem in this_series]))
-                elif isinstance(first_elem, list):
-                    this_series.update(pd.Series([np.asarray(elem).astype(np.float16) for elem in this_series]))
+                if isinstance(first_elem, (np.ndarray, list)):
+                    this_series.update(
+                        pd.Series([np.asarray(elem).astype(np.float16) for elem in this_series])
+                    )
                 else:
                     this_series = this_series.astype(np.float16)
 
