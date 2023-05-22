@@ -10,20 +10,16 @@
       
       
       
-        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/feature_processing/add_new_positional_encoding.html">
+        <link rel="canonical" href="https://github.com/valence-discovery/goli/tutorials/feature_processing/choosing_parallelization.html">
       
       
-        <link rel="prev" href="../../api/goli.visualization.html">
-      
-      
-        <link rel="next" href="csv_to_parquet.html">
       
       <link rel="icon" href="../../images/logo.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
     
     
       
-        <title>Add new positional encoding - goli</title>
+        <title>Choosing the right parallelization - goli</title>
       
     
     
@@ -75,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#add-new-positional-encoding" class="md-skip">
+        <a href="#choosing-the-right-parallelization" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +103,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Add new positional encoding
+              Choosing the right parallelization
             
           </span>
         </div>
@@ -216,8 +212,6 @@
         
   
   
-    
-  
 
 
   
@@ -229,7 +223,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="add_new_positional_encoding.html" class="md-tabs__link md-tabs__link--active">
+      <a href="add_new_positional_encoding.html" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -601,16 +595,16 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
       
       
       
@@ -619,7 +613,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_3">
           <span class="md-nav__icon md-icon"></span>
           Tutorials
@@ -630,16 +624,16 @@
               
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" checked>
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
       
       
       
@@ -648,7 +642,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_3_1">
           <span class="md-nav__icon md-icon"></span>
           feature_processing
@@ -659,134 +653,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Add new positional encoding
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="add_new_positional_encoding.html" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="add_new_positional_encoding.html" class="md-nav__link">
         Add new positional encoding
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#table-of-content" class="md-nav__link">
-    Table of content
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#edit-the-yaml-configuration-file" class="md-nav__link">
-    Edit the yaml Configuration File
-  </a>
-  
-    <nav class="md-nav" aria-label="Edit the yaml Configuration File">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#computing-raw-pe" class="md-nav__link">
-    Computing Raw PE
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#specifying-encoders-for-the-pe" class="md-nav__link">
-    Specifying Encoders for the PE
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#compute-the-positional-encoding" class="md-nav__link">
-    Compute the Positional Encoding
-  </a>
-  
-    <nav class="md-nav" aria-label="Compute the Positional Encoding">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#add-function-to-compute-the-pe" class="md-nav__link">
-    add function to compute the pe
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#test-with-toy-matrix" class="md-nav__link">
-    Test with toy matrix
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#add-to-positional_encodingpy" class="md-nav__link">
-    add to positional_encoding.py
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-existing-encoder" class="md-nav__link">
-    Add Existing Encoder
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-specialized-encoder" class="md-nav__link">
-    Add Specialized Encoder
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-the-keys-to-spaces" class="md-nav__link">
-    Add the Keys to Spaces
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1106,30 +977,30 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#table-of-content" class="md-nav__link">
-    Table of content
+  <a href="#setup" class="md-nav__link">
+    Setup
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#edit-the-yaml-configuration-file" class="md-nav__link">
-    Edit the yaml Configuration File
+  <a href="#benchmarks" class="md-nav__link">
+    Benchmarks
   </a>
   
-    <nav class="md-nav" aria-label="Edit the yaml Configuration File">
+    <nav class="md-nav" aria-label="Benchmarks">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#computing-raw-pe" class="md-nav__link">
-    Computing Raw PE
+  <a href="#no-batch" class="md-nav__link">
+    No batch
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#specifying-encoders-for-the-pe" class="md-nav__link">
-    Specifying Encoders for the PE
+  <a href="#batch" class="md-nav__link">
+    Batch
   </a>
   
 </li>
@@ -1140,56 +1011,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#compute-the-positional-encoding" class="md-nav__link">
-    Compute the Positional Encoding
-  </a>
-  
-    <nav class="md-nav" aria-label="Compute the Positional Encoding">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#add-function-to-compute-the-pe" class="md-nav__link">
-    add function to compute the pe
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#test-with-toy-matrix" class="md-nav__link">
-    Test with toy matrix
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#add-to-positional_encodingpy" class="md-nav__link">
-    add to positional_encoding.py
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-existing-encoder" class="md-nav__link">
-    Add Existing Encoder
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-specialized-encoder" class="md-nav__link">
-    Add Specialized Encoder
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#add-the-keys-to-spaces" class="md-nav__link">
-    Add the Keys to Spaces
+  <a href="#results" class="md-nav__link">
+    Results
   </a>
   
 </li>
@@ -1372,6 +1195,33 @@
           notice.hidden = true
         }, 1000)
       })
+</script><script>
+(function() {
+  function addWidgetsRenderer() {
+    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
+    var scriptElement = document.createElement('script');
+    
+    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
+    
+    var widgetState;
+
+    // Fallback for older version:
+    try {
+      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
+
+      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
+        
+        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
+        
+      }
+    } catch(e) {}
+
+    scriptElement.src = widgetRendererSrc;
+    document.body.appendChild(scriptElement);
+  }
+
+  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
+}());
 </script>
 
 
@@ -2243,136 +2093,20 @@ Licensed under the Apache License, Version 2.0.
     init_mathjax();
     </script>
     <!-- End of mathjax configuration --><div class="jupyter-wrapper">
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div id="cell-id=0693c5c9" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="add-new-positional-encoding">Add new positional encoding<a class="anchor-link" href="#add-new-positional-encoding">&#182;</a></h1><p>One of the main advantage of this library is the ability to easily incorporate novel positional encodings on the node, edge and graph level. The positional encodings are computed and feed into respective encoders and then the hidden embeddings from all pe encoders are pooled (according to if they are node, edge, or graph level) and then feed into the GNN layers as features. The designs allow any combination of positional encodings to be used by modifying the configuration file. For more details on the data processing part, please visit the <a href="https://valence-discovery.github.io/goli/design.html">design page of the doc</a>.</p>
-<p>Here is the workflow for computing and processing positional encoding in the library:</p>
-<ol>
-<li><p>edit related parts in the yaml configuration file</p>
-</li>
-<li><p>compute the raw positional encoding from the graph in <a href="https://valence-discovery.github.io/goli/api/goli.features.html#goli.features.positional_encoding"><code>goli/features/positional_encoding.py</code></a> (from the <a href="https://valence-discovery.github.io/goli/api/goli.features.html#goli.features.positional_encoding.graph_positional_encoder"><code>graph positional encoder</code></a>)</p>
-</li>
-<li><p>feed the raw positional encoding into the respective (specialized) encoders in <a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html"><code>goli/nn/encoders</code></a>. For example, a simple <a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html#goli.nn.encoders.mlp_encoder"><code>MLP positional encoder</code></a> can be found.</p>
-</li>
-<li><p>Output the hidden embeddings of pe from the encoders in their respective output keys: <code>feat</code>(node feature), <code>edge_feat</code>(edge feature), <code>graph_feat</code>(graph feature) and potentially other keys if needed such as <code>nodepair_feat</code></p>
-</li>
-<li><p>pool the hidden embeddings with same keys together: for example, all output with <code>feat</code> key will be pooled together</p>
-</li>
-<li><p>Construct the <a href="https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.data.Batch.html#torch_geometric.data.Batch"><code>PyG Batch</code></a>, batch of graphs, each contain the output keys seen above, ready for use in the <a href="https://valence-discovery.github.io/goli/api/goli.nn/pyg_layers.html">GNN layers</a></p>
-</li>
-</ol>
-<p>Since this library is built using PyG, we recommend looking at their <a href="https://pytorch-geometric.readthedocs.io/en/latest/">Docs</a> and <a href="https://pytorch-geometric.readthedocs.io/en/latest/get_started/introduction.html">Tutorials</a> for more info.</p>
-<p>We start by editing the configuration file first.</p>
+<h1 id="choosing-the-right-parallelization">Choosing the right parallelization<a class="anchor-link" href="#choosing-the-right-parallelization">&#182;</a></h1><p>This tutorial is meant to help you benchmark different parallel processing methods for the processing of molecules into graphs. This will allow you to chose the one most suitable for your machine, since the benchmarks vary per machine.</p>
+<p>In general, we find that using <code>joblib</code> with the <code>loky</code> parallel processing and a batch size of <code>1000</code> is most beneficial. The logic is abstracted into <code>datamol.parallelized_with_batches</code></p>
 
 </div>
 </div>
 </div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="table-of-content">Table of content<a class="anchor-link" href="#table-of-content">&#182;</a></h3><ol>
-<li><a href="#Edit-the-yaml-Configuration-File">edit the config file</a></li>
-<li><a href="#Compute-the-Positional-Encoding">compute the pe from mol</a></li>
-<li><a href="#Add-Existing-Encoder">add existing encoder</a></li>
-<li><a href="#Add-Specialized-Encoder">add specialized encoder</a></li>
-<li><a href="#Add-the-Keys-to-Spaces">add the keys to spaces</a></li>
-</ol>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="edit-the-yaml-configuration-file">Edit the yaml Configuration File<a class="anchor-link" href="#edit-the-yaml-configuration-file">&#182;</a></h2><h3 id="computing-raw-pe">Computing Raw PE<a class="anchor-link" href="#computing-raw-pe">&#182;</a></h3><p>We will use the degree of each node as a positional encoding in this tutorial. 
-First start with an existing yaml configuration file, you can find them in <code>expts/configs</code></p>
-<p>We first look at where in the yaml file is the raw positional encodings computed. <code>deg_pos</code> is added as an example below. You can add relevant arguments for computing the positional encoding here as well such as <code>normalize</code> in the example.</p>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<pre><code>pos_encoding_as_features:
-    pos_types:
-      deg_pos: #example, degree centrality
-        pos_type: degree
-        normalize: False
-</code></pre>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="specifying-encoders-for-the-pe">Specifying Encoders for the PE<a class="anchor-link" href="#specifying-encoders-for-the-pe">&#182;</a></h3><p>Now we want to specify arguments for the encoders associated with the pe</p>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<pre><code>pe_encoders:
-    out_dim: 64
-    pool: &quot;sum&quot; #choice of pooling across multiple pe encoders
-    last_norm: None #&quot;batch_norm&quot;, &quot;layer_norm&quot;
-    encoders: 
-      deg_pos: #same name from the previous cell
-        encoder_type: &quot;mlp&quot; #or you can specify your own specialized encoder
-        input_keys: [&quot;degree&quot;] #same as the pos_type configured before
-        output_keys: [&quot;feat&quot;] #node feature
-        hidden_dim: 64
-        num_layers: 1
-        dropout: 0.1
-        normalization: &quot;none&quot;   #&quot;batch_norm&quot; or &quot;layer_norm&quot;
-        first_normalization: &quot;layer_norm&quot;   #&quot;batch_norm&quot; or &quot;layer_norm&quot;
-</code></pre>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="compute-the-positional-encoding">Compute the Positional Encoding<a class="anchor-link" href="#compute-the-positional-encoding">&#182;</a></h2><p>Next, we want to compute the raw degree of each node from the molecule graph.</p>
-<h3 id="add-function-to-compute-the-pe">add function to compute the pe<a class="anchor-link" href="#add-function-to-compute-the-pe">&#182;</a></h3><p>Go to <a href="https://valence-discovery.github.io/goli/api/goli.features.html">goli/features</a> and add a new file <code>deg.py</code> to add the function to compute the pe.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div id="cell-id=b5df2ac6-2ded-4597-a445-f2b5fb106330" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2392,61 +2126,31 @@ First start with an existing yaml configuration file, you can find them in <code
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="o">%</span><span class="n">load_ext</span> <span class="n">autoreload</span>
+<span class="o">%</span><span class="n">autoreload</span> <span class="mi">2</span>
 
-<span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">sparse</span>
-<span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">spmatrix</span>
+<span class="kn">import</span> <span class="nn">joblib</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">datamol</span> <span class="k">as</span> <span class="nn">dm</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
-<span class="k">def</span> <span class="nf">compute_deg</span><span class="p">(</span><span class="n">adj</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">spmatrix</span><span class="p">],</span> <span class="n">normalize</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compute the node degree positional encoding </span>
+<span class="kn">from</span> <span class="nn">pandarallel</span> <span class="kn">import</span> <span class="n">pandarallel</span>
 
-<span class="sd">    Parameters:</span>
-<span class="sd">        adj: Adjacency matrix</span>
-<span class="sd">        normalize: indicate if the degree across all nodes are normalized to [0,1] or not</span>
-<span class="sd">    Returns:</span>
-<span class="sd">        2D array with shape (num_nodes, 1) specifying (outgoing) degree for each node</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    
-    <span class="c1">#first adj convert to scipy sparse matrix if not already</span>
-    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">adj</span><span class="p">)</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="n">adj</span> <span class="o">=</span> <span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">(</span><span class="n">adj</span><span class="p">)</span>
-    
-    <span class="c1">#https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.sum.html</span>
-    <span class="n">degs</span> <span class="o">=</span> <span class="n">adj</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="c1">#sum over each row</span>
-    
-    <span class="k">if</span> <span class="p">(</span><span class="n">normalize</span><span class="p">):</span> <span class="c1">#normalize the degree sequence to [0,1]</span>
-        <span class="n">degs</span> <span class="o">=</span> <span class="n">degs</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">degs</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">degs</span>
+<span class="n">pandarallel</span><span class="o">.</span><span class="n">initialize</span><span class="p">(</span><span class="n">progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nb_workers</span><span class="o">=</span><span class="n">joblib</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
 </pre></div>
-<div id="cell-1" class="clipboard-copy-txt">from typing import Tuple, Union, Optional
+<div id="cell-1" class="clipboard-copy-txt">%load_ext autoreload
+%autoreload 2
 
-from scipy import sparse
-from scipy.sparse import spmatrix
+import joblib
+
 import numpy as np
+import datamol as dm
+import pandas as pd
 
-def compute_deg(adj: Union[np.ndarray, spmatrix], normalize: bool) -> np.ndarray:
-    """
-    Compute the node degree positional encoding 
+from pandarallel import pandarallel
 
-    Parameters:
-        adj: Adjacency matrix
-        normalize: indicate if the degree across all nodes are normalized to [0,1] or not
-    Returns:
-        2D array with shape (num_nodes, 1) specifying (outgoing) degree for each node
-    """
-    
-    #first adj convert to scipy sparse matrix if not already
-    if type(adj) is np.ndarray:
-        adj = sparse.csr_matrix(adj)
-    
-    #https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.sum.html
-    degs = adj.sum(axis=0) #sum over each row
-    
-    if (normalize): #normalize the degree sequence to [0,1]
-        degs = degs / np.max(degs)
-    return degs</div>
+pandarallel.initialize(progress_bar=True, nb_workers=joblib.cpu_count())</div>
         
         </div>
     </div>
@@ -2454,21 +2158,42 @@ def compute_deg(adj: Union[np.ndarray, spmatrix], normalize: bool) -> np.ndarray
 </div>
 </div>
 
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>INFO: Pandarallel will run on 240 workers.
+INFO: Pandarallel will use Memory file system to transfer data between the main process and workers.
+</pre>
 </div>
 </div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div id="cell-id=f81fe0f5-055f-436e-9ef4-e58a89fd50ec" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="test-with-toy-matrix">Test with toy matrix<a class="anchor-link" href="#test-with-toy-matrix">&#182;</a></h3><p>here we will test if our code compute the degrees of each node correctly</p>
-
+<h2 id="setup">Setup<a class="anchor-link" href="#setup">&#182;</a></h2>
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=0f31e18d-bdd9-4d9b-8ba5-81e5887b857e" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2488,19 +2213,516 @@ def compute_deg(adj: Union[np.ndarray, spmatrix], normalize: bool) -> np.ndarray
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="c1">#make an identity matrix</span>
-<span class="n">normalize</span> <span class="o">=</span> <span class="kc">True</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># download from https://raw.githubusercontent.com/aspuru-guzik-group/chemical_vae/master/models/zinc_properties/250k_rndm_zinc_drugs_clean_3.csv</span>
+<span class="c1"># data = pd.read_csv(&quot;/home/hadim/250k_rndm_zinc_drugs_clean_3.csv&quot;, usecols=[&quot;smiles&quot;])</span>
 
-<span class="n">degs</span> <span class="o">=</span> <span class="n">compute_deg</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
-
-<span class="n">degs</span>
+<span class="c1"># download from https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s2">&quot;https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv&quot;</span><span class="p">,</span> <span class="n">usecols</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;smiles&quot;</span><span class="p">])</span>
 </pre></div>
-<div id="cell-2" class="clipboard-copy-txt">adj = np.identity(5) #make an identity matrix
-normalize = True
+<div id="cell-2" class="clipboard-copy-txt"># download from https://raw.githubusercontent.com/aspuru-guzik-group/chemical_vae/master/models/zinc_properties/250k_rndm_zinc_drugs_clean_3.csv
+# data = pd.read_csv("/home/hadim/250k_rndm_zinc_drugs_clean_3.csv", usecols=["smiles"])
 
-degs = compute_deg(adj, normalize=normalize)
+# download from https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv
+data = pd.read_csv("https://storage.googleapis.com/goli-public/datasets/QM9/norm_qm9.csv", usecols=["smiles"])</div>
+        
+        </div>
+    </div>
 
-degs</div>
+</div>
+</div>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=a1197c31-7dbc-4fd7-a69a-5215e1a96b8e" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-3">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">rows_number_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">250_000</span><span class="p">]</span>
+<span class="n">batch_size_list</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">100</span><span class="p">,</span> <span class="mi">1_000</span><span class="p">,</span> <span class="mi">10_000</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">smiles_to_unique_mol_id</span><span class="p">(</span><span class="n">smiles</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">mol</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">to_mol</span><span class="p">(</span><span class="n">mol</span><span class="o">=</span><span class="n">smiles</span><span class="p">)</span>
+        <span class="n">mol_id</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">unique_id</span><span class="p">(</span><span class="n">mol</span><span class="p">)</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">mol_id</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">mol_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mol_id</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">mol_id</span>
+
+
+<span class="k">def</span> <span class="nf">smiles_to_unique_mol_id_batch</span><span class="p">(</span><span class="n">smiles_list</span><span class="p">):</span>
+    <span class="n">mol_id_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">smiles</span> <span class="ow">in</span> <span class="n">smiles_list</span><span class="p">:</span>
+        <span class="n">mol_id_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">smiles_to_unique_mol_id</span><span class="p">(</span><span class="n">smiles</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">mol_id_list</span>
+</pre></div>
+<div id="cell-3" class="clipboard-copy-txt">rows_number_list = [250_000]
+batch_size_list = [10, 100, 1_000, 10_000]
+
+
+def smiles_to_unique_mol_id(smiles):
+    try:
+        mol = dm.to_mol(mol=smiles)
+        mol_id = dm.unique_id(mol)
+    except:
+        mol_id = ""
+    if mol_id is None:
+        mol_id = ""
+    return mol_id
+
+
+def smiles_to_unique_mol_id_batch(smiles_list):
+    mol_id_list = []
+    for smiles in smiles_list:
+        mol_id_list.append(smiles_to_unique_mol_id(smiles))
+    return mol_id_list</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+</div>
+</div>
+<div id="cell-id=5d8eea8f-b983-46e7-bfb4-b8012b3ede1a" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="benchmarks">Benchmarks<a class="anchor-link" href="#benchmarks">&#182;</a></h2>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=2f8ce5c3-4232-4279-8ea3-7a74832303be" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-4">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">benchmark</span> <span class="o">=</span> <span class="p">[]</span>
+</pre></div>
+<div id="cell-4" class="clipboard-copy-txt">benchmark = []</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+</div>
+</div>
+<div id="cell-id=691f8963-6cac-4d58-b8a0-8049f1185486" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="no-batch">No batch<a class="anchor-link" href="#no-batch">&#182;</a></h3>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div id="cell-id=a246cdcf-b5ea-4c9e-9ccc-dd3c544587bb" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-5">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rows_number_list</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">dm</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">perf</span><span class="o">.</span><span class="n">watch_duration</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">parallelized</span><span class="p">(</span>
+            <span class="n">smiles_to_unique_mol_id</span><span class="p">,</span>
+            <span class="n">df</span><span class="p">[</span><span class="s2">&quot;smiles&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;processes&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">datum</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;batch&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;scheduler&quot;</span><span class="p">:</span> <span class="s2">&quot;loky_processes&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;duration_minutes&quot;</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">duration_minutes</span><span class="p">,</span>
+        <span class="s2">&quot;duration_seconds&quot;</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+        <span class="s2">&quot;n_rows&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">benchmark</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">datum</span><span class="p">)</span>
+</pre></div>
+<div id="cell-5" class="clipboard-copy-txt">for n in rows_number_list:
+    df = data.iloc[:n]
+
+    with dm.utils.perf.watch_duration(log=False) as d:
+        out = dm.parallelized(
+            smiles_to_unique_mol_id,
+            df["smiles"].values,
+            progress=True,
+            n_jobs=-1,
+            scheduler="processes",
+        )
+
+    datum = {
+        "batch": False,
+        "batch_size": None,
+        "scheduler": "loky_processes",
+        "duration_minutes": d.duration_minutes,
+        "duration_seconds": d.duration,
+        "n_rows": len(df),
+    }
+    benchmark.append(datum)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
+<pre>  0%|          | 0/133885 [00:00&lt;?, ?it/s]</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div id="cell-id=41139854-892f-4481-8dd6-a3972bb6ece0" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h3 id="batch">Batch<a class="anchor-link" href="#batch">&#182;</a></h3>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div id="cell-id=845a72d5-0b3f-4a21-8d7d-8312671e9924" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-6">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="k">for</span> <span class="n">batch_size</span> <span class="ow">in</span> <span class="n">batch_size_list</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rows_number_list</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+
+        <span class="k">with</span> <span class="n">dm</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">perf</span><span class="o">.</span><span class="n">watch_duration</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
+            <span class="n">out</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">parallelized_with_batches</span><span class="p">(</span>
+                <span class="n">smiles_to_unique_mol_id_batch</span><span class="p">,</span>
+                <span class="n">df</span><span class="p">[</span><span class="s2">&quot;smiles&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+                <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+                <span class="n">progress</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">n_jobs</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;processes&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="si">}</span><span class="s2"> != </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">datum</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;batch&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+            <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">,</span>
+            <span class="s2">&quot;scheduler&quot;</span><span class="p">:</span> <span class="s2">&quot;loky_processes&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duration_minutes&quot;</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">duration_minutes</span><span class="p">,</span>
+            <span class="s2">&quot;duration_seconds&quot;</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+            <span class="s2">&quot;n_rows&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span>
+        <span class="p">}</span>
+        <span class="n">benchmark</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">datum</span><span class="p">)</span>
+</pre></div>
+<div id="cell-6" class="clipboard-copy-txt">for batch_size in batch_size_list:
+    for n in rows_number_list:
+        df = data.iloc[:n]
+
+        with dm.utils.perf.watch_duration(log=False) as d:
+            out = dm.parallelized_with_batches(
+                smiles_to_unique_mol_id_batch,
+                df["smiles"].values,
+                batch_size=batch_size,
+                progress=True,
+                n_jobs=-1,
+                scheduler="processes",
+            )
+        assert len(out) == len(df), f"{len(out)} != {len(df)}"
+
+        datum = {
+            "batch": True,
+            "batch_size": batch_size,
+            "scheduler": "loky_processes",
+            "duration_minutes": d.duration_minutes,
+            "duration_seconds": d.duration,
+            "n_rows": len(df),
+        }
+        benchmark.append(datum)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
+<pre>  0%|          | 0/13388 [00:00&lt;?, ?it/s]</pre>
+</div>
+
+</div>
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
+<pre>  0%|          | 0/1338 [00:00&lt;?, ?it/s]</pre>
+</div>
+
+</div>
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
+<pre>  0%|          | 0/133 [00:00&lt;?, ?it/s]</pre>
+</div>
+
+</div>
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
+<pre>  0%|          | 0/13 [00:00&lt;?, ?it/s]</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div id="cell-id=ec7529d1-2ca3-42ec-a811-3dc010a03350" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-7">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">rows_number_list</span><span class="p">:</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">dm</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">perf</span><span class="o">.</span><span class="n">watch_duration</span><span class="p">(</span><span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="k">as</span> <span class="n">d</span><span class="p">:</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;smiles&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">parallel_apply</span><span class="p">(</span><span class="n">smiles_to_unique_mol_id</span><span class="p">)</span>
+
+    <span class="n">datum</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;batch&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;scheduler&quot;</span><span class="p">:</span> <span class="s2">&quot;pandarallel&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;duration_minutes&quot;</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">duration_minutes</span><span class="p">,</span>
+        <span class="s2">&quot;duration_seconds&quot;</span><span class="p">:</span> <span class="n">d</span><span class="o">.</span><span class="n">duration</span><span class="p">,</span>
+        <span class="s2">&quot;n_rows&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="n">benchmark</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">datum</span><span class="p">)</span>
+</pre></div>
+<div id="cell-7" class="clipboard-copy-txt">for n in rows_number_list:
+    df = data.iloc[:n]
+
+    with dm.utils.perf.watch_duration(log=False) as d:
+        _ = df["smiles"].parallel_apply(smiles_to_unique_mol_id)
+
+    datum = {
+        "batch": False,
+        "batch_size": None,
+        "scheduler": "pandarallel",
+        "duration_minutes": d.duration_minutes,
+        "duration_seconds": d.duration,
+        "n_rows": len(df),
+    }
+    benchmark.append(datum)</div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+
+
+<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
+<pre>VBox(children=(HBox(children=(IntProgress(value=0, description=&#39;0.00%&#39;, max=558), Label(value=&#39;0 / 558&#39;))), HB…</pre>
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+</div>
+<div id="cell-id=1ddf56ef-6349-4d43-9720-9e53699e9a8e" class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="results">Results<a class="anchor-link" href="#results">&#182;</a></h2>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div id="cell-id=989ae5dd-9826-4adb-af0a-64d9e2c19e2c" class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-8">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">b</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">benchmark</span><span class="p">)</span>
+<span class="n">b</span><span class="p">[</span><span class="s2">&quot;duration_seconds_per_mol&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="s2">&quot;duration_seconds&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">b</span><span class="p">[</span><span class="s2">&quot;n_rows&quot;</span><span class="p">]</span>
+
+<span class="n">b</span><span class="o">.</span><span class="n">sort_values</span><span class="p">(</span><span class="s2">&quot;duration_seconds_per_mol&quot;</span><span class="p">)</span>
+</pre></div>
+<div id="cell-8" class="clipboard-copy-txt">b = pd.DataFrame(benchmark)
+b["duration_seconds_per_mol"] = b["duration_seconds"] / b["n_rows"]
+
+b.sort_values("duration_seconds_per_mol")</div>
         
         </div>
     </div>
@@ -2516,129 +2738,113 @@ degs</div>
 <div class="jp-OutputArea jp-Cell-outputArea">
 <div class="jp-OutputArea-child jp-OutputArea-executeResult">
     
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[2]:</div>
+    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[8]:</div>
 
 
 
+<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/html">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
 
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>matrix([[1., 1., 1., 1., 1.]])</pre>
-</div>
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
 
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="add-to-positional_encodingpy">add to positional_encoding.py<a class="anchor-link" href="#add-to-positional_encodingpy">&#182;</a></h3><p>To compute the new pe along with all existing pe, we need to add the function we wrote to <a href="https://valence-discovery.github.io/goli/api/goli.features.html#goli.features.positional_encoding"><code>goli/feature/positional_encoding.py</code></a>. Modify the <a href="https://valence-discovery.github.io/goli/api/goli.features.html#goli.features.positional_encoding.graph_positional_encoder"><code>graph_positional_encoder</code></a> function by adding <code>pos_type == &quot;degree&quot;</code> logic</p>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="add-existing-encoder">Add Existing Encoder<a class="anchor-link" href="#add-existing-encoder">&#182;</a></h2><p>In order to pool over all the positional encodings, we need to add encoder to process the raw computed positional encoding and ensure the output dimension from all pe encoders are the same. When designing the encoder, you can either use an existing encoder or write a specialized encoder you made</p>
-<p>here we can simply specify <a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html#goli.nn.encoders.mlp_encoder.MLPEncoder"><code>MLPEncoder</code></a> in the yaml file and the library will automatically feed the raw positional encoding to a mlp encoder based on the input arguments. Note that in this example, the encoder takes in the pe stored at the input key <code>degree</code> and then outputs to the output key <code>feat</code></p>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<pre><code>encoders: 
-  deg_pos: 
-    encoder_type: &quot;mlp&quot; 
-    input_keys: [&quot;degree&quot;] 
-    output_keys: [&quot;feat&quot;] # node feature
-    hidden_dim: 64
-    num_layers: 1
-    dropout: 0.1
-    normalization: &quot;none&quot;   #&quot;batch_norm&quot; or &quot;layer_norm&quot;
-    first_normalization: &quot;layer_norm&quot;   #&quot;batch_norm&quot; or &quot;layer_norm&quot;
-</code></pre>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="add-specialized-encoder">Add Specialized Encoder<a class="anchor-link" href="#add-specialized-encoder">&#182;</a></h2><p>You can also add specialized encoder, such as <code>laplacian_pe</code> for the laplacian eigenvectors and eigenvalues. Here, we can add a new <code>deg_pos_encoder.py</code> in <a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html"><code>goli/nn/encoders</code></a>. As an example and template, please see the <a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html#goli.nn.encoders.mlp_encoder.MLPEncoder"><code>MLPEncoder</code></a></p>
-<p>Note that all new encoders must inherent from <a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html#goli.nn.encoders.base_encoder.BaseEncoder"><code>BaseEncoder</code></a> class and implement the following abstract methods</p>
-<ul>
-<li><p><a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html#goli.nn.encoders.base_encoder.BaseEncoder.forward"><code>forward</code></a>: the forward function of the encoder, how to process the input</p>
-</li>
-<li><p><a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html#goli.nn.encoders.base_encoder.BaseEncoder.parse_input_keys"><code>parse_input_keys</code></a>: how to parse the input keys</p>
-</li>
-<li><p><a href="https://valence-discovery.github.io/goli/api/goli.nn/encoders.html#goli.nn.encoders.laplace_pos_encoder.LapPENodeEncoder.parse_output_keys"><code>parse_output_keys</code></a>: how to parse the output keys</p>
-</li>
-</ul>
-
-</div>
-</div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="add-the-keys-to-spaces">Add the Keys to Spaces<a class="anchor-link" href="#add-the-keys-to-spaces">&#182;</a></h2><p>In order to directly find the correct encoders from the yaml file, we need to specify which key corresponding to what class.</p>
-<ul>
-<li>add our new <code>deg_pos_encoder</code> to <code>goli/utils/spaces.py</code> in the <code>PE_ENCODERS_DICT</code></li>
-<li>add our new <code>deg_pos_encoder</code> to <a href="https://valence-discovery.github.io/goli/api/goli.nn/architectures.html#goli.nn.architectures.encoder_manager.EncoderManager"><code>goli/nn/architectures/encoder_manager.py</code></a> in the <code>PE_ENCODERS_DICT</code></li>
-<li>add the import of our encoder to  <code>goli/nn/encoders/__init__.py</code></li>
-</ul>
-<p>Now we can modify the yaml file to use our new encoder</p>
-
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>batch</th>
+      <th>batch_size</th>
+      <th>scheduler</th>
+      <th>duration_minutes</th>
+      <th>duration_seconds</th>
+      <th>n_rows</th>
+      <th>duration_seconds_per_mol</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>3</th>
+      <td>True</td>
+      <td>1000.0</td>
+      <td>loky_processes</td>
+      <td>0.014199</td>
+      <td>0.851930</td>
+      <td>133885</td>
+      <td>0.000006</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>True</td>
+      <td>100.0</td>
+      <td>loky_processes</td>
+      <td>0.037132</td>
+      <td>2.227947</td>
+      <td>133885</td>
+      <td>0.000017</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>True</td>
+      <td>10000.0</td>
+      <td>loky_processes</td>
+      <td>0.047438</td>
+      <td>2.846266</td>
+      <td>133885</td>
+      <td>0.000021</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>False</td>
+      <td>NaN</td>
+      <td>pandarallel</td>
+      <td>0.118230</td>
+      <td>7.093791</td>
+      <td>133885</td>
+      <td>0.000053</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>True</td>
+      <td>10.0</td>
+      <td>loky_processes</td>
+      <td>0.222177</td>
+      <td>13.330603</td>
+      <td>133885</td>
+      <td>0.000100</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>False</td>
+      <td>NaN</td>
+      <td>loky_processes</td>
+      <td>4.002346</td>
+      <td>240.140754</td>
+      <td>133885</td>
+      <td>0.001794</td>
+    </tr>
+  </tbody>
+</table>
 </div>
 </div>
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<pre><code>encoders: 
-  deg_pos: 
-    encoder_type: &quot;deg_pos_encoder&quot; 
-    input_keys: [&quot;degree&quot;] 
-    output_keys: [&quot;feat&quot;] # node feature
-    hidden_dim: 64
-    #any other keys that might be used for initialization
-</code></pre>
 
 </div>
+
 </div>
+
+</div>
+
 </div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=04c0b10c-bf99-43bf-979a-9d1f0c1ff1fd" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
@@ -2648,7 +2854,7 @@ degs</div>
         
         <div class="CodeMirror cm-s-jupyter">
             <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-3">
+                <clipboard-copy for="cell-9">
                 <div>
                     <span class="notice" hidden>Copied!</span>
                     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
@@ -2660,7 +2866,39 @@ degs</div>
             </div>
             <div class="highlight-ipynb hl-python "><pre><span></span>
 </pre></div>
-<div id="cell-3" class="clipboard-copy-txt"></div>
+<div id="cell-9" class="clipboard-copy-txt"></div>
+        
+        </div>
+    </div>
+
+</div>
+</div>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div id="cell-id=39b3d77e" class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-10">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span>
+</pre></div>
+<div id="cell-10" class="clipboard-copy-txt"></div>
         
         </div>
     </div>

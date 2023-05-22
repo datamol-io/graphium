@@ -13,13 +13,13 @@
         <link rel="canonical" href="https://github.com/valence-discovery/goli/api/goli.nn/goli.nn.html">
       
       
-        <link rel="prev" href="../../license.html">
+        <link rel="prev" href="../../index.html">
       
       
         <link rel="next" href="architectures.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.1.6">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ded33207.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.a0c5b2b5.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
       
       
 
@@ -75,7 +75,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#goli.nn.base_graph_layer" class="md-skip">
+        <a href="#golinn" class="md-skip">
           Skip to content
         </a>
       
@@ -87,9 +87,7 @@
     
       
 
-  
-
-<header class="md-header md-header--shadow" data-md-component="header">
+<header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../../index.html" title="goli" class="md-header__button md-logo" aria-label="goli" data-md-component="logo">
       
@@ -115,6 +113,8 @@
         </div>
       </div>
     </div>
+    
+      
     
     
     
@@ -173,6 +173,147 @@
       
         
           
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../index.html" class="md-tabs__link">
+      Overview
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="goli.nn.html" class="md-tabs__link md-tabs__link--active">
+        API
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../tutorials/feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
+        Tutorials
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../design.html" class="md-tabs__link">
+      Design
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../datasets.html" class="md-tabs__link">
+      Datasets
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../pretrained_models.html" class="md-tabs__link">
+      Pretrained Models
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../contribute.html" class="md-tabs__link">
+      Contribute
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../license.html" class="md-tabs__link">
+      License
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../../cli_references.html" class="md-tabs__link">
+      CLI
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
         
       
       <main class="md-main" data-md-component="main">
@@ -185,8 +326,10 @@
                   <div class="md-sidebar__inner">
                     
 
+  
 
-<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="../../index.html" title="goli" class="md-nav__button md-logo" aria-label="goli" data-md-component="logo">
       
@@ -231,28 +374,28 @@
 
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
       
       
       
         <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
-          Tutorials
+          API
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
         <label class="md-nav__title" for="__nav_2">
           <span class="md-nav__icon md-icon"></span>
-          Tutorials
+          API
         </label>
         <ul class="md-nav__list" data-md-scrollfix>
           
@@ -260,372 +403,26 @@
               
   
   
+    
+  
   
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
       
       
       
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_1" >
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
       
       
       
         <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
-          feature_processing
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_2_1">
-          <span class="md-nav__icon md-icon"></span>
-          feature_processing
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
-        Add new positional encoding
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
-        Convert CSV to Parquet files
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
-        Timing parallel processing
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-      
-      
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
-      
-      
-      
-        <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
-          gnn_layers
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_2_2">
-          <span class="md-nav__icon md-icon"></span>
-          gnn_layers
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
-        Creating GNN layers
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
-        Making GNN Networks
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
-        Using GNN layers
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-      
-      
-      
-        
-      
-      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
-      
-      
-      
-        <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
-          model_training
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
-        <label class="md-nav__title" for="__nav_2_3">
-          <span class="md-nav__icon md-icon"></span>
-          model_training
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
-        Building and training a simple model from configurations
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/model_training/ipu_training.html" class="md-nav__link">
-        Building and training on IPU from configurations
-      </a>
-    </li>
-  
-
-            
-          
-            
-              
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
-        Chosing the right parallelization
-      </a>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-            
-          
-        </ul>
-      </nav>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../design.html" class="md-nav__link">
-        Design
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../datasets.html" class="md-nav__link">
-        Datasets
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../pretrained_models.html" class="md-nav__link">
-        Pretrained Models
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../contribute.html" class="md-nav__link">
-        Contribute
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../license.html" class="md-nav__link">
-        License
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-    
-  
-  
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-      
-      
-      
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
-      
-      
-      
-        <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
-          API
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
-        <label class="md-nav__title" for="__nav_8">
-          <span class="md-nav__icon md-icon"></span>
-          API
-        </label>
-        <ul class="md-nav__list" data-md-scrollfix>
-          
-            
-              
-  
-  
-    
-  
-  
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
-      
-      
-      
-      
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_1" checked>
-      
-      
-      
-        <label class="md-nav__link" for="__nav_8_1" id="__nav_8_1_label" tabindex="0">
           goli.nn
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_1_label" aria-expanded="true">
-        <label class="md-nav__title" for="__nav_8_1">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_2_1">
           <span class="md-nav__icon md-icon"></span>
           goli.nn
         </label>
@@ -643,6 +440,8 @@
       <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
+        
+      
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
           goli.nn
@@ -659,6 +458,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -667,6 +468,14 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#base-graph-layer" class="md-nav__link">
+    Base Graph Layer
+  </a>
+  
+    <nav class="md-nav" aria-label="Base Graph Layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.base_graph_layer" class="md-nav__link">
     base_graph_layer
   </a>
@@ -781,8 +590,21 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#base-layers" class="md-nav__link">
+    Base Layers
+  </a>
+  
+    <nav class="md-nav" aria-label="Base Layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.base_layers" class="md-nav__link">
     base_layers
   </a>
@@ -979,8 +801,21 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#residual-connections" class="md-nav__link">
+    Residual Connections
+  </a>
+  
+    <nav class="md-nav" aria-label="Residual Connections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.residual_connections" class="md-nav__link">
     residual_connections
   </a>
@@ -1274,6 +1109,11 @@
   <a href="#goli.nn.residual_connections.ResidualConnectionWeighted.has_weights" class="md-nav__link">
     has_weights()
   </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1456,6 +1296,352 @@
   
   
   
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+          feature_processing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          feature_processing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
+        Convert CSV to Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+          gnn_layers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_3">
+          <span class="md-nav__icon md-icon"></span>
+          model_training
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+        Building and training a simple model from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/model_training/ipu_training.html" class="md-nav__link">
+        Building and training on IPU from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
+        Chosing the right parallelization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design.html" class="md-nav__link">
+        Design
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../datasets.html" class="md-nav__link">
+        Datasets
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pretrained_models.html" class="md-nav__link">
+        Pretrained Models
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contribute.html" class="md-nav__link">
+        Contribute
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
     <li class="md-nav__item">
       <a href="../../cli_references.html" class="md-nav__link">
         CLI
@@ -1481,6 +1667,8 @@
   
   
   
+    
+  
   
     <label class="md-nav__title" for="__toc">
       <span class="md-nav__icon md-icon"></span>
@@ -1489,6 +1677,14 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#base-graph-layer" class="md-nav__link">
+    Base Graph Layer
+  </a>
+  
+    <nav class="md-nav" aria-label="Base Graph Layer">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.base_graph_layer" class="md-nav__link">
     base_graph_layer
   </a>
@@ -1603,8 +1799,21 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#base-layers" class="md-nav__link">
+    Base Layers
+  </a>
+  
+    <nav class="md-nav" aria-label="Base Layers">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.base_layers" class="md-nav__link">
     base_layers
   </a>
@@ -1801,8 +2010,21 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
         <li class="md-nav__item">
+  <a href="#residual-connections" class="md-nav__link">
+    Residual Connections
+  </a>
+  
+    <nav class="md-nav" aria-label="Residual Connections">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#goli.nn.residual_connections" class="md-nav__link">
     residual_connections
   </a>
@@ -2108,6 +2330,11 @@
     </nav>
   
 </li>
+        
+      </ul>
+    </nav>
+  
+</li>
       
     </ul>
   
@@ -2127,7 +2354,19 @@
   
 
 
-  <h1>goli.nn</h1>
+<h1 id="golinn">goli.nn<a class="headerlink" href="#golinn" title="Permanent link">&para;</a></h1>
+<p>Base structures for neural networks in the library (to be inherented by other modules)</p>
+<div class="tabbed-set" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Contents</label><div class="tabbed-content">
+<ul>
+<li><a href="#base-graph-layer">Base Graph Layer</a></li>
+<li><a href="#base-layers">Base Layers</a></li>
+<li><a href="#residual-connections">Residual Connection</a></li>
+</ul>
+</div>
+</div>
+<h2 id="base-graph-layer">Base Graph Layer<a class="headerlink" href="#base-graph-layer" title="Permanent link">&para;</a></h2>
+<hr />
+
 
 <div class="doc doc-object doc-module">
 
@@ -2165,7 +2404,7 @@
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="goli.nn.base_graph_layer.BaseGraphStructure" href="#goli.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code>, <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><a class="autorefs autorefs-internal" title="goli.nn.base_graph_layer.BaseGraphStructure" href="#goli.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code>, <code><span title="torch.nn">nn</span>.<span title="nn.Module">Module</span></code></p>
 
 
 
@@ -2345,8 +2584,8 @@ and outputs.</p>
 <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.layer_inputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2388,8 +2627,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.layer_outputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2431,8 +2670,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_edges_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2453,8 +2692,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_nodes_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_nodes_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2475,8 +2714,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.out_dim_factor" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2826,7 +3065,9 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
   </div>
 
-</div>
+</div><h2 id="base-layers">Base Layers<a class="headerlink" href="#base-layers" title="Permanent link">&para;</a></h2>
+<hr />
+
 
 <div class="doc doc-object doc-module">
 
@@ -2864,7 +3105,7 @@ TODO: Remove when PyG and pytorch supports int32.</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="torch.nn">nn</span>.<span title="nn.Module">Module</span></code></p>
 
 
 
@@ -3092,7 +3333,7 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="torch.nn">nn</span>.<span title="nn.Module">Module</span></code></p>
 
 
 
@@ -3453,7 +3694,7 @@ Output feature tensor, after the FC.
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="torch.nn">nn</span>.<span title="nn.Module">Module</span></code></p>
 
 
 
@@ -3611,7 +3852,7 @@ where Dh &lt;= hidden_dim (difference is padded)</p></td>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="torch.nn">nn</span>.<span title="nn.Module">Module</span></code></p>
 
 
 
@@ -3964,7 +4205,7 @@ value, but won't give the same results as CPU</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.MultiheadAttention">MultiheadAttention</span></code></p>
+        Bases: <code><span title="torch.nn">nn</span>.<span title="nn.MultiheadAttention">MultiheadAttention</span></code></p>
 
   
       <p>Modifying the MultiheadAttention to work with the muTransfer paradigm.
@@ -4007,7 +4248,7 @@ The biased self-attention option is added to have 3D attention bias.</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.TransformerEncoderLayer">TransformerEncoderLayer</span></code></p>
+        Bases: <code><span title="torch.nn">nn</span>.<span title="nn.TransformerEncoderLayer">TransformerEncoderLayer</span></code></p>
 
   
       <p>Modified version of <code>torch.nn.TransformerEncoderLayer</code> that uses :math:<code>1/n</code>-scaled attention
@@ -4235,7 +4476,9 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
 
   </div>
 
-</div>
+</div><h2 id="residual-connections">Residual Connections<a class="headerlink" href="#residual-connections" title="Permanent link">&para;</a></h2>
+<hr />
+
 
 <div class="doc doc-object doc-module">
 
@@ -4276,7 +4519,7 @@ Concat and DenseNet</p>
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+        Bases: <code><span title="torch.nn">nn</span>.<span title="nn.Module">Module</span></code></p>
 
 
 
@@ -6053,10 +6296,10 @@ The current class uses weights</p></td>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.expand"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.expand"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.51198bba.min.js"></script>
+      <script src="../../assets/javascripts/bundle.b4d07000.min.js"></script>
       
         <script src="../../javascripts/config.js"></script>
       
