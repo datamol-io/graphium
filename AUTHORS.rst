@@ -13,6 +13,7 @@ Authors are sorted alphabetically.
 * Kate Hodesdon (satsumas)
 * Luis Müller (luis-mueller)
 * Michał Koziarski (michalkoziarski)
+* Prudencio Tossou (prtos)
 * Oleksandr Dymov (odymov)
 * Sam Maddrell-Mander (s-maddrellmander)
 * Shenyang [Andy] Huang (shenyangHuang)

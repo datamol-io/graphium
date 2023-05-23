@@ -18,7 +18,7 @@ class BaseEncoder(torch.nn.Module, MupMixin):
         num_layers: int,
         activation: Union[str, Callable] = "relu",
         first_normalization=None,
-        use_input_keys_prefix: bool = True,
+        use_input_keys_prefix: bool = True,  # TODO: might be redundant along with parse_input_keys_with_prefix function
     ):
         r"""
         Base class for all positional and structural encoders.
@@ -36,6 +36,9 @@ class BaseEncoder(torch.nn.Module, MupMixin):
         """
         super().__init__()
 
+        if type(in_dim) is list:
+            in_dim = sum(in_dim)
+
         self.input_keys = self.parse_input_keys(input_keys)
         self.output_keys = self.parse_output_keys(output_keys)
         self.in_dim = in_dim
@@ -45,14 +48,18 @@ class BaseEncoder(torch.nn.Module, MupMixin):
         self.use_input_keys_prefix = use_input_keys_prefix
         self.first_normalization = get_norm(first_normalization, dim=in_dim)
 
+    # TODO: the function below seems redundant; could be removed/replaced moving forward
     def parse_input_keys_with_prefix(self, key_prefix):
         """
         Parse the `input_keys` argument, given a certain prefix.
         If the prefix is `None`, it is ignored
         """
+        ### TODO: redundant
         input_keys = self.input_keys
         if (key_prefix is not None) and (self.use_input_keys_prefix):
-            input_keys = [f"{key_prefix}/{k}" for k in input_keys]
+            input_keys = [f"{k}" for k in input_keys]
+            # input_keys = [f"{key_prefix}/{k}" for k in input_keys]
+        ###
         return input_keys
 
     @abc.abstractmethod
