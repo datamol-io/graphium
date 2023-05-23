@@ -1555,7 +1555,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
 
         smiles = "C1=CC=CC=C1"
-        graph = self.smiles_transformer(smiles, mask_nan=0.0, on_error="raise")
+        graph = self.smiles_transformer(smiles, mask_nan=0.0)
         return graph
 
     ########################## Private methods ######################################
