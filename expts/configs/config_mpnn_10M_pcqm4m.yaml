@@ -18,10 +18,12 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 80000 # use sample_size for test
-        splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        sample_size: 8000 # use sample_size for test
+        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
+        split_val: 0.1
+        split_test: 0.1
         split_names: ["train", "valid", "test-dev"]
         seed: *seed
         label_normalization:
@@ -31,10 +33,10 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 20
+    featurization_n_jobs: 0
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "goli/data/PCQM4Mv2/"
+    processed_graph_data_path: "../datacache/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
