@@ -47,7 +47,7 @@ def get_accelerator(
     accelerator_type = config_acc["type"]
 
     # Get the GPU info
-    gpus = config_acc["override"].get("trainer", {}).get("trainer", {}).get("gpus", 0)
+    gpus = config_acc["config_override"].get("trainer", {}).get("trainer", {}).get("gpus", 0)
     if gpus > 0:
         assert (accelerator_type is None) or (accelerator_type == "gpu"), "Accelerator mismatch"
         accelerator_type = "gpu"
@@ -57,7 +57,7 @@ def get_accelerator(
         accelerator_type = "cpu"
 
     # Get the IPU info
-    ipus = config_acc["override"].get("trainer", {}).get("trainer", {}).get("ipus", 0)
+    ipus = config_acc["config_override"].get("trainer", {}).get("trainer", {}).get("ipus", 0)
     if ipus > 0:
         assert (accelerator_type is None) or (accelerator_type == "ipu"), "Accelerator mismatch"
         accelerator_type = "ipu"
@@ -494,7 +494,7 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dic
     config_acc = config.pop("accelerator", {})
 
     # Merge the accelerator config with the main config
-    config_override = config_acc.get("override", {})
+    config_override = config_acc.get("config_override", {})
     merge_dicts(config, config_override)
     accelerator_type = get_accelerator(config_acc)
 
