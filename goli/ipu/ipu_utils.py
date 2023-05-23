@@ -1,6 +1,8 @@
+import tempfile
+from datetime import datetime
 from copy import deepcopy
 from types import ModuleType
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import torch
 
 
@@ -41,20 +43,20 @@ def is_running_on_ipu() -> bool:
 
 
 def load_ipu_options(
-    ipu_file: str,
+    ipu_opts: List[str],
     seed: Optional[int] = None,
     model_name: Optional[str] = None,
     gradient_accumulation: Optional[int] = None,
     precision: Optional[int] = None,
-    ipu_inference_overrides: Optional[str] = None,
+    ipu_inference_opts: Optional[List[str]] = None,
 ) -> Tuple["poptorch.Options", "poptorch.Options"]:
     """
     Load the IPU options from the config file.
 
     Parameters:
-        ipu_file: file path containing the IPU configurations. Example of options are:
+        ipu_cfg: The list  configurations for the IPU, written as a list of strings to make use of `poptorch.Options.loadFromFile`
 
-            load the options from a config file. See `Options.loadFromFile`
+            write a temporary config gile, and read it. See `Options.loadFromFile`
             #? see the tutorial for IPU options here
             # https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading
             #? see the full documentation for ipu options here
@@ -82,8 +84,8 @@ def load_ipu_options(
 
         seed: random seed for the IPU
         model_name: Name of the model, to be used for ipu profiling
-        ipu_inference_overrides: optional file path containing IPU configuration overrides for inference.
-            If this file is provided, options in this file override those in `ipu_file` for inference.
+        ipu_inference_opts: optional IPU configuration overrides for inference.
+            If this is provided, options in this file override those in `ipu_file` for inference.
 
     Returns:
 
@@ -96,7 +98,9 @@ def load_ipu_options(
 
     poptorch = import_poptorch()
     ipu_options = poptorch.Options()
-    ipu_options.loadFromFile(ipu_file)
+    ipu_opts_file = ipu_options_list_to_file(ipu_opts)
+    ipu_options.loadFromFile(ipu_opts_file.name)
+    ipu_opts_file.close()
     ipu_options.outputMode(poptorch.OutputMode.All)
     if seed is not None:
         ipu_options.randomSeed(seed)
@@ -118,9 +122,27 @@ def load_ipu_options(
     # Change the inference options to remove gradient accumulation
     inference_opts = deepcopy(ipu_options)
     inference_opts.Training.gradientAccumulation(1)
-    if model_name is not None:
-        inference_opts.modelName(f"{model_name}_inference")
-    if ipu_inference_overrides is not None:
-        inference_opts.loadFromFile(ipu_inference_overrides)
+    if ipu_inference_opts is not None:
+        ipu_inference_opts_file = ipu_options_list_to_file(ipu_inference_opts)
+        inference_opts.loadFromFile(ipu_inference_opts_file.name)
+        inference_opts.close()
 
     return training_opts, inference_opts
+
+
+def ipu_options_list_to_file(ipu_opts: Optional[List[str]]) -> tempfile._TemporaryFileWrapper:
+    """
+    Create a temporary file from a list of ipu configs, such that it can be read by `poptorch.Options.loadFromFile`
+
+    Parameters:
+        ipu_opts: The list  configurations for the IPU, written as a list of strings to make use of `poptorch.Options.loadFromFile`
+    Returns:
+        tmp_file: The temporary file of ipu configs
+    """
+    if ipu_opts is None:
+        return
+
+    tmp_file = tempfile.NamedTemporaryFile("w")
+    for s in ipu_opts:
+        tmp_file.write(s + "\n")
+    return tmp_file
