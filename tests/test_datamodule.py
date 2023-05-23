@@ -306,7 +306,7 @@ class Test_DataModule(ut.TestCase):
             )  # Check that the smiles are correct
 
         # Convert the labels from the train_ds to a dataframe
-        train_labels = [{task: val.y[0] for task, val in d["labels"].items()} for d in datamodule.train_ds]
+        train_labels = [{task: val[0] for task, val in d["labels"].items()} for d in datamodule.train_ds]
         train_labels_df = pd.DataFrame(train_labels)
         train_labels_df = train_labels_df.rename(
             columns={"task_1": "SA", "task_2": "logp", "task_3": "score"}

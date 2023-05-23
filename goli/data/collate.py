@@ -66,7 +66,6 @@ def goli_collate_fn(
     """
 
     elem = elements[0]
-
     if isinstance(elem, Mapping):
         batch = {}
         for key in elem:
@@ -165,20 +164,19 @@ def collate_pyg_graph_labels(pyg_labels: List[Data]):
     Parameters:
         pyg_labels: Iterable of PyG label Data objects
     """
-
     pyg_batch = []
     for pyg_label in pyg_labels:
-        tensor = pyg_label.y
+        for pyg_key in pyg_label.keys:
+            tensor = pyg_label[pyg_key]
+            # Convert numpy/scipy to Pytorch
+            if isinstance(tensor, (ndarray, spmatrix)):
+                tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
 
-        # Convert numpy/scipy to Pytorch
-        if isinstance(tensor, (ndarray, spmatrix)):
-            tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+            # Ensure explicit task dimension also for single task labels
+            if len(tensor.shape) == 1:
+                tensor = tensor.unsqueeze(1)
 
-        # Ensure explicit task dimension also for single task labels
-        if len(tensor.shape) == 1:
-            tensor = tensor.unsqueeze(1)
-
-        pyg_label.y = tensor
+            pyg_label[pyg_key] = tensor
 
         pyg_batch.append(pyg_label)
 
@@ -186,7 +184,7 @@ def collate_pyg_graph_labels(pyg_labels: List[Data]):
 
 
 def collate_labels(
-    labels: List[Dict[str, Data]],
+    labels: List[Data],
     labels_size_dict: Optional[Dict[str, Any]] = None,
 ):
     """Collate labels for multitask learning.
@@ -201,25 +199,17 @@ def collate_labels(
         A dictionary of the form Dict[tasks, labels] where tasks is the name of the task and labels
         is a tensor of shape (batch_size, *labels_size_dict[task]).
     """
-    labels_dict = {}
+
     if labels_size_dict is not None:
         for this_label in labels:
-            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
+            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys)
             for task in empty_task_labels:
                 this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
-            for task in this_label.keys():
-                if not isinstance(this_label[task], Data):
-                    if not isinstance(task, (torch.Tensor)):
-                        this_label[task] = torch.as_tensor(this_label[task])
-                    this_label[task] = Data(y=this_label[task])
+            for task in this_label.keys:
+                if not isinstance(this_label[task], (torch.Tensor)):
+                    this_label[task] = torch.as_tensor(this_label[task])
 
-    # Convert labels from List[Dict[str, Data]] to Dict[str, List[Data]]
-    labels_by_task = {}
-    for task in labels[0].keys():
-        labels_by_task[task] = [label_dict[task] for label_dict in labels]
-    for task, task_labels in labels_by_task.items():
-        labels_dict[task] = collate_pyg_graph_labels(task_labels)
-    return labels_dict
+    return collate_pyg_graph_labels(labels)
 
 
 def pad_nodepairs(pe: torch.Tensor, num_nodes: int, max_num_nodes_per_graph: int):

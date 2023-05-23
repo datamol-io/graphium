@@ -55,9 +55,9 @@ class Test_Multitask_Dataset(ut.TestCase):
         for idx in range(multitask_microzinc.__len__()):
             smiles = df[["SMILES"]].iloc[idx].values[0]
             # label = df[['SA']].iloc[idx]
-            label_SA = ds_micro_zinc_SA.labels[idx]
-            label_logp = ds_micro_zinc_logp.labels[idx]
-            label_score = ds_micro_zinc_score.labels[idx]
+            label_SA = ds_micro_zinc_SA.labels[idx].y
+            label_logp = ds_micro_zinc_logp.labels[idx].y
+            label_score = ds_micro_zinc_score.labels[idx].y
 
             # Search for the mol id in the multitask dataset
             mol_ids = smiles_to_unique_mol_ids([smiles])
@@ -139,17 +139,17 @@ class Test_Multitask_Dataset(ut.TestCase):
                     found_idx = i
 
             if task == "SA":
-                self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]["SA"].y)
-                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys())
-                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys())
+                self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]["SA"])
+                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys)
+                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys)
             elif task == "logp":
-                self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]["logp"].y)
-                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys())
-                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys())
+                self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]["logp"])
+                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys)
+                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys)
             elif task == "score":
-                self.assertEqual(label_score, multitask_microzinc.labels[found_idx]["score"].y)
-                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys())
-                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys())
+                self.assertEqual(label_score, multitask_microzinc.labels[found_idx]["score"])
+                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys)
+                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys)
 
     def test_multitask_dataset_case_3(self):
         """Case: Different tasks, but with semi-intersection (some smiles unique per task, some intersect)

@@ -1021,7 +1021,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["extras"],
                 this_unique_ids,
             )
-            labels_ = [Data(y=labels[i]) for i in range(len(labels))]
+            labels_ = [
+                Data(y=labels[i]) for i in range(len(labels))
+            ]  # TODO: Personally this is unnecessary. We can do better by making Data object when we merge in Multitask
             task_dataset_args[task]["smiles"] = smiles
             task_dataset_args[task]["labels"] = labels_
             task_dataset_args[task]["features"] = features
@@ -1247,8 +1249,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # this is training dataset split and the hash specific task_norms.pkl
         # file does not exist, we recalculate the label statistics.
         if self.task_norms and train and not os.path.isfile(filename):
-            for task in dataset[0]["labels"].keys():
-                labels = np.stack(np.array([datum["labels"][task].y for datum in dataset]), axis=0)
+            for task in dataset[0]["labels"].keys:
+                labels = np.stack(np.array([datum["labels"][task] for datum in dataset]), axis=0)
                 self.task_norms[task].calculate_statistics(labels)
             torch.save(self.task_norms, filename, pickle_protocol=4)
         # if any of the above three condition does not satisfy, we load from file.
@@ -1256,7 +1258,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.task_norms = torch.load(filename)
 
     def normalize_label(self, dataset):
-        for task in dataset[0]["labels"].keys():
+        for task in dataset[0]["labels"].keys:
             for i in range(len(dataset)):
                 normalized_label = self.task_norms[task].normalize(dataset[i]["labels"][task])
                 dataset[i]["labels"][task] = normalized_label

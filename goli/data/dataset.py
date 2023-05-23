@@ -6,7 +6,6 @@ from functools import lru_cache
 from loguru import logger
 from copy import deepcopy
 import os
-import pdb
 import numpy as np
 
 import torch
@@ -220,8 +219,6 @@ class MultitaskDataset(Dataset):
             if not save_smiles_and_ids:
                 self.mol_ids = None
                 self.smiles = None
-
-            self.labels = np.array(self.labels)
             self.labels_size = self.set_label_size_dict(datasets)
             self.dataset_length = len(self.labels)
             if self.features is not None:
@@ -405,11 +402,15 @@ class MultitaskDataset(Dataset):
             smiles[unique_idx].append(all_lists["smiles"][all_idx])
 
         # Store the labels.
-        labels = [{} for _ in range(len(mol_ids))]
+        labels = [Data() for _ in range(len(mol_ids))]
         for all_idx, unique_idx in enumerate(inv):
             task = all_lists["tasks"][all_idx]
             label = all_lists["labels"][all_idx]
-            labels[unique_idx][task] = label
+            labels[unique_idx][
+                task
+            ] = (
+                label.y
+            )  # TODO: .y here can be removed if we allow single_dataset to have labels as tensor instead of Data object. Because here we create the data object already, no need to do twice.
 
         # Store the features
         if len(all_lists["features"]) > 0:
