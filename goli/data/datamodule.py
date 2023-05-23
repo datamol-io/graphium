@@ -1,6 +1,7 @@
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
 
 import os
+import glob
 from functools import partial
 import importlib.resources
 import zipfile
@@ -410,6 +411,19 @@ class BaseDataModule(pl.LightningDataModule):
 
         return df
 
+    @staticmethod
+    def _glob(path: str) -> List[str]:
+        """
+        glob a given path
+        Parameters:
+            path: path to glob
+        Returns:
+            List[str]: list of paths
+        """
+        files = dm.fs.glob(path)
+        files = [f.replace("file://", "") for f in files]
+        return files
+
     def _read_table(self, path: str, **kwargs) -> pd.DataFrame:
         """
         a general read file function which determines if which function to use, either _read_csv or _read_parquet
@@ -419,15 +433,26 @@ class BaseDataModule(pl.LightningDataModule):
         Returns:
             pd.DataFrame: the panda dataframe storing molecules
         """
-        file_type = self._get_data_file_type(path)
-        if file_type == "parquet":
-            return self._read_parquet(path, **kwargs)
-        elif file_type == "sdf":  # support compressed sdf files
-            return self._read_sdf(path, **kwargs)
-        elif file_type in ["csv", "tsv"]:  # support compressed csv and tsv files
-            return self._read_csv(path, **kwargs)
-        else:
-            raise ValueError(f"unsupported file `{path}`")
+        files = self._glob(path)
+        if len(files) == 0:
+            raise FileNotFoundError("No such file or directory `{path}`")
+
+        if len(files) > 1:
+            files = tqdm(sorted(files), desc=f"Reading files at `{path}`")
+        dfs = []
+        for file in files:
+            file_type = self._get_data_file_type(file)
+            if file_type == "parquet":
+                df = self._read_parquet(file, **kwargs)
+            elif file_type == "sdf":  # support compressed sdf files
+                df = self._read_sdf(file, **kwargs)
+            elif file_type in ["csv", "tsv"]:  # support compressed csv and tsv files
+                df = self._read_csv(file, **kwargs)
+            else:
+                raise ValueError(f"unsupported file `{file}`")
+            dfs.append(df)
+
+        return pd.concat(dfs, ignore_index=True)
 
     def get_dataloader_kwargs(self, stage: RunningStage, shuffle: bool, **kwargs) -> Dict[str, Any]:
         """
@@ -1439,7 +1464,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             the parsed label columns
         """
         if df is None:
-            cols = BaseDataModule._get_table_columns(df_path)
+            files = self._glob(df_path)
+            if len(files) == 0:
+                raise FileNotFoundError(f"No such file or directory `{df_path}`")
+
+            cols = BaseDataModule._get_table_columns(files[0])
+            for file in files[1:]:
+                _cols = BaseDataModule._get_table_columns(file)
+                if set(cols) != set(_cols):
+                    raise RuntimeError(
+                        f"Multiple data files have different columns. \nColumn set 1: {cols}\nColumn set 2: {_cols}"
+                    )
         else:
             cols = list(df.columns)
 
@@ -1487,7 +1522,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         graph = self.get_fake_graph()
         if isinstance(graph, (GraphDict)):
-            graph = graph.ndata
+            graph = graph.data
 
         # get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
