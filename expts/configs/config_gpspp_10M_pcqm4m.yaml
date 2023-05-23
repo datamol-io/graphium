@@ -1,6 +1,6 @@
 # GPS++ model with the PCQMv2 dataset on IPU.
 constants:
-  name: &name pcqm4mv2_mpnn_4layer
+  name: &name pcqm4mv2_gpspp_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
@@ -18,7 +18,7 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        sample_size: 80000 # use sample_size for test
+        # sample_size: 80000 # use sample_size for test
         splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
@@ -33,15 +33,14 @@ datamodule:
     featurization_n_jobs: 20
     featurization_progress: True
     featurization_backend: "loky"
-    cache_data_path: "./datacache"
-    processed_graph_data_path: "goli/data/PCQM4Mv2/"
+    processed_graph_data_path: "/tmp/goli_data/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
     # 'num_chiral_centers (not included yet)']
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
-      conformer_property_list: [positions_3d]
+      conformer_property_list: [positions_3d] # 3D_bias
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
       add_self_loop: False
@@ -60,7 +59,7 @@ datamodule:
 
 
     # Data handling-related
-    batch_size_training: 32
+    batch_size_training: 16
     batch_size_inference: 16
     # cache_data_path: .
     num_workers: 20 # -1 to use all
@@ -131,7 +130,7 @@ architecture:
         dropout: 0.18
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
-      gaussian_pos:
+      gaussian_pos: # 3D_bias
         encoder_type: "gaussian_kernel"
         input_keys: ["positions_3d"]
         output_keys: ["feat", "graph_gaussian_bias_3d"]
@@ -149,7 +148,7 @@ architecture:
     depth: 4
     activation: gelu
     last_activation: none
-    dropout: 0.3
+    dropout: 0.1
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
@@ -165,7 +164,8 @@ architecture:
         in_dim_edges: 128
         out_dim_edges: 128
       attn_type: "full-attention" # "full-attention", "none"
-      biased_attention_key: "graph_gaussian_bias_3d" #same key from gaussian_pos/output_keys/"graph_xxx"
+      precision: &precision 16
+      biased_attention_key: "graph_gaussian_bias_3d" # 3D_bias
       attn_kwargs:
         num_heads: 32
       droppath_rate_attn: 0.0
@@ -196,6 +196,7 @@ predictor:
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
+    # loss_scaling: 1024
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100
@@ -242,7 +243,7 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 16
+    precision: *precision
     max_epochs: *max_epochs
     min_epochs: 1
     accumulate_grad_batches: 4

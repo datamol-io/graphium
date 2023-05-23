@@ -25,7 +25,9 @@ constants:
 
 accelerator:
   type: cpu  # cpu or ipu or gpu
-
+  trainer:
+    trainer:
+      precision: 32
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -57,7 +59,6 @@ datamodule:
     featurization_n_jobs: 20
     featurization_progress: True
     featurization_backend: "loky"
-    cache_data_path: "./datacache"
     processed_graph_data_path: "goli/data/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
@@ -151,7 +152,7 @@ architecture:
     depth: 4
     activation: gelu
     last_activation: none
-    dropout: 0.3
+    dropout: 0.1
     normalization: "layer_norm"
     last_normalization: *normalization
     residual_type: simple
@@ -243,5 +244,5 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 2
+    accumulate_grad_batches: 1
     check_val_every_n_epoch: 20
