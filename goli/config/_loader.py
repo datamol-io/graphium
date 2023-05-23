@@ -115,7 +115,9 @@ def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) 
     return ipu_training_config_filename, ipu_inference_config_overrides_filename
 
 
-def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]], accelerator_type: str) -> BaseDataModule:
+def load_datamodule(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]], accelerator_type: str
+) -> BaseDataModule:
     """
     Load the datamodule from the specified configurations at the key
     `datamodule: args`.
@@ -307,6 +309,7 @@ def load_predictor(
 
     if accelerator_type == "ipu":
         from goli.ipu.ipu_wrapper import PredictorModuleIPU
+
         predictor_class = PredictorModuleIPU
     else:
         predictor_class = PredictorModule
@@ -363,7 +366,10 @@ def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
 
 
 def load_trainer(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str, accelerator_type: str, date_time_suffix: str = ""
+    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    run_name: str,
+    accelerator_type: str,
+    date_time_suffix: str = "",
 ) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
@@ -494,8 +500,7 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dic
     return config, accelerator_type
 
 
-
-def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_path:str="") -> None:
+def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_path: str = "") -> None:
     """
     Recursively merges dict_b into dict_a. If a key is missing from dict_a,
     it is added from dict_b. If a key exists in both, an error is raised.
@@ -519,7 +524,7 @@ def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_pa
             if previous_dict_path == "":
                 previous_dict_path = key
             else:
-                previous_dict_path=f"{previous_dict_path}/{key}"
+                previous_dict_path = f"{previous_dict_path}/{key}"
             if isinstance(value_a, dict) and isinstance(value_b, dict):
                 merge_dicts(value_a, value_b, previous_dict_path=previous_dict_path)
             else:
