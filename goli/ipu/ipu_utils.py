@@ -144,5 +144,5 @@ def ipu_options_list_to_file(ipu_opts: Optional[List[str]]) -> tempfile._Tempora
 
     tmp_file = tempfile.NamedTemporaryFile("w")
     for s in ipu_opts:
-        tmp_file.write(s + '\n')
+        tmp_file.write(s + "\n")
     return tmp_file
