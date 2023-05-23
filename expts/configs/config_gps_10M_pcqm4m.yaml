@@ -37,6 +37,15 @@ accelerator:
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
 
+  ipu_inference_config: # Optional. If not provided, same as `ipu_config`
+    - deviceIterations(80) # IPU would require large batches to be ready for the model.
+    - replicationFactor(16)
+    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+    # - enableExecutableCaching("pop_compiler_cache")
+    - TensorLocations.numIOTiles(128)
+    - _Popart.set("defaultBufferingDepth", 128)
+    - Precision.enableStochasticRounding(True)
+
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
 #   config_override:

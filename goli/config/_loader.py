@@ -73,46 +73,21 @@ def get_accelerator(
     return accelerator_type
 
 
-def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
+def _get_ipu_opts(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
     r"""
     Get the paths of the IPU-specific config files from the main YAML config
     """
 
-    accelerator_options = config.get("accelerator_options", None)
+    accelerator_options = config["accelerator"]
+    accelerator_type = accelerator_options["type"]
 
-    if accelerator_options is None:
-        ipu_training_config_path = "expts/configs/ipu.config"
-        ipu_inference_config_overrides_path = None
-    else:
-        ipu_training_config_path = accelerator_options.get("ipu_options_file")
-        ipu_inference_config_overrides_path = accelerator_options.get("ipu_inference_overrides_file", None)
+    if accelerator_type != "ipu":
+        return None, None
 
-    if pathlib.Path(ipu_training_config_path).is_file():
-        ipu_training_config_filename = ipu_training_config_path
-    else:
-        raise ValueError(
-            "IPU configuration path must be specified "
-            "and must be a file, instead got "
-            f'"{ipu_training_config_path}"'
-        )
+    ipu_opts = accelerator_options["ipu_config"]
+    ipu_inference_opts = accelerator_options.get("ipu_inference_config", None)
 
-    if ipu_inference_config_overrides_path is not None:
-        if pathlib.Path(ipu_inference_config_overrides_path).is_file():
-            ipu_inference_config_overrides_filename = ipu_inference_config_overrides_path
-        else:
-            raise ValueError(
-                "IPU inference override config must be a file if specified, "
-                f'instead got "{ipu_training_config_path}"'
-            )
-
-    else:
-        warnings.warn(
-            "IPU inference overrides configuration either not specified "
-            "or not a file, using same options for training and inference"
-        )
-        ipu_inference_config_overrides_filename = None
-
-    return ipu_training_config_filename, ipu_inference_config_overrides_filename
+    return ipu_opts, ipu_inference_opts
 
 
 def load_datamodule(
@@ -143,7 +118,7 @@ def load_datamodule(
 
     # IPU specific adjustments
     else:
-        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+        ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
         # Default empty values for the IPU configurations
         ipu_training_opts, ipu_inference_opts = None, None
@@ -151,11 +126,11 @@ def load_datamodule(
         ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
         ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
         ipu_training_opts, ipu_inference_opts = load_ipu_options(
-            ipu_file=ipu_training_config_file,
+            ipu_opts=ipu_opts,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
-            ipu_inference_overrides=ipu_inference_config_overrides_file,
+            ipu_inference_opts=ipu_inference_opts,
         )
 
         # Define the Dataloader options for the IPU on the training sets
@@ -387,11 +362,11 @@ def load_trainer(
     # Define the IPU plugin if required
     strategy = None
     if accelerator_type == "ipu":
-        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+        ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
         training_opts, inference_opts = load_ipu_options(
-            ipu_file=ipu_training_config_file,
-            ipu_inference_overrides=ipu_inference_config_overrides_file,
+            ipu_opts=ipu_opts,
+            ipu_inference_opts=ipu_inference_opts,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
@@ -491,7 +466,7 @@ def save_params_to_wandb(
 
 def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, Any]:
     config = deepcopy(config)
-    config_acc = config.pop("accelerator", {})
+    config_acc = config.get("accelerator", {})
 
     # Merge the accelerator config with the main config
     config_override = config_acc.get("config_override", {})
