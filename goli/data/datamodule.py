@@ -547,15 +547,27 @@ class BaseDataModule(pl.LightningDataModule):
             max_num_nodes = max(max_num_nodes, self.train_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the validation dataset
-        if (self.val_ds is not None) and ("val" in stages) and (self.val_ds.max_num_nodes_per_graph is not None):
+        if (
+            (self.val_ds is not None)
+            and ("val" in stages)
+            and (self.val_ds.max_num_nodes_per_graph is not None)
+        ):
             max_num_nodes = max(max_num_nodes, self.val_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the test dataset
-        if (self.test_ds is not None) and ("test" in stages) and (self.test_ds.max_num_nodes_per_graph is not None):
+        if (
+            (self.test_ds is not None)
+            and ("test" in stages)
+            and (self.test_ds.max_num_nodes_per_graph is not None)
+        ):
             max_num_nodes = max(max_num_nodes, self.test_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the predict dataset
-        if (self.predict_ds is not None) and ("predict" in stages) and (self.predict_ds.max_num_nodes_per_graph is not None):
+        if (
+            (self.predict_ds is not None)
+            and ("predict" in stages)
+            and (self.predict_ds.max_num_nodes_per_graph is not None)
+        ):
             max_num_nodes = max(max_num_nodes, self.predict_ds.max_num_nodes_per_graph)
 
         return max_num_nodes
@@ -582,19 +594,35 @@ class BaseDataModule(pl.LightningDataModule):
 
         max_num_edges = 0
         # Max number of nodes/edges in the training dataset
-        if (self.train_ds is not None) and ("train" in stages) and (self.train_ds.max_num_edges_per_graph is not None):
+        if (
+            (self.train_ds is not None)
+            and ("train" in stages)
+            and (self.train_ds.max_num_edges_per_graph is not None)
+        ):
             max_num_edges = max(max_num_edges, self.train_ds.max_num_edges_per_graph)
 
         # Max number of nodes/edges in the validation dataset
-        if (self.val_ds is not None) and ("val" in stages) and (self.val_ds.max_num_edges_per_graph is not None):
+        if (
+            (self.val_ds is not None)
+            and ("val" in stages)
+            and (self.val_ds.max_num_edges_per_graph is not None)
+        ):
             max_num_edges = max(max_num_edges, self.val_ds.max_num_edges_per_graph)
 
         # Max number of nodes/edges in the test dataset
-        if (self.test_ds is not None) and ("test" in stages) and (self.test_ds.max_num_edges_per_graph is not None):
+        if (
+            (self.test_ds is not None)
+            and ("test" in stages)
+            and (self.test_ds.max_num_edges_per_graph is not None)
+        ):
             max_num_edges = max(max_num_edges, self.test_ds.max_num_edges_per_graph)
 
         # Max number of nodes/edges in the predict dataset
-        if (self.predict_ds is not None) and ("predict" in stages) and (self.predict_ds.max_num_edges_per_graph is not None):
+        if (
+            (self.predict_ds is not None)
+            and ("predict" in stages)
+            and (self.predict_ds.max_num_edges_per_graph is not None)
+        ):
             max_num_edges = max(max_num_edges, self.predict_ds.max_num_edges_per_graph)
 
         return max_num_edges
@@ -1252,7 +1280,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         return dataset
 
     def save_featurized_data(self, dataset, processed_data_path):
-        os.makedirs(processed_data_path) # In case the len(dataset) is 0
+        os.makedirs(processed_data_path)  # In case the len(dataset) is 0
         for i in range(0, len(dataset), 1000):
             os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
         process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
