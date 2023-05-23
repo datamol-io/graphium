@@ -4,30 +4,41 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
-# accelerator:
-  # type: ipu  # cpu or ipu or gpu
-  # datamodule:
-  #   ipu_dataloader_training_opts:
-  #     mode: async
-  #     max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-  #     max_num_edges_per_graph: 60
-  #   ipu_dataloader_inference_opts:
-  #     mode: async
-  #     max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
-  #     max_num_edges_per_graph: 120
-  # predictor:
-  #   optim_kwargs:
-  #     loss_scaling: 1024
-  # trainer:
-  #   trainer:
-  #     precision: 16
-
-
 accelerator:
-  type: cpu  # cpu or ipu or gpu
-  trainer:
+  type: ipu  # cpu or ipu or gpu
+  override:
+    datamodule:
+      args:
+        ipu_dataloader_training_opts:
+          mode: async
+          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 60
+        ipu_dataloader_inference_opts:
+          mode: async
+          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 120
+        # Data handling-related
+        batch_size_training: 64
+        batch_size_inference: 16
+    predictor:
+      optim_kwargs:
+        loss_scaling: 1024
     trainer:
-      precision: 32
+      trainer:
+        precision: 16
+        accumulate_grad_batches: 4
+
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   override:
+#     datamodule:
+#       batch_size_training: 256
+#       batch_size_inference: 64
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -59,7 +70,7 @@ datamodule:
     featurization_n_jobs: 20
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "goli/data/PCQM4Mv2/"
+    processed_graph_data_path: "../datacache/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -83,9 +94,6 @@ datamodule:
             ksteps: 16
       # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
-    # Data handling-related
-    batch_size_training: 64
-    batch_size_inference: 16
     # cache_data_path: .
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
@@ -244,5 +252,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 1
     check_val_every_n_epoch: 20

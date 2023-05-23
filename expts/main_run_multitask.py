@@ -18,6 +18,7 @@ from goli.config._loader import (
     load_predictor,
     load_trainer,
     save_params_to_wandb,
+    load_accelerator,
 )
 from goli.utils.safe_run import SafeRun
 
@@ -29,7 +30,7 @@ import wandb
 MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_b3lyp.yaml"
-CONFIG_FILE = "expts/configs/config_gpspp_10M_pcqm4m.yaml"
+CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 os.chdir(MAIN_DIR)
 
 
@@ -42,8 +43,11 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 
     cfg = deepcopy(cfg)
 
+    # Initialize the accelerator
+    cfg, accelerator_type = load_accelerator(cfg)
+
     # Load and initialize the dataset
-    datamodule = load_datamodule(cfg)
+    datamodule = load_datamodule(cfg, accelerator_type)
 
     # Initialize the network
     model_class, model_kwargs = load_architecture(
@@ -56,12 +60,12 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     metrics = load_metrics(cfg)
     logger.info(metrics)
 
-    predictor = load_predictor(cfg, model_class, model_kwargs, metrics, datamodule.task_norms)
+    predictor = load_predictor(cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms)
 
     logger.info(predictor.model)
     logger.info(ModelSummary(predictor, max_depth=4))
 
-    trainer = load_trainer(cfg, run_name, date_time_suffix)
+    trainer = load_trainer(cfg, run_name, accelerator_type, date_time_suffix)
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
 
     # Determine the max num nodes and edges in training and validation

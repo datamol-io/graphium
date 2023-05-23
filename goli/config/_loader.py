@@ -35,7 +35,7 @@ from pytorch_lightning import Trainer
 
 
 def get_accelerator(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    config_acc: Union[omegaconf.DictConfig, Dict[str, Any]],
 ) -> str:
     """
     Get the accelerator from the config file, and ensure that they are
@@ -44,38 +44,33 @@ def get_accelerator(
     """
 
     # Get the accelerator type
-    accelerator = config["constants"].get("accelerator")
-    acc_type = None
-    if isinstance(accelerator, Mapping):
-        acc_type = accelerator.get("type", None)
-    if acc_type is not None:
-        acc_type = acc_type.lower()
+    accelerator_type = config_acc["type"]
 
     # Get the GPU info
-    gpus = config["trainer"]["trainer"].get("gpus", 0)
+    gpus = config_acc["override"].get("trainer", {}).get("trainer", {}).get("gpus", 0)
     if gpus > 0:
-        assert (acc_type is None) or (acc_type == "gpu"), "Accelerator mismatch"
-        acc_type = "gpu"
+        assert (accelerator_type is None) or (accelerator_type == "gpu"), "Accelerator mismatch"
+        accelerator_type = "gpu"
 
-    if (acc_type == "gpu") and (not torch.cuda.is_available()):
+    if (accelerator_type == "gpu") and (not torch.cuda.is_available()):
         logger.warning(f"GPUs selected, but will be ignored since no GPU are available on this device")
-        acc_type = "cpu"
+        accelerator_type = "cpu"
 
     # Get the IPU info
-    ipus = config["trainer"]["trainer"].get("ipus", 0)
+    ipus = config_acc["override"].get("trainer", {}).get("trainer", {}).get("ipus", 0)
     if ipus > 0:
-        assert (acc_type is None) or (acc_type == "ipu"), "Accelerator mismatch"
-        acc_type = "ipu"
-    if acc_type == "ipu":
+        assert (accelerator_type is None) or (accelerator_type == "ipu"), "Accelerator mismatch"
+        accelerator_type = "ipu"
+    if accelerator_type == "ipu":
         poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
             logger.warning(f"IPUs selected, but will be ignored since no IPU are available on this device")
-            acc_type = "cpu"
+            accelerator_type = "cpu"
 
     # Fall on cpu at the end
-    if acc_type is None:
-        acc_type = "cpu"
-    return acc_type
+    if accelerator_type is None:
+        accelerator_type = "cpu"
+    return accelerator_type
 
 
 def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
@@ -120,7 +115,7 @@ def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) 
     return ipu_training_config_filename, ipu_inference_config_overrides_filename
 
 
-def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> BaseDataModule:
+def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]], accelerator_type: str) -> BaseDataModule:
     """
     Load the datamodule from the specified configurations at the key
     `datamodule: args`.
@@ -128,6 +123,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
 
     Parameters:
         config: The config file, with key `datamodule: args`
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
     Returns:
         datamodule: The datamodule used to process and load the data
     """
@@ -137,7 +133,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
     # Instanciate the datamodule
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
 
-    if get_accelerator(config) != "ipu":
+    if accelerator_type != "ipu":
         datamodule = module_class(
             **config["datamodule"]["args"],
         )
@@ -279,15 +275,6 @@ def load_architecture(
     # Set the parameters for the full network
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
 
-    accelerator_kwargs = (
-        dict(cfg_arch["accelerator_options"])
-        if cfg_arch.get("accelerator_options", None) is not None
-        else None
-    )
-
-    if accelerator_kwargs is not None:
-        accelerator_kwargs["_accelerator"] = get_accelerator(config)
-
     # Set all the input arguments for the model
     model_kwargs = dict(
         gnn_kwargs=gnn_kwargs,
@@ -296,7 +283,6 @@ def load_architecture(
         pe_encoders_kwargs=pe_encoders_kwargs,
         post_nn_kwargs=post_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
-        accelerator_kwargs=accelerator_kwargs,
     )
 
     return model_class, model_kwargs
@@ -307,19 +293,20 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
+    accelerator_type: str,
     task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`
     Parameters:
         model_class: The torch Module containing the main forward function
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
     Returns:
         predictor: The predictor module
     """
 
-    if get_accelerator(config) == "ipu":
+    if accelerator_type == "ipu":
         from goli.ipu.ipu_wrapper import PredictorModuleIPU
-
         predictor_class = PredictorModuleIPU
     else:
         predictor_class = PredictorModule
@@ -376,13 +363,14 @@ def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
 
 
 def load_trainer(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str, date_time_suffix: str = ""
+    config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str, accelerator_type: str, date_time_suffix: str = ""
 ) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
     Parameters:
         config: The config file, with key `trainer`
         run_name: The name of the current run. To be used for logging.
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
         date_time_suffix: The date and time of the current run. To be used for logging.
     Returns:
         trainer: the trainer module
@@ -391,8 +379,7 @@ def load_trainer(
 
     # Define the IPU plugin if required
     strategy = None
-    accelerator = get_accelerator(config)
-    if accelerator == "ipu":
+    if accelerator_type == "ipu":
         ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
 
         training_opts, inference_opts = load_ipu_options(
@@ -411,17 +398,17 @@ def load_trainer(
     _ = cfg_trainer["trainer"].pop("accelerator", None)
     gpus = cfg_trainer["trainer"].pop("gpus", None)
     ipus = cfg_trainer["trainer"].pop("ipus", None)
-    if (accelerator == "gpu") and (gpus is None):
+    if (accelerator_type == "gpu") and (gpus is None):
         gpus = 1
-    if (accelerator == "ipu") and (ipus is None):
+    if (accelerator_type == "ipu") and (ipus is None):
         ipus = 1
-    if accelerator != "gpu":
+    if accelerator_type != "gpu":
         gpus = 0
-    if accelerator != "ipu":
+    if accelerator_type != "ipu":
         ipus = 0
 
     # Remove the gradient accumulation from IPUs, since it's handled by the device
-    if accelerator == "ipu":
+    if accelerator_type == "ipu":
         cfg_trainer["trainer"].pop("accumulate_grad_batches", None)
 
     # Define the early stopping parameters
@@ -447,7 +434,7 @@ def load_trainer(
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
-        accelerator=accelerator,
+        accelerator=accelerator_type,
         ipus=ipus,
         gpus=gpus,
         **cfg_trainer["trainer"],
@@ -499,10 +486,12 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dic
     config = deepcopy(config)
     config_acc = config.pop("accelerator", {})
 
-    merge_dicts(config, config_acc)
-    acc_type = get_accelerator(config_acc)
+    # Merge the accelerator config with the main config
+    config_override = config_acc.get("override", {})
+    merge_dicts(config, config_override)
+    accelerator_type = get_accelerator(config_acc)
 
-    return config, acc_type
+    return config, accelerator_type
 
 
 
