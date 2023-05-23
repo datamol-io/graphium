@@ -16,29 +16,10 @@ from goli.data.smiles_transform import smiles_to_unique_mol_ids
 from goli.features import GraphDict
 
 
-def prepare_labels(labels: List):
-    """Prepares labels by optionally wrapping
-    into Data object and ensuring that labels
-    are set via ``data.y``.
-    """
-    prepared_labels = []
-    for label in labels:
-        if isinstance(label, (int, float)):
-            prepared_labels.append(Data(y=torch.tensor([label])))
-        elif isinstance(label, (torch.Tensor, np.ndarray)):
-            prepared_labels.append(Data(y=label))
-        elif isinstance(label, Data):
-            assert hasattr(label, "y") and label.y is not None, f"Label 'y' is missing for Data object"
-            prepared_labels.append(label)
-        else:
-            raise ValueError("Unsupported type for label")
-    return prepared_labels
-
-
 class SingleTaskDataset(Dataset):
     def __init__(
         self,
-        labels: List[Data],
+        labels: List[Union[torch.Tensor, np.ndarray]],
         features: Optional[List[Union[Data, "GraphDict"]]] = None,
         smiles: Optional[List[str]] = None,
         indices: Optional[List[str]] = None,
@@ -79,7 +60,7 @@ class SingleTaskDataset(Dataset):
                 len(unique_ids) == numel
             ), f"unique_ids must be the same length as labels, got {len(unique_ids)} and {numel}"
 
-        self.labels = prepare_labels(labels)
+        self.labels = labels
         if smiles is not None:
             manager = Manager()  # Avoid memory leaks with `num_workers > 0` by using the Manager
             self.smiles = manager.list(smiles)
@@ -406,11 +387,7 @@ class MultitaskDataset(Dataset):
         for all_idx, unique_idx in enumerate(inv):
             task = all_lists["tasks"][all_idx]
             label = all_lists["labels"][all_idx]
-            labels[unique_idx][
-                task
-            ] = (
-                label.y
-            )  # TODO: .y here can be removed if we allow single_dataset to have labels as tensor instead of Data object. Because here we create the data object already, no need to do twice.
+            labels[unique_idx][task] = label
 
         # Store the features
         if len(all_lists["features"]) > 0:
@@ -482,7 +459,7 @@ class MultitaskDataset(Dataset):
                 continue
             label = ds[0][
                 "labels"
-            ].y  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
+            ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
             torch_label = torch.as_tensor(label)
             # torch_label = label
             task_labels_size[task] = torch_label.size()

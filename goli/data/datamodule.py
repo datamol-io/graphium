@@ -1021,11 +1021,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 args["extras"],
                 this_unique_ids,
             )
-            labels_ = [
-                Data(y=labels[i]) for i in range(len(labels))
-            ]  # TODO: Personally this is unnecessary. We can do better by making Data object when we merge in Multitask
             task_dataset_args[task]["smiles"] = smiles
-            task_dataset_args[task]["labels"] = labels_
+            task_dataset_args[task]["labels"] = labels
             task_dataset_args[task]["features"] = features
             task_dataset_args[task]["sample_idx"] = sample_idx
             task_dataset_args[task]["extras"] = extras

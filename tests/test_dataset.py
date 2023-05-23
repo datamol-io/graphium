@@ -55,9 +55,9 @@ class Test_Multitask_Dataset(ut.TestCase):
         for idx in range(multitask_microzinc.__len__()):
             smiles = df[["SMILES"]].iloc[idx].values[0]
             # label = df[['SA']].iloc[idx]
-            label_SA = ds_micro_zinc_SA.labels[idx].y
-            label_logp = ds_micro_zinc_logp.labels[idx].y
-            label_score = ds_micro_zinc_score.labels[idx].y
+            label_SA = ds_micro_zinc_SA.labels[idx]
+            label_logp = ds_micro_zinc_logp.labels[idx]
+            label_score = ds_micro_zinc_score.labels[idx]
 
             # Search for the mol id in the multitask dataset
             mol_ids = smiles_to_unique_mol_ids([smiles])
