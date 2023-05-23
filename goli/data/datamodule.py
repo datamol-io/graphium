@@ -2347,16 +2347,6 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
         """Filter data based on molecules which failed featurization. Create single task datasets as well."""
         self.single_task_datasets = {}
         for task, args in task_dataset_args.items():
-            task_level = self.task_dataset_processing_params[task].task_level
-            task_dataset_args[task]["labels"] = [
-                Data(
-                    y=self.get_non_hydrogen_labels(
-                        labels=task_dataset_args[task]["labels"][i], smiles=smiles[i], task_level=task_level
-                    )
-                )
-                for i in range(len(task_dataset_args[task]["labels"]))
-            ]  # TODO: This can further be optimized by removing the hydrogen labels at data level
-
             self.single_task_datasets[task] = Datasets.SingleTaskDataset(
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
