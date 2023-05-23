@@ -174,6 +174,10 @@ def collate_pyg_graph_labels(pyg_labels: List[Data]):
         if isinstance(tensor, (ndarray, spmatrix)):
             tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
 
+        # Ensure explicit task dimension also for single task labels
+        if len(tensor.shape) == 1:
+            tensor = tensor.unsqueeze(1)
+
         pyg_label.y = tensor
 
         pyg_batch.append(pyg_label)

@@ -1616,18 +1616,21 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if label_cols is None:
             label_cols = df.columns.drop(smiles_col)
 
-        smiles = df[smiles_col].values
         label_cols = check_arg_iterator(label_cols, enforce_type=list)
-        if task_level == "graph":
-            labels = extract_labels(df, "graph", label_cols)
-        elif task_level == "node":
-            labels = extract_labels(df, "node", label_cols)
-        elif task_level == "edge":
-            labels = extract_labels(df, "edge", label_cols)
-        elif task_level == "nodepair":
-            labels = extract_labels(df, "nodepair", label_cols)
+        smiles = df[smiles_col].values
+        if len(label_cols) > 0:
+            if task_level == "graph":
+                labels = extract_labels(df, "graph", label_cols)
+            elif task_level == "node":
+                labels = extract_labels(df, "node", label_cols)
+            elif task_level == "edge":
+                labels = extract_labels(df, "edge", label_cols)
+            elif task_level == "nodepair":
+                labels = extract_labels(df, "nodepair", label_cols)
+            else:
+                raise ValueError(f"Unknown task level: {task_level}")
         else:
-            raise ValueError(f"Unknown task level: {task_level}")
+            labels = float("nan") + np.zeros([len(smiles), 0])
 
         indices = None  # What are indices for?
         if idx_col is not None:
