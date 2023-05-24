@@ -82,6 +82,9 @@ class GaussianKernelPosEncoder(BaseEncoder):
                 "edge_"
             ), f"Input keys must be node features, not edge features, for encoder {self.__class__}"
             assert not key.startswith(
+                "nodepair_"
+            ), f"Input keys must be node features, not nodepair features, for encoder {self.__class__}"
+            assert not key.startswith(
                 "graph_"
             ), f"Input keys must be node features, not graph features, for encoder {self.__class__}"
         return input_keys
@@ -99,6 +102,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
         """
         for key in output_keys:
             assert not key.startswith("edge_"), "Edge encodings are not supported for this encoder"
+            assert not key.startswith("graph_"), "Graph encodings are not supported for this encoder"
         return output_keys
 
     def forward(self, batch: Batch, key_prefix: Optional[str] = None) -> Dict[str, Any]:
@@ -121,12 +125,12 @@ class GaussianKernelPosEncoder(BaseEncoder):
             batch, max_num_nodes_per_graph, on_ipu, positions_3d_key=input_keys[0]
         )
 
-        # Return `attn_bias_3d` if the key starts with 'graph_'
-        # Crash if the key starts with 'edge_'
+        # Return `attn_bias_3d` if the key starts with 'nodepair_'
+        # Crash if the key starts with 'edge_' or 'graph_'
         # Return `node_feature_3d` otherwise
         output = {}
         for key in self.output_keys:
-            if isinstance(key, str) and key.startswith("graph_"):
+            if isinstance(key, str) and key.startswith("nodepair_"):
                 output[key] = attn_bias_3d
             elif isinstance(key, str) and key.startswith("edge_"):
                 raise ValueError("Edge encodings are not supported for this encoder")

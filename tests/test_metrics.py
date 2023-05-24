@@ -131,6 +131,8 @@ class test_MetricWrapper(ut.TestCase):
         metrics = ["mae", "mse", mean_squared_error]
         target_nan_masks = [None, 2, "ignore"]
         multitask_handlings = [None, "flatten", "mean-per-label"]
+        squeeze_targets = [True, False]
+        target_to_ints = [True, False]
         other_kwargs = [{}, {"squared": False}]
         thresholds = [
             None,
@@ -138,7 +140,7 @@ class test_MetricWrapper(ut.TestCase):
             {"threshold": 0.3, "operator": op.lt},
             {"threshold": 0.4, "operator": "lower"},
             {"threshold": 0.5, "operator": "lower", "th_on_preds": False, "th_on_target": True},
-            {"threshold": 0.6, "operator": "lower", "target_to_int": True},
+            {"threshold": 0.6, "operator": "lower"},
         ]
 
         for metric in metrics:
@@ -146,39 +148,69 @@ class test_MetricWrapper(ut.TestCase):
                 for kwargs in other_kwargs:
                     for threshold_kwargs in thresholds:
                         for multitask_handling in multitask_handlings:
-                            err_msg = f"{metric} - {target_nan_mask} - {kwargs} - {threshold_kwargs}"
+                            for squeeze_target in squeeze_targets:
+                                for target_to_int in target_to_ints:
+                                    err_msg = f"{metric} - {target_nan_mask} - {kwargs} - {threshold_kwargs}"
 
-                            if (multitask_handling is None) and (target_nan_mask == "ignore"):
-                                # Raise with incompatible options
-                                with self.assertRaises(ValueError):
-                                    MetricWrapper(
-                                        metric=metric,
-                                        threshold_kwargs=threshold_kwargs,
-                                        target_nan_mask=target_nan_mask,
-                                        multitask_handling=multitask_handling,
-                                        **kwargs,
-                                    )
+                                    if (multitask_handling is None) and (target_nan_mask == "ignore"):
+                                        # Raise with incompatible options
+                                        with self.assertRaises(ValueError):
+                                            MetricWrapper(
+                                                metric=metric,
+                                                threshold_kwargs=threshold_kwargs,
+                                                target_nan_mask=target_nan_mask,
+                                                multitask_handling=multitask_handling,
+                                                squeeze_target=squeeze_target,
+                                                target_to_int=target_to_int,
+                                                **kwargs,
+                                            )
 
-                            else:
-                                metric_wrapper = MetricWrapper(
-                                    metric=metric,
-                                    threshold_kwargs=threshold_kwargs,
-                                    target_nan_mask=target_nan_mask,
-                                    multitask_handling=multitask_handling,
-                                    **kwargs,
-                                )
+                                    else:
+                                        metric_wrapper = MetricWrapper(
+                                            metric=metric,
+                                            threshold_kwargs=threshold_kwargs,
+                                            target_nan_mask=target_nan_mask,
+                                            multitask_handling=multitask_handling,
+                                            squeeze_target=squeeze_target,
+                                            target_to_int=target_to_int,
+                                            **kwargs,
+                                        )
 
-                                # Check that the metric can be saved and re-loaded without error
-                                torch.save(metric_wrapper, pickle_file)
-                                metric_wrapper2 = torch.load(pickle_file)
-                                self.assertTrue(metric_wrapper == metric_wrapper2, msg=err_msg)
+                                        # Check that the metric can be saved and re-loaded without error
+                                        torch.save(metric_wrapper, pickle_file)
+                                        metric_wrapper2 = torch.load(pickle_file)
+                                        self.assertTrue(metric_wrapper == metric_wrapper2, msg=err_msg)
 
-                                # Check that the metric only contains primitive types
-                                state = metric_wrapper.__getstate__()
-                                if state["threshold_kwargs"] is not None:
-                                    self.assertIsInstance(state["threshold_kwargs"], dict, msg=err_msg)
-                                if isinstance(metric, str):
-                                    self.assertIsInstance(state["metric"], str, msg=err_msg)
+                                        # Check that the metric only contains primitive types
+                                        state = metric_wrapper.__getstate__()
+                                        if state["threshold_kwargs"] is not None:
+                                            self.assertIsInstance(
+                                                state["threshold_kwargs"], dict, msg=err_msg
+                                            )
+                                        if isinstance(metric, str):
+                                            self.assertIsInstance(state["metric"], str, msg=err_msg)
+
+    def test_classifigression_target_squeezing(self):
+        preds = torch.Tensor([[0.1, 0.1, 0.3, 0.5, 0.0], [0.1, 0.0, 0.7, 0.2, 0.0]])
+        target = torch.Tensor([3, 0])
+        expected_scores = [0.5, 0.75]
+        n_brackets = preds.shape[1]
+        metrics = ["accuracy", "averageprecision"]
+        other_kwargs = [
+            {"task": "multiclass", "num_classes": n_brackets, "top_k": 1},
+            {"task": "multiclass", "num_classes": n_brackets},
+        ]
+
+        for metric, kwargs, expected_score in zip(metrics, other_kwargs, expected_scores):
+            metric_wrapper = MetricWrapper(
+                metric=metric,
+                squeeze_targets=True,
+                target_to_int=True,
+                **kwargs,
+            )
+            score = metric_wrapper(preds, target)
+
+            assert score == expected_score
 
 
 if __name__ == "__main__":

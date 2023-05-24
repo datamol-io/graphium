@@ -117,6 +117,12 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
             This is useful for using packing with the Transformer,
     """
 
+    # Calculate maximum number of nodes per graph in current batch
+    num_nodes_list = []
+    for pyg_graph in pyg_graphs:
+        num_nodes_list.append(pyg_graph["num_nodes"])
+    max_num_nodes_per_graph = max(num_nodes_list)
+
     pyg_batch = []
     for pyg_graph in pyg_graphs:
         for pyg_key in pyg_graph.keys:
@@ -126,7 +132,11 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
             if isinstance(tensor, (ndarray, spmatrix)):
                 tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
 
-            pyg_graph[pyg_key] = tensor
+            # pad nodepair-level positional encodings
+            if pyg_key.startswith("nodepair_"):
+                pyg_graph[pyg_key] = pad_nodepairs(tensor, pyg_graph["num_nodes"], max_num_nodes_per_graph)
+            else:
+                pyg_graph[pyg_key] = tensor
 
         # Convert edge index to int64
         pyg_graph.edge_index = pyg_graph.edge_index.to(torch.int64)
@@ -134,7 +144,12 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
     # Apply the packing at the mini-batch level. This is useful for using packing with the Transformer,
     # especially in the case of the large graphs being much larger than the small graphs.
+    # CAREFUL!!! This changes the order of the graphs in the batch, without changing the order of the labels or other objects.
+    # An error is raised temporarily.
     if batch_size_per_pack is not None:
+        raise NotImplementedError(
+            "Packing is not yet functional, as it changes the order of the graphs in the batch without changing the label order"
+        )
         num_nodes = [g.num_nodes for g in pyg_batch]
         packed_graph_idx = fast_packing(num_nodes, batch_size_per_pack)
 
@@ -176,3 +191,22 @@ def collate_labels(
     labels_dict = default_collate(labels)
 
     return labels_dict
+
+
+def pad_nodepairs(pe: torch.Tensor, num_nodes: int, max_num_nodes_per_graph: int):
+    """
+    This function zero-pads nodepair-level positional encodings to conform with the batching logic.
+
+    Parameters:
+        pe (torch.Tensor, [num_nodes, num_nodes, num_feat]): Nodepair pe
+        num_nodes (int): Number of nodes of processed graph
+        max_num_nodes_per_graph (int): Maximum number of nodes among graphs in current batch
+
+    Returns:
+        padded_pe (torch.Tensor, [num_nodes, max_num_nodes_per_graph, num_feat]): padded nodepair pe tensor
+    """
+    padded_pe = torch.zeros((num_nodes, max_num_nodes_per_graph, pe.size(-1)), dtype=pe.dtype)
+    padded_pe[:, :num_nodes] = pe[:, :num_nodes]
+    # Above, pe[:, :num_nodes] in the rhs is needed to "overwrite" zero-padding from previous epoch
+
+    return padded_pe

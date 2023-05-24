@@ -14,7 +14,7 @@ import datamol as dm
 
 from goli.features import nmp
 from goli.utils.tensor import one_of_k_encoding
-from goli.features.positional_encoding import get_all_positional_encoding
+from goli.features.positional_encoding import get_all_positional_encodings
 
 
 def to_dense_array(array: np.ndarray, dtype: str = None) -> np.ndarray:
@@ -181,6 +181,7 @@ def get_mol_atomic_features_onehot(mol: dm.Mol, property_list: List[str]) -> Dic
 def get_mol_conformer_features(
     mol: dm.Mol,
     property_list: Union[List[str], List[Callable]],
+    mask_nan: Optional[Union[float, str]] = None,
 ) -> Dict[str, np.ndarray]:
     r"""obtain the conformer features of a molecule
     Parameters:
@@ -216,14 +217,17 @@ def get_mol_conformer_features(
                         positions[0].append(pos.x)
                         positions[1].append(pos.y)
                         positions[2].append(pos.z)
-                    positions = np.array(positions, dtype=np.float16).T
+                    positions = np.asarray(positions, dtype=np.float16).T
                 prop_dict[prop] = positions
             else:
-                ValueError(
+                raise ValueError(
                     str(prop) + " is not currently supported as a conformer property in `property_list`"
                 )
         else:
-            ValueError(f"Elements in `property_list` must be str or callable, provided `{type(prop)}`")
+            raise ValueError(f"Elements in `property_list` must be str or callable, provided `{type(prop)}`")
+
+        prop_dict[prop] = _mask_nans_inf(mask_nan, prop_dict[prop], prop)
+
     return prop_dict
 
 
@@ -742,7 +746,7 @@ def mol_to_adj_and_features(
     # Get the node features
     atom_features_onehot = get_mol_atomic_features_onehot(mol, atom_property_list_onehot)
     atom_features_float = get_mol_atomic_features_float(mol, atom_property_list_float, mask_nan=mask_nan)
-    conf_dict = get_mol_conformer_features(mol, conformer_property_list)
+    conf_dict = get_mol_conformer_features(mol, conformer_property_list, mask_nan=mask_nan)
     ndata = list(atom_features_float.values()) + list(atom_features_onehot.values())
     ndata = [d[:, np.newaxis] if d.ndim == 1 else d for d in ndata]
 
@@ -761,7 +765,7 @@ def mol_to_adj_and_features(
         edata = None
 
     # Get all positional encodings
-    pe_dict = get_all_positional_encoding(adj, num_nodes, pos_encoding_as_features)
+    pe_dict = get_all_positional_encodings(adj, num_nodes, pos_encoding_as_features)
 
     # Mask the NaNs
     for pe_key, pe_val in pe_dict.items():
@@ -867,13 +871,15 @@ class GraphDict(dict):
             "dtype": np.float16,
             "mask_nan": "raise",
         }
-        ndata = dic.pop("ndata", {})
-        edata = dic.pop("edata", {})
-        for key in edata.keys():
-            assert key.startswith("edge_"), f"Edge features must start with 'edge_' but got {key}"
+        data = dic.pop("data", {})
+        # ndata = dic.pop("ndata", {})
+        # edata = dic.pop("edata", {})
+        # for key in edata.keys():
+        #     assert key.startswith("edge_"), f"Edge features must start with 'edge_' but got {key}"
         default_dic.update(dic)
-        default_dic.update(ndata)
-        default_dic.update(edata)
+        default_dic.update(data)
+        # default_dic.update(ndata)
+        # default_dic.update(edata)
         super().__init__(default_dic)
 
     def make_pyg_graph(self, **kwargs) -> Data:
@@ -1030,11 +1036,8 @@ def mol_to_graph_dict(
 
             - "adj": A sparse int-array containing the adjacency matrix
 
-            - "ndata": A dictionnary containing different keys and numpy
-              arrays associated to the node features.
-
-            - "edata": A dictionnary containing different keys and numpy
-              arrays associated to the edge features.
+            - "data": A dictionnary containing different keys and numpy
+              arrays associated to the (node, edge & graph) features.
 
             - "dtype": The numpy dtype for the floating data.
     """
@@ -1083,27 +1086,27 @@ def mol_to_graph_dict(
         elif on_error.lower() == "ignore":
             return str(e)
 
-    graph_dict = {"adj": adj, "edata": {}, "ndata": {}, "dtype": dtype}
+    graph_dict = {"adj": adj, "data": {}, "dtype": dtype}
 
     # Assign the node data
     if ndata is not None:
-        graph_dict["ndata"]["feat"] = ndata
+        graph_dict["data"]["feat"] = ndata
 
     # Assign the edge data
     if edata is not None:
         if issparse(edata):
             edata = to_dense_array(edata, dtype=dtype)
         hetero_edata = edata.repeat(2, axis=0)
-        graph_dict["edata"]["edge_feat"] = hetero_edata
+        graph_dict["data"]["edge_feat"] = hetero_edata
 
     # Put the positional encodings as node features
     # TODO: add support for PE on edges
     for key, pe in pe_dict.items():
-        graph_dict["ndata"][key] = pe
+        graph_dict["data"][key] = pe
 
     # put the conformer positions here
     for key, val in conf_dict.items():
-        graph_dict["ndata"][key] = val
+        graph_dict["data"][key] = val
 
     graph_dict = GraphDict(graph_dict)
     return graph_dict
