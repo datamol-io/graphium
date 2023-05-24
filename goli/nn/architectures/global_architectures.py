@@ -1327,6 +1327,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         """
         return self.gnn.in_dim_edges
 
+
 class GraphOutputNN(nn.Module, MupMixin):
     def __init__(
         self,
