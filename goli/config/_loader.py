@@ -470,7 +470,7 @@ def save_params_to_wandb(
         wandb_run.save("*.pickle")
 
 
-def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, Any]:
+def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[Dict[str, Any], str]:
     config = deepcopy(config)
     config_acc = config.get("accelerator", {})
 
