@@ -9,7 +9,6 @@ from copy import deepcopy
 import time
 from tqdm import tqdm
 import gc
-import pdb
 from rdkit import Chem
 
 from loguru import logger
