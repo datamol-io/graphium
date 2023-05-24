@@ -254,32 +254,54 @@ class Test_Multitask_DataModule(ut.TestCase):
         assert output.shape[0] == num_graphs
         assert output.shape[1] == len(label_cols)
 
-    def test_extract_node_level(self):
+    def test_extract_graph_level_multitask_missing_cols(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
-        label_cols = [f"node_label_{suffix}" for suffix in ["list", "np"]]
-        output = goli.data.datamodule.extract_labels(df, "node", label_cols)
+        num_graphs = len(df)
+        label_cols = ["graph_label", "graph_label"]
 
-        assert isinstance(output, list)
-        assert len(output[0].shape) == 2
-        assert output[0].shape[1] == len(label_cols)
+        drop_index = [2, 5, 21, 237, 192, 23, 127, 11]
+        for replace in [1, 2]:
+            for missing_col in label_cols[:replace]:
+                df[missing_col].iloc[drop_index] = None
 
-    def test_extract_edge_level(self):
+            output = goli.data.datamodule.extract_labels(df, "graph", label_cols)
+
+            assert isinstance(output, np.ndarray)
+            assert len(output.shape) == 2
+            assert output.shape[0] == num_graphs
+            assert output.shape[1] == len(label_cols)
+
+    def test_non_graph_level_extract_labels(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
-        label_cols = [f"edge_label_{suffix}" for suffix in ["list", "np"]]
-        output = goli.data.datamodule.extract_labels(df, "edge", label_cols)
 
-        assert isinstance(output, list)
-        assert len(output[0].shape) == 2
-        assert output[0].shape[1] == len(label_cols)
+        for level in ["node", "edge", "nodepair"]:
+            label_cols = [f"{level}_label_{suffix}" for suffix in ["list", "np"]]
+            output = goli.data.datamodule.extract_labels(df, level, label_cols)
 
-    def test_extract_nodepair_level(self):
+            assert isinstance(output, list)
+            assert len(output[0].shape) == 2
+            assert output[0].shape[1] == len(label_cols)
+
+    def test_non_graph_level_extract_labels_missing_cols(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
-        label_cols = [f"nodepair_label_{suffix}" for suffix in ["list", "list"]]
-        output = goli.data.datamodule.extract_labels(df, "nodepair", label_cols)
 
-        assert isinstance(output, list)
-        assert len(output[0].shape) == 2
-        assert output[0].shape[1] == len(label_cols)
+        for level in ["node", "edge", "nodepair"]:
+            label_cols = [f"{level}_label_{suffix}" for suffix in ["list", "np"]]
+            drop_index = [2, 5, 21, 237, 192, 23, 127, 11]
+            for replace in [1, 2]:
+                for missing_col in label_cols[:replace]:
+                    df[missing_col].iloc[drop_index] = None
+
+                output = goli.data.datamodule.extract_labels(df, level, label_cols)
+
+                for idx in drop_index:
+                    assert len(output[idx].shape) == 2
+                    assert output[idx].shape[1] == len(label_cols)
+
+                    # Check that number of labels is adjusted correctly
+                    if replace == 1:
+                        non_missing_col = label_cols[1]
+                        assert output[idx].shape[0] == len(df[non_missing_col][idx])
 
 
 if __name__ == "__main__":

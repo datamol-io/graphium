@@ -2,6 +2,7 @@ import pandas as pd
 import ast
 import numpy as np
 from typing import List
+import itertools
 
 
 def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
@@ -31,7 +32,8 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
 
     def merge_columns(data: pd.Series):
         data = data.to_list()
-        data = np.stack(data, 1)
+        padded_data = itertools.zip_longest(*data, fillvalue=np.nan)
+        data = np.stack(padded_data, 1).T
         return data
 
     unpacked_df: pd.DataFrame = df[label_cols].apply(unpack_column)
