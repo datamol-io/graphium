@@ -992,6 +992,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.ipu_options_list_to_file" class="md-nav__link">
+    ipu_options_list_to_file()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.ipu.ipu_utils.is_running_on_ipu" class="md-nav__link">
     is_running_on_ipu()
   </a>
@@ -2000,6 +2007,13 @@
           <li class="md-nav__item">
   <a href="#goli.ipu.ipu_utils.import_poptorch" class="md-nav__link">
     import_poptorch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_utils.ipu_options_list_to_file" class="md-nav__link">
+    ipu_options_list_to_file()
   </a>
   
 </li>
@@ -4571,6 +4585,66 @@ If <code>False</code>, return <code>None</code></p></td>
 
 
 
+<h4 id="goli.ipu.ipu_utils.ipu_options_list_to_file" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">ipu_options_list_to_file</span><span class="p">(</span><span class="n">ipu_opts</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_utils.ipu_options_list_to_file" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create a temporary file from a list of ipu configs, such that it can be read by <code>poptorch.Options.loadFromFile</code></p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>ipu_opts</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td><p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>tmp_file</code></td>          <td>
+                <code>tempfile.<span title="tempfile._TemporaryFileWrapper">_TemporaryFileWrapper</span></code>
+          </td>
+          <td><p>The temporary file of ipu configs</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h4 id="goli.ipu.ipu_utils.is_running_on_ipu" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">is_running_on_ipu</span><span class="p">()</span></code>
 
@@ -4591,7 +4665,7 @@ Needs to be used in the <code>forward</code> or <code>backward</code> pass.</p>
 
 
 <h4 id="goli.ipu.ipu_utils.load_ipu_options" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_file</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient_accumulation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ipu_inference_overrides</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">load_ipu_options</span><span class="p">(</span><span class="n">ipu_opts</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gradient_accumulation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ipu_inference_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_utils.load_ipu_options" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4612,12 +4686,11 @@ Needs to be used in the <code>forward</code> or <code>backward</code> pass.</p>
     </thead>
     <tbody>
         <tr>
-          <td><code>ipu_file</code></td>
+          <td><code>ipu_cfg</code></td>
           <td>
-                <code>str</code>
           </td>
-          <td><p>file path containing the IPU configurations. Example of options are:</p>
-<p>load the options from a config file. See <code>Options.loadFromFile</code></p>
+          <td><p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p>
+<p>write a temporary config gile, and read it. See <code>Options.loadFromFile</code></p>
 <h5 id="goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here">? see the tutorial for IPU options here<a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" title="Permanent link">&para;</a></h5>
 <h5 id="goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading"><a href="https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading">https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading</a><a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" title="Permanent link">&para;</a></h5>
 <h5 id="goli.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here">? see the full documentation for ipu options here<a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--see-the-full-documentation-for-ipu-options-here" title="Permanent link">&para;</a></h5>
@@ -4662,12 +4735,12 @@ We call this total number of samples processed for one optimiser step the global
           </td>
         </tr>
         <tr>
-          <td><code>ipu_inference_overrides</code></td>
+          <td><code>ipu_inference_opts</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[str]</code>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>optional file path containing IPU configuration overrides for inference.
-If this file is provided, options in this file override those in <code>ipu_file</code> for inference.</p></td>
+          <td><p>optional IPU configuration overrides for inference.
+If this is provided, options in this file override those in <code>ipu_file</code> for inference.</p></td>
           <td>
                 <code>None</code>
           </td>

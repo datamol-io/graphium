@@ -1175,6 +1175,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#goli.nn.pyg_layers.utils.triplets" class="md-nav__link">
+    triplets()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2355,6 +2362,13 @@
         
       </ul>
     </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.nn.pyg_layers.utils.triplets" class="md-nav__link">
+    triplets()
+  </a>
   
 </li>
         
@@ -6662,6 +6676,115 @@ positions_3d_key:
 
 </div>
 
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.nn.pyg_layers.utils.triplets" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">triplets</span><span class="p">(</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">)</span></code>
+
+<a href="#goli.nn.pyg_layers.utils.triplets" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Generates triplets from the given edge indices.
+    A triplet is defined as a path of length two,
+    such that if node A is connected to node B,
+    and node B is connected to node C, then there is a triplet (A, B, C).</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>edge_index</code></td>
+          <td>
+                <code>LongTensor</code>
+          </td>
+          <td><p>The edge indices.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>The number of nodes.</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>col</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>The sink node indices of edges from the edge indices.</p></td>
+        </tr>
+        <tr>
+<td><code>row</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>The source node indices of edges from the edge indices.</p></td>
+        </tr>
+        <tr>
+<td><code>idx_i</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>The sink node indices of the triplets.</p></td>
+        </tr>
+        <tr>
+<td><code>idx_j</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>The middle node indices of the triplets.</p></td>
+        </tr>
+        <tr>
+<td><code>idx_k</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>The source node indices of the triplets.</p></td>
+        </tr>
+        <tr>
+<td><code>idx_kj</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>The indices of edges those from the source node to the middle node.</p></td>
+        </tr>
+        <tr>
+<td><code>idx_ji</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td><p>The indices of edges those from the middle node to the sink node.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 

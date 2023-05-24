@@ -991,6 +991,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.EvalOptions.check_metrics_validity" class="md-nav__link">
+    check_metrics_validity()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.trainer.predictor_options.EvalOptions.parse_loss_fun" class="md-nav__link">
     parse_loss_fun()
   </a>
@@ -1952,6 +1959,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#goli.trainer.predictor_options.EvalOptions.check_metrics_validity" class="md-nav__link">
+    check_metrics_validity()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#goli.trainer.predictor_options.EvalOptions.parse_loss_fun" class="md-nav__link">
     parse_loss_fun()
   </a>
@@ -2674,7 +2688,7 @@ but it can explode the RAM when using a large dataset.</p>
 
 
 <h5 id="goli.trainer.metrics.MetricWrapper.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">squeeze_targets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">target_to_int</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
 
 <a href="#goli.trainer.metrics.MetricWrapper.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2708,7 +2722,14 @@ multitask_handling:
 
     - 'mean-per-label': Loop all the labels columns, process them as a single task,
         and average the results over each task
-      *This option might slowdown the computation if there are too many labels*
+      *This option might slow down the computation if there are too many labels*
+
+squeeze_targets:
+    If true, targets will be squeezed prior to computing the metric.
+    Required in classifigression task.
+
+target_to_int:
+    If true, targets will be converted to integers prior to computing the metric.
 
 kwargs:
     Other arguments to call with the metric
@@ -4327,10 +4348,12 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
         <tr>
           <td><code>loss_fun</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Dict">Dict</span>, <span title="typing.Callable">Callable</span>]</code>
           </td>
           <td><p>Loss function used during training.
-Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
+Acceptable strings are goli.utils.spaces.LOSS_DICT.keys().
+If a dict, must contain a 'name' key with one of the acceptable loss function strings
+as a value. The rest of the dict will be used as the arguments passed to the loss object.
 Otherwise, a callable object must be provided, with a method <code>loss_fun._get_name()</code>.</p></td>
           <td>
               <em>required</em>
@@ -4390,6 +4413,24 @@ performance, depending on the number of readouts.</p></td>
 
 
 
+<h5 id="goli.trainer.predictor_options.EvalOptions.check_metrics_validity" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_metrics_validity</span><span class="p">()</span></code>
+
+<a href="#goli.trainer.predictor_options.EvalOptions.check_metrics_validity" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check that the metrics for the progress_par and training_set are valid</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h5 id="goli.trainer.predictor_options.EvalOptions.parse_loss_fun" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">parse_loss_fun</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">)</span></code>
   
@@ -4402,7 +4443,7 @@ performance, depending on the number of readouts.</p></td>
 
   <div class="doc doc-contents ">
   
-      <p>Parse the loss function from a string</p>
+      <p>Parse the loss function from a string or a dict</p>
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4418,11 +4459,12 @@ performance, depending on the number of readouts.</p></td>
         <tr>
           <td><code>loss_fun</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Dict">Dict</span>, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>A callable corresponding to the loss function or a string
-specifying the loss function from <code>LOSS_DICT</code>. Accepted strings are:
-"mse", "bce", "l1", "mae", "cosine".</p></td>
+          <td><p>A callable corresponding to the loss function, a string specifying the loss
+function from <code>LOSS_DICT</code>, or a dict containing a key 'name' specifying the
+loss function, and the rest of the dict used as the arguments for the loss.
+Accepted strings are: goli.utils.spaces.LOSS_DICT.keys().</p></td>
           <td>
               <em>required</em>
           </td>

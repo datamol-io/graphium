@@ -2329,7 +2329,7 @@ print(bg)
 </li>
 <li><p><code>gnn_kwargs</code>: The parameters used by a feed-forward <strong>graph</strong> neural network on the features after it has passed through the pre-processing neural network. See class <code>FeedForwardDGL</code> for details on the required parameters.</p>
 </li>
-<li><p><code>post_nn_kwargs</code>: The parameters used by a feed-forward neural network on the features after the GNN layers. See class <code>FeedForwardNN</code> for details on the required parameters. Will be ignored if set to <code>None</code>.</p>
+<li><p><code>graph_output_nn_kwargs</code>: The parameters used by a feed-forward neural network on the features after the GNN layers. See class <code>FeedForwardNN</code> for details on the required parameters. Will be ignored if set to <code>None</code>.</p>
 </li>
 </ul>
 
@@ -2369,7 +2369,7 @@ print(bg)
         <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
         <span class="s2">&quot;dropout&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>    <span class="p">}</span>
 
-<span class="n">post_nn_kwargs</span> <span class="o">=</span> <span class="p">{</span>
+<span class="n">graph_output_nn_kwargs</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s2">&quot;in_dim&quot;</span><span class="p">:</span> <span class="n">temp_dim_2</span><span class="p">,</span>
         <span class="s2">&quot;out_dim&quot;</span><span class="p">:</span> <span class="n">out_dim</span><span class="p">,</span>
         <span class="s2">&quot;hidden_dims&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
@@ -2401,7 +2401,7 @@ print(bg)
 <span class="n">gnn_net</span> <span class="o">=</span> <span class="n">FullDGLNetwork</span><span class="p">(</span>
     <span class="n">pre_nn_kwargs</span><span class="o">=</span><span class="n">pre_nn_kwargs</span><span class="p">,</span> 
     <span class="n">gnn_kwargs</span><span class="o">=</span><span class="n">gnn_kwargs</span><span class="p">,</span> 
-    <span class="n">post_nn_kwargs</span><span class="o">=</span><span class="n">post_nn_kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">graph_output_nn_kwargs</span><span class="o">=</span><span class="n">graph_output_nn_kwargs</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 </pre></div>
 <div id="cell-3" class="clipboard-copy-txt">temp_dim_1 = 23
 temp_dim_2 = 17
@@ -2415,7 +2415,7 @@ pre_nn_kwargs = {
         "batch_norm": True,
         "dropout": 0.2,    }
 
-post_nn_kwargs = {
+graph_output_nn_kwargs = {
         "in_dim": temp_dim_2,
         "out_dim": out_dim,
         "hidden_dims": [6, 6],
@@ -2447,7 +2447,7 @@ gnn_kwargs = {
 gnn_net = FullDGLNetwork(
     pre_nn_kwargs=pre_nn_kwargs, 
     gnn_kwargs=gnn_kwargs, 
-    post_nn_kwargs=post_nn_kwargs).to(float)</div>
+    graph_output_nn_kwargs=graph_output_nn_kwargs).to(float)</div>
         
         </div>
     </div>

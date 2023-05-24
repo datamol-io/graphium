@@ -691,8 +691,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#goli.features.positional_encoding.get_all_positional_encoding" class="md-nav__link">
-    get_all_positional_encoding()
+  <a href="#goli.features.positional_encoding.get_all_positional_encodings" class="md-nav__link">
+    get_all_positional_encodings()
   </a>
   
 </li>
@@ -771,8 +771,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#goli.features.spectral.compute_laplacian_positional_eigvecs" class="md-nav__link">
-    compute_laplacian_positional_eigvecs()
+  <a href="#goli.features.spectral.compute_laplacian_pe" class="md-nav__link">
+    compute_laplacian_pe()
   </a>
   
 </li>
@@ -838,8 +838,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.features.rw.get_rw_landing_probs" class="md-nav__link">
-    get_rw_landing_probs()
+  <a href="#goli.features.rw.get_Pks" class="md-nav__link">
+    get_Pks()
   </a>
   
 </li>
@@ -1534,8 +1534,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#goli.features.positional_encoding.get_all_positional_encoding" class="md-nav__link">
-    get_all_positional_encoding()
+  <a href="#goli.features.positional_encoding.get_all_positional_encodings" class="md-nav__link">
+    get_all_positional_encodings()
   </a>
   
 </li>
@@ -1614,8 +1614,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#goli.features.spectral.compute_laplacian_positional_eigvecs" class="md-nav__link">
-    compute_laplacian_positional_eigvecs()
+  <a href="#goli.features.spectral.compute_laplacian_pe" class="md-nav__link">
+    compute_laplacian_pe()
   </a>
   
 </li>
@@ -1681,8 +1681,8 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#goli.features.rw.get_rw_landing_probs" class="md-nav__link">
-    get_rw_landing_probs()
+  <a href="#goli.features.rw.get_Pks" class="md-nav__link">
+    get_Pks()
   </a>
   
 </li>
@@ -2218,7 +2218,7 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p></td>
 
 
 <h4 id="goli.features.featurizer.get_mol_conformer_features" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_mol_conformer_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">get_mol_conformer_features</span><span class="p">(</span><span class="n">mol</span><span class="p">,</span> <span class="n">property_list</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.features.featurizer.get_mol_conformer_features" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -2971,12 +2971,8 @@ to featurize the molecule, it returns a string with the error.</p>
 <p>"adj": A sparse int-array containing the adjacency matrix</p>
 </li>
 <li>
-<p>"ndata": A dictionnary containing different keys and numpy
-  arrays associated to the node features.</p>
-</li>
-<li>
-<p>"edata": A dictionnary containing different keys and numpy
-  arrays associated to the edge features.</p>
+<p>"data": A dictionnary containing different keys and numpy
+  arrays associated to the (node, edge &amp; graph) features.</p>
 </li>
 <li>
 <p>"dtype": The numpy dtype for the floating data.</p>
@@ -3439,10 +3435,10 @@ There are also additional entries for the positional encodings.</p></td>
 
 
 
-<h4 id="goli.features.positional_encoding.get_all_positional_encoding" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_all_positional_encoding</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_encoding_as_features</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<h4 id="goli.features.positional_encoding.get_all_positional_encodings" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_all_positional_encodings</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
-<a href="#goli.features.positional_encoding.get_all_positional_encoding" class="headerlink" title="Permanent link">&para;</a></h4>
+<a href="#goli.features.positional_encoding.get_all_positional_encodings" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
@@ -3463,7 +3459,7 @@ There are also additional entries for the positional encodings.</p></td>
         <tr>
           <td><code>adj</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>, <span title="scipy.sparse.spmatrix">spmatrix</span>]</code>
+                <code>[num_nodes, num_nodes]</code>
           </td>
           <td><p>Adjacency matrix of the graph</p></td>
           <td>
@@ -3483,12 +3479,11 @@ There are also additional entries for the positional encodings.</p></td>
         <tr>
           <td><code>pos_encoding_as_features</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>]</code>
           </td>
           <td><p>keyword arguments for function <code>graph_positional_encoder</code>
 to generate positional encoding for node features.</p></td>
           <td>
-                <code>None</code>
+              <em>required</em>
           </td>
         </tr>
     </tbody>
@@ -3505,7 +3500,7 @@ to generate positional encoding for node features.</p></td>
     <tbody>
         <tr>
 <td><code>pe_dict</code></td>          <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="collections.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>], <span title="collections.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]]</code>
           </td>
           <td><p>Dictionary of positional and structural encodings</p></td>
         </tr>
@@ -3521,7 +3516,7 @@ to generate positional encoding for node features.</p></td>
 
 
 <h4 id="goli.features.positional_encoding.graph_positional_encoder" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">graph_positional_encoder</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_arg</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">graph_positional_encoder</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cache</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.features.positional_encoding.graph_positional_encoder" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3544,7 +3539,7 @@ to generate positional encoding for node features.</p></td>
         <tr>
           <td><code>adj</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>, <span title="scipy.sparse.spmatrix">spmatrix</span>]</code>
+                <code>[num_nodes, num_nodes]</code>
           </td>
           <td><p>Adjacency matrix of the graph</p></td>
           <td>
@@ -3552,18 +3547,63 @@ to generate positional encoding for node features.</p></td>
           </td>
         </tr>
         <tr>
-          <td><code>pos_type</code></td>
+          <td><code>num_nodes</code></td>
           <td>
+                <code>int</code>
           </td>
-          <td><p>The type of positional encoding to use. Supported types are:</p>
-<ul>
-<li>laplacian_eigvec</li>
-<li>laplacian_eigvec_eigval</li>
-<li>rwse</li>
-<li>gaussian_kernel</li>
-</ul></td>
+          <td><p>Number of nodes in the graph</p></td>
           <td>
               <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_type</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>The type of positional encoding to use. If None, it must be provided by <code>pos_kwargs["pos_type"]</code>. Supported types are:
+- laplacian_eigvec              \
+- laplacian_eigval               \  -&gt; cache connected comps. &amp; eigendecomp.
+- rwse
+- electrostatic                 \
+- commute                        \  -&gt; cache pinvL
+- graphormer</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_level</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td><p>Positional level to output. If None, it must be provided by <code>pos_kwargs["pos_level"]</code>.
+- node
+- edge
+- nodepair
+- graph</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>Extra keyword arguments for the positional encoding. Can include the keys pos_type and pos_level.</p></td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>cache</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td><p>Dictionary of cached objects</p></td>
+          <td>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -3579,10 +3619,16 @@ to generate positional encoding for node features.</p></td>
     </thead>
     <tbody>
         <tr>
-<td><code>pe_dict</code></td>          <td>
+<td><code>pe</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>Dictionary of positional and structural encodings</p></td>
+          <td><p>Positional or structural encoding</p></td>
+        </tr>
+        <tr>
+<td><code>cache</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Updated dictionary of cached objects</p></td>
         </tr>
     </tbody>
   </table>
@@ -3853,10 +3899,10 @@ Will be usefull to understand what property is the network learning.</p></td>
 
 
 
-<h4 id="goli.features.spectral.compute_laplacian_positional_eigvecs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute_laplacian_positional_eigvecs</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_pos</span><span class="p">,</span> <span class="n">disconnected_comp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
+<h4 id="goli.features.spectral.compute_laplacian_pe" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute_laplacian_pe</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">num_pos</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">disconnected_comp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">)</span></code>
 
-<a href="#goli.features.spectral.compute_laplacian_positional_eigvecs" class="headerlink" title="Permanent link">&para;</a></h4>
+<a href="#goli.features.spectral.compute_laplacian_pe" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
@@ -3877,7 +3923,7 @@ Will be usefull to understand what property is the network learning.</p></td>
         <tr>
           <td><code>adj</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>, <span title="scipy.sparse.spmatrix">spmatrix</span>]</code>
+                <code>[num_nodes, num_nodes]</code>
           </td>
           <td><p>Adjacency matrix of the graph</p></td>
           <td>
@@ -3890,6 +3936,16 @@ Will be usefull to understand what property is the network learning.</p></td>
                 <code>int</code>
           </td>
           <td><p>Number of Laplacian eigenvectors to compute</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>cache</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Dictionary of cached objects</p></td>
           <td>
               <em>required</em>
           </td>
@@ -3927,16 +3983,26 @@ Will be usefull to understand what property is the network learning.</p></td>
     </thead>
     <tbody>
         <tr>
-<td><code>eigvals_tile</code></td>          <td>
+<td></td>          <td>
                 <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
           </td>
-          <td><p>Eigenvalues of the Laplacian</p></td>
+          <td><p>Two possible outputs:
+eigvals [num_nodes, num_pos]: Eigenvalues of the Laplacian repeated for each node.
+    This repetition is necessary in case of disconnected components, where
+    the eigenvalues of the Laplacian are not the same for each node.
+eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian</p></td>
         </tr>
         <tr>
-<td><code>eigvecs</code></td>          <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+<td><code>base_level</code></td>          <td>
+                <code>str</code>
           </td>
-          <td><p>Eigenvectors of the Laplacian</p></td>
+          <td><p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here node</p></td>
+        </tr>
+        <tr>
+<td><code>cache</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Updated dictionary of cached objects</p></td>
         </tr>
     </tbody>
   </table>
@@ -4023,7 +4089,7 @@ normalization: str or None, Default='none'
 
 
 <h4 id="goli.features.rw.compute_rwse" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">compute_rwse</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">ksteps</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">compute_rwse</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">ksteps</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">cache</span><span class="p">,</span> <span class="n">pos_type</span><span class="o">=</span><span class="s1">&#39;rw_return_probs&#39;</span> <span class="ow">or</span> <span class="s1">&#39;rw_transition_probs&#39;</span><span class="p">,</span> <span class="n">space_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
 
 <a href="#goli.features.rw.compute_rwse" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -4046,7 +4112,7 @@ normalization: str or None, Default='none'
         <tr>
           <td><code>adj</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>, <span title="scipy.sparse.spmatrix">spmatrix</span>]</code>
+                <code>[num_nodes, num_nodes]</code>
           </td>
           <td><p>Adjacency matrix</p></td>
           <td>
@@ -4056,9 +4122,9 @@ normalization: str or None, Default='none'
         <tr>
           <td><code>ksteps</code></td>
           <td>
-                <code>int</code>
+                <code><span title="typing.Union">Union</span>[int, <span title="typing.List">List</span>[int]]</code>
           </td>
-          <td><p>Number of steps for the random walk</p></td>
+          <td><p>List of numbers of steps for the random walks. If int, a list is generated from 1 to ksteps.</p></td>
           <td>
               <em>required</em>
           </td>
@@ -4073,6 +4139,40 @@ normalization: str or None, Default='none'
               <em>required</em>
           </td>
         </tr>
+        <tr>
+          <td><code>cache</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Dictionary of cached objects</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>pos_type</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td><p>Desired output</p></td>
+          <td>
+                <code>&#39;rw_return_probs&#39; or &#39;rw_transition_probs&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>space_dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Estimated dimensionality of the space. Used to
+correct the random-walk diagonal by a factor <code>k^(space_dim/2)</code>.
+In euclidean space, this correction means that the height of
+the gaussian distribution stays almost constant across the number of
+steps, if <code>space_dim</code> is the dimension of the euclidean space.</p></td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
     </tbody>
   </table>
 
@@ -4080,16 +4180,30 @@ normalization: str or None, Default='none'
   <table>
     <thead>
       <tr>
-        <th>Type</th>
+<th>Name</th>        <th>Type</th>
         <th>Description</th>
       </tr>
     </thead>
     <tbody>
         <tr>
-          <td>
+<td></td>          <td>
                 <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
           </td>
-          <td><p>2D array with shape (num_nodes, len(ksteps)) with Random-Walk landing probs</p></td>
+          <td><p>Two possible outputs:
+rw_return_probs [num_nodes, len(ksteps)]: Random-Walk k-step landing probabilities
+rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step transition probabilities</p></td>
+        </tr>
+        <tr>
+<td><code>base_level</code></td>          <td>
+                <code>str</code>
+          </td>
+          <td><p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here either node or nodepair</p></td>
+        </tr>
+        <tr>
+<td><code>cache</code></td>          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td><p>Updated dictionary of cached objects</p></td>
         </tr>
     </tbody>
   </table>
@@ -4102,10 +4216,10 @@ normalization: str or None, Default='none'
 
 
 
-<h4 id="goli.features.rw.get_rw_landing_probs" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">get_rw_landing_probs</span><span class="p">(</span><span class="n">ksteps</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">space_dim</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
+<h4 id="goli.features.rw.get_Pks" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_Pks</span><span class="p">(</span><span class="n">ksteps</span><span class="p">,</span> <span class="n">edge_index</span><span class="p">,</span> <span class="n">edge_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_Pk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">start_k</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
-<a href="#goli.features.rw.get_rw_landing_probs" class="headerlink" title="Permanent link">&para;</a></h4>
+<a href="#goli.features.rw.get_Pks" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
@@ -4126,9 +4240,9 @@ normalization: str or None, Default='none'
         <tr>
           <td><code>ksteps</code></td>
           <td>
-                <code>int</code>
+                <code><span title="typing.List">List</span>[int]</code>
           </td>
-          <td><p>List of k-steps for which to compute the RW landings</p></td>
+          <td><p>List of numbers of k-steps for which to compute the RW landings</p></td>
           <td>
               <em>required</em>
           </td>
@@ -4163,20 +4277,6 @@ normalization: str or None, Default='none'
                 <code>None</code>
           </td>
         </tr>
-        <tr>
-          <td><code>space_dim</code></td>
-          <td>
-                <code>float</code>
-          </td>
-          <td><p>Estimated dimensionality of the space. Used to
-correct the random-walk diagonal by a factor <code>k^(space_dim/2)</code>.
-In euclidean space, this correction means that the height of
-the gaussian distribution stays almost constant across the number of
-steps, if <code>space_dim</code> is the dimension of the euclidean space.</p></td>
-          <td>
-                <code>0.0</code>
-          </td>
-        </tr>
     </tbody>
   </table>
 
@@ -4191,6 +4291,7 @@ steps, if <code>space_dim</code> is the dimension of the euclidean space.</p></t
     <tbody>
         <tr>
           <td>
+                <code><span title="typing.Dict">Dict</span>[int, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]</code>
           </td>
           <td><p>2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs</p></td>
         </tr>

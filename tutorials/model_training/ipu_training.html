@@ -2962,7 +2962,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 <p>The parameters allow to chose the feature size, the depth, the skip connections, the pooling and the virtual node. It also support different GNN layers such as <code>pyg:gcn</code>, <code>pyg:gin</code>, <code>pyg:gine</code>,  <code>pyg:gated-gcn</code>, <code>pyg:pna-msgpass</code>, and <code>pyg:gps</code>.</p>
 <p>For more details, see the following classes:</p>
 <ul>
-<li><code>goli.nn.global_architecture.FullGraphNetwork</code>: Main class for the architecture</li>
+<li><code>goli.nn.global_architecture.FullGraphMultiTaskNetwork</code>: Main class for the architecture</li>
 <li><code>goli.nn.global_architecture.FeedForwardNN</code>: Main class for the inputs and outputs MLP</li>
 <li><code>goli.nn.pyg_architecture.FeedForwardPyg</code>: Main class for the GNN layers</li>
 </ul>
@@ -3236,9 +3236,9 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;architecture&quot;</span><span class="p">],</span> <span class="s2">&quot;post_nn&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;architecture&quot;</span><span class="p">],</span> <span class="s2">&quot;graph_output_nn&quot;</span><span class="p">)</span>
 </pre></div>
-<div id="cell-11" class="clipboard-copy-txt">print_config_with_key(yaml_config["architecture"], "post_nn")</div>
+<div id="cell-11" class="clipboard-copy-txt">print_config_with_key(yaml_config["architecture"], "graph_output_nn")</div>
         
         </div>
     </div>
@@ -3258,7 +3258,7 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>post_nn:
+<pre>graph_output_nn:
   out_dim: 32
   hidden_dims: 32
   depth: 1
@@ -3999,11 +3999,11 @@ trainer = load_trainer(cfg, "tutorial-run")</div>
 31 | model.gnn.out_linear                | FCLayer                   | 3.1 K 
 32 | model.gnn.out_linear.linear         | Linear                    | 3.1 K 
 33 | model.gnn.out_linear.dropout        | Dropout                   | 0     
-34 | model.post_nn                       | FeedForwardNN             | 1.1 K 
-35 | model.post_nn.activation            | ReLU                      | 0     
-36 | model.post_nn.residual_layer        | ResidualConnectionNone    | 0     
-37 | model.post_nn.layers                | ModuleList                | 1.1 K 
-38 | model.post_nn.layers.0              | FCLayer                   | 1.1 K 
+34 | model.graph_output_nn                       | FeedForwardNN             | 1.1 K 
+35 | model.graph_output_nn.activation            | ReLU                      | 0     
+36 | model.graph_output_nn.residual_layer        | ResidualConnectionNone    | 0     
+37 | model.graph_output_nn.layers                | ModuleList                | 1.1 K 
+38 | model.graph_output_nn.layers.0              | FCLayer                   | 1.1 K 
 39 | model.task_heads                    | TaskHeads                 | 3.3 K 
 40 | model.task_heads.task_heads         | ModuleDict                | 3.3 K 
 41 | model.task_heads.task_heads.homo    | TaskHead                  | 1.1 K 

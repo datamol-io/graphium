@@ -951,6 +951,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#goli.data.collate.pad_nodepairs" class="md-nav__link">
+    pad_nodepairs()
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1869,6 +1876,13 @@
           <li class="md-nav__item">
   <a href="#goli.data.collate.goli_collate_fn" class="md-nav__link">
     goli_collate_fn()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.data.collate.pad_nodepairs" class="md-nav__link">
+    pad_nodepairs()
   </a>
   
 </li>
@@ -4619,6 +4633,86 @@ with an additional mask to indicate which nodes are from the same graph under th
                 <code><span title="typing.Union">Union</span>[<span title="typing.Any">Any</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
           <td><p>The batched elements. See <code>torch.utils.data.dataloader.default_collate</code>.</p></td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="goli.data.collate.pad_nodepairs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">pad_nodepairs</span><span class="p">(</span><span class="n">pe</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="n">max_num_nodes_per_graph</span><span class="p">)</span></code>
+
+<a href="#goli.data.collate.pad_nodepairs" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This function zero-pads nodepair-level positional encodings to conform with the batching logic.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>pe</code></td>
+          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span>, [num_nodes, num_nodes, num_feat]</code>
+          </td>
+          <td><p>Nodepair pe</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_nodes</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Number of nodes of processed graph</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>max_num_nodes_per_graph</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td><p>Maximum number of nodes among graphs in current batch</p></td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>padded_pe</code></td>          <td>
+                <code>torch.<span title="torch.Tensor">Tensor</span>, [num_nodes, max_num_nodes_per_graph, num_feat]</code>
+          </td>
+          <td><p>padded nodepair pe tensor</p></td>
         </tr>
     </tbody>
   </table>
