@@ -1150,10 +1150,10 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         # Apply the positional encoders
         g = self.encoder_manager(g)
 
-        g["feat"] = g["feat"].to(self.dtype)
+        g["feat"] = g["feat"]
         e = None
         if "edge_feat" in g.keys:
-            g["edge_feat"] = g["edge_feat"].to(self.dtype)
+            g["edge_feat"] = g["edge_feat"]
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
@@ -1326,17 +1326,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         Returns the input edge dimension of the network
         """
         return self.gnn.in_dim_edges
-
-    @property
-    def dtype(self) -> torch.dtype:
-        """
-        Get the dtype of the current network, based on the torch default when initializing
-        networks.
-        """
-        # TODO: Make this configurable + read out from the FeedForwardGraph?
-        # Then call .to(dtype=...) on FullGraphMultiTaskNetwork
-        return torch.get_default_dtype()
-
 
 class GraphOutputNN(nn.Module, MupMixin):
     def __init__(
