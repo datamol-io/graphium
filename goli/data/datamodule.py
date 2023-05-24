@@ -1285,7 +1285,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
         process_params = [(index, datum, processed_data_path) for index, datum in enumerate(dataset)]
 
-        for param in tqdm(process_params, desc="Saving featurized data"):
+        # Check if "about" is in the Dataset object
+        about = ""
+        if hasattr(dataset, "about"):
+            about = dataset.about
+        for param in tqdm(process_params, desc=f"Saving featurized data {about}"):
             self.process_func(param)
         return
 
