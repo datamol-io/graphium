@@ -3,9 +3,30 @@ constants:
   name: &name test_ipu #qm9_full
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  accelerator:
-    type: ipu  #cpu or ipu or gpu
 
+accelerator:
+  type: ipu  # cpu or ipu or gpu
+  config_override:
+    datamodule:
+      args:
+        ipu_dataloader_training_opts:
+          mode: async
+          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 60
+        ipu_dataloader_inference_opts:
+          mode: async
+          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 120
+        # Data handling-related
+        batch_size_training: 6
+        batch_size_inference: 6
+    trainer:
+      trainer:
+        precision: 16
+        accumulate_grad_batches: 4
+
+  ipu_config:
+    - deviceIterations(2)
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -18,7 +39,7 @@ datamodule:
         label_cols: ["homo_lumo_gap", "lumo"]
         split_val: 0.2
         split_test: 0.2
-        split_seed: *seed
+        seed: *seed
         splits_path: null                 # This may not always be provided
         sample_size: null                 # This may not always be provided
         idx_col: null                     # This may not always be provided
@@ -31,7 +52,7 @@ datamodule:
         label_cols: ["alpha"]
         split_val: 0.2
         split_test: 0.2
-        split_seed: *seed
+        seed: *seed
         splits_path: null                 # This may not always be provided
         sample_size: null                 # This may not always be provided
         idx_col: null                     # This may not always be provided
@@ -84,22 +105,8 @@ datamodule:
           nodepair_graphormer:
             pos_type: graphormer
             pos_level: nodepair
-  
-    # Data handling-related
-    batch_size_training: 6
-    batch_size_inference: 6
-    # cache_data_path: null
 
     num_workers: -1
-
-    ipu_dataloader_training_opts:
-      max_num_nodes_per_graph: 30
-      max_num_edges_per_graph: 60
-
-    ipu_dataloader_inference_opts:
-      max_num_nodes_per_graph: 30
-      max_num_edges_per_graph: 60
-
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -289,6 +296,5 @@ trainer:
     save_top_k: 1
     every_n_epochs: 1
   trainer:
-    precision: 32
     max_epochs: 2
     min_epochs: 1

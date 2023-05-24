@@ -1150,10 +1150,10 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         # Apply the positional encoders
         g = self.encoder_manager(g)
 
-        g["feat"] = g["feat"].to(self.dtype)
+        g["feat"] = g["feat"]
         e = None
         if "edge_feat" in g.keys:
-            g["edge_feat"] = g["edge_feat"].to(self.dtype)
+            g["edge_feat"] = g["edge_feat"]
 
         # Run the pre-processing network on node features
         if self.pre_nn is not None:
@@ -1207,7 +1207,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
             kwargs["pre_nn_kwargs"] = self.pre_nn.make_mup_base_kwargs(
                 divide_factor=divide_factor, factor_in_dim=False
             )
-            pe_enc_outdim = 0 if self.encoder_manager is None else self.pe_encoders_kwargs["out_dim"]
+            pe_enc_outdim = 0 if self.encoder_manager is None else self.pe_encoders_kwargs.get("out_dim", 0)
             pre_nn_indim = kwargs["pre_nn_kwargs"]["in_dim"] - pe_enc_outdim
             kwargs["pre_nn_kwargs"]["in_dim"] = round(pre_nn_indim + (pe_enc_outdim / divide_factor))
 
@@ -1217,7 +1217,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
                 divide_factor=divide_factor, factor_in_dim=False
             )
             pe_enc_edge_outdim = (
-                0 if self.encoder_manager is None else self.pe_encoders_kwargs["edge_out_dim"]
+                0 if self.encoder_manager is None else self.pe_encoders_kwargs.get("edge_out_dim", 0)
             )
             pre_nn_edge_indim = kwargs["pre_nn_edges_kwargs"]["in_dim"] - pe_enc_edge_outdim
             kwargs["pre_nn_edges_kwargs"]["in_dim"] = round(
@@ -1326,16 +1326,6 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
         Returns the input edge dimension of the network
         """
         return self.gnn.in_dim_edges
-
-    @property
-    def dtype(self) -> torch.dtype:
-        """
-        Get the dtype of the current network, based on the torch default when initializing
-        networks.
-        """
-        # TODO: Make this configurable + read out from the FeedForwardGraph?
-        # Then call .to(dtype=...) on FullGraphMultiTaskNetwork
-        return torch.get_default_dtype()
 
 
 class GraphOutputNN(nn.Module, MupMixin):

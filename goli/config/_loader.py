@@ -233,22 +233,28 @@ def load_architecture(
         pe_encoders_kwargs.setdefault(
             "in_dims", in_dims
         )  # set the input dimensions of all pe with info from the data-module
-    pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs["out_dim"]
-    edge_pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs["edge_out_dim"]
+    pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs.get("out_dim", None)
+    edge_pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs.get("edge_out_dim", None)
 
     # Set the default `node` input dimension for the pre-processing neural net and graph neural net
+    in_dim = in_dims["feat"]
+    if pe_out_dim is not None:
+        in_dim += pe_out_dim
     if pre_nn_kwargs is not None:
         pre_nn_kwargs = dict(pre_nn_kwargs)
-        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
+        pre_nn_kwargs.setdefault("in_dim", in_dim)
     else:
-        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
+        gnn_kwargs.setdefault("in_dim", in_dim)
 
     # Set the default `edge` input dimension for the pre-processing neural net and graph neural net
+    edge_in_dim = in_dims["edge_feat"]
+    if edge_pe_out_dim is not None:
+        edge_in_dim += edge_pe_out_dim
     if pre_nn_edges_kwargs is not None:
         pre_nn_edges_kwargs = dict(pre_nn_edges_kwargs)
-        pre_nn_edges_kwargs.setdefault("in_dim", in_dims["edge_feat"] + edge_pe_out_dim)
+        pre_nn_edges_kwargs.setdefault("in_dim", edge_in_dim)
     else:
-        gnn_kwargs.setdefault("in_dim", in_dims["edge_feat"] + edge_pe_out_dim)
+        gnn_kwargs.setdefault("in_dim", edge_in_dim)
 
     # Set the parameters for the full network
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
@@ -464,7 +470,7 @@ def save_params_to_wandb(
         wandb_run.save("*.pickle")
 
 
-def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[str, Any]:
+def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[Dict[str, Any], str]:
     config = deepcopy(config)
     config_acc = config.get("accelerator", {})
 

@@ -81,6 +81,7 @@ datamodule:
         smiles_col: "smiles"
         label_cols: ["alpha_gap"]
         # sample_size: 30000 # use sample_size for test
+        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         split_val: 0.1
         split_test: 0.1
 
@@ -103,15 +104,22 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          la_pos: &pos_enc
-            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+          lap_eigvec:
+            pos_level: node
+            pos_type: laplacian_eigvec
+            num_pos: 8
+            normalization: "none" # nomrlization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          lap_eigval:
+            pos_level: node
+            pos_type: laplacian_eigval
             num_pos: 8
             normalization: "none" # nomrlization already applied on the eigen vectors
             disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rw_pos: # use same name as pe_encoder
-            pos_type: rwse
+            pos_level: node
+            pos_type: rw_return_probs
             ksteps: 16
-      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
     # cache_data_path: .
     num_workers: 0 # -1 to use all
@@ -152,7 +160,7 @@ architecture:
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        input_keys: ["eigvecs", "eigvals"]
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
         output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
@@ -163,7 +171,7 @@ architecture:
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        input_keys: ["rwse"]
+        input_keys: ["rw_return_probs"]
         output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
