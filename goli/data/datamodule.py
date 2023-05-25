@@ -1265,7 +1265,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # file does not exist, we recalculate the label statistics.
         if self.task_norms and train and not os.path.isfile(filename):
             for task in dataset.labels_size.keys():
-                labels = np.stack(np.array([datum["labels"][task] for datum in dataset if task in datum["labels"]]), axis=0)
+                labels = np.stack(
+                    np.array([datum["labels"][task] for datum in dataset if task in datum["labels"]]), axis=0
+                )
                 self.task_norms[task].calculate_statistics(labels)
             torch.save(self.task_norms, filename, pickle_protocol=4)
         # if any of the above three condition does not satisfy, we load from file.
