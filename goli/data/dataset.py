@@ -244,14 +244,10 @@ class MultitaskDataset(Dataset):
             "_num_edges_list",
         ]
         path = os.path.join(self.data_path, "multitask_metadata.pkl")
-        print(path)
         attrs = torch.load(path)
 
-        print(attrs.keys())
         
         for attr, value in attrs.items():
-            print(f"{attr = }")
-            print(f"{type(value) = }")
             setattr(self, attr, value)
 
     def __len__(self):
