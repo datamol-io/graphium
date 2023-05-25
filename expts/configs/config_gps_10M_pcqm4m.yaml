@@ -3,35 +3,59 @@ constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  accelerator:
-    type: cpu  # cpu or ipu or gpu
 
 accelerator:
-  type: gpu
-  datamodule:
-    ipu_dataloader_training_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-      max_num_edges_per_graph: 60
+  type: ipu  # cpu or ipu or gpu
+  config_override:
+    datamodule:
+      args:
+        ipu_dataloader_training_opts:
+          mode: async
+          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 60
+        ipu_dataloader_inference_opts:
+          mode: async
+          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 120
+        # Data handling-related
+        batch_size_training: 64
+        batch_size_inference: 16
+    predictor:
+      optim_kwargs:
+        loss_scaling: 1024
+    trainer:
+      trainer:
+        precision: 16
+        accumulate_grad_batches: 4
 
-    ipu_dataloader_inference_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
-      max_num_edges_per_graph: 120
-      # test-dev max nodes: 50, max_edges: 116
-      # test-challenge max nodes: 51, max_edges: 106
-
-  predictor:
-    optim_kwargs:
-      loss_scaling: 1024
-
-  ipu.config:
-    - deviceIterations(1) # IPU would require large batches to be ready for the model.
-    - replicationFactor(8)
+  ipu_config:
+    - deviceIterations(20) # IPU would require large batches to be ready for the model.
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 256)
+    - _Popart.set("defaultBufferingDepth", 128)
+    - Precision.enableStochasticRounding(True)
+
+  ipu_inference_config: # Optional. If not provided, same as `ipu_config`
+    - deviceIterations(80) # IPU would require large batches to be ready for the model.
+    - replicationFactor(16)
+    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+    # - enableExecutableCaching("pop_compiler_cache")
+    - TensorLocations.numIOTiles(128)
+    - _Popart.set("defaultBufferingDepth", 128)
+    - Precision.enableStochasticRounding(True)
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     datamodule:
+#       batch_size_training: 256
+#       batch_size_inference: 64
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -47,7 +71,7 @@ datamodule:
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 30000 # use sample_size for test
-        # splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
+        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         split_val: 0.1
         split_test: 0.1
 
@@ -71,36 +95,29 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          la_pos: &pos_enc
-            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+          lap_eigvec:
+            pos_level: node
+            pos_type: laplacian_eigvec
+            num_pos: 8
+            normalization: "none" # nomrlization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          lap_eigval:
+            pos_level: node
+            pos_type: laplacian_eigval
             num_pos: 8
             normalization: "none" # nomrlization already applied on the eigen vectors
             disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rw_pos: # use same name as pe_encoder
-            pos_type: rwse
+            pos_level: node
+            pos_type: rw_return_probs
             ksteps: 16
-      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
-    # Data handling-related
-    batch_size_training: 64
-    batch_size_inference: 16
     # cache_data_path: .
     num_workers: 0 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
-    # ipu_dataloader_training_opts:
-    #   mode: async
-    #   max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-    #   max_num_edges_per_graph: 60
-
-    # ipu_dataloader_inference_opts:
-    #   mode: async
-    #   max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
-    #   max_num_edges_per_graph: 120
-    #   # test-dev max nodes: 50, max_edges: 116
-    #   # test-challenge max nodes: 51, max_edges: 106
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -128,15 +145,16 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: &pe_out_dim 32
+    out_dim: 32
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        input_keys: ["eigvecs", "eigvals"]
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
         output_keys: ["feat"]
         hidden_dim: 64
+        out_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
@@ -144,21 +162,15 @@ architecture:
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        input_keys: ["rwse"]
+        input_keys: ["rw_return_probs"]
         output_keys: ["feat"]
         hidden_dim: 64
+        out_dim: 32
         num_layers: 2
         dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
-      gaussian_pos:
-        encoder_type: "gaussian_kernel"
-        input_keys: ["positions_3d"]
-        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
-        num_heads: &num_heads 2
-        num_layers: 2
-        embed_dim: *pe_out_dim
-        use_input_keys_prefix: False
+
 
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
@@ -258,8 +270,6 @@ trainer:
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 32
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 2
     check_val_every_n_epoch: 20

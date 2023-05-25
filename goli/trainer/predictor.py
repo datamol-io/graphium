@@ -3,6 +3,7 @@ from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import numpy as np
 from copy import deepcopy
 import time
+from loguru import logger
 
 import torch
 from torch import nn, Tensor
@@ -143,6 +144,7 @@ class PredictorModule(pl.LightningModule):
         # throughput estimation
         self.mean_val_time_tracker = MovingAverageTracker()
         self.mean_val_tput_tracker = MovingAverageTracker()
+        self.epoch_start_time = None
 
     def forward(
         self, inputs: Dict
@@ -484,6 +486,17 @@ class PredictorModule(pl.LightningModule):
         self.task_epoch_summary.set_results(task_metrics=metrics_logs)
 
         return metrics_logs  # Consider returning concatenated dict for tensorboard
+
+    def on_train_epoch_start(self) -> None:
+        self.epoch_start_time = time.time()
+
+    def on_train_epoch_end(self) -> None:
+        if self.epoch_start_time is None:
+            logger.warning("epoch timer not initialized")
+        else:
+            epoch_time = time.time() - self.epoch_start_time
+            self.epoch_start_time = None
+            self.log("epoch_time", torch.tensor(epoch_time))
 
     def training_epoch_end(self, outputs: Dict):
         """

@@ -225,27 +225,3 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
-
-trainer:
-  logger:
-    save_dir: logs/PCQMv2
-    name: *name
-    project: PCQMv2_mpnn
-  #early_stopping:
-  #  monitor: *monitor
-  #  min_delta: 0
-  #  patience: 10
-  #  mode: &mode min
-  model_checkpoint:
-    dirpath: models_checkpoints/PCMQv2/
-    filename: *name
-    #monitor: *monitor
-    #mode: *mode
-    save_top_k: 1
-    every_n_epochs: 100
-  trainer:
-    precision: *precision
-    max_epochs: *max_epochs
-    min_epochs: 1
-    accumulate_grad_batches: 4
-    check_val_every_n_epoch: 20

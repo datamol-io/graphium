@@ -3,8 +3,50 @@ constants:
   name: &name pcqm4mv2_mpnn_4layer
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
-  accelerator:
-    type: cpu  # cpu or ipu or gpu
+
+accelerator:
+  type: ipu  # cpu or ipu or gpu
+  config_override:
+    datamodule:
+      args:
+        ipu_dataloader_training_opts:
+          mode: async
+          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 60
+        ipu_dataloader_inference_opts:
+          mode: async
+          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 120
+        # Data handling-related
+        batch_size_training: 64
+        batch_size_inference: 16
+    predictor:
+      optim_kwargs:
+        loss_scaling: 1024
+    trainer:
+      trainer:
+        precision: 16
+        accumulate_grad_batches: 4
+
+  ipu_config:
+    - deviceIterations(20) # IPU would require large batches to be ready for the model.
+    - replicationFactor(16)
+    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+    # - enableExecutableCaching("pop_compiler_cache")
+    - TensorLocations.numIOTiles(128)
+    - _Popart.set("defaultBufferingDepth", 128)
+    - Precision.enableStochasticRounding(True)
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     datamodule:
+#       batch_size_training: 256
+#       batch_size_inference: 64
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -19,11 +61,13 @@ datamodule:
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 80000 # use sample_size for test
-        splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        sample_size: 8000 # use sample_size for test
+        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        # split_names: ["train", "valid", "test-dev"]
         # goli/data/PCQM4Mv2/split_dict.pt
         # goli/data/PCQM4Mv2/pcqm4m_split.csv
-        split_names: ["train", "valid", "test-dev"]
+        split_val: 0.1
+        split_test: 0.1
         seed: *seed
         label_normalization:
           method: "normal"
@@ -35,7 +79,7 @@ datamodule:
     featurization_n_jobs: 20
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "goli/data/PCQM4Mv2/"
+    processed_graph_data_path: "../datacache/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -49,36 +93,29 @@ datamodule:
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          la_pos: &pos_enc
-            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+          lap_eigvec:
+            pos_level: node
+            pos_type: laplacian_eigvec
+            num_pos: 8
+            normalization: "none" # nomrlization already applied on the eigen vectors
+            disconnected_comp: True # if eigen values/vector for disconnected graph are included
+          lap_eigval:
+            pos_level: node
+            pos_type: laplacian_eigval
             num_pos: 8
             normalization: "none" # nomrlization already applied on the eigen vectors
             disconnected_comp: True # if eigen values/vector for disconnected graph are included
           rw_pos: # use same name as pe_encoder
-            pos_type: rwse
+            pos_level: node
+            pos_type: rw_return_probs
             ksteps: 16
-      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
 
-    # Data handling-related
-    batch_size_training: 64
-    batch_size_inference: 16
     # cache_data_path: .
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
 
-    ipu_dataloader_training_opts:
-      mode: async
-      max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-      max_num_edges_per_graph: 60
-
-    ipu_dataloader_inference_opts:
-      mode: async
-      max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
-      max_num_edges_per_graph: 120
-      # test-dev max nodes: 50, max_edges: 116
-      # test-challenge max nodes: 51, max_edges: 106
 
 architecture:
   model_type: FullGraphMultiTaskNetwork
@@ -112,25 +149,26 @@ architecture:
     encoders: #la_pos |  rw_pos
       la_pos:  # Set as null to avoid a pre-nn network
         encoder_type: "laplacian_pe"
-        input_keys: ["eigvecs", "eigvals"]
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
         output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
-        dropout: 0.18
+        dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
       rw_pos:
         encoder_type: "mlp"
-        input_keys: ["rwse"]
+        input_keys: ["rw_return_probs"]
         output_keys: ["feat"]
         hidden_dim: 64
         out_dim: 32
         num_layers: 2
-        dropout: 0.18
+        dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+
 
 
   gnn:  # Set as null to avoid a post-nn network
@@ -194,7 +232,6 @@ predictor:
   optim_kwargs:
     lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
-    loss_scaling: 1
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100
@@ -234,15 +271,13 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/PCMQv2/
+    dirpath: models_checkpoints/PCMQ4Mv2/
     filename: *name
     #monitor: *monitor
     #mode: *mode
     save_top_k: 1
     every_n_epochs: 100
   trainer:
-    precision: 16 # changes to 32 when running on cpu
     max_epochs: *max_epochs
     min_epochs: 1
-    accumulate_grad_batches: 1
     check_val_every_n_epoch: 20

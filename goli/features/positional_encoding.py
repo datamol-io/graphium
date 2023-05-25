@@ -40,16 +40,16 @@ def get_all_positional_encodings(
 
     # Get the positional encoding for the features
     if len(pos_kwargs) > 0:
-        for pos_name in pos_kwargs["pos_types"]:
-            pos_kwargs = deepcopy(pos_kwargs["pos_types"][pos_name])
-            pos_type = pos_kwargs.pop("pos_type")
-            pos_level = pos_kwargs.pop("pos_level")
+        for pos_name, this_pos_kwargs in pos_kwargs["pos_types"].items():
+            this_pos_kwargs = deepcopy(this_pos_kwargs)
+            pos_type = this_pos_kwargs.pop("pos_type", None)
+            pos_level = this_pos_kwargs.pop("pos_level", None)
             this_pe, cache = graph_positional_encoder(
                 deepcopy(adj),
                 num_nodes,
                 pos_type=pos_type,
                 pos_level=pos_level,
-                pos_kwargs=pos_kwargs,
+                pos_kwargs=this_pos_kwargs,
                 cache=cache,
             )
             if pos_level == "node":

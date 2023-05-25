@@ -202,9 +202,11 @@ class MultitaskDataset(Dataset):
                 self.smiles = None
             self.labels_size = self.set_label_size_dict(datasets)
             self.dataset_length = len(self.labels)
+            self._num_nodes_list = None
+            self._num_edges_list = None
             if self.features is not None:
-                self.num_nodes_list = get_num_nodes_per_graph(self.features)
-                self.num_edges_list = get_num_edges_per_graph(self.features)
+                self._num_nodes_list = get_num_nodes_per_graph(self.features)
+                self._num_edges_list = get_num_edges_per_graph(self.features)
             if self.load_from_file:
                 self.features = None
                 self.labels = None
@@ -252,6 +254,30 @@ class MultitaskDataset(Dataset):
         return self.dataset_length
 
     @property
+    def num_nodes_list(self):
+        """
+        The number of nodes per graph
+        """
+        if self._num_nodes_list is None:
+            if len(self) == 0:
+                self._num_nodes_list = []
+            else:
+                self._num_nodes_list = get_num_nodes_per_graph(self.features)
+        return self._num_nodes_list
+
+    @property
+    def num_edges_list(self):
+        """
+        The number of edges per graph
+        """
+        if self._num_edges_list is None:
+            if len(self) == 0:
+                self._num_edges_list = []
+            else:
+                self._num_edges_list = get_num_edges_per_graph(self.features)
+        return self._num_edges_list
+
+    @property
     def num_graphs_total(self):
         r"""
         number of graphs (molecules) in the dataset
@@ -261,51 +287,71 @@ class MultitaskDataset(Dataset):
     @property
     def num_nodes_total(self):
         """Total number of nodes for all graphs"""
+        if len(self) == 0:
+            return
         return sum(self.num_nodes_list)
 
     @property
     def max_num_nodes_per_graph(self):
         """Maximum number of nodes per graph"""
+        if len(self) == 0:
+            return
         return max(self.num_nodes_list)
 
     @property
     def std_num_nodes_per_graph(self):
         """Standard deviation of number of nodes per graph"""
+        if len(self) == 0:
+            return
         return np.std(self.num_nodes_list)
 
     @property
     def min_num_nodes_per_graph(self):
         """Minimum number of nodes per graph"""
+        if len(self) == 0:
+            return
         return min(self.num_nodes_list)
 
     @property
     def mean_num_nodes_per_graph(self):
         """Average number of nodes per graph"""
+        if len(self) == 0:
+            return
         return self.num_nodes_total / self.num_graphs_total
 
     @property
     def num_edges_total(self):
         """Total number of edges for all graphs"""
+        if len(self) == 0:
+            return
         return sum(self.num_edges_list)
 
     @property
     def max_num_edges_per_graph(self):
         """Maximum number of edges per graph"""
+        if len(self) == 0:
+            return
         return max(self.num_edges_list)
 
     @property
     def min_num_edges_per_graph(self):
         """Minimum number of edges per graph"""
+        if len(self) == 0:
+            return
         return min(self.num_edges_list)
 
     @property
     def std_num_edges_per_graph(self):
         """Standard deviation of number of nodes per graph"""
+        if len(self) == 0:
+            return
         return np.std(self.num_edges_list)
 
     @property
     def mean_num_edges_per_graph(self):
         """Average number of edges per graph"""
+        if len(self) == 0:
+            return
         return self.num_edges_total / self.num_graphs_total
 
     @lru_cache(maxsize=16)
