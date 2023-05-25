@@ -385,9 +385,14 @@ class MultitaskDataset(Dataset):
         # Store the labels.
         labels = [Data() for _ in range(len(mol_ids))]
         for all_idx, unique_idx in enumerate(inv):
-            task = all_lists["tasks"][all_idx]
+            task: str = all_lists["tasks"][all_idx]
             label = all_lists["labels"][all_idx]
             labels[unique_idx][task] = label
+
+            if all_idx < len(all_lists["features"]):
+                features = all_lists["features"][all_idx]
+                labels[unique_idx]["x"] = torch.empty((features.num_nodes, 0))
+                labels[unique_idx]["edge_index"] = torch.empty((2, features.num_edges))
 
         # Store the features
         if len(all_lists["features"]) > 0:
@@ -457,11 +462,20 @@ class MultitaskDataset(Dataset):
         for task, ds in datasets.items():
             if len(ds) == 0:
                 continue
-            label = ds[0][
-                "labels"
-            ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
-            torch_label = torch.as_tensor(label)
-            # torch_label = label
+
+            valid_label = None
+            for i in range(len(ds)):
+                if ds[i] is not None:
+                    valid_label = ds[i]["labels"]
+                    break
+
+            if valid_label is None:
+                raise ValueError(f"Dataset for task {task} has no valid labels.")
+
+            # Assume for a fixed task, the label dimension is the same across data points
+            torch_label = torch.as_tensor(valid_label)
+
+            # First dimension is graph-specific
             task_labels_size[task] = torch_label.size()
         return task_labels_size
 

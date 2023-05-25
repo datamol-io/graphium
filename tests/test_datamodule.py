@@ -61,7 +61,7 @@ class Test_DataModule(ut.TestCase):
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
         assert len(batch["smiles"]) == 16
-        assert len(batch["labels"]["task_1"]) == 16
+        assert len(batch["labels"]["graph_task_1"]) == 16
         assert len(batch["mol_ids"]) == 16
 
     def test_none_filtering(self):
@@ -216,7 +216,7 @@ class Test_DataModule(ut.TestCase):
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
         assert len(batch["smiles"]) == 16
-        assert len(batch["labels"]["task_1"]) == 16
+        assert len(batch["labels"]["graph_task_1"]) == 16
         assert len(batch["mol_ids"]) == 16
 
     def test_datamodule_with_none_molecules(self):
@@ -309,7 +309,7 @@ class Test_DataModule(ut.TestCase):
         train_labels = [{task: val[0] for task, val in d["labels"].items()} for d in datamodule.train_ds]
         train_labels_df = pd.DataFrame(train_labels)
         train_labels_df = train_labels_df.rename(
-            columns={"task_1": "SA", "task_2": "logp", "task_3": "score"}
+            columns={"graph_task_1": "graph_SA", "graph_task_2": "graph_logp", "graph_task_3": "graph_score"}
         )
         train_labels_df["smiles"] = [s[0] for s in datamodule.train_ds.smiles]
         train_labels_df = train_labels_df.set_index("smiles")
@@ -317,7 +317,7 @@ class Test_DataModule(ut.TestCase):
 
         # Check that the labels are correct
         df2 = df.reset_index()[~bad_smiles].set_index("idx_smiles").sort_index()
-        labels = train_labels_df[["SA", "logp", "score"]].values
+        labels = train_labels_df[["graph_SA", "graph_logp", "graph_score"]].values
         nans = np.isnan(labels)
         true_nans = df2[["SMILES1", "SMILES2", "SMILES3"]].values == "XXX"
         true_labels = df2[["SA", "logp", "score"]].values

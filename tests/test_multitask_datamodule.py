@@ -115,9 +115,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].shape == (16, 1)
-            assert batch["labels"]["logp"].shape == (16, 1)
-            assert batch["labels"]["score"].shape == (16, 1)
+            assert batch["labels"]["graph_SA"].shape == (16, 1)
+            assert batch["labels"]["graph_logp"].shape == (16, 1)
+            assert batch["labels"]["graph_score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config(self):
         config = goli.load_config(name="zinc_default_multitask_pyg")
@@ -170,9 +170,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].shape == (16, 1)
-            assert batch["labels"]["logp"].shape == (16, 1)
-            assert batch["labels"]["score"].shape == (16, 1)
+            assert batch["labels"]["graph_SA"].shape == (16, 1)
+            assert batch["labels"]["graph_logp"].shape == (16, 1)
+            assert batch["labels"]["graph_score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config_csv(self):
         config = goli.load_config(name="zinc_default_multitask_pyg")
@@ -197,9 +197,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].shape == (16, 1)
-            assert batch["labels"]["logp"].shape == (16, 1)
-            assert batch["labels"]["score"].shape == (16, 1)
+            assert batch["labels"]["graph_SA"].shape == (16, 1)
+            assert batch["labels"]["graph_logp"].shape == (16, 1)
+            assert batch["labels"]["graph_score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config_parquet(self):
         config = goli.load_config(name="fake_multilevel_multitask_pyg")
@@ -225,9 +225,12 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert set(batch.keys()) == {"labels", "features"}
 
             # assert batch["labels"].shape == (16, 1)            # Single-task case
-            assert batch["labels"]["SA"].shape == (16, 1)
-            assert batch["labels"]["logp"].shape == (batch["features"].feat.size(0), 2)  # test node level
-            assert batch["labels"]["score"].shape == (
+            assert batch["labels"]["graph_SA"].shape == (16, 1)
+            assert batch["labels"]["node_logp"].shape == (
+                batch["features"].feat.size(0),
+                2,
+            )  # test node level
+            assert batch["labels"]["edge_score"].shape == (
                 batch["features"].edge_feat.size(0),
                 2,
             )  # test edge level

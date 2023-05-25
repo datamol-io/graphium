@@ -827,7 +827,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # TODO: Have the input argument to the Data Module be of type DatasetParams
         self.task_dataset_processing_params = {
-            task: DatasetProcessingParams(**ds_args) for task, ds_args in task_specific_args.items()
+            self._get_task_key(ds_args["task_level"], task): DatasetProcessingParams(**ds_args)
+            for task, ds_args in task_specific_args.items()
         }
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
@@ -867,6 +868,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
         self.data_hash = self.get_data_hash()
+
+    def _get_task_key(self, task_level: str, task: str):
+        task_prefix = f"{task_level}_"
+        if not task.startswith(task_prefix):
+            task = task_prefix + task
+        return task
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -1245,7 +1252,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # this is training dataset split and the hash specific task_norms.pkl
         # file does not exist, we recalculate the label statistics.
         if self.task_norms and train and not os.path.isfile(filename):
-            for task in dataset[0]["labels"].keys:
+            for task in set(dataset[0]["labels"].keys) - set(["x", "edge_index"]):
                 labels = np.stack(np.array([datum["labels"][task] for datum in dataset]), axis=0)
                 self.task_norms[task].calculate_statistics(labels)
             torch.save(self.task_norms, filename, pickle_protocol=4)
