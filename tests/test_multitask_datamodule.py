@@ -235,6 +235,40 @@ class Test_Multitask_DataModule(ut.TestCase):
                 2,
             )  # test edge level
 
+    def test_multitask_with_missing_fromsmiles_from_config_parquet(self):
+        config = goli.load_config(name="fake_and_missing_multilevel_multitask_pyg")
+
+        dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
+        dm = goli.data.MultitaskFromSmilesDataModule(**dm_args)
+
+        dm.prepare_data()
+        dm.setup()
+
+        # self.assertEqual(len(dm), 100)                      # Should this have a fixed value for when it's initialized? MTL dataset only gets created after.
+        self.assertEqual(len(dm.train_ds), 602)  # type: ignore
+        self.assertEqual(len(dm.val_ds), 201)  # type: ignore
+        self.assertEqual(len(dm.test_ds), 201)  # type: ignore
+        # assert dm.num_node_feats == 50
+        # assert dm.num_edge_feats == 6
+
+        for dl in [dm.train_dataloader(), dm.val_dataloader(), dm.test_dataloader()]:
+            dl = dm.train_dataloader()
+            it = iter(dl)
+            batch = next(it)
+
+            assert set(batch.keys()) == {"labels", "features"}
+
+            # assert batch["labels"].shape == (16, 1)            # Single-task case
+            assert batch["labels"]["graph_SA"].shape == (16, 1)
+            assert batch["labels"]["node_logp"].shape == (
+                batch["features"].feat.size(0),
+                2,
+            )  # test node level
+            assert batch["labels"]["edge_score"].shape == (
+                batch["features"].edge_feat.size(0),
+                2,
+            )  # test edge level
+
     def test_extract_graph_level_singletask(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
         num_graphs = len(df)

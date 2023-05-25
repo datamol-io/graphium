@@ -13,6 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       betagap:
         df: null
+        task_level: "graph"
         df_path: goli/data/b3lyp/b3lyp_mini.parquet #goli/data/b3lyp/b3lyp_mini.parquet
         # wget https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet
         # or set path as https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet directly
@@ -23,6 +24,7 @@ datamodule:
         split_test: 0.1
       alphagap:
         df: null
+        task_level: "graph"
         df_path: goli/data/b3lyp/b3lyp_mini.parquet #goli/data/b3lyp/b3lyp_mini.parquet
         # wget https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet
         # or set path as https://storage.googleapis.com/goli-public/datasets/b3lyp/b3lyp_mini.parquet directly

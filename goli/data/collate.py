@@ -170,6 +170,7 @@ def pad_to_expected_label_size(labels: torch.Tensor, label_size: List[int]):
 
     pad_sizes = [(0, expected - actual) for expected, actual in zip(label_size, labels.shape)]
     pad_sizes = [item for before_after in pad_sizes for item in before_after]
+    pad_sizes.reverse()
 
     return torch.nn.functional.pad(labels, pad_sizes, value=torch.nan)
 
@@ -206,7 +207,7 @@ def get_expected_label_size(label_data: Data, task: str, label_size: List[int]):
     elif task.startswith("node_"):
         num_labels = label_data.num_nodes
     elif task.startswith("edge_"):
-        num_labels = label_data.num_edges
+        num_labels = label_data.edge_index.size(1)
     elif task.startswith("nodepair_"):
         raise NotImplementedError()
     return [num_labels] + label_size
