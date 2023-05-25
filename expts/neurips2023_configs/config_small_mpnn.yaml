@@ -4,49 +4,49 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
-# accelerator:
-#   type: ipu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       args:
-#         ipu_dataloader_training_opts:
-#           mode: async
-#           max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
-#           max_num_edges_per_graph: 60
-#         ipu_dataloader_inference_opts:
-#           mode: async
-#           max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
-#           max_num_edges_per_graph: 120
-#         # Data handling-related
-#         batch_size_training: 64
-#         batch_size_inference: 16
-#     predictor:
-#       optim_kwargs:
-#         loss_scaling: 1024
-#     trainer:
-#       trainer:
-#         precision: 16
-#         accumulate_grad_batches: 4
-
-#   ipu_config:
-#     - deviceIterations(20) # IPU would require large batches to be ready for the model.
-#     - replicationFactor(16)
-#     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-#     # - enableExecutableCaching("pop_compiler_cache")
-#     - TensorLocations.numIOTiles(128)
-#     - _Popart.set("defaultBufferingDepth", 128)
-#     - Precision.enableStochasticRounding(True)
-
 accelerator:
-  type: cpu  # cpu or ipu or gpu
+  type: ipu  # cpu or ipu or gpu
   config_override:
     datamodule:
-      batch_size_training: 10
-      batch_size_inference: 10
+      args:
+        ipu_dataloader_training_opts:
+          mode: async
+          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 60
+        ipu_dataloader_inference_opts:
+          mode: async
+          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 120
+        # Data handling-related
+        batch_size_training: 50
+        batch_size_inference: 50
+    predictor:
+      optim_kwargs:
+        loss_scaling: 1024
     trainer:
       trainer:
-        precision: 32
-        accumulate_grad_batches: 1
+        precision: 16
+        accumulate_grad_batches: 4
+
+  ipu_config:
+    - deviceIterations(20) # IPU would require large batches to be ready for the model.
+    - replicationFactor(16)
+    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+    # - enableExecutableCaching("pop_compiler_cache")
+    - TensorLocations.numIOTiles(128)
+    - _Popart.set("defaultBufferingDepth", 128)
+    - Precision.enableStochasticRounding(True)
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     datamodule:
+#       batch_size_training: 64
+#       batch_size_inference: 256
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -56,11 +56,11 @@ datamodule:
       qm9:
         df: null
         df_path: goli/data/neurips2023/small-dataset/qm9.csv.gz
-        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+        # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
-        sample_size: 1000 # use sample_size for test
+        # sample_size: 10000 # use sample_size for test
         # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # split_names: ["train", "valid", "test"]
         # goli/data/PCQM4Mv2/split_dict.pt
@@ -74,11 +74,11 @@ datamodule:
       tox21:
         df: null
         df_path: goli/data/neurips2023/small-dataset/Tox21-7k-12-labels.csv.gz
-        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+        # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
-        sample_size: 1000 # use sample_size for test
+        # sample_size: 10000 # use sample_size for test
         # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # split_names: ["train", "valid", "test"]
         # goli/data/PCQM4Mv2/split_dict.pt
@@ -90,11 +90,11 @@ datamodule:
       zinc:
         df: null
         df_path: goli/data/neurips2023/small-dataset/ZINC12k.csv.gz
-        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
-        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
-        sample_size: 1000 # use sample_size for test
+        # sample_size: 10000 # use sample_size for test
         # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         # split_names: ["train", "valid", "test"]
         # goli/data/PCQM4Mv2/split_dict.pt
@@ -107,7 +107,7 @@ datamodule:
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 0
+    featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
     processed_graph_data_path: "../datacache/neurips2023-small/"
@@ -343,7 +343,7 @@ trainer:
   logger:
     save_dir: logs/PCQMv2
     name: *name
-    project: PCQMv2_mpnn
+    project: *name
   #early_stopping:
   #  monitor: *monitor
   #  min_delta: 0
