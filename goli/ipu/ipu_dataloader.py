@@ -342,10 +342,10 @@ class Pad(BaseTransform):
         return num_nodes, num_edges
 
     def __call__(self, batch: Batch) -> Batch:
-        return _call(batch)
+        return self._call(batch)
 
     def forward(self, batch: Batch) -> Batch:
-        return _call(batch)
+        return self._call(batch)
 
     def _call(self, batch: Batch) -> Batch:
         """
