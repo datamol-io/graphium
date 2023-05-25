@@ -823,11 +823,19 @@ def mol_to_adjacency_matrix(
         adj_val.extend([val, val])
 
     # Convert to torch coo sparse tensor
-    adj = coo_matrix(
-        (torch.as_tensor(adj_val), torch.as_tensor(adj_idx).T.reshape(2, -1)),
-        shape=(mol.GetNumAtoms(), mol.GetNumAtoms()),
-        dtype=dtype,
-    )  # TODO: .T sends User Warning. need to be debugged or changed to .mT
+    if len(adj_val) > 0:  # ensure tensor is not empty
+        adj = coo_matrix(
+            (torch.as_tensor(adj_val), torch.as_tensor(adj_idx).T.reshape(2, -1)),
+            shape=(mol.GetNumAtoms(), mol.GetNumAtoms()),
+            dtype=dtype,
+        )
+    else:
+        # Special case for molecules with one atom
+        adj = coo_matrix(
+            np.zeros((1, 1), dtype=dtype),
+            shape=(1, 1),
+            dtype=dtype,
+        )
 
     # Add self loops
     if add_self_loop:

@@ -290,7 +290,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             drop_index = [2, 5, 21, 237, 192, 23, 127, 11]
             for replace in [1, 2]:
                 for missing_col in label_cols[:replace]:
-                    df[missing_col].iloc[drop_index] = None
+                    df.loc[drop_index, missing_col] = None
 
                 output = goli.data.datamodule.extract_labels(df, level, label_cols)
 
