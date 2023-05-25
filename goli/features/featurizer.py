@@ -831,11 +831,7 @@ def mol_to_adjacency_matrix(
         )
     else:
         # Special case for molecules with one atom
-        adj = coo_matrix(
-            np.zeros((1, 1), dtype=dtype),
-            shape=(1, 1),
-            dtype=dtype,
-        )
+        adj = coo_matrix(([], np.array([[], []])), shape=(mol.GetNumAtoms(), mol.GetNumAtoms()), dtype=dtype)
 
     # Add self loops
     if add_self_loop:
