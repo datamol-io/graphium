@@ -61,10 +61,8 @@ datamodule:
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
         # sample_size: 10000 # use sample_size for test
-        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
-        # split_names: ["train", "valid", "test"]
-        # goli/data/PCQM4Mv2/split_dict.pt
-        # goli/data/PCQM4Mv2/pcqm4m_split.csv
+        splits_path: goli/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
+        split_names: ["train", "valid", "test"]
         split_val: 0.1
         split_test: 0.1
         seed: *seed
@@ -79,10 +77,8 @@ datamodule:
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
         # sample_size: 10000 # use sample_size for test
-        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
-        # split_names: ["train", "valid", "test"]
-        # goli/data/PCQM4Mv2/split_dict.pt
-        # goli/data/PCQM4Mv2/pcqm4m_split.csv
+        splits_path: goli/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
+        split_names: ["train", "valid", "test"]
         split_val: 0.1
         split_test: 0.1
         seed: *seed
@@ -95,10 +91,8 @@ datamodule:
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
         # sample_size: 10000 # use sample_size for test
-        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
-        # split_names: ["train", "valid", "test"]
-        # goli/data/PCQM4Mv2/split_dict.pt
-        # goli/data/PCQM4Mv2/pcqm4m_split.csv
+        splits_path: goli/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        split_names: ["train", "valid", "test"]
         split_val: 0.1
         split_test: 0.1
         seed: *seed
@@ -110,7 +104,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-small/"
+    # processed_graph_data_path: "../datacache/neurips2023-small/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
