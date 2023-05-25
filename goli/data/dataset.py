@@ -246,7 +246,6 @@ class MultitaskDataset(Dataset):
         path = os.path.join(self.data_path, "multitask_metadata.pkl")
         attrs = torch.load(path)
 
-        
         for attr, value in attrs.items():
             setattr(self, attr, value)
 
