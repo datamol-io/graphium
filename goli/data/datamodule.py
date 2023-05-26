@@ -1204,7 +1204,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         )  # type: ignore
 
         if stage == "train":
-
             self.get_label_statistics(
                 self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
             )
@@ -1261,7 +1260,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
-    def calculate_statistics(self, dataset: Datasets.MultitaskDataset, train: bool=False):
+    def calculate_statistics(self, dataset: Datasets.MultitaskDataset, train: bool = False):
         """
         Calculate the statistics of the labels for each task, and overwrites the `self.task_norms` attribute.
 
@@ -1277,7 +1276,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 )
                 self.task_norms[task].calculate_statistics(labels)
 
-    def get_label_statistics(self, data_path: Union[str, os.PathLike], data_hash:str, dataset: Datasets.MultitaskDataset, train: bool=False):
+    def get_label_statistics(
+        self,
+        data_path: Union[str, os.PathLike],
+        data_hash: str,
+        dataset: Datasets.MultitaskDataset,
+        train: bool = False,
+    ):
         """
         Get the label statistics from the dataset, and save them to file, if needed.
         `self.task_norms` will be modified in-place with the label statistics.
