@@ -120,7 +120,7 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 1 # -1 to use all
+    num_workers: 4 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
@@ -262,8 +262,8 @@ predictor:
     node_pcqm20k_n4: mae_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-5 # warmup can be scheduled using torch_scheduler_kwargs
-    weight_decay: 1.e-7
+    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
+    #weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 100

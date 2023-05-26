@@ -37,7 +37,13 @@ class BCELossIPU(BCELoss):
         # Compute the loss, and rescale by the number of nan elements
         self.weight = weight
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
+
+        num_number_targets = (~nan_targets).sum()
+        if num_number_targets > 0:
+            loss = loss * nan_targets.numel() / num_number_targets
+        else:
+            # raise a warning
+            loss = loss.detach()
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
@@ -63,7 +69,13 @@ class MSELossIPU(MSELoss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
+
+        num_number_targets = (~nan_targets).sum()
+        if num_number_targets > 0:
+            loss = loss * nan_targets.numel() / num_number_targets
+        else:
+            # raise a warning
+            loss = loss.detach()
 
         return loss
 
@@ -87,6 +99,15 @@ class L1LossIPU(L1Loss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
+
+        num_number_targets = (~nan_targets).sum()
+        if num_number_targets > 0:
+            loss = loss * nan_targets.numel() / num_number_targets
+        else:
+            # raise a warning
+            loss = loss.detach()
+        # TODO: Try and detach and raise warning
+        # else:
+        #    loss = loss * nan_targets.numel()
 
         return loss

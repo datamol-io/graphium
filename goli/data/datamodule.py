@@ -1275,7 +1275,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
-
     def calculate_statistics(self, dataset: Datasets.MultitaskDataset, train: bool = False):
         """
         Calculate the statistics of the labels for each task, and overwrites the `self.task_norms` attribute.
