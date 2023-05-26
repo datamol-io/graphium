@@ -54,7 +54,7 @@ datamodule:
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
 
-      graph_pcqm20k_g13:
+      pcqm20k_g13:
         df: null
         df_path: goli/data/neurips2023/dummy-dataset/PCQM20k_G13_N4.parquet
         # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Dummy-dataset/PCQM20k_G13_N4.parquet
@@ -68,7 +68,7 @@ datamodule:
         label_normalization:
           method: "normal"
 
-      node_pcqm20k_n4:
+      pcqm20k_n4:
         df: null
         df_path: goli/data/neurips2023/dummy-dataset/PCQM20k_G13_N4.parquet
         # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Dummy-dataset/PCQM20k_G13_N4.parquet
@@ -229,7 +229,7 @@ architecture:
       residual_type: none
 
   task_heads:
-    graph_pcqm20k_g13:
+    pcqm20k_g13:
       task_level: graph
       out_dim: 13
       hidden_dims: 32
@@ -240,7 +240,7 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
-    node_pcqm20k_n4:
+    pcqm20k_n4:
       task_level: node
       out_dim: 4
       hidden_dims: 32
@@ -255,11 +255,11 @@ architecture:
 #Task-specific
 predictor:
   metrics_on_progress_bar:
-    graph_pcqm20k_g13: []
-    node_pcqm20k_n4: []
+    pcqm20k_g13: []
+    pcqm20k_n4: []
   loss_fun:
-    graph_pcqm20k_g13: mae_ipu
-    node_pcqm20k_n4: mae_ipu
+    pcqm20k_g13: mae_ipu
+    pcqm20k_n4: mae_ipu
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
@@ -278,7 +278,7 @@ predictor:
 
 # Task-specific
 metrics:
-  graph_pcqm20k_g13: &pcqm_metrics
+  pcqm20k_g13: &pcqm_metrics
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
@@ -289,7 +289,7 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
-  node_pcqm20k_n4: *pcqm_metrics
+  pcqm20k_n4: *pcqm_metrics
 
 trainer:
   logger:
