@@ -115,7 +115,7 @@ class PredictorModuleIPU(PredictorModule):
         targets: Dict[str, Tensor],
         weights: Optional[Tensor],
         loss_fun: Dict[str, Callable],
-        target_nan_mask: Union[Type, str] = "ignore-flatten",
+        target_nan_mask: Union[Type, str] = "ignore",
         multitask_handling: Optional[str] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
         preds = remove_pad_loss(preds, targets)
