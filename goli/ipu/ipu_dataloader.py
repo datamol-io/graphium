@@ -342,6 +342,12 @@ class Pad(BaseTransform):
         return num_nodes, num_edges
 
     def __call__(self, batch: Batch) -> Batch:
+            return self._call(batch)
+
+    def forward(self, batch: Batch) -> Batch:
+         return self._call(batch)
+
+    def _call(self, batch: Batch) -> Batch:
         """
         Pad the batch with a fake graphs that has the desired
         number of nodes and edges.

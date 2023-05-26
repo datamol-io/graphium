@@ -1,4 +1,5 @@
 # General imports
+import argparse
 import os
 from os.path import dirname, abspath
 import yaml
@@ -31,10 +32,35 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_b3lyp.yaml"
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
-# CONFIG_FILE = "expts/neurips2023_configs/config_small_mpnn.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
-os.chdir(MAIN_DIR)
+CONFIG_FILE = "expts/neurips2023_configs/config_small_mpnn.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
+# os.chdir(MAIN_DIR)
 
+class ConfigDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(ConfigDict, self).__init__(*args, **kwargs)
+        for key, value in self.items():
+            if isinstance(value, dict):
+                self[key] = ConfigDict(value)
+
+    def __getattr__(self, key):
+        if key in self:
+            return self[key]
+        else:
+            raise AttributeError("No such attribute: " + key)
+
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __delattr__(self, key):
+        if key in self:
+            del self[key]
+        else:
+            raise AttributeError("No such attribute: " + key)
+
+    def to_dict(self):
+        return {key: self[key].to_dict() if isinstance(self[key], ConfigDict) else self[key]
+                for key in self}
 
 def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) -> None:
     st = timeit.default_timer()
@@ -44,6 +70,9 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
         date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
     cfg = deepcopy(cfg)
+    print(cfg)
+    wandb.config = cfg
+    cfg = wandb.config
 
     # Initialize the accelerator
     cfg, accelerator_type = load_accelerator(cfg)
@@ -94,7 +123,38 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     return trainer.callback_metrics
 
 
+def update_config(cfg: ConfigDict, unknown: list):
+    """
+    Update the configuration dictionary with command line arguments.
+    """
+    for arg in unknown:
+        if arg.startswith("--"):
+            key, value = arg[2:].split('=')
+            keys = key.split('.')
+            temp_cfg = cfg
+            for k in keys[:-1]:
+                temp_cfg = temp_cfg[k]
+            temp_cfg[keys[-1]] = type(temp_cfg[keys[-1]])(value) if keys[-1] in temp_cfg else value
+    return cfg
+
+
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        prog='ProgramName',
+        description='What the program does',
+        epilog='Text at the bottom of help'
+    )
+
+    parser.add_argument('--config', type=str, default='config.yaml',
+                        help='Path to the configuration file')
+
+    args, unknown = parser.parse_known_args()
+
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
-    main(cfg)
+        # import ipdb; ipdb.set_trace()
+        cfg = ConfigDict(cfg)
+        cfg = update_config(cfg, unknown)
+    main(cfg.to_dict())
+

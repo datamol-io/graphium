@@ -180,7 +180,6 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
         for this_metric in cfg_metrics[task]:
             name = this_metric.pop("name")
             task_metrics[task][name] = MetricWrapper(**this_metric)
-
     return task_metrics
 
 
