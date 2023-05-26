@@ -199,7 +199,7 @@ class MetricWrapper:
         elif isinstance(target_nan_mask, str):
             # Only a few str options are accepted
             target_nan_mask = target_nan_mask.lower()
-            accepted_str = ["ignore-flatten", "none"]
+            accepted_str = ["ignore", "none"]
             assert (
                 target_nan_mask in accepted_str
             ), f"Provided {target_nan_mask} not in accepted_str={accepted_str}"
