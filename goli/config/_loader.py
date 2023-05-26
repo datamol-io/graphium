@@ -132,7 +132,6 @@ def load_datamodule(
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
             ipu_inference_opts=ipu_inference_opts,
         )
-
         # Define the Dataloader options for the IPU on the training sets
         bz_train = cfg_data["batch_size_training"]
         ipu_dataloader_training_opts = IPUDataloaderOptions(

@@ -153,7 +153,6 @@ if __name__ == "__main__":
 
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
-        # import ipdb; ipdb.set_trace()
         cfg = ConfigDict(cfg)
         cfg = update_config(cfg, unknown)
     main(cfg.to_dict())

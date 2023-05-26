@@ -99,8 +99,9 @@ def load_ipu_options(
     poptorch = import_poptorch()
     ipu_options = poptorch.Options()
     ipu_opts_file = ipu_options_list_to_file(ipu_opts)
-    ipu_options.loadFromFile(ipu_opts_file.name)
-    ipu_opts_file.close()
+    ipu_options.loadFromFile(ipu_opts_file)
+    # HACK: As this is currently not a working solution
+    # tmp_file.close()
     ipu_options.outputMode(poptorch.OutputMode.All)
     if seed is not None:
         ipu_options.randomSeed(seed)
@@ -142,7 +143,13 @@ def ipu_options_list_to_file(ipu_opts: Optional[List[str]]) -> tempfile._Tempora
     if ipu_opts is None:
         return
 
-    tmp_file = tempfile.NamedTemporaryFile("w")
-    for s in ipu_opts:
-        tmp_file.write(s + "\n")
-    return tmp_file
+    # tmp_file = tempfile.NamedTemporaryFile("w", delete=False)
+    # for s in ipu_opts:
+    #     tmp_file.write(s + "\n")
+    # return tmp_file
+    file_path = 'ipu_opts.config'
+    with open(file_path, "w") as f:
+        for s in ipu_opts:
+            f.write(s + "\n")
+            
+    return file_path
