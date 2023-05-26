@@ -61,7 +61,7 @@ datamodule:
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
         sample_size: 2000 # use sample_size for test
-        splits_path: goli/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        splits_path: goli/data/neurips2023/small-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
 
       l1000_ha1e:
         df: null
@@ -71,7 +71,7 @@ datamodule:
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
         sample_size: 2000 # use sample_size for test
-        splits_path: goli/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_ha1e_random_splits.pt`
+        splits_path: goli/data/neurips2023/small-dataset/l1000_ha1e_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_ha1e_random_splits.pt`
 
       pcba_1328:
         df: null
@@ -81,7 +81,7 @@ datamodule:
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
         sample_size: 2000 # use sample_size for test
-        splits_path: goli/data/neurips2023/large-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        splits_path: goli/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
 
       pcqm4m_g25:
         df: null
@@ -91,7 +91,7 @@ datamodule:
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
         sample_size: 2000 # use sample_size for test
-        splits_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+        splits_path: goli/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
           method: "normal"
 
@@ -103,7 +103,7 @@ datamodule:
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
         sample_size: 2000 # use sample_size for test
-        splits_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/ZINC12k_random_splits.pt`
+        splits_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4_random_splits.pt`
         seed: *seed
         label_normalization:
           method: "normal"
@@ -243,20 +243,31 @@ architecture:
       residual_type: none
 
   task_heads:
-    qm9:
+    l1000_vcap:
       task_level: graph
-      out_dim: 19
+      out_dim: 978
       hidden_dims: 128
       depth: 2
-      activation: relu
-      last_activation: none
+      activation: none
+      last_activation: sigmoid
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
-    tox21:
+    l1000_ha1e:
       task_level: graph
-      out_dim: 12
+      out_dim: 977
+      hidden_dims: 128
+      depth: 2
+      activation: none
+      last_activation: sigmoid
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+    pcba_1328:
+      task_level: graph
+      out_dim: 1328
       hidden_dims: 64
       depth: 2
       activation: relu
@@ -265,9 +276,20 @@ architecture:
       normalization: *normalization
       last_normalization: "none"
       residual_type: none
-    zinc:
+    pcqm4m_g25:
       task_level: graph
-      out_dim: 3
+      out_dim: 25
+      hidden_dims: 32
+      depth: 2
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+    pcqm4m_n4:
+      task_level: node
+      out_dim: 4
       hidden_dims: 32
       depth: 2
       activation: relu
@@ -280,13 +302,17 @@ architecture:
 #Task-specific
 predictor:
   metrics_on_progress_bar:
-    qm9: ["mae"]
-    tox21: ["auroc_flat"]
-    zinc: ["mae"]
+    l1000_vcap: []
+    l1000_ha1e: []
+    pcba_1328: []
+    pcqm4m_g25: []
+    pcqm4m_n4: []
   loss_fun:
-    qm9: mae_ipu
-    tox21: bce_ipu
-    zinc: mae_ipu
+    l1000_vcap: hybrid_ce
+    l1000_ha1e: hybrid_ce
+    pcba_1328: bce_ipu
+    pcqm4m_g25: mae_ipu
+    pcqm4m_n4: mae_ipu
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
@@ -305,7 +331,18 @@ predictor:
 
 # Task-specific
 metrics:
-  qm9: &qm9_metrics
+  l1000_vcap: &classif_metrics
+    - name: auroc_flat
+      metric: auroc_ipu
+      multitask_handling: flatten
+      threshold_kwargs: null
+    - name: avpr_flat
+      metric: averageprecision
+      multitask_handling: flatten
+      threshold_kwargs: null
+  l1000_ha1e: *classif_metrics
+  pcba_1328: *classif_metrics
+  pcqm4m_g25: &pcqm_metrics
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
@@ -316,32 +353,7 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
-  tox21:
-    - name: auroc_flat
-      metric: auroc_ipu
-      multitask_handling: flatten
-      threshold_kwargs: null
-    - name: avpr_flat
-      metric: averageprecision
-      multitask_handling: flatten
-      threshold_kwargs: null
-    - name: f1 > 0.5
-      metric: f1
-      multitask_handling: flatten
-      target_to_int: True
-      num_classes: 2
-      average: micro
-      threshold_kwargs: &threshold_05
-        operator: greater
-        threshold: 0.5
-        th_on_preds: True
-        th_on_target: True
-    - name: precision > 0.5
-      metric: precision
-      multitask_handling: flatten
-      average: micro
-      threshold_kwargs: *threshold_05
-  zinc: *qm9_metrics
+  pcqm4m_n4: *pcqm_metrics
 
 trainer:
   logger:
