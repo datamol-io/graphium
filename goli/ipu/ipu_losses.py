@@ -2,6 +2,7 @@ import torch
 from torch import Tensor
 from torch.nn import BCELoss, MSELoss, L1Loss
 from torch._C import _infer_size
+from loguru import logger
 
 
 class BCELossIPU(BCELoss):
@@ -42,7 +43,7 @@ class BCELossIPU(BCELoss):
         if num_number_targets > 0:
             loss = loss * nan_targets.numel() / num_number_targets
         else:
-            # raise a warning
+            logger.warning("Batch contains only nan targets. Detaching loss.")
             loss = loss.detach()
 
         # Reset the self.weight to its original value
@@ -74,7 +75,7 @@ class MSELossIPU(MSELoss):
         if num_number_targets > 0:
             loss = loss * nan_targets.numel() / num_number_targets
         else:
-            # raise a warning
+            logger.warning("Batch contains only nan targets. Detaching loss.")
             loss = loss.detach()
 
         return loss
@@ -104,10 +105,7 @@ class L1LossIPU(L1Loss):
         if num_number_targets > 0:
             loss = loss * nan_targets.numel() / num_number_targets
         else:
-            # raise a warning
+            logger.warning("Batch contains only nan targets. Detaching loss.")
             loss = loss.detach()
-        # TODO: Try and detach and raise warning
-        # else:
-        #    loss = loss * nan_targets.numel()
 
         return loss
