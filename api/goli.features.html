@@ -1931,7 +1931,7 @@ increased computation speed.</p>
         <tr>
           <td><code>bond</code></td>
           <td>
-                <code><span title="rdkit.Chem">Chem</span>.<span title="Chem.rdchem">rdchem</span>.<span title="Chem.rdchem.Bond">Bond</span></code>
+                <code><span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Bond">Bond</span></code>
           </td>
           <td><p>The bond to measure its lenght</p></td>
           <td>
@@ -1941,7 +1941,7 @@ increased computation speed.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>The molecule containing the bond (used to get neighbouring atoms)</p></td>
           <td>
@@ -2005,7 +2005,7 @@ the <code>offset_carbon</code> parameter.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>molecule from which to extract the properties</p></td>
           <td>
@@ -2099,7 +2099,7 @@ or other properties that are not measured for specific atoms.</p>
     <tbody>
         <tr>
 <td><code>prop_dict</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td><p>A dictionnary where the element of <code>property_list</code> are the keys
 and the values are np.ndarray of shape (N,). N is the number of atoms
@@ -2154,7 +2154,7 @@ in <code>mol</code>.</p></td>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>molecule from which to extract the properties</p></td>
           <td>
@@ -2241,7 +2241,7 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p></td>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>molecule from which to extract the properties</p></td>
           <td>
@@ -2274,7 +2274,7 @@ Accepted properties are:
     <tbody>
         <tr>
 <td><code>prop_dict</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td><p>a dictionary where the element of <code>property_list</code> are the keys</p></td>
         </tr>
@@ -2321,7 +2321,7 @@ See <code>goli.features.nmp</code> for allowed values in one hot encoding</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>rdkit.Chem.Molecule
 the molecule of interest</p></td>
@@ -2363,7 +2363,7 @@ Accepted properties are:</p>
     <tbody>
         <tr>
 <td><code>prop_dict</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td><p>A dictionnary where the element of <code>property_list</code> are the keys
 and the values are np.ndarray of shape (N,). N is the number of atoms
@@ -2407,7 +2407,7 @@ not in functions requiring complex 3D structure.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>Rdkit Molecule</p></td>
           <td>
@@ -2428,7 +2428,7 @@ not in functions requiring complex 3D structure.</p>
     <tbody>
         <tr>
 <td><code>conf</code></td>          <td>
-                <code><span title="typing.Union">Union</span>[<span title="rdkit.Chem">Chem</span>.<span title="Chem.rdchem">rdchem</span>.<span title="Chem.rdchem.Conformer">Conformer</span>, None]</code>
+                <code><span title="typing.Union">Union</span>[<span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Conformer">Conformer</span>, None]</code>
           </td>
           <td><p>A conformer of the molecule, or <code>None</code> if it fails</p></td>
         </tr>
@@ -2469,7 +2469,7 @@ and a set of atom and bond features.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[str, <span title="datamol">dm</span>.<span title="dm.Mol">Mol</span>]</code>
+                <code><span title="typing.Union">Union</span>[str, <span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>]</code>
           </td>
           <td><p>The molecule to be converted</p></td>
           <td>
@@ -2567,7 +2567,7 @@ to generate positional encoding for node features.</p></td>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="np.dtype">dtype</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
           <td><p>The torch data type used to build the graph</p></td>
           <td>
@@ -2699,7 +2699,7 @@ will change the ordering of the bonds.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>A molecule in the form of a SMILES string or an RDKit molecule object.</p></td>
           <td>
@@ -2732,7 +2732,7 @@ node.</p></td>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="np.dtype">dtype</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
           <td><p>The data type used to build the graph</p></td>
           <td>
@@ -2796,7 +2796,7 @@ and is thus faster, less memory heavy, and compatible with other frameworks.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>The molecule to be converted</p></td>
           <td>
@@ -2894,7 +2894,7 @@ to generate positional encoding for node features.</p></td>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="np.dtype">dtype</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
           <td><p>The numpy data type used to build the graph</p></td>
           <td>
@@ -3079,7 +3079,7 @@ and a set of atom and bond features.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="datamol">dm</span>.<span title="dm.Mol">Mol</span></code>
+                <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
           <td><p>The molecule to be converted</p></td>
           <td>
@@ -3177,7 +3177,7 @@ to generate positional encoding for node features.</p></td>
         <tr>
           <td><code>dtype</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="np.dtype">dtype</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
           <td><p>The numpy data type used to build the graph</p></td>
           <td>
@@ -3286,7 +3286,7 @@ There are also additional entries for the positional encodings.</p></td>
         <tr>
           <td><code>array</code></td>
           <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td><p>The array to convert to dense</p></td>
           <td>
@@ -3317,7 +3317,7 @@ There are also additional entries for the positional encodings.</p></td>
     <tbody>
         <tr>
           <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td><p>The dense array</p></td>
         </tr>
@@ -3500,7 +3500,7 @@ to generate positional encoding for node features.</p></td>
     <tbody>
         <tr>
 <td><code>pe_dict</code></td>          <td>
-                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]]</code>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="typing.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
           </td>
           <td><p>Dictionary of positional and structural encodings</p></td>
         </tr>
@@ -3620,7 +3620,7 @@ to generate positional encoding for node features.</p></td>
     <tbody>
         <tr>
 <td><code>pe</code></td>          <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td><p>Positional or structural encoding</p></td>
         </tr>
@@ -3719,7 +3719,7 @@ to generate positional encoding for node features.</p></td>
         <tr>
           <td><code>*args</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="dm.Mol">Mol</span>, str]</code>
+                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
           <td><p>The arguments to pass to the property.</p></td>
           <td>
@@ -3729,7 +3729,7 @@ to generate positional encoding for node features.</p></td>
         <tr>
           <td><code>**kwargs</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="dm.Mol">Mol</span>, str]</code>
+                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
           <td><p>The keyword arguments to pass to the property.</p></td>
           <td>
@@ -3790,7 +3790,7 @@ and output a property list.</p>
         <tr>
           <td><code>mol</code></td>
           <td>
-                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="dm.Mol">Mol</span>, str]</code>
+                <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
           <td><p>The molecule from which to compute the properties.</p></td>
           <td>
@@ -3829,14 +3829,14 @@ and output a property list.</p>
     <tbody>
         <tr>
 <td><code>props</code></td>          <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td><p>np.array(float)
 The array of properties for the desired molecule</p></td>
         </tr>
         <tr>
 <td><code>classes_start_idx</code></td>          <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td><p>list(int)
 The list of index specifying the start of each new class of
@@ -3848,7 +3848,7 @@ each class.</p></td>
         </tr>
         <tr>
 <td><code>classes_names</code></td>          <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td><p>list(str)
 The name of the classes associated to each starting index.
@@ -3984,7 +3984,7 @@ Will be usefull to understand what property is the network learning.</p></td>
     <tbody>
         <tr>
 <td></td>          <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td><p>Two possible outputs:
 eigvals [num_nodes, num_pos]: Eigenvalues of the Laplacian repeated for each node.
@@ -4187,7 +4187,7 @@ steps, if <code>space_dim</code> is the dimension of the euclidean space.</p></t
     <tbody>
         <tr>
 <td></td>          <td>
-                <code><span title="numpy">np</span>.<span title="np.ndarray">ndarray</span></code>
+                <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
           <td><p>Two possible outputs:
 rw_return_probs [num_nodes, len(ksteps)]: Random-Walk k-step landing probabilities
@@ -4291,7 +4291,7 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
     <tbody>
         <tr>
           <td>
-                <code><span title="typing.Dict">Dict</span>[int, <span title="numpy">np</span>.<span title="np.ndarray">ndarray</span>]</code>
+                <code><span title="typing.Dict">Dict</span>[int, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
           <td><p>2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs</p></td>
         </tr>
