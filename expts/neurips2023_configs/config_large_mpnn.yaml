@@ -11,12 +11,12 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 24 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 60
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 16 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 120
+          max_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 60
         # Data handling-related
         batch_size_training: 50
         batch_size_inference: 50
@@ -53,39 +53,57 @@ datamodule:
   # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
-      qm9:
+      l1000_vcap:
         df: null
-        df_path: goli/data/neurips2023/small-dataset/qm9.csv.gz
-        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+        df_path: goli/data/neurips2023/large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
         # or set path as the URL directly
-        smiles_col: "smiles"
-        label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
-        # sample_size: 10000 # use sample_size for test
-        splits_path: goli/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
-        seed: *seed
+        smiles_col: "SMILES"
+        label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
+        # sample_size: 2000 # use sample_size for test
+        splits_path: goli/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+
+      l1000_ha1e:
+        df: null
+        df_path: goli/data/neurips2023/large-dataset/LINCS_L1000_HA1E_0-4.csv.gz
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_HA1E_0-4.csv.gz
+        # or set path as the URL directly
+        smiles_col: "SMILES"
+        label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
+        # sample_size: 2000 # use sample_size for test
+        splits_path: goli/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_ha1e_random_splits.pt`
+
+      pcba_1328:
+        df: null
+        df_path: goli/data/neurips2023/large-dataset/PCBA_1328_1564k.parquet
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
+        # or set path as the URL directly
+        smiles_col: "SMILES"
+        label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
+        # sample_size: 2000 # use sample_size for test
+        splits_path: goli/data/neurips2023/large-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+
+      pcqm4m_g25:
+        df: null
+        df_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4.parquet
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
+        # or set path as the URL directly
+        smiles_col: "ordered_smiles"
+        label_cols: graph_*  # graph_* means all columns starting with "graph_"
+        # sample_size: 2000 # use sample_size for test
+        splits_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
           method: "normal"
 
-      tox21:
+      pcqm4m_n4:
         df: null
-        df_path: goli/data/neurips2023/small-dataset/Tox21-7k-12-labels.csv.gz
-        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+        df_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4.parquet
+        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
         # or set path as the URL directly
-        smiles_col: "smiles"
-        label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
-        # sample_size: 10000 # use sample_size for test
-        splits_path: goli/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
-        seed: *seed
-
-      zinc:
-        df: null
-        df_path: goli/data/neurips2023/small-dataset/ZINC12k.csv.gz
-        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
-        # or set path as the URL directly
-        smiles_col: "smiles"
-        label_cols: ["SA", "logp", "score"]
-        # sample_size: 10000 # use sample_size for test
-        splits_path: goli/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        smiles_col: "ordered_smiles"
+        label_cols: node_* # node_* means all columns starting with "node_"
+        # sample_size: 2000 # use sample_size for test
+        splits_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/ZINC12k_random_splits.pt`
         seed: *seed
         label_normalization:
           method: "normal"
@@ -95,7 +113,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    # processed_graph_data_path: "../datacache/neurips2023-small/"
+    processed_graph_data_path: "../datacache/neurips2023-small/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -271,7 +289,7 @@ predictor:
     zinc: mae_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
+    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
@@ -282,7 +300,8 @@ predictor:
   #  monitor: &monitor qm9/mae/train
   #  mode: min
   #  frequency: 1
-  target_nan_mask: null # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
+  target_nan_mask: ignore # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
+  multitask_handling: flatten # flatten, mean-per-label
 
 # Task-specific
 metrics:
@@ -326,7 +345,7 @@ metrics:
 
 trainer:
   logger:
-    save_dir: logs/PCQMv2
+    save_dir: logs/neurips2023-small/
     name: *name
     project: *name
   #early_stopping:
@@ -335,7 +354,7 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/PCMQ4Mv2/
+    dirpath: models_checkpoints/neurips2023-small/
     filename: *name
     #monitor: *monitor
     #mode: *mode

@@ -34,6 +34,10 @@ goli/data/PCQM4Mv2/
 goli/data/PCQM4M/
 goli/data/neurips2023/small-dataset/
 goli/data/neurips2023/large-dataset/
+goli/data/make_data_splits/*.csv*
+goli/data/make_data_splits/*.pt*
+goli/data/make_data_splits/*.parquet*
+
 
 # Others
 expts_untracked/
