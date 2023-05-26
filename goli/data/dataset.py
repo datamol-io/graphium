@@ -220,8 +220,8 @@ class MultitaskDataset(Dataset):
             "smiles",
             "labels_size",
             "dataset_length",
-            "num_nodes_list",
-            "num_edges_list",
+            "_num_nodes_list",
+            "_num_edges_list",
         ]
         attrs = {attr: getattr(self, attr) for attr in attrs_to_save}
 
@@ -238,8 +238,8 @@ class MultitaskDataset(Dataset):
             "smiles",
             "labels_size",
             "dataset_length",
-            "num_nodes_list",
-            "num_edges_list",
+            "_num_nodes_list",
+            "_num_edges_list",
         ]
         path = os.path.join(self.data_path, "multitask_metadata.pkl")
         attrs = torch.load(path)
