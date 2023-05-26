@@ -45,6 +45,7 @@ class BCELossIPU(BCELoss):
         else:
             logger.warning("Batch contains only nan targets. Detaching loss.")
             loss = loss.detach()
+            loss = 0.0
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
@@ -77,6 +78,7 @@ class MSELossIPU(MSELoss):
         else:
             logger.warning("Batch contains only nan targets. Detaching loss.")
             loss = loss.detach()
+            loss = 0.0
 
         return loss
 
@@ -107,5 +109,6 @@ class L1LossIPU(L1Loss):
         else:
             logger.warning("Batch contains only nan targets. Detaching loss.")
             loss = loss.detach()
+            loss = 0.0
 
         return loss
