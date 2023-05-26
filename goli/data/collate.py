@@ -210,7 +210,7 @@ def get_expected_label_size(label_data: Data, task: str, label_size: List[int]):
     if task.startswith("graph_"):
         num_labels = 1
     elif task.startswith("node_"):
-        num_labels = label_data.num_nodes
+        num_labels = label_data.x.size(0)
     elif task.startswith("edge_"):
         num_labels = label_data.edge_index.size(1)
     elif task.startswith("nodepair_"):
@@ -240,8 +240,9 @@ def collate_labels(
                 labels_size_dict[task] = list(labels_size_dict[task])
                 if len(labels_size_dict[task]) >= 2:
                     labels_size_dict[task] = labels_size_dict[task][1:]
-                else:
-                    # Will be expanded later
+                elif not task.startswith("graph_"):
+                #else:
+                #    # Will be expanded later
                     labels_size_dict[task] = [1]
 
             empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys)
@@ -260,6 +261,10 @@ def collate_labels(
             for task in set(this_label.keys) - set(["x", "edge_index"]) - empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
                 this_label[task] = pad_to_expected_label_size(this_label[task], labels_size_dict[task])
+
+        #for this_label in labels:
+        #    for task in set(this_label.keys) - set(["x", "edge_index"]):
+
 
     return collate_pyg_graph_labels(labels)
 
