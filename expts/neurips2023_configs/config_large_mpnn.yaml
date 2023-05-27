@@ -61,6 +61,7 @@ datamodule:
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
         sample_size: 2000 # use sample_size for test
+        task_level: graph
         splits_path: goli/data/neurips2023/small-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
 
       l1000_ha1e:
@@ -71,6 +72,7 @@ datamodule:
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
         sample_size: 2000 # use sample_size for test
+        task_level: graph
         splits_path: goli/data/neurips2023/small-dataset/l1000_ha1e_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_ha1e_random_splits.pt`
 
       pcba_1328:
@@ -81,6 +83,7 @@ datamodule:
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
         sample_size: 2000 # use sample_size for test
+        task_level: graph
         splits_path: goli/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
 
       pcqm4m_g25:
@@ -91,6 +94,7 @@ datamodule:
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
         sample_size: 2000 # use sample_size for test
+        task_level: graph
         splits_path: goli/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
           method: "normal"
@@ -103,6 +107,7 @@ datamodule:
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
         sample_size: 2000 # use sample_size for test
+        task_level: node
         splits_path: goli/data/neurips2023/large-dataset/PCQM4M_G25_N4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4_random_splits.pt`
         seed: *seed
         label_normalization:

@@ -63,6 +63,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         splits_path: goli/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
         seed: *seed
+        task_level: graph
         label_normalization:
           method: "normal"
 
@@ -76,6 +77,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         splits_path: goli/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
         seed: *seed
+        task_level: graph
 
       zinc:
         df: null
@@ -87,6 +89,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         splits_path: goli/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
         seed: *seed
+        task_level: graph
         label_normalization:
           method: "normal"
 
