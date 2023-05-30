@@ -57,6 +57,7 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the progress bar
             metrics_on_training_set: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the training set
             flag_kwargs: Arguments related to using the FLAG adversarial augmentation
+            task_norms: the normalization for each task
         """
         self.save_hyperparameters()
 
@@ -66,6 +67,7 @@ class PredictorModule(pl.LightningModule):
 
         self.target_nan_mask = target_nan_mask
         self.multitask_handling = multitask_handling
+        self.task_norms = task_norms
 
         super().__init__()
 
@@ -135,7 +137,6 @@ class PredictorModule(pl.LightningModule):
             task_metrics_on_progress_bar=self.metrics_on_progress_bar,
             monitor=monitor,
             mode=mode,
-            task_norms=task_norms,
         )
 
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
@@ -284,6 +285,12 @@ class PredictorModule(pl.LightningModule):
 
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
+            task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
+            # apply denormalization for predictions
+            pred = task_specific_norm.denormalize(pred)
+            if step_name == "train":
+                # apply denormalization for targets
+                targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
 

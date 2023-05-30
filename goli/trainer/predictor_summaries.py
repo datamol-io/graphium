@@ -41,7 +41,6 @@ class Summary(SummaryInterface):
         monitor: str = "loss",
         mode: str = "min",
         task_name: Optional[str] = None,
-        task_specific_norm: Optional[Union[Callable, Any]] = None,
     ):
         r"""
         A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.
@@ -68,9 +67,6 @@ class Summary(SummaryInterface):
             task_name:
             name of the task (Default=`None`)
 
-            task_specific_norm:
-            task specific normalization (Default=`None`)
-
         """
         self.loss_fun = loss_fun
         self.metrics = metrics
@@ -91,7 +87,6 @@ class Summary(SummaryInterface):
         self.n_epochs: int = None
 
         self.task_name = task_name
-        self.task_specific_norm = task_specific_norm
         self.logged_metrics_exceptions = []  # Track which metric exceptions have been logged
 
     def update_predictor_state(
@@ -240,11 +235,6 @@ class Summary(SummaryInterface):
             A dictionary of metrics to log.
         """
         targets = self.targets.to(dtype=self.predictions.dtype, device=self.predictions.device)
-        # apply denormalization for predictions
-        self.predictions = self.task_specific_norm.denormalize(self.predictions)
-        if self.step_name == "train":
-            # apply denormalization for targets
-            targets = self.task_specific_norm.denormalize(targets)
         # Compute the metrics always used in regression tasks
         metric_logs = {}
         metric_logs[self.metric_log_name(self.task_name, "mean_pred", self.step_name)] = nan_mean(
@@ -342,7 +332,6 @@ class TaskSummaries(SummaryInterface):
         task_metrics_on_progress_bar: List[str],
         monitor: str = "loss",
         mode: str = "min",
-        task_norms: Optional[Dict[Callable, Any]] = None,
     ):
         r"""
         class to store the summaries of the tasks
@@ -353,7 +342,6 @@ class TaskSummaries(SummaryInterface):
             task_metrics_on_progress_bar: the metrics to use on the progress bar
             monitor: the metric to monitor
             mode: the mode of the metric to monitor
-            task_norms: the normalization for each task
         """
         self.task_loss_fun = task_loss_fun
         self.task_metrics = task_metrics
@@ -375,7 +363,6 @@ class TaskSummaries(SummaryInterface):
                 self.monitor,
                 self.mode,
                 task_name=task,
-                task_specific_norm=task_norms[task] if task_norms is not None else None,
             )
 
         # Current predictor state
