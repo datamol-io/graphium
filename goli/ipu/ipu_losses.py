@@ -13,7 +13,7 @@ class BCELossIPU(BCELoss):
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         prev_weight = None
-
+    
         target = target.clone()
         weight = self.weight
 
@@ -37,10 +37,11 @@ class BCELossIPU(BCELoss):
         # Compute the loss, and rescale by the number of nan elements
         self.weight = weight
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + 1e-9)
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
+
         return loss
 
 
@@ -63,8 +64,8 @@ class MSELossIPU(MSELoss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
-
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + 1e-9)
+        
         return loss
 
 
@@ -87,6 +88,7 @@ class L1LossIPU(L1Loss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + 1e-9)
+
 
         return loss

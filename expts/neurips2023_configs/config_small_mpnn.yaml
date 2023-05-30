@@ -30,7 +30,7 @@ accelerator:
 
   ipu_config:
     - deviceIterations(20) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
+    - replicationFactor(8)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -266,9 +266,9 @@ predictor:
     tox21: ["auroc_flat"]
     zinc: ["mae"]
   loss_fun:
-    qm9: mae_ipu
+    qm9: mse_ipu
     tox21: bce_ipu
-    zinc: mae_ipu
+    zinc: mse_ipu
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
@@ -289,7 +289,7 @@ predictor:
 metrics:
   qm9: &qm9_metrics
     - name: mae
-      metric: mae_ipu
+      metric: mse_ipu
       target_nan_mask: null
       multitask_handling: flatten
       threshold_kwargs: null
