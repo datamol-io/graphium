@@ -8,6 +8,7 @@ import zipfile
 from copy import deepcopy
 import time
 import gc
+from rdkit import Chem
 
 from loguru import logger
 import fsspec
@@ -26,6 +27,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.trainer.states import RunningStage
 
 import torch
+from torch_geometric.data import Data
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
@@ -46,8 +48,10 @@ from goli.data.smiles_transform import (
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
 from goli.data.normalization import LabelNormalization
+from goli.data.multilevel_utils import extract_labels
 
 torch.multiprocessing.set_sharing_strategy("file_system")
+
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -631,6 +635,7 @@ class BaseDataModule(pl.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
+        task_level: str = None,
         df: pd.DataFrame = None,
         df_path: Optional[Union[str, os.PathLike]] = None,
         smiles_col: str = None,
@@ -649,6 +654,7 @@ class DatasetProcessingParams:
         """
         object to store the parameters for the dataset processing
         Parameters:
+            task_level: The task level, wether it is graph, node, edge or nodepair
             df: The dataframe containing the data
             df_path: The path to the dataframe containing the data
             smiles_col: The column name of the smiles
@@ -663,6 +669,7 @@ class DatasetProcessingParams:
             splits_path: The path to the splits
         """
         self.df = df
+        self.task_level = task_level
         self.df_path = df_path
         self.smiles_col = smiles_col
         self.label_cols = label_cols
@@ -847,7 +854,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # TODO: Have the input argument to the Data Module be of type DatasetParams
         self.task_dataset_processing_params = {
-            task: DatasetProcessingParams(**ds_args) for task, ds_args in task_specific_args.items()
+            self._get_task_key(ds_args["task_level"], task): DatasetProcessingParams(**ds_args)
+            for task, ds_args in task_specific_args.items()
         }
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
@@ -887,6 +895,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
         self.data_hash = self.get_data_hash()
+
+    def _get_task_key(self, task_level: str, task: str):
+        task_prefix = f"{task_level}_"
+        if not task.startswith(task_prefix):
+            task = task_prefix + task
+        return task
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -970,6 +984,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(
                 df,
+                task_level=args.task_level,
                 smiles_col=args.smiles_col,
                 label_cols=args.label_cols,
                 idx_col=args.idx_col,
@@ -1271,9 +1286,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
         if self.task_norms and train:
             for task in dataset.labels_size.keys():
-                labels = np.stack(
-                    np.array([datum["labels"][task] for datum in dataset if task in datum["labels"]]), axis=0
+                labels = np.concatenate(
+                    [datum["labels"][task] for datum in dataset if task in datum["labels"]], axis=0
                 )
+
                 self.task_norms[task].calculate_statistics(labels)
 
     def get_label_statistics(
@@ -1317,7 +1333,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Returns:
             the dataset with normalized labels
         """
-        for task in dataset[0]["labels"].keys():
+        for task in dataset.labels_size.keys():
             for i in range(len(dataset)):
                 if task in dataset[i]["labels"]:
                     dataset[i]["labels"][task] = self.task_norms[task].normalize(dataset[i]["labels"][task])
@@ -1647,6 +1663,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def _extract_smiles_labels(
         self,
         df: pd.DataFrame,
+        task_level: str,
         smiles_col: str = None,
         label_cols: List[str] = [],
         idx_col: str = None,
@@ -1687,10 +1704,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         label_cols = check_arg_iterator(label_cols, enforce_type=list)
         smiles = df[smiles_col].values
         if len(label_cols) > 0:
-            labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
-            labels = np.stack(labels, axis=1)
+            if task_level == "graph":
+                labels = extract_labels(df, "graph", label_cols)
+            elif task_level == "node":
+                labels = extract_labels(df, "node", label_cols)
+            elif task_level == "edge":
+                labels = extract_labels(df, "edge", label_cols)
+            elif task_level == "nodepair":
+                labels = extract_labels(df, "nodepair", label_cols)
+            else:
+                raise ValueError(f"Unknown task level: {task_level}")
         else:
-            labels = np.zeros([len(smiles), 0])
+            labels = float("nan") + np.zeros([len(smiles), 0])
 
         indices = None  # What are indices for?
         if idx_col is not None:
@@ -2108,6 +2133,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 "smiles_col": smiles_col,
                 "label_cols": label_cols,
                 "splits_path": splits_path,
+                "task_level": task_args["task_level"],
             }
             self.metadata[task_name] = this_metadata
 
@@ -2373,6 +2399,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(
                 df,
+                task_level=args.task_level,
                 smiles_col=args.smiles_col,
                 label_cols=args.label_cols,
                 idx_col=args.idx_col,
@@ -2477,6 +2504,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
 
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
+            task_level=args.task_level,
             smiles_col=args.smiles_col,
             label_cols=label_cols,
             idx_col=args.idx_col,

@@ -19,7 +19,7 @@ from goli.features import GraphDict
 class SingleTaskDataset(Dataset):
     def __init__(
         self,
-        labels: Union[torch.Tensor, np.ndarray],
+        labels: List[Union[torch.Tensor, np.ndarray]],
         features: Optional[List[Union[Data, "GraphDict"]]] = None,
         smiles: Optional[List[str]] = None,
         indices: Optional[List[str]] = None,
@@ -200,8 +200,6 @@ class MultitaskDataset(Dataset):
             if not save_smiles_and_ids:
                 self.mol_ids = None
                 self.smiles = None
-
-            self.labels = np.array(self.labels)
             self.labels_size = self.set_label_size_dict(datasets)
             self.dataset_length = len(self.labels)
             self._num_nodes_list = None
@@ -431,11 +429,16 @@ class MultitaskDataset(Dataset):
             smiles[unique_idx].append(all_lists["smiles"][all_idx])
 
         # Store the labels.
-        labels = [{} for _ in range(len(mol_ids))]
+        labels = [Data() for _ in range(len(mol_ids))]
         for all_idx, unique_idx in enumerate(inv):
-            task = all_lists["tasks"][all_idx]
+            task: str = all_lists["tasks"][all_idx]
             label = all_lists["labels"][all_idx]
             labels[unique_idx][task] = label
+
+            if all_idx < len(all_lists["features"]):
+                features = all_lists["features"][all_idx]
+                labels[unique_idx]["x"] = torch.empty((features.num_nodes, 0))
+                labels[unique_idx]["edge_index"] = torch.empty((2, features.num_edges))
 
         # Store the features
         if len(all_lists["features"]) > 0:
@@ -474,7 +477,6 @@ class MultitaskDataset(Dataset):
                 ds_features = [ds[i]["features"] for i in range(len(ds))]
             else:
                 ds_features = None
-
             all_smiles.extend(ds_smiles)
             all_labels.extend(ds_labels)
             all_mol_ids.extend(ds_mol_ids)
@@ -506,11 +508,20 @@ class MultitaskDataset(Dataset):
         for task, ds in datasets.items():
             if len(ds) == 0:
                 continue
-            label = ds[0][
-                "labels"
-            ]  # Assume for a fixed task, the label dimension is the same across data points, so we can choose the first data point for simplicity.
-            torch_label = torch.as_tensor(label)
-            # torch_label = label
+
+            valid_label = None
+            for i in range(len(ds)):
+                if ds[i] is not None:
+                    valid_label = ds[i]["labels"]
+                    break
+
+            if valid_label is None:
+                raise ValueError(f"Dataset for task {task} has no valid labels.")
+
+            # Assume for a fixed task, the label dimension is the same across data points
+            torch_label = torch.as_tensor(valid_label)
+
+            # First dimension is graph-specific
             task_labels_size[task] = torch_label.size()
         return task_labels_size
 
@@ -594,7 +605,7 @@ class FakeDataset(MultitaskDataset):
                 self.mol_ids, self.smiles, self.labels, _ = self.deepcopy_mol(
                     self.mol_ids, self.smiles, self.labels
                 )
-        self.labels = np.array(self.labels)
+
         self.labels_size = self.set_label_size_dict(datasets)
         self.features = self.features
 

@@ -29,7 +29,7 @@ class Test_DataModule(ut.TestCase):
 
         # Config for datamodule
         task_specific_args = {}
-        task_specific_args["task_1"] = {"dataset_name": dataset_name}
+        task_specific_args["task_1"] = {"task_level": "graph", "dataset_name": dataset_name}
         dm_args = {}
         dm_args["cache_data_path"] = None
         dm_args["featurization"] = featurization_args
@@ -61,7 +61,7 @@ class Test_DataModule(ut.TestCase):
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
         assert len(batch["smiles"]) == 16
-        assert len(batch["labels"]["task_1"]) == 16
+        assert len(batch["labels"]["graph_task_1"]) == 16
         assert len(batch["mol_ids"]) == 16
 
     def test_none_filtering(self):
@@ -171,7 +171,7 @@ class Test_DataModule(ut.TestCase):
 
         # Config for datamodule
         task_specific_args = {}
-        task_specific_args["task_1"] = {"dataset_name": dataset_name}
+        task_specific_args["task_1"] = {"task_level": "graph", "dataset_name": dataset_name}
         dm_args = {}
         dm_args["featurization"] = featurization_args
         dm_args["batch_size_training"] = 16
@@ -216,7 +216,7 @@ class Test_DataModule(ut.TestCase):
         # test batch loader
         batch = next(iter(ds.train_dataloader()))
         assert len(batch["smiles"]) == 16
-        assert len(batch["labels"]["task_1"]) == 16
+        assert len(batch["labels"]["graph_task_1"]) == 16
         assert len(batch["mol_ids"]) == 16
 
     def test_datamodule_with_none_molecules(self):
@@ -230,9 +230,24 @@ class Test_DataModule(ut.TestCase):
         bad_csv = "tests/data/micro_ZINC_corrupt.csv"
         task_specific_args = {}
         task_kwargs = {"df_path": bad_csv, "split_val": 0.0, "split_test": 0.0}
-        task_specific_args["task_1"] = {"label_cols": "SA", "smiles_col": "SMILES1", **task_kwargs}
-        task_specific_args["task_2"] = {"label_cols": "logp", "smiles_col": "SMILES2", **task_kwargs}
-        task_specific_args["task_3"] = {"label_cols": "score", "smiles_col": "SMILES3", **task_kwargs}
+        task_specific_args["task_1"] = {
+            "task_level": "graph",
+            "label_cols": "SA",
+            "smiles_col": "SMILES1",
+            **task_kwargs,
+        }
+        task_specific_args["task_2"] = {
+            "task_level": "graph",
+            "label_cols": "logp",
+            "smiles_col": "SMILES2",
+            **task_kwargs,
+        }
+        task_specific_args["task_3"] = {
+            "task_level": "graph",
+            "label_cols": "score",
+            "smiles_col": "SMILES3",
+            **task_kwargs,
+        }
 
         # Read the corrupted dataset and get stats
         df = pd.read_csv(bad_csv)
@@ -294,7 +309,7 @@ class Test_DataModule(ut.TestCase):
         train_labels = [{task: val[0] for task, val in d["labels"].items()} for d in datamodule.train_ds]
         train_labels_df = pd.DataFrame(train_labels)
         train_labels_df = train_labels_df.rename(
-            columns={"task_1": "SA", "task_2": "logp", "task_3": "score"}
+            columns={"graph_task_1": "graph_SA", "graph_task_2": "graph_logp", "graph_task_3": "graph_score"}
         )
         train_labels_df["smiles"] = [s[0] for s in datamodule.train_ds.smiles]
         train_labels_df = train_labels_df.set_index("smiles")
@@ -302,7 +317,7 @@ class Test_DataModule(ut.TestCase):
 
         # Check that the labels are correct
         df2 = df.reset_index()[~bad_smiles].set_index("idx_smiles").sort_index()
-        labels = train_labels_df[["SA", "logp", "score"]].values
+        labels = train_labels_df[["graph_SA", "graph_logp", "graph_score"]].values
         nans = np.isnan(labels)
         true_nans = df2[["SMILES1", "SMILES2", "SMILES3"]].values == "XXX"
         true_labels = df2[["SA", "logp", "score"]].values
@@ -316,7 +331,9 @@ class Test_DataModule(ut.TestCase):
         # Test single CSV files
         csv_file = "tests/data/micro_ZINC_shard_1.csv"
         task_kwargs = {"df_path": csv_file, "split_val": 0.0, "split_test": 0.0}
-        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+        task_specific_args = {
+            "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
+        }
 
         ds = MultitaskFromSmilesDataModule(task_specific_args)
         ds.prepare_data()
@@ -327,7 +344,9 @@ class Test_DataModule(ut.TestCase):
         # Test multi CSV files
         csv_file = "tests/data/micro_ZINC_shard_*.csv"
         task_kwargs = {"df_path": csv_file, "split_val": 0.0, "split_test": 0.0}
-        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+        task_specific_args = {
+            "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
+        }
 
         ds = MultitaskFromSmilesDataModule(task_specific_args)
         ds.prepare_data()
@@ -338,7 +357,9 @@ class Test_DataModule(ut.TestCase):
         # Test single Parquet files
         parquet_file = "tests/data/micro_ZINC_shard_1.parquet"
         task_kwargs = {"df_path": parquet_file, "split_val": 0.0, "split_test": 0.0}
-        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+        task_specific_args = {
+            "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
+        }
 
         ds = MultitaskFromSmilesDataModule(task_specific_args)
         ds.prepare_data()
@@ -349,7 +370,9 @@ class Test_DataModule(ut.TestCase):
         # Test multi Parquet files
         parquet_file = "tests/data/micro_ZINC_shard_*.parquet"
         task_kwargs = {"df_path": parquet_file, "split_val": 0.0, "split_test": 0.0}
-        task_specific_args = {"task": {"label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}}
+        task_specific_args = {
+            "task": {"task_level": "graph", "label_cols": ["score"], "smiles_col": "SMILES", **task_kwargs}
+        }
 
         ds = MultitaskFromSmilesDataModule(task_specific_args)
         ds.prepare_data()

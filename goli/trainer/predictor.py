@@ -70,6 +70,7 @@ class PredictorModule(pl.LightningModule):
         super().__init__()
 
         # Setting the model options
+        self.model_kwargs = model_kwargs
         self._model_options = ModelOptions(model_class=model_class, model_kwargs=model_kwargs)
         # Setting the optimizer options
         self.optim_options = OptimOptions(
@@ -91,10 +92,22 @@ class PredictorModule(pl.LightningModule):
             eval_options[task].check_metrics_validity()
 
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
+        self._eval_options_dict = {
+            self._get_task_key(
+                task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
+            ): value
+            for key, value in self._eval_options_dict.items()
+        }
         # Setting the flag options
         self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
 
         self.model = self._model_options.model_class(**self._model_options.model_kwargs)
+        loss_fun = {
+            self._get_task_key(
+                task_level=model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
+            ): value
+            for key, value in loss_fun.items()
+        }
         self.tasks = list(loss_fun.keys())
 
         # Task-specific evalutation attributes
@@ -179,6 +192,12 @@ class PredictorModule(pl.LightningModule):
                 if isinstance(val, torch.Tensor) and (val.is_floating_point()):
                     feats[key] = val.to(dtype=self.dtype)
         return feats
+
+    def _get_task_key(self, task_level: str, task: str):
+        task_prefix = f"{task_level}_"
+        if not task.startswith(task_prefix):
+            task = task_prefix + task
+        return task
 
     def configure_optimizers(self, impl=None):
         if impl is None:
@@ -282,6 +301,12 @@ class PredictorModule(pl.LightningModule):
         elif isinstance(preds, Tensor):
             preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
 
+        preds = {
+            self._get_task_key(
+                task_level=self.model_kwargs["task_heads_kwargs"][key]["task_level"], task=key
+            ): value
+            for key, value in preds.items()
+        }
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)

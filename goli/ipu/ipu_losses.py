@@ -2,6 +2,7 @@ import torch
 from torch import Tensor
 from torch.nn import BCELoss, MSELoss, L1Loss
 from torch._C import _infer_size
+from loguru import logger
 
 
 class BCELossIPU(BCELoss):

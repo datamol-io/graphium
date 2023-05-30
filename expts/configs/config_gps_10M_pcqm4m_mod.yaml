@@ -4,7 +4,7 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
   accelerator:
-    type: cpu  # cpu or ipu or gpu
+    type: gpu  # cpu or ipu or gpu
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -14,52 +14,75 @@ datamodule:
       homolumo:
         df: null
         task_level: "graph"
-        df_path: goli/data/PCQM4M/pcqm4mv2-20k.csv
+        df_path: ~/scratch/data/goli/data/PCQM4M/pcqm4mv2-20k.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
-        # sample_size: 6000 # use sample_size for test
-        splits_path: goli/data/PCQM4Mv2/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
-        # goli/data/PCQM4Mv2/split_dict.pt
-        # goli/data/PCQM4Mv2/pcqm4m_split.csv
-        split_names: ["train", "valid", "test-dev"]
+        # sample_size: 30000 # use sample_size for test
+        # splits_path: goli/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
+        split_val: 0.1
+        split_test: 0.1
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
-    featurization_n_jobs: 20
+    featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    cache_data_path: "./datacache"
-    processed_graph_data_path: "goli/data/PCQM4Mv2/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
     # 'num_chiral_centers (not included yet)']
+      mask_nan: 0
       atom_property_list_onehot: [atomic-number, group, period, total-valence]
       atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
       # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
       edge_property_list: [bond-type-onehot, stereo, in-ring]
+      conformer_property_list: [positions_3d]
       add_self_loop: False
       explicit_H: False # if H is included
       use_bonds_weights: False
       pos_encoding_as_features: # encoder dropout 0.18
         pos_types:
-          la_pos: &pos_enc
-            pos_type: laplacian_eigvec_eigval #laplacian_eigvec
+          node_laplacian_eigvec:
+            pos_type: laplacian_eigvec
+            pos_level: node
             num_pos: 8
-            normalization: "none" # nomrlization already applied on the eigen vectors
-            disconnected_comp: True # if eigen values/vector for disconnected graph are included
-          rw_pos: # use same name as pe_encoder
-            pos_type: rwse
-            ksteps: 16
-      # pos_encoding_as_directions: *pos_enc # Only for DGN or directional pooling
-
+            normalization: "none"
+            disconnected_comp: True
+          node_laplacian_eigval:
+            pos_type: laplacian_eigval
+            pos_level: node
+            num_pos: 8
+            normalization: "none"
+            disconnected_comp: True
+          rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: node
+            ksteps: [4, 8]
+          nodepair_rw_transition_probs:
+            pos_type: rw_transition_probs
+            pos_level: edge
+            ksteps: [2, 4]
+          nodepair_rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: nodepair
+            ksteps: [4]
+          electrostatic:
+            pos_type: electrostatic
+            pos_level: node
+          edge_commute:
+            pos_type: commute
+            pos_level: edge
+          nodepair_graphormer:
+            pos_type: graphormer
+            pos_level: nodepair
+      
     # Data handling-related
     batch_size_training: 64
     batch_size_inference: 16
     # cache_data_path: .
-    num_workers: 40 # -1 to use all
+    num_workers: 0 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
@@ -102,32 +125,63 @@ architecture:
     residual_type: none
 
   pe_encoders:
-    out_dim: 32
+    out_dim: &pe_out_dim 32
+    edge_out_dim: &edge_pe_out_dim 16
     pool: "sum" #"mean" "max"
     last_norm: None #"batch_norm", "layer_norm"
-    encoders: #la_pos |  rw_pos
-      la_pos:  # Set as null to avoid a pre-nn network
+    encoders:
+      emb_la_pos:
         encoder_type: "laplacian_pe"
         input_keys: ["laplacian_eigvec", "laplacian_eigval"]
         output_keys: ["feat"]
-        hidden_dim: 64
-        out_dim: 32
+        hidden_dim: 32
         model_type: 'DeepSet' #'Transformer' or 'DeepSet'
         num_layers: 2
         num_layers_post: 1 # Num. layers to apply after pooling
         dropout: 0.1
         first_normalization: "none" #"batch_norm" or "layer_norm"
-      rw_pos:
+      emb_rwse:
         encoder_type: "mlp"
         input_keys: ["rw_return_probs"]
         output_keys: ["feat"]
-        hidden_dim: 64
-        out_dim: 32
+        hidden_dim: 32
         num_layers: 2
         dropout: 0.1
         normalization: "layer_norm" #"batch_norm" or "layer_norm"
         first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
-
+      emb_electrostatic:
+        encoder_type: "mlp"
+        input_keys: ["electrostatic"]
+        output_keys: ["feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_edge_rwse:
+        encoder_type: "mlp"
+        input_keys: ["edge_rw_transition_probs"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_edge_pes:
+        encoder_type: "cat_mlp"
+        input_keys: ["edge_rw_transition_probs", "edge_commute"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      gaussian_pos:
+        encoder_type: "gaussian_kernel"
+        input_keys: ["positions_3d"]
+        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
+        num_heads: &num_heads 2
+        num_layers: 2
+        embed_dim: *pe_out_dim
+        use_input_keys_prefix: False
 
   gnn:  # Set as null to avoid a post-nn network
     out_dim: 32
@@ -150,9 +204,11 @@ architecture:
         out_dim: 32
         in_dim_edges: 16
         out_dim_edges: 16
-      attn_type: "none" # "full-attention", "none"
+      attn_type: "full-attention" # "full-attention", "none"
       # biased_attention: false
-      attn_kwargs: null
+      attn_kwargs:
+        num_heads: *num_heads
+      biased_attention_key: nodepair_gaussian_bias_3d
 
 
   post_nn: null
@@ -181,7 +237,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
+    max_num_epochs: &max_epochs 5
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -230,3 +286,4 @@ trainer:
     min_epochs: 1
     accumulate_grad_batches: 2
     check_val_every_n_epoch: 20
+
