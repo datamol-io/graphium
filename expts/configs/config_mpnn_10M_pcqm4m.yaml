@@ -30,7 +30,7 @@ accelerator:
 
   ipu_config:
     - deviceIterations(20) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
+    - replicationFactor(2)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -56,7 +56,7 @@ datamodule:
       homolumo:
         df: null
         task_level: "graph"
-        df_path: goli/data/PCQM4M/pcqm4mv2-20k.csv
+        df_path: goli/data/PCQM4M/pcqm4mv2.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2.csv directly
         smiles_col: "cxsmiles"
