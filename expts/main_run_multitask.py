@@ -34,7 +34,7 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 CONFIG_FILE = "expts/neurips2023_configs/config_small_mpnn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
-# os.chdir(MAIN_DIR)
+os.chdir(MAIN_DIR)
 
 class ConfigDict(dict):
     def __init__(self, *args, **kwargs):
