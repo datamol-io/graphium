@@ -10,6 +10,7 @@ from copy import deepcopy
 from goli.nn.base_layers import DropPath, TransformerEncoderLayerMup
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
+
 class test_Base_Layers(ut.TestCase):
     in_dim = 21
     out_dim = 11
@@ -68,16 +69,13 @@ class test_Base_Layers(ut.TestCase):
             batch=bg.batch,
             batch_size=self.batch_size,
             max_num_nodes_per_graph=self.max_num_nodes_per_graph,
-            drop_nodes_last_graph=False
+            drop_nodes_last_graph=False,
         )
         attn_mask = None
         key_padding_mask = ~key_padding_mask
-        
+
         h_out_dense = layer.forward(feat_dense)
 
-        h_out = to_sparse_batch(
-            h_out_dense,
-            mask_idx=idx
-        )
-        
+        h_out = to_sparse_batch(h_out_dense, mask_idx=idx)
+
         self.assertEqual(h_out.shape, feat_in.shape)
