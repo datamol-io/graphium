@@ -150,7 +150,7 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
     ) -> Tuple[Tensor, Optional[Tensor]]:
         # attn_bias [batch, num_heads, nodes, nodes]
         if not self.biased_attention or attn_bias is None:
-            attn_bias = 0.
+            attn_bias = 0.0
         # assuming source and target have the same sequence length (homogeneous graph attention)
         batch, nodes, hidden = query.size()
         assert (
