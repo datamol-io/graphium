@@ -179,6 +179,8 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
                 key_padding_mask.unsqueeze(1).unsqueeze(2),
                 key_padding_mask_value,
             )
+        else:
+            masked_attn_weights = attn_weights
         masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
         attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
         # [batch, num_heads, nodes, nodes] * [batch, num_heads, nodes, head_size] -> [batch, num_heads, nodes, head_size]
