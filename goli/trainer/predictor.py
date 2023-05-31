@@ -286,11 +286,11 @@ class PredictorModule(pl.LightningModule):
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
-            # apply denormalization for predictions
-            pred = task_specific_norm.denormalize(pred)
-            if step_name == "train":
-                # apply denormalization for targets
-                targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
+            if step_name != "train":
+                # apply denormalization for val and test predictions for correct loss and metrics evaluation
+                # targets for val and test were not normalized
+                # train loss will stay as the normalized version
+                preds[task] = task_specific_norm.denormalize(pred[task])
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
 
@@ -305,6 +305,12 @@ class PredictorModule(pl.LightningModule):
 
         device = "cpu" if to_cpu else None
         for task in preds:
+            task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
+            if step_name == "train":
+                # apply denormalization for targets and predictions for the evaluation of metrics (excluding loss)
+                # train loss will stay as the normalized version
+                preds[task] = task_specific_norm.denormalize(pred[task])
+                targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
             preds[task] = preds[task].detach().to(device=device)
             targets_dict[task] = targets_dict[task].detach().to(device=device)
         if weights is not None:
