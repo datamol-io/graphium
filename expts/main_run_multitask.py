@@ -140,11 +140,7 @@ def update_config(cfg: ConfigDict, unknown: list):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        prog='ProgramName',
-        description='What the program does',
-        epilog='Text at the bottom of help'
-    )
+    parser = argparse.ArgumentParser()
 
     parser.add_argument('--config', type=str, default='config.yaml',
                         help='Path to the configuration file')
