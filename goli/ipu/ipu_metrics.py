@@ -851,9 +851,9 @@ def mean_squared_error_ipu(preds: Tensor, target: Tensor, squared: bool) -> Tens
     loss = mean_squared_error(preds, target, squared)
 
     if squared:
-        factor = nan_targets.numel() / ((~nan_targets).sum() + 1e-07)
+        factor = nan_targets.numel() / ((~nan_targets).sum())
     else:
-        factor = (nan_targets.numel() / ((~nan_targets).sum() + 1e-07)).sqrt()
+        factor = (nan_targets.numel() / ((~nan_targets).sum())).sqrt()
 
     loss = loss * factor
 
@@ -882,6 +882,6 @@ def mean_absolute_error_ipu(preds: Tensor, target: Tensor) -> Tensor:
 
     # Compute the loss, and rescale by the number of nan elements
     loss = mean_absolute_error(preds, target)
-    loss = loss * nan_targets.numel() / ((~nan_targets).sum() + 1e-07)
+    loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
     return loss
