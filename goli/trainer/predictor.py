@@ -290,7 +290,7 @@ class PredictorModule(pl.LightningModule):
                 # apply denormalization for val and test predictions for correct loss and metrics evaluation
                 # targets for val and test were not normalized
                 # train loss will stay as the normalized version
-                preds[task] = task_specific_norm.denormalize(pred[task])
+                preds[task] = task_specific_norm.denormalize(pred)
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
 
@@ -309,7 +309,7 @@ class PredictorModule(pl.LightningModule):
             if step_name == "train":
                 # apply denormalization for targets and predictions for the evaluation of metrics (excluding loss)
                 # train loss will stay as the normalized version
-                preds[task] = task_specific_norm.denormalize(pred[task])
+                preds[task] = task_specific_norm.denormalize(preds[task])
                 targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
             preds[task] = preds[task].detach().to(device=device)
             targets_dict[task] = targets_dict[task].detach().to(device=device)
