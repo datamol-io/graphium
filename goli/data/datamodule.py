@@ -1285,11 +1285,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         """
         if self.task_norms and train:
-            for task in dataset.labels_size.keys():
-                labels = np.concatenate(
-                    [datum["labels"][task] for datum in dataset if task in datum["labels"]], axis=0
-                )
+            # for task in dataset.labels_size.keys():
+            #     labels = np.concatenate(
+            #         [datum["labels"][task] for datum in dataset if task in datum["labels"]], axis=0
+            #     )
 
+            #     self.task_norms[task].calculate_statistics(labels)
+            for task in dataset.labels_size.keys():
+                labels = np.stack(
+                    np.array([datum["labels"][task] for datum in dataset if task in datum["labels"]]), axis=0
+                )
                 self.task_norms[task].calculate_statistics(labels)
 
     def get_label_statistics(
