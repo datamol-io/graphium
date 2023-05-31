@@ -4,49 +4,49 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
-accelerator:
-  type: ipu  # cpu or ipu or gpu
-  config_override:
-    datamodule:
-      args:
-        ipu_dataloader_training_opts:
-          mode: async
-          max_num_nodes_per_graph: 24 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 60
-        ipu_dataloader_inference_opts:
-          mode: async
-          max_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 60
-        # Data handling-related
-        batch_size_training: 50
-        batch_size_inference: 50
-    predictor:
-      optim_kwargs:
-        loss_scaling: 1024
-    trainer:
-      trainer:
-        precision: 16
-        accumulate_grad_batches: 4
-
-  ipu_config:
-    - deviceIterations(20) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
-    - Precision.enableStochasticRounding(True)
-
 # accelerator:
-#   type: cpu  # cpu or ipu or gpu
+#   type: ipu  # cpu or ipu or gpu
 #   config_override:
 #     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
+#       args:
+#         ipu_dataloader_training_opts:
+#           mode: async
+#           max_num_nodes_per_graph: 24 # train max nodes: 20, max_edges: 54
+#           max_num_edges_per_graph: 60
+#         ipu_dataloader_inference_opts:
+#           mode: async
+#           max_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
+#           max_num_edges_per_graph: 60
+#         # Data handling-related
+#         batch_size_training: 50
+#         batch_size_inference: 50
+#     predictor:
+#       optim_kwargs:
+#         loss_scaling: 1024
 #     trainer:
 #       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
+#         precision: 16
+#         accumulate_grad_batches: 4
+
+#   ipu_config:
+#     - deviceIterations(20) # IPU would require large batches to be ready for the model.
+#     - replicationFactor(2)
+#     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+#     # - enableExecutableCaching("pop_compiler_cache")
+#     - TensorLocations.numIOTiles(128)
+#     - _Popart.set("defaultBufferingDepth", 128)
+#     - Precision.enableStochasticRounding(True)
+
+accelerator:
+  type: cpu  # cpu or ipu or gpu
+  config_override:
+    datamodule:
+      batch_size_training: 64
+      batch_size_inference: 256
+    trainer:
+      trainer:
+        precision: 32
+        accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -60,7 +60,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         splits_path: goli/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
         seed: *seed
         task_level: graph
@@ -74,7 +74,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         splits_path: goli/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
         seed: *seed
         task_level: graph
@@ -86,7 +86,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         splits_path: goli/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
         seed: *seed
         task_level: graph
