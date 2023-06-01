@@ -31,6 +31,7 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
             preds[task] = preds[task][:-1]
     return preds
 
+
 class PyGArgsParser(poptorch.ICustomArgParser):
     """
     This class is responsible for converting a PyG Batch from and to

@@ -353,7 +353,7 @@ def load_trainer(
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    strategy = 'auto'
+    strategy = "auto"
     if accelerator_type == "ipu":
         ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
@@ -366,12 +366,13 @@ def load_trainer(
         )
 
         from lightning_graphcore import IPUStrategy
+
         strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
     # Get devices
-    devices = cfg_trainer["trainer"].pop('devices', 1)
+    devices = cfg_trainer["trainer"].pop("devices", 1)
     if accelerator_type == "ipu":
-        devices = 1 # number of IPUs used is defined in the ipu options files
+        devices = 1  # number of IPUs used is defined in the ipu options files
 
     # Remove the gradient accumulation from IPUs, since it's handled by the device
     if accelerator_type == "ipu":
