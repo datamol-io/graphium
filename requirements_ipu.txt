@@ -4,6 +4,7 @@
 torch-scatter==2.1.0
 torch-sparse==0.6.15
 torchvision==0.14.1+cpu
-git+https://github.com/joao-alex-cunha/lightning
+git+https://github.com/Lightning-AI/lightning
+git+https://github.com/Lightning-AI/lightning-Graphcore
 
 -r ./requirements.txt
