@@ -319,6 +319,8 @@ class PredictorModule(pl.LightningModule):
             loss_fun=self.loss_fun,
             target_nan_mask=self.target_nan_mask,
             multitask_handling=self.multitask_handling,
+            batch=batch.batch or batch.node_is_true # node to graph indices for the loss computation
+            edge_is_true=batch.edge_is_true # edge to graph indices for loss computation
         )
 
         device = "cpu" if to_cpu else None

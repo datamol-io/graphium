@@ -24,6 +24,9 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
     helper function to remove the fake graph loss
     always reduce the last loss since it is the fake graph
     """
+    # identify from the task name if it's a graph, node or edge task 
+    # and decide if we use node_to_graph_indeix or edge_to_graph_index 
+    # to chop the preds and targets
     for task in targets.keys():
         if targets[task].shape == preds[task].shape:
             continue
@@ -117,8 +120,10 @@ class PredictorModuleIPU(PredictorModule):
         loss_fun: Dict[str, Callable],
         target_nan_mask: Union[Type, str] = "ignore",
         multitask_handling: Optional[str] = None,
+        node_to_graph_index: Optional[str] = None,
+        edge_to_graph_index: Optional[str] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
-        preds = remove_pad_loss(preds, targets)
+        preds = remove_pad_loss(preds, targets, node_to_graph_index, edge_to_graph_index)
 
         return PredictorModule.compute_loss(
             preds, targets, weights, loss_fun, target_nan_mask, multitask_handling

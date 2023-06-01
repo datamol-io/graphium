@@ -157,7 +157,7 @@ class CombinedBatchingCollator:
         # Stack tensors in the first dimension to allow IPUs to differentiate between local and global graph
         out_batch["labels"] = {
             key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0)
-            for key in all_batches[0]["labels"].keys()
+            for key in all_batches[0]["labels"].keys
         }
         out_graphs = [this_batch["features"] for this_batch in all_batches]
         stacked_features = deepcopy(out_graphs[0])
@@ -388,8 +388,12 @@ class Pad(BaseTransform):
                     pad_value = 0
                 else:
                     pad_value = self.edge_value
-            else:
-                continue
+            elif key.startswith("graph_"):
+                # identify graph attributes, like graph features, graph labels
+                # need to add is_graph_attr in the class
+                num_pad_graphs = 1 # we pad with one big fake graph
+                pad_shape[dim] = num_pad_graphs
+                pad_value = self.graph_value # need to initialize this in __init__
 
             pad_value = value.new_full(pad_shape, pad_value)
             fake[key] = torch.cat([pad_value], dim=dim)
