@@ -149,101 +149,47 @@ class MultiheadAttentionMup(nn.MultiheadAttention):
         **kwargs,
     ) -> Tuple[Tensor, Optional[Tensor]]:
         # attn_bias [batch, num_heads, nodes, nodes]
-        if self.biased_attention and attn_bias is not None:
-            # assuming source and target have the same sequence length (homogeneous graph attention)
-            batch, nodes, hidden = query.size()
-            assert (
-                hidden == self.embed_dim
-            ), f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
-            head_dim = self.embed_dim // self.num_heads
-            assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
-            scaling_factor = 1 / head_dim  # use head_dim instead of (head_dim**0.5) for mup
-            b_q, b_k, b_v = self.in_proj_bias.chunk(3)
-            q_proj_weight, k_proj_weight, v_proj_weight = self.in_proj_weight.chunk(3)
-            # [batch, num_heads, nodes, head_size]
-            q = linear(query, q_proj_weight, b_q).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
-            # [batch, num_heads, nodes, head_size]
-            k = linear(key, k_proj_weight, b_k).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
-            # [batch, num_heads, nodes, head_size]
-            v = linear(value, v_proj_weight, b_v).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
-            q = q * scaling_factor
-            # [batch, num_heads, nodes, nodes]
-            attn_weights = q @ k.transpose(-1, -2)
-            # [batch, num_heads, nodes, nodes]
-            attn_weights += attn_bias
-            key_padding_mask_value = float("-inf") if precision == "32" else -10000
-            # key_padding_mask: [batch, 1, 1, nodes]
-            if key_padding_mask is not None:
-                masked_attn_weights = attn_weights.masked_fill(
-                    key_padding_mask.unsqueeze(1).unsqueeze(2),
-                    key_padding_mask_value,
-                )
-            masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
-            attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
-            # [batch, num_heads, nodes, nodes] * [batch, num_heads, nodes, head_size] -> [batch, num_heads, nodes, head_size]
-            attn = attn_probs @ v
-            # [batch, nodes, embd_dim]
-            attn = attn.transpose(1, 2).contiguous().view(batch, nodes, self.embed_dim)
-            # [batch, nodes, embd_dim]
-            out = (self.out_proj(attn), None)
-        else:
-            # Patching the forward to use a different scaling for the dot-product
-            prev_fn = F._scaled_dot_product_attention
-            F._scaled_dot_product_attention = _mup_scaled_dot_product_attention
-            out = super().forward(
-                query=query, key=key, value=value, key_padding_mask=key_padding_mask, *args, **kwargs
+        if not self.biased_attention or attn_bias is None:
+            attn_bias = 0.0
+        # assuming source and target have the same sequence length (homogeneous graph attention)
+        batch, nodes, hidden = query.size()
+        assert (
+            hidden == self.embed_dim
+        ), f"query hidden dimension {hidden} != embed_dim {self.embed_dim} in class"
+        head_dim = self.embed_dim // self.num_heads
+        assert head_dim * self.num_heads == self.embed_dim, "embed_dim must be divisible by num_heads"
+        scaling_factor = 1 / head_dim  # use head_dim instead of (head_dim**0.5) for mup
+        b_q, b_k, b_v = self.in_proj_bias.chunk(3)
+        q_proj_weight, k_proj_weight, v_proj_weight = self.in_proj_weight.chunk(3)
+        # [batch, num_heads, nodes, head_size]
+        q = linear(query, q_proj_weight, b_q).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+        # [batch, num_heads, nodes, head_size]
+        k = linear(key, k_proj_weight, b_k).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+        # [batch, num_heads, nodes, head_size]
+        v = linear(value, v_proj_weight, b_v).view(batch, nodes, self.num_heads, -1).transpose(1, 2)
+        q = q * scaling_factor
+        # [batch, num_heads, nodes, nodes]
+        attn_weights = q @ k.transpose(-1, -2)
+        # [batch, num_heads, nodes, nodes]
+        attn_weights += attn_bias
+        key_padding_mask_value = float("-inf") if precision == "32" else -10000
+        # key_padding_mask: [batch, 1, 1, nodes]
+        if key_padding_mask is not None:
+            masked_attn_weights = attn_weights.masked_fill(
+                key_padding_mask.unsqueeze(1).unsqueeze(2),
+                key_padding_mask_value,
             )
-            F._scaled_dot_product_attention = prev_fn
+        else:
+            masked_attn_weights = attn_weights
+        masked_attn_weights = F.softmax(masked_attn_weights, dim=-1)
+        attn_probs = F.dropout(masked_attn_weights, p=self.dropout, training=self.training)
+        # [batch, num_heads, nodes, nodes] * [batch, num_heads, nodes, head_size] -> [batch, num_heads, nodes, head_size]
+        attn = attn_probs @ v
+        # [batch, nodes, embd_dim]
+        attn = attn.transpose(1, 2).contiguous().view(batch, nodes, self.embed_dim)
+        # [batch, nodes, embd_dim]
+        out = (self.out_proj(attn), None)
         return out
-
-
-def _mup_scaled_dot_product_attention(
-    q: Tensor,
-    k: Tensor,
-    v: Tensor,
-    attn_mask: Optional[Tensor] = None,
-    key_padding_mask: Optional[Tensor] = None,
-    dropout_p: float = 0.0,
-) -> Tuple[Tensor, Tensor]:
-    r"""
-    Computes scaled dot product attention on query, key and value tensors, using
-    an optional attention mask if passed, and applying dropout if a probability
-    greater than 0.0 is specified.
-    Returns a tensor pair containing attended values and attention weights.
-
-    This modifies the standard torch function by normalizing with `1/d` instead of `1/sqrt(d)`
-
-    Args:
-        q, k, v: query, key and value tensors. See Shape section for shape details.
-        attn_mask: optional tensor containing mask values to be added to calculated
-            attention. May be 2D or 3D; see Shape section for details.
-        dropout_p: dropout probability. If greater than 0.0, dropout is applied.
-
-    Shape:
-        - q: :math:`(B, Nt, E)` where B is batch size, Nt is the target sequence length,
-            and E is embedding dimension.
-        - key: :math:`(B, Ns, E)` where B is batch size, Ns is the source sequence length,
-            and E is embedding dimension.
-        - value: :math:`(B, Ns, E)` where B is batch size, Ns is the source sequence length,
-            and E is embedding dimension.
-        - attn_mask: either a 3D tensor of shape :math:`(B, Nt, Ns)` or a 2D tensor of
-            shape :math:`(Nt, Ns)`.
-
-        - Output: attention values have shape :math:`(B, Nt, E)`; attention weights
-            have shape :math:`(B, Nt, Ns)`
-    """
-    B, Nt, E = q.shape
-    q = q / E  # Instead of `q / math.sqrt(E)`
-    # (B, Nt, E) x (B, E, Ns) -> (B, Nt, Ns)
-    attn = torch.bmm(q, k.transpose(-2, -1))
-    if attn_mask is not None:
-        attn += attn_mask
-    attn = F.softmax(attn, dim=-1)
-    if dropout_p > 0.0:
-        attn = F.dropout(attn, p=dropout_p)
-    # (B, Nt, Ns) x (B, Ns, E) -> (B, Nt, E)
-    output = torch.bmm(attn, v)
-    return output, attn
 
 
 class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
