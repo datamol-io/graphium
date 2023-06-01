@@ -24,11 +24,7 @@ def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
     helper function to remove the fake graph loss
     always reduce the last loss since it is the fake graph
     """
-    # identify from the task name if it's a graph, node or edge task 
-    # and decide if we use node_to_graph_indeix or edge_to_graph_index 
-    # to chop the preds and targets
-    # we need to chop both preds and targets now as the targets are padded
-    # bue we only chop the attributes from the last fake graph
+
     for task in targets.keys():
         if targets[task].shape == preds[task].shape:
             continue
