@@ -19,6 +19,7 @@ from goli.nn.encoders import (
 PE_ENCODERS_DICT = {
     "laplacian_pe": laplace_pos_encoder.LapPENodeEncoder,
     "mlp": mlp_encoder.MLPEncoder,
+    "cat_mlp": mlp_encoder.CatMLPEncoder,
     "signnet": signnet_pos_encoder.SignNetNodeEncoder,
     "gaussian_kernel": gaussian_kernel_pos_encoder.GaussianKernelPosEncoder,
 }
@@ -68,7 +69,6 @@ class EncoderManager(nn.Module):
         Returns:
             pe_encoders: a nn.ModuleDict containing all positional encoders specified by encoder_name in pe_encoders_kwargs["encoders"]
         """
-        # TODO: Currently only supports PE/SE on the nodes. Need to add edges.
 
         if (pe_encoders_kwargs is None) or (len(pe_encoders_kwargs) == 0):
             return
@@ -77,41 +77,42 @@ class EncoderManager(nn.Module):
 
         # Pooling options here for pe encoders
         self.pe_pool = pe_encoders_kwargs["pool"]
-        pe_out_dim = pe_encoders_kwargs["out_dim"]
+        pe_out_dim = pe_encoders_kwargs.get("out_dim", None)
+        edge_pe_out_dim = pe_encoders_kwargs.get("edge_out_dim", None)
         in_dim_dict = pe_encoders_kwargs["in_dims"]
 
         # Loop every positional encoding to assign it
         for encoder_name, encoder_kwargs in pe_encoders_kwargs["encoders"].items():
             encoder_kwargs = deepcopy(encoder_kwargs)
             encoder_type = encoder_kwargs.pop("encoder_type")
+            output_keys = encoder_kwargs["output_keys"]
             encoder = PE_ENCODERS_DICT[encoder_type]
 
-            # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name/`
+            # Get the keys associated to in_dim. First check if there's a key that starts with `encoder_name`
             # Then check for the exact key
+
             this_in_dims = {}
-            for key, dim in in_dim_dict.items():
-                if isinstance(key, str) and key.startswith(f"{encoder_name}/"):
-                    key_name = "in_dim_" + key[len(encoder_name) + 1 :]
-                    this_in_dims[key_name] = dim
-            if len(this_in_dims) == 0:
-                for key in encoder_kwargs.get("input_keys", []):
-                    if key in in_dim_dict:
-                        this_in_dims[key] = in_dim_dict[key]
-                    else:
-                        raise ValueError(
-                            f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}/' is also not found.\n Available keys: {in_dim_dict.keys()}"
-                        )
+
+            for key in encoder_kwargs.get("input_keys", []):
+                if key in in_dim_dict:
+                    this_in_dims[key] = in_dim_dict[key]
+                else:
+                    raise ValueError(
+                        f"Key '{key}' not found in `in_dim_dict`. Encoder '{encoder_name}' is also not found.\n Available keys: {in_dim_dict.keys()}"
+                    )
 
             # Parse the in_dims based on Encoder's signature
             accepted_keys = inspect.signature(encoder).parameters.keys()
             if all([key in accepted_keys for key in this_in_dims.keys()]):
                 pass
             elif "in_dim" in accepted_keys:
-                if len(set(this_in_dims.values())) == 1:
+                if len(this_in_dims) == 1 or encoder_type == "laplacian_pe":
                     this_in_dims = {"in_dim": list(this_in_dims.values())[0]}
+                elif len(this_in_dims) > 1 and encoder_type == "cat_mlp":
+                    this_in_dims = {"in_dim": list(this_in_dims.values())}
                 else:
                     raise ValueError(
-                        f"All `in_dims` must be equal for encoder {encoder_name}. Provided: {this_in_dims}"
+                        f"All `in_dims` must be equal for encoder {encoder_name} unless edge_mlp is used. Provided: {this_in_dims}, {encoder_type}"
                     )
             else:
                 raise ValueError(
@@ -123,10 +124,16 @@ class EncoderManager(nn.Module):
                 encoder_kwargs["max_num_nodes_per_graph"] = self.max_num_nodes_per_graph
 
             # Initialize the pe_encoder layer
-            pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
-            if pe_out_dim2 is not None:
-                assert pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
-            pe_encoders[encoder_name] = encoder(out_dim=pe_out_dim, **this_in_dims, **encoder_kwargs)
+            if output_keys[0] == "feat":
+                pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
+                if pe_out_dim2 is not None:
+                    assert pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
+                pe_encoders[encoder_name] = encoder(out_dim=pe_out_dim, **this_in_dims, **encoder_kwargs)
+            elif output_keys[0] == "edge_feat":
+                pe_out_dim2 = encoder_kwargs.pop("out_dim", None)
+                if pe_out_dim2 is not None:
+                    assert edge_pe_out_dim == pe_out_dim2, f"values mismatch {pe_out_dim}!={pe_out_dim2}"
+                pe_encoders[encoder_name] = encoder(out_dim=edge_pe_out_dim, **this_in_dims, **encoder_kwargs)
 
         return pe_encoders
 
@@ -188,7 +195,7 @@ class EncoderManager(nn.Module):
             return {}
 
         encoder_outs = []
-        # Run every node positional-encoder
+        # Run every node and edge positional-encoder
         for encoder_name, encoder in self.pe_encoders.items():
             encoder_outs.append(encoder(g, key_prefix=encoder_name))
 
@@ -198,7 +205,7 @@ class EncoderManager(nn.Module):
             for key in set().union(*encoder_outs)
         }
 
-        # Pool the node positional encodings
+        # Pool the node and edge positional encodings
         pe_pooled = {}
         for key, pe_cat in pe_cats.items():
             pe_pooled[key] = self.forward_simple_pooling(pe_cat, pooling=self.pe_pool, dim=-1)
@@ -246,7 +253,8 @@ class EncoderManager(nn.Module):
                 key: encoder.make_mup_base_kwargs(divide_factor=divide_factor, factor_in_dim=False)
                 for key, encoder in self.pe_encoders.items()
             }
-            pe_kw["out_dim"] = round(pe_kw["out_dim"] / divide_factor)
+            pe_kw["out_dim"] = round(pe_kw.get("out_dim", 0) / divide_factor)
+            pe_kw["edge_out_dim"] = round(pe_kw.get("edge_out_dim", 0) / divide_factor)
             for key, enc in pe_kw["encoders"].items():
                 new_pe_kw[key].pop("in_dim", None)
                 new_pe_kw[key].pop("in_dim_edges", None)

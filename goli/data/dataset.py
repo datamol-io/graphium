@@ -147,6 +147,7 @@ class MultitaskDataset(Dataset):
         about: str = "",
         data_path: Optional[Union[str, os.PathLike]] = None,
         load_from_file: bool = False,
+        files_ready: bool = False,
     ):
         r"""
         This class holds the information for the multitask dataset.
@@ -168,9 +169,9 @@ class MultitaskDataset(Dataset):
             progress: Whether to display the progress bar
             save_smiles_and_ids: Whether to save the smiles and ids for the dataset. If `False`, `mol_ids` and `smiles` are set to `None`
             about: A description of the dataset
-
-        progress: Whether to display the progress bar
+            progress: Whether to display the progress bar
             about: A description of the dataset
+            files_ready: Whether the files to load from were prepared ahead of time
         """
         super().__init__()
         # self.datasets = datasets
@@ -182,32 +183,101 @@ class MultitaskDataset(Dataset):
         self.data_path = data_path
         self.load_from_file = load_from_file
 
-        task = next(iter(datasets))
-        self.features = None
-        if (len(datasets[task]) > 0) and ("features" in datasets[task][0]):
-            self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
-        else:
-            self.mol_ids, self.smiles, self.labels = self.merge(datasets)
-        # Set mol_ids and smiles to None to save memory as they are not needed.
-        if not save_smiles_and_ids:
-            self.mol_ids = None
-            self.smiles = None
-
-        self.labels = np.array(self.labels)
-        self.labels_size = self.set_label_size_dict(datasets)
-        self.dataset_length = len(self.labels)
-        if self.features is not None:
-            self.num_nodes_list = get_num_nodes_per_graph(self.features)
-            self.num_edges_list = get_num_edges_per_graph(self.features)
-        if self.load_from_file:
+        if files_ready:
+            assert load_from_file
+            self._load_metadata()
             self.features = None
             self.labels = None
+
+        else:
+            task = next(iter(datasets))
+            self.features = None
+            if (len(datasets[task]) > 0) and ("features" in datasets[task][0]):
+                self.mol_ids, self.smiles, self.labels, self.features = self.merge(datasets)
+            else:
+                self.mol_ids, self.smiles, self.labels = self.merge(datasets)
+            # Set mol_ids and smiles to None to save memory as they are not needed.
+            if not save_smiles_and_ids:
+                self.mol_ids = None
+                self.smiles = None
+
+            self.labels = np.array(self.labels)
+            self.labels_size = self.set_label_size_dict(datasets)
+            self.dataset_length = len(self.labels)
+            self._num_nodes_list = None
+            self._num_edges_list = None
+            if self.features is not None:
+                self._num_nodes_list = get_num_nodes_per_graph(self.features)
+                self._num_edges_list = get_num_edges_per_graph(self.features)
+            if self.load_from_file:
+                self.features = None
+                self.labels = None
+
+    def save_metadata(self, directory: str):
+        """
+        Save everything other than features/labels
+        """
+        attrs_to_save = [
+            "mol_ids",
+            "smiles",
+            "labels_size",
+            "dataset_length",
+            "_num_nodes_list",
+            "_num_edges_list",
+        ]
+        attrs = {attr: getattr(self, attr) for attr in attrs_to_save}
+
+        path = os.path.join(directory, "multitask_metadata.pkl")
+
+        torch.save(attrs, path, pickle_protocol=4)
+
+    def _load_metadata(self):
+        """
+        Load everything other than features/labels
+        """
+        attrs_to_load = [
+            "mol_ids",
+            "smiles",
+            "labels_size",
+            "dataset_length",
+            "_num_nodes_list",
+            "_num_edges_list",
+        ]
+        path = os.path.join(self.data_path, "multitask_metadata.pkl")
+        attrs = torch.load(path)
+
+        for attr, value in attrs.items():
+            setattr(self, attr, value)
 
     def __len__(self):
         r"""
         Returns the number of molecules
         """
         return self.dataset_length
+
+    @property
+    def num_nodes_list(self):
+        """
+        The number of nodes per graph
+        """
+        if self._num_nodes_list is None:
+            if len(self) == 0:
+                self._num_nodes_list = []
+            else:
+                self._num_nodes_list = get_num_nodes_per_graph(self.features)
+        return self._num_nodes_list
+
+    @property
+    def num_edges_list(self):
+        """
+        The number of edges per graph
+        """
+        if self._num_edges_list is None:
+            if len(self) == 0:
+                self._num_edges_list = []
+            else:
+                self._num_edges_list = get_num_edges_per_graph(self.features)
+        return self._num_edges_list
 
     @property
     def num_graphs_total(self):
@@ -219,51 +289,71 @@ class MultitaskDataset(Dataset):
     @property
     def num_nodes_total(self):
         """Total number of nodes for all graphs"""
+        if len(self) == 0:
+            return
         return sum(self.num_nodes_list)
 
     @property
     def max_num_nodes_per_graph(self):
         """Maximum number of nodes per graph"""
+        if len(self) == 0:
+            return
         return max(self.num_nodes_list)
 
     @property
     def std_num_nodes_per_graph(self):
         """Standard deviation of number of nodes per graph"""
+        if len(self) == 0:
+            return
         return np.std(self.num_nodes_list)
 
     @property
     def min_num_nodes_per_graph(self):
         """Minimum number of nodes per graph"""
+        if len(self) == 0:
+            return
         return min(self.num_nodes_list)
 
     @property
     def mean_num_nodes_per_graph(self):
         """Average number of nodes per graph"""
+        if len(self) == 0:
+            return
         return self.num_nodes_total / self.num_graphs_total
 
     @property
     def num_edges_total(self):
         """Total number of edges for all graphs"""
+        if len(self) == 0:
+            return
         return sum(self.num_edges_list)
 
     @property
     def max_num_edges_per_graph(self):
         """Maximum number of edges per graph"""
+        if len(self) == 0:
+            return
         return max(self.num_edges_list)
 
     @property
     def min_num_edges_per_graph(self):
         """Minimum number of edges per graph"""
+        if len(self) == 0:
+            return
         return min(self.num_edges_list)
 
     @property
     def std_num_edges_per_graph(self):
         """Standard deviation of number of nodes per graph"""
+        if len(self) == 0:
+            return
         return np.std(self.num_edges_list)
 
     @property
     def mean_num_edges_per_graph(self):
         """Average number of edges per graph"""
+        if len(self) == 0:
+            return
         return self.num_edges_total / self.num_graphs_total
 
     @lru_cache(maxsize=16)

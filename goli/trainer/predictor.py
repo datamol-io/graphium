@@ -3,6 +3,7 @@ from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import numpy as np
 from copy import deepcopy
 import time
+from loguru import logger
 
 import torch
 from torch import nn, Tensor
@@ -87,6 +88,8 @@ class PredictorModule(lightning.LightningModule):
                 if metrics_on_training_set is not None
                 else None,
             )
+            eval_options[task].check_metrics_validity()
+
         self._eval_options_dict: Dict[str, EvalOptions] = eval_options
         # Setting the flag options
         self._flag_options = FlagOptions(flag_kwargs=flag_kwargs)
@@ -143,6 +146,7 @@ class PredictorModule(lightning.LightningModule):
         self.mean_val_tput_tracker = MovingAverageTracker()
         self.validation_step_outputs = []
         self.test_step_outputs = []
+        self.epoch_start_time = None
 
     def forward(
         self, inputs: Dict
@@ -485,6 +489,17 @@ class PredictorModule(lightning.LightningModule):
 
         return metrics_logs  # Consider returning concatenated dict for tensorboard
 
+    def on_train_epoch_start(self) -> None:
+        self.epoch_start_time = time.time()
+
+    def on_train_epoch_end(self) -> None:
+        if self.epoch_start_time is None:
+            logger.warning("epoch timer not initialized")
+        else:
+            epoch_time = time.time() - self.epoch_start_time
+            self.epoch_start_time = None
+            self.log("epoch_time", torch.tensor(epoch_time))
+
     def on_validation_epoch_start(self) -> None:
         self.mean_val_time_tracker.reset()
         self.mean_val_tput_tracker.reset()
@@ -510,8 +525,8 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
         lr = self.optimizers().param_groups[0]["lr"]
-        metrics_logs["lr"] = lr
-        metrics_logs["n_epochs"] = self.current_epoch
+        concatenated_metrics_logs["lr"] = lr
+        concatenated_metrics_logs["n_epochs"] = self.current_epoch
         self.log_dict(concatenated_metrics_logs)
 
         # Save yaml file with the per-task metrics summaries

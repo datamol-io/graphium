@@ -12,7 +12,7 @@ import torch
 from torch.utils.data.dataloader import default_collate
 
 # Current library imports
-from goli.config._loader import load_datamodule, load_metrics, load_architecture
+from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
 
 
 def random_packing(num_nodes, batch_size):
@@ -281,13 +281,14 @@ class test_DataLoading(ut.TestCase):
         CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
+        cfg, accelerator = load_accelerator(cfg)
         cfg["datamodule"]["args"]["batch_size_training"] = batch_size
         cfg["datamodule"]["args"]["batch_size_inference"] = batch_size
         node_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_nodes_per_graph"]
         edge_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_edges_per_graph"]
 
         # Load the datamodule, and prepare the data
-        datamodule = load_datamodule(cfg)
+        datamodule = load_datamodule(cfg, accelerator_type="ipu")
         datamodule.prepare_data()
         datamodule.setup()
         datamodule.ipu_training_opts = training_opts

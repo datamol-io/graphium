@@ -5,6 +5,8 @@ from torch_geometric.data import Batch
 from typing import Tuple
 from torch import Tensor
 
+from torch_geometric.typing import SparseTensor
+
 from goli.nn.base_layers import MLP, get_norm
 from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
@@ -90,8 +92,14 @@ class PreprocessPositions(nn.Module):
         )
         # check nan with the pos from to_dense_batch,
         # and generate mask. 1 for nan, 0 for other values.
-        # [batch, nodes]
-        nan_mask = torch.isnan(pos)[:, :, 0]
+        # pos consists of real nodes and padding nodes
+        # for real nodes, if 3d position does not exit, it is nans. For padding nodes, 3d positions will be 0
+        # if the first node of a molecule has 3d position as nan, the whole molecule will be masked out.
+        # [batch]
+        nan_mask = torch.isnan(pos)[:, 0, 0]
+        # apply nan_mask on pos so that it does not give nan gradient
+        # when applying gaussian kernels
+        pos.masked_fill_(nan_mask.unsqueeze(1).unsqueeze(2), 0.0)
         # we need the opposite of mask output
         padding_mask = ~mask
         # [batch, nodes]
@@ -113,14 +121,14 @@ class PreprocessPositions(nn.Module):
             float("-1000"),
         )
         # apply nan_mask on attn_bias
-        # unsqueezed mask size: [batch, 1, 1, nodes] apply on tensor [batch, num_heads, nodes, nodes]
+        # unsqueezed mask size: [batch, 1, 1, 1] apply on tensor [batch, num_heads, nodes, nodes]
         attn_bias.masked_fill_(
-            nan_mask.unsqueeze(1).unsqueeze(2),
+            nan_mask.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1),
             0.0,
         )
         # apply padding_mask on distance_feature
         # unsqueezed mask size: [batch, 1, nodes, 1] apply on tensor [batch, nodes, nodes, num_kernel]
-        distance_feature.masked_fill(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
+        distance_feature.masked_fill_(padding_mask.unsqueeze(1).unsqueeze(-1).to(torch.bool), 0.0)
         # [batch, nodes, num_kernel]
         distance_feature_sum = distance_feature.sum(dim=-2)
         # Output of GaussianLayer is FP32, cast to dtype of self.node_proj here
@@ -128,8 +136,8 @@ class PreprocessPositions(nn.Module):
         # [batch, nodes, embed_dim]
         node_feature = self.node_proj(distance_feature_sum)
         # apply nan_mask on node_feature
-        # unsqueezed mask size: [batch, nodes, 1] apply on tensor [batch, nodes, embed_dim]
-        node_feature.masked_fill(nan_mask.unsqueeze(-1).to(torch.bool), 0.0)
+        # unsqueezed mask size: [batch, 1, 1] apply on tensor [batch, nodes, embed_dim]
+        node_feature.masked_fill_(nan_mask.unsqueeze(1).unsqueeze(2).to(torch.bool), 0.0)
         # [total_nodes, embed_dim]
         node_feature = to_sparse_batch(node_feature, idx)
 
@@ -164,3 +172,47 @@ class GaussianLayer(nn.Module):
         # [batch, nodes, nodes, num_kernels]
         tensor_with_kernel = torch.exp(-0.5 * (((expanded_input - mean) / std) ** 2)) / (pre_exp_factor * std)
         return tensor_with_kernel
+
+
+def triplets(
+    edge_index: Tensor,
+    num_nodes: int,
+) -> Tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
+    r"""Generates triplets from the given edge indices.
+        A triplet is defined as a path of length two,
+        such that if node A is connected to node B,
+        and node B is connected to node C, then there is a triplet (A, B, C).
+
+    Parameters:
+        edge_index (LongTensor): The edge indices.
+        num_nodes (int): The number of nodes.
+
+    Returns:
+        col: The sink node indices of edges from the edge indices.
+        row: The source node indices of edges from the edge indices.
+        idx_i: The sink node indices of the triplets.
+        idx_j: The middle node indices of the triplets.
+        idx_k: The source node indices of the triplets.
+        idx_kj: The indices of edges those from the source node to the middle node.
+        idx_ji: The indices of edges those from the middle node to the sink node.
+    """
+    row, col = edge_index  # j->i
+
+    value = torch.arange(row.size(0), device=row.device)
+    adj_t = SparseTensor(row=col, col=row, value=value, sparse_sizes=(num_nodes, num_nodes))
+    adj_t_row = adj_t[row]
+    num_triplets = adj_t_row.set_value(None).sum(dim=1).to(torch.long)
+
+    # Node indices (k->j->i) for triplets.
+    idx_i = col.repeat_interleave(num_triplets)
+    idx_j = row.repeat_interleave(num_triplets)
+    idx_k = adj_t_row.storage.col()
+
+    # Remove self-loop triplets d->b->d
+    mask = idx_i != idx_k  # Remove i == k triplets.
+    idx_i, idx_j, idx_k = idx_i[mask], idx_j[mask], idx_k[mask]
+
+    # Edge indices (k->j, j->i) for triplets.
+    idx_kj = adj_t_row.storage.value()[mask]
+    idx_ji = adj_t_row.storage.row()[mask]
+    return col, row, idx_i, idx_j, idx_k, idx_kj, idx_ji

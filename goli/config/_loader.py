@@ -23,7 +23,7 @@ from lightning.pytorch.loggers import WandbLogger, Logger
 from goli.utils.mup import set_base_shapes
 from goli.ipu.ipu_dataloader import IPUDataloaderOptions
 from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphNetwork, FullGraphMultiTaskNetwork
+from goli.nn.architectures import FullGraphMultiTaskNetwork
 from goli.nn.utils import MupMixin
 from goli.trainer.predictor import PredictorModule
 from goli.utils.spaces import DATAMODULE_DICT
@@ -32,7 +32,7 @@ from goli.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
 
 
 def get_accelerator(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    config_acc: Union[omegaconf.DictConfig, Dict[str, Any]],
 ) -> str:
     """
     Get the accelerator from the config file, and ensure that they are
@@ -40,74 +40,46 @@ def get_accelerator(
     """
 
     # Get the accelerator type
-    accelerator = config["constants"].get("accelerator")
-    acc_type = None
-    if isinstance(accelerator, Mapping):
-        acc_type = accelerator.get("type", None)
-    if acc_type is not None:
-        acc_type = acc_type.lower()
+    accelerator_type = config_acc["type"]
 
     # Get the GPU info
-    if (acc_type == "gpu") and (not torch.cuda.is_available()):
+    if (accelerator_type == "gpu") and (not torch.cuda.is_available()):
         logger.warning(f"GPUs selected, but will be ignored since no GPU are available on this device")
-        acc_type = "cpu"
+        accelerator_type = "cpu"
 
     # Get the IPU info
-    if acc_type == "ipu":
+    if accelerator_type == "ipu":
         poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
             logger.warning(f"IPUs selected, but will be ignored since no IPU are available on this device")
-            acc_type = "cpu"
+            accelerator_type = "cpu"
 
     # Fall on cpu at the end
-    if acc_type is None:
-        acc_type = "cpu"
-    return acc_type
+    if accelerator_type is None:
+        accelerator_type = "cpu"
+    return accelerator_type
 
 
-def _get_ipu_options_files(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
+def _get_ipu_opts(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[str, str]:
     r"""
     Get the paths of the IPU-specific config files from the main YAML config
     """
 
-    accelerator_options = config.get("accelerator_options", None)
+    accelerator_options = config["accelerator"]
+    accelerator_type = accelerator_options["type"]
 
-    if accelerator_options is None:
-        ipu_training_config_path = "expts/configs/ipu.config"
-        ipu_inference_config_overrides_path = None
-    else:
-        ipu_training_config_path = accelerator_options.get("ipu_options_file")
-        ipu_inference_config_overrides_path = accelerator_options.get("ipu_inference_overrides_file", None)
+    if accelerator_type != "ipu":
+        return None, None
 
-    if pathlib.Path(ipu_training_config_path).is_file():
-        ipu_training_config_filename = ipu_training_config_path
-    else:
-        raise ValueError(
-            "IPU configuration path must be specified "
-            "and must be a file, instead got "
-            f'"{ipu_training_config_path}"'
-        )
+    ipu_opts = accelerator_options["ipu_config"]
+    ipu_inference_opts = accelerator_options.get("ipu_inference_config", None)
 
-    if ipu_inference_config_overrides_path is not None:
-        if pathlib.Path(ipu_inference_config_overrides_path).is_file():
-            ipu_inference_config_overrides_filename = ipu_inference_config_overrides_path
-        else:
-            raise ValueError(
-                "IPU inference override config must be a file if specified, "
-                f'instead got "{ipu_training_config_path}"'
-            )
-
-    else:
-        warnings.warn(
-            "IPU inference overrides configuration either not specified "
-            "or not a file, using same options for training and inference"
-        )
-        ipu_inference_config_overrides_filename = None
-
-    return ipu_training_config_filename, ipu_inference_config_overrides_filename
+    return ipu_opts, ipu_inference_opts
 
 
-def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> BaseDataModule:
+def load_datamodule(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]], accelerator_type: str
+) -> BaseDataModule:
     """
     Load the datamodule from the specified configurations at the key
     `datamodule: args`.
@@ -115,6 +87,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
 
     Parameters:
         config: The config file, with key `datamodule: args`
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
     Returns:
         datamodule: The datamodule used to process and load the data
     """
@@ -124,7 +97,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
     # Instanciate the datamodule
     module_class = DATAMODULE_DICT[config["datamodule"]["module_type"]]
 
-    if get_accelerator(config) != "ipu":
+    if accelerator_type != "ipu":
         datamodule = module_class(
             **config["datamodule"]["args"],
         )
@@ -132,7 +105,7 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
 
     # IPU specific adjustments
     else:
-        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+        ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
         # Default empty values for the IPU configurations
         ipu_training_opts, ipu_inference_opts = None, None
@@ -140,10 +113,11 @@ def load_datamodule(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Base
         ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
         ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
         ipu_training_opts, ipu_inference_opts = load_ipu_options(
-            ipu_file=ipu_training_config_file,
+            ipu_opts=ipu_opts,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
+            ipu_inference_opts=ipu_inference_opts,
         )
 
         # Define the Dataloader options for the IPU on the training sets
@@ -200,7 +174,7 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
 def load_architecture(
     config: Union[omegaconf.DictConfig, Dict[str, Any]],
     in_dims: Dict[str, int],
-) -> Union[FullGraphNetwork, torch.nn.Module]:
+) -> Union[FullGraphMultiTaskNetwork, torch.nn.Module]:
     """
     Loading the architecture used for training.
     Parameters:
@@ -218,9 +192,7 @@ def load_architecture(
 
     # Select the architecture
     model_type = cfg_arch["model_type"].lower()
-    if model_type == "fullgraphnetwork":
-        model_class = FullGraphNetwork
-    elif model_type == "fullgraphmultitasknetwork":
+    if model_type == "fullgraphmultitasknetwork":
         model_class = FullGraphMultiTaskNetwork
     else:
         raise ValueError(f"Unsupported model_type=`{model_type}`")
@@ -233,7 +205,9 @@ def load_architecture(
     pre_nn_kwargs = dict(cfg_arch["pre_nn"]) if cfg_arch["pre_nn"] is not None else None
     pre_nn_edges_kwargs = dict(cfg_arch["pre_nn_edges"]) if cfg_arch["pre_nn_edges"] is not None else None
     gnn_kwargs = dict(cfg_arch["gnn"])
-    post_nn_kwargs = dict(cfg_arch["post_nn"]) if cfg_arch["post_nn"] is not None else None
+    graph_output_nn_kwargs = (
+        dict(cfg_arch["graph_output_nn"]) if cfg_arch["graph_output_nn"] is not None else None
+    )
     task_heads_kwargs = (
         cfg_arch["task_heads"] if cfg_arch["task_heads"] is not None else None
     )  # This is of type ListConfig containing TaskHeadParams
@@ -246,33 +220,31 @@ def load_architecture(
         pe_encoders_kwargs.setdefault(
             "in_dims", in_dims
         )  # set the input dimensions of all pe with info from the data-module
-    pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs["out_dim"]
+    pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs.get("out_dim", None)
+    edge_pe_out_dim = 0 if pe_encoders_kwargs is None else pe_encoders_kwargs.get("edge_out_dim", None)
 
     # Set the default `node` input dimension for the pre-processing neural net and graph neural net
+    in_dim = in_dims["feat"]
+    if pe_out_dim is not None:
+        in_dim += pe_out_dim
     if pre_nn_kwargs is not None:
         pre_nn_kwargs = dict(pre_nn_kwargs)
-        pre_nn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
+        pre_nn_kwargs.setdefault("in_dim", in_dim)
     else:
-        gnn_kwargs.setdefault("in_dim", in_dims["feat"] + pe_out_dim)
+        gnn_kwargs.setdefault("in_dim", in_dim)
 
     # Set the default `edge` input dimension for the pre-processing neural net and graph neural net
+    edge_in_dim = in_dims["edge_feat"]
+    if edge_pe_out_dim is not None:
+        edge_in_dim += edge_pe_out_dim
     if pre_nn_edges_kwargs is not None:
         pre_nn_edges_kwargs = dict(pre_nn_edges_kwargs)
-        pre_nn_edges_kwargs.setdefault("in_dim", in_dims["edge_feat"])
+        pre_nn_edges_kwargs.setdefault("in_dim", edge_in_dim)
     else:
-        gnn_kwargs.setdefault("in_dim_edges", in_dims["edge_feat"])
+        gnn_kwargs.setdefault("in_dim", edge_in_dim)
 
     # Set the parameters for the full network
     task_heads_kwargs = omegaconf.OmegaConf.to_object(task_heads_kwargs)
-
-    accelerator_kwargs = (
-        dict(cfg_arch["accelerator_options"])
-        if cfg_arch.get("accelerator_options", None) is not None
-        else None
-    )
-
-    if accelerator_kwargs is not None:
-        accelerator_kwargs["_accelerator"] = get_accelerator(config)
 
     # Set all the input arguments for the model
     model_kwargs = dict(
@@ -280,9 +252,8 @@ def load_architecture(
         pre_nn_kwargs=pre_nn_kwargs,
         pre_nn_edges_kwargs=pre_nn_edges_kwargs,
         pe_encoders_kwargs=pe_encoders_kwargs,
-        post_nn_kwargs=post_nn_kwargs,
+        graph_output_nn_kwargs=graph_output_nn_kwargs,
         task_heads_kwargs=task_heads_kwargs,
-        accelerator_kwargs=accelerator_kwargs,
     )
 
     return model_class, model_kwargs
@@ -293,17 +264,19 @@ def load_predictor(
     model_class: Type[torch.nn.Module],
     model_kwargs: Dict[str, Any],
     metrics: Dict[str, MetricWrapper],
+    accelerator_type: str,
     task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
     Defining the predictor module, which handles the training logic from `lightning.LighningModule`
     Parameters:
         model_class: The torch Module containing the main forward function
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
     Returns:
         predictor: The predictor module
     """
 
-    if get_accelerator(config) == "ipu":
+    if accelerator_type == "ipu":
         from goli.ipu.ipu_wrapper import PredictorModuleIPU
 
         predictor_class = PredictorModuleIPU
@@ -362,13 +335,17 @@ def load_mup(mup_base_path: str, predictor: PredictorModule) -> PredictorModule:
 
 
 def load_trainer(
-    config: Union[omegaconf.DictConfig, Dict[str, Any]], run_name: str, date_time_suffix: str = ""
+    config: Union[omegaconf.DictConfig, Dict[str, Any]],
+    run_name: str,
+    accelerator_type: str,
+    date_time_suffix: str = "",
 ) -> Trainer:
     """
     Defining the pytorch-lightning Trainer module.
     Parameters:
         config: The config file, with key `trainer`
         run_name: The name of the current run. To be used for logging.
+        accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
         date_time_suffix: The date and time of the current run. To be used for logging.
     Returns:
         trainer: the trainer module
@@ -377,13 +354,12 @@ def load_trainer(
 
     # Define the IPU plugin if required
     strategy = 'auto'
-    accelerator = get_accelerator(config)
-    if accelerator == "ipu":
-        ipu_training_config_file, ipu_inference_config_overrides_file = _get_ipu_options_files(config)
+    if accelerator_type == "ipu":
+        ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
         training_opts, inference_opts = load_ipu_options(
-            ipu_file=ipu_training_config_file,
-            ipu_inference_overrides=ipu_inference_config_overrides_file,
+            ipu_opts=ipu_opts,
+            ipu_inference_opts=ipu_inference_opts,
             seed=config["constants"]["seed"],
             model_name=config["constants"]["name"],
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
@@ -394,11 +370,11 @@ def load_trainer(
 
     # Get devices
     devices = cfg_trainer["trainer"].pop('devices', 1)
-    if accelerator == "ipu":
+    if accelerator_type == "ipu":
         devices = 1 # number of IPUs used is defined in the ipu options files
 
     # Remove the gradient accumulation from IPUs, since it's handled by the device
-    if accelerator == "ipu":
+    if accelerator_type == "ipu":
         cfg_trainer["trainer"].pop("accumulate_grad_batches", None)
 
     # Define the early stopping parameters
@@ -424,7 +400,7 @@ def load_trainer(
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
-        accelerator=accelerator,
+        accelerator=accelerator_type,
         devices=devices,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
@@ -469,3 +445,47 @@ def save_params_to_wandb(
     if wandb_run is not None:
         wandb_run.save("*.yaml")
         wandb_run.save("*.pickle")
+
+
+def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tuple[Dict[str, Any], str]:
+    config = deepcopy(config)
+    config_acc = config.get("accelerator", {})
+
+    # Merge the accelerator config with the main config
+    config_override = config_acc.get("config_override", {})
+    merge_dicts(config, config_override)
+    accelerator_type = get_accelerator(config_acc)
+
+    return config, accelerator_type
+
+
+def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_path: str = "") -> None:
+    """
+    Recursively merges dict_b into dict_a. If a key is missing from dict_a,
+    it is added from dict_b. If a key exists in both, an error is raised.
+    `dict_a` is modified in-place.
+
+    Parameters:
+        dict_a: The dictionary to merge into. Modified in-place.
+        dict_b: The dictionary to merge from.
+        previous_dict_path: The key path of the parent dictionary,
+        used to track the recursive calls.
+
+    Raises:
+        ValueError: If a key path already exists in dict_a.
+
+    """
+    for key, value_b in dict_b.items():
+        if key not in dict_a:
+            dict_a[key] = value_b
+        else:
+            value_a = dict_a[key]
+            if previous_dict_path == "":
+                previous_dict_path = key
+            else:
+                previous_dict_path = f"{previous_dict_path}/{key}"
+            if isinstance(value_a, dict) and isinstance(value_b, dict):
+                merge_dicts(value_a, value_b, previous_dict_path=previous_dict_path)
+            else:
+                if value_a != value_b:
+                    raise ValueError(f"Dict path already exists: {previous_dict_path}")

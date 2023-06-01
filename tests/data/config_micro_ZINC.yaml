@@ -83,7 +83,7 @@ architecture:
       aggregators: [mean, max, dir1/dx_abs, dir1/smooth]
       scalers: [identity, amplification, attenuation]
 
-  post_nn:
+  graph_output_nn:
     out_dim: 1
     hidden_dims: 32
     depth: 2
@@ -121,6 +121,7 @@ metrics:
 
   - name: f1 > 3
     metric: f1
+    target_to_int: True
     num_classes: 2
     average: micro
     threshold_kwargs: &threshold_3
@@ -128,10 +129,10 @@ metrics:
       threshold: 3
       th_on_preds: True
       th_on_target: True
-      target_to_int: True
 
   - name: f1 > 5
     metric: f1
+    target_to_int: True
     num_classes: 2
     average: micro
     threshold_kwargs:
@@ -139,7 +140,6 @@ metrics:
       threshold: 5
       th_on_preds: True
       th_on_target: True
-      target_to_int: True
 
   - name: precision > 3
     metric: precision

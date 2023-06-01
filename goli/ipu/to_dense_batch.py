@@ -66,8 +66,12 @@ def to_dense_batch(
             "provided during compilation instead of determined at runtime"
         )
         batch_size = int(batch.max()) + 1
-
-    num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
+    if x.device not in ["ipu", "xla"]:
+        num_nodes = scatter_add(batch.new_ones(x.size(0)), batch, dim=0, dim_size=batch_size)
+    else:
+        # Can't use scatter_add here due to PopTorch bug, will be fixed in SDK 3.3
+        arange = torch.arange(batch_size).unsqueeze(-1)
+        num_nodes = batch.eq(arange).sum(dim=-1)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
 
     if max_num_nodes_per_graph is None:  # Must be provided on IPU
@@ -101,8 +105,17 @@ def to_dense_batch(
     if x.device.type in ("ipu", "xla"):
         mask = torch.zeros(mask_sz, dtype=torch.int32, device="cpu")
         mask = mask.to(x.device)
-        mask[idx] = 1
-        mask = mask.bool()
+        # Can't use mask[idx] here due to PopTorch bug, will be fixed in SDK 3.3
+        # mask[idx] = 1
+        # mask = mask.bool()
+        if drop_nodes_last_graph:
+            num_nodes_with_padding = torch.cat((num_nodes, torch.tensor([0], dtype=torch.int32)), dim=0)
+        else:
+            num_nodes_with_padding = num_nodes
+
+        arange = torch.arange(max_num_nodes_per_graph)
+        mask = num_nodes_with_padding.unsqueeze(-1).gt(arange).flatten()
+
     else:
         mask = torch.zeros(mask_sz, dtype=torch.bool, device=x.device)
         mask[idx] = 1

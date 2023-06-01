@@ -9,6 +9,7 @@ Replace the usage of **kwargs by adding checks to make sure that everything is t
 Add the post-init function to do the checks immediately.
 """
 
+from copy import deepcopy
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 from inspect import signature, isclass
@@ -124,7 +125,9 @@ class EvalOptions:
     Parameters:
         loss_fun:
             Loss function used during training.
-            Acceptable strings are 'mse', 'bce', 'mae', 'cosine'.
+            Acceptable strings are goli.utils.spaces.LOSS_DICT.keys().
+            If a dict, must contain a 'name' key with one of the acceptable loss function strings
+            as a value. The rest of the dict will be used as the arguments passed to the loss object.
             Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
 
         metrics:
@@ -139,22 +142,39 @@ class EvalOptions:
             If `None`, all the metrics are computed. Using less metrics can significantly improve
             performance, depending on the number of readouts.
     """
-    loss_fun: Union[str, Callable]
+    loss_fun: Union[str, Dict, Callable]
     metrics: Dict[str, Callable] = None
     metrics_on_progress_bar: List[str] = field(default_factory=List[str])
     metrics_on_training_set: Optional[List[str]] = None
 
+    def check_metrics_validity(self):
+        """
+        Check that the metrics for the progress_par and training_set are valid
+        """
+        if self.metrics_on_progress_bar is not None:
+            selected = set(self.metrics_on_progress_bar)
+            assert selected.issubset(
+                set(self.metrics.keys())
+            ), f"Metrics {selected - set(self.metrics.keys())} not in `metrics` with choices {set(self.metrics.keys())}"
+
+        if self.metrics_on_training_set is not None:
+            selected = set(self.metrics_on_training_set)
+            assert selected.issubset(
+                set(self.metrics.keys())
+            ), f"Metrics {selected - set(self.metrics.keys())} not in `metrics` with choices {set(self.metrics.keys())}"
+
     # Parse before or after?
     @staticmethod
-    def parse_loss_fun(loss_fun: Union[str, Callable]) -> Callable:
+    def parse_loss_fun(loss_fun: Union[str, Dict, Callable]) -> Callable:
         r"""
-        Parse the loss function from a string
+        Parse the loss function from a string or a dict
 
         Parameters:
             loss_fun:
-                A callable corresponding to the loss function or a string
-                specifying the loss function from `LOSS_DICT`. Accepted strings are:
-                "mse", "bce", "l1", "mae", "cosine".
+                A callable corresponding to the loss function, a string specifying the loss
+                function from `LOSS_DICT`, or a dict containing a key 'name' specifying the
+                loss function, and the rest of the dict used as the arguments for the loss.
+                Accepted strings are: goli.utils.spaces.LOSS_DICT.keys().
 
         Returns:
             Callable:
@@ -162,9 +182,25 @@ class EvalOptions:
         """
 
         if isinstance(loss_fun, str):
-            loss_fun = LOSS_DICT[loss_fun]
+            if loss_fun not in LOSS_DICT.keys():
+                raise ValueError(
+                    f"`loss_fun` expected to be one of the strings in {LOSS_DICT.keys()}. "
+                    f"Provided: {loss_fun}."
+                )
+            loss_fun = LOSS_DICT[loss_fun]()
+        elif isinstance(loss_fun, dict):
+            if loss_fun.get("name") is None:
+                raise ValueError(f"`loss_fun` expected to have a key 'name'.")
+            if loss_fun["name"] not in LOSS_DICT.keys():
+                raise ValueError(
+                    f"`loss_fun['name']` expected to be one of the strings in {LOSS_DICT.keys()}. "
+                    f"Provided: {loss_fun}."
+                )
+            loss_fun = deepcopy(loss_fun)
+            loss_name = loss_fun.pop("name")
+            loss_fun = LOSS_DICT[loss_name](**loss_fun)
         elif not callable(loss_fun):
-            raise ValueError(f"`loss_fun` must be `str` or `callable`. Provided: {type(loss_fun)}")
+            raise ValueError(f"`loss_fun` must be `str`, `dict` or `callable`. Provided: {type(loss_fun)}")
 
         return loss_fun
 

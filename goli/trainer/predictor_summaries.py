@@ -375,7 +375,7 @@ class TaskSummaries(SummaryInterface):
                 self.monitor,
                 self.mode,
                 task_name=task,
-                task_specific_norm=task_norms[task],
+                task_specific_norm=task_norms[task] if task_norms is not None else None,
             )
 
         # Current predictor state
