@@ -91,6 +91,8 @@ class LabelNormalization:
         elif self.method == "normal":
             return (input * torch.tensor(self.data_std)) + torch.tensor(self.data_mean)
         elif self.method == "unit":
-            return input * (torch.tensor(self.data_max) - torch.tensor(self.data_min)) + torch.tensor(self.data_min)
+            return input * (torch.tensor(self.data_max) - torch.tensor(self.data_min)) + torch.tensor(
+                self.data_min
+            )
         else:
             raise ValueError(f"normalization method {self.method} not recognised.")

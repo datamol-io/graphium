@@ -119,7 +119,6 @@ class PredictorModuleIPU(PredictorModule):
         target_nan_mask: Union[Type, str] = "ignore",
         multitask_handling: Optional[str] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
-
         return PredictorModule.compute_loss(
             preds, targets, weights, loss_fun, target_nan_mask, multitask_handling
         )

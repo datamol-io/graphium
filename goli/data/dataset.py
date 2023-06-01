@@ -437,7 +437,9 @@ class MultitaskDataset(Dataset):
 
             if all_idx < len(all_lists["features"]):
                 features = all_lists["features"][all_idx]
-                labels[unique_idx]["x"] = torch.empty((features.num_nodes, 1)) # IPU is not happy with zero-sized tensors, so use shape (features.num_nodes, 1) here
+                labels[unique_idx]["x"] = torch.empty(
+                    (features.num_nodes, 1)
+                )  # IPU is not happy with zero-sized tensors, so use shape (features.num_nodes, 1) here
                 labels[unique_idx]["edge_index"] = torch.empty((2, features.num_edges))
 
         # Store the features
