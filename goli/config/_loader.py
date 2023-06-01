@@ -296,7 +296,7 @@ def load_predictor(
     task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
-    Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`
+    Defining the predictor module, which handles the training logic from `lightning.LighningModule`
     Parameters:
         model_class: The torch Module containing the main forward function
     Returns:

@@ -4,8 +4,8 @@ import unittest as ut
 import numpy as np
 from copy import deepcopy
 from warnings import warn
-from pytorch_lightning import Trainer, LightningModule
-from pytorch_lightning.strategies import IPUStrategy
+from lightning import Trainer, LightningModule
+from lightning_graphcore import IPUStrategy
 from functools import partial
 
 import torch

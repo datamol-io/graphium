@@ -4,7 +4,7 @@ from os.path import dirname, abspath
 import yaml
 from copy import deepcopy
 from omegaconf import DictConfig
-from pytorch_lightning.utilities.model_summary import ModelSummary
+from lightning.pytorch.utilities.model_summary import ModelSummary
 
 # Current project imports
 import goli
