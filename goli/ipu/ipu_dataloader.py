@@ -389,8 +389,7 @@ class Pad(BaseTransform):
                 else:
                     pad_value = self.edge_value
             elif key.startswith("graph_"):
-                # identify graph attributes, like graph features, graph labels
-                # need to add is_graph_attr in the class
+                # identify graph attributes, like graph labels and does padding on it
                 num_pad_graphs = 1 # we pad with one big fake graph
                 pad_shape[dim] = num_pad_graphs
                 pad_value = self.graph_value # need to initialize this in __init__
