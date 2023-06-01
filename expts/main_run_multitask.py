@@ -99,7 +99,6 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     return trainer.callback_metrics
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -110,7 +109,5 @@ if __name__ == "__main__":
         cfg = ConfigDict(cfg)
         refs = get_anchors_and_aliases(CONFIG_FILE)
         cfg = update_config(cfg, unknown, refs)
-    
 
     main(cfg.to_dict())
-

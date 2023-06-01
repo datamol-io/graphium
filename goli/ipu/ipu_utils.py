@@ -105,7 +105,7 @@ def load_ipu_options(
     # tmp_file.close()
     # Delete manually as we disable automatic deletion
     os.remove(ipu_opts_file)
-    
+
     ipu_options.outputMode(poptorch.OutputMode.All)
     if seed is not None:
         ipu_options.randomSeed(seed)
@@ -157,5 +157,5 @@ def ipu_options_list_to_file(ipu_opts: Optional[List[str]]) -> tempfile._Tempora
     # with open(file_path, "w") as f:
     #     for s in ipu_opts:
     #         f.write(s + "\n")
-            
+
     # return file_path
