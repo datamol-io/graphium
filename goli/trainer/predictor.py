@@ -499,12 +499,6 @@ class PredictorModule(pl.LightningModule):
         for task in self.tasks:
             preds[task] = torch.cat([out["preds"][task].to(device=device) for out in outputs], dim=0)
             targets[task] = torch.cat([out["targets"][task].to(device=device) for out in outputs], dim=0)
-            task_specific_norm = (self.task_norms[task] if self.task_norms is not None else None,)
-            # apply denormalization for predictions
-            preds[task] = task_specific_norm.denormalize(preds[task])
-            if step_name == "train":
-                # apply denormalization for targets
-                targets[task] = task_specific_norm.denormalize(targets[task])
         if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
@@ -573,8 +567,8 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
         lr = self.optimizers().param_groups[0]["lr"]
-        concatenated_metrics_logs["lr"] = lr
-        concatenated_metrics_logs["n_epochs"] = self.current_epoch
+        metrics_logs["lr"] = lr
+        metrics_logs["n_epochs"] = self.current_epoch
         self.log_dict(concatenated_metrics_logs)
 
         # Save yaml file with the per-task metrics summaries
