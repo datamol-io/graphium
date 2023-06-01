@@ -57,6 +57,7 @@ class PredictorModule(pl.LightningModule):
             metrics_on_progress_bar: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the progress bar
             metrics_on_training_set: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the training set
             flag_kwargs: Arguments related to using the FLAG adversarial augmentation
+            task_norms: the normalization for each task
         """
         self.save_hyperparameters()
 
@@ -66,6 +67,7 @@ class PredictorModule(pl.LightningModule):
 
         self.target_nan_mask = target_nan_mask
         self.multitask_handling = multitask_handling
+        self.task_norms = task_norms
 
         super().__init__()
 
@@ -148,7 +150,6 @@ class PredictorModule(pl.LightningModule):
             task_metrics_on_progress_bar=self.metrics_on_progress_bar,
             monitor=monitor,
             mode=mode,
-            task_norms=task_norms,
         )
 
         # This helps avoid a bug when saving hparams to yaml with different dict or str formats
@@ -309,6 +310,12 @@ class PredictorModule(pl.LightningModule):
         }
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
+            task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
+            if step_name != "train":
+                # apply denormalization for val and test predictions for correct loss and metrics evaluation
+                # targets for val and test were not normalized
+                # train loss will stay as the normalized version
+                preds[task] = task_specific_norm.denormalize(pred)
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
 
@@ -323,6 +330,12 @@ class PredictorModule(pl.LightningModule):
 
         device = "cpu" if to_cpu else None
         for task in preds:
+            task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
+            if step_name == "train":
+                # apply denormalization for targets and predictions for the evaluation of metrics (excluding loss)
+                # train loss will stay as the normalized version
+                preds[task] = task_specific_norm.denormalize(preds[task])
+                targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
             preds[task] = preds[task].detach().to(device=device)
             targets_dict[task] = targets_dict[task].detach().to(device=device)
         if weights is not None:
@@ -486,6 +499,12 @@ class PredictorModule(pl.LightningModule):
         for task in self.tasks:
             preds[task] = torch.cat([out["preds"][task].to(device=device) for out in outputs], dim=0)
             targets[task] = torch.cat([out["targets"][task].to(device=device) for out in outputs], dim=0)
+            task_specific_norm = (self.task_norms[task] if self.task_norms is not None else None,)
+            # apply denormalization for predictions
+            preds[task] = task_specific_norm.denormalize(preds[task])
+            if step_name == "train":
+                # apply denormalization for targets
+                targets[task] = task_specific_norm.denormalize(targets[task])
         if ("weights" in outputs[0].keys()) and (outputs[0]["weights"] is not None):
             weights = torch.cat([out["weights"] for out in outputs], dim=0)
         else:
@@ -554,8 +573,8 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
         lr = self.optimizers().param_groups[0]["lr"]
-        metrics_logs["lr"] = lr
-        metrics_logs["n_epochs"] = self.current_epoch
+        concatenated_metrics_logs["lr"] = lr
+        concatenated_metrics_logs["n_epochs"] = self.current_epoch
         self.log_dict(concatenated_metrics_logs)
 
         # Save yaml file with the per-task metrics summaries
