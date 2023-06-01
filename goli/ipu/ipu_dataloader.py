@@ -388,11 +388,14 @@ class Pad(BaseTransform):
                     pad_value = 0
                 else:
                     pad_value = self.edge_value
+            # identify graph attributes, pad nan label for the fake graph
             elif key.startswith("graph_"):
-                # identify graph attributes, like graph labels and does padding on it
                 num_pad_graphs = 1 # we pad with one big fake graph
                 pad_shape[dim] = num_pad_graphs
-                pad_value = self.graph_value # need to initialize this in __init__
+                pad_value = 0 #float("nan")
+            else:
+                continue
+            
 
             pad_value = value.new_full(pad_shape, pad_value)
             fake[key] = torch.cat([pad_value], dim=dim)

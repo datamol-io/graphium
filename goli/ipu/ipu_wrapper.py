@@ -125,7 +125,7 @@ class PredictorModuleIPU(PredictorModule):
         node_to_graph_index: Optional[str] = None,
         edge_to_graph_index: Optional[str] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
-        preds = remove_pad_loss(preds, targets, node_to_graph_index, edge_to_graph_index)
+        # preds = remove_pad_loss(preds, targets, node_to_graph_index, edge_to_graph_index)
 
         return PredictorModule.compute_loss(
             preds, targets, weights, loss_fun, target_nan_mask, multitask_handling

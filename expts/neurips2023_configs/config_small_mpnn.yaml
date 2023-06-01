@@ -285,7 +285,7 @@ predictor:
   #  monitor: &monitor qm9/mae/train
   #  mode: min
   #  frequency: 1
-  target_nan_mask: ignore # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
   multitask_handling: flatten # flatten, mean-per-label
 
 # Task-specific

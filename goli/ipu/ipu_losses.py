@@ -39,13 +39,10 @@ class BCELossIPU(BCELoss):
         self.weight = weight
         loss = super().forward(input, target)
 
-        num_number_targets = (~nan_targets).sum()
-        if num_number_targets > 0:
-            loss = loss * nan_targets.numel() / num_number_targets
-        else:
-            logger.warning("Batch contains only nan targets. Detaching loss.")
-            loss = loss.detach()
-            loss = 0.0
+        # Add epsilon for the case when (~nan_targets).sum() is zero.
+        # Poptorch is hot happy with detaching the loss
+        epsilon = 1e-9
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + epsilon)
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
@@ -72,13 +69,10 @@ class MSELossIPU(MSELoss):
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
 
-        num_number_targets = (~nan_targets).sum()
-        if num_number_targets > 0:
-            loss = loss * nan_targets.numel() / num_number_targets
-        else:
-            logger.warning("Batch contains only nan targets. Detaching loss.")
-            loss = loss.detach()
-            loss = 0.0
+        # Add epsilon for the case when (~nan_targets).sum() is zero.
+        # Poptorch is hot happy with detaching the loss
+        epsilon = 1e-9
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + epsilon)
 
         return loss
 
@@ -102,13 +96,10 @@ class L1LossIPU(L1Loss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-
-        num_number_targets = (~nan_targets).sum()
-        if num_number_targets > 0:
-            loss = loss * nan_targets.numel() / num_number_targets
-        else:
-            logger.warning("Batch contains only nan targets. Detaching loss.")
-            loss = loss.detach()
-            loss = 0.0
+        # Add epsilon for the case when (~nan_targets).sum() is zero.
+        # Poptorch is hot happy with detaching the loss
+        # NotImplementedError: Could not run 'aten::_local_scalar_dense' with arguments from the 'Meta' backend.
+        epsilon = 1e-9
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + epsilon)
 
         return loss
