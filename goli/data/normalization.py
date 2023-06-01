@@ -45,10 +45,11 @@ class LabelNormalization:
         """
         Saves the normalization parameters (e.g. mean and variance) to the object.
         """
-        self.data_max = np.nanmax(array).tolist()
-        self.data_min = np.nanmin(array).tolist()
-        self.data_mean = np.nanmean(array).tolist()  # 5.380503871833475 for pcqm4mv2
-        self.data_std = np.nanstd(array).tolist()  # 1.17850688410978995 for pcqm4mv2
+        # add axis = 0 to make sure that the statistics for multiple column labels is a vector or list instead of a scalar
+        self.data_max = np.nanmax(array, axis=0).tolist()
+        self.data_min = np.nanmin(array, axis=0).tolist()
+        self.data_mean = np.nanmean(array, axis=0).tolist()  # 5.380503871833475 for pcqm4mv2
+        self.data_std = np.nanstd(array, axis=0).tolist()  # 1.17850688410978995 for pcqm4mv2
         if self.verbose:
             logger.info(f"Max value for normalization '{self.data_max}'")
             logger.info(f"Min value for normalization '{self.data_min}'")

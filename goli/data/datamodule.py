@@ -1286,9 +1286,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         """
         if self.task_norms and train:
             for task in dataset.labels_size.keys():
-                labels = np.concatenate(
-                    [datum["labels"][task] for datum in dataset if task in datum["labels"]], axis=0
-                )
+                # if the label type is graph_*, we need to stack them as the tensor shape is (num_labels, )
+                if task.startswith("graph"):
+                    labels = np.stack(
+                        np.array([datum["labels"][task] for datum in dataset if task in datum["labels"]]),
+                        axis=0,
+                    )
+                # for other tasks with node_ and edge_, the label shape is [num_nodes/num_edges, num_labels]
+                # we can concatenate them directly
+                else:
+                    labels = np.concatenate(
+                        [datum["labels"][task] for datum in dataset if task in datum["labels"]], axis=0
+                    )
 
                 self.task_norms[task].calculate_statistics(labels)
 
