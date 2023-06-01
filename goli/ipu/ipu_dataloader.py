@@ -392,7 +392,7 @@ class Pad(BaseTransform):
             elif key.startswith("graph_"):
                 num_pad_graphs = 1 # we pad with one big fake graph
                 pad_shape[dim] = num_pad_graphs
-                pad_value = 0 #float("nan")
+                pad_value = float("nan")
             else:
                 continue
             
