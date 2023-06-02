@@ -1,4 +1,5 @@
 # General imports
+import argparse
 import os
 from os.path import dirname, abspath
 import yaml
@@ -21,6 +22,7 @@ from goli.config._loader import (
     load_accelerator,
 )
 from goli.utils.safe_run import SafeRun
+from goli.utils.command_line_utils import update_config, get_anchors_and_aliases
 
 
 # WandB
@@ -34,10 +36,11 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 CONFIG_FILE = "expts/neurips2023_configs/config_small_mpnn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_luis_jama.yaml"
+
 os.chdir(MAIN_DIR)
 
 
-def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) -> None:
+def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
     st = timeit.default_timer()
 
     date_time_suffix = ""
@@ -45,6 +48,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
         date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
     cfg = deepcopy(cfg)
+    wandb.init(project=cfg["constants"]["name"], config=cfg)
 
     # Initialize the accelerator
     cfg, accelerator_type = load_accelerator(cfg)
@@ -96,6 +100,12 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+
+    args, unknown = parser.parse_known_args()
+
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)
+        refs = get_anchors_and_aliases(CONFIG_FILE)
+        cfg = update_config(cfg, unknown, refs)
     main(cfg)

@@ -48,6 +48,7 @@ class BCELossIPU(BCELoss):
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
+
         return loss
 
 
