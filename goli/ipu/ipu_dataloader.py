@@ -149,8 +149,6 @@ class CombinedBatchingCollator:
             )
 
             local_batch["features"] = transform(local_batch["features"])
-            print("Batch labels go here:")
-            print(local_batch["labels"])
             local_batch["labels"] = transform(local_batch["labels"])
             all_batches.append(local_batch)
 

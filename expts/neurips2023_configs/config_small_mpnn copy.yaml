@@ -20,12 +20,12 @@ accelerator:
         # Data handling-related
         batch_size_training: 50
         batch_size_inference: 50
-    predictor:
-      optim_kwargs:
-        loss_scaling: 1024
+    # predictor:
+      # optim_kwargs:
+      #   loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
+        precision: 32
         accumulate_grad_batches: 4
 
   ipu_config:
@@ -55,13 +55,13 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       qm9:
         df: null
-        df_path: data/neurips2023/small-dataset/qm9.csv.gz
+        df_path: /nethome/samuelm/git/paper_experiments/data/neurips2023/small-dataset/qm9.csv.gz
         # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
-        # sample_size: 2000 # use sample_size for test
-        splits_path: data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
+        # sample_size: 10000 # use sample_size for test
+        splits_path: /nethome/samuelm/git/paper_experiments/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
         seed: *seed
         task_level: graph
         label_normalization:
@@ -69,25 +69,25 @@ datamodule:
 
       tox21:
         df: null
-        df_path: data/neurips2023/small-dataset/Tox21-7k-12-labels.csv.gz
+        df_path: /nethome/samuelm/git/paper_experiments/data/neurips2023/small-dataset/Tox21-7k-12-labels.csv.gz
         # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
-        # sample_size: 2000 # use sample_size for test
-        splits_path: data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
+        # sample_size: 10000 # use sample_size for test
+        splits_path: /nethome/samuelm/git/paper_experiments/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
         seed: *seed
         task_level: graph
 
       zinc:
         df: null
-        df_path: data/neurips2023/small-dataset/ZINC12k.csv.gz
+        df_path: /nethome/samuelm/git/paper_experiments/data/neurips2023/small-dataset/ZINC12k.csv.gz
         # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
-        # sample_size: 2000 # use sample_size for test
-        splits_path: data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        # sample_size: 10000 # use sample_size for test
+        splits_path: /nethome/samuelm/git/paper_experiments/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
         seed: *seed
         task_level: graph
         label_normalization:
@@ -98,7 +98,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-small/"
+    # processed_graph_data_path: "../datacache/neurips2023-small/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -269,9 +269,9 @@ predictor:
     tox21: ["auroc_flat"]
     zinc: ["mae"]
   loss_fun:
-    qm9: mae_ipu
+    qm9: mse_ipu
     tox21: bce_ipu
-    zinc: mae_ipu
+    zinc: mse_ipu
   random_seed: *seed
   optim_kwargs:
     lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
@@ -285,47 +285,23 @@ predictor:
   #  monitor: &monitor qm9/mae/train
   #  mode: min
   #  frequency: 1
-  target_nan_mask: ignore # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore-flatten, ignore-mean-per-label
   multitask_handling: flatten # flatten, mean-per-label
 
 # Task-specific
 metrics:
   qm9: &qm9_metrics
     - name: mae
-      metric: mae_ipu
+      metric: mse_ipu
       target_nan_mask: null
       multitask_handling: flatten
       threshold_kwargs: null
-    - name: pearsonr
-      metric: pearsonr_ipu
-      threshold_kwargs: null
-      target_nan_mask: null
-      multitask_handling: mean-per-label
   tox21:
     - name: auroc_flat
       metric: auroc_ipu
       multitask_handling: flatten
       threshold_kwargs: null
-    - name: avpr_flat
-      metric: averageprecision
-      multitask_handling: flatten
-      threshold_kwargs: null
-    - name: f1 > 0.5
-      metric: f1
-      multitask_handling: flatten
-      target_to_int: True
-      num_classes: 2
-      average: micro
-      threshold_kwargs: &threshold_05
-        operator: greater
-        threshold: 0.5
-        th_on_preds: True
-        th_on_target: True
-    - name: precision > 0.5
-      metric: precision
-      multitask_handling: flatten
-      average: micro
-      threshold_kwargs: *threshold_05
+      target_nan_mask: null
   zinc: *qm9_metrics
 
 trainer:

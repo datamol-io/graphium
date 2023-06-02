@@ -2,38 +2,6 @@ import re
 from collections import defaultdict
 
 
-class ConfigDict(dict):
-    """ConfigDict object that creates a nested dictionary accesible via dot noation
-
-    Args:
-        dict (_type_): _description_
-    """
-
-    def __init__(self, *args, **kwargs):
-        super(ConfigDict, self).__init__(*args, **kwargs)
-        for key, value in self.items():
-            if isinstance(value, dict):
-                self[key] = ConfigDict(value)
-
-    def __getattr__(self, key):
-        if key in self:
-            return self[key]
-        else:
-            raise AttributeError("No such attribute: " + key)
-
-    def __setattr__(self, key, value):
-        self[key] = value
-
-    def __delattr__(self, key):
-        if key in self:
-            del self[key]
-        else:
-            raise AttributeError("No such attribute: " + key)
-
-    def to_dict(self):
-        return {key: self[key].to_dict() if isinstance(self[key], ConfigDict) else self[key] for key in self}
-
-
 def get_anchors_and_aliases(filepath):
     anchors = defaultdict(list)
     current_level = {}
@@ -68,7 +36,7 @@ def get_anchors_and_aliases(filepath):
     return anchors
 
 
-def update_config(cfg: ConfigDict, unknown: list, anchors: list):
+def update_config(cfg: dict, unknown: list, anchors: list):
     """
     Update the configuration dictionary with command line arguments.
     """

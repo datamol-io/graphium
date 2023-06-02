@@ -38,7 +38,7 @@ class BCELossIPU(BCELoss):
         # Compute the loss, and rescale by the number of nan elements
         self.weight = weight
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + 1e-9)
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
@@ -65,7 +65,7 @@ class MSELossIPU(MSELoss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + 1e-9)
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         return loss
 
@@ -89,6 +89,6 @@ class L1LossIPU(L1Loss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-        loss = loss * nan_targets.numel() / ((~nan_targets).sum() + 1e-9)
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         return loss
