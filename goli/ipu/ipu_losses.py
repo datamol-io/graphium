@@ -39,12 +39,8 @@ class BCELossIPU(BCELoss):
         self.weight = weight
         loss = super().forward(input, target)
 
-        # Add factor1 and factor2 to account for the case when
-        # num_number_targets = 0, division by zero error.
-        num_number_targets = (~nan_targets).sum()
-        factor1 = torch.where(num_number_targets > 0, 1, 0)
-        factor2 = torch.where(num_number_targets > 0, 0, 1)
-        loss = factor1 * loss * nan_targets.numel() / (num_number_targets + factor2)
+        num_real_targets = (~nan_targets).sum()
+        loss = torch.where(num_real_targets > 0, loss, torch.tensor(0.0, dtype=loss.dtype))
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
@@ -71,12 +67,8 @@ class MSELossIPU(MSELoss):
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
 
-        # Add factor1 and factor2 to account for the case when
-        # num_number_targets = 0, division by zero error.
-        num_number_targets = (~nan_targets).sum()
-        factor1 = torch.where(num_number_targets > 0, 1, 0)
-        factor2 = torch.where(num_number_targets > 0, 0, 1)
-        loss = factor1 * loss * nan_targets.numel() / (num_number_targets + factor2)
+        num_real_targets = (~nan_targets).sum()
+        loss = torch.where(num_real_targets > 0, loss, torch.tensor(0.0, dtype=loss.dtype))
 
         return loss
 
@@ -100,11 +92,7 @@ class L1LossIPU(L1Loss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-        # Add factor1 and factor2 to account for the case when
-        # num_number_targets = 0, division by zero error.
-        num_number_targets = (~nan_targets).sum()
-        factor1 = torch.where(num_number_targets > 0, 1, 0)
-        factor2 = torch.where(num_number_targets > 0, 0, 1)
-        loss = factor1 * loss * nan_targets.numel() / (num_number_targets + factor2)
+        num_real_targets = (~nan_targets).sum()
+        loss = torch.where(num_real_targets > 0, loss, torch.tensor(0.0, dtype=loss.dtype))
 
         return loss
