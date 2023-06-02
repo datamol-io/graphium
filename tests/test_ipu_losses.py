@@ -93,17 +93,17 @@ class test_Losses(ut.TestCase):
         # Regular loss
         loss_true = L1Loss()(preds, target)
         loss_ipu = L1LossIPU()(preds, target)
-        self.assertFalse(loss_true.isnan(), "Regular MSELoss is NaN")
+        self.assertFalse(loss_true.isnan(), "Regular MAELoss is NaN")
         self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss is different"
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MAELoss is different"
         )
 
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
         loss_true = L1Loss()(preds[not_nan], target[not_nan])
         loss_ipu = L1LossIPU()(preds, target_nan)
-        self.assertFalse(loss_true.isnan(), "Regular MSELoss with target_nan is NaN")
-        self.assertFalse(loss_ipu.isnan(), "Regular MSELossIPU with target_nan is NaN")
+        self.assertFalse(loss_true.isnan(), "Regular MAELoss with target_nan is NaN")
+        self.assertFalse(loss_ipu.isnan(), "Regular MAELossIPU with target_nan is NaN")
         self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MSELoss with NaN is different"
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular MAELoss with NaN is different"
         )
