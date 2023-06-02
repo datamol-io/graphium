@@ -48,8 +48,6 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
     cfg = deepcopy(cfg)
     wandb.init(project=cfg["constants"]["name"], config=cfg)
 
-
-
     # Initialize the accelerator
     cfg, accelerator_type = load_accelerator(cfg)
 
