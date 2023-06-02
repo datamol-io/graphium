@@ -7,6 +7,7 @@ from torch_geometric.data import Data, Batch
 from goli.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
 from goli.utils.decorators import classproperty
 
+
 class GCNConvPyg(BaseGraphModule):
     def __init__(
         self,
@@ -17,7 +18,6 @@ class GCNConvPyg(BaseGraphModule):
         normalization: Union[str, Callable] = "none",
         **kwargs,
     ):
-
         super().__init__(
             in_dim=in_dim,
             out_dim=out_dim,
@@ -28,10 +28,7 @@ class GCNConvPyg(BaseGraphModule):
         )
 
         self.model = pyg_nn.GCNConv(
-            in_channels=self.in_dim,
-            out_channels=out_dim,
-            add_self_loops=False,
-            normalize=False
+            in_channels=self.in_dim, out_channels=out_dim, add_self_loops=False, normalize=False
         )
         self.model.__check_input__ = partial(check_intpus_allow_int, self)
 
@@ -50,7 +47,7 @@ class GCNConvPyg(BaseGraphModule):
         batch.feat = self.apply_norm_activation_dropout(batch.feat, batch_idx=batch.batch)
 
         return batch
-    
+
     @classproperty
     def layer_supports_edges(cls) -> bool:
         r"""
