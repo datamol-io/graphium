@@ -27,6 +27,7 @@ FC_LAYERS_DICT = {
 }
 
 PYG_LAYERS_DICT = {
+    "pyg:gcn": PygLayers.GCNConvPyg,
     "pyg:gin": PygLayers.GINConvPyg,
     "pyg:gine": PygLayers.GINEConvPyg,
     "pyg:gated-gcn": PygLayers.GatedGCNPyg,
