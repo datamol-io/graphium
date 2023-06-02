@@ -40,11 +40,9 @@ class BCELossIPU(BCELoss):
         loss = super().forward(input, target)
 
         num_real_targets = (~nan_targets).sum()
-        loss = torch.where(
-            num_real_targets > 0,
-            loss * nan_targets.numel() / num_real_targets,
-            torch.tensor(0.0, dtype=loss.dtype),
-        )
+        factor1 = torch.where(num_real_targets > 0, 1, 0)
+        factor2 = torch.where(num_real_targets > 0, 0, 1)
+        loss = factor1 * loss * nan_targets.numel() / (num_real_targets + factor2)
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
@@ -73,11 +71,9 @@ class MSELossIPU(MSELoss):
         loss = super().forward(input, target)
 
         num_real_targets = (~nan_targets).sum()
-        loss = torch.where(
-            num_real_targets > 0,
-            loss * nan_targets.numel() / num_real_targets,
-            torch.tensor(0.0, dtype=loss.dtype),
-        )
+        factor1 = torch.where(num_real_targets > 0, 1, 0)
+        factor2 = torch.where(num_real_targets > 0, 0, 1)
+        loss = factor1 * loss * nan_targets.numel() / (num_real_targets + factor2)
 
         return loss
 
@@ -102,10 +98,8 @@ class L1LossIPU(L1Loss):
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
         num_real_targets = (~nan_targets).sum()
-        loss = torch.where(
-            num_real_targets > 0,
-            loss * nan_targets.numel() / num_real_targets,
-            torch.tensor(0.0, dtype=loss.dtype),
-        )
+        factor1 = torch.where(num_real_targets > 0, 1, 0)
+        factor2 = torch.where(num_real_targets > 0, 0, 1)
+        loss = factor1 * loss * nan_targets.numel() / (num_real_targets + factor2)
 
         return loss
