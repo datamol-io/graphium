@@ -157,7 +157,7 @@ class CombinedBatchingCollator:
         # Stack tensors in the first dimension to allow IPUs to differentiate between local and global graph
         out_batch["labels"] = {
             key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0)
-            for key in all_batches[0]["labels"].keys()
+            for key in all_batches[0]["labels"].keys
         }
         out_graphs = [this_batch["features"] for this_batch in all_batches]
         stacked_features = deepcopy(out_graphs[0])
@@ -166,7 +166,7 @@ class CombinedBatchingCollator:
                 stacked_features[key] = torch.stack([this_graph[key] for this_graph in out_graphs], dim=0)
 
         out_batch["features"] = stacked_features
-        for key in all_batches[0].keys():
+        for key in all_batches[0].keys:
             if key not in ("features", "labels"):
                 out_batch[key] = [this_batch[key] for this_batch in all_batches]
 
@@ -343,6 +343,12 @@ class Pad(BaseTransform):
         return num_nodes, num_edges
 
     def __call__(self, batch: Batch) -> Batch:
+        return self._call(batch)
+
+    def forward(self, batch: Batch) -> Batch:
+        return self._call(batch)
+
+    def _call(self, batch: Batch) -> Batch:
         """
         Pad the batch with a fake graphs that has the desired
         number of nodes and edges.
@@ -394,6 +400,7 @@ class Pad(BaseTransform):
             pad_value = value.new_full(pad_shape, pad_value)
             fake[key] = torch.cat([pad_value], dim=dim)
         real_graphs.append(fake)
+        print(real_graphs)
         new_batch = Batch.from_data_list(real_graphs)
 
         if "num_nodes" in new_batch:

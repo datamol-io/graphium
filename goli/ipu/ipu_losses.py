@@ -38,17 +38,11 @@ class BCELossIPU(BCELoss):
         # Compute the loss, and rescale by the number of nan elements
         self.weight = weight
         loss = super().forward(input, target)
-
-        num_number_targets = (~nan_targets).sum()
-        if num_number_targets > 0:
-            loss = loss * nan_targets.numel() / num_number_targets
-        else:
-            logger.warning("Batch contains only nan targets. Detaching loss.")
-            loss = loss.detach()
-            loss = 0.0
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         # Reset the self.weight to its original value
         self.weight = prev_weight
+
         return loss
 
 
@@ -71,14 +65,7 @@ class MSELossIPU(MSELoss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-
-        num_number_targets = (~nan_targets).sum()
-        if num_number_targets > 0:
-            loss = loss * nan_targets.numel() / num_number_targets
-        else:
-            logger.warning("Batch contains only nan targets. Detaching loss.")
-            loss = loss.detach()
-            loss = 0.0
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         return loss
 
@@ -102,13 +89,6 @@ class L1LossIPU(L1Loss):
 
         # Compute the loss, and rescale by the number of nan elements
         loss = super().forward(input, target)
-
-        num_number_targets = (~nan_targets).sum()
-        if num_number_targets > 0:
-            loss = loss * nan_targets.numel() / num_number_targets
-        else:
-            logger.warning("Batch contains only nan targets. Detaching loss.")
-            loss = loss.detach()
-            loss = 0.0
+        loss = loss * nan_targets.numel() / ((~nan_targets).sum())
 
         return loss

@@ -132,7 +132,6 @@ def load_datamodule(
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
             ipu_inference_opts=ipu_inference_opts,
         )
-
         # Define the Dataloader options for the IPU on the training sets
         bz_train = cfg_data["batch_size_training"]
         ipu_dataloader_training_opts = IPUDataloaderOptions(
@@ -180,7 +179,6 @@ def load_metrics(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Dict[st
         for this_metric in cfg_metrics[task]:
             name = this_metric.pop("name")
             task_metrics[task][name] = MetricWrapper(**this_metric)
-
     return task_metrics
 
 
