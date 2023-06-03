@@ -60,7 +60,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 2000 # use sample_size for test
+        sample_size: 250 # use sample_size for test
         task_level: graph
         splits_path: goli/data/neurips2023/small-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
 
@@ -71,7 +71,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 2000 # use sample_size for test
+        sample_size: 250 # use sample_size for test
         task_level: graph
         splits_path: goli/data/neurips2023/small-dataset/l1000_ha1e_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_ha1e_random_splits.pt`
 
