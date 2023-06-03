@@ -89,10 +89,10 @@ class LabelNormalization:
         if self.method is None:
             return input
         elif self.method == "normal":
-            return (input * torch.tensor(self.data_std)) + torch.tensor(self.data_mean)
+            return (input * torch.tensor(self.data_std).to(input.device)) + torch.tensor(self.data_mean).to(input.device)
         elif self.method == "unit":
-            return input * (torch.tensor(self.data_max) - torch.tensor(self.data_min)) + torch.tensor(
+            return input * (torch.tensor(self.data_max).to(input.device) - torch.tensor(self.data_min).to(input.device)) + torch.tensor(
                 self.data_min
-            )
+            ).to(input.device)
         else:
             raise ValueError(f"normalization method {self.method} not recognised.")
