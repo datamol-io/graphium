@@ -265,10 +265,16 @@ class MetricWrapper:
         if self.thresholder is not None:
             preds, target = self.thresholder(preds, target)
 
-        if self.target_to_int:
-            target = target.to(int)
-
         target_nans = torch.isnan(target)
+
+        # for the classifigression task, cast predictions from
+        # (batch_size, n_targets * n_brackets) to (batch_size, n_targets, n_brackets)
+        # TODO: make this more flexible to the target shape in the future
+        if preds.shape[1] != target.shape[1]:
+            preds = preds.view(target.shape[0], target.shape[1], -1)
+            classifigression = True
+        else:
+            classifigression = False
 
         if self.multitask_handling is None:
             # In case of no multi-task handling, apply the nan filtering, then compute the metrics
@@ -278,6 +284,8 @@ class MetricWrapper:
             preds, target = self._filter_nans(preds, target)
             if self.squeeze_targets:
                 target = target.squeeze()
+            if self.target_to_int:
+                target = target.to(int)
             metric_val = self.metric(preds, target, **self.kwargs)
         elif self.multitask_handling == "flatten":
             # Flatten the tensors, apply the nan filtering, then compute the metrics
@@ -285,17 +293,25 @@ class MetricWrapper:
             preds, target = self._filter_nans(preds, target)
             if self.squeeze_targets:
                 target = target.squeeze()
+            if self.target_to_int:
+                target = target.to(int)
             metric_val = self.metric(preds, target, **self.kwargs)
         elif self.multitask_handling == "mean-per-label":
             # Loop the columns (last dim) of the tensors, apply the nan filtering, compute the metrics per column, then average the metrics
             target_list = [target[..., ii][~target_nans[..., ii]] for ii in range(target.shape[-1])]
-            preds_list = [preds[..., ii][~target_nans[..., ii]] for ii in range(preds.shape[-1])]
+            # TODO: make this more flexible to the target shape in the future
+            if classifigression:
+                preds_list = [preds[..., i, :][~target_nans[..., i]] for i in range(preds.shape[1])]
+            else:
+                preds_list = [preds[..., ii][~target_nans[..., ii]] for ii in range(preds.shape[-1])]
             metric_val = []
             for ii in range(len(target_list)):
                 try:
                     this_preds, this_target = self._filter_nans(preds_list[ii], target_list[ii])
                     if self.squeeze_targets:
                         this_target = this_target.squeeze()
+                    if self.target_to_int:
+                        this_target = this_target.to(int)
                     metric_val.append(self.metric(this_preds, this_target, **self.kwargs))
                 except:
                     pass
