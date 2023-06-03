@@ -2,7 +2,6 @@ from collections.abc import Mapping, Sequence
 
 # from pprint import pprint
 import torch
-import pdb
 from numpy import ndarray
 from scipy.sparse import spmatrix
 from torch.utils.data.dataloader import default_collate
@@ -11,7 +10,7 @@ from torch_geometric.data import Data, Batch
 
 from goli.features import GraphDict, to_dense_array
 from goli.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
-import numpy as np
+from loguru import logger
 
 
 def goli_collate_fn(
@@ -177,6 +176,9 @@ def pad_to_expected_label_size(labels: torch.Tensor, label_size: List[int]):
     pad_sizes = [item for before_after in pad_sizes for item in before_after]
     pad_sizes.reverse()
 
+    if any([s < 0 for s in pad_sizes]):
+        logger.warning(f"More labels available than expected. Will remove data to fit expected size.")
+
     return torch.nn.functional.pad(labels, pad_sizes, value=torch.nan)
 
 
@@ -248,20 +250,28 @@ def collate_labels(
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
                 this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
 
-            for task in set(this_label.keys) - set(["x", "edge_index"]):
+            for task in set(this_label.keys) - set(["x", "edge_index"]) - empty_task_labels:
+                labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
+
                 if not isinstance(this_label[task], (torch.Tensor)):
                     this_label[task] = torch.as_tensor(this_label[task])
 
                 # Ensure explicit task dimension also for single task labels
                 if len(this_label[task].shape) == 1:
-                    this_label[task] = this_label[task].unsqueeze(1)
+                    # Distinguish whether target dim or entity dim is missing
+                    if labels_size_dict[task][0] == this_label[task].shape[0]:
+                        # num graphs/nodes/edges/nodepairs already matching
+                        this_label[task] = this_label[task].unsqueeze(1)
+                    else:
+                        # data lost unless entity dim is supposed to be 1
+                        if labels_size_dict[task][0] == 1:
+                            this_label[task] = this_label[task].unsqueeze(0)
+                        else:
+                            raise ValueError(
+                                f"Labels for {labels_size_dict[task][0]} nodes/edges/nodepairs expected, got 1."
+                            )
 
-            for task in set(this_label.keys) - set(["x", "edge_index"]) - empty_task_labels:
-                labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
                 this_label[task] = pad_to_expected_label_size(this_label[task], labels_size_dict[task])
-
-        # for this_label in labels:
-        #    for task in set(this_label.keys) - set(["x", "edge_index"]):
 
     return collate_pyg_graph_labels(labels)
 
