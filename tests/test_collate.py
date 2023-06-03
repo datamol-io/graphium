@@ -19,12 +19,14 @@ class test_Collate(ut.TestCase):
             "graph_label2": [3],
             "node_label2": [5],
             "edge_label3": [5, 2],
+            "node_label4": [5, 1],
         }
         fake_label = {
             "graph_label1": torch.FloatTensor([1]),
             "graph_label2": torch.FloatTensor([1, 2, 3]),
             "node_label2": torch.FloatTensor([1, 2, 3, 4, 5]),
             "edge_label3": torch.FloatTensor([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]),
+            "node_label4": torch.FloatTensor([[1], [2], [3], [4], [5]]),
         }
         fake_labels = []
         num_labels = 10
@@ -40,12 +42,14 @@ class test_Collate(ut.TestCase):
         self.assertEqual(collated_labels["graph_label2"].shape, torch.Size([num_labels, 3]))  # , 1
         self.assertEqual(collated_labels["node_label2"].shape, torch.Size([num_labels * 5, 1]))  # , 5
         self.assertEqual(collated_labels["edge_label3"].shape, torch.Size([num_labels * 5, 2]))  # , 5, 2
+        self.assertEqual(collated_labels["node_label4"].shape, torch.Size([num_labels * 5, 1]))  # , 5, 1
 
         # Check that the values are correct
         graph_label1_true = deepcopy(torch.stack([this_label["graph_label1"] for this_label in fake_labels]))
         graph_label2_true = deepcopy(torch.stack([this_label["graph_label2"] for this_label in fake_labels]))
         label2_true = deepcopy(torch.stack([this_label["node_label2"] for this_label in fake_labels]))
         label3_true = deepcopy(torch.stack([this_label["edge_label3"] for this_label in fake_labels]))
+        label4_true = deepcopy(torch.stack([this_label["node_label4"] for this_label in fake_labels]))
 
         # NOTE: Flatten due to the way Data objects are collated (concat along first dim, instead of stacked)
         np.testing.assert_array_equal(collated_labels["graph_label1"].numpy(), graph_label1_true.numpy())
@@ -55,6 +59,9 @@ class test_Collate(ut.TestCase):
         )
         np.testing.assert_array_equal(
             collated_labels["edge_label3"].numpy(), label3_true.flatten(0, 1).numpy()
+        )
+        np.testing.assert_array_equal(
+            collated_labels["node_label4"].numpy(), label4_true.flatten(0, 1).numpy()
         )
 
         # Remove some labels and check that the collation still works and puts `nan` in the right places
@@ -63,6 +70,7 @@ class test_Collate(ut.TestCase):
             "graph_label2": [0, 4, 3, 1, 7],
             "node_label2": [0, 2, 4, 6, 8],
             "edge_label3": [0, 1, 2, 3, 4],
+            "node_label4": [5, 1, 4, 9, 6],
         }
         for key, missing_idx in missing_labels.items():
             for idx in missing_idx:
@@ -71,6 +79,7 @@ class test_Collate(ut.TestCase):
         graph_label2_true[missing_labels["graph_label2"]] = float("nan")
         label2_true[missing_labels["node_label2"]] = float("nan")
         label3_true[missing_labels["edge_label3"]] = float("nan")
+        label4_true[missing_labels["node_label4"]] = float("nan")
 
         # Collate labels and check for the right shapes
         labels_size_dict = {
@@ -78,12 +87,14 @@ class test_Collate(ut.TestCase):
             "graph_label2": [3],
             "node_label2": [5],
             "edge_label3": [5, 2],
+            "node_label4": [5, 1],
         }
         collated_labels = collate_labels(deepcopy(fake_labels), deepcopy(labels_size_dict))
         self.assertEqual(collated_labels["graph_label1"].shape, torch.Size([num_labels, 1]))  # , 1
         self.assertEqual(collated_labels["graph_label2"].shape, torch.Size([num_labels, 3]))  # , 1
         self.assertEqual(collated_labels["node_label2"].shape, torch.Size([num_labels * 5, 1]))  # , 5
         self.assertEqual(collated_labels["edge_label3"].shape, torch.Size([num_labels * 5, 2]))  # , 5, 2
+        self.assertEqual(collated_labels["node_label4"].shape, torch.Size([num_labels * 5, 1]))  # , 5, 1
 
         # Check that the values are correct when some labels are missing
         # NOTE: Flatten due to the way Data objects are collated (concat along first dim, instead of stacked)
@@ -94,6 +105,9 @@ class test_Collate(ut.TestCase):
         )
         np.testing.assert_array_equal(
             collated_labels["edge_label3"].numpy(), label3_true.flatten(0, 1).numpy()
+        )
+        np.testing.assert_array_equal(
+            collated_labels["node_label4"].numpy(), label4_true.flatten(0, 1).numpy()
         )
         # Now test the `goli_collate_fn` function when only labels are given
         fake_labels2 = [{"labels": this_label} for this_label in fake_labels]
@@ -102,6 +116,7 @@ class test_Collate(ut.TestCase):
         self.assertEqual(collated_labels["graph_label2"].shape, torch.Size([num_labels, 3]))
         self.assertEqual(collated_labels["node_label2"].shape, torch.Size([num_labels * 5, 1]))  # , 5
         self.assertEqual(collated_labels["edge_label3"].shape, torch.Size([num_labels * 5, 2]))  # , 5, 2
+        self.assertEqual(collated_labels["node_label4"].shape, torch.Size([num_labels * 5, 1]))  # , 5, 1
 
         # Check that the values are correct when some labels are missing
         # NOTE: Flatten due to the way Data objects are collated (concat along first dim, instead of stacked)
@@ -112,6 +127,9 @@ class test_Collate(ut.TestCase):
         )
         np.testing.assert_array_equal(
             collated_labels["edge_label3"].numpy(), label3_true.flatten(0, 1).numpy()
+        )
+        np.testing.assert_array_equal(
+            collated_labels["node_label4"].numpy(), label4_true.flatten(0, 1).numpy()
         )
 
 
