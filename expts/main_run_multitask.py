@@ -38,7 +38,7 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml" # tested ok
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml" # tested ok
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/config_small_gated_gcn.yaml" # tested ok
+CONFIG_FILE = "expts/neurips2023_configs/config_small_gated_gcn.yaml"  # tested ok
 
 os.chdir(MAIN_DIR)
 
