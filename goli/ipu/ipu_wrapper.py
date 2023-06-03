@@ -19,19 +19,6 @@ import collections
 poptorch = import_poptorch()
 
 
-def remove_pad_loss(preds: Dict[str, Tensor], targets: Dict[str, Tensor]):
-    """
-    helper function to remove the fake graph loss
-    always reduce the last loss since it is the fake graph
-    """
-    for task in targets.keys():
-        if targets[task].shape == preds[task].shape:
-            continue
-        else:
-            preds[task] = preds[task][:-1]
-    return preds
-
-
 class DictIPUStrategy(IPUStrategy):
     def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
         args = self._prepare_input(args)
@@ -118,8 +105,6 @@ class PredictorModuleIPU(PredictorModule):
         target_nan_mask: Union[Type, str] = "ignore",
         multitask_handling: Optional[str] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
-        preds = remove_pad_loss(preds, targets)
-
         return PredictorModule.compute_loss(
             preds, targets, weights, loss_fun, target_nan_mask, multitask_handling
         )
