@@ -289,7 +289,11 @@ class MetricWrapper:
             metric_val = self.metric(preds, target, **self.kwargs)
         elif self.multitask_handling == "flatten":
             # Flatten the tensors, apply the nan filtering, then compute the metrics
-            preds, target = preds.flatten(), target.flatten()
+            if classifigression:
+                preds = preds.view(-1, preds.shape[-1])
+                target = target.flatten()
+            else:
+                preds, target = preds.flatten(), target.flatten()
             preds, target = self._filter_nans(preds, target)
             if self.squeeze_targets:
                 target = target.squeeze()
