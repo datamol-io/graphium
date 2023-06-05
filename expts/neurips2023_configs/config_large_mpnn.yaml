@@ -11,11 +11,11 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 24 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 25 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 60
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 25 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 60
         # Data handling-related
         batch_size_training: 20
@@ -350,10 +350,14 @@ metrics:
   l1000_vcap: &classif_metrics
     - name: auroc_flat
       metric: auroc_ipu
+      num_classes: 5
+      task: multiclass
       multitask_handling: flatten
       threshold_kwargs: null
     - name: avpr_flat
       metric: averageprecision
+      num_classes: 5
+      task: multiclass
       multitask_handling: flatten
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
