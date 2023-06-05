@@ -16,7 +16,7 @@ class BCELossIPU(BCELoss):
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         prev_weight = None
 
-        target = target.clone()
+        target = target.clone().to(input.dtype)
         weight = self.weight
 
         # Get the original weight matrix. If None, set all weights = 1
@@ -114,7 +114,7 @@ class HybridCELossIPU(HybridCELoss):
             target: (batch_size) or (batch_size, 1) tensor of target brackets in {0, 1, ..., self.n_brackets}.
         """
 
-        target = target.clone()
+        target = target.clone().to(input.dtype)
         input = input.clone()
 
         # Replace the nan-targets in the input/target tensors by 0
