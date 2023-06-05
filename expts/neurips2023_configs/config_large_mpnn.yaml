@@ -18,15 +18,15 @@ accelerator:
           max_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 60
         # Data handling-related
-        batch_size_training: 50
-        batch_size_inference: 50
+        batch_size_training: 20
+        batch_size_inference: 20
     predictor:
       optim_kwargs:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
-        accumulate_grad_batches: 4
+        precision: 32
+        accumulate_grad_batches: 8
 
   ipu_config:
     - deviceIterations(10) # IPU would require large batches to be ready for the model.
@@ -261,7 +261,7 @@ architecture:
   task_heads:
     l1000_vcap:
       task_level: graph
-      out_dim: 978
+      out_dim: 4890
       hidden_dims: 128
       depth: 2
       activation: none
@@ -272,7 +272,7 @@ architecture:
       residual_type: none
     l1000_mcf7:
       task_level: graph
-      out_dim: 978
+      out_dim: 4890
       hidden_dims: 128
       depth: 2
       activation: none
@@ -324,8 +324,8 @@ predictor:
     pcqm4m_g25: []
     pcqm4m_n4: []
   loss_fun:
-    l1000_vcap: hybrid_ce
-    l1000_mcf7: hybrid_ce
+    l1000_vcap: hybrid_ce_ipu
+    l1000_mcf7: hybrid_ce_ipu
     pcba_1328: bce_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu

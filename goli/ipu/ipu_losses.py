@@ -3,6 +3,7 @@ from torch import Tensor
 from torch.nn import BCELoss, MSELoss, L1Loss
 from torch._C import _infer_size
 from loguru import logger
+from goli.trainer.losses import HybridCELoss
 
 
 class BCELossIPU(BCELoss):
@@ -87,6 +88,32 @@ class L1LossIPU(L1Loss):
     """
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
+        target = target.clone()
+        input = input.clone()
+
+        # Replace the nan-targets in the input/target tensors by 0
+        nan_targets = target.isnan()
+        input[nan_targets] = 0.0
+        target[nan_targets] = 0.0
+
+        # Compute the loss, and rescale by the number of nan elements
+        loss = super().forward(input, target)
+        num_real_targets = (~nan_targets).sum()
+        factor1 = torch.where(num_real_targets > 0, 1, 0)
+        factor2 = torch.where(num_real_targets > 0, 0, 1)
+        loss = factor1 * loss * nan_targets.numel() / (num_real_targets + factor2)
+
+        return loss
+
+
+class HybridCELossIPU(HybridCELoss):
+    def forward(self, input: Tensor, target: Tensor) -> Tensor:
+        """
+        Parameters:
+            input: (batch_size x n_classes) tensor of logits predicted for each bracket.
+            target: (batch_size) or (batch_size, 1) tensor of target brackets in {0, 1, ..., self.n_brackets}.
+        """
+
         target = target.clone()
         input = input.clone()
 
