@@ -9,7 +9,7 @@ from torch.nn.modules.loss import _WeightedLoss
 class HybridCELoss(_WeightedLoss):
     def __init__(
         self,
-        n_brackets: int,
+        n_brackets: int = 49878,
         regression_loss: str = "mse",
         alpha: float = 0.5,
         weight: Optional[Tensor] = None,
@@ -65,6 +65,8 @@ class HybridCELoss(_WeightedLoss):
         regression_input = torch.inner(input, self.brackets)
         regression_loss = self.regression_loss(regression_input, target.float(), reduction=self.reduction)
 
-        ce_loss = F.cross_entropy(input, target.long(), weight=self.weight, reduction=self.reduction)
+        # Set target dtype to float to fix this error:
+        # RuntimeError: Expected floating point type for target with class probabilities, got Int
+        ce_loss = F.cross_entropy(input, target.float(), weight=self.weight, reduction=self.reduction)
 
         return self.alpha * ce_loss + (1 - self.alpha) * regression_loss
