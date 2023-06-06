@@ -5,11 +5,11 @@ import pandas as pd
 
 import graphium
 
-GOLI_DATASETS_BASE_URL = "gcs://graphium-public/datasets"
+GOLI_DATASETS_BASE_URL = "gs://graphium-public/datasets"
 GOLI_DATASETS = {
-    "graphium-zinc-micro": "graphium-zinc-micro.zip",
-    "graphium-zinc-bench-gnn": "graphium-zinc-bench-gnn.zip",
-    "graphium-htsfp": "graphium-htsfp.csv.gz",
+    "graphium-zinc-micro": "goli-zinc-micro.zip",
+    "graphium-zinc-bench-gnn": "goli-zinc-bench-gnn.zip",
+    "graphium-htsfp": "goli-htsfp.csv.gz",
 }
 
 

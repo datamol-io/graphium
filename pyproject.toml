@@ -58,11 +58,13 @@ include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose"
+addopts = "--verbose --durations=10 -n auto"
 testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:tensorboard.*:",
     "ignore::DeprecationWarning:ray.*:",
     "ignore::DeprecationWarning:numba.*:",
+    "ignore::DeprecationWarning:lightning_fabric.*:",
+    "ignore::DeprecationWarning:pytorch_lightning.*:",
     "ignore::UserWarning:umap.*:",
 ]

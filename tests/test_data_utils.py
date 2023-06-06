@@ -4,7 +4,7 @@ import graphium
 
 
 def test_list_datasets():
-    datasets = graphium.data.utils.liraph_umgraphium_datasets()
+    datasets = graphium.data.utils.list_graphium_datasets()
     assert isinstance(datasets, set)
     assert len(datasets) > 0
 
@@ -12,7 +12,7 @@ def test_list_datasets():
 def test_download_datasets(tmpdir):
     dataset_dir = tmpdir.mkdir("graphium-datasets")
 
-    data_path = graphium.data.utils.downlgraphiumgraphium_dgraphiumet(
+    data_path = graphium.data.utils.download_graphium_dataset(
         "graphium-zinc-micro", output_path=dataset_dir
     )
 
