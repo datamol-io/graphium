@@ -42,6 +42,9 @@ Documentation = "https://graphium-docs.datamol.io/"
 [tool.setuptools]
 include-package-data = true
 
+[tool.setuptools_scm]
+fallback_version = "dev"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["graphium", "graphium.*"]
