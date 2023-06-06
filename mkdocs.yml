@@ -11,6 +11,7 @@ docs_dir: "docs"
 
 nav:
   - Overview: index.md
+  - Benchmark: benchmark.md
   - API:
     - graphium.nn:
       - graphium.nn: api/graphium.nn/graphium.nn.md
