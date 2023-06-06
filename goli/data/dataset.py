@@ -367,6 +367,11 @@ class MultitaskDataset(Dataset):
         if self.load_from_file:
             data_dict = self.load_graph_from_index(idx)
             datum["features"] = data_dict["graph_with_features"]
+            # these type changes are temporary for ipu dtype match
+            if hasattr(data_dict["labels"], "graph_pcqm4m_g25"):
+                data_dict["labels"].graph_pcqm4m_g25 = data_dict["labels"].graph_pcqm4m_g25.astype(np.float32)
+            if hasattr(data_dict["labels"], "node_pcqm4m_n4"):
+                data_dict["labels"].node_pcqm4m_n4 = data_dict["labels"].node_pcqm4m_n4.astype(np.float32)
             datum["labels"] = data_dict["labels"]
             if "smiles" in data_dict.keys():
                 datum["smiles"] = data_dict["smiles"]
