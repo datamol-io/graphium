@@ -264,7 +264,7 @@ class test_DataLoading(ut.TestCase):
 
                 return features, labels
 
-        from graphiumhium.ipu.ipu_wrapper import DictIPUStrategy
+        from graphium.ipu.ipu_wrapper import DictIPUStrategy
 
         gradient_accumulation = 3
         device_iterations = 5

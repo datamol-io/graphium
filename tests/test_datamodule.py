@@ -110,7 +110,7 @@ class Test_DataModule(ut.TestCase):
                 tensors_of_num_2,
                 series_num_2,
                 series_num_shuffled_2,
-            ) = graphiumhium.data.MultitaskFromSmilesDataModule._filter_none_molecules(
+            ) = graphium.data.MultitaskFromSmilesDataModule._filter_none_molecules(
                 idx_none,
                 list_of_num,
                 list_of_str,

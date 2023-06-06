@@ -3,7 +3,7 @@ import torch
 from torch.nn import BCELoss, MSELoss, L1Loss
 from copy import deepcopy
 
-from graphiumhium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
+from graphium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
 
 
 class test_Losses(ut.TestCase):

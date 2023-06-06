@@ -4,8 +4,8 @@ from functools import partial
 import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Data, Batch
 
-from graphiumhium.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
-from graphiumhium.utils.decorators import classproperty
+from graphium.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
+from graphium.utils.decorators import classproperty
 
 
 class GCNConvPyg(BaseGraphModule):

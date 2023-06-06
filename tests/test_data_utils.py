@@ -16,7 +16,7 @@ def test_download_datasets(tmpdir):
         "graphium-zinc-micro", output_path=dataset_dir
     )
 
-    fpath = graphiumhium.utils.fs.join(data_path, "ZINC-micro.csv")
+    fpath = graphium.utils.fs.join(data_path, "ZINC-micro.csv")
     df = pd.read_csv(fpath)
     assert df.shape == (1000, 4)  # type: ignore
     assert df.columns.tolist() == ["SMILES", "SA", "logp", "score"]  # type: ignore

@@ -7,8 +7,8 @@ from torch import Tensor
 
 from torch_geometric.typing import SparseTensor
 
-from graphiumhium.nn.base_layers import MLP, get_norm
-from graphiumhium.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
+from graphium.nn.base_layers import MLP, get_norm
+from graphium.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
 
 class PreprocessPositions(nn.Module):

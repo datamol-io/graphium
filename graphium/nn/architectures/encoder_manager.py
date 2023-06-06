@@ -9,7 +9,7 @@ from copy import deepcopy
 from torch import Tensor, nn
 import torch
 
-from graphiumhium.nn.encoders import (
+from graphium.nn.encoders import (
     laplace_pos_encoder,
     mlp_encoder,
     signnet_pos_encoder,

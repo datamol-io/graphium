@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from graphiumhium.utils.tensor import nan_mean, nan_std, nan_median
+from graphium.utils.tensor import nan_mean, nan_std, nan_median
 
 
 class SummaryInterface(object):

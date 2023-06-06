@@ -11,8 +11,8 @@ import torch
 from torch_geometric.data import Data, Batch, Dataset
 from torch_geometric.transforms import BaseTransform
 
-from graphiumhium.ipu.ipu_utils import import_poptorch
-from graphiumhium.utils.packing import (
+from graphium.ipu.ipu_utils import import_poptorch
+from graphium.utils.packing import (
     fast_packing,
     hybrid_packing,
     get_pack_sizes,

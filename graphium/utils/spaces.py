@@ -3,15 +3,15 @@ import torch
 import torch.optim.lr_scheduler as sc
 import torchmetrics.functional as TorchMetrics
 
-import graphiumhiumhium.nn.base_layers as BaseLayers
-import graphiumhiumhium.utils.custom_lr as CustomLR
-import graphiumhiumhium.data.datamodule as Datamodules
-import graphiumhiumhium.ipu.ipu_losses as IPULosses
-import graphiumhiumhium.ipu.ipu_metrics as Metrics
-import graphiumhiumhium.nn.pyg_layers as PygLayers
-import graphiumhiumhium.nn.residual_connections as Residuals
-import graphiumhiumhium.nn.encoders as Encoders
-import graphiumhiumhium.trainer.losses as Losses
+import graphiumhium.nn.base_layers as BaseLayers
+import graphiumhium.utils.custom_lr as CustomLR
+import graphiumhium.data.datamodule as Datamodules
+import graphiumhium.ipu.ipu_losses as IPULosses
+import graphiumhium.ipu.ipu_metrics as Metrics
+import graphiumhium.nn.pyg_layers as PygLayers
+import graphiumhium.nn.residual_connections as Residuals
+import graphiumhium.nn.encoders as Encoders
+import graphiumhium.trainer.losses as Losses
 
 PE_ENCODERS_DICT = {
     "laplacian_pe": Encoders.laplace_pos_encoder.LapPENodeEncoder,

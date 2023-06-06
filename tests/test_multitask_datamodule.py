@@ -2,7 +2,7 @@ import unittest as ut
 from omegaconf import OmegaConf
 import pandas as pd
 import numpy as np
-import graphiumhium
+import graphium
 
 
 class Test_Multitask_DataModule(ut.TestCase):
@@ -10,7 +10,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         self,
     ):  # TODO: I think we can remove this as it tests tiny_zinc which only contain graph level labels
         """Cover similar testing as for the original data module."""
-        df = graphiumhium.data.load_tiny_zinc()  # 100 molecules
+        df = graphium.data.load_tiny_zinc()  # 100 molecules
 
         # Here we take the microzinc dataset and split the labels up into 'SA', 'logp' and 'score' in order to simulate having multiple single-task datasets
         df_micro_zinc_SA = df[["SMILES", "SA"]]
@@ -93,7 +93,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["batch_size_inference"] = 16
 
         # Create the data module
-        dm = graphiumhium.data.MultitaskFromSmilesDataModule(**dm_args)
+        dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         # self.assertEqual(50, dm.num_node_feats)    # Not implemeneted error
         # self.assertEqual(6, dm.num_edge_feats)
@@ -120,9 +120,9 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["graph_score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config(self):
-        config = graphiumhium.load_config(name="zinc_default_multitask_pyg")
+        config = graphium.load_config(name="zinc_default_multitask_pyg")
 
-        df = graphiumhium.data.load_tiny_zinc()  # 100 molecules
+        df = graphium.data.load_tiny_zinc()  # 100 molecules
 
         # Here we take the microzinc dataset and split the labels up into 'SA', 'logp' and 'score' in order to simulate having multiple single-task datasets
         df_micro_zinc_SA = df[["SMILES", "SA"]]
@@ -148,7 +148,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm_args["task_specific_args"]["logp"]["df_path"] = None
         dm_args["task_specific_args"]["score"]["df_path"] = None
 
-        dm = graphiumhium.data.MultitaskFromSmilesDataModule(**dm_args)
+        dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         # assert dm.num_node_feats == 50
         # assert dm.num_edge_feats == 6
@@ -175,10 +175,10 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["graph_score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config_csv(self):
-        config = graphiumhium.load_config(name="zinc_default_multitask_pyg")
+        config = graphium.load_config(name="zinc_default_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
-        dm = graphiumhium.data.MultitaskFromSmilesDataModule(**dm_args)
+        dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         dm.prepare_data()
         dm.setup()
@@ -202,10 +202,10 @@ class Test_Multitask_DataModule(ut.TestCase):
             assert batch["labels"]["graph_score"].shape == (16, 1)
 
     def test_multitask_fromsmiles_from_config_parquet(self):
-        config = graphiumhium.load_config(name="fake_multilevel_multitask_pyg")
+        config = graphium.load_config(name="fake_multilevel_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
-        dm = graphiumhium.data.MultitaskFromSmilesDataModule(**dm_args)
+        dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         dm.prepare_data()
         dm.setup()
@@ -236,10 +236,10 @@ class Test_Multitask_DataModule(ut.TestCase):
             )  # test edge level
 
     def test_multitask_with_missing_fromsmiles_from_config_parquet(self):
-        config = graphiumhium.load_config(name="fake_and_missing_multilevel_multitask_pyg")
+        config = graphium.load_config(name="fake_and_missing_multilevel_multitask_pyg")
 
         dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
-        dm = graphiumhium.data.MultitaskFromSmilesDataModule(**dm_args)
+        dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
 
         dm.prepare_data()
         dm.setup()
@@ -273,7 +273,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
         num_graphs = len(df)
         label_cols = ["graph_label"]
-        output = graphiumhium.data.datamodule.extract_labels(df, "graph", label_cols)
+        output = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
 
         assert isinstance(output, np.ndarray)
         assert len(output.shape) == 2
@@ -284,7 +284,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
         num_graphs = len(df)
         label_cols = ["graph_label", "graph_label"]
-        output = graphiumhium.data.datamodule.extract_labels(df, "graph", label_cols)
+        output = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
 
         assert isinstance(output, np.ndarray)
         assert len(output.shape) == 2
@@ -301,7 +301,7 @@ class Test_Multitask_DataModule(ut.TestCase):
             for missing_col in label_cols[:replace]:
                 df[missing_col].iloc[drop_index] = None
 
-            output = graphiumhium.data.datamodule.extract_labels(df, "graph", label_cols)
+            output = graphium.data.datamodule.extract_labels(df, "graph", label_cols)
 
             assert isinstance(output, np.ndarray)
             assert len(output.shape) == 2
@@ -313,7 +313,7 @@ class Test_Multitask_DataModule(ut.TestCase):
 
         for level in ["node", "edge", "nodepair"]:
             label_cols = [f"{level}_label_{suffix}" for suffix in ["list", "np"]]
-            output = graphiumhium.data.datamodule.extract_labels(df, level, label_cols)
+            output = graphium.data.datamodule.extract_labels(df, level, label_cols)
 
             assert isinstance(output, list)
             assert len(output[0].shape) == 2
@@ -329,7 +329,7 @@ class Test_Multitask_DataModule(ut.TestCase):
                 for missing_col in label_cols[:replace]:
                     df.loc[drop_index, missing_col] = None
 
-                output = graphiumhium.data.datamodule.extract_labels(df, level, label_cols)
+                output = graphium.data.datamodule.extract_labels(df, level, label_cols)
 
                 for idx in drop_index:
                     assert len(output[idx].shape) == 2
