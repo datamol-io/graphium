@@ -103,8 +103,12 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--config", help="Path to the config file", default=None)
 
     args, unknown = parser.parse_known_args()
+    # Optionally parse the config with the command line
+    if args.config is not None:
+        CONFIG_FILE = args.config
 
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)

@@ -30,7 +30,7 @@ accelerator:
 
   ipu_config:
     - deviceIterations(5) # IPU would require large batches to be ready for the model.
-    - replicationFactor(8)
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
