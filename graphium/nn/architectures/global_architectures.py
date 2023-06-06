@@ -1,6 +1,6 @@
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
-from graphpumhium.ipu.to_dense_batch import to_dense_batch
+from graphium.ipu.to_dense_batch import to_dense_batch
 
 # Misc imports
 import inspect
@@ -11,8 +11,8 @@ from torch import Tensor, nn
 import torch
 from torch_geometric.data import Data
 
-# graphpumhium imports
-from graphpumhium.nn.base_layers import FCLayer, get_activation, get_norm
+# graphium imports
+from graphium.nn.base_layers import FCLayer, get_activation, get_norm
 from graphium.nn.architectures.encoder_manager import EncoderManager
 from graphium.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
 from graphium.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure

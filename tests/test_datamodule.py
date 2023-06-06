@@ -4,9 +4,9 @@ import torch
 import pandas as pd
 import datamol as dm
 
-import graphpumhium
-from graphpumhium.utils.fs import rm, exists, get_size
-from graphpumhium.data import GraphOGBDataModule, MultitaskFromSmilesDataModule
+import graphium
+from graphium.utils.fs import rm, exists, get_size
+from graphium.data import GraphOGBDataModule, MultitaskFromSmilesDataModule
 
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 

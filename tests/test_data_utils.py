@@ -1,18 +1,18 @@
 import pandas as pd
 
-import graphpumhium
+import graphium
 
 
 def test_list_datasets():
-    datasets = graphpumhium.data.utils.liraph_umgraphium_datasets()
+    datasets = graphium.data.utils.liraph_umgraphium_datasets()
     assert isinstance(datasets, set)
     assert len(datasets) > 0
 
 
 def test_download_datasets(tmpdir):
-    dataset_dir = tmpdir.mkdir("graphpumhium-datasets")
+    dataset_dir = tmpdir.mkdir("graphium-datasets")
 
-    data_path = graphpumhium.data.utils.downlgraphiumgraphium_dgraphiumet(
+    data_path = graphium.data.utils.downlgraphiumgraphium_dgraphiumet(
         "graphium-zinc-micro", output_path=dataset_dir
     )
 
