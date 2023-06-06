@@ -994,13 +994,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#release-a-new-version" class="md-nav__link">
-    Release a new version
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1086,13 +1079,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#release-a-new-version" class="md-nav__link">
-    Release a new version
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1112,14 +1098,11 @@
 
 
 <h1 id="contribute">Contribute<a class="headerlink" href="#contribute" title="Permanent link">&para;</a></h1>
-<p>The below documents the development lifecycle of Datamol.</p>
+<p>The below documents the development lifecycle of Graphium.</p>
 <h2 id="setup-a-dev-environment">Setup a dev environment<a class="headerlink" href="#setup-a-dev-environment" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>conda<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>graphium
-conda<span class="w"> </span>activate<span class="w"> </span>graphium
+<div class="highlight"><pre><span></span><code>mamba<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-n<span class="w"> </span>graphium<span class="w"> </span>-f<span class="w"> </span>env.yml
+mamba<span class="w"> </span>activate<span class="w"> </span>graphium
 
-mamba<span class="w"> </span>env<span class="w"> </span>update<span class="w"> </span>-f<span class="w"> </span>env.yml
-
-conda<span class="w"> </span>deactivate<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>conda<span class="w"> </span>activate<span class="w"> </span>graphium
 pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </code></pre></div>
 <h2 id="run-tests">Run tests<a class="headerlink" href="#run-tests" title="Permanent link">&para;</a></h2>
@@ -1130,19 +1113,6 @@ pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </s
 <div class="highlight"><pre><span></span><code><span class="c1"># Build and serve the doc</span>
 mike<span class="w"> </span>serve
 </code></pre></div>
-<h2 id="release-a-new-version">Release a new version<a class="headerlink" href="#release-a-new-version" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Run check: <code>rever check</code>.</li>
-<li>Bump and release new version: <code>rever VERSION_NUMBER</code>.</li>
-<li>Releasing a new version will do the following things in that order:</li>
-<li>Update <code>AUTHORS.rst</code>.</li>
-<li>Update <code>CHANGELOG.rst</code>.</li>
-<li>Bump the version number in <code>setup.py</code> and <code>_version.py</code>.</li>
-<li>Add a git tag.</li>
-<li>Push the git tag.</li>
-<li>Add a new release on the GH repo associated with the git tag.</li>
-<li>Update the conda forge feedstock.</li>
-</ul>
 
 
 
