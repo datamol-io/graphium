@@ -359,16 +359,20 @@ metrics:
       num_classes: 5
       task: multiclass
       target_to_int: True
+      target_nan_mask: -1000
+      ignore_index: -1000
       multitask_handling: flatten
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
   pcba_1328:
     - name: auroc_flat
       metric: auroc_ipu
+      task: binary
       multitask_handling: flatten
       threshold_kwargs: null
     - name: avpr_flat
       metric: average_precision_ipu
+      task: binary
       multitask_handling: flatten
       threshold_kwargs: null
   pcqm4m_g25: &pcqm_metrics

@@ -70,6 +70,7 @@ def average_precision_ipu(
     target: Tensor,
     num_classes: Optional[int] = None,
     task: Optional[str] = "multiclass",
+    ignore_index: Optional[int] = None,
     pos_label: Optional[int] = None,
     average: Optional[str] = "macro",
     sample_weights: Optional[Sequence] = None,
@@ -102,6 +103,7 @@ def average_precision_ipu(
         target=target,
         num_classes=num_classes,
         task=task,
+        ignore_index=ignore_index,
         pos_label=pos_label,
         average=average,
         # sample_weights=sample_weights,
@@ -563,7 +565,7 @@ def pearson_ipu(preds, target):
     preds = NaNTensor(preds)
     target = NaNTensor(target)
     preds[target.get_nans] = float("nan")
-    pearson = pearson_corrcoef(preds, target)
+    pearson = pearson_corrcoef(preds, target.to(preds.dtype))
     return Tensor(pearson)
 
 
