@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Sequence
+from typing import Optional, Tuple, Sequence, Literal
 
 import torch
 from torch import BoolTensor, IntTensor, Tensor
@@ -24,7 +24,7 @@ def auroc_ipu(
     preds: Tensor,
     target: Tensor,
     num_classes: Optional[int] = None,
-    task: Optional[str] = "multiclass",
+    task: Optional[Literal["binary", "multiclass", "multilabel"]] = None,
     pos_label: Optional[int] = None,
     average: Optional[str] = "macro",
     max_fpr: Optional[float] = None,
