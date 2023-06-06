@@ -35,7 +35,7 @@ mamba env create -f env.yml -n graphium
 
 # Install Graphium in dev mode
 mamba activate graphium
-pip install -e .
+pip install --no-deps -e .
 ```
 
 ### For IPU developers

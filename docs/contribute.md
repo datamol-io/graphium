@@ -8,7 +8,7 @@ The below documents the development lifecycle of Graphium.
 mamba env create -n graphium -f env.yml
 mamba activate graphium
 
-pip install -e .
+pip install --no-deps -e .
 ```
 
 ## Run tests
