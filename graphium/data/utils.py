@@ -5,11 +5,10 @@ import pandas as pd
 
 import graphium
 
-GOLI_DATASETS_BASE_URL = "gs://graphium-public/datasets"
-GOLI_DATASETS = {
-    "graphium-zinc-micro": "goli-zinc-micro.zip",
-    "graphium-zinc-bench-gnn": "goli-zinc-bench-gnn.zip",
-    "graphium-htsfp": "goli-htsfp.csv.gz",
+GRAPHIUM_DATASETS_BASE_URL = "gs://graphium-public/datasets"
+GRAPHIUM_DATASETS = {
+    "graphium-zinc-micro": "zinc-micro.zip",
+    "graphium-zinc-bench-gnn": "zinc-bench-gnn.zip",
 }
 
 
@@ -59,7 +58,7 @@ def list_graphium_datasets() -> set:
     Returns:
         set: A set of Graphium dataset names.
     """
-    return set(GOLI_DATASETS.keys())
+    return set(GRAPHIUM_DATASETS.keys())
 
 
 def download_graphium_dataset(
@@ -77,12 +76,12 @@ def download_graphium_dataset(
         str: Path to the downloaded dataset.
     """
 
-    if name not in GOLI_DATASETS:
-        raise ValueError(f"'{name}' is not a valid Graphium dataset name. Choose from {GOLI_DATASETS}")
+    if name not in GRAPHIUM_DATASETS:
+        raise ValueError(f"'{name}' is not a valid Graphium dataset name. Choose from {GRAPHIUM_DATASETS}")
 
-    fname = GOLI_DATASETS[name]
+    fname = GRAPHIUM_DATASETS[name]
 
-    dataset_path_source = graphium.utils.fs.join(GOLI_DATASETS_BASE_URL, fname)
+    dataset_path_source = graphium.utils.fs.join(GRAPHIUM_DATASETS_BASE_URL, fname)
     dataset_path_destination = graphium.utils.fs.join(output_path, fname)
 
     if not graphium.utils.fs.exists(dataset_path_destination):
