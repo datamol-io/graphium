@@ -12,11 +12,11 @@ accelerator:
         ipu_dataloader_training_opts:
           mode: async
           max_num_nodes_per_graph: 40 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 60
+          max_num_edges_per_graph: 80
         ipu_dataloader_inference_opts:
           mode: async
           max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 60
+          max_num_edges_per_graph: 80
         # Data handling-related
         batch_size_training: 10
         batch_size_inference: 10
@@ -355,9 +355,10 @@ metrics:
       multitask_handling: flatten
       threshold_kwargs: null
     - name: avpr_flat
-      metric: averageprecision
+      metric: average_precision_ipu
       num_classes: 5
       task: multiclass
+      target_to_int: True
       multitask_handling: flatten
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
@@ -367,7 +368,7 @@ metrics:
       multitask_handling: flatten
       threshold_kwargs: null
     - name: avpr_flat
-      metric: averageprecision
+      metric: average_precision_ipu
       multitask_handling: flatten
       threshold_kwargs: null
   pcqm4m_g25: &pcqm_metrics

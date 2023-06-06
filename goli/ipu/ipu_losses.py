@@ -60,7 +60,7 @@ class MSELossIPU(MSELoss):
     """
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
-        target = target.clone()
+        target = target.clone().to(input.dtype)
         input = input.clone()
 
         # Replace the nan-targets in the input/target tensors by 0
@@ -88,7 +88,7 @@ class L1LossIPU(L1Loss):
     """
 
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
-        target = target.clone()
+        target = target.clone().to(input.dtype)
         input = input.clone()
 
         # Replace the nan-targets in the input/target tensors by 0
