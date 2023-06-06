@@ -8,6 +8,7 @@ import zipfile
 from copy import deepcopy
 import time
 import gc
+from rdkit import Chem
 
 from loguru import logger
 import fsspec
@@ -26,6 +27,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.trainer.states import RunningStage
 
 import torch
+from torch_geometric.data import Data
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
@@ -46,8 +48,10 @@ from goli.data.smiles_transform import (
 from goli.data.collate import goli_collate_fn
 import goli.data.dataset as Datasets
 from goli.data.normalization import LabelNormalization
+from goli.data.multilevel_utils import extract_labels
 
 torch.multiprocessing.set_sharing_strategy("file_system")
+
 
 PCQM4M_meta = {
     "num tasks": 1,
@@ -342,9 +346,9 @@ class BaseDataModule(pl.LightningDataModule):
             first_elem = this_series.values[0]
             is_float = False
             if isinstance(first_elem, (list, tuple)):
-                is_float = isinstance(first_elem[0], np.floating)
+                is_float = first_elem[0].dtype.kind == 'f'
             elif isinstance(first_elem, np.ndarray):
-                is_float = isinstance(first_elem, np.floating)
+                is_float = first_elem.dtype.kind == 'f'
 
             # Convert floats to float16
             if is_float:
@@ -631,6 +635,7 @@ class BaseDataModule(pl.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
+        task_level: str = None,
         df: pd.DataFrame = None,
         df_path: Optional[Union[str, os.PathLike]] = None,
         smiles_col: str = None,
@@ -649,6 +654,7 @@ class DatasetProcessingParams:
         """
         object to store the parameters for the dataset processing
         Parameters:
+            task_level: The task level, wether it is graph, node, edge or nodepair
             df: The dataframe containing the data
             df_path: The path to the dataframe containing the data
             smiles_col: The column name of the smiles
@@ -663,6 +669,7 @@ class DatasetProcessingParams:
             splits_path: The path to the splits
         """
         self.df = df
+        self.task_level = task_level
         self.df_path = df_path
         self.smiles_col = smiles_col
         self.label_cols = label_cols
@@ -847,7 +854,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # TODO: Have the input argument to the Data Module be of type DatasetParams
         self.task_dataset_processing_params = {
-            task: DatasetProcessingParams(**ds_args) for task, ds_args in task_specific_args.items()
+            self._get_task_key(ds_args["task_level"], task): DatasetProcessingParams(**ds_args)
+            for task, ds_args in task_specific_args.items()
         }
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
@@ -887,6 +895,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 f"`prepare_dict_or_graph` should be either 'pyg:dict' or 'pyg:graph', Provided: `{prepare_dict_or_graph}`"
             )
         self.data_hash = self.get_data_hash()
+
+    def _get_task_key(self, task_level: str, task: str):
+        task_prefix = f"{task_level}_"
+        if not task.startswith(task_prefix):
+            task = task_prefix + task
+        return task
 
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
@@ -970,6 +984,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(
                 df,
+                task_level=args.task_level,
                 smiles_col=args.smiles_col,
                 label_cols=args.label_cols,
                 idx_col=args.idx_col,
@@ -1168,12 +1183,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if stage == "train":
             singletask_datasets = self.train_singletask_datasets
             about = "training set"
-        if stage == "val":
+        elif stage == "val":
             singletask_datasets = self.val_singletask_datasets
             about = "validation set"
-        if stage == "test":
+        elif stage == "test":
             singletask_datasets = self.test_singletask_datasets
             about = "test set"
+        else:
+            raise ValueError(f"Unknown stage {stage}")
 
         if load_from_file is None:
             load_from_file = self.load_from_file
@@ -1188,7 +1205,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             files_ready = False
 
-        return Datasets.MultitaskDataset(
+        multitask_dataset = Datasets.MultitaskDataset(
             singletask_datasets,
             n_jobs=self.featurization_n_jobs,
             backend=self.featurization_backend,
@@ -1200,6 +1217,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             load_from_file=load_from_file,
             files_ready=files_ready,
         )  # type: ignore
+
+        if stage == "train":
+            self.get_label_statistics(
+                self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
+            )
+            self.normalize_label(multitask_dataset)
+
+        return multitask_dataset
 
     def _ready_to_load_all_from_file(self) -> bool:
         """
@@ -1240,15 +1265,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             stage: self._make_multitask_dataset(stage, save_smiles_and_ids=False, load_from_file=False)
             for stage in stages
         }
-
-        self.get_label_statistics(
-            self.processed_graph_data_path, self.data_hash, temp_datasets["train"], train=True
-        )
-        self.normalize_label(temp_datasets["train"])
         for stage in stages:
             self.save_featurized_data(temp_datasets[stage], self._path_to_load_from_file(stage))
             temp_datasets[stage].save_metadata(self._path_to_load_from_file(stage))
-
         # self.train_ds, self.val_ds, self.test_ds will be created during `setup()`
         del temp_datasets
 
@@ -1256,30 +1275,80 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # check if the data items are actually saved into the folders
         return sum(os.path.getsize(osp.join(path, f)) for f in os.listdir(path))
 
-    def get_label_statistics(self, data_path, data_hash, dataset, train=False):
-        path_with_hash = os.path.join(data_path, data_hash)
-        os.makedirs(path_with_hash, exist_ok=True)
-        filename = os.path.join(path_with_hash, "task_norms.pkl")
-        # if self.task_norms was obtained from prepare_data step and
-        # this is training dataset split and the hash specific task_norms.pkl
-        # file does not exist, we recalculate the label statistics.
-        if self.task_norms and train and not os.path.isfile(filename):
-            for task in dataset[0]["labels"].keys():
-                labels = np.stack(np.array([datum["labels"][task] for datum in dataset]), axis=0)
-                self.task_norms[task].calculate_statistics(labels)
-            torch.save(self.task_norms, filename, pickle_protocol=4)
-        # if any of the above three condition does not satisfy, we load from file.
-        else:
-            self.task_norms = torch.load(filename)
+    def calculate_statistics(self, dataset: Datasets.MultitaskDataset, train: bool = False):
+        """
+        Calculate the statistics of the labels for each task, and overwrites the `self.task_norms` attribute.
 
-    def normalize_label(self, dataset):
-        for task in dataset[0]["labels"].keys():
+        Parameters:
+            dataset: the dataset to calculate the statistics from
+            train: whether the dataset is the training set
+
+        """
+        if self.task_norms and train:
+            for task in dataset.labels_size.keys():
+                # if the label type is graph_*, we need to stack them as the tensor shape is (num_labels, )
+                if task.startswith("graph"):
+                    labels = np.stack(
+                        np.array([datum["labels"][task] for datum in dataset if task in datum["labels"]]),
+                        axis=0,
+                    )
+                # for other tasks with node_ and edge_, the label shape is [num_nodes/num_edges, num_labels]
+                # we can concatenate them directly
+                else:
+                    labels = np.concatenate(
+                        [datum["labels"][task] for datum in dataset if task in datum["labels"]], axis=0
+                    )
+
+                self.task_norms[task].calculate_statistics(labels)
+
+    def get_label_statistics(
+        self,
+        data_path: Union[str, os.PathLike],
+        data_hash: str,
+        dataset: Datasets.MultitaskDataset,
+        train: bool = False,
+    ):
+        """
+        Get the label statistics from the dataset, and save them to file, if needed.
+        `self.task_norms` will be modified in-place with the label statistics.
+
+        Parameters:
+            data_path: the path to save and load the label statistics to. If None, no saving and loading will be done.
+            data_hash: the hash of the dataset generated by `get_data_hash()`
+            dataset: the dataset to calculate the statistics from
+            train: whether the dataset is the training set
+
+        """
+        if data_path is None:
+            self.calculate_statistics(dataset, train=train)
+        else:
+            path_with_hash = os.path.join(data_path, data_hash)
+            os.makedirs(path_with_hash, exist_ok=True)
+            filename = os.path.join(path_with_hash, "task_norms.pkl")
+            if self.task_norms and train and not os.path.isfile(filename):
+                self.calculate_statistics(dataset, train=train)
+                torch.save(self.task_norms, filename, pickle_protocol=4)
+            # if any of the above three condition does not satisfy, we load from file.
+            else:
+                self.task_norms = torch.load(filename)
+
+    def normalize_label(self, dataset: Datasets.MultitaskDataset) -> Datasets.MultitaskDataset:
+        """
+        Normalize the labels in the dataset using the statistics in `self.task_norms`.
+
+        Parameters:
+            dataset: the dataset to normalize the labels from
+
+        Returns:
+            the dataset with normalized labels
+        """
+        for task in dataset.labels_size.keys():
             for i in range(len(dataset)):
-                normalized_label = self.task_norms[task].normalize(dataset[i]["labels"][task])
-                dataset[i]["labels"][task] = normalized_label
+                if task in dataset[i]["labels"]:
+                    dataset[i]["labels"][task] = self.task_norms[task].normalize(dataset[i]["labels"][task])
         return dataset
 
-    def save_featurized_data(self, dataset, processed_data_path):
+    def save_featurized_data(self, dataset: Datasets.MultitaskDataset, processed_data_path):
         os.makedirs(processed_data_path)  # In case the len(dataset) is 0
         for i in range(0, len(dataset), 1000):
             os.makedirs(os.path.join(processed_data_path, format(i // 1000, "04d")), exist_ok=True)
@@ -1297,7 +1366,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         index, datum, folder = param
         filename = os.path.join(folder, format(index // 1000, "04d"), format(index, "07d") + ".pkl")
         torch.save(
-            {"graph_with_features": datum["features"], "labels": datum["labels"]}, filename, pickle_protocol=4
+            {"graph_with_features": datum["features"], "labels": datum["labels"]},
+            filename,
+            pickle_protocol=4,
         )
         return
 
@@ -1603,6 +1674,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def _extract_smiles_labels(
         self,
         df: pd.DataFrame,
+        task_level: str,
         smiles_col: str = None,
         label_cols: List[str] = [],
         idx_col: str = None,
@@ -1643,10 +1715,18 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         label_cols = check_arg_iterator(label_cols, enforce_type=list)
         smiles = df[smiles_col].values
         if len(label_cols) > 0:
-            labels = [pd.to_numeric(df[col], errors="coerce") for col in label_cols]
-            labels = np.stack(labels, axis=1)
+            if task_level == "graph":
+                labels = extract_labels(df, "graph", label_cols)
+            elif task_level == "node":
+                labels = extract_labels(df, "node", label_cols)
+            elif task_level == "edge":
+                labels = extract_labels(df, "edge", label_cols)
+            elif task_level == "nodepair":
+                labels = extract_labels(df, "nodepair", label_cols)
+            else:
+                raise ValueError(f"Unknown task level: {task_level}")
         else:
-            labels = np.zeros([len(smiles), 0])
+            labels = float("nan") + np.zeros([len(smiles), 0])
 
         indices = None  # What are indices for?
         if idx_col is not None:
@@ -1748,9 +1828,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
                 )
             train, val, test = split_names
-            train_indices = splits[train].astype("int").tolist()
-            val_indices = splits[val].astype("int").tolist()
-            test_indices = splits[test].astype("int").tolist()
+            train_indices = np.asarray(splits[train]).astype("int").tolist()
+            val_indices = np.asarray(splits[val]).astype("int").tolist()
+            test_indices = np.asarray(splits[test]).astype("int").tolist()
 
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
@@ -2064,6 +2144,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 "smiles_col": smiles_col,
                 "label_cols": label_cols,
                 "splits_path": splits_path,
+                "task_level": task_args["task_level"],
             }
             self.metadata[task_name] = this_metadata
 
@@ -2329,6 +2410,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(
                 df,
+                task_level=args.task_level,
                 smiles_col=args.smiles_col,
                 label_cols=args.label_cols,
                 idx_col=args.idx_col,
@@ -2433,6 +2515,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
 
         smiles, labels, sample_idx, extras = self._extract_smiles_labels(
             df,
+            task_level=args.task_level,
             smiles_col=args.smiles_col,
             label_cols=label_cols,
             idx_col=args.idx_col,

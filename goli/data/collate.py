@@ -10,6 +10,7 @@ from torch_geometric.data import Data, Batch
 
 from goli.features import GraphDict, to_dense_array
 from goli.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
+from loguru import logger
 
 
 def goli_collate_fn(
@@ -65,13 +66,17 @@ def goli_collate_fn(
     """
 
     elem = elements[0]
-
     if isinstance(elem, Mapping):
         batch = {}
         for key in elem:
+            # Multitask setting: We have to pad the missing labels
+            if key == "labels":
+                labels = [d[key] for d in elements]
+                batch[key] = collate_labels(labels, labels_size_dict)
+
             # If the features are a dictionary containing GraphDict elements,
             # Convert to pyg graphs and use the pyg batching.
-            if isinstance(elem[key], GraphDict):
+            elif isinstance(elem[key], GraphDict):
                 pyg_graphs = [d[key].make_pyg_graph(mask_nan=mask_nan) for d in elements]
                 batch[key] = collage_pyg_graph(pyg_graphs)
 
@@ -83,12 +88,6 @@ def goli_collate_fn(
             # Ignore the collate for specific keys
             elif key in do_not_collate_keys:
                 batch[key] = [d[key] for d in elements]
-
-            # Multitask setting: We have to pad the missing labels
-            elif key == "labels":
-                labels = [d[key] for d in elements]
-                batch[key] = collate_labels(labels, labels_size_dict)
-
             # Otherwise, use the default torch batching
             else:
                 batch[key] = default_collate([d[key] for d in elements])
@@ -162,8 +161,67 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
     return Batch.from_data_list(pyg_batch)
 
 
+def pad_to_expected_label_size(labels: torch.Tensor, label_size: List[int]):
+    """Determine difference of ``labels`` shape to expected shape `label_size` and pad
+    with ``torch.nan`` accordingly.
+    """
+    if label_size == list(labels.shape):
+        return labels
+
+    missing_dims = len(label_size) - len(labels.shape)
+    for _ in range(missing_dims):
+        labels.unsqueeze(-1)
+
+    pad_sizes = [(0, expected - actual) for expected, actual in zip(label_size, labels.shape)]
+    pad_sizes = [item for before_after in pad_sizes for item in before_after]
+    pad_sizes.reverse()
+
+    if any([s < 0 for s in pad_sizes]):
+        logger.warning(f"More labels available than expected. Will remove data to fit expected size.")
+
+    return torch.nn.functional.pad(labels, pad_sizes, value=torch.nan)
+
+
+def collate_pyg_graph_labels(pyg_labels: List[Data]):
+    """
+    Function to collate pytorch geometric labels.
+    Convert all numpy types to torch
+
+    Parameters:
+        pyg_labels: Iterable of PyG label Data objects
+    """
+    pyg_batch = []
+    for pyg_label in pyg_labels:
+        for pyg_key in set(pyg_label.keys) - set(["x", "edge_index"]):
+            tensor = pyg_label[pyg_key]
+            # Convert numpy/scipy to Pytorch
+            if isinstance(tensor, (ndarray, spmatrix)):
+                tensor = torch.as_tensor(to_dense_array(tensor, tensor.dtype))
+
+            pyg_label[pyg_key] = tensor
+
+        pyg_batch.append(pyg_label)
+
+    return Batch.from_data_list(pyg_batch)
+
+
+def get_expected_label_size(label_data: Data, task: str, label_size: List[int]):
+    """Determines expected label size based on the specfic graph properties
+    and the number of targets in the task-dataset.
+    """
+    if task.startswith("graph_"):
+        num_labels = 1
+    elif task.startswith("node_"):
+        num_labels = label_data.x.size(0)
+    elif task.startswith("edge_"):
+        num_labels = label_data.edge_index.size(1)
+    elif task.startswith("nodepair_"):
+        raise NotImplementedError()
+    return [num_labels] + label_size
+
+
 def collate_labels(
-    labels: List[Dict[str, torch.Tensor]],
+    labels: List[Data],
     labels_size_dict: Optional[Dict[str, Any]] = None,
 ):
     """Collate labels for multitask learning.
@@ -178,19 +236,44 @@ def collate_labels(
         A dictionary of the form Dict[tasks, labels] where tasks is the name of the task and labels
         is a tensor of shape (batch_size, *labels_size_dict[task]).
     """
-    labels_dict = {}
-
     if labels_size_dict is not None:
         for this_label in labels:
-            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
-            for task in empty_task_labels:
-                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
-            for task in this_label.keys():
-                if not isinstance(task, torch.Tensor):
-                    this_label[task] = torch.as_tensor(this_label[task])
-    labels_dict = default_collate(labels)
+            for task in labels_size_dict.keys():
+                labels_size_dict[task] = list(labels_size_dict[task])
+                if len(labels_size_dict[task]) >= 2:
+                    labels_size_dict[task] = labels_size_dict[task][1:]
+                elif not task.startswith("graph_"):
+                    labels_size_dict[task] = [1]
 
-    return labels_dict
+            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys)
+            for task in empty_task_labels:
+                labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
+                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
+
+            for task in set(this_label.keys) - set(["x", "edge_index"]) - empty_task_labels:
+                labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
+
+                if not isinstance(this_label[task], (torch.Tensor)):
+                    this_label[task] = torch.as_tensor(this_label[task])
+
+                # Ensure explicit task dimension also for single task labels
+                if len(this_label[task].shape) == 1:
+                    # Distinguish whether target dim or entity dim is missing
+                    if labels_size_dict[task][0] == this_label[task].shape[0]:
+                        # num graphs/nodes/edges/nodepairs already matching
+                        this_label[task] = this_label[task].unsqueeze(1)
+                    else:
+                        # data lost unless entity dim is supposed to be 1
+                        if labels_size_dict[task][0] == 1:
+                            this_label[task] = this_label[task].unsqueeze(0)
+                        else:
+                            raise ValueError(
+                                f"Labels for {labels_size_dict[task][0]} nodes/edges/nodepairs expected, got 1."
+                            )
+
+                this_label[task] = pad_to_expected_label_size(this_label[task], labels_size_dict[task])
+
+    return collate_pyg_graph_labels(labels)
 
 
 def pad_nodepairs(pe: torch.Tensor, num_nodes: int, max_num_nodes_per_graph: int):

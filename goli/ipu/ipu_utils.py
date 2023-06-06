@@ -1,3 +1,4 @@
+import os
 import tempfile
 from datetime import datetime
 from copy import deepcopy
@@ -101,6 +102,7 @@ def load_ipu_options(
     ipu_opts_file = ipu_options_list_to_file(ipu_opts)
     ipu_options.loadFromFile(ipu_opts_file.name)
     ipu_opts_file.close()
+
     ipu_options.outputMode(poptorch.OutputMode.All)
     if seed is not None:
         ipu_options.randomSeed(seed)
@@ -142,7 +144,8 @@ def ipu_options_list_to_file(ipu_opts: Optional[List[str]]) -> tempfile._Tempora
     if ipu_opts is None:
         return
 
-    tmp_file = tempfile.NamedTemporaryFile("w")
+    tmp_file = tempfile.NamedTemporaryFile("w", delete=True)
     for s in ipu_opts:
         tmp_file.write(s + "\n")
+    tmp_file.flush()
     return tmp_file

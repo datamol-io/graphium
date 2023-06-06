@@ -1,3 +1,4 @@
+from .gcn_pyg import GCNConvPyg
 from .gated_gcn_pyg import GatedGCNPyg
 from .gin_pyg import GINConvPyg
 from .gin_pyg import GINEConvPyg

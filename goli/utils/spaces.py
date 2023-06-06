@@ -27,6 +27,7 @@ FC_LAYERS_DICT = {
 }
 
 PYG_LAYERS_DICT = {
+    "pyg:gcn": PygLayers.GCNConvPyg,
     "pyg:gin": PygLayers.GINConvPyg,
     "pyg:gine": PygLayers.GINEConvPyg,
     "pyg:gated-gcn": PygLayers.GatedGCNPyg,
@@ -58,6 +59,7 @@ LOSS_DICT = {
     "mse_ipu": IPULosses.MSELossIPU,
     "mae_ipu": IPULosses.L1LossIPU,
     "l1_ipu": IPULosses.L1LossIPU,
+    "hybrid_ce_ipu": IPULosses.HybridCELossIPU,
 }
 
 
