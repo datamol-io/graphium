@@ -27,8 +27,42 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-# NOTE(hadim): to fill for the pypi release
-dependencies = []
+dependencies = [
+    "click",
+    "loguru",
+    "omegaconf >=2.0.0",
+    "tqdm",
+    # scientific
+    "numpy",
+    "scipy >=1.4",
+    "pandas >=1.0",
+    "scikit-learn",
+    "fastparquet",
+    # viz
+    "matplotlib >=3.0.1",
+    "seaborn",
+    # cloud IO
+    "fsspec >=2021.6",
+    "s3fs >=2021.6",
+    "gcsfs >=2021.6",
+    "platformdirs",
+    # ML packages
+    "tensorboard",
+    "pytorch-lightning >=1.9",
+    "torchmetrics >=0.7.0,<0.11",
+    "hydra-core >=1.0",
+    "ogb",
+    "torch-geometric >=2.0",
+    "wandb",
+    "optuna",
+    "mup",
+    "pytorch_sparse >=0.6",
+    "pytorch_cluster >=1.5",
+    "pytorch_scatter >=2.0",
+    # chemistry
+    "datamol >=0.10",
+    "mordred",
+]
 
 [project.scripts]
 graphium = "graphium.cli:main_cli"
