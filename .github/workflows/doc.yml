@@ -7,6 +7,11 @@ on:
     types: [published]
   workflow_dispatch: {}
 
+# Prevent doc action on `main` to conflict with each others.
+concurrency:
+  group: doc-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   doc:
     runs-on: "ubuntu-latest"
