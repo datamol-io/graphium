@@ -7,8 +7,8 @@ import torch.nn as nn
 from torch import Tensor, IntTensor
 from torch_sparse import SparseTensor
 
-from goli.nn.base_layers import get_activation, DropPath
-from goli.utils.decorators import classproperty
+from graphium.nn.base_layers import get_activation, DropPath
+from graphium.utils.decorators import classproperty
 import torch_geometric as pyg
 
 

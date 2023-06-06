@@ -1,4 +1,4 @@
-goli.nn
+graphium.nn
 ====================
 
 Base structures for neural networks in the library (to be inherented by other modules)
@@ -11,15 +11,15 @@ Base structures for neural networks in the library (to be inherented by other mo
 
 ## Base Graph Layer
 ------------
-::: goli.nn.base_graph_layer
+::: graphium.nn.base_graph_layer
 
 
 ## Base Layers
 ------------
-::: goli.nn.base_layers
+::: graphium.nn.base_layers
 
 
 ## Residual Connections
 ------------
-::: goli.nn.residual_connections
+::: graphium.nn.residual_connections
 

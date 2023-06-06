@@ -1,4 +1,4 @@
-goli.nn.architectures
+graphium.nn.architectures
 ====================
 
 High level architectures in the library
@@ -12,14 +12,14 @@ High level architectures in the library
 
 ## Global Architectures
 ------------
-::: goli.nn.architectures.global_architectures
+::: graphium.nn.architectures.global_architectures
 
 
 ## PyG Architectures
 ------------
-::: goli.nn.architectures.pyg_architectures
+::: graphium.nn.architectures.pyg_architectures
 
 
 ## Encoder Manager
 ------------
-::: goli.nn.architectures.encoder_manager
+::: graphium.nn.architectures.encoder_manager

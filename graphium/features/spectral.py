@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import networkx as nx
 
-from goli.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
+from graphium.utils.tensor import is_dtype_torch_tensor, is_dtype_numpy_array
 
 
 def compute_laplacian_pe(

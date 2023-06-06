@@ -12,8 +12,8 @@ import torch
 from torch.utils.data.dataloader import Dataset
 from torch_geometric.data import Data, Batch
 
-from goli.data.smiles_transform import smiles_to_unique_mol_ids
-from goli.features import GraphDict
+from graphium.data.smiles_transform import smiles_to_unique_mol_ids
+from graphium.features import GraphDict
 
 
 class SingleTaskDataset(Dataset):

@@ -1,4 +1,4 @@
-goli.nn.encoders
+graphium.nn.encoders
 ====================
 
 Implementations of positional encoders in the library
@@ -14,24 +14,24 @@ Implementations of positional encoders in the library
 
 ## Base Encoder
 ------------
-::: goli.nn.encoders.base_encoder
+::: graphium.nn.encoders.base_encoder
 
 
 ## Gaussian Kernal Positional Encoder
 ------------
-::: goli.nn.encoders.gaussian_kernel_pos_encoder
+::: graphium.nn.encoders.gaussian_kernel_pos_encoder
 
 
 ## Laplacian Positional Encoder
 ------------
-::: goli.nn.encoders.laplace_pos_encoder
+::: graphium.nn.encoders.laplace_pos_encoder
 
 
 ## MLP Encoder
 ------------
-::: goli.nn.encoders.mlp_encoder
+::: graphium.nn.encoders.mlp_encoder
 
 
 ## Signnet Positional Encoder
 ------------
-::: goli.nn.encoders.signnet_pos_encoder
+::: graphium.nn.encoders.signnet_pos_encoder

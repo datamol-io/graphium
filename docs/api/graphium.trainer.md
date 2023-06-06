@@ -1,4 +1,4 @@
-goli.trainer
+graphium.trainer
 ====================
 
 Code for training models
@@ -12,21 +12,21 @@ Code for training models
 
 ## Predictor
 ------------
-::: goli.trainer.predictor
+::: graphium.trainer.predictor
 
 
 ## Metrics
 ------------
-::: goli.trainer.metrics
+::: graphium.trainer.metrics
 
 
 ## Predictor Summaries
 ------------
-::: goli.trainer.predictor_summaries
+::: graphium.trainer.predictor_summaries
 
 
 ## Predictor Options
 ------------
-::: goli.trainer.predictor_options
+::: graphium.trainer.predictor_options
 
 

@@ -4,9 +4,9 @@ from typing import Tuple, Union, List, Optional
 
 from torch_geometric.data import Data, Batch
 
-from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
-from goli.nn.architectures.global_architectures import FeedForwardGraph
+from graphium.nn.base_graph_layer import BaseGraphModule
+from graphium.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
+from graphium.nn.architectures.global_architectures import FeedForwardGraph
 
 
 class FeedForwardPyg(FeedForwardGraph):
@@ -26,8 +26,8 @@ class FeedForwardPyg(FeedForwardGraph):
         connections.
 
         This class is meant to work with different PyG-based graph neural networks
-        layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
-        or `goli.nn.base_graph_layer.BaseGraphLayer`.
+        layers. Any layer must inherit from `graphium.nn.base_graph_layer.BaseGraphStructure`
+        or `graphium.nn.base_graph_layer.BaseGraphLayer`.
 
         Apply the *i-th* PyG graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.

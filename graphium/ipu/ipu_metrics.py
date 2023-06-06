@@ -16,8 +16,8 @@ from torchmetrics.functional import mean_squared_error, mean_absolute_error
 from torchmetrics.utilities.checks import _input_squeeze
 from torchmetrics.utilities.enums import AverageMethod
 
-from goli.utils.tensor import nan_mean
-from goli.ipu.ipu_utils import import_poptorch
+from graphiumhium.utils.tensor import nan_mean
+from graphiumhium.ipu.ipu_utils import import_poptorch
 
 
 def auroc_ipu(

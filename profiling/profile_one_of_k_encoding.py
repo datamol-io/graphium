@@ -1,5 +1,5 @@
 from tqdm import tqdm
-from goli.utils.tensor import one_of_k_encoding
+from graphium.utils.tensor import one_of_k_encoding
 
 
 def main():

@@ -5,8 +5,8 @@ from omegaconf import DictConfig
 from datetime import datetime
 from copy import deepcopy
 
-import goli
-from goli.config._loader import load_datamodule
+import graphium
+from graphium.config._loader import load_datamodule
 import time
 from typing import Optional, List, Sequence
 import wandb
@@ -16,7 +16,7 @@ import torch
 import numpy as np
 
 # Set up the working directory
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 os.chdir(MAIN_DIR)
 CONFIG_FILE = "expts/configs/config_pcqmv2_mpnn.yaml"
 # CONFIG_FILE = "expts/configs/config_ipu_qm9.yaml"

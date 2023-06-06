@@ -11,8 +11,8 @@ import torchvision.transforms as transforms
 
 import mup
 
-from goli.nn.base_layers import FCLayer
-from goli.utils.mup import set_base_shapes
+from graphium.nn.base_layers import FCLayer
+from graphium.utils.mup import set_base_shapes
 
 
 ON_IPU = True  # Change this line to run on CPU

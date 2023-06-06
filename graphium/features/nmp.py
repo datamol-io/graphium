@@ -7,7 +7,7 @@ import math
 from rdkit import Chem
 
 # NOTE(hadim): usually it's best to embed this in a function.
-with importlib.resources.open_text("goli.features", "periodic_table.csv") as f:
+with importlib.resources.open_text("graphiumhium.features", "periodic_table.csv") as f:
     PERIODIC_TABLE = pd.read_csv(f)
 PERIODIC_TABLE = PERIODIC_TABLE.set_index("AtomicNumber")
 

@@ -3,8 +3,8 @@ import torch.nn as nn
 from typing import Union, Callable, List, Dict, Any, Optional
 from torch_geometric.data import Batch
 
-from goli.nn.base_layers import MLP, get_norm
-from goli.nn.encoders.base_encoder import BaseEncoder
+from graphium.nn.base_layers import MLP, get_norm
+from graphium.nn.encoders.base_encoder import BaseEncoder
 
 
 class MLPEncoder(BaseEncoder):

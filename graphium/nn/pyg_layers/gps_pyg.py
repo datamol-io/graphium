@@ -4,23 +4,23 @@ from typing import Callable, Union, Optional, Dict, Any
 from torch.nn import Module
 from torch import Tensor
 from torch_geometric.data import Batch
-from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
-from goli.nn.pyg_layers import (
+from graphium.nn.base_graph_layer import BaseGraphModule
+from graphium.nn.base_layers import FCLayer, MultiheadAttentionMup, MLP
+from graphium.nn.pyg_layers import (
     GatedGCNPyg,
     GINConvPyg,
     GINEConvPyg,
     PNAMessagePassingPyg,
     MPNNPlusPyg,
 )
-from goli.utils.decorators import classproperty
-from goli.ipu.to_dense_batch import (
+from graphium.utils.decorators import classproperty
+from graphium.ipu.to_dense_batch import (
     to_dense_batch,
     to_sparse_batch,
     to_packed_dense_batch,
     to_sparse_batch_from_packed,
 )
-from goli.ipu.ipu_utils import is_running_on_ipu
+from graphium.ipu.ipu_utils import is_running_on_ipu
 
 PYG_LAYERS_DICT = {
     "pyg:gin": GINConvPyg,

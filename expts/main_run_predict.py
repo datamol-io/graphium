@@ -10,14 +10,14 @@ import torch
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
-import goli
-from goli.config._loader import load_datamodule, load_trainer
-from goli.utils.fs import mkdir
-from goli.trainer.predictor import PredictorModule
+import graphium
+from graphium.config._loader import load_datamodule, load_trainer
+from graphium.utils.fs import mkdir
+from graphium.trainer.predictor import PredictorModule
 
 
 # Set up the working directory
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 os.chdir(MAIN_DIR)
 
 DATA_NAME = "molhiv"

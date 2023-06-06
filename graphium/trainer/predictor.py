@@ -1,4 +1,4 @@
-from goli.trainer.metrics import MetricWrapper
+from graphium.trainer.metrics import MetricWrapper
 from typing import Dict, List, Any, Union, Any, Callable, Tuple, Type, Optional
 import numpy as np
 from copy import deepcopy
@@ -11,14 +11,14 @@ import pytorch_lightning as pl
 from torch_geometric.data import Data, Batch
 from mup.optim import MuAdam
 
-from goli.config.config_convert import recursive_config_reformating
-from goli.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
-from goli.trainer.predictor_summaries import TaskSummaries
-from goli.data.datamodule import BaseDataModule
-from goli.utils.moving_average_tracker import MovingAverageTracker
+from graphium.config.config_convert import recursive_config_reformating
+from graphium.trainer.predictor_options import EvalOptions, FlagOptions, ModelOptions, OptimOptions
+from graphium.trainer.predictor_summaries import TaskSummaries
+from graphium.data.datamodule import BaseDataModule
+from graphium.utils.moving_average_tracker import MovingAverageTracker
 
 GOLI_PRETRAINED_MODELS = {
-    "goli-zinc-micro-dummy-test": "gcs://goli-public/pretrained-models/goli-zinc-micro-dummy-test/model.ckpt"
+    "graphium-zinc-micro-dummy-test": "gcs://graphium-public/pretrained-models/graphium-zinc-micro-dummy-test/model.ckpt"
 }
 
 
@@ -622,7 +622,7 @@ class PredictorModule(pl.LightningModule):
 
         Args:
             name: Name of the model to load. List available
-                from `goli.trainer.PredictorModule.list_pretrained_models()`.
+                from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
 
         if name not in GOLI_PRETRAINED_MODELS:

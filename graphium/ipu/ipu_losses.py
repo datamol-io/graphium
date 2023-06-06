@@ -3,7 +3,7 @@ from torch import Tensor
 from torch.nn import BCELoss, MSELoss, L1Loss
 from torch._C import _infer_size
 from loguru import logger
-from goli.trainer.losses import HybridCELoss
+from graphium.trainer.losses import HybridCELoss
 
 
 class BCELossIPU(BCELoss):

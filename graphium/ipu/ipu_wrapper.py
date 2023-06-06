@@ -6,8 +6,8 @@ from pytorch_lightning.strategies import IPUStrategy
 from pytorch_lightning.utilities.types import STEP_OUTPUT
 from pytorch_lightning.trainer.states import RunningStage
 
-from goli.trainer.predictor import PredictorModule
-from goli.ipu.ipu_utils import import_poptorch
+from graphium.trainer.predictor import PredictorModule
+from graphium.ipu.ipu_utils import import_poptorch
 
 import torch
 from torch_geometric.data import Data, Batch
@@ -88,7 +88,7 @@ poptorch.registerCustomArgParser(BaseData, PyGArgsParser())
 
 class PredictorModuleIPU(PredictorModule):
     """
-    This class wraps around the `PredictorModule` to make it work with IPU and the `IPUPluginGoli`.
+    This class wraps around the `PredictorModule` to make it work with IPU and the `IPUPluginGraphium`.
     """
 
     def __init__(self, *args, **kwargs):

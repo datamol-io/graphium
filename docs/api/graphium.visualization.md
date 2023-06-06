@@ -1,5 +1,5 @@
-goli.visualization
+graphium.visualization
 ==================
 Code for visualizing graphs
 
-::: goli.visualization.vis_utils
+::: graphium.visualization.vis_utils

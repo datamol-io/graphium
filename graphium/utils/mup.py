@@ -5,18 +5,18 @@ from torch.nn.modules.conv import _ConvNd
 from mup import get_shapes, assert_hidden_size_inf, MuReadout, rescale_linear_bias, save_base_shapes
 from mup.shape import _zip_infshape_dict, _extract_shapes
 
-from goli.nn.base_layers import MuReadoutGoli
+from graphium.nn.base_layers import MuReadoutGraphium
 
 
 def apply_infshapes(model, infshapes):
     """
-    Modified from the regular `mup.apply_infshapes` by explicitly adding `base_dim` to the `MuReadoutGoli`.
+    Modified from the regular `mup.apply_infshapes` by explicitly adding `base_dim` to the `MuReadoutGraphium`.
     This allows the code to work on IPUs.
     """
     for name, p in model.named_parameters():
         p.infshape = infshapes[name]
     for _, module in model.named_modules():
-        if isinstance(module, MuReadoutGoli):
+        if isinstance(module, MuReadoutGraphium):
             module.base_width = module.weight.infshape[-1].base_dim
 
 
@@ -24,7 +24,7 @@ def set_base_shapes(model, base, rescale_params=True, delta=None, savefile=None,
     """Sets the `p.infshape` attribute for each parameter `p` of `model`.
 
     Code taken from the `mup` package from Microsoft https://github.com/microsoft/mup.
-    No change except in the `apply_inf_shapes`, using the one from Goli instead of `mup`
+    No change except in the `apply_inf_shapes`, using the one from Graphium instead of `mup`
 
     Inputs:
         model: nn.Module instance

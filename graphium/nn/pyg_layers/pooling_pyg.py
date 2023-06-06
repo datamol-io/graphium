@@ -7,9 +7,9 @@ from copy import deepcopy
 from torch_scatter import scatter
 from torch_geometric.data import Data, Batch
 
-from goli.nn.base_layers import MLP, FCLayer
-from goli.utils.tensor import ModuleListConcat, ModuleWrap
-from goli.nn.base_layers import MuReadoutGoli
+from graphium.nn.base_layers import MLP, FCLayer
+from graphium.utils.tensor import ModuleListConcat, ModuleWrap
+from graphium.nn.base_layers import MuReadoutGraphium
 
 EPS = 1e-6
 
@@ -265,10 +265,10 @@ class VirtualNodePyg(nn.Module):
         )
 
         # Projection layers from the pooling layer to node and edge feature sizes
-        self.node_projection = MuReadoutGoli(out_pool_dim, self.out_dim_nodes)
+        self.node_projection = MuReadoutGraphium(out_pool_dim, self.out_dim_nodes)
         self.edge_projection = None
         if self.use_edges:
-            self.edge_projection = MuReadoutGoli(out_pool_dim, self.out_dim_edges)
+            self.edge_projection = MuReadoutGraphium(out_pool_dim, self.out_dim_edges)
 
     def forward(
         self, g: Union[Data, Batch], feat: Tensor, vn_feat: LongTensor, edge_feat: Tensor

@@ -9,12 +9,12 @@ import operator as op
 from torchmetrics.utilities.distributed import reduce
 import torchmetrics.functional.regression.mae
 
-from goli.utils.tensor import nan_mean
+from graphium.utils.tensor import nan_mean
 
-# NOTE(hadim): the below is a fix to be able to import previously saved Goli model that are incompatible
+# NOTE(hadim): the below is a fix to be able to import previously saved Graphium model that are incompatible
 # with the current version of torchmetrics.
 # In the future, we should NOT save any torchmetrics objects during serialization.
-# See https://github.com/valence-discovery/goli/issues/106
+# See https://github.com/valence-discovery/graphium/issues/106
 sys.modules["torchmetrics.functional.regression.mean_absolute_error"] = torchmetrics.functional.regression.mae
 
 EPS = 1e-5
@@ -241,7 +241,7 @@ class MetricWrapper:
 
     @staticmethod
     def _get_metric(metric):
-        from goli.utils.spaces import METRICS_DICT
+        from graphium.utils.spaces import METRICS_DICT
 
         if isinstance(metric, str):
             metric_name = metric

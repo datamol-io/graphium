@@ -9,9 +9,15 @@ from loguru import logger
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
-import goli
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
-from goli.utils.safe_run import SafeRun
+import graphium
+from graphium.config._loader import (
+    load_datamodule,
+    load_metrics,
+    load_architecture,
+    load_predictor,
+    load_trainer,
+)
+from graphium.utils.safe_run import SafeRun
 
 # from torch_geometric.nn.aggr import Aggregation
 # Aggregation.set_validate_args(False)
@@ -20,7 +26,7 @@ from goli.utils.safe_run import SafeRun
 import wandb
 
 # Set up the working directory
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE= "expts/configs/config_ipu_allsizes.yaml"
 CONFIG_FILE = "docs/tutorials/model_training/config_ipu_tutorials.yaml"
 os.chdir(MAIN_DIR)

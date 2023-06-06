@@ -1,17 +1,17 @@
 # GOLI Datasets
 
-GOLI datasets are hosted at on Google Cloud Storage at `gs://goli-public/datasets`. GOLI provides a convenient utility functions to list and download those datasets:
+GOLI datasets are hosted at on Google Cloud Storage at `gs://graphium-public/datasets`. GOLI provides a convenient utility functions to list and download those datasets:
 
 ```python
-import goli
+import graphium
 
 dataset_dir = "/my/path"
-data_path = goli.data.utils.download_goli_dataset("goli-zinc-micro", output_path=dataset_dir)
+data_path = graphium.data.utils.download_graphium_dataset("graphium-zinc-micro", output_path=dataset_dir)
 print(data_path)
-# /my/path/goli-zinc-micro
+# /my/path/graphium-zinc-micro
 ```
 
-## `goli-zinc-micro`
+## `graphium-zinc-micro`
 
 ADD DESCRIPTION.
 
@@ -19,14 +19,14 @@ ADD DESCRIPTION.
 - Label columns: xxx
 - Split informations.
 
-## `goli-zinc-bench-gnn`
+## `graphium-zinc-bench-gnn`
 
 ADD DESCRIPTION.
 
 - Number of molecules: xxx
 - Label columns: xxx- Split informations.
 
-## `goli-htsfp`
+## `graphium-htsfp`
 
 ADD DESCRIPTION.
 

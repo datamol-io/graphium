@@ -1,14 +1,14 @@
 """
-Unit tests for the positional encodings in goli/features/*
+Unit tests for the positional encodings in graphium/features/*
 """
 
 import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.electrostatic import compute_electrostatic_interactions
-from goli.features.commute import compute_commute_distances
-from goli.features.graphormer import compute_graphormer_distances
+from graphium.features.electrostatic import compute_electrostatic_interactions
+from graphium.features.commute import compute_commute_distances
+from graphium.features.graphormer import compute_graphormer_distances
 
 
 class test_positional_encodings(ut.TestCase):

@@ -10,8 +10,8 @@ from torch_geometric.nn import GINConv
 from torch_scatter import scatter
 from torch_geometric.data import Batch
 
-from goli.nn.base_layers import MLP
-from goli.nn.encoders.base_encoder import BaseEncoder
+from graphium.nn.base_layers import MLP
+from graphium.nn.encoders.base_encoder import BaseEncoder
 
 
 class SimpleGIN(nn.Module):

@@ -8,9 +8,9 @@ import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
-from goli.ipu.to_dense_batch import to_dense_batch
+from graphium.ipu.to_dense_batch import to_dense_batch
 
-from goli.nn.base_layers import MultiheadAttentionMup
+from graphium.nn.base_layers import MultiheadAttentionMup
 
 
 def seed_everything(seed: int):

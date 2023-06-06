@@ -1,9 +1,9 @@
 """
-Unit tests for the metrics and wrappers of goli/utils/...
+Unit tests for the metrics and wrappers of graphium/utils/...
 """
 
-from goli.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median
-from goli.utils.safe_run import SafeRun
+from graphium.utils.tensor import nan_mad, nan_mean, nan_std, nan_var, nan_median
+from graphium.utils.safe_run import SafeRun
 import torch
 import numpy as np
 import scipy as sp

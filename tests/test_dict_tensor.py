@@ -1,9 +1,9 @@
 """
-Unit tests for the metrics and wrappers of goli/utils/...
+Unit tests for the metrics and wrappers of graphium/utils/...
 """
 
 from typing import Dict
-from goli.utils.dict_tensor import DictTensor
+from graphium.utils.dict_tensor import DictTensor
 import torch
 from torch import Tensor
 

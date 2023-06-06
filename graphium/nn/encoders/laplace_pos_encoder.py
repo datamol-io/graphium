@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 from torch_geometric.data import Batch
 
-from goli.nn.base_layers import MLP, get_norm, FCLayer
-from goli.nn.encoders.base_encoder import BaseEncoder
+from graphiumhium.nn.base_layers import MLP, get_norm, FCLayer
+from graphiumhium.nn.encoders.base_encoder import BaseEncoder
 
 
 class LapPENodeEncoder(BaseEncoder):

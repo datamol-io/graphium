@@ -65,13 +65,13 @@ datamodule:
       homolumo:
         df: null
         task_level: "graph"
-        df_path: ~/scratch/data/goli/data/PCQM4M/pcqm4mv2-20k.csv
+        df_path: ~/scratch/data/graphium/data/PCQM4M/pcqm4mv2-20k.csv
         # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
         # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv directly
         smiles_col: "cxsmiles"
         label_cols: ["homo_lumo_gap"]
         # sample_size: 30000 # use sample_size for test
-        # splits_path: goli/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
+        # splits_path: graphium/data/PCQM4M/split_dict_v2.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict_v2.pt`
         split_val: 0.1
         split_test: 0.1
 

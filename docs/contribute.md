@@ -5,12 +5,12 @@ The below documents the development lifecycle of Datamol.
 ## Setup a dev environment
 
 ```bash
-conda create -n goli
-conda activate goli
+conda create -n graphium
+conda activate graphium
 
 mamba env update -f env.yml
 
-conda deactivate && conda activate goli
+conda deactivate && conda activate graphium
 pip install -e .
 ```
 

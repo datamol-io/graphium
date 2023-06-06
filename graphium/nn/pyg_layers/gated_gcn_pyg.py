@@ -1,5 +1,5 @@
 """
-Unit tests for the different layers of goli/nn/pyg_layers/...
+Unit tests for the different layers of graphium/nn/pyg_layers/...
 
 The layers are not thoroughly tested due to the difficulty of testing them
 
@@ -16,9 +16,9 @@ from torch_geometric.nn.conv import MessagePassing
 from torch_scatter import scatter
 from torch_geometric.data import Data, Batch
 
-from goli.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
-from goli.nn.base_layers import FCLayer
-from goli.utils.decorators import classproperty
+from graphium.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
+from graphium.nn.base_layers import FCLayer
+from graphium.utils.decorators import classproperty
 
 
 class GatedGCNPyg(MessagePassing, BaseGraphStructure):

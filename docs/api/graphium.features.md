@@ -1,4 +1,4 @@
-goli.features
+graphium.features
 ====================
 Feature extraction and manipulation
 
@@ -13,29 +13,29 @@ Feature extraction and manipulation
 
 ## Featurizer
 ------------
-::: goli.features.featurizer
+::: graphium.features.featurizer
 
 
 ## Positional Encoding
 ------------
-::: goli.features.positional_encoding
+::: graphium.features.positional_encoding
 
 
 ## Properties
 ------------
-::: goli.features.properties
+::: graphium.features.properties
 
 
 ## Spectral PE
 ------------
-::: goli.features.spectral
+::: graphium.features.spectral
 
 
 ## Random Walk PE
 ------------
-::: goli.features.rw
+::: graphium.features.rw
 
 
 ## NMP
 ------------
-::: goli.features.nmp
+::: graphium.features.nmp

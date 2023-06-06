@@ -5,7 +5,7 @@ datamodule:
       SA:
         df: null
         task_level: "graph"
-        df_path: "goli/data/multitask/tiny_ZINC_SA.csv"
+        df_path: "graphium/data/multitask/tiny_ZINC_SA.csv"
         smiles_col: "SMILES"
         label_cols: ["SA"]
         split_val: 0.2
@@ -18,7 +18,7 @@ datamodule:
       logp:
         df: null
         task_level: "graph"
-        df_path: "goli/data/multitask/tiny_ZINC_logp.csv"
+        df_path: "graphium/data/multitask/tiny_ZINC_logp.csv"
         smiles_col: "SMILES"
         label_cols: ["logp"]
         split_val: 0.2
@@ -32,7 +32,7 @@ datamodule:
       score:
         df: null
         task_level: "graph"
-        df_path: "goli/data/multitask/tiny_ZINC_score.csv"
+        df_path: "graphium/data/multitask/tiny_ZINC_score.csv"
         smiles_col: "SMILES"
         label_cols: ["score"]
         split_val: 0.2
@@ -111,7 +111,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
-      residual_type: none 
+      residual_type: none
     graph:
       pooling: [sum, max]
       out_dim: 1
@@ -122,7 +122,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
-      residual_type: none 
+      residual_type: none
     edge:
       out_dim: 16
       hidden_dims: 32
@@ -132,7 +132,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
-      residual_type: none 
+      residual_type: none
     nodepair:
       out_dim: 16
       hidden_dims: 32
@@ -142,7 +142,7 @@ architecture:     # The parameters for the full graph network are taken from `co
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
-      residual_type: none     
+      residual_type: none
 
   task_heads:     # Set as null to avoid task heads. Recall that the arguments for the TaskHeads is a List of TaskHeadParams
     task_1:

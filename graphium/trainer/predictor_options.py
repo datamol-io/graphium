@@ -16,8 +16,8 @@ from inspect import signature, isclass
 
 from torch import nn
 
-from goli.utils.spaces import LOSS_DICT
-from goli.utils.spaces import SCHEDULER_DICT
+from graphium.utils.spaces import LOSS_DICT
+from graphium.utils.spaces import SCHEDULER_DICT
 
 
 @dataclass
@@ -125,7 +125,7 @@ class EvalOptions:
     Parameters:
         loss_fun:
             Loss function used during training.
-            Acceptable strings are goli.utils.spaces.LOSS_DICT.keys().
+            Acceptable strings are graphium.utils.spaces.LOSS_DICT.keys().
             If a dict, must contain a 'name' key with one of the acceptable loss function strings
             as a value. The rest of the dict will be used as the arguments passed to the loss object.
             Otherwise, a callable object must be provided, with a method `loss_fun._get_name()`.
@@ -174,7 +174,7 @@ class EvalOptions:
                 A callable corresponding to the loss function, a string specifying the loss
                 function from `LOSS_DICT`, or a dict containing a key 'name' specifying the
                 loss function, and the rest of the dict used as the arguments for the loss.
-                Accepted strings are: goli.utils.spaces.LOSS_DICT.keys().
+                Accepted strings are: graphium.utils.spaces.LOSS_DICT.keys().
 
         Returns:
             Callable:

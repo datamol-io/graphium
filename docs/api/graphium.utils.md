@@ -1,4 +1,4 @@
-goli.utils
+graphium.utils
 ====================
 module for utility functions
 
@@ -18,53 +18,53 @@ module for utility functions
 
 ## Argument Checker
 ----------------
-::: goli.utils.arg_checker
+::: graphium.utils.arg_checker
 
 
 ## Decorators
 ----------------
-::: goli.utils.decorators
+::: graphium.utils.decorators
 
 
 ## Dictionary of Tensors
 ----------------
-::: goli.utils.dict_tensor
+::: graphium.utils.dict_tensor
 
 
 ## File System
 ----------------
-::: goli.utils.fs
+::: graphium.utils.fs
 
 
 ## Hashing
 ----------------
-::: goli.utils.hashing
+::: graphium.utils.hashing
 
 
 ## Moving Average Tracker
 ----------------
-::: goli.utils.moving_average_tracker
+::: graphium.utils.moving_average_tracker
 
 
 ## MUP
 ----------------
-::: goli.utils.mup
+::: graphium.utils.mup
 
 
 ## Read File
 ----------------
-::: goli.utils.read_file
+::: graphium.utils.read_file
 
 ## Safe Run
 ----------------
-::: goli.utils.safe_run
+::: graphium.utils.safe_run
 
 
 ## Spaces
 ----------------
-::: goli.utils.spaces
+::: graphium.utils.spaces
 
 
 ## Tensor
 ----------------
-::: goli.utils.tensor
+::: graphium.utils.tensor

@@ -1,6 +1,6 @@
 from typing import Iterable, List, Dict, Tuple, Union, Callable, Any, Optional, Type
 from torch_geometric.data import Batch
-from goli.ipu.to_dense_batch import to_dense_batch
+from graphpumhium.ipu.to_dense_batch import to_dense_batch
 
 # Misc imports
 import inspect
@@ -11,18 +11,18 @@ from torch import Tensor, nn
 import torch
 from torch_geometric.data import Data
 
-# goli imports
-from goli.nn.base_layers import FCLayer, get_activation, get_norm
-from goli.nn.architectures.encoder_manager import EncoderManager
-from goli.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
-from goli.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
-from goli.nn.residual_connections import (
+# graphpumhium imports
+from graphpumhium.nn.base_layers import FCLayer, get_activation, get_norm
+from graphiumhium.nn.architectures.encoder_manager import EncoderManager
+from graphiumhium.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
+from graphiumhium.nn.base_graph_layer import BaseGraphModule, BaseGraphStructure
+from graphiumhium.nn.residual_connections import (
     ResidualConnectionBase,
     ResidualConnectionWeighted,
     ResidualConnectionRandom,
 )
-from goli.nn.utils import MupMixin
-from goli.ipu.ipu_utils import import_poptorch, is_running_on_ipu
+from graphiumhium.nn.utils import MupMixin
+from graphiumhium.ipu.ipu_utils import import_poptorch, is_running_on_ipu
 
 poptorch = import_poptorch(raise_error=False)
 
@@ -162,7 +162,7 @@ class FeedForwardNN(nn.Module, MupMixin):
         self.last_layer_is_readout = last_layer_is_readout
 
         # Parse the layer and residuals
-        from goli.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
+        from graphiumhium.utils.spaces import LAYERS_DICT, RESIDUALS_DICT
 
         self.layer_class, self.layer_name = self._parse_class_from_dict(layer_type, LAYERS_DICT)
         self.residual_class, self.residual_name = self._parse_class_from_dict(residual_type, RESIDUALS_DICT)
@@ -387,8 +387,8 @@ class FeedForwardGraph(FeedForwardNN):
         connections.
 
         This class is meant to work with different graph neural networks
-        layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
-        or `goli.nn.base_graph_layer.BaseGraphLayer`.
+        layers. Any layer must inherit from `graphiumhium.nn.base_graph_layer.BaseGraphStructure`
+        or `graphiumhium.nn.base_graph_layer.BaseGraphLayer`.
 
         Parameters:
 
@@ -468,7 +468,7 @@ class FeedForwardGraph(FeedForwardNN):
 
             layer_type:
                 The type of layers to use in the network.
-                A class that inherits from `goli.nn.base_graph_layer.BaseGraphStructure`,
+                A class that inherits from `graphiumhium.nn.base_graph_layer.BaseGraphStructure`,
                 or one of the following strings
 
                 - "pyg:gin": GINConvPyg
@@ -482,7 +482,7 @@ class FeedForwardGraph(FeedForwardNN):
             virtual_node:
                 A string associated to the type of virtual node to use,
                 either `None`, "none", "mean", "sum", "max", "logsum".
-                See `goli.nn.pooling_pyg.VirtualNode`.
+                See `graphiumhium.nn.pooling_pyg.VirtualNode`.
 
                 The virtual node will not use any residual connection if `residual_type`
                 is "none". Otherwise, it will use a simple ResNet like residual
@@ -661,8 +661,8 @@ class FeedForwardGraph(FeedForwardNN):
         connections.
 
         This class is meant to work with different PyG-based graph neural networks
-        layers. Any layer must inherit from `goli.nn.base_graph_layer.BaseGraphStructure`
-        or `goli.nn.base_graph_layer.BaseGraphLayer`.
+        layers. Any layer must inherit from `graphiumhium.nn.base_graph_layer.BaseGraphStructure`
+        or `graphiumhium.nn.base_graph_layer.BaseGraphLayer`.
 
         Apply the *i-th* PyG graph layer, where *i* is the index given by `step_idx`.
         The layer is applied differently depending if there are edge features or not.

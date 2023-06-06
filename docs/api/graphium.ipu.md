@@ -1,4 +1,4 @@
-goli.ipu
+graphium.ipu
 ====================
 Code for adapting to run on IPU
 
@@ -14,35 +14,35 @@ Code for adapting to run on IPU
 
 ## IPU Dataloader
 ------------
-::: goli.ipu.ipu_dataloader
+::: graphium.ipu.ipu_dataloader
 
 
 ## IPU Losses
 ------------
-::: goli.ipu.ipu_losses
+::: graphium.ipu.ipu_losses
 
 
 ## IPU Metrics
 ------------
-::: goli.ipu.ipu_metrics
+::: graphium.ipu.ipu_metrics
 
 
 ## IPU Simple Lightning
 ------------
-::: goli.ipu.ipu_simple_lightning
+::: graphium.ipu.ipu_simple_lightning
 
 
 ## IPU Utils
 ------------
-::: goli.ipu.ipu_utils
+::: graphium.ipu.ipu_utils
 
 
 ## IPU Wrapper
 ------------
-::: goli.ipu.ipu_wrapper
+::: graphium.ipu.ipu_wrapper
 
 
 ## To Dense Batch
 ------------
-::: goli.ipu.to_dense_batch
+::: graphium.ipu.to_dense_batch
 

@@ -1,4 +1,4 @@
-goli.data
+graphium.data
 ====================
 module for loading datasets and collating batches
 
@@ -10,14 +10,14 @@ module for loading datasets and collating batches
 
 ## Data Module
 ------------
-::: goli.data.datamodule
+::: graphium.data.datamodule
 
 
 ## Collate Module
 ------------
-::: goli.data.collate
+::: graphium.data.collate
 
 
 ## Util Functions
 ------------
-::: goli.data.utils
+::: graphium.data.utils

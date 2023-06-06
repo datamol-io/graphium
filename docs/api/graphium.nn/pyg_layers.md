@@ -1,4 +1,4 @@
-goli.nn.pyg_layers
+graphium.nn.pyg_layers
 ====================
 Implementations of GNN layers based on PyG in the library
 
@@ -13,34 +13,34 @@ Implementations of GNN layers based on PyG in the library
 
 ## Gated GCN Layer
 ------------
-::: goli.nn.pyg_layers.gated_gcn_pyg
+::: graphium.nn.pyg_layers.gated_gcn_pyg
 
 
 ## GPS Layer
 ------------
-::: goli.nn.pyg_layers.gps_pyg
+::: graphium.nn.pyg_layers.gps_pyg
 
 
-## GIN and GINE Layers 
+## GIN and GINE Layers
 ------------
-::: goli.nn.pyg_layers.gin_pyg
+::: graphium.nn.pyg_layers.gin_pyg
 
 
 ## MPNN Layer
 ------------
-::: goli.nn.pyg_layers.mpnn_pyg
+::: graphium.nn.pyg_layers.mpnn_pyg
 
 
 ## PNA Layer
 ------------
-::: goli.nn.pyg_layers.pna_pyg
+::: graphium.nn.pyg_layers.pna_pyg
 
 
 ## Pooling Layers
 ------------
-::: goli.nn.pyg_layers.pooling_pyg
+::: graphium.nn.pyg_layers.pooling_pyg
 
 
 ## Utils
 ------------
-::: goli.nn.pyg_layers.utils
+::: graphium.nn.pyg_layers.utils

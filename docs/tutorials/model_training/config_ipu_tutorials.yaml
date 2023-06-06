@@ -13,7 +13,7 @@ datamodule:
     task_specific_args:   # To be replaced by a new class "DatasetParams"
       homo:
         df: null
-        df_path: &df_path https://storage.googleapis.com/goli-public/datasets/QM9/norm_micro_qm9.csv
+        df_path: &df_path https://storage.googleapis.com/graphium-public/datasets/QM9/norm_micro_qm9.csv
         smiles_col: "smiles"
         label_cols: ["homo", "lumo"]
         split_val: 0.2

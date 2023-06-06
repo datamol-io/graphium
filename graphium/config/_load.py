@@ -10,7 +10,7 @@ def load_config(name: str):
         name: name of the config to load.
     """
 
-    with importlib.resources.open_text("goli.config", f"{name}.yaml") as f:
+    with importlib.resources.open_text("graphium.config", f"{name}.yaml") as f:
         config = omegaconf.OmegaConf.load(f)
 
     return config

@@ -4,9 +4,9 @@ from functools import partial
 import torch_geometric.nn as pyg_nn
 from torch_geometric.data import Data, Batch
 
-from goli.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
-from goli.nn.base_layers import MLP
-from goli.utils.decorators import classproperty
+from graphiumhium.nn.base_graph_layer import BaseGraphModule, check_intpus_allow_int
+from graphiumhium.nn.base_layers import MLP
+from graphiumhium.utils.decorators import classproperty
 
 
 class GINConvPyg(BaseGraphModule):

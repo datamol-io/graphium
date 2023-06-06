@@ -19,16 +19,16 @@ from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from pytorch_lightning import Trainer
 from pytorch_lightning.loggers import WandbLogger, Logger
 
-# Goli
-from goli.utils.mup import set_base_shapes
-from goli.ipu.ipu_dataloader import IPUDataloaderOptions
-from goli.trainer.metrics import MetricWrapper
-from goli.nn.architectures import FullGraphMultiTaskNetwork
-from goli.nn.utils import MupMixin
-from goli.trainer.predictor import PredictorModule
-from goli.utils.spaces import DATAMODULE_DICT
-from goli.ipu.ipu_utils import import_poptorch, load_ipu_options
-from goli.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
+# Graphium
+from graphium.utils.mup import set_base_shapes
+from graphium.ipu.ipu_dataloader import IPUDataloaderOptions
+from graphium.trainer.metrics import MetricWrapper
+from graphium.nn.architectures import FullGraphMultiTaskNetwork
+from graphium.nn.utils import MupMixin
+from graphium.trainer.predictor import PredictorModule
+from graphium.utils.spaces import DATAMODULE_DICT
+from graphium.ipu.ipu_utils import import_poptorch, load_ipu_options
+from graphium.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
 
 # Weights and Biases
 from pytorch_lightning import Trainer
@@ -288,7 +288,7 @@ def load_predictor(
     """
 
     if accelerator_type == "ipu":
-        from goli.ipu.ipu_wrapper import PredictorModuleIPU
+        from graphium.ipu.ipu_wrapper import PredictorModuleIPU
 
         predictor_class = PredictorModuleIPU
     else:
@@ -376,7 +376,7 @@ def load_trainer(
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
 
-        from goli.ipu.ipu_wrapper import DictIPUStrategy
+        from graphium.ipu.ipu_wrapper import DictIPUStrategy
 
         strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 

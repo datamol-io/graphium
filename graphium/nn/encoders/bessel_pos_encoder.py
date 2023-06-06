@@ -7,10 +7,10 @@ from torch_geometric.data import Batch
 from torch_geometric.nn.models.dimenet import BesselBasisLayer, SphericalBasisLayer
 from torch_geometric.nn import radius_graph
 
-from goli.nn.encoders.base_encoder import BaseEncoder
-from goli.nn.pyg_layers.utils import triplets
-from goli.nn.pyg_layers.dimenet_pyg import OutputBlock
-from goli.nn.base_layers import FCLayer
+from graphium.nn.encoders.base_encoder import BaseEncoder
+from graphium.nn.pyg_layers.utils import triplets
+from graphium.nn.pyg_layers.dimenet_pyg import OutputBlock
+from graphium.nn.base_layers import FCLayer
 
 
 class BesselSphericalPosEncoder(BaseEncoder):

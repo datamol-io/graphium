@@ -10,9 +10,9 @@ from torch_geometric.typing import OptTensor
 from torch_geometric.utils import degree
 from torch_geometric.data import Data, Batch
 
-from goli.utils.decorators import classproperty
-from goli.nn.base_layers import MLP, FCLayer, get_activation
-from goli.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
+from graphium.utils.decorators import classproperty
+from graphium.nn.base_layers import MLP, FCLayer, get_activation
+from graphium.nn.base_graph_layer import BaseGraphStructure, check_intpus_allow_int
 
 
 class PNAMessagePassingPyg(MessagePassing, BaseGraphStructure):

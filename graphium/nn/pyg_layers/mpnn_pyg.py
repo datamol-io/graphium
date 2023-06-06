@@ -2,9 +2,9 @@ from typing import Callable, Optional, Union, Tuple, List
 
 import torch
 from torch import Tensor, IntTensor, LongTensor
-from goli.nn.base_graph_layer import BaseGraphModule
-from goli.nn.base_layers import MLP
-from goli.utils.decorators import classproperty
+from graphium.nn.base_graph_layer import BaseGraphModule
+from graphium.nn.base_layers import MLP
+from graphium.utils.decorators import classproperty
 from torch_geometric.nn.aggr import MultiAggregation, Aggregation
 from torch_geometric.data import Batch
 

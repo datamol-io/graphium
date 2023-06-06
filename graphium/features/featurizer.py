@@ -12,9 +12,9 @@ from torch_geometric.data import Data
 from rdkit import Chem
 import datamol as dm
 
-from goli.features import nmp
-from goli.utils.tensor import one_of_k_encoding
-from goli.features.positional_encoding import get_all_positional_encodings
+from graphium.features import nmp
+from graphium.utils.tensor import one_of_k_encoding
+from graphium.features.positional_encoding import get_all_positional_encodings
 
 
 def to_dense_array(array: np.ndarray, dtype: str = None) -> np.ndarray:
@@ -533,7 +533,7 @@ def get_mol_edge_features(
 ) -> Dict[str, np.ndarray]:
     r"""
     Get the following set of features for any given bond
-    See `goli.features.nmp` for allowed values in one hot encoding
+    See `graphium.features.nmp` for allowed values in one hot encoding
 
     * One-hot representation of the bond type. Note that you should not kekulize your
         molecules, if you expect this to take aromatic bond into account.

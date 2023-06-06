@@ -31,24 +31,24 @@ from torch_geometric.data import Data
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
-from goli.utils import fs
-from goli.features import (
+from graphium.utils import fs
+from graphium.features import (
     mol_to_graph_dict,
     GraphDict,
     mol_to_pyggraph,
 )
-from goli.data.utils import goli_package_path
-from goli.utils.arg_checker import check_arg_iterator
-from goli.utils.hashing import get_md5_hash
-from goli.data.smiles_transform import (
+from graphium.data.utils import graphium_package_path
+from graphium.utils.arg_checker import check_arg_iterator
+from graphium.utils.hashing import get_md5_hash
+from graphium.data.smiles_transform import (
     did_featurization_fail,
     BatchingSmilesTransform,
     smiles_to_unique_mol_ids,
 )
-from goli.data.collate import goli_collate_fn
-import goli.data.dataset as Datasets
-from goli.data.normalization import LabelNormalization
-from goli.data.multilevel_utils import extract_labels
+from graphium.data.collate import graphium_collate_fn
+import graphium.data.dataset as Datasets
+from graphium.data.normalization import LabelNormalization
+from graphium.data.multilevel_utils import extract_labels
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -182,8 +182,10 @@ class BaseDataModule(pl.LightningDataModule):
     def get_collate_fn(self, collate_fn):
         if collate_fn is None:
             # Some values become `inf` when changing data type. `mask_nan` deals with that
-            collate_fn = partial(goli_collate_fn, mask_nan=0, batch_size_per_pack=self.batch_size_per_pack)
-            collate_fn.__name__ = goli_collate_fn.__name__
+            collate_fn = partial(
+                graphium_collate_fn, mask_nan=0, batch_size_per_pack=self.batch_size_per_pack
+            )
+            collate_fn.__name__ = graphium_collate_fn.__name__
 
         return collate_fn
 
@@ -257,8 +259,8 @@ class BaseDataModule(pl.LightningDataModule):
             raise ValueError(f"unsupported file `{path}`")
         kwargs.setdefault("sep", sep)
 
-        if path.startswith("goli://"):
-            path = goli_package_path(path)
+        if path.startswith("graphium://"):
+            path = graphium_package_path(path)
 
         df = pd.read_csv(path, **kwargs)
         return df
@@ -732,7 +734,7 @@ class IPUDataModuleModifier:
             raise ValueError(f"No IPU options provided.")
 
         # Initialize the IPU dataloader
-        from goli.ipu.ipu_dataloader import create_ipu_dataloader
+        from graphium.ipu.ipu_dataloader import create_ipu_dataloader
 
         loader = create_ipu_dataloader(
             dataset=dataset,
@@ -828,7 +830,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 - "threading": Found to be slow.
             featurization_batch_size: Batch size to use for the featurization.
 
-            collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+            collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
             prepare_dict_or_graph: Whether to preprocess all molecules as Graph dict or PyG graphs.
                 Possible options:
 
@@ -1435,12 +1437,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         if collate_fn is None:
             # Some values become `inf` when changing data type. `mask_nan` deals with that
             collate_fn = partial(
-                goli_collate_fn,
+                graphium_collate_fn,
                 mask_nan=0,
                 do_not_collate_keys=["smiles", "mol_ids"],
                 batch_size_per_pack=self.batch_size_per_pack,
             )
-            collate_fn.__name__ = goli_collate_fn.__name__
+            collate_fn.__name__ = graphium_collate_fn.__name__
         return collate_fn
 
     # Cannot be used as is for the multitask version, because sample_idx does not apply.
@@ -2121,7 +2123,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 - "loky": joblib's Default. Found to cause memory leaks.
                 - "threading": Found to be slow.
 
-            collate_fn: A custom torch collate function. Default is to `goli.data.goli_collate_fn`
+            collate_fn: A custom torch collate function. Default is to `graphium.data.graphium_collate_fn`
             sample_size:
 
                 - `int`: The maximum number of elements to take from the dataset.

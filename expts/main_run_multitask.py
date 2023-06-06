@@ -11,8 +11,8 @@ from datetime import datetime
 from pytorch_lightning.utilities.model_summary import ModelSummary
 
 # Current project imports
-import goli
-from goli.config._loader import (
+import graphium
+from graphium.config._loader import (
     load_datamodule,
     load_metrics,
     load_architecture,
@@ -21,15 +21,15 @@ from goli.config._loader import (
     save_params_to_wandb,
     load_accelerator,
 )
-from goli.utils.safe_run import SafeRun
-from goli.utils.command_line_utils import update_config, get_anchors_and_aliases
+from graphium.utils.safe_run import SafeRun
+from graphium.utils.command_line_utils import update_config, get_anchors_and_aliases
 
 
 # WandB
 import wandb
 
 # Set up the working directory
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_b3lyp.yaml"
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"

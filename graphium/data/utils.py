@@ -3,13 +3,13 @@ import zipfile
 
 import pandas as pd
 
-import goli
+import graphium
 
-GOLI_DATASETS_BASE_URL = "gcs://goli-public/datasets"
+GOLI_DATASETS_BASE_URL = "gcs://graphium-public/datasets"
 GOLI_DATASETS = {
-    "goli-zinc-micro": "goli-zinc-micro.zip",
-    "goli-zinc-bench-gnn": "goli-zinc-bench-gnn.zip",
-    "goli-htsfp": "goli-htsfp.csv.gz",
+    "graphium-zinc-micro": "graphium-zinc-micro.zip",
+    "graphium-zinc-bench-gnn": "graphium-zinc-bench-gnn.zip",
+    "graphium-htsfp": "graphium-htsfp.csv.gz",
 }
 
 
@@ -20,7 +20,7 @@ def load_micro_zinc() -> pd.DataFrame:
         pd.DataFrame: A dataframe of micro ZINC.
     """
 
-    with importlib.resources.open_text("goli.data.micro_ZINC", "micro_ZINC.csv") as f:
+    with importlib.resources.open_text("graphium.data.micro_ZINC", "micro_ZINC.csv") as f:
         df = pd.read_csv(f)
 
     return df  # type: ignore
@@ -33,40 +33,42 @@ def load_tiny_zinc() -> pd.DataFrame:
         pd.DataFrame: A dataframe of tiny ZINC.
     """
 
-    with importlib.resources.open_text("goli.data.micro_ZINC", "micro_ZINC.csv") as f:
+    with importlib.resources.open_text("graphium.data.micro_ZINC", "micro_ZINC.csv") as f:
         df = pd.read_csv(f, nrows=100)
 
     return df  # type: ignore
 
 
-def goli_package_path(goli_path: str) -> str:
-    """Return the path of a goli file in the package."""
+def graphium_package_path(graphium_path: str) -> str:
+    """Return the path of a graphium file in the package."""
 
-    assert goli_path.startswith("goli://"), f"Invalid goli path, must start with 'goli://': {goli_path}"
+    assert graphium_path.startswith(
+        "graphium://"
+    ), f"Invalid graphium path, must start with 'graphium://': {graphium_path}"
 
-    goli_path = goli_path.replace("goli://", "")
-    package, ressource = goli_path.split("/")
+    graphium_path = graphium_path.replace("graphium://", "")
+    package, ressource = graphium_path.split("/")
     with importlib.resources.path(package, ressource) as data_path:
         pass
     return str(data_path)
 
 
-def list_goli_datasets() -> set:
+def list_graphium_datasets() -> set:
     """
-    List Goli datasets available to download.
+    List Graphium datasets available to download.
     Returns:
-        set: A set of Goli dataset names.
+        set: A set of Graphium dataset names.
     """
     return set(GOLI_DATASETS.keys())
 
 
-def download_goli_dataset(
+def download_graphium_dataset(
     name: str, output_path: str, extract_zip: bool = True, progress: bool = False
 ) -> str:
-    r"""Download a Goli dataset to a specified location.
+    r"""Download a Graphium dataset to a specified location.
 
     Args:
-        name: Name of the Goli dataset from `goli.data.utils.get_goli_datasets()`.
+        name: Name of the Graphium dataset from `graphium.data.utils.get_graphium_datasets()`.
         output_path: Directory path where to download the dataset to.
         extract_zip: Whether to extract the dataset if it's a zip file.
         progress: Whether to show a progress bar during download.
@@ -76,15 +78,15 @@ def download_goli_dataset(
     """
 
     if name not in GOLI_DATASETS:
-        raise ValueError(f"'{name}' is not a valid Goli dataset name. Choose from {GOLI_DATASETS}")
+        raise ValueError(f"'{name}' is not a valid Graphium dataset name. Choose from {GOLI_DATASETS}")
 
     fname = GOLI_DATASETS[name]
 
-    dataset_path_source = goli.utils.fs.join(GOLI_DATASETS_BASE_URL, fname)
-    dataset_path_destination = goli.utils.fs.join(output_path, fname)
+    dataset_path_source = graphium.utils.fs.join(GOLI_DATASETS_BASE_URL, fname)
+    dataset_path_destination = graphium.utils.fs.join(output_path, fname)
 
-    if not goli.utils.fs.exists(dataset_path_destination):
-        goli.utils.fs.copy(dataset_path_source, dataset_path_destination, progress=progress)
+    if not graphium.utils.fs.exists(dataset_path_destination):
+        graphium.utils.fs.copy(dataset_path_source, dataset_path_destination, progress=progress)
 
         if extract_zip and str(dataset_path_destination).endswith(".zip"):
             # Unzip the dataset

@@ -8,12 +8,12 @@ from torch.utils.data.dataloader import default_collate
 from typing import Union, List, Optional, Dict, Type, Any, Iterable
 from torch_geometric.data import Data, Batch
 
-from goli.features import GraphDict, to_dense_array
-from goli.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
+from graphium.features import GraphDict, to_dense_array
+from graphium.utils.packing import fast_packing, get_pack_sizes, node_to_pack_indices_mask
 from loguru import logger
 
 
-def goli_collate_fn(
+def graphium_collate_fn(
     elements: Union[List[Any], Dict[str, List[Any]]],
     labels_size_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise",
@@ -28,7 +28,7 @@ def goli_collate_fn(
     for more details.
 
     Note:
-        If goli needs to manipulate other tricky-to-batch objects. Support
+        If graphium needs to manipulate other tricky-to-batch objects. Support
         for them should be added to this single collate function.
 
     Parameters:
@@ -94,11 +94,11 @@ def goli_collate_fn(
         return batch
     elif isinstance(elements, Sequence) and isinstance(elem, Sequence):
         temp_elements = [{ii: sub_elem for ii, sub_elem in enumerate(elem)} for elem in elements]
-        batch = goli_collate_fn(temp_elements)
+        batch = graphium_collate_fn(temp_elements)
         return list(batch.values())
     elif isinstance(elements, Sequence) and not isinstance(elem, Sequence):
         temp_elements = [{"temp_key": elem} for elem in elements]
-        batch = goli_collate_fn(temp_elements)
+        batch = graphium_collate_fn(temp_elements)
         return batch["temp_key"]
     else:
         return default_collate(elements)

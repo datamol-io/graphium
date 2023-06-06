@@ -1,8 +1,8 @@
 import unittest as ut
 
-from goli.data import load_micro_zinc
-from goli.data.dataset import SingleTaskDataset, MultitaskDataset
-from goli.data.smiles_transform import smiles_to_unique_mol_ids
+from graphium.data import load_micro_zinc
+from graphium.data.dataset import SingleTaskDataset, MultitaskDataset
+from graphium.data.smiles_transform import smiles_to_unique_mol_ids
 
 
 class Test_Multitask_Dataset(ut.TestCase):

@@ -16,7 +16,7 @@ from torchmetrics.functional import (
 )
 from copy import deepcopy
 
-from goli.ipu.ipu_metrics import (
+from graphium.ipu.ipu_metrics import (
     auroc_ipu,
     average_precision_ipu,
     precision_ipu,

@@ -8,10 +8,10 @@ from torch import Tensor
 from torch_geometric.data import Data, Batch
 from torch_geometric.utils import scatter
 
-from goli.nn.base_graph_layer import BaseGraphModule
-from goli.utils.decorators import classproperty
-from goli.nn.pyg_layers.utils import triplets
-from goli.nn.base_layers import MLP, FCLayer
+from graphium.nn.base_graph_layer import BaseGraphModule
+from graphium.utils.decorators import classproperty
+from graphium.nn.pyg_layers.utils import triplets
+from graphium.nn.base_layers import MLP, FCLayer
 
 
 class ResidualLayer(torch.nn.Module):

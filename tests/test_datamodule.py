@@ -4,9 +4,9 @@ import torch
 import pandas as pd
 import datamol as dm
 
-import goli
-from goli.utils.fs import rm, exists, get_size
-from goli.data import GraphOGBDataModule, MultitaskFromSmilesDataModule
+import graphpumhium
+from graphpumhium.utils.fs import rm, exists, get_size
+from graphpumhium.data import GraphOGBDataModule, MultitaskFromSmilesDataModule
 
 TEMP_CACHE_DATA_PATH = "tests/temp_cache_0000"
 
@@ -110,7 +110,7 @@ class Test_DataModule(ut.TestCase):
                 tensors_of_num_2,
                 series_num_2,
                 series_num_shuffled_2,
-            ) = goli.data.MultitaskFromSmilesDataModule._filter_none_molecules(
+            ) = graphiumhium.data.MultitaskFromSmilesDataModule._filter_none_molecules(
                 idx_none,
                 list_of_num,
                 list_of_str,

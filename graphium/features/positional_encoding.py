@@ -5,12 +5,12 @@ import torch
 from scipy.sparse import spmatrix
 from collections import OrderedDict as OderedDictClass
 
-from goli.features.spectral import compute_laplacian_pe
-from goli.features.rw import compute_rwse
-from goli.features.electrostatic import compute_electrostatic_interactions
-from goli.features.commute import compute_commute_distances
-from goli.features.graphormer import compute_graphormer_distances
-from goli.features.transfer_pos_level import transfer_pos_level
+from graphium.features.spectral import compute_laplacian_pe
+from graphium.features.rw import compute_rwse
+from graphium.features.electrostatic import compute_electrostatic_interactions
+from graphium.features.commute import compute_commute_distances
+from graphium.features.graphormer import compute_graphormer_distances
+from graphium.features.transfer_pos_level import transfer_pos_level
 
 
 def get_all_positional_encodings(

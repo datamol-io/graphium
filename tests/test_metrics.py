@@ -1,5 +1,5 @@
 """
-Unit tests for the metrics and wrappers of goli/trainer/metrics/...
+Unit tests for the metrics and wrappers of graphium/trainer/metrics/...
 """
 
 import torch
@@ -8,7 +8,7 @@ import tempfile
 import os
 import operator as op
 
-from goli.trainer.metrics import (
+from graphium.trainer.metrics import (
     MetricWrapper,
     Thresholder,
 )

@@ -17,7 +17,7 @@ A deep learning library focused on graph representation learning for real-world 
 - ⚗️ Rich featurization: powerful and flexible built-in molecular featurization.
 - 🧠 Pretrained models: for fast and easy inference or transfer learning.
 - ⮔ Read-to-use training loop based on [Pytorch Lightning](https://www.pytorchlightning.ai/).
-- 🔌 Have a new dataset? Goli provides a simple plug-and-play interface. Change the path, the name of the columns to predict, the atomic featurization, and you’re ready to play!
+- 🔌 Have a new dataset? Graphium provides a simple plug-and-play interface. Change the path, the name of the columns to predict, the atomic featurization, and you’re ready to play!
 
 ## Documentation
 

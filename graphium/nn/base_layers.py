@@ -12,7 +12,7 @@ import mup.init as mupi
 from mup import set_base_shapes, MuReadout
 from torch.nn.functional import linear
 
-from goli.ipu.ipu_utils import is_running_on_ipu
+from graphium.ipu.ipu_utils import is_running_on_ipu
 
 SUPPORTED_ACTIVATION_MAP = {
     "ReLU",
@@ -222,7 +222,7 @@ class TransformerEncoderLayerMup(nn.TransformerEncoderLayer):
         )
 
 
-class MuReadoutGoli(MuReadout):
+class MuReadoutGraphium(MuReadout):
     """
     PopTorch-compatible replacement for `mup.MuReadout`
 
@@ -259,7 +259,7 @@ class MuReadoutGoli(MuReadout):
         return self.absolute_width / self.base_width
 
 
-class MuReadoutGoli(MuReadout):
+class MuReadoutGraphium(MuReadout):
     """
     PopTorch-compatible replacement for `mup.MuReadout`
 
@@ -387,7 +387,7 @@ class FCLayer(nn.Module):
         if not is_readout_layer:
             self.linear = nn.Linear(in_dim, out_dim, bias=bias)
         else:
-            self.linear = MuReadoutGoli(in_dim, out_dim, bias=bias)
+            self.linear = MuReadoutGraphium(in_dim, out_dim, bias=bias)
 
             # Warn user in case of weird parameters
             if self.normalization is not None:

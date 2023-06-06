@@ -3,8 +3,8 @@ import zipfile
 import pandas as pd
 from rdkit import Chem
 from ogb.lsc import PCQM4Mv2Dataset
-import goli
-from goli.data.datamodule import BaseDataModule
+import graphium
+from graphium.data.datamodule import BaseDataModule
 import csv
 
 
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     """
     #* main function
     #! this script need to be located at the specific data folder as it uses relative dependencies
-    for example   #* goli/data/PCQM4Mv2
+    for example   #* graphium/data/PCQM4Mv2
 
     instruction on how to generate the csv file:
     1. download the extract the sdf file from ogb: https://ogb.stanford.edu/docs/lsc/pcqm4mv2/
@@ -97,4 +97,4 @@ if __name__ == "__main__":
     # df = pd.read_csv(path)
     # smiles = df["cxsmiles"]
     # print (smiles[0])
-    # goli.data.datamodule.smiles_to_unique_mol_ids(smiles)
+    # graphium.data.datamodule.smiles_to_unique_mol_ids(smiles)

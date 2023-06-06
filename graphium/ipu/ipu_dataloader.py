@@ -11,8 +11,8 @@ import torch
 from torch_geometric.data import Data, Batch, Dataset
 from torch_geometric.transforms import BaseTransform
 
-from goli.ipu.ipu_utils import import_poptorch
-from goli.utils.packing import (
+from graphiumhium.ipu.ipu_utils import import_poptorch
+from graphiumhium.utils.packing import (
     fast_packing,
     hybrid_packing,
     get_pack_sizes,

@@ -2,30 +2,30 @@ import click
 
 from loguru import logger
 
-import goli
+import graphium
 
 from .main import main_cli
 
 
-@main_cli.group(name="data", help="Goli datasets.")
+@main_cli.group(name="data", help="Graphium datasets.")
 def data_cli():
     pass
 
 
-@data_cli.command(name="download", help="Download a Goli dataset.")
+@data_cli.command(name="download", help="Download a Graphium dataset.")
 @click.option(
     "-n",
     "--name",
     type=str,
     required=True,
-    help="Name of the goli dataset to download.",
+    help="Name of the graphium dataset to download.",
 )
 @click.option(
     "-o",
     "--output",
     type=str,
     required=True,
-    help="Where to download the Goli dataset.",
+    help="Where to download the Graphium dataset.",
 )
 @click.option(
     "--progress",
@@ -44,12 +44,12 @@ def download(name, output, progress):
 
     logger.info(f"Download dataset '{name}' into {output}.")
 
-    fpath = goli.data.utils.download_goli_dataset(**args)
+    fpath = graphium.data.utils.download_graphium_dataset(**args)
 
     logger.info(f"Dataset available at {fpath}.")
 
 
-@data_cli.command(name="list", help="List available Goli dataset.")
+@data_cli.command(name="list", help="List available Graphium dataset.")
 def list():
-    logger.info("Goli datasets:")
-    logger.info(goli.data.utils.list_goli_datasets())
+    logger.info("Graphium datasets:")
+    logger.info(graphium.data.utils.list_graphium_datasets())

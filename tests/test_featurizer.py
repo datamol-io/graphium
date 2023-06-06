@@ -1,5 +1,5 @@
 """
-Unit tests for the different datasets of goli/features/featurizer.py
+Unit tests for the different datasets of graphium/features/featurizer.py
 """
 
 import numpy as np
@@ -8,7 +8,7 @@ from copy import deepcopy
 from rdkit import Chem
 import datamol as dm
 
-from goli.features.featurizer import (
+from graphium.features.featurizer import (
     get_mol_atomic_features_onehot,
     get_mol_atomic_features_float,
     get_mol_edge_features,
