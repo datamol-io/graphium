@@ -1,0 +1,23 @@
+goli.data
+====================
+module for loading datasets and collating batches
+
+=== "Contents"
+
+    * [Data Module](#data-module)
+    * [Collate Module](#collate-module)
+    * [Util Functions](#util-functions)
+
+## Data Module
+------------
+::: goli.data.datamodule
+
+
+## Collate Module
+------------
+::: goli.data.collate
+
+
+## Util Functions
+------------
+::: goli.data.utils
