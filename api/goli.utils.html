@@ -19,7 +19,7 @@
         <link rel="next" href="goli.config.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -2461,8 +2461,12 @@ and decide whether to cast the subtype or to throw an error.</p>
           <td>
                 <code>any type</code>
           </td>
-          <td><p>The input to verify/convert to an iterator (list or tuple). If None, an empty iterator
-is returned.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input to verify/convert to an iterator (list or tuple). If None, an empty iterator
+is returned.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2472,9 +2476,13 @@ is returned.</p></td>
           <td>
                 <code>str or type</code>
           </td>
-          <td><p>The type to enforce the iterator. The valid choices are :
+          <td>
+            <div class="doc-md-description">
+              <p>The type to enforce the iterator. The valid choices are :
 <code>None</code>, <code>list</code>, <code>tuple</code>, <code>'none'</code>, <code>'list'</code>, <code>'tuple'</code>.
-If <code>None</code>, then the iterator type is not enforced.</p></td>
+If <code>None</code>, then the iterator type is not enforced.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2484,10 +2492,14 @@ If <code>None</code>, then the iterator type is not enforced.</p></td>
           <td>
                 <code>type, np.dtype or str representing basic type</code>
           </td>
-          <td><p>Verify if all the elements inside the iterator are the desired type.
+          <td>
+            <div class="doc-md-description">
+              <p>Verify if all the elements inside the iterator are the desired type.
 If <code>None</code>, then the sub-type is not enforced.
 Accepted strings are ['none', 'str', 'list', 'tuple', 'dict', 'int',
-'float', 'complex', 'bool', 'callable']</p></td>
+'float', 'complex', 'bool', 'callable']</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2497,9 +2509,13 @@ Accepted strings are ['none', 'str', 'list', 'tuple', 'dict', 'int',
           <td>
                 <code>bool</code>
           </td>
-          <td><p>If True, then the type specified by <code>enforce_subtype</code> is used to cast the
+          <td>
+            <div class="doc-md-description">
+              <p>If True, then the type specified by <code>enforce_subtype</code> is used to cast the
 elements inside the iterator. If False, then an error is thrown if the
-types do not match.</p></td>
+types do not match.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2520,8 +2536,12 @@ types do not match.</p></td>
 <td><code>output</code></td>          <td>
                 <code>iterator</code>
           </td>
-          <td><p>An iterator based on the input of the desired type (list or tuple) and
-the desired subtypes.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>An iterator based on the input of the desired type (list or tuple) and
+the desired subtypes.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2560,10 +2580,14 @@ the extra_accepted_cols. Otherwise, errors are thrown by the sub-functions.</p>
           <td><code>dataframe</code></td>
           <td>
           </td>
-          <td><p>(pd.DataFrame)
+          <td>
+            <div class="doc-md-description">
+              <p>(pd.DataFrame)
 The dataframe on which to verify if the column choice is valid.
 columns_choice: str, iterator(str)
-The columns chosen from the dataframe</p></td>
+The columns chosen from the dataframe</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2572,8 +2596,12 @@ The columns chosen from the dataframe</p></td>
           <td><code>extra_accepted_cols</code></td>
           <td>
           </td>
-          <td><p>str, iterator(str)
-A list</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>str, iterator(str)
+A list</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2582,10 +2610,14 @@ A list</p></td>
           <td><code>enforce_type</code></td>
           <td>
           </td>
-          <td><p>str or type
+          <td>
+            <div class="doc-md-description">
+              <p>str or type
 The type to enforce the iterator. The valid choices are :
 <code>None</code>, <code>list</code>, <code>tuple</code>, <code>'none'</code>, <code>'list'</code>, <code>'tuple'</code>.
-If <code>None</code>, then the iterator type is not enforced.</p></td>
+If <code>None</code>, then the iterator type is not enforced.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;list&#39;</code>
           </td>
@@ -2605,8 +2637,12 @@ If <code>None</code>, then the iterator type is not enforced.</p></td>
         <tr>
 <td><code>output</code></td>          <td>
           </td>
-          <td><p>iterator
-A str iterator based on the input of the desired type (list or tuple)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>iterator
+A str iterator based on the input of the desired type (list or tuple)</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2645,10 +2681,14 @@ A str iterator based on the input of the desired type (list or tuple)</p></td>
           <td>
                 <code>list2</code>
           </td>
-          <td><p>list, tuple or object
+          <td>
+            <div class="doc-md-description">
+              <p>list, tuple or object
 A list or tuple containing the elements to verify the inclusion.
 If an object is provided other than a list or tuple,
-then it is considered as a list of a single element.</p></td>
+then it is considered as a list of a single element.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2657,8 +2697,12 @@ then it is considered as a list of a single element.</p></td>
           <td><code>throw_error</code></td>
           <td>
           </td>
-          <td><p>bool
-Whether to throw an error if list1 is not in list2</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool
+Whether to throw an error if list1 is not in list2</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2678,9 +2722,13 @@ Whether to throw an error if list1 is not in list2</p></td>
         <tr>
 <td><code>list1_in_list2</code></td>          <td>
           </td>
-          <td><p>bool
+          <td>
+            <div class="doc-md-description">
+              <p>bool
 A boolean representing the inclusion of list1 in list2. It is returned if
-throw_error is set to false</p></td>
+throw_error is set to false</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2976,7 +3024,11 @@ to work on dictionary instead.</p>
           <td>
                 <code><span title="typing.Callable">Callable</span></code>
           </td>
-          <td><p>function to be called on each Tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>function to be called on each Tensor</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2986,8 +3038,12 @@ to work on dictionary instead.</p>
           <td>
                 <code>**kwargs</code>
           </td>
-          <td><p>Additional parameters to the function. Note that
-the Tensor should be the first input to the function.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Additional parameters to the function. Note that
+the Tensor should be the first input to the function.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3008,13 +3064,21 @@ the Tensor should be the first input to the function.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="goli.utils.dict_tensor.DictTensor" href="#goli.utils.dict_tensor.DictTensor">DictTensor</a>, <span title="typing.Dict">Dict</span>[<span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p><code>DictTensor</code> if the output of the function is a <code>torch.Tensor</code>,</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p><code>DictTensor</code> if the output of the function is a <code>torch.Tensor</code>,</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="goli.utils.dict_tensor.DictTensor" href="#goli.utils.dict_tensor.DictTensor">DictTensor</a>, <span title="typing.Dict">Dict</span>[<span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>or <code>dict[X]</code> if the output of the function is of type<code>X</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>or <code>dict[X]</code> if the output of the function is of type<code>X</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3096,7 +3160,11 @@ the Tensor should be the first input to the function.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>, io.<span title="io.IOBase">IOBase</span>, fsspec.<span title="fsspec.core">core</span>.<span title="fsspec.core.OpenFile">OpenFile</span>]</code>
           </td>
-          <td><p>path or file-like object to copy from.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>path or file-like object to copy from.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3106,7 +3174,11 @@ the Tensor should be the first input to the function.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>, io.<span title="io.IOBase">IOBase</span>, fsspec.<span title="fsspec.core">core</span>.<span title="fsspec.core.OpenFile">OpenFile</span>]</code>
           </td>
-          <td><p>path or file-like object to copy to.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>path or file-like object to copy to.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3116,8 +3188,12 @@ the Tensor should be the first input to the function.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>the chunk size to use. If progress is enabled the chunk
-size is <code>None</code>, it is set to 2048.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the chunk size to use. If progress is enabled the chunk
+size is <code>None</code>, it is set to 2048.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3127,7 +3203,11 @@ size is <code>None</code>, it is set to 2048.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether to overwrite the destination file it it exists.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to overwrite the destination file it it exists.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -3137,7 +3217,11 @@ size is <code>None</code>, it is set to 2048.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether to display a progress bar.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to display a progress bar.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -3147,7 +3231,11 @@ size is <code>None</code>, it is set to 2048.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether to hide the progress bar once the copy is done.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to hide the progress bar once the copy is done.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3189,7 +3277,11 @@ size is <code>None</code>, it is set to 2048.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>, fsspec.<span title="fsspec.core">core</span>.<span title="fsspec.core.OpenFile">OpenFile</span>, io.<span title="io.IOBase">IOBase</span>]</code>
           </td>
-          <td><p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3249,7 +3341,11 @@ size is <code>None</code>, it is set to 2048.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]</code>
           </td>
-          <td><p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3310,7 +3406,11 @@ the folder if it doesn't exist.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]</code>
           </td>
-          <td><p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3352,7 +3452,11 @@ the folder if it doesn't exist.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]</code>
           </td>
-          <td><p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3413,7 +3517,11 @@ filesystem to use (and so the separator.</p>
           <td><code>paths</code></td>
           <td>
           </td>
-          <td><p>a list of paths supported by <code>fsspec</code> such as local, s3, gcs, etc.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a list of paths supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
           <td>
                 <code>()</code>
           </td>
@@ -3901,7 +4009,11 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Name of the code, used for printing</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the code, used for printing</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3911,7 +4023,11 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to raise an error, or to catch it and print instead</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to raise an error, or to catch it and print instead</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3921,10 +4037,14 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The level of verbosity
+          <td>
+            <div class="doc-md-description">
+              <p>The level of verbosity
 0: Do not print anything
 1: Print only the traced stack when an error is caught and <code>raise_error</code> is False
-2: Print headers and footers at the start and exit of the with statement.</p></td>
+2: Print headers and footers at the start and exit of the with statement.</p>
+            </div>
+          </td>
           <td>
                 <code>2</code>
           </td>
@@ -4048,7 +4168,11 @@ concatenated together, instead of being applied sequentially.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The dimension for the concatenation</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension for the concatenation</p>
+            </div>
+          </td>
           <td>
                 <code>-1</code>
           </td>
@@ -4130,7 +4254,11 @@ their output alongside the dimension <code>self.dim</code>.</p>
           <td><code>func</code></td>
           <td>
           </td>
-          <td><p>function to wrap into a module</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>function to wrap into a module</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4240,8 +4368,12 @@ their output alongside the dimension <code>self.dim</code>.</p>
           <td>
                 <code>torch.<span title="torch.device">device</span></code>
           </td>
-          <td><p>str, torch.device
-object to check for cuda</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>str, torch.device
+object to check for cuda</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4251,9 +4383,13 @@ object to check for cuda</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>bool
+          <td>
+            <div class="doc-md-description">
+              <p>bool
 Whether to ignore the error if the device is not recognized.
-Otherwise, <code>False</code> is returned in case of errors.</p></td>
+Otherwise, <code>False</code> is returned in case of errors.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -4274,7 +4410,11 @@ Otherwise, <code>False</code> is returned in case of errors.</p></td>
 <td><code>is_cuda</code></td>          <td>
                 <code>bool</code>
           </td>
-          <td><p>bool</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4313,8 +4453,12 @@ Otherwise, <code>False</code> is returned in case of errors.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.dtype">dtype</span>, torch.<span title="torch.dtype">dtype</span>]</code>
           </td>
-          <td><p>dtype
-The dtype of a value. E.g. np.int32, str, torch.float</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>dtype
+The dtype of a value. E.g. np.int32, str, torch.float</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4335,7 +4479,11 @@ The dtype of a value. E.g. np.int32, str, torch.float</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>A boolean saying if the dtype is a numpy dtype</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A boolean saying if the dtype is a numpy dtype</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4374,8 +4522,12 @@ The dtype of a value. E.g. np.int32, str, torch.float</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.dtype">dtype</span>, torch.<span title="torch.dtype">dtype</span>]</code>
           </td>
-          <td><p>dtype
-The dtype of a value. E.g. np.int32, str, torch.float</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>dtype
+The dtype of a value. E.g. np.int32, str, torch.float</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4396,7 +4548,11 @@ The dtype of a value. E.g. np.int32, str, torch.float</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>A boolean saying if the dtype is a torch dtype</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A boolean saying if the dtype is a torch dtype</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4435,7 +4591,11 @@ The dtype of a value. E.g. np.int32, str, torch.float</p></td>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The input tensor.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4445,8 +4605,12 @@ The dtype of a value. E.g. np.int32, str, torch.float</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether to multiply the result by 1.4826 to mimic the
-standard deviation for normal distributions.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to multiply the result by 1.4826 to mimic the
+standard deviation for normal distributions.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -4456,7 +4620,11 @@ standard deviation for normal distributions.</p></td>
           <td>
                 <code>int or tuple(int</code>
           </td>
-          <td><p>The dimension or dimensions to reduce.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4466,7 +4634,11 @@ standard deviation for normal distributions.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether the output tensor has dim retained or not.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4476,9 +4648,13 @@ standard deviation for normal distributions.</p></td>
           <td>
                 <code>torch.<span title="torch.dtype">dtype</span></code>
           </td>
-          <td><p>The desired data type of returned tensor.
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
 If specified, the input tensor is casted to dtype before the operation is performed.
-This is useful for preventing data type overflows. Default: None.</p></td>
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4499,7 +4675,11 @@ This is useful for preventing data type overflows. Default: None.</p></td>
 <td><code>output</code></td>          <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The resulting median absolute deviation of the tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting median absolute deviation of the tensor</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4538,7 +4718,11 @@ This is useful for preventing data type overflows. Default: None.</p></td>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The input tensor.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4548,7 +4732,11 @@ This is useful for preventing data type overflows. Default: None.</p></td>
           <td>
                 <code>int or tuple(int</code>
           </td>
-          <td><p>The dimension or dimensions to reduce.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4558,7 +4746,11 @@ This is useful for preventing data type overflows. Default: None.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether the output tensor has dim retained or not.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4568,9 +4760,13 @@ This is useful for preventing data type overflows. Default: None.</p></td>
           <td>
                 <code>torch.<span title="torch.dtype">dtype</span></code>
           </td>
-          <td><p>The desired data type of returned tensor.
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
 If specified, the input tensor is casted to dtype before the operation is performed.
-This is useful for preventing data type overflows. Default: None.</p></td>
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4591,7 +4787,11 @@ This is useful for preventing data type overflows. Default: None.</p></td>
 <td><code>output</code></td>          <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The resulting mean of the tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting mean of the tensor</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4632,7 +4832,11 @@ of dimensions, or <code>dim=None</code>, and does not return the index of the me
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The input tensor.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4642,7 +4846,11 @@ of dimensions, or <code>dim=None</code>, and does not return the index of the me
           <td>
                 <code>int or tuple(int</code>
           </td>
-          <td><p>The dimension or dimensions to reduce.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4652,7 +4860,11 @@ of dimensions, or <code>dim=None</code>, and does not return the index of the me
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether the output tensor has dim retained or not.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4662,9 +4874,13 @@ of dimensions, or <code>dim=None</code>, and does not return the index of the me
           <td>
                 <code>torch.<span title="torch.dtype">dtype</span></code>
           </td>
-          <td><p>The desired data type of returned tensor.
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
 If specified, the input tensor is casted to dtype before the operation is performed.
-This is useful for preventing data type overflows. Default: None.</p></td>
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4685,8 +4901,12 @@ This is useful for preventing data type overflows. Default: None.</p></td>
 <td><code>output</code></td>          <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The resulting median of the tensor.
-Contrarily to <code>torch.median</code>, it does not return the index of the median</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting median of the tensor.
+Contrarily to <code>torch.median</code>, it does not return the index of the median</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4727,7 +4947,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The input tensor.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4737,7 +4961,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether to use Bessel’s correction (δN=1\delta N = 1δN=1).</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to use Bessel’s correction (δN=1\delta N = 1δN=1).</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -4747,7 +4975,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>int or tuple(int</code>
           </td>
-          <td><p>The dimension or dimensions to reduce.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4757,7 +4989,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether the output tensor has dim retained or not.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4767,9 +5003,13 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>torch.<span title="torch.dtype">dtype</span></code>
           </td>
-          <td><p>The desired data type of returned tensor.
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
 If specified, the input tensor is casted to dtype before the operation is performed.
-This is useful for preventing data type overflows. Default: None.</p></td>
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4790,7 +5030,11 @@ This is useful for preventing data type overflows. Default: None.</p></td>
 <td><code>output</code></td>          <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The resulting standard deviation of the tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting standard deviation of the tensor</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4831,7 +5075,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The input tensor.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4841,7 +5089,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether to use Bessel’s correction (δN=1\delta N = 1δN=1).</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to use Bessel’s correction (δN=1\delta N = 1δN=1).</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -4851,7 +5103,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>int or tuple(int</code>
           </td>
-          <td><p>The dimension or dimensions to reduce.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4861,7 +5117,11 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>whether the output tensor has dim retained or not.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4871,9 +5131,13 @@ Otherwise, the sample deviation is calculated, without any correction.</p>
           <td>
                 <code>torch.<span title="torch.dtype">dtype</span></code>
           </td>
-          <td><p>The desired data type of returned tensor.
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
 If specified, the input tensor is casted to dtype before the operation is performed.
-This is useful for preventing data type overflows. Default: None.</p></td>
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4894,7 +5158,11 @@ This is useful for preventing data type overflows. Default: None.</p></td>
 <td><code>output</code></td>          <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The resulting variance of the tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting variance of the tensor</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4933,9 +5201,13 @@ This is useful for preventing data type overflows. Default: None.</p></td>
           <td>
                 <code><span title="typing.Any">Any</span></code>
           </td>
-          <td><p>int
+          <td>
+            <div class="doc-md-description">
+              <p>int
 class to be converted into a one hot vector
-(integers from 0 to num_classes).</p></td>
+(integers from 0 to num_classes).</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4944,9 +5216,13 @@ class to be converted into a one hot vector
           <td><code>num_classes</code></td>
           <td>
           </td>
-          <td><p>iterator
+          <td>
+            <div class="doc-md-description">
+              <p>iterator
 a list or 1D array of allowed
-choices for val to take</p></td>
+choices for val to take</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4967,7 +5243,11 @@ choices for val to take</p></td>
           <td>
                 <code><span title="typing.List">List</span>[int]</code>
           </td>
-          <td><p>A list of length len(num_classes) + 1</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of length len(num_classes) + 1</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>

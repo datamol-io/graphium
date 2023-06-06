@@ -19,7 +19,7 @@
         <link rel="next" href="goli.visualization.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -659,13 +659,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#goli.ipu.ipu_dataloader.Pad.__call__" class="md-nav__link">
-    __call__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.ipu.ipu_dataloader.Pad.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -721,6 +714,26 @@
   <a href="#goli.ipu.ipu_losses.BCELossIPU" class="md-nav__link">
     BCELossIPU
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_losses.HybridCELossIPU" class="md-nav__link">
+    HybridCELossIPU
+  </a>
+  
+    <nav class="md-nav" aria-label="HybridCELossIPU">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_losses.HybridCELossIPU.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -1130,13 +1143,6 @@
         
       </ul>
     </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#goli.ipu.ipu_wrapper.remove_pad_loss" class="md-nav__link">
-    remove_pad_loss()
-  </a>
   
 </li>
         
@@ -1679,13 +1685,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#goli.ipu.ipu_dataloader.Pad.__call__" class="md-nav__link">
-    __call__()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#goli.ipu.ipu_dataloader.Pad.__init__" class="md-nav__link">
     __init__()
   </a>
@@ -1741,6 +1740,26 @@
   <a href="#goli.ipu.ipu_losses.BCELossIPU" class="md-nav__link">
     BCELossIPU
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_losses.HybridCELossIPU" class="md-nav__link">
+    HybridCELossIPU
+  </a>
+  
+    <nav class="md-nav" aria-label="HybridCELossIPU">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#goli.ipu.ipu_losses.HybridCELossIPU.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
         
@@ -2153,13 +2172,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#goli.ipu.ipu_wrapper.remove_pad_loss" class="md-nav__link">
-    remove_pad_loss()
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -2348,7 +2360,11 @@
           <td>
                 <code><span title="typing.List">List</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<span title="torch_geometric.data.Data">Data</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]]]</code>
           </td>
-          <td><p>The batch of data, including pyg-graphs <code>Data</code> and labels <code>Dict[str, Tensor]</code> to be padded</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch of data, including pyg-graphs <code>Data</code> and labels <code>Dict[str, Tensor]</code> to be padded</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2369,7 +2385,11 @@
 <td><code>out_batch</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<span title="torch_geometric.data.Batch">Batch</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>A dictionary where the graphs are batched and the labels or other Tensors are stacked</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary where the graphs are batched and the labels or other Tensors are stacked</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2407,7 +2427,11 @@
           <td>
                 <code>int</code>
           </td>
-          <td><p>mini batch size used by the model</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>mini batch size used by the model</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2417,7 +2441,11 @@
           <td>
                 <code>int</code>
           </td>
-          <td><p>Maximum number of nodes in the batched padded graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of nodes in the batched padded graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2427,7 +2455,11 @@
           <td>
                 <code>int</code>
           </td>
-          <td><p>Maximum number of edges in the batched padded graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of edges in the batched padded graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2437,7 +2469,11 @@
           <td>
                 <code>int</code>
           </td>
-          <td><p>Maximum number of nodes per graph in the full dataset</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of nodes per graph in the full dataset</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2447,7 +2483,11 @@
           <td>
                 <code>int</code>
           </td>
-          <td><p>Maximum number of edges per graph in the full dataset</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of edges per graph in the full dataset</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2457,7 +2497,11 @@
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Function used to collate (or batch) the single data or graphs together</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Function used to collate (or batch) the single data or graphs together</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2512,7 +2556,11 @@
           <td><code>model_class</code></td>
           <td>
           </td>
-          <td><p>pytorch module used to create a model</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>pytorch module used to create a model</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2521,7 +2569,11 @@
           <td><code>model_kwargs</code></td>
           <td>
           </td>
-          <td><p>Key-word arguments used to initialize the model from <code>model_class</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key-word arguments used to initialize the model from <code>model_class</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2587,25 +2639,6 @@
 
 
 
-<h5 id="goli.ipu.ipu_dataloader.Pad.__call__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span></code>
-
-<a href="#goli.ipu.ipu_dataloader.Pad.__call__" class="headerlink" title="Permanent link">&para;</a></h5>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Pad the batch with a fake graphs that has the desired
-number of nodes and edges.</p>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
 <h5 id="goli.ipu.ipu_dataloader.Pad.__init__" class="doc doc-heading">
 <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">max_num_nodes</span><span class="p">,</span> <span class="n">dataset_max_nodes_per_graph</span><span class="p">,</span> <span class="n">dataset_max_edges_per_graph</span><span class="p">,</span> <span class="n">max_num_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">edge_value</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
 
@@ -2631,7 +2664,11 @@ number of nodes and edges.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The maximum number of nodes for the total padded graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The maximum number of nodes for the total padded graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2640,7 +2677,11 @@ number of nodes and edges.</p>
           <td><code>dataset_max_nodes_per_graph</code></td>
           <td>
           </td>
-          <td><p>the maximum number of nodes per graph in the dataset</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the maximum number of nodes per graph in the dataset</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2649,7 +2690,11 @@ number of nodes and edges.</p>
           <td><code>dataset_max_edges_per_graph</code></td>
           <td>
           </td>
-          <td><p>the maximum number of edges per graph in the dataset</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the maximum number of edges per graph in the dataset</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2659,7 +2704,11 @@ number of nodes and edges.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The maximum number of edges for the total padded graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The maximum number of edges for the total padded graph</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2669,7 +2718,11 @@ number of nodes and edges.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>Value to add to the node padding</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Value to add to the node padding</p>
+            </div>
+          </td>
           <td>
                 <code>0</code>
           </td>
@@ -2679,7 +2732,11 @@ number of nodes and edges.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>Value to add to the edge padding</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Value to add to the edge padding</p>
+            </div>
+          </td>
           <td>
                 <code>0</code>
           </td>
@@ -2723,7 +2780,11 @@ number of nodes and edges.</p>
         <tr>
           <td>
           </td>
-          <td><p>Tuple containing the number nodes and the number of edges</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Tuple containing the number nodes and the number of edges</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2774,8 +2835,12 @@ single graph with multiple disconnected subgraphs. See:
           <td>
                 <code><span title="torch_geometric.data.Dataset">Dataset</span></code>
           </td>
-          <td><p>The torch_geometric.data.Dataset instance from which to
-load the graph examples for the IPU.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch_geometric.data.Dataset instance from which to
+load the graph examples for the IPU.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2785,7 +2850,11 @@ load the graph examples for the IPU.</p></td>
           <td>
                 <code><a class="autorefs autorefs-internal" title="goli.ipu.ipu_dataloader.IPUDataloaderOptions" href="#goli.ipu.ipu_dataloader.IPUDataloaderOptions">IPUDataloaderOptions</a></code>
           </td>
-          <td><p>The options to initialize the Dataloader for IPU</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The options to initialize the Dataloader for IPU</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2795,8 +2864,12 @@ load the graph examples for the IPU.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[poptorch.<span title="poptorch.Options">Options</span>]</code>
           </td>
-          <td><p>The poptorch.Options used by the
-poptorch.DataLoader. Will use the default options if not provided.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The poptorch.Options used by the
+poptorch.DataLoader. Will use the default options if not provided.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2806,8 +2879,12 @@ poptorch.DataLoader. Will use the default options if not provided.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>How many graph examples to load in each batch
-(default: 1).</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>How many graph examples to load in each batch
+(default: 1).</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -2816,7 +2893,11 @@ poptorch.DataLoader. Will use the default options if not provided.</p></td>
           <td><code>collate_fn</code></td>
           <td>
           </td>
-          <td><p>The function used to collate batches</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The function used to collate batches</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2826,7 +2907,11 @@ poptorch.DataLoader. Will use the default options if not provided.</p></td>
           <td>
                 <code>optional</code>
           </td>
-          <td><p>Additional arguments of :class:<code>poptorch.DataLoader</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Additional arguments of :class:<code>poptorch.DataLoader</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>{}</code>
           </td>
@@ -2847,7 +2932,11 @@ poptorch.DataLoader. Will use the default options if not provided.</p></td>
           <td>
                 <code>poptorch.<span title="poptorch.DataLoader">DataLoader</span></code>
           </td>
-          <td><p>The dataloader</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dataloader</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2922,6 +3011,103 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="goli.ipu.ipu_losses.HybridCELossIPU" class="doc doc-heading">
+        <code>HybridCELossIPU</code>
+
+
+<a href="#goli.ipu.ipu_losses.HybridCELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="goli.trainer.losses.HybridCELoss">HybridCELoss</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="goli.ipu.ipu_losses.HybridCELossIPU.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#goli.ipu.ipu_losses.HybridCELossIPU.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(batch_size x n_classes) tensor of logits predicted for each bracket.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(batch_size) or (batch_size, 1) tensor of target brackets in {0, 1, ..., self.n_brackets}.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
 
 
 
@@ -3328,7 +3514,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Predictions from model (probabilities, logits or labels)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predictions from model (probabilities, logits or labels)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3338,7 +3528,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Ground truth labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Ground truth labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3348,7 +3542,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines the reduction that is applied. Should be one of the following:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied. Should be one of the following:</p>
 <ul>
 <li><code>'micro'</code> [default]: Calculate the metric globally, across all samples and classes.</li>
 <li><code>'macro'</code>: Calculate the metric for each class separately, and average the
@@ -3363,7 +3559,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 <p>.. note:: What is considered a sample in the multi-dimensional multi-class case
     depends on the value of <code>mdmc_average</code>.</p>
 <p>.. note:: If <code>'none'</code> and a given class doesn't occur in the <code>preds</code> or <code>target</code>,
-    the value for the class will be <code>nan</code>.</p></td>
+    the value for the class will be <code>nan</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;micro&#39;</code>
           </td>
@@ -3373,7 +3571,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
 <code>average</code> parameter). Should be one of the following:</p>
 <ul>
 <li>
@@ -3392,7 +3592,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
   are flattened into a new <code>N_X</code> sample axis, i.e. the inputs are treated as if they
   were <code>(N_X, C)</code>. From here on the <code>average</code> parameter applies as usual.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;global&#39;</code>
           </td>
@@ -3402,7 +3604,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3412,8 +3618,12 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
-of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p>
+            </div>
+          </td>
           <td>
                 <code>0.5</code>
           </td>
@@ -3423,10 +3633,14 @@ of binary or multi-label inputs. Default value of 0.5 corresponds to input being
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Number of the highest probability or logit score predictions considered finding the correct label,
+          <td>
+            <div class="doc-md-description">
+              <p>Number of the highest probability or logit score predictions considered finding the correct label,
 relevant only for (multi-dimensional) multi-class inputs. The
 default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
-<p>Should be left at default (<code>None</code>) for all other types of inputs.</p></td>
+<p>Should be left at default (<code>None</code>) for all other types of inputs.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3436,10 +3650,14 @@ default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[bool]</code>
           </td>
-          <td><p>Used only in certain special cases, where you want to treat inputs as a different type
+          <td>
+            <div class="doc-md-description">
+              <p>Used only in certain special cases, where you want to treat inputs as a different type
 than what they appear to be. See the parameter's
 :ref:<code>documentation section &lt;pages/classification:using the multiclass parameter&gt;</code>
-for a more detailed explanation and examples.</p></td>
+for a more detailed explanation and examples.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3449,9 +3667,13 @@ for a more detailed explanation and examples.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Integer specifying a target class to ignore. If given, this class index does not contribute
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
 to the returned score, regardless of reduction method. If an index is ignored, and <code>average=None</code>
-or <code>'none'</code>, the score for the ignored class will be returned as <code>nan</code>.</p></td>
+or <code>'none'</code>, the score for the ignored class will be returned as <code>nan</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3461,7 +3683,9 @@ or <code>'none'</code>, the score for the ignored class will be returned as <cod
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to compute subset accuracy for multi-label and multi-dimensional
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to compute subset accuracy for multi-label and multi-dimensional
 multi-class inputs (has no effect for other input types).</p>
 <ul>
 <li>
@@ -3478,7 +3702,9 @@ multi-class inputs (has no effect for other input types).</p>
   <code>preds = preds.flatten()</code> and same for <code>target</code>). Note that the <code>top_k</code> parameter
   still applies in both cases, if set.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -3499,38 +3725,62 @@ multi-class inputs (has no effect for other input types).</p>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>top_k</code> parameter is set for <code>multi-label</code> inputs.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> parameter is set for <code>multi-label</code> inputs.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>average</code> is none of <code>"micro"</code>, <code>"macro"</code>, <code>"weighted"</code>, <code>"samples"</code>, <code>"none"</code>, <code>None</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is none of <code>"micro"</code>, <code>"macro"</code>, <code>"weighted"</code>, <code>"samples"</code>, <code>"none"</code>, <code>None</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>mdmc_average</code> is not one of <code>None</code>, <code>"samplewise"</code>, <code>"global"</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>mdmc_average</code> is not one of <code>None</code>, <code>"samplewise"</code>, <code>"global"</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>average</code> is set but <code>num_classes</code> is not provided.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is set but <code>num_classes</code> is not provided.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>num_classes</code> is set
-and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>num_classes</code> is set
+and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>top_k</code> is not an <code>integer</code> larger than <code>0</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> is not an <code>integer</code> larger than <code>0</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3544,7 +3794,7 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
 
 
 <h4 id="goli.ipu.ipu_metrics.auroc_ipu" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">auroc_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">max_fpr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">auroc_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">max_fpr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_metrics.auroc_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3565,7 +3815,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h4 id="goli.ipu.ipu_metrics.average_precision_ipu" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">average_precision_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">average_precision_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s1">&#39;multiclass&#39;</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.ipu.ipu_metrics.average_precision_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -3614,7 +3864,11 @@ This allows it to work with compilation and IPUs since it doesn't modify the ten
           <td><code>tp</code></td>
           <td>
           </td>
-          <td><p>True positives</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>True positives</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3623,7 +3877,11 @@ This allows it to work with compilation and IPUs since it doesn't modify the ten
           <td><code>fp</code></td>
           <td>
           </td>
-          <td><p>False positives</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>False positives</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3632,7 +3890,11 @@ This allows it to work with compilation and IPUs since it doesn't modify the ten
           <td><code>tn</code></td>
           <td>
           </td>
-          <td><p>True negatives</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>True negatives</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3641,7 +3903,11 @@ This allows it to work with compilation and IPUs since it doesn't modify the ten
           <td><code>fn</code></td>
           <td>
           </td>
-          <td><p>False negatives</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>False negatives</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3651,7 +3917,11 @@ This allows it to work with compilation and IPUs since it doesn't modify the ten
           <td>
                 <code>float</code>
           </td>
-          <td><p>The parameter <code>beta</code> (which determines the weight of recall in the combined score)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The parameter <code>beta</code> (which determines the weight of recall in the combined score)</p>
+            </div>
+          </td>
           <td>
                 <code>1.0</code>
           </td>
@@ -3661,8 +3931,12 @@ This allows it to work with compilation and IPUs since it doesn't modify the ten
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Integer specifying a target class to ignore. If given, this class index does not contribute
-to the returned score, regardless of reduction method</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
+to the returned score, regardless of reduction method</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3672,7 +3946,11 @@ to the returned score, regardless of reduction method</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines the reduction that is applied</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;micro&#39;</code>
           </td>
@@ -3682,8 +3960,12 @@ to the returned score, regardless of reduction method</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
-<code>average</code> parameter)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+<code>average</code> parameter)</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3728,7 +4010,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Predictions from model (probabilities, logits or labels)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predictions from model (probabilities, logits or labels)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3738,7 +4024,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Ground truth labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Ground truth labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3748,7 +4038,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines the reduction that is applied. Should be one of the following:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied. Should be one of the following:</p>
 <ul>
 <li><code>'micro'</code> [default]: Calculate the metric globally, across all samples and classes.</li>
 <li><code>'macro'</code>: Calculate the metric for each class separately, and average the
@@ -3763,7 +4055,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 <p>.. note:: What is considered a sample in the multi-dimensional multi-class case
     depends on the value of <code>mdmc_average</code>.</p>
 <p>.. note:: If <code>'none'</code> and a given class doesn't occur in the <code>preds</code> or <code>target</code>,
-    the value for the class will be <code>nan</code>.</p></td>
+    the value for the class will be <code>nan</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;micro&#39;</code>
           </td>
@@ -3773,7 +4067,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
 <code>average</code> parameter). Should be one of the following:</p>
 <ul>
 <li>
@@ -3792,7 +4088,9 @@ and IPUs since it doesn't modify the tensor's shape.</p>
   are flattened into a new <code>N_X</code> sample axis, i.e. the inputs are treated as if they
   were <code>(N_X, C)</code>. From here on the <code>average</code> parameter applies as usual.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3802,7 +4100,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3812,8 +4114,12 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
-of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p>
+            </div>
+          </td>
           <td>
                 <code>0.5</code>
           </td>
@@ -3823,10 +4129,14 @@ of binary or multi-label inputs. Default value of 0.5 corresponds to input being
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Number of the highest probability or logit score predictions considered finding the correct label,
+          <td>
+            <div class="doc-md-description">
+              <p>Number of the highest probability or logit score predictions considered finding the correct label,
 relevant only for (multi-dimensional) multi-class inputs. The
 default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
-<p>Should be left at default (<code>None</code>) for all other types of inputs.</p></td>
+<p>Should be left at default (<code>None</code>) for all other types of inputs.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3836,10 +4146,14 @@ default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[bool]</code>
           </td>
-          <td><p>Used only in certain special cases, where you want to treat inputs as a different type
+          <td>
+            <div class="doc-md-description">
+              <p>Used only in certain special cases, where you want to treat inputs as a different type
 than what they appear to be. See the parameter's
 :ref:<code>documentation section &lt;pages/classification:using the multiclass parameter&gt;</code>
-for a more detailed explanation and examples.</p></td>
+for a more detailed explanation and examples.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3849,9 +4163,13 @@ for a more detailed explanation and examples.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Integer specifying a target class to ignore. If given, this class index does not contribute
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
 to the returned score, regardless of reduction method. If an index is ignored, and <code>average=None</code>
-or <code>'none'</code>, the score for the ignored class will be returned as <code>nan</code>.</p></td>
+or <code>'none'</code>, the score for the ignored class will be returned as <code>nan</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3860,7 +4178,9 @@ or <code>'none'</code>, the score for the ignored class will be returned as <cod
           <td><code>subset_accuracy</code></td>
           <td>
           </td>
-          <td><p>Whether to compute subset accuracy for multi-label and multi-dimensional
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to compute subset accuracy for multi-label and multi-dimensional
 multi-class inputs (has no effect for other input types).</p>
 <ul>
 <li>
@@ -3877,7 +4197,9 @@ multi-class inputs (has no effect for other input types).</p>
   <code>preds = preds.flatten()</code> and same for <code>target</code>). Note that the <code>top_k</code> parameter
   still applies in both cases, if set.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3898,38 +4220,62 @@ multi-class inputs (has no effect for other input types).</p>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>top_k</code> parameter is set for <code>multi-label</code> inputs.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> parameter is set for <code>multi-label</code> inputs.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>average</code> is none of <code>"micro"</code>, <code>"macro"</code>, <code>"weighted"</code>, <code>"samples"</code>, <code>"none"</code>, <code>None</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is none of <code>"micro"</code>, <code>"macro"</code>, <code>"weighted"</code>, <code>"samples"</code>, <code>"none"</code>, <code>None</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>mdmc_average</code> is not one of <code>None</code>, <code>"samplewise"</code>, <code>"global"</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>mdmc_average</code> is not one of <code>None</code>, <code>"samplewise"</code>, <code>"global"</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>average</code> is set but <code>num_classes</code> is not provided.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>average</code> is set but <code>num_classes</code> is not provided.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>num_classes</code> is set
-and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>num_classes</code> is set
+and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If <code>top_k</code> is not an <code>integer</code> larger than <code>0</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>top_k</code> is not an <code>integer</code> larger than <code>0</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3968,7 +4314,11 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Predictions from model (probabilities, logits or labels)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predictions from model (probabilities, logits or labels)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3978,7 +4328,11 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Ground truth labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Ground truth labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3988,7 +4342,9 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines the reduction that is applied. Should be one of the following:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines the reduction that is applied. Should be one of the following:</p>
 <ul>
 <li><code>'micro'</code> [default]: Calculate the metric globally, across all samples and classes.</li>
 <li><code>'macro'</code>: Calculate the metric for each class separately, and average the
@@ -4003,7 +4359,9 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
 <p>.. note:: What is considered a sample in the multi-dimensional multi-class case
     depends on the value of <code>mdmc_average</code>.</p>
 <p>.. note:: If <code>'none'</code> and a given class doesn't occur in the <code>preds</code> or <code>target</code>,
-    the value for the class will be <code>nan</code>.</p></td>
+    the value for the class will be <code>nan</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;micro&#39;</code>
           </td>
@@ -4013,7 +4371,9 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
+          <td>
+            <div class="doc-md-description">
+              <p>Defines how averaging is done for multi-dimensional multi-class inputs (on top of the
 <code>average</code> parameter). Should be one of the following:</p>
 <ul>
 <li>
@@ -4032,7 +4392,9 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
   are flattened into a new <code>N_X</code> sample axis, i.e. the inputs are treated as if they
   were <code>(N_X, C)</code>. From here on the <code>average</code> parameter applies as usual.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;global&#39;</code>
           </td>
@@ -4042,7 +4404,11 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of classes. Necessary for <code>'macro'</code>, <code>'weighted'</code> and <code>None</code> average methods.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4052,8 +4418,12 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
           <td>
                 <code>float</code>
           </td>
-          <td><p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
-of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Threshold for transforming probability or logit predictions to binary (0,1) predictions, in the case
+of binary or multi-label inputs. Default value of 0.5 corresponds to input being probabilities.</p>
+            </div>
+          </td>
           <td>
                 <code>0.5</code>
           </td>
@@ -4063,10 +4433,14 @@ of binary or multi-label inputs. Default value of 0.5 corresponds to input being
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Number of the highest probability or logit score predictions considered finding the correct label,
+          <td>
+            <div class="doc-md-description">
+              <p>Number of the highest probability or logit score predictions considered finding the correct label,
 relevant only for (multi-dimensional) multi-class inputs. The
 default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
-<p>Should be left at default (<code>None</code>) for all other types of inputs.</p></td>
+<p>Should be left at default (<code>None</code>) for all other types of inputs.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4076,10 +4450,14 @@ default value (<code>None</code>) will be interpreted as 1 for these inputs.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[bool]</code>
           </td>
-          <td><p>Used only in certain special cases, where you want to treat inputs as a different type
+          <td>
+            <div class="doc-md-description">
+              <p>Used only in certain special cases, where you want to treat inputs as a different type
 than what they appear to be. See the parameter's
 :ref:<code>documentation section &lt;pages/classification:using the multiclass parameter&gt;</code>
-for a more detailed explanation and examples.</p></td>
+for a more detailed explanation and examples.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4089,8 +4467,12 @@ for a more detailed explanation and examples.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Integer specifying a target class to ignore. If given, this class index does not contribute
-to the returned score, regardless of reduction method. If an index is ignored, and <code>average=None</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Integer specifying a target class to ignore. If given, this class index does not contribute
+to the returned score, regardless of reduction method. If an index is ignored, and <code>average=None</code></p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4133,7 +4515,11 @@ to the returned score, regardless of reduction method. If an index is ignored, a
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>estimated labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4143,7 +4529,11 @@ to the returned score, regardless of reduction method. If an index is ignored, a
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>ground truth labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4190,7 +4580,11 @@ to the returned score, regardless of reduction method. If an index is ignored, a
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>estimated labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4200,7 +4594,11 @@ to the returned score, regardless of reduction method. If an index is ignored, a
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>ground truth labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4210,7 +4608,11 @@ to the returned score, regardless of reduction method. If an index is ignored, a
           <td>
                 <code>bool</code>
           </td>
-          <td><p>returns RMSE value if set to False</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>returns RMSE value if set to False</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4256,7 +4658,11 @@ to the returned score, regardless of reduction method. If an index is ignored, a
           <td><code>preds</code></td>
           <td>
           </td>
-          <td><p>estimated scores</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated scores</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4265,7 +4671,11 @@ to the returned score, regardless of reduction method. If an index is ignored, a
           <td><code>target</code></td>
           <td>
           </td>
-          <td><p>ground truth scores</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth scores</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4335,7 +4745,11 @@ Handles NaNs without reshaping tensors in order to work on IPU.</p>
           <td><code>preds</code></td>
           <td>
           </td>
-          <td><p>estimated labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4344,7 +4758,11 @@ Handles NaNs without reshaping tensors in order to work on IPU.</p>
           <td><code>target</code></td>
           <td>
           </td>
-          <td><p>ground truth labels</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth labels</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4353,7 +4771,11 @@ Handles NaNs without reshaping tensors in order to work on IPU.</p>
           <td><code>adjusted</code></td>
           <td>
           </td>
-          <td><p>number of independent regressors for calculating adjusted r2 score.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of independent regressors for calculating adjusted r2 score.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4362,12 +4784,16 @@ Handles NaNs without reshaping tensors in order to work on IPU.</p>
           <td><code>multioutput</code></td>
           <td>
           </td>
-          <td><p>Defines aggregation in the case of multiple output scores. Can be one of the following strings:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Defines aggregation in the case of multiple output scores. Can be one of the following strings:</p>
 <ul>
 <li><code>'raw_values'</code> returns full set of scores</li>
 <li><code>'uniform_average'</code> scores are uniformly averaged</li>
 <li><code>'variance_weighted'</code> scores are weighted by their individual variances</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4430,7 +4856,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td><code>preds</code></td>
           <td>
           </td>
-          <td><p>estimated scores</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>estimated scores</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4439,7 +4869,11 @@ and IPUs since it doesn't modify the tensor's shape.</p>
           <td><code>target</code></td>
           <td>
           </td>
-          <td><p>ground truth scores</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>ground truth scores</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4550,8 +4984,12 @@ for non-IPU devices which did not install poptorch.</p>
           <td><code>raise_error</code></td>
           <td>
           </td>
-          <td><p>Whether to raise an error if poptorch is unavailable.
-If <code>False</code>, return <code>None</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to raise an error if poptorch is unavailable.
+If <code>False</code>, return <code>None</code></p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -4572,7 +5010,11 @@ If <code>False</code>, return <code>None</code></p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="types.ModuleType">ModuleType</span>]</code>
           </td>
-          <td><p>The poptorch module</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The poptorch module</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4611,7 +5053,11 @@ If <code>False</code>, return <code>None</code></p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4632,7 +5078,11 @@ If <code>False</code>, return <code>None</code></p></td>
 <td><code>tmp_file</code></td>          <td>
                 <code>tempfile.<span title="tempfile._TemporaryFileWrapper">_TemporaryFileWrapper</span></code>
           </td>
-          <td><p>The temporary file of ipu configs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The temporary file of ipu configs</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4689,7 +5139,9 @@ Needs to be used in the <code>forward</code> or <code>backward</code> pass.</p>
           <td><code>ipu_cfg</code></td>
           <td>
           </td>
-          <td><p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p>
+          <td>
+            <div class="doc-md-description">
+              <p>The list  configurations for the IPU, written as a list of strings to make use of <code>poptorch.Options.loadFromFile</code></p>
 <p>write a temporary config gile, and read it. See <code>Options.loadFromFile</code></p>
 <h5 id="goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here">? see the tutorial for IPU options here<a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--see-the-tutorial-for-ipu-options-here" title="Permanent link">&para;</a></h5>
 <h5 id="goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading"><a href="https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading">https://github.com/graphcore/tutorials/tree/sdk-release-2.6/tutorials/pytorch/efficient_data_loading</a><a class="headerlink" href="#goli.ipu.ipu_utils.load_ipu_options--httpsgithubcomgraphcoretutorialstreesdk-release-26tutorialspytorchefficient_data_loading" title="Permanent link">&para;</a></h5>
@@ -4709,7 +5161,9 @@ If the model requires N IPUs and the replication factor is M, N x M IPUs will be
 <p><strong><em>global batch size</em></strong>: In a single device iteration, many mini-batches may be processed and the resulting gradients accumulated.
 We call this total number of samples processed for one optimiser step the global batch size.
 = total number of samples processed for <em>one optimiser step</em>
-= (minibatch size x Gradient accumulation factor) x Number of replicas</p></td>
+= (minibatch size x Gradient accumulation factor) x Number of replicas</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4719,7 +5173,11 @@ We call this total number of samples processed for one optimiser step the global
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>random seed for the IPU</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>random seed for the IPU</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4729,7 +5187,11 @@ We call this total number of samples processed for one optimiser step the global
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Name of the model, to be used for ipu profiling</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the model, to be used for ipu profiling</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4739,8 +5201,12 @@ We call this total number of samples processed for one optimiser step the global
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>optional IPU configuration overrides for inference.
-If this is provided, options in this file override those in <code>ipu_file</code> for inference.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>optional IPU configuration overrides for inference.
+If this is provided, options in this file override those in <code>ipu_file</code> for inference.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4761,14 +5227,22 @@ If this is provided, options in this file override those in <code>ipu_file</code
 <td><code>training_opts</code></td>          <td>
                 <code>poptorch.<span title="poptorch.Options">Options</span></code>
           </td>
-          <td><p>IPU options for the training set.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>IPU options for the training set.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>inference_opts</code></td>          <td>
                 <code>poptorch.<span title="poptorch.Options">Options</span></code>
           </td>
-          <td><p>IPU options for inference.
-It differs from the <code>training_opts</code> by enforcing <code>gradientAccumulation</code> to 1</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>IPU options for inference.
+It differs from the <code>training_opts</code> by enforcing <code>gradientAccumulation</code> to 1</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4994,25 +5468,6 @@ are returned in sorted order.</p>
 </div>
 
 
-<div class="doc doc-object doc-function">
-
-
-
-<h4 id="goli.ipu.ipu_wrapper.remove_pad_loss" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">remove_pad_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span></code>
-
-<a href="#goli.ipu.ipu_wrapper.remove_pad_loss" class="headerlink" title="Permanent link">&para;</a></h4>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>helper function to remove the fake graph loss
-always reduce the last loss since it is the fake graph</p>
-
-  </div>
-
-</div>
-
 
 
   </div>
@@ -5085,8 +5540,12 @@ fake-nodes in the dense representation.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Node feature matrix
-:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Node feature matrix
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5096,9 +5555,13 @@ fake-nodes in the dense representation.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>Batch vector
+          <td>
+            <div class="doc-md-description">
+              <p>Batch vector
 :math:<code>\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N</code>, which assigns each
-node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</p></td>
+node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -5108,8 +5571,12 @@ node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</
           <td>
                 <code>float</code>
           </td>
-          <td><p>The value for invalid entries in the
-resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The value for invalid entries in the
+resulting dense output tensor. (default: :obj:<code>0</code>)</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -5119,8 +5586,12 @@ resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The size of the output node dimension.
-(default: :obj:<code>None</code>)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The size of the output node dimension.
+(default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -5130,7 +5601,11 @@ resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The batch size. (default: :obj:<code>None</code>)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch size. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -5139,8 +5614,12 @@ resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
           <td><code>drop_nodes_last_graph</code></td>
           <td>
           </td>
-          <td><p>Whether to drop the nodes of the last graphs that exceed
-the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a padding.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to drop the nodes of the last graphs that exceed
+the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a padding.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -5191,8 +5670,12 @@ fake-nodes in the dense representation.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Node feature matrix
-:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Node feature matrix
+:math:<code>\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5201,9 +5684,13 @@ fake-nodes in the dense representation.</p>
           <td><code>batch</code></td>
           <td>
           </td>
-          <td><p>Batch vector
+          <td>
+            <div class="doc-md-description">
+              <p>Batch vector
 :math:<code>\mathbf{b} \in {\{ 0, \ldots, B-1\}}^N</code>, which assigns each
-node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</p></td>
+node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5213,8 +5700,12 @@ node to a specific example. Must be ordered. (default: :obj:<code>None</code>)</
           <td>
                 <code>float</code>
           </td>
-          <td><p>The value for invalid entries in the
-resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The value for invalid entries in the
+resulting dense output tensor. (default: :obj:<code>0</code>)</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -5223,8 +5714,12 @@ resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
           <td><code>max_num_nodes_per_graph</code></td>
           <td>
           </td>
-          <td><p>The size of the output node dimension.
-(default: :obj:<code>None</code>)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The size of the output node dimension.
+(default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5233,7 +5728,11 @@ resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
           <td><code>batch_size</code></td>
           <td>
           </td>
-          <td><p>The batch size. (default: :obj:<code>None</code>)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch size. (default: :obj:<code>None</code>)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5242,8 +5741,12 @@ resulting dense output tensor. (default: :obj:<code>0</code>)</p></td>
           <td><code>drop_nodes_last_graph</code></td>
           <td>
           </td>
-          <td><p>Whether to drop the nodes of the last graphs that exceed
-the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a padding.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to drop the nodes of the last graphs that exceed
+the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a padding.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>

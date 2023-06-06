@@ -19,7 +19,7 @@
         <link rel="next" href="goli.data.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -2125,7 +2125,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Type">Type</span>[<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
           </td>
-          <td><p>The torch Module containing the main forward function</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch Module containing the main forward function</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2135,7 +2139,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>The arguments to initialize the model from <code>model_class</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The arguments to initialize the model from <code>model_class</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2145,7 +2153,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
           </td>
-          <td><p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the loss function</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the loss function</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2155,7 +2167,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code>int</code>
           </td>
-          <td><p>The seed for random initialization</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The seed for random initialization</p>
+            </div>
+          </td>
           <td>
                 <code>42</code>
           </td>
@@ -2165,7 +2181,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The optimization arguments. See class <code>OptimOptions</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The optimization arguments. See class <code>OptimOptions</code></p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2175,7 +2195,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The torch scheduler arguments. See class <code>OptimOptions</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch scheduler arguments. See class <code>OptimOptions</code></p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2185,7 +2209,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The lightning scheduler arguments. See class <code>OptimOptions</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The lightning scheduler arguments. See class <code>OptimOptions</code></p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2195,7 +2223,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, int]]</code>
           </td>
-          <td><p>How to handle the NaNs. See <code>MetricsWrapper</code> for options</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>How to handle the NaNs. See <code>MetricsWrapper</code> for options</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2205,7 +2237,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the metric function</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the metric function</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2215,7 +2251,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the progress bar</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the progress bar</p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2225,7 +2265,11 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[str]]]</code>
           </td>
-          <td><p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the training set</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the training set</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2235,7 +2279,25 @@ It works in a multi-task setting, with different losses and metrics per class</p
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Arguments related to using the FLAG adversarial augmentation</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Arguments related to using the FLAG adversarial augmentation</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_norms</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[<span title="typing.Callable">Callable</span>, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the normalization for each task</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2300,7 +2362,11 @@ the nans in the <code>targets</code>.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>Predicted values</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predicted values</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2310,7 +2376,11 @@ the nans in the <code>targets</code>.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>Target values</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Target values</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2320,7 +2390,11 @@ the nans in the <code>targets</code>.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>No longer supported, will raise an error.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>No longer supported, will raise an error.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2330,7 +2404,9 @@ the nans in the <code>targets</code>.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, int]]</code>
           </td>
-          <td><ul>
+          <td>
+            <div class="doc-md-description">
+              <ul>
 <li>
 <p>None: Do not change behaviour if there are NaNs</p>
 </li>
@@ -2342,7 +2418,9 @@ the nans in the <code>targets</code>.</p>
 <p>'ignore': The NaN values will be removed from the tensor before computing the metrics.
   Must be coupled with the <code>multitask_handling='flatten'</code> or <code>multitask_handling='mean-per-label'</code>.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2352,7 +2430,9 @@ the nans in the <code>targets</code>.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><ul>
+          <td>
+            <div class="doc-md-description">
+              <ul>
 <li>
 <p>None: Do not process the tensor before passing it to the metric.
   Cannot use the option <code>multitask_handling=None</code> when <code>target_nan_mask=ignore</code>.
@@ -2366,7 +2446,9 @@ the nans in the <code>targets</code>.</p>
     and average the results over each task
   <em>This option might slowdown the computation if there are too many labels</em></p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2376,7 +2458,11 @@ the nans in the <code>targets</code>.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Loss function to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Loss function to use</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2397,8 +2483,12 @@ the nans in the <code>targets</code>.</p>
 <td><code>Tensor</code></td>          <td>
                 <code><span title="typing.Tuple">Tuple</span>[<span title="torch.Tensor">Tensor</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>weighted_loss: Resulting weighted loss
-all_task_losses: Loss per task</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>weighted_loss: Resulting weighted loss
+all_task_losses: Loss per task</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2457,7 +2547,11 @@ returns <code>{"preds": out}</code>.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]]]</code>
           </td>
-          <td><p>A dict with a key <code>"preds"</code> representing the prediction of the network.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dict with a key <code>"preds"</code> representing the prediction of the network.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2541,8 +2635,12 @@ Essential to estimate throughput in graphs/s.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Name of the model to load. List available
-from <code>goli.trainer.PredictorModule.list_pretrained_models()</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the model to load. List available
+from <code>goli.trainer.PredictorModule.list_pretrained_models()</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2996,7 +3094,11 @@ kwargs:
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>the targets</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the targets</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3006,7 +3108,11 @@ kwargs:
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>the prediction tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the prediction tensor</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3016,7 +3122,11 @@ kwargs:
           <td>
                 <code>float</code>
           </td>
-          <td><p>the loss, float or tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss, float or tensor</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3026,7 +3136,11 @@ kwargs:
           <td>
                 <code>dict</code>
           </td>
-          <td><p>the metrics</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3036,7 +3150,11 @@ kwargs:
           <td>
                 <code>str</code>
           </td>
-          <td><p>the monitored metric</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the monitored metric</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3046,7 +3164,11 @@ kwargs:
           <td>
                 <code>int</code>
           </td>
-          <td><p>the number of epochs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of epochs</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3072,7 +3194,7 @@ kwargs:
 
 
 <h5 id="goli.trainer.predictor_summaries.Summary.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_specific_norm</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#goli.trainer.predictor_summaries.Summary.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3097,7 +3219,11 @@ kwargs:
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td></td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3107,7 +3233,11 @@ kwargs:
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td></td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3117,7 +3247,11 @@ kwargs:
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td></td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -3127,7 +3261,11 @@ kwargs:
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td></td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -3137,7 +3275,11 @@ kwargs:
           <td>
                 <code>str</code>
           </td>
-          <td></td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
           <td>
                 <code>&#39;loss&#39;</code>
           </td>
@@ -3147,17 +3289,11 @@ kwargs:
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td></td>
           <td>
-                <code>None</code>
+            <div class="doc-md-description">
+              
+            </div>
           </td>
-        </tr>
-        <tr>
-          <td><code>task_specific_norm</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[<span title="typing.Callable">Callable</span>, <span title="typing.Any">Any</span>]]</code>
-          </td>
-          <td></td>
           <td>
                 <code>None</code>
           </td>
@@ -3199,7 +3335,11 @@ kwargs:
           <td>
                 <code>str</code>
           </td>
-          <td><p>which stage you are in, e.g. "train"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3219,7 +3359,11 @@ kwargs:
         <tr>
           <td>
           </td>
-          <td><p>the best results for the given step</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the best results for the given step</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3255,7 +3399,11 @@ kwargs:
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>the full summary in a dictionary</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the full summary in a dictionary</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3292,7 +3440,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>A dictionary of metrics to log.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of metrics to log.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3331,7 +3483,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>which stage you are in, e.g. "train"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3351,7 +3507,11 @@ Note: This function requires that self.update_predictor_state() be called before
         <tr>
           <td>
           </td>
-          <td><p>the results for the given step</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results for the given step</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3390,7 +3550,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>which stage you are in, e.g. "train"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3411,7 +3575,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>the results to be displayed on the progress bar for the given step</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results to be displayed on the progress bar for the given step</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3450,7 +3618,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>which stage you are in, e.g. "train"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3460,7 +3632,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>the loss tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss tensor</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3470,7 +3646,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>a dictionary of metrics</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a dictionary of metrics</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3513,7 +3693,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>a dictionary of metrics</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a dictionary of metrics</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3555,7 +3739,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>which stage you are in, e.g. "train"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3565,7 +3753,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>the targets tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the targets tensor</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3575,7 +3767,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>the predictions tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the predictions tensor</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3585,7 +3781,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>the loss tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss tensor</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3595,7 +3795,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>int</code>
           </td>
-          <td><p>the number of epochs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of epochs</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3690,7 +3894,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 <h5 id="goli.trainer.predictor_summaries.TaskSummaries.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_loss_fun</span><span class="p">,</span> <span class="n">task_metrics</span><span class="p">,</span> <span class="n">task_metrics_on_training_set</span><span class="p">,</span> <span class="n">task_metrics_on_progress_bar</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_loss_fun</span><span class="p">,</span> <span class="n">task_metrics</span><span class="p">,</span> <span class="n">task_metrics_on_training_set</span><span class="p">,</span> <span class="n">task_metrics_on_progress_bar</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span></code>
 
 <a href="#goli.trainer.predictor_summaries.TaskSummaries.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -3715,7 +3919,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Callable">Callable</span></code>
           </td>
-          <td><p>the loss function for each task</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss function for each task</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3725,7 +3933,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>the metrics for each task</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics for each task</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3735,7 +3947,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>the metrics to use on the training set</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics to use on the training set</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3745,7 +3961,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>the metrics to use on the progress bar</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics to use on the progress bar</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3755,7 +3975,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>the metric to monitor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metric to monitor</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;loss&#39;</code>
           </td>
@@ -3765,19 +3989,13 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>the mode of the metric to monitor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the mode of the metric to monitor</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;min&#39;</code>
-          </td>
-        </tr>
-        <tr>
-          <td><code>task_norms</code></td>
-          <td>
-                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[<span title="typing.Callable">Callable</span>, <span title="typing.Any">Any</span>]]</code>
-          </td>
-          <td><p>the normalization for each task</p></td>
-          <td>
-                <code>None</code>
           </td>
         </tr>
     </tbody>
@@ -3817,7 +4035,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>the metrics logs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics logs</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3838,7 +4060,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>the concatenated metrics logs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the concatenated metrics logs</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3877,7 +4103,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>the name of the step, i.e. "train"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step, i.e. "train"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3898,7 +4128,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>the best results</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the best results</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3934,7 +4168,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>the task summaries</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the task summaries</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3970,7 +4208,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>the task logs for the metrics</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the task logs for the metrics</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4009,7 +4251,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code>str</code>
           </td>
-          <td><p>the name of the step, i.e. "train"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step, i.e. "train"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4030,7 +4276,11 @@ Note: This function requires that self.update_predictor_state() be called before
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>the results</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4070,7 +4320,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code>str</code>
           </td>
-          <td><p>the name of the step</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4091,7 +4345,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>the results for the progress bar</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results for the progress bar</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4127,7 +4385,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code>str</code>
           </td>
-          <td><p>the metric name, task name and step name</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metric name, task name and step name</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4166,7 +4428,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>the metrics for each task</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics for each task</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4208,7 +4474,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code>str</code>
           </td>
-          <td><p>the name of the step</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4218,7 +4488,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>the target tensors</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the target tensors</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4228,7 +4502,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>the prediction tensors</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the prediction tensors</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4238,7 +4516,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>the loss tensor</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss tensor</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4248,7 +4530,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>the task losses</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the task losses</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4258,7 +4544,11 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code>int</code>
           </td>
-          <td><p>the number of epochs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of epochs</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4350,11 +4640,15 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Dict">Dict</span>, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Loss function used during training.
+          <td>
+            <div class="doc-md-description">
+              <p>Loss function used during training.
 Acceptable strings are goli.utils.spaces.LOSS_DICT.keys().
 If a dict, must contain a 'name' key with one of the acceptable loss function strings
 as a value. The rest of the dict will be used as the arguments passed to the loss object.
-Otherwise, a callable object must be provided, with a method <code>loss_fun._get_name()</code>.</p></td>
+Otherwise, a callable object must be provided, with a method <code>loss_fun._get_name()</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4364,8 +4658,12 @@ Otherwise, a callable object must be provided, with a method <code>loss_fun._get
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>A dictionnary of metrics to compute on the prediction, other than the loss function.
-These metrics will be logged into TensorBoard.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary of metrics to compute on the prediction, other than the loss function.
+These metrics will be logged into TensorBoard.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4375,7 +4673,11 @@ These metrics will be logged into TensorBoard.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The metrics names from <code>metrics</code> to display also on the progress bar of the training</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The metrics names from <code>metrics</code> to display also on the progress bar of the training</p>
+            </div>
+          </td>
           <td>
                 <code>field(default_factory=List[str])</code>
           </td>
@@ -4385,9 +4687,13 @@ These metrics will be logged into TensorBoard.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
           </td>
-          <td><p>The metrics names from <code>metrics</code> to be computed on the training set for each iteration.
+          <td>
+            <div class="doc-md-description">
+              <p>The metrics names from <code>metrics</code> to be computed on the training set for each iteration.
 If <code>None</code>, all the metrics are computed. Using less metrics can significantly improve
-performance, depending on the number of readouts.</p></td>
+performance, depending on the number of readouts.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4461,10 +4767,14 @@ performance, depending on the number of readouts.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Dict">Dict</span>, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>A callable corresponding to the loss function, a string specifying the loss
+          <td>
+            <div class="doc-md-description">
+              <p>A callable corresponding to the loss function, a string specifying the loss
 function from <code>LOSS_DICT</code>, or a dict containing a key 'name' specifying the
 loss function, and the rest of the dict used as the arguments for the loss.
-Accepted strings are: goli.utils.spaces.LOSS_DICT.keys().</p></td>
+Accepted strings are: goli.utils.spaces.LOSS_DICT.keys().</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4485,7 +4795,11 @@ Accepted strings are: goli.utils.spaces.LOSS_DICT.keys().</p></td>
 <td><code>Callable</code></td>          <td>
                 <code><span title="typing.Callable">Callable</span></code>
           </td>
-          <td><p>Function or callable to compute the loss, takes <code>preds</code> and <code>targets</code> as inputs.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Function or callable to compute the loss, takes <code>preds</code> and <code>targets</code> as inputs.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4538,7 +4852,9 @@ Accepted strings are: goli.utils.spaces.LOSS_DICT.keys().</p></td>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Keyword arguments used for FLAG, and adversarial data augmentation for graph networks.
+          <td>
+            <div class="doc-md-description">
+              <p>Keyword arguments used for FLAG, and adversarial data augmentation for graph networks.
 See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891</a></p>
 <ul>
 <li>
@@ -4549,7 +4865,9 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 <li>
 <p>alpha: A float that specifies the ascent step size when running FLAG. Default=0.01</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4615,7 +4933,11 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
           <td>
                 <code><span title="typing.Type">Type</span>[<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
           </td>
-          <td><p>pytorch module used to create a model</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>pytorch module used to create a model</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4625,7 +4947,11 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Key-word arguments used to initialize the model from <code>model_class</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key-word arguments used to initialize the model from <code>model_class</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4691,11 +5017,15 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>Dictionnary used to initialize the optimizer, with possible keys below.</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionnary used to initialize the optimizer, with possible keys below.</p>
 <ul>
 <li>lr <code>float</code>: Learning rate (Default=<code>1e-3</code>)</li>
 <li>weight_decay <code>float</code>: Weight decay used to regularize the optimizer (Default=<code>0.</code>)</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4705,12 +5035,16 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>Dictionnary for the scheduling of learning rate, with possible keys below.</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionnary for the scheduling of learning rate, with possible keys below.</p>
 <ul>
 <li>type <code>str</code>: Type of the learning rate to use from pytorch. Examples are
     <code>'ReduceLROnPlateau'</code> (default), <code>'CosineAnnealingWarmRestarts'</code>, <code>'StepLR'</code>, etc.</li>
 <li>**kwargs: Any other argument for the learning rate scheduler</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4720,7 +5054,9 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>Dictionnary for the scheduling of the learning rate modification used by pytorch-lightning</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionnary for the scheduling of the learning rate modification used by pytorch-lightning</p>
 <ul>
 <li>monitor <code>str</code>: metric to track (Default=<code>"loss/val"</code>)</li>
 <li>interval <code>str</code>: Whether to look at iterations or epochs (Default=<code>"epoch"</code>)</li>
@@ -4728,7 +5064,9 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
     while trying to call scheduler.step(), and stop training if not found. If False will
     only give a warning and continue training (without calling the scheduler). (Default=<code>True</code>)</li>
 <li>frequency <code>int</code>: <strong>TODO: NOT REALLY SURE HOW IT WORKS!</strong> (Default=<code>1</code>)</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4738,7 +5076,11 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Type">Type</span>]]</code>
           </td>
-          <td><p>The class to use for the scheduler, or the str representing the scheduler.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The class to use for the scheduler, or the str representing the scheduler.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>

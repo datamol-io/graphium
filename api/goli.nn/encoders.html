@@ -19,7 +19,7 @@
         <link rel="next" href="pyg_layers.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -2022,7 +2022,11 @@ Initialize the encoder with the following arguments:</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The keys from the graph to use as input</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The keys from the graph to use as input</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2032,7 +2036,11 @@ Initialize the encoder with the following arguments:</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The keys to return as output encodings</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The keys to return as output encodings</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2042,7 +2050,11 @@ Initialize the encoder with the following arguments:</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The input dimension for the encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input dimension for the encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2052,7 +2064,11 @@ Initialize the encoder with the following arguments:</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The output dimension of the encodings</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The output dimension of the encodings</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2062,7 +2078,11 @@ Initialize the encoder with the following arguments:</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The number of layers of the encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The number of layers of the encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2072,7 +2092,11 @@ Initialize the encoder with the following arguments:</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>The activation function to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The activation function to use</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -2081,7 +2105,11 @@ Initialize the encoder with the following arguments:</p>
           <td><code>first_normalization</code></td>
           <td>
           </td>
-          <td><p>The normalization to use before the first layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The normalization to use before the first layer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2091,7 +2119,11 @@ Initialize the encoder with the following arguments:</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to use the <code>key_prefix</code> argument in the <code>forward</code> method.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the <code>key_prefix</code> argument in the <code>forward</code> method.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2138,7 +2170,11 @@ This is a method to be implemented by the child class.</p>
           <td>
                 <code><span title="torch_geometric.data.Batch">Batch</span></code>
           </td>
-          <td><p>The input pyg Batch</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input pyg Batch</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2182,7 +2218,11 @@ layers width divided by a given factor (2 by default)</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>Factor by which to divide the width.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Factor by which to divide the width.</p>
+            </div>
+          </td>
           <td>
                 <code>2.0</code>
           </td>
@@ -2192,7 +2232,11 @@ layers width divided by a given factor (2 by default)</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to factor the input dimension</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to factor the input dimension</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2213,7 +2257,11 @@ layers width divided by a given factor (2 by default)</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>A dictionary with the base model arguments</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary with the base model arguments</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2256,7 +2304,11 @@ layers width divided by a given factor (2 by default)</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The input keys to parse</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input keys to parse</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2321,7 +2373,11 @@ If the prefix is <code>None</code>, it is ignored</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The output keys to parse</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The output keys to parse</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2436,7 +2492,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The keys from the pyg graph to use as input</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The keys from the pyg graph to use as input</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2446,7 +2506,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The keys to return corresponding to the output encodings</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The keys to return corresponding to the output encodings</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2456,7 +2520,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The input dimension for the encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input dimension for the encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2466,7 +2534,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The output dimension of the encodings</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The output dimension of the encodings</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2476,7 +2548,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The dimension of the embedding</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension of the embedding</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2486,7 +2562,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The number of layers of the encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The number of layers of the encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2496,7 +2576,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The maximum number of nodes per graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The maximum number of nodes per graph</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2506,7 +2590,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>The activation function to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The activation function to use</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;gelu&#39;</code>
           </td>
@@ -2515,7 +2603,11 @@ Useful for encoding 3D conformation positions.</p>
           <td><code>first_normalization</code></td>
           <td>
           </td>
-          <td><p>The normalization to use before the first layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The normalization to use before the first layer</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -2525,7 +2617,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to use the <code>key_prefix</code> argument in the <code>forward</code> method.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the <code>key_prefix</code> argument in the <code>forward</code> method.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2535,7 +2631,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The number of heads to use for the multi-head attention</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The number of heads to use for the multi-head attention</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -2577,7 +2677,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code><span title="torch_geometric.data.Batch">Batch</span></code>
           </td>
-          <td><p>The batch of pyg graphs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch of pyg graphs</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2587,7 +2691,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>The prefix to use for the input keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The prefix to use for the input keys</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2608,7 +2716,11 @@ Useful for encoding 3D conformation positions.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>A dictionary of the output encodings with keys specified by <code>output_keys</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of the output encodings with keys specified by <code>output_keys</code></p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2651,7 +2763,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>A dictionary of the base model kwargs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of the base model kwargs</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2690,7 +2806,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The input keys to parse</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input keys to parse</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2711,7 +2831,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The parsed input keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The parsed input keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2750,7 +2874,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The output keys to parse</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The output keys to parse</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2771,7 +2899,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>The parsed output keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The parsed output keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2883,7 +3015,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of input keys to use from the data object.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of input keys to use from the data object.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2893,7 +3029,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of output keys to add to the data object.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of output keys to add to the data object.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2902,7 +3042,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td><code>in_dim</code></td>
           <td>
           </td>
-          <td><p>Size of Laplace PE embedding. Only used by the MLP model</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Size of Laplace PE embedding. Only used by the MLP model</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2912,7 +3056,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Size of hidden layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Size of hidden layer</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2922,7 +3070,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Size of final node embedding</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Size of final node embedding</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2932,7 +3084,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Number of layers in the MLP</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of layers in the MLP</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2942,7 +3098,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
           </td>
-          <td><p>Activation function to use.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Activation function to use.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -2952,7 +3112,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>'Transformer' or 'DeepSet' or 'MLP'</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>'Transformer' or 'DeepSet' or 'MLP'</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;DeepSet&#39;</code>
           </td>
@@ -2961,7 +3125,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td><code>num_layers_post</code></td>
           <td>
           </td>
-          <td><p>Number of layers to apply after pooling</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of layers to apply after pooling</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -2970,7 +3138,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td><code>dropout</code></td>
           <td>
           </td>
-          <td><p>Dropout rate</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dropout rate</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -2979,7 +3151,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td><code>first_normalization</code></td>
           <td>
           </td>
-          <td><p>Normalization to apply to the first layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to apply to the first layer.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3021,7 +3197,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code><span title="torch_geometric.data.Batch">Batch</span></code>
           </td>
-          <td><p>pyg Batches of graphs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyg Batches of graphs</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3031,7 +3211,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Prefix to use for the input and output keys.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Prefix to use for the input and output keys.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3052,7 +3236,11 @@ LapPE of size dim_pe will get appended to each node feature vector.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>output dictionary with keys as specified in <code>output_keys</code> and their output embeddings.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>output dictionary with keys as specified in <code>output_keys</code> and their output embeddings.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3095,7 +3283,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Dictionary of kwargs to be used to create the base model.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of kwargs to be used to create the base model.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3134,7 +3326,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of input keys to use from the data object.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of input keys to use from the data object.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3155,7 +3351,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of parsed input keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of parsed input keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3194,7 +3394,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of output keys to add to the data object.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of output keys to add to the data object.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3215,7 +3419,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of parsed output keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of parsed output keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3327,7 +3535,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of input keys; inputs are concatenated in feat dimension and passed through mlp</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of input keys; inputs are concatenated in feat dimension and passed through mlp</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3337,7 +3549,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td>
                 <code>str</code>
           </td>
-          <td><p>List of output keys to add to the pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of output keys to add to the pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3346,7 +3562,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>in_dim</code></td>
           <td>
           </td>
-          <td><p>input dimension of the mlp encoder; sum of input dimensions of inputs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>input dimension of the mlp encoder; sum of input dimensions of inputs</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3355,7 +3575,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>hidden_dim</code></td>
           <td>
           </td>
-          <td><p>hidden dimension of the mlp encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>hidden dimension of the mlp encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3364,7 +3588,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>out_dim</code></td>
           <td>
           </td>
-          <td><p>output dimension of the mlp encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>output dimension of the mlp encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3373,7 +3601,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>num_layers</code></td>
           <td>
           </td>
-          <td><p>number of layers of the mlp encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of layers of the mlp encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3382,7 +3614,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>activation</code></td>
           <td>
           </td>
-          <td><p>activation function to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>activation function to use</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -3391,7 +3627,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>dropout</code></td>
           <td>
           </td>
-          <td><p>dropout to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>dropout to use</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -3400,7 +3640,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>normalization</code></td>
           <td>
           </td>
-          <td><p>normalization to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>normalization to use</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3409,7 +3653,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td><code>first_normalization</code></td>
           <td>
           </td>
-          <td><p>normalization to use before the first layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>normalization to use before the first layer</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3419,7 +3667,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to use the <code>key_prefix</code> argument</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the <code>key_prefix</code> argument</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3461,7 +3713,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td>
                 <code><span title="torch_geometric.data.Batch">Batch</span></code>
           </td>
-          <td><p>pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3471,7 +3727,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Prefix to use for the input keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Prefix to use for the input keys</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3492,7 +3752,11 @@ Concatenates the list of input (node or edge) features in the feature dimension<
 <td><code>output</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>Dictionary of output embeddings with keys specified by input_keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of output embeddings with keys specified by input_keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3535,7 +3799,11 @@ factor_in_dim: Whether to factor the input dimension</p>
 <td><code>base_kwargs</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Dictionary of kwargs to use for the base model</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of kwargs to use for the base model</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3574,7 +3842,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of input keys to use from pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of input keys to use from pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3595,7 +3867,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>parsed input_keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>parsed input_keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3634,7 +3910,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of output keys to add to the pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of output keys to add to the pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3655,7 +3935,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>parsed output_keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>parsed output_keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3732,7 +4016,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of input keys to use from pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of input keys to use from pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3742,7 +4030,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>List of output keys to add to the pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of output keys to add to the pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3751,7 +4043,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>in_dim</code></td>
           <td>
           </td>
-          <td><p>input dimension of the mlp encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>input dimension of the mlp encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3760,7 +4056,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>hidden_dim</code></td>
           <td>
           </td>
-          <td><p>hidden dimension of the mlp encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>hidden dimension of the mlp encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3769,7 +4069,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>out_dim</code></td>
           <td>
           </td>
-          <td><p>output dimension of the mlp encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>output dimension of the mlp encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3778,7 +4082,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>num_layers</code></td>
           <td>
           </td>
-          <td><p>number of layers of the mlp encoder</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>number of layers of the mlp encoder</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3787,7 +4095,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>activation</code></td>
           <td>
           </td>
-          <td><p>activation function to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>activation function to use</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -3796,7 +4108,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>dropout</code></td>
           <td>
           </td>
-          <td><p>dropout to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>dropout to use</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -3805,7 +4121,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>normalization</code></td>
           <td>
           </td>
-          <td><p>normalization to use</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>normalization to use</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3814,7 +4134,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td><code>first_normalization</code></td>
           <td>
           </td>
-          <td><p>normalization to use before the first layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>normalization to use before the first layer</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3824,7 +4148,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to use the <code>key_prefix</code> argument</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the <code>key_prefix</code> argument</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3866,7 +4194,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="torch_geometric.data.Batch">Batch</span></code>
           </td>
-          <td><p>pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3876,7 +4208,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Prefix to use for the input keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Prefix to use for the input keys</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3897,7 +4233,11 @@ factor_in_dim: Whether to factor the input dimension</p>
 <td><code>output</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, torch.<span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>Dictionary of output embeddings with keys specified by input_keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of output embeddings with keys specified by input_keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3940,7 +4280,11 @@ factor_in_dim: Whether to factor the input dimension</p>
 <td><code>base_kwargs</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Dictionary of kwargs to use for the base model</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of kwargs to use for the base model</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3979,7 +4323,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of input keys to use from pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of input keys to use from pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4000,7 +4348,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>parsed input_keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>parsed input_keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4039,7 +4391,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of output keys to add to the pyg batch graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of output keys to add to the pyg batch graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4060,7 +4416,11 @@ factor_in_dim: Whether to factor the input dimension</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>parsed output_keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>parsed output_keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4238,7 +4598,11 @@ where \phi is GIN network applied to k first non-trivial eigenvectors, and
           <td><code>dim_emb</code></td>
           <td>
           </td>
-          <td><p>Size of final node embedding</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Size of final node embedding</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4293,7 +4657,11 @@ layers width divided by a given factor (2 by default)</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>Factor by which to divide the width.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Factor by which to divide the width.</p>
+            </div>
+          </td>
           <td>
                 <code>2.0</code>
           </td>
@@ -4303,7 +4671,11 @@ layers width divided by a given factor (2 by default)</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to factor the input dimension</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to factor the input dimension</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>

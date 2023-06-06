@@ -19,7 +19,7 @@
         <link rel="next" href="goli.trainer.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -1933,7 +1933,11 @@ increased computation speed.</p>
           <td>
                 <code><span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Bond">Bond</span></code>
           </td>
-          <td><p>The bond to measure its lenght</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The bond to measure its lenght</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1943,7 +1947,11 @@ increased computation speed.</p>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>The molecule containing the bond (used to get neighbouring atoms)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule containing the bond (used to get neighbouring atoms)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1964,7 +1972,11 @@ increased computation speed.</p>
 <td><code>bond_length</code></td>          <td>
                 <code>float</code>
           </td>
-          <td><p>The bond length in Angstrom, typically a value around 1-2.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The bond length in Angstrom, typically a value around 1-2.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2007,7 +2019,11 @@ the <code>offset_carbon</code> parameter.</p>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>molecule from which to extract the properties</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>molecule from which to extract the properties</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2017,7 +2033,9 @@ the <code>offset_carbon</code> parameter.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[str], <span title="typing.List">List</span>[<span title="typing.Callable">Callable</span>]]</code>
           </td>
-          <td><p>A list of atomic properties to get from the molecule, such as 'atomic-number',
+          <td>
+            <div class="doc-md-description">
+              <p>A list of atomic properties to get from the molecule, such as 'atomic-number',
 'mass', 'valence', 'degree', 'electronegativity'.
 Some elements are divided by a factor to avoid feature explosion.</p>
 <p>Accepted properties are:</p>
@@ -2050,7 +2068,9 @@ Some elements are divided by a factor to avoid feature explosion.</p>
 <li>"is-carbon"</li>
 <li>"group"</li>
 <li>"period"</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2060,9 +2080,13 @@ Some elements are divided by a factor to avoid feature explosion.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to subract the Carbon property from the desired atomic property.
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to subract the Carbon property from the desired atomic property.
 For example, if we want the mass of the Lithium (6.941), the mass of the
-Carbon (12.0107) will be subracted, resulting in a value of -5.0697</p></td>
+Carbon (12.0107) will be subracted, resulting in a value of -5.0697</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2072,7 +2096,9 @@ Carbon (12.0107) will be subracted, resulting in a value of -5.0697</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
           </td>
-          <td><p>Deal with molecules that fail a part of the featurization.
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
 NaNs can happen when taking the of a noble gas,
 or other properties that are not measured for specific atoms.</p>
 <ul>
@@ -2080,7 +2106,9 @@ or other properties that are not measured for specific atoms.</p>
 <li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
 <li>"None": DEFAULT. Don't do anything</li>
 <li>"Floating value": Replace nans or inf by the specified value</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;raise&#39;</code>
           </td>
@@ -2101,9 +2129,13 @@ or other properties that are not measured for specific atoms.</p>
 <td><code>prop_dict</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>A dictionnary where the element of <code>property_list</code> are the keys
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary where the element of <code>property_list</code> are the keys
 and the values are np.ndarray of shape (N,). N is the number of atoms
-in <code>mol</code>.</p></td>
+in <code>mol</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2156,7 +2188,11 @@ in <code>mol</code>.</p></td>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>molecule from which to extract the properties</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>molecule from which to extract the properties</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2166,7 +2202,9 @@ in <code>mol</code>.</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>A list of integer atomic properties to get from the molecule.
+          <td>
+            <div class="doc-md-description">
+              <p>A list of integer atomic properties to get from the molecule.
 The integer values are converted to a one-hot vector.
 Callables are not supported by this function.</p>
 <p>Accepted properties are:</p>
@@ -2181,7 +2219,9 @@ Callables are not supported by this function.</p>
 <li>"type"</li>
 <li>"group"</li>
 <li>"period"</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2202,9 +2242,13 @@ Callables are not supported by this function.</p>
 <td><code>prop_dict</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>A dictionnary where the element of <code>property_list</code> are the keys
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary where the element of <code>property_list</code> are the keys
 and the values are np.ndarray of shape (N, OH). N is the number of atoms
-in <code>mol</code> and OH the lenght of the one-hot encoding.</p></td>
+in <code>mol</code> and OH the lenght of the one-hot encoding.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2243,7 +2287,11 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p></td>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>molecule from which to extract the properties</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>molecule from which to extract the properties</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2253,9 +2301,13 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[str], <span title="typing.List">List</span>[<span title="typing.Callable">Callable</span>]]</code>
           </td>
-          <td><p>A list of conformer property to get from the molecule
+          <td>
+            <div class="doc-md-description">
+              <p>A list of conformer property to get from the molecule
 Accepted properties are:
-- "positions_3d"</p></td>
+- "positions_3d"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2276,7 +2328,11 @@ Accepted properties are:
 <td><code>prop_dict</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>a dictionary where the element of <code>property_list</code> are the keys</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>a dictionary where the element of <code>property_list</code> are the keys</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2323,8 +2379,12 @@ See <code>goli.features.nmp</code> for allowed values in one hot encoding</p>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>rdkit.Chem.Molecule
-the molecule of interest</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>rdkit.Chem.Molecule
+the molecule of interest</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2334,7 +2394,9 @@ the molecule of interest</p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>A list of edge properties to return for the given molecule.
+          <td>
+            <div class="doc-md-description">
+              <p>A list of edge properties to return for the given molecule.
 Accepted properties are:</p>
 <ul>
 <li>"bond-type-onehot"</li>
@@ -2344,7 +2406,9 @@ Accepted properties are:</p>
 <li>"conjugated"</li>
 <li>"conformer-bond-length" (might cause problems with complex molecules)</li>
 <li>"estimated-bond-length"</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2365,9 +2429,13 @@ Accepted properties are:</p>
 <td><code>prop_dict</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>A dictionnary where the element of <code>property_list</code> are the keys
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary where the element of <code>property_list</code> are the keys
 and the values are np.ndarray of shape (N,). N is the number of atoms
-in <code>mol</code>.</p></td>
+in <code>mol</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2409,7 +2477,11 @@ not in functions requiring complex 3D structure.</p>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>Rdkit Molecule</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Rdkit Molecule</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2430,7 +2502,11 @@ not in functions requiring complex 3D structure.</p>
 <td><code>conf</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="rdkit.Chem">Chem</span>.<span title="rdkit.Chem.rdchem">rdchem</span>.<span title="rdkit.Chem.rdchem.Conformer">Conformer</span>, None]</code>
           </td>
-          <td><p>A conformer of the molecule, or <code>None</code> if it fails</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A conformer of the molecule, or <code>None</code> if it fails</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2471,7 +2547,11 @@ and a set of atom and bond features.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>]</code>
           </td>
-          <td><p>The molecule to be converted</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule to be converted</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2481,9 +2561,13 @@ and a set of atom and bond features.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of the properties used to get one-hot encoding of the atom type,
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get one-hot encoding of the atom type,
 such as the atom index represented as a one-hot vector.
-See function <code>get_mol_atomic_features_onehot</code></p></td>
+See function <code>get_mol_atomic_features_onehot</code></p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2493,9 +2577,13 @@ See function <code>get_mol_atomic_features_onehot</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
           </td>
-          <td><p>List of the properties used to get floating-point encoding of the atom type,
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get floating-point encoding of the atom type,
 such as the atomic mass or electronegativity.
-See function <code>get_mol_atomic_features_float</code></p></td>
+See function <code>get_mol_atomic_features_float</code></p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2505,7 +2593,11 @@ See function <code>get_mol_atomic_features_float</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2515,8 +2607,12 @@ See function <code>get_mol_atomic_features_float</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of the properties used to encode the edges, such as the edge type
-and the stereo type.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to encode the edges, such as the edge type
+and the stereo type.</p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2526,7 +2622,11 @@ and the stereo type.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2536,8 +2636,12 @@ and the stereo type.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
-are implicit.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
+are implicit.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2547,8 +2651,12 @@ are implicit.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to use the floating-point value of the bonds in the adjacency matrix,
-such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the floating-point value of the bonds in the adjacency matrix,
+such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2558,8 +2666,12 @@ such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for node features.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2569,7 +2681,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
-          <td><p>The torch data type used to build the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch data type used to build the graph</p>
+            </div>
+          </td>
           <td>
                 <code>np.float16</code>
           </td>
@@ -2579,7 +2695,9 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
           </td>
-          <td><p>Deal with molecules that fail a part of the featurization.
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
 NaNs can happen when taking the of a noble gas,
 or other properties that are not measured for specific atoms.</p>
 <ul>
@@ -2587,7 +2705,9 @@ or other properties that are not measured for specific atoms.</p>
 <li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
 <li>"None": DEFAULT. Don't do anything</li>
 <li>"Floating value": Replace nans or inf by the specified value</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;raise&#39;</code>
           </td>
@@ -2608,29 +2728,43 @@ or other properties that are not measured for specific atoms.</p>
 <td><code>adj</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>torch coo sparse adjacency matrix of the molecule</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch coo sparse adjacency matrix of the molecule</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>ndata</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>Concatenated node data of the atoms, based on the properties from
+          <td>
+            <div class="doc-md-description">
+              <p>Concatenated node data of the atoms, based on the properties from
 <code>atom_property_list_onehot</code> and <code>atom_property_list_float</code>.
-If no properties are given, it returns <code>None</code></p></td>
+If no properties are given, it returns <code>None</code></p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>edata</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>Concatenated node edge of the molecule, based on the properties from
+          <td>
+            <div class="doc-md-description">
+              <p>Concatenated node edge of the molecule, based on the properties from
 <code>edge_property_list</code>.
-If no properties are given, it returns <code>None</code></p></td>
+If no properties are given, it returns <code>None</code></p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>pe_dict</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>Dictionary of all positional encodings. Current supported keys:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of all positional encodings. Current supported keys:</p>
 <ul>
 <li>
 <p>"pos_enc_feats_sign_flip":
@@ -2648,13 +2782,19 @@ If no properties are given, it returns <code>None</code></p></td>
     Node structural encoding corresponding to the diagonal of the random
     walk matrix</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>conf_dict</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="scipy.sparse.coo_matrix">coo_matrix</span>, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, None], <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
           </td>
-          <td><p>contains the 3d positions of a conformer of the molecule or 0s if none is found</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>contains the 3d positions of a conformer of the molecule or 0s if none is found</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2701,7 +2841,11 @@ will change the ordering of the bonds.</p>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>A molecule in the form of a SMILES string or an RDKit molecule object.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A molecule in the form of a SMILES string or an RDKit molecule object.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2711,9 +2855,13 @@ will change the ordering of the bonds.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>If <code>True</code>, the adjacency matrix will contain the bond type as the
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>True</code>, the adjacency matrix will contain the bond type as the
 value of the edge. If <code>False</code>, the adjacency matrix will contain
-<code>1</code> as the value of the edge.</p></td>
+<code>1</code> as the value of the edge.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2723,8 +2871,12 @@ value of the edge. If <code>False</code>, the adjacency matrix will contain
           <td>
                 <code>bool</code>
           </td>
-          <td><p>If <code>True</code>, the adjacency matrix will contain a self-loop for each
-node.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>True</code>, the adjacency matrix will contain a self-loop for each
+node.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2734,7 +2886,11 @@ node.</p></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
-          <td><p>The data type used to build the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The data type used to build the graph</p>
+            </div>
+          </td>
           <td>
                 <code>np.float32</code>
           </td>
@@ -2755,7 +2911,11 @@ node.</p></td>
 <td><code>adj</code></td>          <td>
                 <code><span title="scipy.sparse.coo_matrix">coo_matrix</span></code>
           </td>
-          <td><p>coo sparse adjacency matrix of the molecule</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>coo sparse adjacency matrix of the molecule</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2798,7 +2958,11 @@ and is thus faster, less memory heavy, and compatible with other frameworks.</p>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>The molecule to be converted</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule to be converted</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2808,9 +2972,13 @@ and is thus faster, less memory heavy, and compatible with other frameworks.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of the properties used to get one-hot encoding of the atom type,
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get one-hot encoding of the atom type,
 such as the atom index represented as a one-hot vector.
-See function <code>get_mol_atomic_features_onehot</code></p></td>
+See function <code>get_mol_atomic_features_onehot</code></p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2820,9 +2988,13 @@ See function <code>get_mol_atomic_features_onehot</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
           </td>
-          <td><p>List of the properties used to get floating-point encoding of the atom type,
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get floating-point encoding of the atom type,
 such as the atomic mass or electronegativity.
-See function <code>get_mol_atomic_features_float</code></p></td>
+See function <code>get_mol_atomic_features_float</code></p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2832,7 +3004,11 @@ See function <code>get_mol_atomic_features_float</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2842,8 +3018,12 @@ See function <code>get_mol_atomic_features_float</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of the properties used to encode the edges, such as the edge type
-and the stereo type.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to encode the edges, such as the edge type
+and the stereo type.</p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -2853,7 +3033,11 @@ and the stereo type.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2863,8 +3047,12 @@ and the stereo type.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
-are implicit.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
+are implicit.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2874,8 +3062,12 @@ are implicit.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to use the floating-point value of the bonds in the adjacency matrix,
-such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the floating-point value of the bonds in the adjacency matrix,
+such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -2885,8 +3077,12 @@ such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for node features.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2896,7 +3092,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
-          <td><p>The numpy data type used to build the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The numpy data type used to build the graph</p>
+            </div>
+          </td>
           <td>
                 <code>np.float16</code>
           </td>
@@ -2906,13 +3106,17 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>What to do when the featurization fails. This can change the
+          <td>
+            <div class="doc-md-description">
+              <p>What to do when the featurization fails. This can change the
 behavior of <code>mask_nan</code>.</p>
 <ul>
 <li>"raise": Raise an error</li>
 <li>"warn": Raise a warning and return a string of the error</li>
 <li>"ignore": Ignore the error and return a string of the error</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;ignore&#39;</code>
           </td>
@@ -2922,7 +3126,9 @@ behavior of <code>mask_nan</code>.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
           </td>
-          <td><p>Deal with molecules that fail a part of the featurization.
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
 NaNs can happen when taking the of a noble gas,
 or other properties that are not measured for specific atoms.</p>
 <ul>
@@ -2930,7 +3136,9 @@ or other properties that are not measured for specific atoms.</p>
 <li>"warn": Raise a warning when there is a nan or inf in the featurization</li>
 <li>"None": DEFAULT. Don't do anything</li>
 <li>"Floating value": Replace nans or inf by the specified value</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;raise&#39;</code>
           </td>
@@ -2940,9 +3148,13 @@ or other properties that are not measured for specific atoms.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Maximum number of atoms for a given molecule. If a molecule with more atoms
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of atoms for a given molecule. If a molecule with more atoms
 is give, an error is raised, but catpured according to the rules of
-<code>on_error</code>.</p></td>
+<code>on_error</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2963,7 +3175,9 @@ is give, an error is raised, but catpured according to the rules of
 <td><code>graph_dict</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="goli.features.featurizer.GraphDict" href="#goli.features.featurizer.GraphDict">GraphDict</a>, str]</code>
           </td>
-          <td><p>A dictionary <code>GraphDict</code> containing the keys required to build a graph,
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary <code>GraphDict</code> containing the keys required to build a graph,
 and which can be used to build a PyG graph. If it fails
 to featurize the molecule, it returns a string with the error.</p>
 <ul>
@@ -2977,7 +3191,9 @@ to featurize the molecule, it returns a string with the error.</p>
 <li>
 <p>"dtype": The numpy dtype for the floating data.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3018,7 +3234,11 @@ of the featurizer args actually used for the features computation.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>A dictionary of featurizer arguments to update</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of featurizer arguments to update</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3039,7 +3259,11 @@ of the featurizer args actually used for the features computation.</p>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>A dictionary of featurizer arguments</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of featurizer arguments</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3081,7 +3305,11 @@ and a set of atom and bond features.</p>
           <td>
                 <code><span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span></code>
           </td>
-          <td><p>The molecule to be converted</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule to be converted</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3091,9 +3319,13 @@ and a set of atom and bond features.</p>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of the properties used to get one-hot encoding of the atom type,
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get one-hot encoding of the atom type,
 such as the atom index represented as a one-hot vector.
-See function <code>get_mol_atomic_features_onehot</code></p></td>
+See function <code>get_mol_atomic_features_onehot</code></p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -3103,9 +3335,13 @@ See function <code>get_mol_atomic_features_onehot</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
           </td>
-          <td><p>List of the properties used to get floating-point encoding of the atom type,
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to get floating-point encoding of the atom type,
 such as the atomic mass or electronegativity.
-See function <code>get_mol_atomic_features_float</code></p></td>
+See function <code>get_mol_atomic_features_float</code></p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -3115,7 +3351,11 @@ See function <code>get_mol_atomic_features_float</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>list of properties used to encode the conformer information, outside of atom properties, currently support "positions_3d"</p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -3125,8 +3365,12 @@ See function <code>get_mol_atomic_features_float</code></p></td>
           <td>
                 <code><span title="typing.List">List</span>[str]</code>
           </td>
-          <td><p>List of the properties used to encode the edges, such as the edge type
-and the stereo type.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of the properties used to encode the edges, such as the edge type
+and the stereo type.</p>
+            </div>
+          </td>
           <td>
                 <code>[]</code>
           </td>
@@ -3136,7 +3380,11 @@ and the stereo type.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to add a value of <code>1</code> on the diagonal of the adjacency matrix.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -3146,8 +3394,12 @@ and the stereo type.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
-are implicit.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to consider the Hydrogens explicitely. If <code>False</code>, the hydrogens
+are implicit.</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -3157,8 +3409,12 @@ are implicit.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to use the floating-point value of the bonds in the adjacency matrix,
-such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to use the floating-point value of the bonds in the adjacency matrix,
+such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 1.5</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -3168,8 +3424,12 @@ such that single bonds are represented by 1, double bonds 2, triple 3, aromatic 
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for node features.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3179,7 +3439,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.dtype">dtype</span></code>
           </td>
-          <td><p>The numpy data type used to build the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The numpy data type used to build the graph</p>
+            </div>
+          </td>
           <td>
                 <code>np.float16</code>
           </td>
@@ -3189,13 +3453,17 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>What to do when the featurization fails. This can change the
+          <td>
+            <div class="doc-md-description">
+              <p>What to do when the featurization fails. This can change the
 behavior of <code>mask_nan</code>.</p>
 <ul>
 <li>"raise": Raise an error</li>
 <li>"warn": Raise a warning and return a string of the error</li>
 <li>"ignore": Ignore the error and return a string of the error</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;ignore&#39;</code>
           </td>
@@ -3205,7 +3473,9 @@ behavior of <code>mask_nan</code>.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, float, type(None)]</code>
           </td>
-          <td><p>Deal with molecules that fail a part of the featurization.
+          <td>
+            <div class="doc-md-description">
+              <p>Deal with molecules that fail a part of the featurization.
 NaNs can happen when taking the of a noble gas,
 or other properties that are not measured for specific atoms.</p>
 <ul>
@@ -3213,7 +3483,9 @@ or other properties that are not measured for specific atoms.</p>
 <li>"warn": Raise a warning when there is a nan in the featurization</li>
 <li>"None": DEFAULT. Don't do anything</li>
 <li>"Floating value": Replace nans by the specified value</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;raise&#39;</code>
           </td>
@@ -3223,9 +3495,13 @@ or other properties that are not measured for specific atoms.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Maximum number of atoms for a given molecule. If a molecule with more atoms
+          <td>
+            <div class="doc-md-description">
+              <p>Maximum number of atoms for a given molecule. If a molecule with more atoms
 is give, an error is raised, but catpured according to the rules of
-<code>on_error</code>.</p></td>
+<code>on_error</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3246,10 +3522,14 @@ is give, an error is raised, but catpured according to the rules of
 <td><code>graph</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<span title="torch_geometric.data.Data">Data</span>, str]</code>
           </td>
-          <td><p>Pyg graph, with <code>graph['feat']</code> corresponding to the concatenated
+          <td>
+            <div class="doc-md-description">
+              <p>Pyg graph, with <code>graph['feat']</code> corresponding to the concatenated
 node data from <code>atom_property_list_onehot</code> and <code>atom_property_list_float</code>,
 <code>graph['edge_feat']</code> corresponding to the concatenated edge data from <code>edge_property_list</code>.
-There are also additional entries for the positional encodings.</p></td>
+There are also additional entries for the positional encodings.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3288,7 +3568,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
-          <td><p>The array to convert to dense</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The array to convert to dense</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3298,7 +3582,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>The dtype of the array</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dtype of the array</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3319,7 +3607,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
-          <td><p>The dense array</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dense array</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3357,7 +3649,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td><code>array</code></td>
           <td>
           </td>
-          <td><p>The array to convert to dense</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The array to convert to dense</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3367,7 +3663,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>The dtype of the array</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dtype of the array</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3388,7 +3688,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>The dense array</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dense array</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3461,7 +3765,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td>
                 <code>[num_nodes, num_nodes]</code>
           </td>
-          <td><p>Adjacency matrix of the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix of the graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3471,7 +3779,11 @@ There are also additional entries for the positional encodings.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Number of nodes in the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3480,8 +3792,12 @@ There are also additional entries for the positional encodings.</p></td>
           <td><code>pos_encoding_as_features</code></td>
           <td>
           </td>
-          <td><p>keyword arguments for function <code>graph_positional_encoder</code>
-to generate positional encoding for node features.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>keyword arguments for function <code>graph_positional_encoder</code>
+to generate positional encoding for node features.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3502,7 +3818,11 @@ to generate positional encoding for node features.</p></td>
 <td><code>pe_dict</code></td>          <td>
                 <code><span title="typing.Tuple">Tuple</span>[<span title="typing.OrderedDict">OrderedDict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]]</code>
           </td>
-          <td><p>Dictionary of positional and structural encodings</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of positional and structural encodings</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3541,7 +3861,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code>[num_nodes, num_nodes]</code>
           </td>
-          <td><p>Adjacency matrix of the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix of the graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3551,7 +3875,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Number of nodes in the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3561,13 +3889,17 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>The type of positional encoding to use. If None, it must be provided by <code>pos_kwargs["pos_type"]</code>. Supported types are:
+          <td>
+            <div class="doc-md-description">
+              <p>The type of positional encoding to use. If None, it must be provided by <code>pos_kwargs["pos_type"]</code>. Supported types are:
 - laplacian_eigvec              \
 - laplacian_eigval               \  -&gt; cache connected comps. &amp; eigendecomp.
 - rwse
 - electrostatic                 \
 - commute                        \  -&gt; cache pinvL
-- graphormer</p></td>
+- graphormer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3577,11 +3909,15 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
-          <td><p>Positional level to output. If None, it must be provided by <code>pos_kwargs["pos_level"]</code>.
+          <td>
+            <div class="doc-md-description">
+              <p>Positional level to output. If None, it must be provided by <code>pos_kwargs["pos_level"]</code>.
 - node
 - edge
 - nodepair
-- graph</p></td>
+- graph</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3591,7 +3927,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>Extra keyword arguments for the positional encoding. Can include the keys pos_type and pos_level.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Extra keyword arguments for the positional encoding. Can include the keys pos_type and pos_level.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3601,7 +3941,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>Dictionary of cached objects</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of cached objects</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3622,13 +3966,21 @@ to generate positional encoding for node features.</p></td>
 <td><code>pe</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>Positional or structural encoding</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Positional or structural encoding</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>cache</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Updated dictionary of cached objects</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Updated dictionary of cached objects</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3701,7 +4053,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Callable">Callable</span></code>
           </td>
-          <td><p>The property to compute.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The property to compute.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3711,7 +4067,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The number of elements in the property.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The number of elements in the property.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3721,7 +4081,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
-          <td><p>The arguments to pass to the property.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The arguments to pass to the property.</p>
+            </div>
+          </td>
           <td>
                 <code>()</code>
           </td>
@@ -3731,7 +4095,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
-          <td><p>The keyword arguments to pass to the property.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The keyword arguments to pass to the property.</p>
+            </div>
+          </td>
           <td>
                 <code>{}</code>
           </td>
@@ -3752,7 +4120,11 @@ to generate positional encoding for node features.</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[float], <span title="typing.List">List</span>[None]]</code>
           </td>
-          <td><p>The property or a list of <code>None</code> with lenght <code>n</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The property or a list of <code>None</code> with lenght <code>n</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3792,7 +4164,11 @@ and output a property list.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="datamol">dm</span>.<span title="datamol.Mol">Mol</span>, str]</code>
           </td>
-          <td><p>The molecule from which to compute the properties.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The molecule from which to compute the properties.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3802,7 +4178,9 @@ and output a property list.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.List">List</span>[str], str]</code>
           </td>
-          <td><p>The list of properties to compute for each molecule. It can be the following:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>The list of properties to compute for each molecule. It can be the following:</p>
 <ul>
 <li>'descriptors'</li>
 <li>'autocorr3d'</li>
@@ -3810,7 +4188,9 @@ and output a property list.</p>
 <li>'morse'</li>
 <li>'whim'</li>
 <li>'all'</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;autocorr3d&#39;</code>
           </td>
@@ -3831,28 +4211,40 @@ and output a property list.</p>
 <td><code>props</code></td>          <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
-          <td><p>np.array(float)
-The array of properties for the desired molecule</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>np.array(float)
+The array of properties for the desired molecule</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>classes_start_idx</code></td>          <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
-          <td><p>list(int)
+          <td>
+            <div class="doc-md-description">
+              <p>list(int)
 The list of index specifying the start of each new class of
 descriptor or property. For example, if props has 20 elements,
 the first 5 are rotatable bonds, the next 8 are morse, and
 the rest are whim, then <code>classes_start_idx = [0, 5, 13]</code>.
 This will mainly be useful to normalize the features of
-each class.</p></td>
+each class.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>classes_names</code></td>          <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
-          <td><p>list(str)
+          <td>
+            <div class="doc-md-description">
+              <p>list(str)
 The name of the classes associated to each starting index.
-Will be usefull to understand what property is the network learning.</p></td>
+Will be usefull to understand what property is the network learning.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3925,7 +4317,11 @@ Will be usefull to understand what property is the network learning.</p></td>
           <td>
                 <code>[num_nodes, num_nodes]</code>
           </td>
-          <td><p>Adjacency matrix of the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix of the graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3935,7 +4331,11 @@ Will be usefull to understand what property is the network learning.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Number of Laplacian eigenvectors to compute</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of Laplacian eigenvectors to compute</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3945,7 +4345,11 @@ Will be usefull to understand what property is the network learning.</p></td>
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Dictionary of cached objects</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of cached objects</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3955,7 +4359,11 @@ Will be usefull to understand what property is the network learning.</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to compute the eigenvectors for each connected component</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to compute the eigenvectors for each connected component</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3965,7 +4373,11 @@ Will be usefull to understand what property is the network learning.</p></td>
           <td>
                 <code>str</code>
           </td>
-          <td><p>Normalization to apply to the Laplacian</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to apply to the Laplacian</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3986,23 +4398,35 @@ Will be usefull to understand what property is the network learning.</p></td>
 <td></td>          <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
-          <td><p>Two possible outputs:
+          <td>
+            <div class="doc-md-description">
+              <p>Two possible outputs:
 eigvals [num_nodes, num_pos]: Eigenvalues of the Laplacian repeated for each node.
     This repetition is necessary in case of disconnected components, where
     the eigenvalues of the Laplacian are not the same for each node.
-eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian</p></td>
+eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>base_level</code></td>          <td>
                 <code>str</code>
           </td>
-          <td><p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here node</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here node</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>cache</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Updated dictionary of cached objects</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Updated dictionary of cached objects</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4114,7 +4538,11 @@ normalization: str or None, Default='none'
           <td>
                 <code>[num_nodes, num_nodes]</code>
           </td>
-          <td><p>Adjacency matrix</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Adjacency matrix</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4124,7 +4552,11 @@ normalization: str or None, Default='none'
           <td>
                 <code><span title="typing.Union">Union</span>[int, <span title="typing.List">List</span>[int]]</code>
           </td>
-          <td><p>List of numbers of steps for the random walks. If int, a list is generated from 1 to ksteps.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of numbers of steps for the random walks. If int, a list is generated from 1 to ksteps.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4134,7 +4566,11 @@ normalization: str or None, Default='none'
           <td>
                 <code>int</code>
           </td>
-          <td><p>Number of nodes in the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4144,7 +4580,11 @@ normalization: str or None, Default='none'
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Dictionary of cached objects</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of cached objects</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4154,7 +4594,11 @@ normalization: str or None, Default='none'
           <td>
                 <code>str</code>
           </td>
-          <td><p>Desired output</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Desired output</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;rw_return_probs&#39; or &#39;rw_transition_probs&#39;</code>
           </td>
@@ -4164,11 +4608,15 @@ normalization: str or None, Default='none'
           <td>
                 <code>int</code>
           </td>
-          <td><p>Estimated dimensionality of the space. Used to
+          <td>
+            <div class="doc-md-description">
+              <p>Estimated dimensionality of the space. Used to
 correct the random-walk diagonal by a factor <code>k^(space_dim/2)</code>.
 In euclidean space, this correction means that the height of
 the gaussian distribution stays almost constant across the number of
-steps, if <code>space_dim</code> is the dimension of the euclidean space.</p></td>
+steps, if <code>space_dim</code> is the dimension of the euclidean space.</p>
+            </div>
+          </td>
           <td>
                 <code>0</code>
           </td>
@@ -4189,21 +4637,33 @@ steps, if <code>space_dim</code> is the dimension of the euclidean space.</p></t
 <td></td>          <td>
                 <code><span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span></code>
           </td>
-          <td><p>Two possible outputs:
+          <td>
+            <div class="doc-md-description">
+              <p>Two possible outputs:
 rw_return_probs [num_nodes, len(ksteps)]: Random-Walk k-step landing probabilities
-rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step transition probabilities</p></td>
+rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step transition probabilities</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>base_level</code></td>          <td>
                 <code>str</code>
           </td>
-          <td><p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here either node or nodepair</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Indicator of the output pos_level (node, edge, nodepair, graph) -&gt; here either node or nodepair</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>cache</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>Updated dictionary of cached objects</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Updated dictionary of cached objects</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4242,7 +4702,11 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
           <td>
                 <code><span title="typing.List">List</span>[int]</code>
           </td>
-          <td><p>List of numbers of k-steps for which to compute the RW landings</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List of numbers of k-steps for which to compute the RW landings</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4252,7 +4716,11 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
           <td>
                 <code><span title="typing.Tuple">Tuple</span>[torch.<span title="torch.Tensor">Tensor</span>, torch.<span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>PyG sparse representation of the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>PyG sparse representation of the graph</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4262,7 +4730,11 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
           <td>
                 <code><span title="typing.Optional">Optional</span>[torch.<span title="torch.Tensor">Tensor</span>]</code>
           </td>
-          <td><p>Edge weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Edge weights</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4272,7 +4744,11 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Number of nodes in the graph</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Number of nodes in the graph</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4293,7 +4769,11 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
           <td>
                 <code><span title="typing.Dict">Dict</span>[int, <span title="numpy">np</span>.<span title="numpy.ndarray">ndarray</span>]</code>
           </td>
-          <td><p>2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>2D Tensor with shape (num_nodes, len(ksteps)) with RW landing probs</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4366,7 +4846,11 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
           <td>
                 <code>str</code>
           </td>
-          <td><p>str</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>str</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4387,7 +4871,11 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
 <td><code>val</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[float, None]</code>
           </td>
-          <td><p>float or None</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>float or None</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>

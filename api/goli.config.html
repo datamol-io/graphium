@@ -19,7 +19,7 @@
         <link rel="next" href="goli.ipu.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -1344,7 +1344,11 @@ consistant. For example, specifying <code>cpu</code> as the accelerators, but
           <td>
                 <code><span title="typing.Union">Union</span>[omegaconf.<span title="omegaconf.DictConfig">DictConfig</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The config file, with key <code>architecture</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The config file, with key <code>architecture</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1354,7 +1358,11 @@ consistant. For example, specifying <code>cpu</code> as the accelerators, but
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, int]</code>
           </td>
-          <td><p>Dictionary of the input dimensions for various</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionary of the input dimensions for various</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1375,7 +1383,11 @@ consistant. For example, specifying <code>cpu</code> as the accelerators, but
 <td><code>architecture</code></td>          <td>
                 <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="goli.nn.architectures.FullGraphMultiTaskNetwork" href="goli.nn/architectures.html#goli.nn.architectures.global_architectures.FullGraphMultiTaskNetwork">FullGraphMultiTaskNetwork</a>, torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
           </td>
-          <td><p>The datamodule used to process and load the data</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The datamodule used to process and load the data</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1416,7 +1428,11 @@ If the accelerator is IPU, load the IPU options as well.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[omegaconf.<span title="omegaconf.DictConfig">DictConfig</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The config file, with key <code>datamodule: args</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The config file, with key <code>datamodule: args</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1426,7 +1442,11 @@ If the accelerator is IPU, load the IPU options as well.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>The accelerator type, e.g. "cpu", "gpu", "ipu"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The accelerator type, e.g. "cpu", "gpu", "ipu"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1447,7 +1467,11 @@ If the accelerator is IPU, load the IPU options as well.</p>
 <td><code>datamodule</code></td>          <td>
                 <code><a class="autorefs autorefs-internal" title="goli.data.datamodule.BaseDataModule" href="goli.data.html#goli.data.datamodule.BaseDataModule">BaseDataModule</a></code>
           </td>
-          <td><p>The datamodule used to process and load the data</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The datamodule used to process and load the data</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1486,7 +1510,11 @@ If the accelerator is IPU, load the IPU options as well.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[omegaconf.<span title="omegaconf.DictConfig">DictConfig</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The config file, with key <code>metrics</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The config file, with key <code>metrics</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1507,7 +1535,11 @@ If the accelerator is IPU, load the IPU options as well.</p>
 <td><code>metrics</code></td>          <td>
                 <code><span title="typing.Dict">Dict</span>[str, <a class="autorefs autorefs-internal" title="goli.trainer.metrics.MetricWrapper" href="goli.trainer.html#goli.trainer.metrics.MetricWrapper">MetricWrapper</a>]</code>
           </td>
-          <td><p>A dictionary of all the metrics</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of all the metrics</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1565,7 +1597,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
           <td>
                 <code><span title="typing.Type">Type</span>[torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
           </td>
-          <td><p>The torch Module containing the main forward function</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch Module containing the main forward function</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1575,7 +1611,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
           <td>
                 <code>str</code>
           </td>
-          <td><p>The accelerator type, e.g. "cpu", "gpu", "ipu"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The accelerator type, e.g. "cpu", "gpu", "ipu"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1596,7 +1636,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
 <td><code>predictor</code></td>          <td>
                 <code><a class="autorefs autorefs-internal" title="goli.trainer.predictor.PredictorModule" href="goli.trainer.html#goli.trainer.predictor.PredictorModule">PredictorModule</a></code>
           </td>
-          <td><p>The predictor module</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The predictor module</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1635,7 +1679,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
           <td>
                 <code><span title="typing.Union">Union</span>[omegaconf.<span title="omegaconf.DictConfig">DictConfig</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The config file, with key <code>trainer</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The config file, with key <code>trainer</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1645,7 +1693,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
           <td>
                 <code>str</code>
           </td>
-          <td><p>The name of the current run. To be used for logging.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The name of the current run. To be used for logging.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1655,7 +1707,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
           <td>
                 <code>str</code>
           </td>
-          <td><p>The accelerator type, e.g. "cpu", "gpu", "ipu"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The accelerator type, e.g. "cpu", "gpu", "ipu"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1665,7 +1721,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
           <td>
                 <code>str</code>
           </td>
-          <td><p>The date and time of the current run. To be used for logging.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The date and time of the current run. To be used for logging.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;&#39;</code>
           </td>
@@ -1686,7 +1746,11 @@ If <code>.yaml</code>, it should be generated by <code>mup.save_base_shapes</cod
 <td><code>trainer</code></td>          <td>
                 <code><span title="pytorch_lightning.Trainer">Trainer</span></code>
           </td>
-          <td><p>the trainer module</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>the trainer module</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1727,7 +1791,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>The dictionary to merge into. Modified in-place.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dictionary to merge into. Modified in-place.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1737,7 +1805,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
           </td>
-          <td><p>The dictionary to merge from.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dictionary to merge from.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1747,7 +1819,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code>str</code>
           </td>
-          <td><p>The key path of the parent dictionary,</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The key path of the parent dictionary,</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;&#39;</code>
           </td>
@@ -1768,7 +1844,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code>ValueError</code>
           </td>
-          <td><p>If a key path already exists in dict_a.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>If a key path already exists in dict_a.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -1807,7 +1887,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code><span title="pytorch_lightning.loggers.Logger">Logger</span></code>
           </td>
-          <td><p>The object used to log the training. Usually WandbLogger</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The object used to log the training. Usually WandbLogger</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1817,7 +1901,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code><span title="typing.Union">Union</span>[omegaconf.<span title="omegaconf.DictConfig">DictConfig</span>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
           </td>
-          <td><p>The config file, with key <code>trainer</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The config file, with key <code>trainer</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1827,7 +1915,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code><a class="autorefs autorefs-internal" title="goli.trainer.predictor.PredictorModule" href="goli.trainer.html#goli.trainer.predictor.PredictorModule">PredictorModule</a></code>
           </td>
-          <td><p>The predictor used to handle the train/val/test steps logic</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The predictor used to handle the train/val/test steps logic</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1837,7 +1929,11 @@ it is added from dict_b. If a key exists in both, an error is raised.
           <td>
                 <code><a class="autorefs autorefs-internal" title="goli.data.datamodule.MultitaskFromSmilesDataModule" href="goli.data.html#goli.data.datamodule.MultitaskFromSmilesDataModule">MultitaskFromSmilesDataModule</a></code>
           </td>
-          <td><p>The datamodule used to load the data into training</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The datamodule used to load the data into training</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -1963,7 +2059,11 @@ all <code>ListConfig</code> to <code>list</code>, and all <code>byte</code> to <
           <td>
                 <code>str</code>
           </td>
-          <td><p>name of the config to load.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>name of the config to load.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>

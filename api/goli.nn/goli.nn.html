@@ -19,7 +19,7 @@
         <link rel="next" href="architectures.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.14">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.85bb2934.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.a6bdf11c.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -2454,7 +2454,11 @@ and outputs.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Input feature dimensions of the layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Input feature dimensions of the layer</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2464,7 +2468,11 @@ and outputs.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Output feature dimensions of the layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Output feature dimensions of the layer</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2474,7 +2482,11 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>activation function to use in the layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>activation function to use in the layer</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -2484,7 +2496,11 @@ and outputs.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>The ratio of units to dropout. Must be between 0 and 1</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The ratio of units to dropout. Must be between 0 and 1</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -2494,13 +2510,17 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Normalization to use. Choices:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to use. Choices:</p>
 <ul>
 <li>"none" or <code>None</code>: No normalization</li>
 <li>"batch_norm": Batch normalization</li>
 <li>"layer_norm": Layer normalization</li>
 <li><code>Callable</code>: Any callable function</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -2510,7 +2530,11 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The index of the current layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The index of the current layer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2520,7 +2544,11 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The total depth (number of layers) associated to this specific layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The total depth (number of layers) associated to this specific layer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2530,7 +2558,11 @@ and outputs.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -2584,8 +2616,8 @@ and outputs.</p>
 <code class="highlight language-python"><span class="n">layer_inputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.layer_inputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2611,7 +2643,11 @@ supports edges can decide to not use them.</p>
 <td><code>bool</code></td>          <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether the layer uses input edges in the forward pass</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether the layer uses input edges in the forward pass</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2627,8 +2663,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">layer_outputs_edges</span><span class="p">:</span> <span class="nb">bool</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.layer_outputs_edges" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2654,7 +2690,11 @@ supports edges can decide to not use them.</p>
 <td><code>bool</code></td>          <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether the layer outputs edges in the forward pass</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether the layer outputs edges in the forward pass</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2670,8 +2710,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_edges_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_edges_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2692,8 +2732,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">max_num_nodes_per_graph</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.max_num_nodes_per_graph" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2714,8 +2754,8 @@ supports edges can decide to not use them.</p>
 <code class="highlight language-python"><span class="n">out_dim_factor</span><span class="p">:</span> <span class="nb">int</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-abstractmethod"><code>abstractmethod</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#goli.nn.base_graph_layer.BaseGraphStructure.out_dim_factor" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2745,7 +2785,11 @@ of heads.</p>
 <td><code>int</code></td>          <td>
                 <code>int</code>
           </td>
-          <td><p>The factor that multiplies the output dimensions</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The factor that multiplies the output dimensions</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -2788,7 +2832,11 @@ and outputs.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Input feature dimensions of the layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Input feature dimensions of the layer</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2798,7 +2846,11 @@ and outputs.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Output feature dimensions of the layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Output feature dimensions of the layer</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2808,7 +2860,11 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>activation function to use in the layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>activation function to use in the layer</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -2818,7 +2874,11 @@ and outputs.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>The ratio of units to dropout. Must be between 0 and 1</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The ratio of units to dropout. Must be between 0 and 1</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -2828,13 +2888,17 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Normalization to use. Choices:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to use. Choices:</p>
 <ul>
 <li>"none" or <code>None</code>: No normalization</li>
 <li>"batch_norm": Batch normalization</li>
 <li>"layer_norm": Layer normalization</li>
 <li><code>Callable</code>: Any callable function</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -2844,7 +2908,11 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The index of the current layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The index of the current layer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2854,7 +2922,11 @@ and outputs.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The total depth (number of layers) associated to this specific layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The total depth (number of layers) associated to this specific layer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -2864,7 +2936,11 @@ and outputs.</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -2925,7 +3001,11 @@ output layer.</p>
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>Feature tensor, to be normalized</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Feature tensor, to be normalized</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -2935,7 +3015,11 @@ output layer.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to apply the normalization</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to apply the normalization</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2945,7 +3029,11 @@ output layer.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to apply the activation layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to apply the activation layer</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2955,7 +3043,11 @@ output layer.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to apply the dropout layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to apply the dropout layer</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2965,7 +3057,11 @@ output layer.</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to apply the DropPath layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to apply the DropPath layer</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -2985,7 +3081,11 @@ output layer.</p>
         <tr>
 <td><code>feat</code></td>          <td>
           </td>
-          <td><p>Normalized and dropped-out features</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalized and dropped-out features</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3022,7 +3122,11 @@ supports output edges edges or not.</p>
 <td><code>bool</code></td>          <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether the layer supports the use of edges</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether the layer supports the use of edges</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3155,7 +3259,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td>
                 <code>float</code>
           </td>
-          <td><p>Drop out probability</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Drop out probability</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3196,7 +3304,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>torch.Tensor[total_num_nodes, hidden]</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p><code>torch.Tensor[total_num_nodes, hidden]</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3205,7 +3317,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td><code>batch</code></td>
           <td>
           </td>
-          <td><p>batch attribute of the batch object, batch.batch</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>batch attribute of the batch object, batch.batch</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3215,7 +3331,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The batch size. Must be provided when working on IPU</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The batch size. Must be provided when working on IPU</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3236,7 +3356,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td>
                 <code><span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor: <code>torch.Tensor[total_num_nodes, hidde]</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor: <code>torch.Tensor[total_num_nodes, hidde]</code></p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3280,7 +3404,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td>
                 <code>float</code>
           </td>
-          <td><p>Drop out nominal probability</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Drop out nominal probability</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3290,7 +3418,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The index of the current layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The index of the current layer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3300,7 +3432,11 @@ Gao Huang, Yu Sun, Zhuang Liu, Daniel Sedra and Kilian Weinberger
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>The total depth (number of layers) associated to this specific layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The total depth (number of layers) associated to this specific layer</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3429,7 +3565,11 @@ The order in which transformations are applied is:</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Input dimension of the layer (the <code>torch.nn.Linear</code>)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Input dimension of the layer (the <code>torch.nn.Linear</code>)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3439,7 +3579,11 @@ The order in which transformations are applied is:</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Output dimension of the layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Output dimension of the layer.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3449,7 +3593,11 @@ The order in which transformations are applied is:</p>
           <td>
                 <code>float</code>
           </td>
-          <td><p>The ratio of units to dropout. No dropout by default.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The ratio of units to dropout. No dropout by default.</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -3459,7 +3607,11 @@ The order in which transformations are applied is:</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Activation function to use.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Activation function to use.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -3469,13 +3621,17 @@ The order in which transformations are applied is:</p>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Normalization to use. Choices:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to use. Choices:</p>
 <ul>
 <li>"none" or <code>None</code>: No normalization</li>
 <li>"batch_norm": Batch normalization</li>
 <li>"layer_norm": Layer normalization</li>
 <li><code>Callable</code>: Any callable function</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3485,7 +3641,11 @@ The order in which transformations are applied is:</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether to enable bias in for the linear layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to enable bias in for the linear layer.</p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -3495,8 +3655,12 @@ The order in which transformations are applied is:</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Initialization function to use for the weight of the layer. Default is
-<span class="arithmatex">\(<span class="arithmatex">\(\mathcal{U}(-\sqrt{k}, \sqrt{k})\)</span>\)</span> with <span class="arithmatex">\(<span class="arithmatex">\(k=\frac{1}{ \text{in_dim}}\)</span>\)</span></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Initialization function to use for the weight of the layer. Default is
+<span class="arithmatex">\(<span class="arithmatex">\(\mathcal{U}(-\sqrt{k}, \sqrt{k})\)</span>\)</span> with <span class="arithmatex">\(<span class="arithmatex">\(k=\frac{1}{ \text{in_dim}}\)</span>\)</span></p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -3506,8 +3670,12 @@ The order in which transformations are applied is:</p>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether the layer should be treated as a readout layer by replacing of <code>torch.nn.Linear</code>
-by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether the layer should be treated as a readout layer by replacing of <code>torch.nn.Linear</code>
+by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -3517,7 +3685,11 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
           <td>
                 <code>float</code>
           </td>
-          <td><p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>stochastic depth drop rate, between 0 and 1, see <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -3540,49 +3712,77 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
           <td>
                 <code>int</code>
           </td>
-          <td><p>The ratio of units to dropout.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The ratio of units to dropout.</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td><code>normalization</code></td>
           <td>
                 <code>None or Callable</code>
           </td>
-          <td><p>Normalization layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization layer</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td><code>linear</code></td>
           <td>
                 <code>`torch.nn.Linear`</code>
           </td>
-          <td><p>The linear layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The linear layer</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td><code>activation</code></td>
           <td>
                 <code>`torch.nn.Module`</code>
           </td>
-          <td><p>The activation layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The activation layer</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td><code>init_fn</code></td>
           <td>
                 <code><span title="typing.Callable">Callable</span></code>
           </td>
-          <td><p>Initialization function used for the weight of the layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Initialization function used for the weight of the layer</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td><code>in_dim</code></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Input dimension of the linear layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Input dimension of the linear layer</p>
+            </div>
+          </td>
         </tr>
         <tr>
           <td><code>out_dim</code></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Output dimension of the linear layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Output dimension of the linear layer</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3621,9 +3821,13 @@ by <code>mup.MuReadout</code> from the muTransfer method <a href="https://github
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>torch.Tensor[..., Din]</code>:
+          <td>
+            <div class="doc-md-description">
+              <p><code>torch.Tensor[..., Din]</code>:
 Input feature tensor, before the FC.
-<code>Din</code> is the number of input features</p></td>
+<code>Din</code> is the number of input features</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3644,9 +3848,13 @@ Input feature tensor, before the FC.
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>torch.Tensor[..., Dout]</code>:
+          <td>
+            <div class="doc-md-description">
+              <p><code>torch.Tensor[..., Dout]</code>:
 Output feature tensor, after the FC.
-<code>Dout</code> is the number of output features</p></td>
+<code>Dout</code> is the number of output features</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3741,7 +3949,11 @@ Output feature tensor, after the FC.
           <td>
                 <code>int</code>
           </td>
-          <td><p>Input dimension of the GRU layer</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Input dimension of the GRU layer</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3751,7 +3963,11 @@ Output feature tensor, after the FC.
           <td>
                 <code>int</code>
           </td>
-          <td><p>Hidden dimension of the GRU layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Hidden dimension of the GRU layer.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3791,8 +4007,12 @@ Output feature tensor, after the FC.
           <td><code>x</code></td>
           <td>
           </td>
-          <td><p><code>torch.Tensor[B, N, Din]</code>
-where Din &lt;= in_dim (difference is padded)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p><code>torch.Tensor[B, N, Din]</code>
+where Din &lt;= in_dim (difference is padded)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3801,8 +4021,12 @@ where Din &lt;= in_dim (difference is padded)</p></td>
           <td><code>y</code></td>
           <td>
           </td>
-          <td><p><code>torch.Tensor[B, N, Dh]</code>
-where Dh &lt;= hidden_dim (difference is padded)</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p><code>torch.Tensor[B, N, Dh]</code>
+where Dh &lt;= hidden_dim (difference is padded)</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3822,7 +4046,11 @@ where Dh &lt;= hidden_dim (difference is padded)</p></td>
         <tr>
           <td>
           </td>
-          <td><p>torch.Tensor: <code>torch.Tensor[B, N, Dh]</code></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor: <code>torch.Tensor[B, N, Dh]</code></p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -3899,7 +4127,11 @@ where Dh &lt;= hidden_dim (difference is padded)</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Input dimension of the MLP</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Input dimension of the MLP</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3909,8 +4141,12 @@ where Dh &lt;= hidden_dim (difference is padded)</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.Iterable">Iterable</span>[int], int]</code>
           </td>
-          <td><p>Either an integer specifying all the hidden dimensions,
-or a list of dimensions in the hidden layers.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Either an integer specifying all the hidden dimensions,
+or a list of dimensions in the hidden layers.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3920,7 +4156,11 @@ or a list of dimensions in the hidden layers.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>Output dimension of the MLP.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Output dimension of the MLP.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3930,10 +4170,14 @@ or a list of dimensions in the hidden layers.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>If <code>hidden_dims</code> is an integer, <code>depth</code> is 1 + the number of
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>hidden_dims</code> is an integer, <code>depth</code> is 1 + the number of
 hidden layers to use.
 If <code>hidden_dims</code> is a list, then
-<code>depth</code> must be <code>None</code> or equal to <code>len(hidden_dims) + 1</code></p></td>
+<code>depth</code> must be <code>None</code> or equal to <code>len(hidden_dims) + 1</code></p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -3943,8 +4187,12 @@ If <code>hidden_dims</code> is a list, then
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Activation function to use in all the layers except the last.
-if <code>layers==1</code>, this parameter is ignored</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Activation function to use in all the layers except the last.
+if <code>layers==1</code>, this parameter is ignored</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;relu&#39;</code>
           </td>
@@ -3954,7 +4202,11 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Activation function to use in the last layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Activation function to use in the last layer.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3964,7 +4216,11 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
           <td>
                 <code>float</code>
           </td>
-          <td><p>The ratio of units to dropout. Must be between 0 and 1</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The ratio of units to dropout. Must be between 0 and 1</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -3974,14 +4230,18 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.Type">Type</span>[None], str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Normalization to use. Choices:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to use. Choices:</p>
 <ul>
 <li>"none" or <code>None</code>: No normalization</li>
 <li>"batch_norm": Batch normalization</li>
 <li>"layer_norm": Layer normalization in the hidden layers.</li>
 <li><code>Callable</code>: Any callable function</li>
 </ul>
-<p>if <code>layers==1</code>, this parameter is ignored</p></td>
+<p>if <code>layers==1</code>, this parameter is ignored</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -3991,7 +4251,11 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.Type">Type</span>[None], str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Norrmalization to use <strong>after the last layer</strong>. Same options as <code>normalization</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Norrmalization to use <strong>after the last layer</strong>. Same options as <code>normalization</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -4001,7 +4265,11 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.Type">Type</span>[None], str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Norrmalization to use in <strong>before the first layer</strong>. Same options as <code>normalization</code>.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Norrmalization to use in <strong>before the first layer</strong>. Same options as <code>normalization</code>.</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -4011,7 +4279,11 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
           <td>
                 <code>float</code>
           </td>
-          <td><p>The ratio of units to dropout at the last layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The ratio of units to dropout at the last layer.</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -4021,8 +4293,12 @@ if <code>layers==1</code>, this parameter is ignored</p></td>
           <td>
                 <code>bool</code>
           </td>
-          <td><p>Whether the last layer should be treated as a readout layer.
-Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether the last layer should be treated as a readout layer.
+Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a></p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -4032,8 +4308,12 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
           <td>
                 <code>float</code>
           </td>
-          <td><p>stochastic depth drop rate, between 0 and 1.
-See <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>stochastic depth drop rate, between 0 and 1.
+See <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382</a></p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -4043,9 +4323,13 @@ See <a href="https://arxiv.org/abs/1603.09382">https://arxiv.org/abs/1603.09382<
           <td>
                 <code>bool</code>
           </td>
-          <td><p>If <code>True</code>, drop rates will remain constant accross layers.
+          <td>
+            <div class="doc-md-description">
+              <p>If <code>True</code>, drop rates will remain constant accross layers.
 Otherwise, drop rates will vary stochastically.
-See <code>DropPath.get_stochastic_drop_rate</code></p></td>
+See <code>DropPath.get_stochastic_drop_rate</code></p>
+            </div>
+          </td>
           <td>
                 <code>True</code>
           </td>
@@ -4105,9 +4389,13 @@ See <code>DropPath.get_stochastic_drop_rate</code></p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>torch.Tensor[..., Din]</code>:
+          <td>
+            <div class="doc-md-description">
+              <p><code>torch.Tensor[..., Din]</code>:
 Input feature tensor, before the MLP.
-<code>Din</code> is the number of input features</p></td>
+<code>Din</code> is the number of input features</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4128,9 +4416,13 @@ Input feature tensor, before the MLP.
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p><code>torch.Tensor[..., Dout]</code>:
+          <td>
+            <div class="doc-md-description">
+              <p><code>torch.Tensor[..., Dout]</code>:
 Output feature tensor, after the MLP.
-<code>Dout</code> is the number of output features</p></td>
+<code>Dout</code> is the number of output features</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4308,8 +4600,12 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[type(None), str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Callable, <code>None</code>, or string with value:
-"none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "GELU", "LeakyReLU", "Softplus"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Callable, <code>None</code>, or string with value:
+"none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "GELU", "LeakyReLU", "Softplus"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4330,7 +4626,11 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[<span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Callable or None: The activation function</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Callable or None: The activation function</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4369,8 +4669,12 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[type(None), str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Callable, <code>None</code>, or string with value:
-"none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Callable, <code>None</code>, or string with value:
+"none", "ReLU", "Sigmoid", "Tanh", "ELU", "SELU", "GLU", "LeakyReLU", "Softplus"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4391,7 +4695,11 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
           <td>
                 <code>str</code>
           </td>
-          <td><p>The name of the activation function</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The name of the activation function</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4430,8 +4738,12 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
           <td>
                 <code><span title="typing.Union">Union</span>[<span title="typing.Type">Type</span>[None], str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>Callable, <code>None</code>, or string with value:
-"none", "batch_norm", "layer_norm"</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Callable, <code>None</code>, or string with value:
+"none", "batch_norm", "layer_norm"</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4441,7 +4753,11 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
           <td>
                 <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
-          <td><p>Dimension where to apply the norm. Mandatory for 'batch_norm' and 'layer_norm'</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dimension where to apply the norm. Mandatory for 'batch_norm' and 'layer_norm'</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -4461,7 +4777,11 @@ Arguments are the same as <code>torch.nn.TransformerEncoderLayer</code>.</p>
         <tr>
           <td>
           </td>
-          <td><p>Callable or None: The normalization function</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Callable or None: The normalization function</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4573,10 +4893,14 @@ the ResNet, weighted-ResNet, skip-concat and DensNet.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
+          <td>
+            <div class="doc-md-description">
+              <p>int
 The number of steps to skip between the residual connections.
 If <code>1</code>, all the layers are connected. If <code>2</code>, half of the
-layers are connected.</p></td>
+layers are connected.</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -4636,7 +4960,11 @@ layers are connected.</p></td>
           <td>
                 <code><span title="typing.List">List</span></code>
           </td>
-          <td><p>List</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4657,7 +4985,11 @@ layers are connected.</p></td>
 <td><code>true_out_dims</code></td>          <td>
                 <code><span title="typing.List">List</span></code>
           </td>
-          <td><p>List</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>List</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4696,7 +5028,9 @@ layers are connected.</p></td>
         <tr>
 <td><code>h_dim_increase_type</code></td>          <td>
           </td>
-          <td><p>None or str
+          <td>
+            <div class="doc-md-description">
+              <p>None or str
 - <code>None</code>: The dimension of the output features do not change at each layer.
 E.g. ResNet.</p>
 <ul>
@@ -4708,7 +5042,9 @@ the previous layer with the new layer.</p>
 <p>"cumulative": The dimension of the output features is the concatenation
 of all previous layers.</p>
 </li>
-</ul></td>
+</ul>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4746,8 +5082,12 @@ of all previous layers.</p>
         <tr>
 <td><code>has_weights</code></td>          <td>
           </td>
-          <td><p>bool
-Whether the residual connection uses weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool
+Whether the residual connection uses weights</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4826,10 +5166,14 @@ layer features.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
+          <td>
+            <div class="doc-md-description">
+              <p>int
 The number of steps to skip between the residual connections.
 If <code>1</code>, all the layers are connected. If <code>2</code>, half of the
-layers are connected.</p></td>
+layers are connected.</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -4871,8 +5215,12 @@ layers are connected.</p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m)
-The current layer features</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
+The current layer features</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4882,10 +5230,14 @@ The current layer features</p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., n), None
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., n), None
 The features from the previous layer with a skip connection.
 Usually, we have <code>n</code> equal to <code>m</code>.
-At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p></td>
+At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4895,8 +5247,12 @@ At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
-Current layer index or step index in the forward loop of the architecture.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>int
+Current layer index or step index in the forward loop of the architecture.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -4916,16 +5272,24 @@ Current layer index or step index in the forward loop of the architecture.</p></
         <tr>
 <td><code>h</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
 Either return <code>h</code> unchanged, or the concatenation
-with <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+with <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>h_prev</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
 Either return <code>h_prev</code> unchanged, or the same value as <code>h</code>,
-depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4959,8 +5323,12 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
           <td>
           </td>
-          <td><p>"previous":
-The dimension of the output layer is the concatenation with the previous layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>"previous":
+The dimension of the output layer is the concatenation with the previous layer.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -4994,8 +5362,12 @@ The dimension of the output layer is the concatenation with the previous layer.<
         <tr>
           <td>
           </td>
-          <td><p>False
-The current class does not use weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>False
+The current class does not use weights</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5074,10 +5446,14 @@ layer features.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
+          <td>
+            <div class="doc-md-description">
+              <p>int
 The number of steps to skip between the residual connections.
 If <code>1</code>, all the layers are connected. If <code>2</code>, half of the
-layers are connected.</p></td>
+layers are connected.</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -5119,8 +5495,12 @@ layers are connected.</p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m)
-The current layer features</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
+The current layer features</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5130,10 +5510,14 @@ The current layer features</p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., n), None
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., n), None
 The features from the previous layers.
 n = ((step_idx // self.skip_steps) + 1) * m</p>
-<p>At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p></td>
+<p>At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5143,8 +5527,12 @@ n = ((step_idx // self.skip_steps) + 1) * m</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
-Current layer index or step index in the forward loop of the architecture.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>int
+Current layer index or step index in the forward loop of the architecture.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5164,16 +5552,24 @@ Current layer index or step index in the forward loop of the architecture.</p></
         <tr>
 <td><code>h</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
 Either return <code>h</code> unchanged, or the concatenation
-with <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+with <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>h_prev</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m) or torch.Tensor(..., m + n)
 Either return <code>h_prev</code> unchanged, or the same value as <code>h</code>,
-depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5207,8 +5603,12 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
           <td>
           </td>
-          <td><p>"cumulative":
-The dimension of the output layer is the concatenation of all the previous layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>"cumulative":
+The dimension of the output layer is the concatenation of all the previous layer.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5242,8 +5642,12 @@ The dimension of the output layer is the concatenation of all the previous layer
         <tr>
           <td>
           </td>
-          <td><p>False
-The current class does not use weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>False
+The current class does not use weights</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5337,14 +5741,22 @@ This class is only used for simpler code compatibility</p>
         <tr>
 <td><code>h</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
-Return same as input.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
+Return same as input.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>h_prev</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
-Return same as input.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
+Return same as input.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5378,7 +5790,11 @@ Return same as input.</p></td>
         <tr>
 <td><code>None</code></td>          <td>
           </td>
-          <td><p>The dimension of the output features do not change at each layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension of the output features do not change at each layer.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5412,8 +5828,12 @@ Return same as input.</p></td>
         <tr>
           <td>
           </td>
-          <td><p>False
-The current class does not use weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>False
+The current class does not use weights</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5490,7 +5910,11 @@ to each following layer with a random weight between 0 and 1.</p>
           <td><code>skip_steps</code></td>
           <td>
           </td>
-          <td><p>Parameter only there for compatibility with other classes of the same parent.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>Parameter only there for compatibility with other classes of the same parent.</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -5500,8 +5924,12 @@ to each following layer with a random weight between 0 and 1.</p>
           <td>
                 <code><span title="typing.List">List</span>[int]</code>
           </td>
-          <td><p>The list of output dimensions. Only required to get the number
-of layers. Must be provided if <code>num_layers</code> is None.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The list of output dimensions. Only required to get the number
+of layers. Must be provided if <code>num_layers</code> is None.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -5511,7 +5939,11 @@ of layers. Must be provided if <code>num_layers</code> is None.</p></td>
           <td>
                 <code>int</code>
           </td>
-          <td><p>The number of layers. Must be provided if <code>out_dims</code> is None.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The number of layers. Must be provided if <code>out_dims</code> is None.</p>
+            </div>
+          </td>
           <td>
                 <code>None</code>
           </td>
@@ -5554,8 +5986,12 @@ similar to ResNet.</p>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m)
-The current layer features</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
+The current layer features</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5565,9 +6001,13 @@ The current layer features</p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m), None
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m), None
 The features from the previous layer with a skip connection.
-At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p></td>
+At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5577,8 +6017,12 @@ At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
-Current layer index or step index in the forward loop of the architecture.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>int
+Current layer index or step index in the forward loop of the architecture.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5598,16 +6042,24 @@ Current layer index or step index in the forward loop of the architecture.</p></
         <tr>
 <td><code>h</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
 Either return <code>h</code> unchanged, or the sum with
-on <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+on <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>h_prev</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
 Either return <code>h_prev</code> unchanged, or the same value as <code>h</code>,
-depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5641,7 +6093,11 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
 <td><code>None</code></td>          <td>
           </td>
-          <td><p>The dimension of the output features do not change at each layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension of the output features do not change at each layer.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5675,8 +6131,12 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
           <td>
           </td>
-          <td><p>False
-The current class does not use weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>False
+The current class does not use weights</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5755,10 +6215,14 @@ previous layer output.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
+          <td>
+            <div class="doc-md-description">
+              <p>int
 The number of steps to skip between the residual connections.
 If <code>1</code>, all the layers are connected. If <code>2</code>, half of the
-layers are connected.</p></td>
+layers are connected.</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -5801,8 +6265,12 @@ similar to ResNet.</p>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m)
-The current layer features</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
+The current layer features</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5812,9 +6280,13 @@ The current layer features</p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m), None
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m), None
 The features from the previous layer with a skip connection.
-At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p></td>
+At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5824,8 +6296,12 @@ At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
-Current layer index or step index in the forward loop of the architecture.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>int
+Current layer index or step index in the forward loop of the architecture.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -5845,16 +6321,24 @@ Current layer index or step index in the forward loop of the architecture.</p></
         <tr>
 <td><code>h</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
 Either return <code>h</code> unchanged, or the sum with
-on <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+on <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>h_prev</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
 Either return <code>h_prev</code> unchanged, or the same value as <code>h</code>,
-depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5888,7 +6372,11 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
 <td><code>None</code></td>          <td>
           </td>
-          <td><p>The dimension of the output features do not change at each layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension of the output features do not change at each layer.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -5922,8 +6410,12 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
           <td>
           </td>
-          <td><p>False
-The current class does not use weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>False
+The current class does not use weights</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -6003,10 +6495,14 @@ of a previous layer output.</p>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
+          <td>
+            <div class="doc-md-description">
+              <p>int
 The number of steps to skip between the residual connections.
 If <code>1</code>, all the layers are connected. If <code>2</code>, half of the
-layers are connected.</p></td>
+layers are connected.</p>
+            </div>
+          </td>
           <td>
                 <code>1</code>
           </td>
@@ -6015,10 +6511,14 @@ layers are connected.</p></td>
           <td><code>out_dims</code></td>
           <td>
           </td>
-          <td><p>list(int)
+          <td>
+            <div class="doc-md-description">
+              <p>list(int)
 list of all output dimensions for the network
 that will use this residual connection.
-E.g. <code>out_dims = [4, 8, 8, 8, 2]</code>.</p></td>
+E.g. <code>out_dims = [4, 8, 8, 8, 2]</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -6027,9 +6527,13 @@ E.g. <code>out_dims = [4, 8, 8, 8, 2]</code>.</p></td>
           <td><code>dropout</code></td>
           <td>
           </td>
-          <td><p>float
+          <td>
+            <div class="doc-md-description">
+              <p>float
 value between 0 and 1.0 representing the percentage of dropout
-to use in the weights</p></td>
+to use in the weights</p>
+            </div>
+          </td>
           <td>
                 <code>0.0</code>
           </td>
@@ -6039,8 +6543,12 @@ to use in the weights</p></td>
           <td>
                 <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
           </td>
-          <td><p>str, Callable
-The activation function to use after the skip weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>str, Callable
+The activation function to use after the skip weights</p>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -6049,13 +6557,17 @@ The activation function to use after the skip weights</p></td>
           <td><code>normalization</code></td>
           <td>
           </td>
-          <td><p>Normalization to use. Choices:</p>
+          <td>
+            <div class="doc-md-description">
+              <p>Normalization to use. Choices:</p>
 <ul>
 <li>"none" or <code>None</code>: No normalization</li>
 <li>"batch_norm": Batch normalization</li>
 <li>"layer_norm": Layer normalization in the hidden layers.</li>
 <li><code>Callable</code>: Any callable function</li>
-</ul></td>
+</ul>
+            </div>
+          </td>
           <td>
                 <code>&#39;none&#39;</code>
           </td>
@@ -6064,8 +6576,12 @@ The activation function to use after the skip weights</p></td>
           <td><code>bias</code></td>
           <td>
           </td>
-          <td><p>bool
-Whether to apply add a bias after the weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool
+Whether to apply add a bias after the weights</p>
+            </div>
+          </td>
           <td>
                 <code>False</code>
           </td>
@@ -6108,8 +6624,12 @@ a feed-forward layer.</p>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m)
-The current layer features</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
+The current layer features</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -6119,9 +6639,13 @@ The current layer features</p></td>
           <td>
                 <code>torch.<span title="torch.Tensor">Tensor</span></code>
           </td>
-          <td><p>torch.Tensor(..., m), None
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m), None
 The features from the previous layer with a skip connection.
-At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p></td>
+At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -6131,8 +6655,12 @@ At <code>step_idx==0</code>, <code>h_prev</code> can be set to <code>None</code>
           <td>
                 <code>int</code>
           </td>
-          <td><p>int
-Current layer index or step index in the forward loop of the architecture.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>int
+Current layer index or step index in the forward loop of the architecture.</p>
+            </div>
+          </td>
           <td>
               <em>required</em>
           </td>
@@ -6152,16 +6680,24 @@ Current layer index or step index in the forward loop of the architecture.</p></
         <tr>
 <td><code>h</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
 Either return <code>h</code> unchanged, or the sum with the output of a NN layer
-on <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+on <code>h_prev</code>, depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
         <tr>
 <td><code>h_prev</code></td>          <td>
           </td>
-          <td><p>torch.Tensor(..., m)
+          <td>
+            <div class="doc-md-description">
+              <p>torch.Tensor(..., m)
 Either return <code>h_prev</code> unchanged, or the same value as <code>h</code>,
-depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td>
+depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -6195,7 +6731,11 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
 <td><code>None</code></td>          <td>
           </td>
-          <td><p>The dimension of the output features do not change at each layer.</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension of the output features do not change at each layer.</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
@@ -6229,8 +6769,12 @@ depending on the <code>step_idx</code> and <code>self.skip_steps</code>.</p></td
         <tr>
           <td>
           </td>
-          <td><p>True
-The current class uses weights</p></td>
+          <td>
+            <div class="doc-md-description">
+              <p>True
+The current class uses weights</p>
+            </div>
+          </td>
         </tr>
     </tbody>
   </table>
