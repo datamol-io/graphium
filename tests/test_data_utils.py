@@ -12,9 +12,7 @@ def test_list_datasets():
 def test_download_datasets(tmpdir):
     dataset_dir = tmpdir.mkdir("graphium-datasets")
 
-    data_path = graphium.data.utils.download_graphium_dataset(
-        "graphium-zinc-micro", output_path=dataset_dir
-    )
+    data_path = graphium.data.utils.download_graphium_dataset("graphium-zinc-micro", output_path=dataset_dir)
 
     fpath = graphium.utils.fs.join(data_path, "ZINC-micro.csv")
     df = pd.read_csv(fpath)
