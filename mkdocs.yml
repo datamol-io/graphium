@@ -46,17 +46,17 @@ nav:
 
 theme:
   name: material
-  palette:
-    primary: red
-    accent: indigo
+  # NOTE(hadim): to customize the material primary and secondary
+  # color check `docs/assets/css/datamol-custom.css`.
   features:
     - navigation.tabs
     - navigation.expand
   favicon: images/logo.png
-  logo: images/logo.png
+  logo: images/logo.svg
 
 extra_css:
   - _assets/css/custom.css
+  - _assets/css/custom-graphium.css
 
 extra_javascript:
   - javascripts/config.js
