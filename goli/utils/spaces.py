@@ -59,6 +59,7 @@ LOSS_DICT = {
     "mse_ipu": IPULosses.MSELossIPU,
     "mae_ipu": IPULosses.L1LossIPU,
     "l1_ipu": IPULosses.L1LossIPU,
+    "hybrid_ce_ipu": IPULosses.HybridCELossIPU,
 }
 
 

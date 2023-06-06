@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Sequence
+from typing import Optional, Tuple, Sequence, Literal
 
 import torch
 from torch import BoolTensor, IntTensor, Tensor
@@ -24,6 +24,7 @@ def auroc_ipu(
     preds: Tensor,
     target: Tensor,
     num_classes: Optional[int] = None,
+    task: Optional[Literal["binary", "multiclass", "multilabel"]] = None,
     pos_label: Optional[int] = None,
     average: Optional[str] = "macro",
     max_fpr: Optional[float] = None,
@@ -54,6 +55,7 @@ def auroc_ipu(
         preds=preds,
         target=target.to(int),
         num_classes=num_classes,
+        task=task,
         pos_label=pos_label,
         average=average,
         max_fpr=max_fpr,
@@ -67,6 +69,8 @@ def average_precision_ipu(
     preds: Tensor,
     target: Tensor,
     num_classes: Optional[int] = None,
+    task: Optional[str] = "multiclass",
+    ignore_index: Optional[int] = None,
     pos_label: Optional[int] = None,
     average: Optional[str] = "macro",
     sample_weights: Optional[Sequence] = None,
@@ -98,6 +102,8 @@ def average_precision_ipu(
         preds=preds,
         target=target,
         num_classes=num_classes,
+        task=task,
+        ignore_index=ignore_index,
         pos_label=pos_label,
         average=average,
         # sample_weights=sample_weights,
@@ -559,7 +565,7 @@ def pearson_ipu(preds, target):
     preds = NaNTensor(preds)
     target = NaNTensor(target)
     preds[target.get_nans] = float("nan")
-    pearson = pearson_corrcoef(preds, target)
+    pearson = pearson_corrcoef(preds, target.to(preds.dtype))
     return Tensor(pearson)
 
 

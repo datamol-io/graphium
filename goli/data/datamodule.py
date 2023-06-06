@@ -1366,7 +1366,9 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         index, datum, folder = param
         filename = os.path.join(folder, format(index // 1000, "04d"), format(index, "07d") + ".pkl")
         torch.save(
-            {"graph_with_features": datum["features"], "labels": datum["labels"]}, filename, pickle_protocol=4
+            {"graph_with_features": datum["features"], "labels": datum["labels"]},
+            filename,
+            pickle_protocol=4,
         )
         return
 

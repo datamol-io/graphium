@@ -34,11 +34,13 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_b3lyp.yaml"
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
-# CONFIG_FILE = "expts/neurips2023_configs/config_small_mpnn.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_gine.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
-# CONFIG_FILE = "expts/neurips2023_configs/config_small_gated_gcn.yaml"
 
 os.chdir(MAIN_DIR)
 

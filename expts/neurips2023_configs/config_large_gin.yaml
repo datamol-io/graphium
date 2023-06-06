@@ -1,6 +1,6 @@
-# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+# Testing the gin model with the PCQMv2 dataset on IPU.
 constants:
-  name: &name neurips2023_large_data_mpnn
+  name: &name neurips2023_large_data_gin
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
@@ -60,7 +60,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 20000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: goli/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
 
@@ -71,7 +71,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        sample_size: 20000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: goli/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
 
@@ -82,7 +82,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
-        sample_size: 20000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: goli/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
 
@@ -93,7 +93,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
-        sample_size: 20000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: goli/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
@@ -106,7 +106,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
-        sample_size: 20000 # use sample_size for test
+        # sample_size: 2000 # use sample_size for test
         task_level: node
         splits_path: goli/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: *seed
@@ -170,16 +170,7 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
-  pre_nn_edges:   # Set as null to avoid a pre-nn network
-    out_dim: 32
-    hidden_dims: 128
-    depth: 2
-    activation: relu
-    last_activation: none
-    dropout: *dropout
-    normalization: *normalization
-    last_normalization: *normalization
-    residual_type: none
+  pre_nn_edges: null
 
   pe_encoders:
     out_dim: 32
@@ -211,7 +202,8 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    out_dim: &gnn_dim 64
+    in_dim: 64 # or otherwise the correct value
+    out_dim: &gnn_dim 832
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
@@ -221,17 +213,8 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     virtual_node: 'none'
-    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
-      node_residual: false
-      mpnn_type: 'pyg:mpnnplus'
-      mpnn_kwargs:
-        in_dim: *gnn_dim
-        out_dim: *gnn_dim
-        in_dim_edges: 32
-        out_dim_edges: 32
-      attn_type: "none" # "full-attention", "none"
-      attn_kwargs: null
+    layer_type: 'pyg:gin' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+
 
 
   graph_output_nn:
