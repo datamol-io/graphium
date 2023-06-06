@@ -35,10 +35,10 @@ MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_mpnn.yaml"
-# CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/config_small_gated_gcn.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_small_gated_gcn.yaml"
 
 os.chdir(MAIN_DIR)
 
@@ -104,8 +104,12 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("--config", help="Path to the config file", default=None)
 
     args, unknown = parser.parse_known_args()
+    # Optionally parse the config with the command line
+    if args.config is not None:
+        CONFIG_FILE = args.config
 
     with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
         cfg = yaml.safe_load(f)

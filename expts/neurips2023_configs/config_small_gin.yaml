@@ -30,7 +30,7 @@ accelerator:
 
   ipu_config:
     - deviceIterations(5) # IPU would require large batches to be ready for the model.
-    - replicationFactor(8)
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
@@ -151,15 +151,6 @@ architecture:
     residual_type: none
 
   pre_nn_edges: null   # Set as null to avoid a pre-nn network
-    # out_dim: 32
-    # hidden_dims: 128
-    # depth: 2
-    # activation: relu
-    # last_activation: none
-    # dropout: *dropout
-    # normalization: *normalization
-    # last_normalization: *normalization
-    # residual_type: none
 
   pe_encoders:
     out_dim: 32
