@@ -15,7 +15,7 @@ Visit [![Binder](http://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh
 
 ## Documentation
 
-Visit https://valence-discovery.github.io/graphium/.
+Visit https://graphium-docs.datamol.io/stable/.
 
 ## Installation
 
