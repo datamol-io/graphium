@@ -25,11 +25,3 @@ ADD DESCRIPTION.
 
 - Number of molecules: xxx
 - Label columns: xxx- Split informations.
-
-## `graphium-htsfp`
-
-ADD DESCRIPTION.
-
-- Number of molecules: xxx
-- Label columns: xxx
-- Split informations.
