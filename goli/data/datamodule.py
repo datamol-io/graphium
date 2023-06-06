@@ -346,9 +346,9 @@ class BaseDataModule(pl.LightningDataModule):
             first_elem = this_series.values[0]
             is_float = False
             if isinstance(first_elem, (list, tuple)):
-                is_float = isinstance(first_elem[0], np.floating)
+                is_float = first_elem[0].dtype.kind == 'f'
             elif isinstance(first_elem, np.ndarray):
-                is_float = isinstance(first_elem, np.floating)
+                is_float = first_elem.dtype.kind == 'f'
 
             # Convert floats to float16
             if is_float:
