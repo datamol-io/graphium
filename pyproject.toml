@@ -3,14 +3,14 @@ requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "goli"
-description = "A deep learning library focused on graph representation learning for real-world chemical tasks."
-version = "0.3.1" # project
+name = "graphium"
+description = "Graphium: Scaling molecular GNNs to infinity."
+dynamic = ["version"]
 authors = [
     { name = "Dominique Beaini", email = "dominique@valencediscovery.com" },
 ]
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -24,8 +24,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
@@ -33,25 +31,25 @@ classifiers = [
 dependencies = []
 
 [project.scripts]
-goli = "goli.cli:main_cli"
+graphium = "graphium.cli:main_cli"
 
 [project.urls]
-Website = "https://github.com/valence-discovery/goli"
-"Source Code" = "https://github.com/valence-discovery/goli"
-"Bug Tracker" = "https://github.com/valence-discovery/goli/issues"
-Documentation = "https://valence-discovery.github.io/goli/"
+Website = "https://graphium.datamol.io/"
+"Source Code" = "https://github.com/datamol-io/graphium"
+"Bug Tracker" = "https://github.com/datamol-io/graphium/issues"
+Documentation = "https://graphium-docs.datamol.io/"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["goli", "goli.*"]
+include = ["graphium", "graphium.*"]
 exclude = []
 namespaces = true
 
 [tool.setuptools.package-data]
-"goli" = ["**/*.csv", "**/*.parquet", "**/*.yaml"]
+"graphium" = ["**/*.csv", "**/*.parquet", "**/*.yaml"]
 
 [tool.black]
 line-length = 110

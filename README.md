@@ -1,6 +1,6 @@
 <div align="center">
-    <img src="docs/images/logo-title.png" height="80px">
-    <h3>Scaling molecular GNNs to infinity.</h3>
+    <img src="docs/images/logo.png" height="200px">
+    <h3>Scaling molecular GNNs to infinity</h3>
 </div>
 
 ---
@@ -34,7 +34,7 @@ Use [`mamba`](https://github.com/mamba-org/mamba):
 mamba env create -f env.yml -n graphium
 
 # Install Graphium in dev mode
-conda activate graphium
+mamba activate graphium
 pip install -e .
 ```
 
