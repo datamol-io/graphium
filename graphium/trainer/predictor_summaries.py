@@ -51,7 +51,7 @@ class Summary(SummaryInterface):
 
             metrics:
             A dictionnary of metrics to compute on the prediction, other than the loss function.
-            These metrics will be logged into TensorBoard.
+            These metrics will be logged into WandB or similar.
 
             metrics_on_training_set:
             The metrics names from `metrics` to be computed on the training set for each iteration.
@@ -118,7 +118,7 @@ class Summary(SummaryInterface):
             metrics: a dictionary of metrics
         """
 
-        # Include the task_name in the loss for tensorboard, and similarly for other metrics
+        # Include the task_name in the loss for logging, and similarly for other metrics
         metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = self.loss
         self.summaries[self.step_name] = Summary.Results(
             targets=self.targets,
@@ -144,7 +144,7 @@ class Summary(SummaryInterface):
         if not (step_name in self.best_summaries.keys()):
             return True
 
-        # Include the task_name in the loss for tensorboard, and similarly for other metrics
+        # Include the task_name in the loss for logging, and similarly for other metrics
         metrics[self.metric_log_name(self.task_name, "loss", self.step_name)] = loss
         monitor_name = f"{self.monitor}/{step_name}"  # Include task_name?
         if (

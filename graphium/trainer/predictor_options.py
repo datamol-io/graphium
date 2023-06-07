@@ -132,7 +132,7 @@ class EvalOptions:
 
         metrics:
             A dictionnary of metrics to compute on the prediction, other than the loss function.
-            These metrics will be logged into TensorBoard.
+            These metrics will be logged into WandB or other.
 
         metrics_on_progress_bar:
             The metrics names from `metrics` to display also on the progress bar of the training
