@@ -110,3 +110,24 @@ jobs:
         with:
           tag_name: ${{ inputs.release-version }}
           body: ${{steps.github_release.outputs.changelog}}
+
+      - name: Deploy the doc
+        run: |
+          echo "Configure git"
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+          echo "Get the gh-pages branch"
+          git fetch origin gh-pages
+
+          TAG_OR_BRANCH_NAME=${GITHUB_REF##*/}
+
+          if [ $TAG_OR_BRANCH_NAME = "main" ]; then
+            echo "Build and deploy the doc on main"
+            mike deploy --push --force main
+          else
+            echo "Build and deploy the doc on $TAG_OR_BRANCH_NAME"
+
+            mike deploy --push --force stable
+            mike deploy --push --force $TAG_OR_BRANCH_NAME
+          fi
