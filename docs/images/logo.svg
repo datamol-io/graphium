@@ -25,8 +25,8 @@
      inkscape:deskcolor="#d1d1d1"
      showgrid="false"
      inkscape:zoom="1.1102703"
-     inkscape:cx="350.81547"
-     inkscape:cy="409.35977"
+     inkscape:cx="321.99366"
+     inkscape:cy="410.26046"
      inkscape:window-width="2451"
      inkscape:window-height="1724"
      inkscape:window-x="3385"
@@ -95,7 +95,8 @@
      fill="#70ad47"
      fill-rule="evenodd"
      id="path20"
-     clip-path="url(#clipPath811)" /><text
+     clip-path="url(#clipPath811)"
+     transform="translate(-24)" /><text
      fill="#000000"
      fill-opacity="0"
      font-family="Arial, Arial_MSFontService, sans-serif"
