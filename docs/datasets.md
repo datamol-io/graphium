@@ -1,6 +1,6 @@
-# GOLI Datasets
+# Graphium Datasets
 
-GOLI datasets are hosted at on Google Cloud Storage at `gs://graphium-public/datasets`. GOLI provides a convenient utility functions to list and download those datasets:
+Graphium datasets are hosted at on Google Cloud Storage at `gs://graphium-public/datasets`. Graphium provides a convenient utility functions to list and download those datasets:
 
 ```python
 import graphium

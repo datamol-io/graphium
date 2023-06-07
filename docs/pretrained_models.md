@@ -1,8 +1,8 @@
-# GOLI pretrained models
+# Graphium pretrained models
 
-GOLI provides a set of pretrained models that you can use for inference or transfer learning. The models are available on Google Cloud Storage at `gs://graphium-public/pretrained-models`.
+Graphium provides a set of pretrained models that you can use for inference or transfer learning. The models are available on Google Cloud Storage at `gs://graphium-public/pretrained-models`.
 
-You can load a pretrained models using the GOLI API:
+You can load a pretrained models using the Graphium API:
 
 ```python
 import graphium

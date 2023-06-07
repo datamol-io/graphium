@@ -17,7 +17,7 @@ from graphium.trainer.predictor_summaries import TaskSummaries
 from graphium.data.datamodule import BaseDataModule
 from graphium.utils.moving_average_tracker import MovingAverageTracker
 
-GOLI_PRETRAINED_MODELS = {
+GRAPHIUM_PRETRAINED_MODELS = {
     "graphium-zinc-micro-dummy-test": "gcs://graphium-public/pretrained-models/graphium-zinc-micro-dummy-test/model.ckpt"
 }
 
@@ -614,7 +614,7 @@ class PredictorModule(pl.LightningModule):
     @staticmethod
     def list_pretrained_models():
         """List available pretrained models."""
-        return GOLI_PRETRAINED_MODELS
+        return GRAPHIUM_PRETRAINED_MODELS
 
     @staticmethod
     def load_pretrained_models(name: str):
@@ -625,12 +625,12 @@ class PredictorModule(pl.LightningModule):
                 from `graphium.trainer.PredictorModule.list_pretrained_models()`.
         """
 
-        if name not in GOLI_PRETRAINED_MODELS:
+        if name not in GRAPHIUM_PRETRAINED_MODELS:
             raise ValueError(
-                f"The model '{name}' is not available. Choose from {set(GOLI_PRETRAINED_MODELS.keys())}."
+                f"The model '{name}' is not available. Choose from {set(GRAPHIUM_PRETRAINED_MODELS.keys())}."
             )
 
-        return PredictorModule.load_from_checkpoint(GOLI_PRETRAINED_MODELS[name])
+        return PredictorModule.load_from_checkpoint(GRAPHIUM_PRETRAINED_MODELS[name])
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()
