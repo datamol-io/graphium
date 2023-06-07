@@ -101,24 +101,3 @@ Some loss functions are already implemented in the PredictorModule, including `m
 Our current code is compatible with the metrics defined by _pytorch-lightning_, which include a great set of metrics. We also added the PearsonR and SpearmanR as they are important correlation metrics. You can define any new metric in the file `graphium/trainer/metrics.py`. The metric must inherit from `TensorMetric` and must be added to the dictionary `graphium.trainer.metrics.METRICS_DICT`.
 
 To use the metric, you can easily add it's name from `METRICS_DICT` in the yaml configuration file, at the address `metrics.metrics_dict`. Each metric has an underlying dictionnary with a mandatory `threshold` key containing information on how to threshold the prediction/target before computing the metric. Any `kwargs` arguments of the metric must also be added.
-
-## (OLD) Running a hyper-parameter search
-
-In the current repository, we use `hydra-core` to launch multiple experiments in a grid-search manner. It works by specifying the parameters that we want to change from a given YAML file.
-
-Below is an example of running a set of 3\*2\*2\*2=24 experiments, 3 variations of the gnn type _layer_name_, 2 variations of the learning rate _lr_, 2 variations of the hidden dimension _hidden_dim_, 2 variations of the network depth _hidden_depth_. All parameters not mentionned in the code below are unchanged from the file `expts/main_micro_ZINC.py`.
-
-    python expts/main_micro_ZINC.py --multirun \
-    model.layer_name=gin,gcn,pna-conv3 \
-    constants.exp_name="testing_hydra" \
-    constants.device="cuda:0" \
-    constants.ignore_train_error=true \
-    predictor.lr=1e-4,1e-3 \
-    model.gnn_kwargs.hidden_dim=32,64 \
-    model.gnn_kwargs.hidden_depth=4,8
-
-The results of the run will be available in the folder `multirun/[CURRENT-DATE]/[CURRENT-TIME]`. To open the results in tensorflow, run the following command using _bash_ or _powershell_
-
-`tensorboard --logdir 'multirun/[CURRENT-DATE]/[CURRENT-TIME]/' --port 8000`
-
-Then open a web-browser and enter the address `http://localhost:8000/`.
