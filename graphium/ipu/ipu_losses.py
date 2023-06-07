@@ -107,6 +107,17 @@ class L1LossIPU(L1Loss):
 
 
 class HybridCELossIPU(HybridCELoss):
+    def __init__(
+        self,
+        n_brackets: int = 5,
+    ) -> None:
+        """
+        Parameters:
+            n_brackets: the number of brackets that will be used to group the regression targets.
+                Expected to have the same size as the number of classes in the transformed regression task.
+        """
+        super().__init__(n_brackets=n_brackets)
+
     def forward(self, input: Tensor, target: Tensor) -> Tensor:
         """
         Parameters:
