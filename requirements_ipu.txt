@@ -6,4 +6,4 @@ torch-sparse==0.6.15
 torchvision==0.14.1+cpu
 git+https://github.com/joao-alex-cunha/lightning
 
--r ./requirements.txt
+-r graphium.egg-info/requires.txt
