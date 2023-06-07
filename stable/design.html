@@ -194,8 +194,8 @@
 
 
   <li class="md-tabs__item">
-    <a href="benchmark.html" class="md-tabs__link">
-      Benchmark
+    <a href="baseline.html" class="md-tabs__link">
+      Baseline
     </a>
   </li>
 
@@ -386,8 +386,8 @@
   
   
     <li class="md-nav__item">
-      <a href="benchmark.html" class="md-nav__link">
-        Benchmark
+      <a href="baseline.html" class="md-nav__link">
+        Baseline
       </a>
     </li>
   
@@ -1042,13 +1042,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#old-running-a-hyper-parameter-search" class="md-nav__link">
-    (OLD) Running a hyper-parameter search
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1268,13 +1261,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#old-running-a-hyper-parameter-search" class="md-nav__link">
-    (OLD) Running a hyper-parameter search
-  </a>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1355,21 +1341,6 @@
 <p><strong><em>!WARNING! The metrics implementation was done for pytorch-lightning v0.8. There has been major changes to how the metrics are used and defined, so the whole implementation must change.</em></strong></p>
 <p>Our current code is compatible with the metrics defined by <em>pytorch-lightning</em>, which include a great set of metrics. We also added the PearsonR and SpearmanR as they are important correlation metrics. You can define any new metric in the file <code>graphium/trainer/metrics.py</code>. The metric must inherit from <code>TensorMetric</code> and must be added to the dictionary <code>graphium.trainer.metrics.METRICS_DICT</code>.</p>
 <p>To use the metric, you can easily add it's name from <code>METRICS_DICT</code> in the yaml configuration file, at the address <code>metrics.metrics_dict</code>. Each metric has an underlying dictionnary with a mandatory <code>threshold</code> key containing information on how to threshold the prediction/target before computing the metric. Any <code>kwargs</code> arguments of the metric must also be added.</p>
-<h2 id="old-running-a-hyper-parameter-search">(OLD) Running a hyper-parameter search<a class="headerlink" href="#old-running-a-hyper-parameter-search" title="Permanent link">&para;</a></h2>
-<p>In the current repository, we use <code>hydra-core</code> to launch multiple experiments in a grid-search manner. It works by specifying the parameters that we want to change from a given YAML file.</p>
-<p>Below is an example of running a set of 3*2*2*2=24 experiments, 3 variations of the gnn type <em>layer_name</em>, 2 variations of the learning rate <em>lr</em>, 2 variations of the hidden dimension <em>hidden_dim</em>, 2 variations of the network depth <em>hidden_depth</em>. All parameters not mentionned in the code below are unchanged from the file <code>expts/main_micro_ZINC.py</code>.</p>
-<pre><code>python expts/main_micro_ZINC.py --multirun \
-model.layer_name=gin,gcn,pna-conv3 \
-constants.exp_name="testing_hydra" \
-constants.device="cuda:0" \
-constants.ignore_train_error=true \
-predictor.lr=1e-4,1e-3 \
-model.gnn_kwargs.hidden_dim=32,64 \
-model.gnn_kwargs.hidden_depth=4,8
-</code></pre>
-<p>The results of the run will be available in the folder <code>multirun/[CURRENT-DATE]/[CURRENT-TIME]</code>. To open the results in tensorflow, run the following command using <em>bash</em> or <em>powershell</em></p>
-<p><code>tensorboard --logdir 'multirun/[CURRENT-DATE]/[CURRENT-TIME]/' --port 8000</code></p>
-<p>Then open a web-browser and enter the address <code>http://localhost:8000/</code>.</p>
 
 
 
