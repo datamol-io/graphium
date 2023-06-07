@@ -1,0 +1,5200 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Graphium: Scaling molecular GNNs to infinity.">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/datamol-io/graphium/2.0.1/api/graphium.trainer.html">
+      
+      
+        <link rel="prev" href="graphium.features.html">
+      
+      
+        <link rel="next" href="graphium.data.html">
+      
+      <link rel="icon" href="../images/logo.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
+    
+    
+      
+        <title>graphium.trainer - graphium</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom-graphium.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#graphiumtrainer" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="graphium" class="md-header__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            graphium
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              graphium.trainer
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../index.html" class="md-tabs__link">
+      Overview
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../baseline.html" class="md-tabs__link">
+      Baseline
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="graphium.nn/graphium.nn.html" class="md-tabs__link md-tabs__link--active">
+        API
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
+        Tutorials
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../design.html" class="md-tabs__link">
+      Design
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../datasets.html" class="md-tabs__link">
+      Datasets
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../pretrained_models.html" class="md-tabs__link">
+      Pretrained Models
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../contribute.html" class="md-tabs__link">
+      Contribute
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../license.html" class="md-tabs__link">
+      License
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../cli_references.html" class="md-tabs__link">
+      CLI
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="graphium" class="md-nav__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    graphium
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline.html" class="md-nav__link">
+        Baseline
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+          graphium.nn
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          graphium.nn
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/graphium.nn.html" class="md-nav__link">
+        graphium.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/architectures.html" class="md-nav__link">
+        graphium.nn.architectures
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/encoders.html" class="md-nav__link">
+        graphium.nn.encoders
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/pyg_layers.html" class="md-nav__link">
+        graphium.nn.pyg_layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.features.html" class="md-nav__link">
+        graphium.features
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          graphium.trainer
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="graphium.trainer.html" class="md-nav__link md-nav__link--active">
+        graphium.trainer
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#predictor" class="md-nav__link">
+    Predictor
+  </a>
+  
+    <nav class="md-nav" aria-label="Predictor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor" class="md-nav__link">
+    predictor
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule" class="md-nav__link">
+    PredictorModule
+  </a>
+  
+    <nav class="md-nav" aria-label="PredictorModule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.compute_loss" class="md-nav__link">
+    compute_loss()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.flag_step" class="md-nav__link">
+    flag_step()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.get_num_graphs" class="md-nav__link">
+    get_num_graphs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.list_pretrained_models" class="md-nav__link">
+    list_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="md-nav__link">
+    load_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.training_epoch_end" class="md-nav__link">
+    training_epoch_end()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    Metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics" class="md-nav__link">
+    metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper" class="md-nav__link">
+    MetricWrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="MetricWrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__setstate__" class="md-nav__link">
+    __setstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.compute" class="md-nav__link">
+    compute()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.Thresholder" class="md-nav__link">
+    Thresholder
+  </a>
+  
+    <nav class="md-nav" aria-label="Thresholder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.Thresholder.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.Thresholder.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predictor-summaries" class="md-nav__link">
+    Predictor Summaries
+  </a>
+  
+    <nav class="md-nav" aria-label="Predictor Summaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries" class="md-nav__link">
+    predictor_summaries
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_summaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary" class="md-nav__link">
+    Summary
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.Results" class="md-nav__link">
+    Results
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.Results.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_best_results" class="md-nav__link">
+    get_best_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_dict_summary" class="md-nav__link">
+    get_dict_summary()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_metrics_logs" class="md-nav__link">
+    get_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_results" class="md-nav__link">
+    get_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_results_on_progress_bar" class="md-nav__link">
+    get_results_on_progress_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.is_best_epoch" class="md-nav__link">
+    is_best_epoch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="md-nav__link">
+    update_predictor_state()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.SummaryInterface" class="md-nav__link">
+    SummaryInterface
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries" class="md-nav__link">
+    TaskSummaries
+  </a>
+  
+    <nav class="md-nav" aria-label="TaskSummaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.concatenate_metrics_logs" class="md-nav__link">
+    concatenate_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_best_results" class="md-nav__link">
+    get_best_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_dict_summary" class="md-nav__link">
+    get_dict_summary()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_metrics_logs" class="md-nav__link">
+    get_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results" class="md-nav__link">
+    get_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results_on_progress_bar" class="md-nav__link">
+    get_results_on_progress_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.metric_log_name" class="md-nav__link">
+    metric_log_name()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="md-nav__link">
+    update_predictor_state()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predictor-options" class="md-nav__link">
+    Predictor Options
+  </a>
+  
+    <nav class="md-nav" aria-label="Predictor Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options" class="md-nav__link">
+    predictor_options
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.EvalOptions" class="md-nav__link">
+    EvalOptions
+  </a>
+  
+    <nav class="md-nav" aria-label="EvalOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.EvalOptions.check_metrics_validity" class="md-nav__link">
+    check_metrics_validity()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.EvalOptions.parse_loss_fun" class="md-nav__link">
+    parse_loss_fun()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.FlagOptions" class="md-nav__link">
+    FlagOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.ModelOptions" class="md-nav__link">
+    ModelOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.OptimOptions" class="md-nav__link">
+    OptimOptions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.data.html" class="md-nav__link">
+        graphium.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.utils.html" class="md-nav__link">
+        graphium.utils
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.config.html" class="md-nav__link">
+        graphium.config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.ipu.html" class="md-nav__link">
+        graphium.ipu
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.visualization.html" class="md-nav__link">
+        graphium.visualization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+          feature_processing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_1">
+          <span class="md-nav__icon md-icon"></span>
+          feature_processing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
+        Convert CSV to Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+          gnn_layers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          model_training
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+        Building and training a simple model from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/ipu_training.html" class="md-nav__link">
+        Building and training on IPU from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
+        Chosing the right parallelization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design.html" class="md-nav__link">
+        Design
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets.html" class="md-nav__link">
+        Datasets
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pretrained_models.html" class="md-nav__link">
+        Pretrained Models
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribute.html" class="md-nav__link">
+        Contribute
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_references.html" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#predictor" class="md-nav__link">
+    Predictor
+  </a>
+  
+    <nav class="md-nav" aria-label="Predictor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor" class="md-nav__link">
+    predictor
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule" class="md-nav__link">
+    PredictorModule
+  </a>
+  
+    <nav class="md-nav" aria-label="PredictorModule">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.compute_loss" class="md-nav__link">
+    compute_loss()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.flag_step" class="md-nav__link">
+    flag_step()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.get_num_graphs" class="md-nav__link">
+    get_num_graphs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.list_pretrained_models" class="md-nav__link">
+    list_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="md-nav__link">
+    load_pretrained_models()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor.PredictorModule.training_epoch_end" class="md-nav__link">
+    training_epoch_end()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metrics" class="md-nav__link">
+    Metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="Metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics" class="md-nav__link">
+    metrics
+  </a>
+  
+    <nav class="md-nav" aria-label="metrics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper" class="md-nav__link">
+    MetricWrapper
+  </a>
+  
+    <nav class="md-nav" aria-label="MetricWrapper">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__call__" class="md-nav__link">
+    __call__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.__setstate__" class="md-nav__link">
+    __setstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.MetricWrapper.compute" class="md-nav__link">
+    compute()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.Thresholder" class="md-nav__link">
+    Thresholder
+  </a>
+  
+    <nav class="md-nav" aria-label="Thresholder">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.Thresholder.__getstate__" class="md-nav__link">
+    __getstate__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.metrics.Thresholder.__repr__" class="md-nav__link">
+    __repr__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predictor-summaries" class="md-nav__link">
+    Predictor Summaries
+  </a>
+  
+    <nav class="md-nav" aria-label="Predictor Summaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries" class="md-nav__link">
+    predictor_summaries
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_summaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary" class="md-nav__link">
+    Summary
+  </a>
+  
+    <nav class="md-nav" aria-label="Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.Results" class="md-nav__link">
+    Results
+  </a>
+  
+    <nav class="md-nav" aria-label="Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.Results.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_best_results" class="md-nav__link">
+    get_best_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_dict_summary" class="md-nav__link">
+    get_dict_summary()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_metrics_logs" class="md-nav__link">
+    get_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_results" class="md-nav__link">
+    get_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.get_results_on_progress_bar" class="md-nav__link">
+    get_results_on_progress_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.is_best_epoch" class="md-nav__link">
+    is_best_epoch()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="md-nav__link">
+    update_predictor_state()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.SummaryInterface" class="md-nav__link">
+    SummaryInterface
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries" class="md-nav__link">
+    TaskSummaries
+  </a>
+  
+    <nav class="md-nav" aria-label="TaskSummaries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.concatenate_metrics_logs" class="md-nav__link">
+    concatenate_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_best_results" class="md-nav__link">
+    get_best_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_dict_summary" class="md-nav__link">
+    get_dict_summary()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_metrics_logs" class="md-nav__link">
+    get_metrics_logs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results" class="md-nav__link">
+    get_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results_on_progress_bar" class="md-nav__link">
+    get_results_on_progress_bar()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.metric_log_name" class="md-nav__link">
+    metric_log_name()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.set_results" class="md-nav__link">
+    set_results()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="md-nav__link">
+    update_predictor_state()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#predictor-options" class="md-nav__link">
+    Predictor Options
+  </a>
+  
+    <nav class="md-nav" aria-label="Predictor Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options" class="md-nav__link">
+    predictor_options
+  </a>
+  
+    <nav class="md-nav" aria-label="predictor_options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.EvalOptions" class="md-nav__link">
+    EvalOptions
+  </a>
+  
+    <nav class="md-nav" aria-label="EvalOptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.EvalOptions.check_metrics_validity" class="md-nav__link">
+    check_metrics_validity()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.EvalOptions.parse_loss_fun" class="md-nav__link">
+    parse_loss_fun()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.FlagOptions" class="md-nav__link">
+    FlagOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.ModelOptions" class="md-nav__link">
+    ModelOptions
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.trainer.predictor_options.OptimOptions" class="md-nav__link">
+    OptimOptions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="graphiumtrainer">graphium.trainer<a class="headerlink" href="#graphiumtrainer" title="Permanent link">&para;</a></h1>
+<p>Code for training models</p>
+<div class="tabbed-set" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Contents</label><div class="tabbed-content">
+<ul>
+<li><a href="#predictor">Predictor</a></li>
+<li><a href="#metrics">Metrics</a></li>
+<li><a href="#predictor-summaries">Predictor Summaries</a></li>
+<li><a href="#predictor-options">Predictor Options</a></li>
+</ul>
+</div>
+</div>
+<h2 id="predictor">Predictor<a class="headerlink" href="#predictor" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.trainer.predictor" class="doc doc-heading">
+          <code>graphium.trainer.predictor</code>
+
+
+<a href="#graphium.trainer.predictor" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor.PredictorModule" class="doc doc-heading">
+        <code>PredictorModule</code>
+
+
+<a href="#graphium.trainer.predictor.PredictorModule" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="pytorch_lightning">pl</span>.<span title="pytorch_lightning.LightningModule">LightningModule</span></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor.PredictorModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
+It works in a multi-task setting, with different losses and metrics per class</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>model_class</code></td>
+          <td>
+                <code><span title="typing.Type">Type</span>[<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch Module containing the main forward function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>model_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The arguments to initialize the model from <code>model_class</code></p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the loss function</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>random_seed</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The seed for random initialization</p>
+            </div>
+          </td>
+          <td>
+                <code>42</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>optim_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The optimization arguments. See class <code>OptimOptions</code></p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>torch_scheduler_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The torch scheduler arguments. See class <code>OptimOptions</code></p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>scheduler_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The lightning scheduler arguments. See class <code>OptimOptions</code></p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target_nan_mask</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, int]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>How to handle the NaNs. See <code>MetricsWrapper</code> for options</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, fun]</code>, where <code>str</code> is the task name and <code>fun</code> the metric function</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_progress_bar</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the progress bar</p>
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_training_set</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.List">List</span>[str]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A <code>dict[str, list[str2]</code>, where <code>str</code> is the task name and <code>str2</code> the metrics to include on the training set</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>flag_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Arguments related to using the FLAG adversarial augmentation</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_norms</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[<span title="typing.Callable">Callable</span>, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the normalization for each task</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.predictor.PredictorModule.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Controls how the class is printed</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.compute_loss" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute_loss</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor.PredictorModule.compute_loss" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the loss using the specified loss function, and dealing with
+the nans in the <code>targets</code>.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>preds</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Predicted values</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>targets</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Target values</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>weights</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>No longer supported, will raise an error.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>target_nan_mask</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, int]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <ul>
+<li>
+<p>None: Do not change behaviour if there are NaNs</p>
+</li>
+<li>
+<p>int, float: Value used to replace NaNs. For example, if <code>target_nan_mask==0</code>, then
+  all NaNs will be replaced by zeros</p>
+</li>
+<li>
+<p>'ignore': The NaN values will be removed from the tensor before computing the metrics.
+  Must be coupled with the <code>multitask_handling='flatten'</code> or <code>multitask_handling='mean-per-label'</code>.</p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>multitask_handling</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <ul>
+<li>
+<p>None: Do not process the tensor before passing it to the metric.
+  Cannot use the option <code>multitask_handling=None</code> when <code>target_nan_mask=ignore</code>.
+  Use either 'flatten' or 'mean-per-label'.</p>
+</li>
+<li>
+<p>'flatten': Flatten the tensor to produce the equivalent of a single task</p>
+</li>
+<li>
+<p>'mean-per-label': Loop all the labels columns, process them as a single task,
+    and average the results over each task
+  <em>This option might slowdown the computation if there are too many labels</em></p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Loss function to use</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>Tensor</code></td>          <td>
+                <code><span title="typing.Tuple">Tuple</span>[<span title="torch.Tensor">Tensor</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>weighted_loss: Resulting weighted loss
+all_task_losses: Loss per task</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.flag_step" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">flag_step</span><span class="p">(</span><span class="n">batch</span><span class="p">,</span> <span class="n">step_name</span><span class="p">,</span> <span class="n">to_cpu</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor.PredictorModule.flag_step" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Perform adversarial data agumentation during one training step using FLAG.
+Paper: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891</a>
+Github: <a href="https://github.com/devnkong/FLAG">https://github.com/devnkong/FLAG</a></p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor.PredictorModule.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Returns the result of <code>self.model.forward(*inputs)</code> on the inputs.
+If the output of <code>out = self.model.forward</code> is a dictionary with a <code>"preds"</code> key,
+it is returned directly. Otherwise, a new dictionary is created and
+returns <code>{"preds": out}</code>.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<span title="torch.Tensor">Tensor</span>, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>], <span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dict with a key <code>"preds"</code> representing the prediction of the network.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.get_num_graphs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_num_graphs</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor.PredictorModule.get_num_graphs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Method to compute number of graphs in a Batch.
+Essential to estimate throughput in graphs/s.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.list_pretrained_models" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">list_pretrained_models</span><span class="p">()</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor.PredictorModule.list_pretrained_models" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>List available pretrained models.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">load_pretrained_models</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Load a pretrained model from its name.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the model to load. List available
+from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor.PredictorModule.training_epoch_end" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">training_epoch_end</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor.PredictorModule.training_epoch_end" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Nothing happens at the end of the training epoch.
+It serves no purpose to do a general step for the training,
+but it can explode the RAM when using a large dataset.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="metrics">Metrics<a class="headerlink" href="#metrics" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.trainer.metrics" class="doc doc-heading">
+          <code>graphium.trainer.metrics</code>
+
+
+<a href="#graphium.trainer.metrics" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.metrics.MetricWrapper" class="doc doc-heading">
+        <code>MetricWrapper</code>
+
+
+<a href="#graphium.trainer.metrics.MetricWrapper" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>Allows to initialize a metric from a name or Callable, and initialize the
+<code>Thresholder</code> in case the metric requires a threshold.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.MetricWrapper.__call__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__call__</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.metrics.MetricWrapper.__call__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the metric with the method <code>self.compute</code></p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.MetricWrapper.__getstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.metrics.MetricWrapper.__getstate__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Serialize the class for pickling.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.MetricWrapper.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">metric</span><span class="p">,</span> <span class="n">threshold_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">squeeze_targets</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">target_to_int</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.metrics.MetricWrapper.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Parameters
+    metric:
+        The metric to use. See <code>METRICS_DICT</code></p>
+<pre><code>threshold_kwargs:
+    If `None`, no threshold is applied.
+    Otherwise, we use the class `Thresholder` is initialized with the
+    provided argument, and called before the `compute`
+
+target_nan_mask:
+
+    - None: Do not change behaviour if there are NaNs
+
+    - int, float: Value used to replace NaNs. For example, if `target_nan_mask==0`, then
+      all NaNs will be replaced by zeros
+
+    - 'ignore': The NaN values will be removed from the tensor before computing the metrics.
+      Must be coupled with the `multitask_handling='flatten'` or `multitask_handling='mean-per-label'`.
+
+multitask_handling:
+    - None: Do not process the tensor before passing it to the metric.
+      Cannot use the option `multitask_handling=None` when `target_nan_mask=ignore`.
+      Use either 'flatten' or 'mean-per-label'.
+
+    - 'flatten': Flatten the tensor to produce the equivalent of a single task
+
+    - 'mean-per-label': Loop all the labels columns, process them as a single task,
+        and average the results over each task
+      *This option might slow down the computation if there are too many labels*
+
+squeeze_targets:
+    If true, targets will be squeezed prior to computing the metric.
+    Required in classifigression task.
+
+target_to_int:
+    If true, targets will be converted to integers prior to computing the metric.
+
+kwargs:
+    Other arguments to call with the metric
+</code></pre>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.MetricWrapper.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.metrics.MetricWrapper.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Control how the class is printed</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.MetricWrapper.__setstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__setstate__</span><span class="p">(</span><span class="n">state</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.metrics.MetricWrapper.__setstate__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Reload the class from pickling.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.MetricWrapper.compute" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">compute</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.metrics.MetricWrapper.compute" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Compute the metric, apply the thresholder if provided, and manage the NaNs</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.metrics.Thresholder" class="doc doc-heading">
+        <code>Thresholder</code>
+
+
+<a href="#graphium.trainer.metrics.Thresholder" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.Thresholder.__getstate__" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">__getstate__</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.metrics.Thresholder.__getstate__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Serialize the class for pickling.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.metrics.Thresholder.__repr__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__repr__</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.metrics.Thresholder.__repr__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Control how the class is printed</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="predictor-summaries">Predictor Summaries<a class="headerlink" href="#predictor-summaries" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.trainer.predictor_summaries" class="doc doc-heading">
+          <code>graphium.trainer.predictor_summaries</code>
+
+
+<a href="#graphium.trainer.predictor_summaries" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+  
+      <p>Classes to store information about resulting evaluation metrics when using a Predictor Module.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor_summaries.Summary" class="doc doc-heading">
+        <code>Summary</code>
+
+
+<a href="#graphium.trainer.predictor_summaries.Summary" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor_summaries.SummaryInterface" href="#graphium.trainer.predictor_summaries.SummaryInterface">SummaryInterface</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.Results" class="doc doc-heading">
+        <code>Results</code>
+
+
+<a href="#graphium.trainer.predictor_summaries.Summary.Results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h6 id="graphium.trainer.predictor_summaries.Summary.Results.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">targets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">monitored_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">n_epochs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.Results.__init__" class="headerlink" title="Permanent link">&para;</a></h6>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>This inner class is used as a container for storing the results of the summary.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>targets</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the targets</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>predictions</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the prediction tensor</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss</code></td>
+          <td>
+                <code>float</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss, float or tensor</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code>dict</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>monitored_metric</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the monitored metric</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_epochs</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of epochs</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">,</span> <span class="n">task_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_training_set</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_progress_bar</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+          <td>
+                <code>[]</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>monitor</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+          <td>
+                <code>&#39;loss&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_name</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.get_best_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_best_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.get_best_results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>retrieve the best results for a given step</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the best results for the given step</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.get_dict_summary" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_dict_summary</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.get_dict_summary" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>retrieve the full summary in a dictionary</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the full summary in a dictionary</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.get_metrics_logs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_metrics_logs</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.get_metrics_logs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the data about metrics to log.
+Note: This function requires that self.update_predictor_state() be called before it.</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionary of metrics to log.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.get_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.get_results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>retrieve the results for a given step</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results for the given step</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.get_results_on_progress_bar" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_results_on_progress_bar</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.get_results_on_progress_bar" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>retrieve the results to be displayed on the progress bar for a given step</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results to be displayed on the progress bar for the given step</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.is_best_epoch" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_best_epoch</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.is_best_epoch" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>check if the current epoch is the best epoch based on self.mode criteria</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss tensor</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a dictionary of metrics</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.set_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.set_results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>set the reults from the metrics
+[!] This function requires that self.update_predictor_state() be called before it.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a dictionary of metrics</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.Summary.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>update the state of the predictor</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>which stage you are in, e.g. "train"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>targets</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the targets tensor</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>predictions</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the predictions tensor</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss tensor</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_epochs</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of epochs</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor_summaries.SummaryInterface" class="doc doc-heading">
+        <code>SummaryInterface</code>
+
+
+<a href="#graphium.trainer.predictor_summaries.SummaryInterface" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code>object</code></p>
+
+  
+      <p>An interface to define the functions implemented by summary classes that implement SummaryInterface.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor_summaries.TaskSummaries" class="doc doc-heading">
+        <code>TaskSummaries</code>
+
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor_summaries.SummaryInterface" href="#graphium.trainer.predictor_summaries.SummaryInterface">SummaryInterface</a></code></p>
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_loss_fun</span><span class="p">,</span> <span class="n">task_metrics</span><span class="p">,</span> <span class="n">task_metrics_on_training_set</span><span class="p">,</span> <span class="n">task_metrics_on_progress_bar</span><span class="p">,</span> <span class="n">monitor</span><span class="o">=</span><span class="s1">&#39;loss&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;min&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>class to store the summaries of the tasks</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>task_loss_fun</code></td>
+          <td>
+                <code><span title="typing.Callable">Callable</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss function for each task</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics for each task</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_metrics_on_training_set</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics to use on the training set</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_metrics_on_progress_bar</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics to use on the progress bar</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>monitor</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metric to monitor</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;loss&#39;</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mode</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the mode of the metric to monitor</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;min&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.concatenate_metrics_logs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">concatenate_metrics_logs</span><span class="p">(</span><span class="n">metrics_logs</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.concatenate_metrics_logs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>concatenate the metrics logs</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>metrics_logs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics logs</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the concatenated metrics logs</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_best_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_best_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_best_results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>retrieve the best results</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step, i.e. "train"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the best results</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_dict_summary" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_dict_summary</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_dict_summary" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>get task summaries in a dictionary</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the task summaries</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_metrics_logs" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_metrics_logs</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_metrics_logs" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>get the logs for the metrics</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the task logs for the metrics</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_results</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>retrieve the results</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step, i.e. "train"</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.get_results_on_progress_bar" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_results_on_progress_bar</span><span class="p">(</span><span class="n">step_name</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.get_results_on_progress_bar" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>return all results from all tasks for the progress bar
+Combine the dictionaries. Instead of having keys as task names, we merge all the task-specific dictionaries.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the results for the progress bar</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.metric_log_name" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">metric_log_name</span><span class="p">(</span><span class="n">task_name</span><span class="p">,</span> <span class="n">metric_name</span><span class="p">,</span> <span class="n">step_name</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.metric_log_name" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>print the metric name, task name and step name</p>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metric name, task name and step name</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.set_results" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_results</span><span class="p">(</span><span class="n">task_metrics</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.set_results" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>set the results for all tasks</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>task_metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the metrics for each task</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">update_predictor_state</span><span class="p">(</span><span class="n">step_name</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">predictions</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">task_losses</span><span class="p">,</span> <span class="n">n_epochs</span><span class="p">)</span></code>
+
+<a href="#graphium.trainer.predictor_summaries.TaskSummaries.update_predictor_state" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>update the state for all predictors</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>step_name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the name of the step</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>targets</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the target tensors</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>predictions</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the prediction tensors</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>loss</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the loss tensor</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>task_losses</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="torch.Tensor">Tensor</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the task losses</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>n_epochs</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of epochs</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="predictor-options">Predictor Options<a class="headerlink" href="#predictor-options" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.trainer.predictor_options" class="doc doc-heading">
+          <code>graphium.trainer.predictor_options</code>
+
+
+<a href="#graphium.trainer.predictor_options" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+  
+      <p>Data classes to group together related arguments for the creation of a Predictor Module.</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor_options.EvalOptions" class="doc doc-heading">
+        <code>EvalOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor_options.EvalOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Dict">Dict</span>, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Loss function used during training.
+Acceptable strings are graphium.utils.spaces.LOSS_DICT.keys().
+If a dict, must contain a 'name' key with one of the acceptable loss function strings
+as a value. The rest of the dict will be used as the arguments passed to the loss object.
+Otherwise, a callable object must be provided, with a method <code>loss_fun._get_name()</code>.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A dictionnary of metrics to compute on the prediction, other than the loss function.
+These metrics will be logged into WandB or other.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_progress_bar</code></td>
+          <td>
+                <code><span title="typing.List">List</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The metrics names from <code>metrics</code> to display also on the progress bar of the training</p>
+            </div>
+          </td>
+          <td>
+                <code>field(default_factory=List[str])</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>metrics_on_training_set</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.List">List</span>[str]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The metrics names from <code>metrics</code> to be computed on the training set for each iteration.
+If <code>None</code>, all the metrics are computed. Using less metrics can significantly improve
+performance, depending on the number of readouts.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_options.EvalOptions.check_metrics_validity" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_metrics_validity</span><span class="p">()</span></code>
+
+<a href="#graphium.trainer.predictor_options.EvalOptions.check_metrics_validity" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check that the metrics for the progress_par and training_set are valid</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.trainer.predictor_options.EvalOptions.parse_loss_fun" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parse_loss_fun</span><span class="p">(</span><span class="n">loss_fun</span><span class="p">)</span></code>
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-staticmethod"><code>staticmethod</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor_options.EvalOptions.parse_loss_fun" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Parse the loss function from a string or a dict</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>loss_fun</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, <span title="typing.Dict">Dict</span>, <span title="typing.Callable">Callable</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A callable corresponding to the loss function, a string specifying the loss
+function from <code>LOSS_DICT</code>, or a dict containing a key 'name' specifying the
+loss function, and the rest of the dict used as the arguments for the loss.
+Accepted strings are: graphium.utils.spaces.LOSS_DICT.keys().</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>Callable</code></td>          <td>
+                <code><span title="typing.Callable">Callable</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Function or callable to compute the loss, takes <code>preds</code> and <code>targets</code> as inputs.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor_options.FlagOptions" class="doc doc-heading">
+        <code>FlagOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor_options.FlagOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>flag_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Keyword arguments used for FLAG, and adversarial data augmentation for graph networks.
+See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891</a></p>
+<ul>
+<li>
+<p>n_steps: An integer that specifies the number of ascent steps when running FLAG during training.
+    Default value of 0 trains GNNs without FLAG, and any value greater than 0 will use FLAG with that
+    many iterations.</p>
+</li>
+<li>
+<p>alpha: A float that specifies the ascent step size when running FLAG. Default=0.01</p>
+</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor_options.ModelOptions" class="doc doc-heading">
+        <code>ModelOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor_options.ModelOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>model_class</code></td>
+          <td>
+                <code><span title="typing.Type">Type</span>[<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>pytorch module used to create a model</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>model_kwargs</code></td>
+          <td>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Key-word arguments used to initialize the model from <code>model_class</code>.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.trainer.predictor_options.OptimOptions" class="doc doc-heading">
+        <code>OptimOptions</code>
+
+  
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#graphium.trainer.predictor_options.OptimOptions" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+  
+      <p>This data class stores the arguments necessary to configure the optimizer for the Predictor.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>optim_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionnary used to initialize the optimizer, with possible keys below.</p>
+<ul>
+<li>lr <code>float</code>: Learning rate (Default=<code>1e-3</code>)</li>
+<li>weight_decay <code>float</code>: Weight decay used to regularize the optimizer (Default=<code>0.</code>)</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>torch_scheduler_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionnary for the scheduling of learning rate, with possible keys below.</p>
+<ul>
+<li>type <code>str</code>: Type of the learning rate to use from pytorch. Examples are
+    <code>'ReduceLROnPlateau'</code> (default), <code>'CosineAnnealingWarmRestarts'</code>, <code>'StepLR'</code>, etc.</li>
+<li>**kwargs: Any other argument for the learning rate scheduler</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>scheduler_kwargs</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Dictionnary for the scheduling of the learning rate modification used by pytorch-lightning</p>
+<ul>
+<li>monitor <code>str</code>: metric to track (Default=<code>"loss/val"</code>)</li>
+<li>interval <code>str</code>: Whether to look at iterations or epochs (Default=<code>"epoch"</code>)</li>
+<li>strict <code>bool</code>: if set to True will enforce that value specified in monitor is available
+    while trying to call scheduler.step(), and stop training if not found. If False will
+    only give a warning and continue training (without calling the scheduler). (Default=<code>True</code>)</li>
+<li>frequency <code>int</code>: <strong>TODO: NOT REALLY SURE HOW IT WORKS!</strong> (Default=<code>1</code>)</li>
+</ul>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>scheduler_class</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, <span title="typing.Type">Type</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The class to use for the scheduler, or the str representing the scheduler.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2020 - 2023 datamol.io
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      
+        <script src="../javascripts/config.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
