@@ -119,7 +119,5 @@ jobs:
           echo "Get the gh-pages branch"
           git fetch origin gh-pages
 
-          echo "Build and deploy the doc on $TAG_OR_BRANCH_NAME"
-
-          mike deploy --push --force stable
-          mike deploy --push --force "${{ inputs.release-version }}"
+          echo "Build and deploy the doc on ${{ inputs.release-version }}"
+          mike deploy --push --force ${{ inputs.release-version }} stable
