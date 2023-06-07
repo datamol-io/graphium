@@ -87,7 +87,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     with SafeRun(name="VALIDATING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.validate(
             model=predictor,
-            ckpt_path=cfg["model_checkpoint"]["dirpath"].joinpath(cfg["model_checkpoint"]["name"]),
+            ckpt_path=f'{cfg["trainer"]["model_checkpoint"]["dirpath"]}{cfg["trainer"]["model_checkpoint"]["filename"]}.ckpt',
             datamodule=datamodule,
         )
 

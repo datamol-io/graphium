@@ -565,9 +565,9 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["val/mean_time"] = self.mean_val_time_tracker.mean_value
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
-
-        lr = self.optimizers().param_groups[0]["lr"]
-        concatenated_metrics_logs["lr"] = lr
+        if hasattr(self.optimizers(), "param_groups"):
+            lr = self.optimizers().param_groups[0]["lr"]
+            concatenated_metrics_logs["lr"] = lr
         concatenated_metrics_logs["n_epochs"] = self.current_epoch
         self.log_dict(concatenated_metrics_logs)
 
