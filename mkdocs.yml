@@ -13,31 +13,31 @@ nav:
   - Overview: index.md
   - Benchmark: benchmark.md
   - API:
-    - graphium.nn:
-      - graphium.nn: api/graphium.nn/graphium.nn.md
-      - graphium.nn.architectures: api/graphium.nn/architectures.md
-      - graphium.nn.encoders: api/graphium.nn/encoders.md
-      - graphium.nn.pyg_layers: api/graphium.nn/pyg_layers.md
-    - graphium.features: api/graphium.features.md
-    - graphium.trainer: api/graphium.trainer.md
-    - graphium.data: api/graphium.data.md
-    - graphium.utils: api/graphium.utils.md
-    - graphium.config: api/graphium.config.md
-    - graphium.ipu: api/graphium.ipu.md
-    - graphium.visualization: api/graphium.visualization.md
+      - graphium.nn:
+          - graphium.nn: api/graphium.nn/graphium.nn.md
+          - graphium.nn.architectures: api/graphium.nn/architectures.md
+          - graphium.nn.encoders: api/graphium.nn/encoders.md
+          - graphium.nn.pyg_layers: api/graphium.nn/pyg_layers.md
+      - graphium.features: api/graphium.features.md
+      - graphium.trainer: api/graphium.trainer.md
+      - graphium.data: api/graphium.data.md
+      - graphium.utils: api/graphium.utils.md
+      - graphium.config: api/graphium.config.md
+      - graphium.ipu: api/graphium.ipu.md
+      - graphium.visualization: api/graphium.visualization.md
   - Tutorials:
-    - feature_processing:
-      - Add new positional encoding: tutorials/feature_processing/add_new_positional_encoding.ipynb
-      - Convert CSV to Parquet files: tutorials/feature_processing/csv_to_parquet.ipynb
-      - Timing parallel processing: tutorials/feature_processing/timing_parallel.ipynb
-    - gnn_layers:
-      - Add new gnn layers: tutorials/gnn/add_new_gnn_layers.ipynb
-      - Making GNN networks: tutorials/gnn/making_gnn_networks.ipynb
-      - Using GNN layers: tutorials/gnn/using_gnn_layers.ipynb
-    - model_training:
-      - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
-      - Training on IPU: tutorials/model_training/ipu_training.ipynb
-      - Chosing the right parallelization: tutorials/basics/choosing_parallelization.ipynb
+      - feature_processing:
+          - Add new positional encoding: tutorials/feature_processing/add_new_positional_encoding.ipynb
+          - Convert CSV to Parquet files: tutorials/feature_processing/csv_to_parquet.ipynb
+          - Timing parallel processing: tutorials/feature_processing/timing_parallel.ipynb
+      - gnn_layers:
+          - Add new gnn layers: tutorials/gnn/add_new_gnn_layers.ipynb
+          - Making GNN networks: tutorials/gnn/making_gnn_networks.ipynb
+          - Using GNN layers: tutorials/gnn/using_gnn_layers.ipynb
+      - model_training:
+          - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
+          - Training on IPU: tutorials/model_training/ipu_training.ipynb
+          - Chosing the right parallelization: tutorials/basics/choosing_parallelization.ipynb
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
@@ -79,26 +79,30 @@ markdown_extensions:
   - toc:
       permalink: true
 
+watch:
+  - graphium/
+
 plugins:
   - search
+
   - mkdocstrings:
-      watch:
-        - graphium/
       handlers:
         python:
           setup_commands:
             - import sys
             - sys.path.append("docs")
             - sys.path.append("graphium")
-          selection:
+          options:
             new_path_syntax: yes
-          rendering:
             show_root_heading: yes
             heading_level: 3
-          options:
             show_source: false
+
   - mkdocs-jupyter:
       execute: False
+
+  - mike:
+      version_selector: true
 
 extra:
   version:
