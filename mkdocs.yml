@@ -99,3 +99,8 @@ plugins:
             show_source: false
   - mkdocs-jupyter:
       execute: False
+
+extra:
+  version:
+    # Multi versioning provider for mkdocs-material (used for the JS selector)
+    provider: mike
