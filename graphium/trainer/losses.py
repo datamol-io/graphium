@@ -9,7 +9,7 @@ from torch.nn.modules.loss import _WeightedLoss
 class HybridCELoss(_WeightedLoss):
     def __init__(
         self,
-        n_brackets,
+        n_brackets: int = 5,
         regression_loss: str = "mse",
         alpha: float = 0.5,
         weight: Optional[Tensor] = None,

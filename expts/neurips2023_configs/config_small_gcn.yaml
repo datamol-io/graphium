@@ -276,10 +276,12 @@ metrics:
   tox21:
     - name: auroc_flat
       metric: auroc_ipu
+      task: binary
       multitask_handling: flatten
       threshold_kwargs: null
     - name: avpr_flat
-      metric: averageprecision
+      metric: average_precision_ipu
+      task: binary
       multitask_handling: flatten
       threshold_kwargs: null
     - name: f1 > 0.5
