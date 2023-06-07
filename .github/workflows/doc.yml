@@ -3,9 +3,9 @@ name: doc
 on:
   push:
     branches: ["main"]
-  release:
-    types: [published]
-  workflow_dispatch: {}
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
 
 # Prevent doc action on `main` to conflict with each others.
 concurrency:
