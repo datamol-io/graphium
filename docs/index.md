@@ -9,10 +9,6 @@ A deep learning library focused on graph representation learning for real-world 
 - ⮔ Read-to-use training loop based on [Pytorch Lightning](https://www.pytorchlightning.ai/).
 - 🔌 Have a new dataset? Graphium provides a simple plug-and-play interface. Change the path, the name of the columns to predict, the atomic featurization, and you’re ready to play!
 
-## Documentation
-
-Visit https://graphium-docs.datamol.io/stable/.
-
 ## Installation
 
 Use [`mamba`](https://github.com/mamba-org/mamba):
