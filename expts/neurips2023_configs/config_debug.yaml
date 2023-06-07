@@ -56,13 +56,13 @@ datamodule:
 
       zinc:
         df: null
-        df_path: goli/data/neurips2023/small-dataset/ZINC12k.csv.gz
-        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+        df_path: graphium/data/neurips2023/small-dataset/ZINC12k.csv.gz
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
         sample_size: 500 # use sample_size for test
-        splits_path: goli/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        splits_path: graphium/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
         seed: *seed
         task_level: graph
         label_normalization:

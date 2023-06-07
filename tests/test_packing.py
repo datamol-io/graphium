@@ -6,7 +6,7 @@ import torch
 from torch_geometric.data import Data, Batch
 
 # Current library imports
-from goli.utils.packing import (
+from graphium.utils.packing import (
     smart_packing,
     get_pack_sizes,
     fast_packing,

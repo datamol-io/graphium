@@ -1,9 +1,9 @@
-site_name: "goli"
-site_description: "A deep learning library focused on graph representation learning for real-world chemical tasks."
-site_url: "https://github.com/valence-discovery/goli"
-repo_url: "https://github.com/valence-discovery/goli"
-repo_name: "valence-discovery/goli"
-copyright: Copyright 2020 - 2023 Valence Discovery
+site_name: "graphium"
+site_description: "Graphium: Scaling molecular GNNs to infinity."
+site_url: "https://github.com/datamol-io/graphium"
+repo_url: "https://github.com/datamol-io/graphium"
+repo_name: "valence-discovery/graphium"
+copyright: Copyright 2020 - 2023 datamol.io
 
 remote_branch: "gh-pages"
 use_directory_urls: false
@@ -11,32 +11,33 @@ docs_dir: "docs"
 
 nav:
   - Overview: index.md
+  - Baseline: baseline.md
   - API:
-    - goli.nn:
-      - goli.nn: api/goli.nn/goli.nn.md
-      - goli.nn.architectures: api/goli.nn/architectures.md
-      - goli.nn.encoders: api/goli.nn/encoders.md
-      - goli.nn.pyg_layers: api/goli.nn/pyg_layers.md
-    - goli.features: api/goli.features.md
-    - goli.trainer: api/goli.trainer.md
-    - goli.data: api/goli.data.md
-    - goli.utils: api/goli.utils.md
-    - goli.config: api/goli.config.md
-    - goli.ipu: api/goli.ipu.md
-    - goli.visualization: api/goli.visualization.md
+      - graphium.nn:
+          - graphium.nn: api/graphium.nn/graphium.nn.md
+          - graphium.nn.architectures: api/graphium.nn/architectures.md
+          - graphium.nn.encoders: api/graphium.nn/encoders.md
+          - graphium.nn.pyg_layers: api/graphium.nn/pyg_layers.md
+      - graphium.features: api/graphium.features.md
+      - graphium.trainer: api/graphium.trainer.md
+      - graphium.data: api/graphium.data.md
+      - graphium.utils: api/graphium.utils.md
+      - graphium.config: api/graphium.config.md
+      - graphium.ipu: api/graphium.ipu.md
+      - graphium.visualization: api/graphium.visualization.md
   - Tutorials:
-    - feature_processing:
-      - Add new positional encoding: tutorials/feature_processing/add_new_positional_encoding.ipynb
-      - Convert CSV to Parquet files: tutorials/feature_processing/csv_to_parquet.ipynb
-      - Timing parallel processing: tutorials/feature_processing/timing_parallel.ipynb
-    - gnn_layers:
-      - Add new gnn layers: tutorials/gnn/add_new_gnn_layers.ipynb
-      - Making GNN networks: tutorials/gnn/making_gnn_networks.ipynb
-      - Using GNN layers: tutorials/gnn/using_gnn_layers.ipynb
-    - model_training:
-      - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
-      - Training on IPU: tutorials/model_training/ipu_training.ipynb
-      - Chosing the right parallelization: tutorials/basics/choosing_parallelization.ipynb
+      - feature_processing:
+          - Add new positional encoding: tutorials/feature_processing/add_new_positional_encoding.ipynb
+          - Convert CSV to Parquet files: tutorials/feature_processing/csv_to_parquet.ipynb
+          - Timing parallel processing: tutorials/feature_processing/timing_parallel.ipynb
+      - gnn_layers:
+          - Add new gnn layers: tutorials/gnn/add_new_gnn_layers.ipynb
+          - Making GNN networks: tutorials/gnn/making_gnn_networks.ipynb
+          - Using GNN layers: tutorials/gnn/using_gnn_layers.ipynb
+      - model_training:
+          - Simple Molecular Model: tutorials/model_training/simple-molecular-model.ipynb
+          - Training on IPU: tutorials/model_training/ipu_training.ipynb
+          - Chosing the right parallelization: tutorials/basics/choosing_parallelization.ipynb
   - Design: design.md
   - Datasets: datasets.md
   - Pretrained Models: pretrained_models.md
@@ -46,17 +47,17 @@ nav:
 
 theme:
   name: material
-  palette:
-    primary: red
-    accent: indigo
+  # NOTE(hadim): to customize the material primary and secondary
+  # color check `docs/assets/css/datamol-custom.css`.
   features:
     - navigation.tabs
     - navigation.expand
   favicon: images/logo.png
-  logo: images/logo.png
+  logo: images/logo.svg
 
 extra_css:
   - _assets/css/custom.css
+  - _assets/css/custom-graphium.css
 
 extra_javascript:
   - javascripts/config.js
@@ -78,23 +79,32 @@ markdown_extensions:
   - toc:
       permalink: true
 
+watch:
+  - graphium/
+
 plugins:
   - search
+
   - mkdocstrings:
-      watch:
-        - goli/
       handlers:
         python:
           setup_commands:
             - import sys
             - sys.path.append("docs")
-            - sys.path.append("goli")
-          selection:
+            - sys.path.append("graphium")
+          options:
             new_path_syntax: yes
-          rendering:
             show_root_heading: yes
             heading_level: 3
-          options:
             show_source: false
+
   - mkdocs-jupyter:
       execute: False
+
+  - mike:
+      version_selector: true
+
+extra:
+  version:
+    # Multi versioning provider for mkdocs-material (used for the JS selector)
+    provider: mike

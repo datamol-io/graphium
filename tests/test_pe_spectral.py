@@ -1,12 +1,12 @@
 """
-Unit tests for the positional encodings in goli/features/*
+Unit tests for the positional encodings in graphium/features/*
 """
 
 import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.spectral import compute_laplacian_pe
+from graphium.features.spectral import compute_laplacian_pe
 
 
 class test_pe_spectral(ut.TestCase):

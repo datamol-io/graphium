@@ -4,8 +4,8 @@ Create the pip environment for IPU
 
 ## Uncomment this to create the folder for the environment
 # mkdir ~/.venv                              # Create the folder for the environment
-# python3 -m venv ~/.venv/goli_ipu           # Create the environment
-# source ~/.venv/goli_ipu/bin/activate       # Activate the environment
+# python3 -m venv ~/.venv/graphium_ipu           # Create the environment
+# source ~/.venv/graphium_ipu/bin/activate       # Activate the environment
 
 # Installing the dependencies for the IPU environment
 pip install torch==1.10+cpu torchvision==0.11+cpu torchaudio==0.10 -f https://download.pytorch.org/whl/torch_stable.html

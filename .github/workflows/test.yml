@@ -2,11 +2,14 @@ name: test
 
 on:
   push:
-    branches:
-      - "master"
+    branches: ["main"]
+    tags: ["*"]
   pull_request:
     branches:
       - "*"
+      - "!gh-pages"
+  schedule:
+    - cron: "0 4 * * MON"
 
 jobs:
   test:
@@ -31,17 +34,16 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - name: Setup Mamba
-        uses: mamba-org/provision-with-micromamba@v15
+      - name: Setup mamba
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: env.yml
-          environment-name: goli
-          extra-specs: |
+          environment-name: graphium
+          cache-environment: true
+          cache-downloads: true
+          create-args: >-
             python=${{ matrix.python-version }}
             pytorch=${{ matrix.pytorch-version }}
-          cache-downloads: true
-          cache-env: true
-          channel-priority: strict
 
       - name: Install library
         run: python -m pip install --no-deps .
@@ -50,7 +52,7 @@ jobs:
         run: pytest
 
       - name: Test CLI
-        run: goli --help
+        run: graphium --help
 
       - name: Test building the doc
         run: mkdocs build

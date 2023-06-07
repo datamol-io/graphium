@@ -1,12 +1,12 @@
 """
-Unit tests for the positional encodings in goli/features/*
+Unit tests for the positional encodings in graphium/features/*
 """
 
 import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.rw import compute_rwse
+from graphium.features.rw import compute_rwse
 
 
 class test_pe_spectral(ut.TestCase):

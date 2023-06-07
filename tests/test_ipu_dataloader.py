@@ -12,7 +12,7 @@ import torch
 from torch.utils.data.dataloader import default_collate
 
 # Current library imports
-from goli.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
+from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
 
 
 def random_packing(num_nodes, batch_size):
@@ -163,10 +163,10 @@ class test_DataLoading(ut.TestCase):
         )
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
-    def test_poptorch_goli_deviceiterations_gradient_accumulation(self):
+    def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
         """
         Test the device-iterations and gradient accumulation in a way
-        that is very similar to the Goli code
+        that is very similar to the Graphium code
         to make sure that the dataloader and models handle them correcly.
         """
 
@@ -176,7 +176,7 @@ class test_DataLoading(ut.TestCase):
             warn(f"Skipping this test because poptorch is not available.\n{e}")
             return
 
-        from goli.ipu.ipu_wrapper import PredictorModuleIPU
+        from graphium.ipu.ipu_wrapper import PredictorModuleIPU
 
         class TestPredictor(PredictorModuleIPU):
             # Create a basic Ligthning for testing the batch sizes
@@ -264,7 +264,7 @@ class test_DataLoading(ut.TestCase):
 
                 return features, labels
 
-        from goli.ipu.ipu_wrapper import DictIPUStrategy
+        from graphium.ipu.ipu_wrapper import DictIPUStrategy
 
         gradient_accumulation = 3
         device_iterations = 5

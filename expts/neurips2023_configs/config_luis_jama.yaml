@@ -56,8 +56,8 @@ datamodule:
 
       pcqm20k_g13:
         df: null
-        df_path: goli/data/neurips2023/dummy-dataset/PCQM20k_G13_N4.parquet
-        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Dummy-dataset/PCQM20k_G13_N4.parquet
+        df_path: graphium/data/neurips2023/dummy-dataset/PCQM20k_G13_N4.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Dummy-dataset/PCQM20k_G13_N4.parquet
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
@@ -70,8 +70,8 @@ datamodule:
 
       pcqm20k_n4:
         df: null
-        df_path: goli/data/neurips2023/dummy-dataset/PCQM20k_G13_N4.parquet
-        # wget https://storage.googleapis.com/goli-public/datasets/neurips_2023/Dummy-dataset/PCQM20k_G13_N4.parquet
+        df_path: graphium/data/neurips2023/dummy-dataset/PCQM20k_G13_N4.parquet
+        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Dummy-dataset/PCQM20k_G13_N4.parquet
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"

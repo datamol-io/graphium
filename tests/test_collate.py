@@ -8,7 +8,7 @@ import torch
 import numpy as np
 from torch_geometric.data import Data
 
-from goli.data.collate import collate_labels, goli_collate_fn
+from graphium.data.collate import collate_labels, graphium_collate_fn
 
 
 class test_Collate(ut.TestCase):
@@ -109,9 +109,11 @@ class test_Collate(ut.TestCase):
         np.testing.assert_array_equal(
             collated_labels["node_label4"].numpy(), label4_true.flatten(0, 1).numpy()
         )
-        # Now test the `goli_collate_fn` function when only labels are given
+        # Now test the `graphium_collate_fn` function when only labels are given
         fake_labels2 = [{"labels": this_label} for this_label in fake_labels]
-        collated_labels = goli_collate_fn(deepcopy(fake_labels2), labels_size_dict=labels_size_dict)["labels"]
+        collated_labels = graphium_collate_fn(deepcopy(fake_labels2), labels_size_dict=labels_size_dict)[
+            "labels"
+        ]
         self.assertEqual(collated_labels["graph_label1"].shape, torch.Size([num_labels, 1]))
         self.assertEqual(collated_labels["graph_label2"].shape, torch.Size([num_labels, 3]))
         self.assertEqual(collated_labels["node_label2"].shape, torch.Size([num_labels * 5, 1]))  # , 5

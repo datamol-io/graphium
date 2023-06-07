@@ -1,13 +1,13 @@
 """
-Unit tests for the metrics and wrappers of goli/trainer/metrics/...
+Unit tests for the metrics and wrappers of graphium/trainer/metrics/...
 """
 
 import torch
 import unittest as ut
 from torch.nn import functional as F
 
-from goli.trainer.losses import HybridCELoss
-from goli.trainer.predictor_options import EvalOptions
+from graphium.trainer.losses import HybridCELoss
+from graphium.trainer.predictor_options import EvalOptions
 
 
 def _parse(loss_fun):

@@ -1,12 +1,12 @@
 """
-Unit tests for the file goli/trainer/predictor.py
+Unit tests for the file graphium/trainer/predictor.py
 """
 
 import torch
 from torch.nn import BCELoss, MSELoss
 import unittest as ut
 
-from goli.trainer.predictor_options import EvalOptions
+from graphium.trainer.predictor_options import EvalOptions
 
 
 class test_Predictor(ut.TestCase):

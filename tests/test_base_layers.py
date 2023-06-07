@@ -1,5 +1,5 @@
 """
-Unit tests for the different layers of goli/nn/base_layers
+Unit tests for the different layers of graphium/nn/base_layers
 """
 
 import torch
@@ -7,8 +7,8 @@ import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
 
-from goli.nn.base_layers import DropPath, TransformerEncoderLayerMup
-from goli.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
+from graphium.nn.base_layers import DropPath, TransformerEncoderLayerMup
+from graphium.ipu.to_dense_batch import to_dense_batch, to_sparse_batch
 
 
 class test_Base_Layers(ut.TestCase):

@@ -1,5 +1,5 @@
 """
-Unit tests for the different architectures of goli/nn/architectures...
+Unit tests for the different architectures of graphium/nn/architectures...
 
 The layers are not thoroughly tested due to the difficulty of testing them
 """
@@ -10,9 +10,9 @@ from copy import deepcopy
 import sys
 import traceback
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphMultiTaskNetwork
-from goli.nn.base_layers import FCLayer
-from goli.nn.residual_connections import (
+from graphium.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphMultiTaskNetwork
+from graphium.nn.base_layers import FCLayer
+from graphium.nn.residual_connections import (
     ResidualConnectionConcat,
     ResidualConnectionDenseNet,
     ResidualConnectionNone,
@@ -21,7 +21,7 @@ from goli.nn.residual_connections import (
 )
 from torch_geometric.data import Data, Batch
 
-from goli.utils.spaces import LAYERS_DICT
+from graphium.utils.spaces import LAYERS_DICT
 
 
 class test_FeedForwardNN(ut.TestCase):
