@@ -1,5 +1,5 @@
 
-**IMPORTANT: Golia has been renamed and moved to Graphium at <https://github.com/datamol-io/graphium>.**
+**IMPORTANT: Goli has been renamed and moved to Graphium at <https://github.com/datamol-io/graphium>.**
 ---
 
 <div align="center">
