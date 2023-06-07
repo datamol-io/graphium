@@ -87,6 +87,9 @@ jobs:
           # Tag the release
           git tag -a "${{ inputs.release-version }}" -m "Release version ${{ inputs.release-version }}"
 
+          # Checkout the git tag
+          git checkout "${{ inputs.release-version }}"
+
           # Push the modified changelogs
           git push origin main
 
