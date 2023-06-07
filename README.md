@@ -1,3 +1,7 @@
+
+**IMPORTANT: Golia has been renamed and moved to Graphium at <https://github.com/datamol-io/graphium>.**
+---
+
 <div align="center">
     <img src="docs/images/logo-title.png" height="80px">
     <h3>The Graph Of LIfe Library.</h3>
