@@ -9,6 +9,7 @@ from copy import deepcopy
 import time
 import gc
 from rdkit import Chem
+import re
 
 from loguru import logger
 import fsspec
@@ -902,6 +903,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task = task_prefix + task
         return task
 
+
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -916,6 +918,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             - Create a corresponding SingletaskDataset
             - Split the SingletaskDataset according to the task-specific splits for train, val and test
         """
+        def has_atoms_after_h_removal(smiles):
+            # Remove all 'H' characters from the SMILES
+            smiles_without_h = re.sub('H', '', smiles)
+            # Check if any letters are remaining in the modified string
+            has_atoms = bool(re.search('[a-zA-Z]', smiles_without_h))
+            if has_atoms == False:
+                logger.info(f"Removed Hydrogen molecule: {smiles}")
+            return has_atoms
+
         if self._data_is_prepared:
             logger.info("Data is already prepared. Skipping the preparation")
             return
@@ -979,6 +990,11 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             df = self._sub_sample_df(df, sample_size, self.task_dataset_processing_params[task].seed)
 
             logger.info(f"Prepare single-task dataset for task '{task}' with {len(df)} data points.")
+
+            logger.info("Filtering the molecules for Hydrogen")
+            logger.info(f"Looking at column {df.columns[0]}")
+            # Filter the DataFrame based on the function
+            df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
 
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
