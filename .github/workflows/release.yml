@@ -120,4 +120,5 @@ jobs:
           git fetch origin gh-pages
 
           echo "Build and deploy the doc on ${{ inputs.release-version }}"
-          mike deploy --push --force ${{ inputs.release-version }} stable
+          mike deploy --push --force stable
+          mike deploy --push --force ${{ inputs.release-version }}
