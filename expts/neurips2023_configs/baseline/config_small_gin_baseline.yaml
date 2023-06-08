@@ -183,7 +183,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 128
+    out_dim: &gnn_dim 96
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
@@ -214,7 +214,7 @@ architecture:
     qm9:
       task_level: graph
       out_dim: 19
-      hidden_dims: 128
+      hidden_dims: 256
       depth: 2
       activation: relu
       last_activation: none
@@ -325,7 +325,7 @@ trainer:
   #  mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/neurips2023-small-gin/
-    filename: *name
+    filename: *seed
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
