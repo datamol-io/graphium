@@ -333,7 +333,7 @@ trainer:
   #  mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/neurips2023-small-gine/
-    filename: *name
+    filename: *seed
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
