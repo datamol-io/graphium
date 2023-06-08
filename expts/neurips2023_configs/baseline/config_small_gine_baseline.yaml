@@ -1,7 +1,7 @@
-# Testing the gcn model with the PCQMv2 dataset on IPU.
+# Testing the gine model with the PCQMv2 dataset on IPU.
 constants:
-  name: &name neurips2023_small_data_gcn
-  seed: &seed 42
+  name: &name neurips2023_small_data_gine
+  seed: &seed 1000
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 accelerator:
@@ -36,6 +36,17 @@ accelerator:
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     datamodule:
+#       batch_size_training: 64
+#       batch_size_inference: 256
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -134,12 +145,21 @@ architecture:
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
+    dropout: &dropout 0.1
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
 
-  pre_nn_edges: null   # Set as null to avoid a pre-nn network
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 32
+    hidden_dims: 128
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: *normalization
+    residual_type: none
 
   pe_encoders:
     out_dim: 32
@@ -171,8 +191,7 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 128
+    out_dim: &gnn_dim 96
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
@@ -182,7 +201,7 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     virtual_node: 'none'
-    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_type: 'pyg:gine' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs: null # Parameters for the model itself. You could define dropout_attn: 0.1
 
 
@@ -203,7 +222,7 @@ architecture:
     qm9:
       task_level: graph
       out_dim: 19
-      hidden_dims: 128
+      hidden_dims: 256
       depth: 2
       activation: relu
       last_activation: none
@@ -246,11 +265,11 @@ predictor:
     zinc: mae_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
+    lr: 1.e-3 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
+    max_num_epochs: &max_epochs 300
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -313,7 +332,7 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-small-gcn/
+    dirpath: models_checkpoints/neurips2023-small-gine/
     filename: *name
     # monitor: *monitor
     # mode: *mode

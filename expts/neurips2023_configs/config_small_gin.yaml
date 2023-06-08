@@ -288,7 +288,7 @@ metrics:
     - name: auroc_flat
       metric: auroc_ipu
       task: binary
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: avpr_flat
       metric: average_precision_ipu
