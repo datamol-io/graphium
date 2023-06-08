@@ -523,7 +523,7 @@ class PredictorModule(pl.LightningModule):
         metrics_logs = self.task_epoch_summary.get_metrics_logs()
         self.task_epoch_summary.set_results(task_metrics=metrics_logs)
 
-        return metrics_logs  # Consider returning concatenated dict for tensorboard
+        return metrics_logs  # Consider returning concatenated dict for logging
 
     def on_train_epoch_start(self) -> None:
         self.epoch_start_time = time.time()
