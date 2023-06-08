@@ -25,7 +25,7 @@ accelerator:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 32
+        precision: 16
         accumulate_grad_batches: 8
 
   ipu_config:
@@ -307,8 +307,12 @@ predictor:
     pcqm4m_g25: []
     pcqm4m_n4: []
   loss_fun:
-    l1000_vcap: hybrid_ce_ipu
-    l1000_mcf7: hybrid_ce_ipu
+    l1000_vcap:
+      name: hybrid_ce_ipu
+      n_brackets: 5
+    l1000_mcf7:
+      name: hybrid_ce_ipu
+      n_brackets: 5
     pcba_1328: bce_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu

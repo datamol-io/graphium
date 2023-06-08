@@ -109,7 +109,7 @@ class L1LossIPU(L1Loss):
 class HybridCELossIPU(HybridCELoss):
     def __init__(
         self,
-        n_brackets: int = 5,
+        n_brackets,
     ) -> None:
         """
         Parameters:
