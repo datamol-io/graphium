@@ -348,6 +348,7 @@ trainer:
     # save_top_k: 1
     every_n_epochs: 100
     save_last: True
+    save_on_train_epoch_end: True
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1

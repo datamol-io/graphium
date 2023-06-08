@@ -53,7 +53,7 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
         date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
     cfg = deepcopy(cfg)
-    wandb.init(project=cfg["constants"]["name"], config=cfg)
+    wandb.init(entity="multitask-gnn", project=cfg["constants"]["name"], config=cfg)
 
     # Initialize the accelerator
     cfg, accelerator_type = load_accelerator(cfg)
