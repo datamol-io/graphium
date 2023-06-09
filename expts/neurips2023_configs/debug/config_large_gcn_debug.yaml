@@ -322,8 +322,8 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 10
-    warmup_epochs: 5
+    max_num_epochs: &max_epochs 100
+    warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
   #  monitor: &monitor qm9/mae/train
@@ -376,7 +376,6 @@ metrics:
   pcqm4m_n4: *pcqm_metrics
 
 trainer:
-  seed: *seed
   logger:
     save_dir: logs/neurips2023-large/
     name: *name
@@ -392,10 +391,10 @@ trainer:
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
-    # every_n_epochs: 10
+    every_n_epochs: 100
     save_last: True
-    # save_on_train_epoch_end: True
+    save_on_train_epoch_end: True
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 10
+    check_val_every_n_epoch: 20
