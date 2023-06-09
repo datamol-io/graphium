@@ -314,6 +314,7 @@ metrics:
   zinc: *qm9_metrics
 
 trainer:
+  seed: *seed
   logger:
     save_dir: logs/neurips2023-small/
     name: *name

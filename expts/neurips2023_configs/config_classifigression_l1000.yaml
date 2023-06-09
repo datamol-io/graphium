@@ -292,6 +292,7 @@ metrics:
   l1000_mcf7: *classif_metrics
 
 trainer:
+  seed: *seed
   logger:
     save_dir: logs/neurips2023-small/
     name: *name

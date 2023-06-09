@@ -292,6 +292,7 @@ metrics:
   pcqm20k_n4: *pcqm_metrics
 
 trainer:
+  seed: *seed
   logger:
     save_dir: logs/neurips2023-small/
     name: *name

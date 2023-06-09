@@ -252,6 +252,7 @@ metrics:
       multitask_handling: mean-per-label
 
 trainer:
+  seed: *seed
   logger:
     save_dir: logs/neurips2023-small/
     name: *name
