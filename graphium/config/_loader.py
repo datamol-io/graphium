@@ -405,7 +405,6 @@ def load_trainer(
 
     # Define the early model checkpoing parameters
     if "model_checkpoint" in cfg_trainer.keys():
-        # import ipdb; ipdb.set_trace()
         cfg_trainer["model_checkpoint"]["dirpath"] += str(cfg_trainer["seed"]) + "/"
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
