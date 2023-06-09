@@ -1,9 +1,56 @@
 --find-links https://data.pyg.org/whl/torch-1.13.0+cpu.html
 --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
 
+pip
+click
+loguru
+tqdm
+numpy
+scipy >==1.4
+pandas >==1.0
+scikit-learn
+seaborn
+fsspec >==2021.6
+s3fs >==2021.6
+gcsfs >==2021.6
+appdirs
+tensorboard
+torch <2.0
+torchmetrics >=0.7.0,<0.11
+hydra-core >==1.0
+ogb
+rdkit >==2020.09
+mordred
+umap-learn
+pytest >==6.0
+pytest-cov
+black >=23
+jupyterlab
+ipywidgets
+anaconda-client
+mkdocs
+mkdocs-material
+mkdocs-material-extensions
+mkdocstrings
+mkdocstrings-python
+mkdocs-jupyter
+mkdocs-click
+markdown-include
+rever >==0.4.5
+omegaconf
+loguru
+appdirs
+matplotlib
+tk
+datamol
+PyYAML
+wandb
+optuna
+google-cloud-storage
+mup
+pyg-nightly
+fastparquet
 torch-scatter==2.1.0
 torch-sparse==0.6.15
 torchvision==0.14.1+cpu
 git+https://github.com/joao-alex-cunha/lightning
-
--r ./requirements.txt
