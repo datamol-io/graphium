@@ -83,6 +83,7 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
     save_params_to_wandb(trainer.logger, cfg, predictor, datamodule)
 
     # Determine the max num nodes and edges in training and validation
+    logger.info("About to set the max nodes etc.")
     predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
     # Run the model training
