@@ -405,6 +405,7 @@ def load_trainer(
 
     # Define the early model checkpoing parameters
     if "model_checkpoint" in cfg_trainer.keys():
+        cfg_trainer["model_checkpoint"]["dirpath"] += str(cfg_trainer["seed"]) + "/"
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     # Define the logger parameters
@@ -416,7 +417,6 @@ def load_trainer(
         trainer_kwargs["logger"] = WandbLogger(name=name, **logger)
 
     trainer_kwargs["callbacks"] = callbacks
-
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
@@ -426,7 +426,6 @@ def load_trainer(
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
-
     return trainer
 
 

@@ -376,6 +376,7 @@ metrics:
   pcqm4m_n4: *pcqm_metrics
 
 trainer:
+  seed: *seed
   logger:
     save_dir: logs/neurips2023-large/
     name: *name
@@ -391,9 +392,7 @@ trainer:
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
-    every_n_epochs: 100
     save_last: True
-    save_on_train_epoch_end: True
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1

@@ -1,7 +1,7 @@
-# Testing the gin model with the PCQMv2 dataset on IPU.
+# Testing the gcn model with the PCQMv2 dataset on IPU.
 constants:
-  name: &name neurips2023_small_data_gin
-  seed: &seed 1000
+  name: &name neurips2023_small_data_gcn
+  seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 accelerator:
@@ -26,27 +26,16 @@ accelerator:
     trainer:
       trainer:
         precision: 16
-        accumulate_grad_batches: 4
+        accumulate_grad_batches: 1
 
   ipu_config:
     - deviceIterations(5) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
+    - replicationFactor(2)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
-
-# accelerator:
-#   type: cpu  # cpu or ipu or gpu
-#   config_override:
-#     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
-#     trainer:
-#       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -60,7 +49,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["A", "B", "C", "mu", "alpha", "homo", "lumo", "gap", "r2", "zpve", "u0", "u298", "h298", "g298", "cv", "u0_atom", "u298_atom", "h298_atom", "g298_atom"]
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         splits_path: data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
         seed: *seed
         task_level: graph
@@ -74,7 +63,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["NR-AR", "NR-AR-LBD", "NR-AhR", "NR-Aromatase", "NR-ER", "NR-ER-LBD", "NR-PPAR-gamma", "SR-ARE", "SR-ATAD5", "SR-HSE", "SR-MMP", "SR-p53"]
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         splits_path: data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
         seed: *seed
         task_level: graph
@@ -86,7 +75,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "smiles"
         label_cols: ["SA", "logp", "score"]
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         splits_path: data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
         seed: *seed
         task_level: graph
@@ -145,7 +134,7 @@ architecture:
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.1
+    dropout: &dropout 0.18
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
@@ -183,7 +172,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 96
+    out_dim: &gnn_dim 128
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
@@ -193,7 +182,7 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     virtual_node: 'none'
-    layer_type: 'pyg:gin' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_type: 'pyg:gcn' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
     layer_kwargs: null # Parameters for the model itself. You could define dropout_attn: 0.1
 
 
@@ -214,7 +203,7 @@ architecture:
     qm9:
       task_level: graph
       out_dim: 19
-      hidden_dims: 256
+      hidden_dims: 128
       depth: 2
       activation: relu
       last_activation: none
@@ -257,11 +246,11 @@ predictor:
     zinc: mae_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 1.e-3 # warmup can be scheduled using torch_scheduler_kwargs
+    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 300
+    max_num_epochs: &max_epochs 20
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -325,13 +314,15 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-small-gin/
-    filename: *seed
+    dirpath: "models_checkpoints/neurips2023-small-gcn/{seed}"
+    filename: *name
     # monitor: *monitor
     # mode: *mode
-    # save_top_k: 1
+    save_top_k: 1
+    every_n_epochs: 10
     save_last: True
+    # save_on_train_epoch_end: True
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 20
+    check_val_every_n_epoch: 4
