@@ -913,7 +913,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task = task_prefix + task
         return task
 
-
     def prepare_data(self):
         """Called only from a single process in distributed settings. Steps:
 
@@ -928,11 +927,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             - Create a corresponding SingletaskDataset
             - Split the SingletaskDataset according to the task-specific splits for train, val and test
         """
+
         def has_atoms_after_h_removal(smiles):
             # Remove all 'H' characters from the SMILES
-            smiles_without_h = re.sub('H', '', smiles)
+            smiles_without_h = re.sub("H", "", smiles)
             # Check if any letters are remaining in the modified string
-            has_atoms = bool(re.search('[a-zA-Z]', smiles_without_h))
+            has_atoms = bool(re.search("[a-zA-Z]", smiles_without_h))
             if has_atoms == False:
                 logger.info(f"Removed Hydrogen molecule: {smiles}")
             return has_atoms
@@ -1249,7 +1249,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self.get_label_statistics(
                 self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
             )
-            self.normalize_label(multitask_dataset)
+            if not load_from_file:
+                self.normalize_label(multitask_dataset)
 
         return multitask_dataset
 

@@ -354,7 +354,6 @@ class MultitaskDataset(Dataset):
             return
         return self.num_edges_total / self.num_graphs_total
 
-    @lru_cache(maxsize=16)
     def __getitem__(self, idx):
         r"""
         get the data for at the specified index
