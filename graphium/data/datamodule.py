@@ -551,7 +551,7 @@ class BaseDataModule(pl.LightningDataModule):
         max_num_nodes = 0
         # Max number of nodes in the training dataset
         if (self.train_ds is not None) and ("train" in stages):
-            logger.info('Max num nodes being calcuated train')
+            logger.info("Max num nodes being calcuated train")
             max_num_nodes = max(max_num_nodes, self.train_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the validation dataset
@@ -560,7 +560,7 @@ class BaseDataModule(pl.LightningDataModule):
             and ("val" in stages)
             and (self.val_ds.max_num_nodes_per_graph is not None)
         ):
-            logger.info('Max num nodes being calcuated val')
+            logger.info("Max num nodes being calcuated val")
             max_num_nodes = max(max_num_nodes, self.val_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the test dataset
@@ -569,7 +569,7 @@ class BaseDataModule(pl.LightningDataModule):
             and ("test" in stages)
             and (self.test_ds.max_num_nodes_per_graph is not None)
         ):
-            logger.info('Max num nodes being calcuated test')
+            logger.info("Max num nodes being calcuated test")
             max_num_nodes = max(max_num_nodes, self.test_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the predict dataset
@@ -578,7 +578,7 @@ class BaseDataModule(pl.LightningDataModule):
             and ("predict" in stages)
             and (self.predict_ds.max_num_nodes_per_graph is not None)
         ):
-            logger.info('Max num nodes being calcuated pred')
+            logger.info("Max num nodes being calcuated pred")
             max_num_nodes = max(max_num_nodes, self.predict_ds.max_num_nodes_per_graph)
 
         return max_num_nodes
@@ -610,7 +610,7 @@ class BaseDataModule(pl.LightningDataModule):
             and ("train" in stages)
             and (self.train_ds.max_num_edges_per_graph is not None)
         ):
-            logger.info("edges train")            
+            logger.info("edges train")
             max_num_edges = max(max_num_edges, self.train_ds.max_num_edges_per_graph)
 
         # Max number of nodes/edges in the validation dataset
