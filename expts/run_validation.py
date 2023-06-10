@@ -35,7 +35,8 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gine.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
@@ -87,7 +88,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
     with SafeRun(name="VALIDATING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.validate(
             model=predictor,
-            ckpt_path=f'{cfg["trainer"]["model_checkpoint"]["dirpath"]}{cfg["trainer"]["model_checkpoint"]["filename"]}.ckpt',
+            ckpt_path=f'{cfg["trainer"]["model_checkpoint"]["dirpath"]}/{cfg["trainer"]["seed"]}/{cfg["trainer"]["model_checkpoint"]["filename"]}.ckpt',
             datamodule=datamodule,
         )
 

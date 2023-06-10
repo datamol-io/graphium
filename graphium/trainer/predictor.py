@@ -310,13 +310,17 @@ class PredictorModule(pl.LightningModule):
         }
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
+            if pred.dtype == torch.float16:
+                pred_fp32 = pred.to(torch.float32)
+                pred = pred_fp32
+                preds[task] = pred_fp32
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
             if step_name != "train":
                 # apply denormalization for val and test predictions for correct loss and metrics evaluation
                 # targets for val and test were not normalized
                 # train loss will stay as the normalized version
                 preds[task] = task_specific_norm.denormalize(pred)
-            targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
+                targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
 
         loss, task_losses = self.compute_loss(
