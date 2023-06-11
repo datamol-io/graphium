@@ -4,49 +4,49 @@ constants:
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
-accelerator:
-  type: ipu  # cpu or ipu or gpu
-  config_override:
-    datamodule:
-      args:
-        ipu_dataloader_training_opts:
-          mode: async
-          max_num_nodes_per_graph: 40 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 80
-        ipu_dataloader_inference_opts:
-          mode: async
-          max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 80
-        # Data handling-related
-        batch_size_training: 10
-        batch_size_inference: 10
-    predictor:
-      optim_kwargs:
-        loss_scaling: 1024
-    trainer:
-      trainer:
-        precision: 16
-        accumulate_grad_batches: 8
-
-  ipu_config:
-    - deviceIterations(2) # IPU would require large batches to be ready for the model.
-    - replicationFactor(4)
-    # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
-    # - enableExecutableCaching("pop_compiler_cache")
-    - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
-    - Precision.enableStochasticRounding(True)
-
 # accelerator:
-#   type: cpu  # cpu or ipu or gpu
+#   type: ipu  # cpu or ipu or gpu
 #   config_override:
 #     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
+#       args:
+#         ipu_dataloader_training_opts:
+#           mode: async
+#           max_num_nodes_per_graph: 40 # train max nodes: 20, max_edges: 54
+#           max_num_edges_per_graph: 80
+#         ipu_dataloader_inference_opts:
+#           mode: async
+#           max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
+#           max_num_edges_per_graph: 80
+#         # Data handling-related
+#         batch_size_training: 10
+#         batch_size_inference: 10
+#     predictor:
+#       optim_kwargs:
+#         loss_scaling: 1024
 #     trainer:
 #       trainer:
-#         precision: 32
-#         accumulate_grad_batches: 1
+#         precision: 16
+#         accumulate_grad_batches: 8
+
+#   ipu_config:
+#     - deviceIterations(2) # IPU would require large batches to be ready for the model.
+#     - replicationFactor(4)
+#     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
+#     # - enableExecutableCaching("pop_compiler_cache")
+#     - TensorLocations.numIOTiles(128)
+#     - _Popart.set("defaultBufferingDepth", 128)
+#     - Precision.enableStochasticRounding(True)
+
+accelerator:
+  type: cpu  # cpu or ipu or gpu
+  config_override:
+    datamodule:
+      batch_size_training: 64
+      batch_size_inference: 256
+    trainer:
+      trainer:
+        precision: 32
+        accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -93,7 +93,7 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
-        sample_size: 2001 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
