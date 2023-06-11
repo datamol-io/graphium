@@ -441,7 +441,7 @@ class BaseDataModule(pl.LightningDataModule):
         """
         files = self._glob(path)
         if len(files) == 0:
-            raise FileNotFoundError("No such file or directory `{path}`")
+            raise FileNotFoundError(f"No such file or directory `{path}`")
 
         if len(files) > 1:
             files = tqdm(sorted(files), desc=f"Reading files at `{path}`")

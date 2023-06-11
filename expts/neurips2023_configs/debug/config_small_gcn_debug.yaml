@@ -314,12 +314,12 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: "models_checkpoints/neurips2023-small-gcn/{seed}"
+    dirpath: "models_checkpoints/neurips2023-small-gcn/"
     filename: *name
     # monitor: *monitor
     # mode: *mode
-    save_top_k: 1
-    every_n_epochs: 10
+    # save_top_k: 1
+    # every_n_epochs: 4
     save_last: True
     # save_on_train_epoch_end: True
   trainer:
