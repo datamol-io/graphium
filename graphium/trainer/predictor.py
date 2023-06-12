@@ -313,7 +313,11 @@ class PredictorModule(pl.LightningModule):
             if pred.dtype == torch.float16:
                 preds[task] = pred.to(torch.float32)
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
-            if step_name != "train" and not task_specific_norm.normalize_val_test:
+            if hasattr(task_specific_norm, "normalize_val_test"):
+                normalize_val_test = task_specific_norm.normalize_val_test
+            else:
+                normalize_val_test = False
+            if step_name != "train" and not normalize_val_test:
                 # apply denormalization for val and test predictions for correct loss and metrics evaluation
                 # if normalize_val_test is not true, only train loss will stay as the normalized version
                 # if normalize_val_test is true, no denormalization is applied, all losses and metrics are normalized version
@@ -333,7 +337,11 @@ class PredictorModule(pl.LightningModule):
         device = "cpu" if to_cpu else None
         for task in preds:
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
-            if step_name == "train" and not task_specific_norm.normalize_val_test:
+            if hasattr(task_specific_norm, "normalize_val_test"):
+                normalize_val_test = task_specific_norm.normalize_val_test
+            else:
+                normalize_val_test = False
+            if step_name == "train" and not normalize_val_test:
                 # apply denormalization for targets and predictions for the evaluation of training metrics (excluding loss)
                 # if normalize_val_test is not true, train loss will stay as the normalized version
                 # if normalize_val_test is true, no denormalization is applied, all losses and metrics are normalized version

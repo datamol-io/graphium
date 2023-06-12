@@ -1,6 +1,6 @@
 # Testing the gine model with the PCQMv2 dataset on IPU.
 constants:
-  name: &name neurips2023_large_data_gine
+  name: &name neurips2023_large_data_gine_bs20
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
