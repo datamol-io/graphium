@@ -459,6 +459,11 @@ class PredictorModule(pl.LightningModule):
         concatenated_metrics_logs["train/batch_time"] = train_batch_time
         concatenated_metrics_logs["train/batch_tput"] = tput
 
+        for key in concatenated_metrics_logs:
+            if isinstance(concatenated_metrics_logs[key], torch.Tensor):
+                if concatenated_metrics_logs[key].numel() > 1:
+                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
+
         if self.logger is not None:
             self.logger.log_metrics(
                 concatenated_metrics_logs, step=self.global_step
