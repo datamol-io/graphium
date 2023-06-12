@@ -1245,12 +1245,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             files_ready=files_ready,
         )  # type: ignore
 
+        # calculate statistics for the train split and used for all splits normalization
         if stage == "train":
             self.get_label_statistics(
                 self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
             )
-            if not load_from_file:
-                self.normalize_label(multitask_dataset)
+        if not load_from_file:
+            self.normalize_label(multitask_dataset, stage)
 
         return multitask_dataset
 
@@ -1360,7 +1361,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             else:
                 self.task_norms = torch.load(filename)
 
-    def normalize_label(self, dataset: Datasets.MultitaskDataset) -> Datasets.MultitaskDataset:
+    def normalize_label(self, dataset: Datasets.MultitaskDataset, stage) -> Datasets.MultitaskDataset:
         """
         Normalize the labels in the dataset using the statistics in `self.task_norms`.
 
@@ -1371,9 +1372,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             the dataset with normalized labels
         """
         for task in dataset.labels_size.keys():
-            for i in range(len(dataset)):
-                if task in dataset[i]["labels"]:
-                    dataset[i]["labels"][task] = self.task_norms[task].normalize(dataset[i]["labels"][task])
+            # we normalize the dataset if (it is train split) or (it is val/test splits and normalize_val_test is set to true)
+            if (stage == "train") or (stage in ["val", "test"] and self.task_norms[task].normalize_val_test):
+                for i in range(len(dataset)):
+                    if task in dataset[i]["labels"]:
+                        dataset[i]["labels"][task] = self.task_norms[task].normalize(
+                            dataset[i]["labels"][task]
+                        )
         return dataset
 
     def save_featurized_data(self, dataset: Datasets.MultitaskDataset, processed_data_path):
