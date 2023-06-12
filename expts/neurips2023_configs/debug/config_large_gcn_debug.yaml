@@ -1,7 +1,7 @@
 # Testing the gcn model with the PCQMv2 dataset on IPU.
 constants:
   name: &name neurips2023_large_data_gcn_debug
-  seed: &seed 42
+  seed: &seed 100
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
 accelerator:
@@ -18,15 +18,15 @@ accelerator:
           max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 80
         # Data handling-related
-        batch_size_training: 10
-        batch_size_inference: 10
+        batch_size_training: 20
+        batch_size_inference: 20
     predictor:
       optim_kwargs:
         loss_scaling: 1024
     trainer:
       trainer:
         precision: 16
-        accumulate_grad_batches: 8
+        accumulate_grad_batches: 4
 
   ipu_config:
     - deviceIterations(2) # IPU would require large batches to be ready for the model.
@@ -97,6 +97,7 @@ datamodule:
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       pcqm4m_n4:
@@ -111,6 +112,7 @@ datamodule:
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: *seed
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
