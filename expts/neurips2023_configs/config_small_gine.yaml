@@ -257,7 +257,7 @@ architecture:
 predictor:
   metrics_on_progress_bar:
     qm9: ["mae"]
-    tox21: ["auroc_flat"]
+    tox21: ["auroc"]
     zinc: ["mae"]
   loss_fun:
     qm9: mae_ipu

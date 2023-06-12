@@ -326,11 +326,11 @@ trainer:
   #  mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/neurips2023-small-gin/
-    filename: *seed
-    # monitor: *monitor
-    # mode: *mode
-    # save_top_k: 1
-    save_last: True
+    filename: *name
+    #monitor: *monitor
+    #mode: *mode
+    save_top_k: 1
+    every_n_epochs: 100
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1

@@ -36,10 +36,11 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gine.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/single/config_small_gcn_qm9.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
 os.chdir(MAIN_DIR)
@@ -103,6 +104,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", help="Path to the config file", default=None)
+    parser.add_argument("--metrics_str", help="Metrics dictionary as a string", default=None) # HACK:
 
     args, unknown = parser.parse_known_args()
     # Optionally parse the config with the command line
@@ -113,4 +115,11 @@ if __name__ == "__main__":
         cfg = yaml.safe_load(f)
         refs = get_anchors_and_aliases(CONFIG_FILE)
         cfg = update_config(cfg, unknown, refs)
+    # HACK: Using eval to put the metrics portion into the config via the command line
+    if args.metrics_str is not None:
+        # Place the metrics string in the config
+        logger.info("HACK: Setting the metrics via command line art string input")
+        cfg["metrics"]  = eval(args.metrics_str)
+    logger.info("HACK: Setting the progress bar metrics to []")
+    cfg["predictor"]["metrics_on_progress_bar"]["qm9"] = []
     main(cfg)
