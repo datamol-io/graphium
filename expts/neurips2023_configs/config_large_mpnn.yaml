@@ -323,6 +323,12 @@ predictor:
     pcba_1328: []
     pcqm4m_g25: []
     pcqm4m_n4: []
+  metrics_on_training_set:
+    l1000_vcap: []
+    l1000_mcf7: []
+    pcba_1328: []
+    pcqm4m_g25: []
+    pcqm4m_n4: [] 
   loss_fun:
     l1000_vcap:
       name: hybrid_ce_ipu
@@ -352,32 +358,32 @@ predictor:
 # Task-specific
 metrics:
   l1000_vcap: &classif_metrics
-    - name: auroc_flat
+    - name: auroc
       metric: auroc_ipu
       num_classes: 5
       task: multiclass
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
-    - name: avpr_flat
+    - name: avpr
       metric: average_precision_ipu
       num_classes: 5
       task: multiclass
       target_to_int: True
       target_nan_mask: -1000
       ignore_index: -1000
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
   pcba_1328:
-    - name: auroc_flat
+    - name: auroc
       metric: auroc_ipu
       task: binary
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
-    - name: avpr_flat
+    - name: avpr
       metric: average_precision_ipu
       task: binary
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
   pcqm4m_g25: &pcqm_metrics
     - name: mae
