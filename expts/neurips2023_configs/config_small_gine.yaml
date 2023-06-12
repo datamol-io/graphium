@@ -293,15 +293,15 @@ metrics:
       target_nan_mask: null
       multitask_handling: mean-per-label
   tox21:
-    - name: auroc_flat
+    - name: auroc
       metric: auroc_ipu
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null
-    - name: avpr_flat
+    - name: avpr
       metric: average_precision_ipu
       task: binary
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: f1 > 0.5
       metric: f1
