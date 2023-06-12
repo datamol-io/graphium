@@ -1,6 +1,6 @@
-# Testing the gin model with the PCQMv2 dataset on IPU.
+# Testing the gine model with the PCQMv2 dataset on IPU.
 constants:
-  name: &name neurips2023_large_data_gin
+  name: &name neurips2023_large_data_gine_n4
   seed: &seed 42
   raise_train_error: true   # Whether the code should raise an error if it crashes during training
 
@@ -53,52 +53,6 @@ datamodule:
   # module_type: "FakeDataModule"  # Option to use generated data
   args: # Matches that in the test_multitask_datamodule.py case.
     task_specific_args:   # To be replaced by a new class "DatasetParams"
-      l1000_vcap:
-        df: null
-        df_path: graphium/data/neurips2023/large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
-        # or set path as the URL directly
-        smiles_col: "SMILES"
-        label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        # sample_size: 2000 # use sample_size for test
-        task_level: graph
-        splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
-
-      l1000_mcf7:
-        df: null
-        df_path: graphium/data/neurips2023/large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
-        # or set path as the URL directly
-        smiles_col: "SMILES"
-        label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        # sample_size: 2000 # use sample_size for test
-        task_level: graph
-        splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
-
-      pcba_1328:
-        df: null
-        df_path: graphium/data/neurips2023/large-dataset/PCBA_1328_1564k.parquet
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
-        # or set path as the URL directly
-        smiles_col: "SMILES"
-        label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
-        # sample_size: 2000 # use sample_size for test
-        task_level: graph
-        splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
-
-      pcqm4m_g25:
-        df: null
-        df_path: graphium/data/neurips2023/large-dataset/PCQM4M_G25_N4.parquet
-        # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
-        # or set path as the URL directly
-        smiles_col: "ordered_smiles"
-        label_cols: graph_*  # graph_* means all columns starting with "graph_"
-        # sample_size: 2000 # use sample_size for test
-        task_level: graph
-        splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
-        label_normalization:
-          method: "normal"
-
       pcqm4m_n4:
         df: null
         df_path: graphium/data/neurips2023/large-dataset/PCQM4M_G25_N4.parquet
@@ -118,7 +72,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../neurips2023-large/"
+    processed_graph_data_path: "../datacache/neurips2023-large/n4/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -170,7 +124,16 @@ architecture:
     last_normalization: *normalization
     residual_type: none
 
-  pre_nn_edges: null
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 32
+    hidden_dims: 128
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: *normalization
+    residual_type: none
 
   pe_encoders:
     out_dim: 32
@@ -202,7 +165,6 @@ architecture:
 
 
   gnn:  # Set as null to avoid a post-nn network
-    in_dim: 64 # or otherwise the correct value
     out_dim: &gnn_dim 704
     hidden_dims: *gnn_dim
     depth: 4
@@ -213,22 +175,10 @@ architecture:
     last_normalization: *normalization
     residual_type: simple
     virtual_node: 'none'
-    layer_type: 'pyg:gin' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
-
+    layer_type: 'pyg:gine' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
 
 
   graph_output_nn:
-    graph:
-      pooling: [sum]
-      out_dim: *gnn_dim
-      hidden_dims: *gnn_dim
-      depth: 1
-      activation: relu
-      last_activation: none
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
     node:
       pooling: [sum]
       out_dim: *gnn_dim
@@ -242,50 +192,6 @@ architecture:
       residual_type: none
 
   task_heads:
-    l1000_vcap:
-      task_level: graph
-      out_dim: 4890
-      hidden_dims: 128
-      depth: 2
-      activation: none
-      last_activation: sigmoid
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-    l1000_mcf7:
-      task_level: graph
-      out_dim: 4890
-      hidden_dims: 128
-      depth: 2
-      activation: none
-      last_activation: sigmoid
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-    pcba_1328:
-      task_level: graph
-      out_dim: 1328
-      hidden_dims: 64
-      depth: 2
-      activation: relu
-      last_activation: sigmoid
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
-    pcqm4m_g25:
-      task_level: graph
-      out_dim: 25
-      hidden_dims: 32
-      depth: 2
-      activation: relu
-      last_activation: none
-      dropout: *dropout
-      normalization: *normalization
-      last_normalization: "none"
-      residual_type: none
     pcqm4m_n4:
       task_level: node
       out_dim: 4
@@ -301,26 +207,10 @@ architecture:
 #Task-specific
 predictor:
   metrics_on_progress_bar:
-    l1000_vcap: []
-    l1000_mcf7: []
-    pcba_1328: []
-    pcqm4m_g25: []
     pcqm4m_n4: []
   metrics_on_training_set:
-    l1000_vcap: []
-    l1000_mcf7: []
-    pcba_1328: []
-    pcqm4m_g25: []
-    pcqm4m_n4: [] 
+    pcqm4m_n4: []
   loss_fun:
-    l1000_vcap:
-      name: hybrid_ce_ipu
-      n_brackets: 5
-    l1000_mcf7:
-      name: hybrid_ce_ipu
-      n_brackets: 5
-    pcba_1328: bce_ipu
-    pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
   random_seed: *seed
   optim_kwargs:
@@ -340,35 +230,7 @@ predictor:
 
 # Task-specific
 metrics:
-  l1000_vcap: &classif_metrics
-    - name: auroc
-      metric: auroc_ipu
-      num_classes: 5
-      task: multiclass
-      multitask_handling: mean-per-label
-      threshold_kwargs: null
-    - name: avpr
-      metric: average_precision_ipu
-      num_classes: 5
-      task: multiclass
-      target_to_int: True
-      target_nan_mask: -1000
-      ignore_index: -1000
-      multitask_handling: mean-per-label
-      threshold_kwargs: null
-  l1000_mcf7: *classif_metrics
-  pcba_1328:
-    - name: auroc
-      metric: auroc_ipu
-      task: binary
-      multitask_handling: mean-per-label
-      threshold_kwargs: null
-    - name: avpr
-      metric: average_precision_ipu
-      task: binary
-      multitask_handling: mean-per-label
-      threshold_kwargs: null
-  pcqm4m_g25: &pcqm_metrics
+  pcqm4m_n4: &pcqm_metrics
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
@@ -379,7 +241,6 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
-  pcqm4m_n4: *pcqm_metrics
 
 trainer:
   seed: *seed
@@ -393,7 +254,7 @@ trainer:
   #  patience: 10
   #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-large-gin/
+    dirpath: models_checkpoints/neurips2023-large-gine/n4/
     filename: *name
     # monitor: *monitor
     # mode: *mode
