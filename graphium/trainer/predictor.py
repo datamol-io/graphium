@@ -442,8 +442,6 @@ class PredictorModule(pl.LightningModule):
         return super().on_train_batch_start(batch, batch_idx)
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
-        print(outputs)
-        import sys;sys.exit()
 
         train_batch_time = time.time() - self.train_batch_start_time
         num_graphs = self.get_num_graphs(batch["features"])
