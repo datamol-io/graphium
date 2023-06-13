@@ -19,7 +19,7 @@ accelerator:
           max_num_edges_per_graph: 100
         # Data handling-related
         batch_size_training: 10
-        batch_size_inference: 2
+        batch_size_inference: 10
     predictor:
       optim_kwargs:
         loss_scaling: 1024

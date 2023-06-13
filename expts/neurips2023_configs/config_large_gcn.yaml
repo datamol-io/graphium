@@ -25,7 +25,7 @@ accelerator:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
+        precision: 32
         accumulate_grad_batches: 8
 
   ipu_config:
@@ -97,6 +97,7 @@ datamodule:
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       pcqm4m_n4:
@@ -111,6 +112,7 @@ datamodule:
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: *seed
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
@@ -118,7 +120,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../neurips2023-large/"
+    processed_graph_data_path: "/net/group/software-apps/datacache/neurips2023-large/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -376,6 +378,11 @@ metrics:
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: r2
+      metric: r2_score_ipu
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
