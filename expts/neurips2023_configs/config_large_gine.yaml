@@ -120,7 +120,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../neurips2023-large/"
+    processed_graph_data_path: "/net/group/software-apps/datacache/neurips2023-large/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -337,7 +337,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 30
+    max_num_epochs: &max_epochs 20
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -416,4 +416,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 30
+    check_val_every_n_epoch: 20

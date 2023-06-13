@@ -405,7 +405,7 @@ trainer:
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
-    # every_n_epochs: 100
+    every_n_epochs: 10
     save_last: True
   trainer:
     max_epochs: *max_epochs

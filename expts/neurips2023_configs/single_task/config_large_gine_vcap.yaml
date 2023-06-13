@@ -16,7 +16,7 @@ accelerator:
         ipu_dataloader_inference_opts:
           mode: async
           max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 100
+          max_num_edges_per_graph: 150
         # Data handling-related
         batch_size_training: 10
         batch_size_inference: 2

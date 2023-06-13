@@ -328,7 +328,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 30
+    max_num_epochs: &max_epochs 20
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -402,4 +402,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 30
+    check_val_every_n_epoch: 20
