@@ -65,6 +65,7 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       tox21:
@@ -91,6 +92,7 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
@@ -284,6 +286,11 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
+    - name: r2_score
+      metric: r2_score_ipu
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
   tox21:
     - name: auroc
       metric: auroc_ipu
@@ -297,7 +304,7 @@ metrics:
       threshold_kwargs: null
     - name: f1 > 0.5
       metric: f1
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       target_to_int: True
       num_classes: 2
       average: micro
@@ -308,7 +315,7 @@ metrics:
         th_on_target: True
     - name: precision > 0.5
       metric: precision
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       average: micro
       threshold_kwargs: *threshold_05
   zinc: *qm9_metrics
