@@ -347,8 +347,8 @@ class PredictorModule(pl.LightningModule):
                 # if normalize_val_test is true, no denormalization is applied, all losses and metrics are normalized version
                 preds[task] = task_specific_norm.denormalize(preds[task])
                 targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
-            preds[task] = preds[task].clone().detach().to(device=device)
-            targets_dict[task] = targets_dict[task].clone().detach().to(device=device)
+            preds[task] = preds[task].detach().to(device=device)
+            targets_dict[task] = targets_dict[task].detach().to(device=device)
         if weights is not None:
             weights = weights.detach().to(device=device)
 
@@ -447,19 +447,19 @@ class PredictorModule(pl.LightningModule):
         tput = num_graphs / train_batch_time
 
         # this code is likely repeated for validation and testing, this should be moved to a function
-        # self.task_epoch_summary.update_predictor_state(
-        #     step_name="train",
-        #     targets=outputs["targets"],
-        #     predictions=outputs["preds"],
-        #     loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
-        #     task_losses=outputs["task_losses"],
-        #     n_epochs=self.current_epoch,
-        # )
-        # metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
-        # metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
-        # outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
+        self.task_epoch_summary.update_predictor_state(
+            step_name="train",
+            targets=outputs["targets"],
+            predictions=outputs["preds"],
+            loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
+            task_losses=outputs["task_losses"],
+            n_epochs=self.current_epoch,
+        )
+        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
+        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
+        outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
 
-        concatenated_metrics_logs = {} # self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        concatenated_metrics_logs = {}  # self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["loss"] = outputs["loss"]
         outputs["grad_norm"] = self.get_gradient_norm()
         concatenated_metrics_logs["train/grad_norm"] = outputs["grad_norm"]
@@ -487,8 +487,8 @@ class PredictorModule(pl.LightningModule):
             # step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
             step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
 
-        step_dict.pop('preds')
-        step_dict.pop('targets')
+        # step_dict.pop('preds')
+        # step_dict.pop('targets')
 
         return step_dict  # Returning the metrics_logs with the loss
 

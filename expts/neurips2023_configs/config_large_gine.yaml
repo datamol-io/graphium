@@ -97,6 +97,7 @@ datamodule:
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       pcqm4m_n4:
@@ -111,6 +112,7 @@ datamodule:
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: *seed
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
@@ -383,6 +385,11 @@ metrics:
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: r2
+      metric: r2_score_ipu
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label

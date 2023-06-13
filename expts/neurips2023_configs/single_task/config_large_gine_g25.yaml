@@ -11,11 +11,11 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 60 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 30 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
         batch_size_training: 10
@@ -25,7 +25,7 @@ accelerator:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
+        precision: 32
         accumulate_grad_batches: 8
 
   ipu_config:
@@ -64,6 +64,7 @@ datamodule:
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
@@ -217,7 +218,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 30
+    max_num_epochs: &max_epochs 20
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -237,6 +238,11 @@ metrics:
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+    - name: r2
+      metric: r2_score_ipu
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
@@ -262,4 +268,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 30
+    check_val_every_n_epoch: 20

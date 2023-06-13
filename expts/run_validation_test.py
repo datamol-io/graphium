@@ -93,6 +93,14 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
             datamodule=datamodule,
         )
 
+    # Run the model testing
+    with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
+        trainer.test(
+            model=predictor,
+            ckpt_path=f'{cfg["trainer"]["model_checkpoint"]["dirpath"]}{cfg["trainer"]["seed"]}/{cfg["trainer"]["model_checkpoint"]["filename"]}.ckpt',
+            datamodule=datamodule,
+        )
+
     logger.info("--------------------------------------------")
     logger.info("total computation used", timeit.default_timer() - st)
     logger.info("--------------------------------------------")
@@ -104,7 +112,7 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", help="Path to the config file", default=None)
-    parser.add_argument("--metrics_str", help="Metrics dictionary as a string", default=None) # HACK:
+    parser.add_argument("--metrics_str", help="Metrics dictionary as a string", default=None)  # HACK:
 
     args, unknown = parser.parse_known_args()
     # Optionally parse the config with the command line
@@ -119,7 +127,7 @@ if __name__ == "__main__":
     if args.metrics_str is not None:
         # Place the metrics string in the config
         logger.info("HACK: Setting the metrics via command line art string input")
-        cfg["metrics"]  = eval(args.metrics_str)
+        cfg["metrics"] = eval(args.metrics_str)
     logger.info("HACK: Setting the progress bar metrics to []")
     cfg["predictor"]["metrics_on_progress_bar"]["qm9"] = []
     main(cfg)
