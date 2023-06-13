@@ -431,7 +431,7 @@ class PredictorModule(pl.LightningModule):
         if weights is not None:
             weights = weights.detach().to(device=device)
 
-        step_dict = {"preds": preds.clone(), "targets": targets.clone(), "weights": weights}
+        step_dict = {"preds": preds, "targets": targets, "weights": weights}
         step_dict[f"loss/{step_name}"] = loss.detach().cpu()
         step_dict["loss"] = loss
         step_dict["task_losses"] = task_losses
@@ -442,9 +442,6 @@ class PredictorModule(pl.LightningModule):
         return super().on_train_batch_start(batch, batch_idx)
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
-        print(outputs)
-        import sys;sys.exit()
-
         train_batch_time = time.time() - self.train_batch_start_time
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
@@ -489,10 +486,6 @@ class PredictorModule(pl.LightningModule):
         elif self.flag_kwargs["n_steps"] == 0:
             # step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
             step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
-
-        step_dict.pop('preds')
-        step_dict.pop('targets')
-        step_dict.pop('weights')
 
         return step_dict  # Returning the metrics_logs with the loss
 
