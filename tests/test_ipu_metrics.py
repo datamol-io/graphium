@@ -16,7 +16,7 @@ from torchmetrics.functional import (
 )
 from copy import deepcopy
 
-from goli.ipu.ipu_metrics import (
+from graphium.ipu.ipu_metrics import (
     auroc_ipu,
     average_precision_ipu,
     precision_ipu,
@@ -59,8 +59,8 @@ class test_Metrics(ut.TestCase):
         target_nan[target_nan >= 0.5] = 1
 
         # Regular loss
-        score_true = auroc(preds, target.to(int), num_classes=1)
-        score_ipu = auroc_ipu(preds, target, num_classes=1)
+        score_true = auroc(preds, target.to(int))
+        score_ipu = auroc_ipu(preds, target)
         self.assertFalse(score_true.isnan(), "Regular AUROC score is NaN")
         self.assertAlmostEqual(
             score_true.item(), score_ipu.item(), places=6, msg="Regular AUROC score is different"
@@ -68,15 +68,15 @@ class test_Metrics(ut.TestCase):
 
         # Weighted loss (As in BCE)
         sample_weights = torch.rand(preds.shape[0], dtype=torch.float32)
-        score_true = auroc(preds, target.to(int), num_classes=1, sample_weights=sample_weights)
-        score_ipu = auroc_ipu(preds, target, num_classes=1, sample_weights=sample_weights)
+        score_true = auroc(preds, target.to(int), sample_weights=sample_weights)
+        score_ipu = auroc_ipu(preds, target, sample_weights=sample_weights)
         self.assertFalse(score_true.isnan(), "Regular AUROC score is NaN")
         self.assertAlmostEqual(score_true.item(), score_ipu.item(), msg="Weighted AUROC score is different")
 
         # Regular loss with NaNs in target
         not_nan = ~target_nan.isnan()
-        score_true = auroc(preds[not_nan], target[not_nan].to(int), num_classes=1)
-        score_ipu = auroc_ipu(preds, target_nan, num_classes=1)
+        score_true = auroc(preds[not_nan], target[not_nan].to(int))
+        score_ipu = auroc_ipu(preds, target_nan)
         self.assertFalse(score_true.isnan(), "Regular AUROC score with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Regular AUROCIPU score with target_nan is NaN")
         self.assertAlmostEqual(
@@ -110,8 +110,8 @@ class test_Metrics(ut.TestCase):
         target_nan[target_nan >= 0.5] = 1
 
         # Regular loss
-        score_true = average_precision(preds, target.to(int), num_classes=1)
-        score_ipu = average_precision_ipu(preds, target, num_classes=1)
+        score_true = average_precision(preds, target.to(int), task="binary")
+        score_ipu = average_precision_ipu(preds, target.to(int), task="binary")
         self.assertFalse(score_true.isnan(), "Regular Average Precision is NaN")
         self.assertAlmostEqual(
             score_true.item(), score_ipu.item(), places=6, msg="Regular Average Precision is different"
@@ -119,8 +119,8 @@ class test_Metrics(ut.TestCase):
 
         # Regular average precision with NaNs in target
         not_nan = ~target_nan.isnan()
-        score_true = average_precision(preds[not_nan], target[not_nan].to(int), num_classes=1)
-        score_ipu = average_precision_ipu(preds, target_nan, num_classes=1)
+        score_true = average_precision(preds[not_nan], target[not_nan].to(int), task="binary")
+        score_ipu = average_precision_ipu(preds, target_nan, task="binary")
         self.assertFalse(score_true.isnan(), "Regular Average Precision with target_nan is NaN")
         self.assertFalse(score_ipu.isnan(), "Regular Average Precision IPU score with target_nan is NaN")
         self.assertAlmostEqual(

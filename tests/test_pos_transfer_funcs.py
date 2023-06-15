@@ -1,13 +1,13 @@
 """
-Unit tests for the positional encodings in goli/features/*
+Unit tests for the positional encodings in graphium/features/*
 """
 
 import numpy as np
 import networkx as nx
 import unittest as ut
 
-from goli.features.spectral import compute_laplacian_pe
-from goli.features.transfer_pos_level import (
+from graphium.features.spectral import compute_laplacian_pe
+from graphium.features.transfer_pos_level import (
     node_to_edge,
     node_to_nodepair,
     edge_to_nodepair,

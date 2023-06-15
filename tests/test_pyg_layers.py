@@ -1,5 +1,5 @@
 """
-Unit tests for the different layers of goli/nn/pyg_layers/...
+Unit tests for the different layers of graphium/nn/pyg_layers/...
 
 The layers are not thoroughly tested due to the difficulty of testing them
 """
@@ -10,7 +10,7 @@ import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
 
-from goli.nn.pyg_layers import (
+from graphium.nn.pyg_layers import (
     GINConvPyg,
     GINEConvPyg,
     MPNNPlusPyg,
@@ -21,7 +21,7 @@ from goli.nn.pyg_layers import (
     DimeNetPyg,
 )
 
-from goli.nn.pyg_layers.utils import (
+from graphium.nn.pyg_layers.utils import (
     PreprocessPositions,
     GaussianLayer,
 )
@@ -217,7 +217,7 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertTrue((bg2.edge_feat == self.bg.edge_feat).all)
 
     def test_dimenetlayer(self):
-        from goli.nn.encoders.bessel_pos_encoder import BesselSphericalPosEncoder
+        from graphium.nn.encoders.bessel_pos_encoder import BesselSphericalPosEncoder
 
         bg = deepcopy(self.bg)
         # dummy input pos

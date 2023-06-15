@@ -1,5 +1,5 @@
 """
-Unit tests for the different architectures of goli/nn/architectures...
+Unit tests for the different architectures of graphium/nn/architectures...
 
 The layers are not thoroughly tested due to the difficulty of testing them
 """
@@ -12,12 +12,12 @@ from itertools import product
 import sys
 import traceback
 
-import goli
-from goli.config._loader import load_architecture
-from goli.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork, GraphOutputNN
-from goli.nn.base_layers import FCLayer
+import graphium
+from graphium.config._loader import load_architecture
+from graphium.nn.architectures import TaskHeads, FullGraphMultiTaskNetwork, GraphOutputNN
+from graphium.nn.base_layers import FCLayer
 
-from goli.utils.spaces import LAYERS_DICT
+from graphium.utils.spaces import LAYERS_DICT
 
 kwargs = {
     "activation": "relu",
@@ -544,7 +544,7 @@ class test_Multitask_NN(ut.TestCase):
                 self.assertListEqual(list(edge_feat_out.shape), [num_edges, out_dim_edges], msg=err_msg)
 
     def test_full_graph_multi_task_from_config(self):
-        cfg = goli.load_config(name="zinc_default_multitask_pyg")
+        cfg = graphium.load_config(name="zinc_default_multitask_pyg")
 
         # Initialize the network
         in_dims = {"feat": self.in_dim, "edge_feat": self.in_dim_edges}
@@ -576,7 +576,7 @@ class test_Multitask_NN(ut.TestCase):
         )
 
     def test_full_graph_multi_task_set_max_num_nodes(self):
-        cfg = goli.load_config(name="zinc_default_multitask_pyg")
+        cfg = graphium.load_config(name="zinc_default_multitask_pyg")
 
         # Initialize the network
         in_dims = {"feat": self.in_dim, "edge_feat": self.in_dim_edges}

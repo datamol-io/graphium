@@ -1,5 +1,5 @@
 """
-Unit tests for the different datasets of goli/features/featurizer.py
+Unit tests for the different datasets of graphium/features/featurizer.py
 """
 
 import numpy as np
@@ -10,9 +10,9 @@ import datamol as dm
 import torch
 from scipy.sparse import coo_matrix
 
-from goli.features.featurizer import GraphDict
-from goli.features.positional_encoding import graph_positional_encoder
-from goli.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
+from graphium.features.featurizer import GraphDict
+from graphium.features.positional_encoding import graph_positional_encoder
+from graphium.nn.encoders import laplace_pos_encoder, mlp_encoder, signnet_pos_encoder
 
 # TODO: Test the MLP_encoder and signnet_pos_encoder
 

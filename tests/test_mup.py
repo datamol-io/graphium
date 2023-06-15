@@ -10,7 +10,7 @@ import yaml
 
 from torch_geometric.data import Batch, Data
 
-from goli.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphMultiTaskNetwork
+from graphium.nn.architectures import FeedForwardNN, FeedForwardPyg, FullGraphMultiTaskNetwork
 
 
 def get_pyg_graphs(in_dim, in_dim_edges):

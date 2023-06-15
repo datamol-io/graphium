@@ -1,4 +1,4 @@
-############ Goli Custom GitIgnore ##############
+############ graphium Custom GitIgnore ##############
 
 # Workspace
 *.code-workspace
@@ -22,22 +22,29 @@ wandb/
 out/
 datacache/
 tests/temp_cache*
+predictions/
 
 # Data and predictions
-goli/data/ZINC_bench_gnn/
-goli/data/BindingDB/
-goli/data/mega-pubchem/
-goli/data/cache/
-goli/data/b3lyp/
-goli/data/PCQM4Mv2/
-goli/data/PCQM4M/
-predictions/
+graphium/data/ZINC_bench_gnn/
+graphium/data/BindingDB/
+graphium/data/mega-pubchem/
+graphium/data/cache/
+graphium/data/b3lyp/
+graphium/data/PCQM4Mv2/
+graphium/data/PCQM4M/
+graphium/data/neurips2023/small-dataset/
+graphium/data/neurips2023/large-dataset/
+graphium/data/neurips2023/dummy-dataset/
+graphium/data/make_data_splits/*.csv*
+graphium/data/make_data_splits/*.pt*
+graphium/data/make_data_splits/*.parquet*
+
 
 # Others
 expts_untracked/
 debug/
 change_commits.sh
-goli/features/test_new_pes.ipynb
+graphium/features/test_new_pes.ipynb
 
 # IPU related ignores and profiler outputs
 *.a
@@ -49,7 +56,7 @@ goli/features/test_new_pes.ipynb
 *.popef
 *.pvti*
 
-############ END Goli Custom GitIgnore ##############
+############ END graphium Custom GitIgnore ##############
 
 
 # Byte-compiled / optimized / DLL files

@@ -7,14 +7,14 @@ from omegaconf import DictConfig
 from lightning.pytorch.utilities.model_summary import ModelSummary
 
 # Current project imports
-import goli
-from goli.config._loader import load_datamodule, load_metrics, load_trainer
+import graphium
+from graphium.config._loader import load_datamodule, load_metrics, load_trainer
 
-from goli.trainer.predictor import PredictorModule
+from graphium.trainer.predictor import PredictorModule
 
 
 # Set up the working directory
-MAIN_DIR = dirname(dirname(abspath(goli.__file__)))
+MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 os.chdir(MAIN_DIR)
 
 MODEL_FILE = "models_checkpoints/ogb-molpcba/model-v2.ckpt"

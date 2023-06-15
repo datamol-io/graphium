@@ -1,0 +1,289 @@
+# Testing the mpnn only model with the PCQMv2 dataset on IPU.
+constants:
+  name: &name pcqm4mv2_mpnn_4layer
+  seed: &seed 42
+  raise_train_error: true   # Whether the code should raise an error if it crashes during training
+  accelerator:
+    type: gpu  # cpu or ipu or gpu
+
+datamodule:
+  module_type: "MultitaskFromSmilesDataModule"
+  # module_type: "FakeDataModule"  # Option to use generated data
+  args: # Matches that in the test_multitask_datamodule.py case.
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      homolumo:
+        df: null
+        task_level: "graph"
+        df_path: ~/scratch/data/graphium/data/PCQM4M/pcqm4mv2-20k.csv
+        # wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv
+        # or set path as https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/pcqm4mv2-20k.csv directly
+        smiles_col: "cxsmiles"
+        label_cols: ["homo_lumo_gap"]
+        # sample_size: 30000 # use sample_size for test
+        # splits_path: graphium/data/PCQM4Mv2/split_dict.pt  # Download with `wget https://storage.googleapis.com/datasets-public-research/PCQM4M/cxsmiles/split_dict.pt`
+        split_val: 0.1
+        split_test: 0.1
+
+    # Featurization
+    prepare_dict_or_graph: pyg:graph
+    featurization_n_jobs: 30
+    featurization_progress: True
+    featurization_backend: "loky"
+    featurization:
+    # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
+    # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
+    # 'num_chiral_centers (not included yet)']
+      mask_nan: 0
+      atom_property_list_onehot: [atomic-number, group, period, total-valence]
+      atom_property_list_float: [degree, formal-charge, radical-electron, aromatic, in-ring]
+      # OGB: ['possible_bond_type', 'possible_bond_stereo', 'possible_is_in_ring']
+      edge_property_list: [bond-type-onehot, stereo, in-ring]
+      conformer_property_list: [positions_3d]
+      add_self_loop: False
+      explicit_H: False # if H is included
+      use_bonds_weights: False
+      pos_encoding_as_features: # encoder dropout 0.18
+        pos_types:
+          node_laplacian_eigvec:
+            pos_type: laplacian_eigvec
+            pos_level: node
+            num_pos: 8
+            normalization: "none"
+            disconnected_comp: True
+          node_laplacian_eigval:
+            pos_type: laplacian_eigval
+            pos_level: node
+            num_pos: 8
+            normalization: "none"
+            disconnected_comp: True
+          rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: node
+            ksteps: [4, 8]
+          nodepair_rw_transition_probs:
+            pos_type: rw_transition_probs
+            pos_level: edge
+            ksteps: [2, 4]
+          nodepair_rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: nodepair
+            ksteps: [4]
+          electrostatic:
+            pos_type: electrostatic
+            pos_level: node
+          edge_commute:
+            pos_type: commute
+            pos_level: edge
+          nodepair_graphormer:
+            pos_type: graphormer
+            pos_level: nodepair
+
+    # Data handling-related
+    batch_size_training: 64
+    batch_size_inference: 16
+    # cache_data_path: .
+    num_workers: 0 # -1 to use all
+    persistent_workers: False # if use persistent worker at the start of each epoch.
+    # Using persistent_workers false might make the start of each epoch very long.
+    featurization_backend: "loky"
+
+    # ipu_dataloader_training_opts:
+    #   mode: async
+    #   max_num_nodes_per_graph: 20 # train max nodes: 20, max_edges: 54
+    #   max_num_edges_per_graph: 60
+
+    # ipu_dataloader_inference_opts:
+    #   mode: async
+    #   max_num_nodes_per_graph: 20 # valid max nodes: 51, max_edges: 118
+    #   max_num_edges_per_graph: 120
+    #   # test-dev max nodes: 50, max_edges: 116
+    #   # test-challenge max nodes: 51, max_edges: 106
+
+architecture:
+  model_type: FullGraphMultiTaskNetwork
+  mup_base_path: null
+  pre_nn:   # Set as null to avoid a pre-nn network
+    out_dim: 32
+    hidden_dims: 64
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: &dropout 0.1
+    normalization: &normalization layer_norm
+    last_normalization: *normalization
+    residual_type: none
+
+  pre_nn_edges:   # Set as null to avoid a pre-nn network
+    out_dim: 16
+    hidden_dims: 32
+    depth: 2
+    activation: relu
+    last_activation: none
+    dropout: *dropout
+    normalization: *normalization
+    last_normalization: *normalization
+    residual_type: none
+
+  pe_encoders:
+    out_dim: &pe_out_dim 32
+    edge_out_dim: &edge_pe_out_dim 16
+    pool: "sum" #"mean" "max"
+    last_norm: None #"batch_norm", "layer_norm"
+    encoders:
+      emb_la_pos:
+        encoder_type: "laplacian_pe"
+        input_keys: ["laplacian_eigvec", "laplacian_eigval"]
+        output_keys: ["feat"]
+        hidden_dim: 32
+        model_type: 'DeepSet' #'Transformer' or 'DeepSet'
+        num_layers: 2
+        num_layers_post: 1 # Num. layers to apply after pooling
+        dropout: 0.1
+        first_normalization: "none" #"batch_norm" or "layer_norm"
+      emb_rwse:
+        encoder_type: "mlp"
+        input_keys: ["rw_return_probs"]
+        output_keys: ["feat"]
+        hidden_dim: 32
+        num_layers: 2
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_electrostatic:
+        encoder_type: "mlp"
+        input_keys: ["electrostatic"]
+        output_keys: ["feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+        first_normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_edge_rwse:
+        encoder_type: "mlp"
+        input_keys: ["edge_rw_transition_probs"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      emb_edge_pes:
+        encoder_type: "cat_mlp"
+        input_keys: ["edge_rw_transition_probs", "edge_commute"]
+        output_keys: ["edge_feat"]
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: "layer_norm" #"batch_norm" or "layer_norm"
+      gaussian_pos:
+        encoder_type: "gaussian_kernel"
+        input_keys: ["positions_3d"]
+        output_keys: ["feat", "nodepair_gaussian_bias_3d"]
+        num_heads: &num_heads 2
+        num_layers: 2
+        embed_dim: *pe_out_dim
+        use_input_keys_prefix: False
+
+  gnn:  # Set as null to avoid a post-nn network
+    out_dim: 32
+    hidden_dims: 32
+    depth: 4
+    activation: gelu
+    last_activation: none
+    dropout: 0.0
+    normalization: "layer_norm"
+    last_normalization: *normalization
+    residual_type: simple
+    pooling: [sum]
+    virtual_node: 'none'
+    layer_type: 'pyg:gps' #pyg:gine #'pyg:gps' # pyg:gated-gcn, pyg:gine,pyg:gps
+    layer_kwargs:  # Parameters for the model itself. You could define dropout_attn: 0.1
+      node_residual: false
+      mpnn_type: 'pyg:mpnnplus'
+      mpnn_kwargs:
+        in_dim: 32
+        out_dim: 32
+        in_dim_edges: 16
+        out_dim_edges: 16
+      attn_type: "full-attention" # "full-attention", "none"
+      # biased_attention: false
+      attn_kwargs:
+        num_heads: *num_heads
+      biased_attention_key: nodepair_gaussian_bias_3d
+
+
+  post_nn: null
+
+  task_heads:
+    homolumo:
+      out_dim: 1
+      hidden_dims: 256
+      depth: 2                          # Not needed if we have hidden_dims
+      activation: relu
+      last_activation: none
+      dropout: *dropout
+      normalization: *normalization
+      last_normalization: "none"
+      residual_type: none
+
+#Task-specific
+predictor:
+  metrics_on_progress_bar:
+    homolumo: ["mae", "pearsonr"]
+  loss_fun:
+    homolumo: mse_ipu
+  random_seed: *seed
+  optim_kwargs:
+    lr: 4.e-4 # warmup can be scheduled using torch_scheduler_kwargs
+    # weight_decay: 1.e-7
+  torch_scheduler_kwargs:
+    module_type: WarmUpLinearLR
+    max_num_epochs: &max_epochs 5
+    warmup_epochs: 10
+    verbose: False
+  scheduler_kwargs:
+  #  monitor: &monitor homolumo/mae/train
+  #  mode: min
+  #  frequency: 1
+  target_nan_mask: null # null: no mask, 0: 0 mask, ignore: ignore nan values from loss
+  flag_kwargs:
+    n_steps: 0 # 1
+    alpha: 0.0 # 0.01
+
+# Task-specific
+metrics:
+  homolumo:
+    - name: mae
+      metric: mae_ipu
+      target_nan_mask: null
+      multitask_handling: flatten
+      threshold_kwargs: null
+    - name: pearsonr
+      metric: pearsonr_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+
+trainer:
+  logger:
+    save_dir: logs/PCQMv2
+    name: *name
+    project: PCQMv2_mpnn
+  #early_stopping:
+  #  monitor: *monitor
+  #  min_delta: 0
+  #  patience: 10
+  #  mode: &mode min
+  model_checkpoint:
+    dirpath: models_checkpoints/PCMQv2/
+    filename: *name
+    #monitor: *monitor
+    #mode: *mode
+    save_top_k: 1
+    every_n_epochs: 100
+  trainer:
+    precision: 32
+    max_epochs: *max_epochs
+    min_epochs: 1
+    accumulate_grad_batches: 2
+    check_val_every_n_epoch: 20
+

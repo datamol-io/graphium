@@ -1,8 +1,8 @@
 import unittest as ut
 
-from goli.data import load_micro_zinc
-from goli.data.dataset import SingleTaskDataset, MultitaskDataset
-from goli.data.smiles_transform import smiles_to_unique_mol_ids
+from graphium.data import load_micro_zinc
+from graphium.data.dataset import SingleTaskDataset, MultitaskDataset
+from graphium.data.smiles_transform import smiles_to_unique_mol_ids
 
 
 class Test_Multitask_Dataset(ut.TestCase):
@@ -140,16 +140,16 @@ class Test_Multitask_Dataset(ut.TestCase):
 
             if task == "SA":
                 self.assertEqual(label_SA, multitask_microzinc.labels[found_idx]["SA"])
-                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys())
-                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys())
+                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys)
+                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys)
             elif task == "logp":
                 self.assertEqual(label_logp, multitask_microzinc.labels[found_idx]["logp"])
-                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys())
-                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys())
+                self.assertFalse("score" in multitask_microzinc.labels[found_idx].keys)
+                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys)
             elif task == "score":
                 self.assertEqual(label_score, multitask_microzinc.labels[found_idx]["score"])
-                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys())
-                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys())
+                self.assertFalse("SA" in multitask_microzinc.labels[found_idx].keys)
+                self.assertFalse("logp" in multitask_microzinc.labels[found_idx].keys)
 
     def test_multitask_dataset_case_3(self):
         """Case: Different tasks, but with semi-intersection (some smiles unique per task, some intersect)

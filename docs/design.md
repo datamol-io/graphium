@@ -1,4 +1,4 @@
-# Goli Library Design
+# Graphium Library Design
 
 ---
 
@@ -26,7 +26,7 @@ Then, you need to download the data needed to run the code. Right now, we have 2
 - **micro_ZINC** (Synthetic dataset)
   - A small subset (1000 mols) of the ZINC dataset
   - The score is the subtraction of the computed LogP and the synthetic accessibility score SA
-  - The data must be downloaded to the folder `./goli/data/micro_ZINC/`
+  - The data must be downloaded to the folder `./graphium/data/micro_ZINC/`
 
 - **ZINC_bench_gnn** (Synthetic dataset)
   - A subset (12000 mols) of the ZINC dataset
@@ -37,7 +37,7 @@ Then, you need to download the data needed to run the code. Right now, we have 2
       - The first 10k elements are the training set
       - The next 1k the valid set
       - The last 1k the test set.
-  - The data must be downloaded to the folder `./goli/data/ZINC_bench_gnn/`
+  - The data must be downloaded to the folder `./graphium/data/ZINC_bench_gnn/`
 
 Then, you can run the main file to make sure that all the dependancies are correctly installed and that the code works as expected.
 
@@ -47,7 +47,7 @@ python expts/main_micro_zinc.py
 
 ---
 
-**TODO: explain the internal design of Goli so people can contribute to it more easily.**
+**TODO: explain the internal design of Graphium so people can contribute to it more easily.**
 
 ## Structure of the code
 
@@ -80,45 +80,24 @@ Plot visualization tools
 
 ### Adding a new GNN layer
 
-Any new GNN layer must inherit from the class `goli.nn.base_graph_layer.BaseGraphLayer` and be implemented in the folder `goli/nn/pyg_layers`, imported in the file `goli/nn/architectures.py`, and in the same file, added to the function `FeedForwardGraph._parse_gnn_layer`.
+Any new GNN layer must inherit from the class `graphium.nn.base_graph_layer.BaseGraphLayer` and be implemented in the folder `graphium/nn/pyg_layers`, imported in the file `graphium/nn/architectures.py`, and in the same file, added to the function `FeedForwardGraph._parse_gnn_layer`.
 
-To be used in the configuration file as a `goli.model.layer_name`, it must also be implemented with some variable parameters in the file `expts/config_gnns.yaml`.
+To be used in the configuration file as a `graphium.model.layer_name`, it must also be implemented with some variable parameters in the file `expts/config_gnns.yaml`.
 
 ### Adding a new NN architecture
 
-All NN and GNN architectures compatible with the `pyg` library are provided in the file `goli/nn/global_architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `goli.nn.architectures.FeedForwardNN` for regular neural networks, from `goli.nn.global_architectures.FeedForwardGraph` for pyg neural network, or from any of their sub-classes.
+All NN and GNN architectures compatible with the `pyg` library are provided in the file `graphium/nn/global_architectures.py`. When implementing a new architecture, it is highly recommended to inherit from `graphium.nn.architectures.FeedForwardNN` for regular neural networks, from `graphium.nn.global_architectures.FeedForwardGraph` for pyg neural network, or from any of their sub-classes.
 
 ### Changing the PredictorModule and loss function
 
 The `PredictorModule` is a general pytorch-lightning module that should work with any kind of `pytorch.nn.Module` or `pl.LightningModule`. The class defines a structure of including models, loss functions, batch sizes, collate functions, metrics...
 
-Some loss functions are already implemented in the PredictorModule, including `mse, bce, mae, cosine`, but some tasks will require more complex loss functions. One can add any new function in `goli.trainer.predictor.PredictorModule._parse_loss_fun`.
+Some loss functions are already implemented in the PredictorModule, including `mse, bce, mae, cosine`, but some tasks will require more complex loss functions. One can add any new function in `graphium.trainer.predictor.PredictorModule._parse_loss_fun`.
 
 ### Changing the metrics used
 
 **_!WARNING! The metrics implementation was done for pytorch-lightning v0.8. There has been major changes to how the metrics are used and defined, so the whole implementation must change._**
 
-Our current code is compatible with the metrics defined by _pytorch-lightning_, which include a great set of metrics. We also added the PearsonR and SpearmanR as they are important correlation metrics. You can define any new metric in the file `goli/trainer/metrics.py`. The metric must inherit from `TensorMetric` and must be added to the dictionary `goli.trainer.metrics.METRICS_DICT`.
+Our current code is compatible with the metrics defined by _pytorch-lightning_, which include a great set of metrics. We also added the PearsonR and SpearmanR as they are important correlation metrics. You can define any new metric in the file `graphium/trainer/metrics.py`. The metric must inherit from `TensorMetric` and must be added to the dictionary `graphium.trainer.metrics.METRICS_DICT`.
 
 To use the metric, you can easily add it's name from `METRICS_DICT` in the yaml configuration file, at the address `metrics.metrics_dict`. Each metric has an underlying dictionnary with a mandatory `threshold` key containing information on how to threshold the prediction/target before computing the metric. Any `kwargs` arguments of the metric must also be added.
-
-## (OLD) Running a hyper-parameter search
-
-In the current repository, we use `hydra-core` to launch multiple experiments in a grid-search manner. It works by specifying the parameters that we want to change from a given YAML file.
-
-Below is an example of running a set of 3\*2\*2\*2=24 experiments, 3 variations of the gnn type _layer_name_, 2 variations of the learning rate _lr_, 2 variations of the hidden dimension _hidden_dim_, 2 variations of the network depth _hidden_depth_. All parameters not mentionned in the code below are unchanged from the file `expts/main_micro_ZINC.py`.
-
-    python expts/main_micro_ZINC.py --multirun \
-    model.layer_name=gin,gcn,pna-conv3 \
-    constants.exp_name="testing_hydra" \
-    constants.device="cuda:0" \
-    constants.ignore_train_error=true \
-    predictor.lr=1e-4,1e-3 \
-    model.gnn_kwargs.hidden_dim=32,64 \
-    model.gnn_kwargs.hidden_depth=4,8
-
-The results of the run will be available in the folder `multirun/[CURRENT-DATE]/[CURRENT-TIME]`. To open the results in tensorflow, run the following command using _bash_ or _powershell_
-
-`tensorboard --logdir 'multirun/[CURRENT-DATE]/[CURRENT-TIME]/' --port 8000`
-
-Then open a web-browser and enter the address `http://localhost:8000/`.

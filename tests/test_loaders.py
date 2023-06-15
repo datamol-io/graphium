@@ -1,4 +1,4 @@
-from goli.config._loader import merge_dicts
+from graphium.config._loader import merge_dicts
 from copy import deepcopy
 import unittest as ut
 

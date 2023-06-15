@@ -4,17 +4,23 @@ from time import time
 import yaml
 import fsspec
 
-from goli.config._loader import load_datamodule, load_metrics, load_trainer, load_predictor, load_architecture
+from graphium.config._loader import (
+    load_datamodule,
+    load_metrics,
+    load_trainer,
+    load_predictor,
+    load_architecture,
+)
 from lightning import Trainer
 
 
 def main():
     CONFIG_PATH = "expts/config_micro-PCBA.yaml"
-    # DATA_PATH = "https://storage.googleapis.com/goli-public/datasets/goli-zinc-bench-gnn/smiles_score.csv.gz"
+    # DATA_PATH = "https://storage.googleapis.com/graphium-public/datasets/graphium-zinc-bench-gnn/smiles_score.csv.gz"
 
     with fsspec.open(CONFIG_PATH, "r") as f:
         cfg = yaml.safe_load(f)
-    cfg["datamodule"]["args"]["cache_data_path"] = "goli/data/cache/profiling/predictor_data.cache"
+    cfg["datamodule"]["args"]["cache_data_path"] = "graphium/data/cache/profiling/predictor_data.cache"
     # cfg["datamodule"]["args"]["df_path"] = DATA_PATH
     cfg["trainer"]["trainer"]["max_epochs"] = 5
     cfg["trainer"]["trainer"]["min_epochs"] = 5

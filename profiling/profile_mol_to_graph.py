@@ -2,8 +2,8 @@ from tqdm import tqdm
 import datamol as dm
 import pickle
 
-from goli.data.utils import load_micro_zinc
-from goli.features.featurizer import mol_to_pyggraph, mol_to_adj_and_features, mol_to_graph_dict
+from graphium.data.utils import load_micro_zinc
+from graphium.features.featurizer import mol_to_pyggraph, mol_to_adj_and_features, mol_to_graph_dict
 
 # Check out this profiling tool: https://kirillstrelkov.medium.com/python-profiling-with-vscode-3a17c0407833
 
