@@ -485,9 +485,6 @@ class PredictorModule(pl.LightningModule):
             # step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
             step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
 
-        # step_dict.pop("preds")
-        # step_dict.pop("targets")
-
         return step_dict  # Returning the metrics_logs with the loss
 
     def get_gradient_norm(self):
@@ -650,12 +647,9 @@ class PredictorModule(pl.LightningModule):
         return PredictorModule.load_from_checkpoint(GRAPHIUM_PRETRAINED_MODELS[name])
 
     def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
-        logger.info("About to set up the datamodule")
         datamodule.setup()
 
-        logger.info("Getting max nodes")
         max_nodes = datamodule.get_max_num_nodes_datamodule(stages)
-        logger.info("Getting max _edges")
         max_edges = datamodule.get_max_num_edges_datamodule(stages)
 
         self.model.set_max_num_nodes_edges_per_graph(max_nodes, max_edges)

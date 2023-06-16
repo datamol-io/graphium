@@ -388,10 +388,6 @@ class TaskSummaries(SummaryInterface):
             task_losses: the task losses
             n_epochs: the number of epochs
         """
-        for task, pred in predictions.items():
-            if pred.dtype == torch.float16:
-                pred_fp32 = pred.to(torch.float32)
-                predictions[task] = pred_fp32
         self.weighted_loss = loss
         self.step_name = step_name
         for task in self.tasks:

@@ -112,7 +112,6 @@ def main(cfg: DictConfig, run_name: str = "main", add_date_time: bool = True) ->
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", help="Path to the config file", default=None)
-    parser.add_argument("--metrics_str", help="Metrics dictionary as a string", default=None)  # HACK:
 
     args, unknown = parser.parse_known_args()
     # Optionally parse the config with the command line
@@ -123,11 +122,4 @@ if __name__ == "__main__":
         cfg = yaml.safe_load(f)
         refs = get_anchors_and_aliases(CONFIG_FILE)
         cfg = update_config(cfg, unknown, refs)
-    # HACK: Using eval to put the metrics portion into the config via the command line
-    if args.metrics_str is not None:
-        # Place the metrics string in the config
-        logger.info("HACK: Setting the metrics via command line art string input")
-        cfg["metrics"] = eval(args.metrics_str)
-    logger.info("HACK: Setting the progress bar metrics to []")
-    cfg["predictor"]["metrics_on_progress_bar"]["qm9"] = []
     main(cfg)
