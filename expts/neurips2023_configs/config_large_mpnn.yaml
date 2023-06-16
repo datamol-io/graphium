@@ -265,7 +265,7 @@ architecture:
       hidden_dims: 128
       depth: 2
       activation: none
-      last_activation: sigmoid
+      last_activation: none
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
@@ -276,7 +276,7 @@ architecture:
       hidden_dims: 128
       depth: 2
       activation: none
-      last_activation: sigmoid
+      last_activation: none
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
