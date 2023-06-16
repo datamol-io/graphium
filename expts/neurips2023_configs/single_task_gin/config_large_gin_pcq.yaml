@@ -172,7 +172,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 832
+    out_dim: &gnn_dim 704
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu

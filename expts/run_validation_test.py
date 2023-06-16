@@ -36,12 +36,12 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
-# CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gine.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/single/config_small_gcn_qm9.yaml"
-# CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
+# CONFIG_FILE = "exptas/neurips2023_configs/config_small_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
 os.chdir(MAIN_DIR)
 

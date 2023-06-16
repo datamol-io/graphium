@@ -1004,7 +1004,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info("Filtering the molecules for Hydrogen")
             logger.info(f"Looking at column {df.columns[0]}")
             # Filter the DataFrame based on the function
-            df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
+            # need this for pcba dataset
+            # df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
             logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]

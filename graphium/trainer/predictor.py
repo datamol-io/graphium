@@ -310,8 +310,6 @@ class PredictorModule(pl.LightningModule):
         }
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
-            if pred.dtype == torch.float16:
-                preds[task] = pred.to(torch.float32)
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
             if hasattr(task_specific_norm, "normalize_val_test"):
                 normalize_val_test = task_specific_norm.normalize_val_test

@@ -15,8 +15,8 @@ accelerator:
           max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 90 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 300
+          max_num_nodes_per_graph: 200 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 400
         # Data handling-related
         batch_size_training: 10
         batch_size_inference: 2
@@ -154,7 +154,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 832
+    out_dim: &gnn_dim 704
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
