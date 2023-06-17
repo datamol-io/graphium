@@ -1,0 +1,5382 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Graphium: Scaling molecular GNNs to infinity.">
+      
+      
+      
+        <link rel="canonical" href="https://github.com/datamol-io/graphium/2.0.2/api/graphium.utils.html">
+      
+      
+        <link rel="prev" href="graphium.data.html">
+      
+      
+        <link rel="next" href="graphium.config.html">
+      
+      <link rel="icon" href="../images/logo.png">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+    
+    
+      
+        <title>graphium.utils - graphium</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      
+      
+
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom.css">
+    
+      <link rel="stylesheet" href="../_assets/css/custom-graphium.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&"object"==typeof palette.color)for(var key of Object.keys(palette.color))document.body.setAttribute("data-md-color-"+key,palette.color[key])</script>
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#graphiumutils" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../index.html" title="graphium" class="md-header__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            graphium
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              graphium.utils
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../index.html" class="md-tabs__link">
+      Overview
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../baseline.html" class="md-tabs__link">
+      Baseline
+    </a>
+  </li>
+
+      
+        
+  
+  
+    
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="graphium.nn/graphium.nn.html" class="md-tabs__link md-tabs__link--active">
+        API
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  
+  
+  
+    
+
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
+        Tutorials
+      </a>
+    </li>
+  
+
+  
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../design.html" class="md-tabs__link">
+      Design
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../datasets.html" class="md-tabs__link">
+      Datasets
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../pretrained_models.html" class="md-tabs__link">
+      Pretrained Models
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../contribute.html" class="md-tabs__link">
+      Contribute
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../license.html" class="md-tabs__link">
+      License
+    </a>
+  </li>
+
+      
+        
+  
+  
+
+
+  <li class="md-tabs__item">
+    <a href="../cli_references.html" class="md-tabs__link">
+      CLI
+    </a>
+  </li>
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../index.html" title="graphium" class="md-nav__button md-logo" aria-label="graphium" data-md-component="logo">
+      
+  <img src="../images/logo.svg" alt="logo">
+
+    </a>
+    graphium
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/datamol-io/graphium" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2023 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81z"/></svg>
+  </div>
+  <div class="md-source__repository">
+    valence-discovery/graphium
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../index.html" class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../baseline.html" class="md-nav__link">
+        Baseline
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+      
+      
+      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          API
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <label class="md-nav__title" for="__nav_3">
+          <span class="md-nav__icon md-icon"></span>
+          API
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+          graphium.nn
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_3_1">
+          <span class="md-nav__icon md-icon"></span>
+          graphium.nn
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/graphium.nn.html" class="md-nav__link">
+        graphium.nn
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/architectures.html" class="md-nav__link">
+        graphium.nn.architectures
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/encoders.html" class="md-nav__link">
+        graphium.nn.encoders
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.nn/pyg_layers.html" class="md-nav__link">
+        graphium.nn.pyg_layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.features.html" class="md-nav__link">
+        graphium.features
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.trainer.html" class="md-nav__link">
+        graphium.trainer
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.data.html" class="md-nav__link">
+        graphium.data
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          graphium.utils
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="graphium.utils.html" class="md-nav__link md-nav__link--active">
+        graphium.utils
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#argument-checker" class="md-nav__link">
+    Argument Checker
+  </a>
+  
+    <nav class="md-nav" aria-label="Argument Checker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker" class="md-nav__link">
+    arg_checker
+  </a>
+  
+    <nav class="md-nav" aria-label="arg_checker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker.check_arg_iterator" class="md-nav__link">
+    check_arg_iterator()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker.check_columns_choice" class="md-nav__link">
+    check_columns_choice()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker.check_list1_in_list2" class="md-nav__link">
+    check_list1_in_list2()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decorators" class="md-nav__link">
+    Decorators
+  </a>
+  
+    <nav class="md-nav" aria-label="Decorators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.decorators" class="md-nav__link">
+    decorators
+  </a>
+  
+    <nav class="md-nav" aria-label="decorators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.decorators.classproperty" class="md-nav__link">
+    classproperty
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dictionary-of-tensors" class="md-nav__link">
+    Dictionary of Tensors
+  </a>
+  
+    <nav class="md-nav" aria-label="Dictionary of Tensors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor" class="md-nav__link">
+    dict_tensor
+  </a>
+  
+    <nav class="md-nav" aria-label="dict_tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor.DictTensor" class="md-nav__link">
+    DictTensor
+  </a>
+  
+    <nav class="md-nav" aria-label="DictTensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor.DictTensor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor.DictTensor.apply" class="md-nav__link">
+    apply()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-system" class="md-nav__link">
+    File System
+  </a>
+  
+    <nav class="md-nav" aria-label="File System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs" class="md-nav__link">
+    fs
+  </a>
+  
+    <nav class="md-nav" aria-label="fs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.copy" class="md-nav__link">
+    copy()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.exists" class="md-nav__link">
+    exists()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.exists_and_not_empty" class="md-nav__link">
+    exists_and_not_empty()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_basename" class="md-nav__link">
+    get_basename()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_cache_dir" class="md-nav__link">
+    get_cache_dir()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_extension" class="md-nav__link">
+    get_extension()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_mapper" class="md-nav__link">
+    get_mapper()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_size" class="md-nav__link">
+    get_size()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.join" class="md-nav__link">
+    join()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.mkdir" class="md-nav__link">
+    mkdir()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.rm" class="md-nav__link">
+    rm()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hashing" class="md-nav__link">
+    Hashing
+  </a>
+  
+    <nav class="md-nav" aria-label="Hashing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.hashing" class="md-nav__link">
+    hashing
+  </a>
+  
+    <nav class="md-nav" aria-label="hashing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.hashing.get_md5_hash" class="md-nav__link">
+    get_md5_hash()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moving-average-tracker" class="md-nav__link">
+    Moving Average Tracker
+  </a>
+  
+    <nav class="md-nav" aria-label="Moving Average Tracker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.moving_average_tracker" class="md-nav__link">
+    moving_average_tracker
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mup" class="md-nav__link">
+    MUP
+  </a>
+  
+    <nav class="md-nav" aria-label="MUP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.mup" class="md-nav__link">
+    mup
+  </a>
+  
+    <nav class="md-nav" aria-label="mup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.mup.apply_infshapes" class="md-nav__link">
+    apply_infshapes()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.mup.set_base_shapes" class="md-nav__link">
+    set_base_shapes()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-file" class="md-nav__link">
+    Read File
+  </a>
+  
+    <nav class="md-nav" aria-label="Read File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file" class="md-nav__link">
+    read_file
+  </a>
+  
+    <nav class="md-nav" aria-label="read_file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.file_opener" class="md-nav__link">
+    file_opener()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.parse_sdf_to_dataframe" class="md-nav__link">
+    parse_sdf_to_dataframe()
+  </a>
+  
+    <nav class="md-nav" aria-label="parse_sdf_to_dataframe()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.parse_sdf_to_dataframe--arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.read_file" class="md-nav__link">
+    read_file()
+  </a>
+  
+    <nav class="md-nav" aria-label="read_file()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.read_file--arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.read_file--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safe-run" class="md-nav__link">
+    Safe Run
+  </a>
+  
+    <nav class="md-nav" aria-label="Safe Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run" class="md-nav__link">
+    safe_run
+  </a>
+  
+    <nav class="md-nav" aria-label="safe_run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun" class="md-nav__link">
+    SafeRun
+  </a>
+  
+    <nav class="md-nav" aria-label="SafeRun">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun.__enter__" class="md-nav__link">
+    __enter__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun.__exit__" class="md-nav__link">
+    __exit__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaces" class="md-nav__link">
+    Spaces
+  </a>
+  
+    <nav class="md-nav" aria-label="Spaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.spaces" class="md-nav__link">
+    spaces
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tensor" class="md-nav__link">
+    Tensor
+  </a>
+  
+    <nav class="md-nav" aria-label="Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor" class="md-nav__link">
+    tensor
+  </a>
+  
+    <nav class="md-nav" aria-label="tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleListConcat" class="md-nav__link">
+    ModuleListConcat
+  </a>
+  
+    <nav class="md-nav" aria-label="ModuleListConcat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleListConcat.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleWrap" class="md-nav__link">
+    ModuleWrap
+  </a>
+  
+    <nav class="md-nav" aria-label="ModuleWrap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleWrap.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.arg_in_func" class="md-nav__link">
+    arg_in_func()
+  </a>
+  
+    <nav class="md-nav" aria-label="arg_in_func()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.arg_in_func--parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.arg_in_func--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.is_device_cuda" class="md-nav__link">
+    is_device_cuda()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.is_dtype_numpy_array" class="md-nav__link">
+    is_dtype_numpy_array()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.is_dtype_torch_tensor" class="md-nav__link">
+    is_dtype_torch_tensor()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_mad" class="md-nav__link">
+    nan_mad()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_mean" class="md-nav__link">
+    nan_mean()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_median" class="md-nav__link">
+    nan_median()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_std" class="md-nav__link">
+    nan_std()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_var" class="md-nav__link">
+    nan_var()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.one_of_k_encoding" class="md-nav__link">
+    one_of_k_encoding()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.parse_valid_args" class="md-nav__link">
+    parse_valid_args()
+  </a>
+  
+    <nav class="md-nav" aria-label="parse_valid_args()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.parse_valid_args--parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.parse_valid_args--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.config.html" class="md-nav__link">
+        graphium.config
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.ipu.html" class="md-nav__link">
+        graphium.ipu
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="graphium.visualization.html" class="md-nav__link">
+        graphium.visualization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          Tutorials
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4">
+          <span class="md-nav__icon md-icon"></span>
+          Tutorials
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_1" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_1" id="__nav_4_1_label" tabindex="0">
+          feature_processing
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_1_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_1">
+          <span class="md-nav__icon md-icon"></span>
+          feature_processing
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/add_new_positional_encoding.html" class="md-nav__link">
+        Add new positional encoding
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/csv_to_parquet.html" class="md-nav__link">
+        Convert CSV to Parquet files
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/feature_processing/timing_parallel.html" class="md-nav__link">
+        Timing parallel processing
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+          gnn_layers
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_2">
+          <span class="md-nav__icon md-icon"></span>
+          gnn_layers
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/add_new_gnn_layers.html" class="md-nav__link">
+        Creating GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/making_gnn_networks.html" class="md-nav__link">
+        Making GNN Networks
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/gnn/using_gnn_layers.html" class="md-nav__link">
+        Using GNN layers
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+      
+      
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+      
+      
+      
+        <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+          model_training
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+        <label class="md-nav__title" for="__nav_4_3">
+          <span class="md-nav__icon md-icon"></span>
+          model_training
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/simple-molecular-model.html" class="md-nav__link">
+        Building and training a simple model from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/model_training/ipu_training.html" class="md-nav__link">
+        Building and training on IPU from configurations
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorials/basics/choosing_parallelization.ipynb" class="md-nav__link">
+        Chosing the right parallelization
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../design.html" class="md-nav__link">
+        Design
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets.html" class="md-nav__link">
+        Datasets
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pretrained_models.html" class="md-nav__link">
+        Pretrained Models
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../contribute.html" class="md-nav__link">
+        Contribute
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../license.html" class="md-nav__link">
+        License
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli_references.html" class="md-nav__link">
+        CLI
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#argument-checker" class="md-nav__link">
+    Argument Checker
+  </a>
+  
+    <nav class="md-nav" aria-label="Argument Checker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker" class="md-nav__link">
+    arg_checker
+  </a>
+  
+    <nav class="md-nav" aria-label="arg_checker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker.check_arg_iterator" class="md-nav__link">
+    check_arg_iterator()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker.check_columns_choice" class="md-nav__link">
+    check_columns_choice()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.arg_checker.check_list1_in_list2" class="md-nav__link">
+    check_list1_in_list2()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decorators" class="md-nav__link">
+    Decorators
+  </a>
+  
+    <nav class="md-nav" aria-label="Decorators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.decorators" class="md-nav__link">
+    decorators
+  </a>
+  
+    <nav class="md-nav" aria-label="decorators">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.decorators.classproperty" class="md-nav__link">
+    classproperty
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dictionary-of-tensors" class="md-nav__link">
+    Dictionary of Tensors
+  </a>
+  
+    <nav class="md-nav" aria-label="Dictionary of Tensors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor" class="md-nav__link">
+    dict_tensor
+  </a>
+  
+    <nav class="md-nav" aria-label="dict_tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor.DictTensor" class="md-nav__link">
+    DictTensor
+  </a>
+  
+    <nav class="md-nav" aria-label="DictTensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor.DictTensor.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.dict_tensor.DictTensor.apply" class="md-nav__link">
+    apply()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#file-system" class="md-nav__link">
+    File System
+  </a>
+  
+    <nav class="md-nav" aria-label="File System">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs" class="md-nav__link">
+    fs
+  </a>
+  
+    <nav class="md-nav" aria-label="fs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.copy" class="md-nav__link">
+    copy()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.exists" class="md-nav__link">
+    exists()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.exists_and_not_empty" class="md-nav__link">
+    exists_and_not_empty()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_basename" class="md-nav__link">
+    get_basename()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_cache_dir" class="md-nav__link">
+    get_cache_dir()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_extension" class="md-nav__link">
+    get_extension()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_mapper" class="md-nav__link">
+    get_mapper()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.get_size" class="md-nav__link">
+    get_size()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.join" class="md-nav__link">
+    join()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.mkdir" class="md-nav__link">
+    mkdir()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.fs.rm" class="md-nav__link">
+    rm()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hashing" class="md-nav__link">
+    Hashing
+  </a>
+  
+    <nav class="md-nav" aria-label="Hashing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.hashing" class="md-nav__link">
+    hashing
+  </a>
+  
+    <nav class="md-nav" aria-label="hashing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.hashing.get_md5_hash" class="md-nav__link">
+    get_md5_hash()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#moving-average-tracker" class="md-nav__link">
+    Moving Average Tracker
+  </a>
+  
+    <nav class="md-nav" aria-label="Moving Average Tracker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.moving_average_tracker" class="md-nav__link">
+    moving_average_tracker
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mup" class="md-nav__link">
+    MUP
+  </a>
+  
+    <nav class="md-nav" aria-label="MUP">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.mup" class="md-nav__link">
+    mup
+  </a>
+  
+    <nav class="md-nav" aria-label="mup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.mup.apply_infshapes" class="md-nav__link">
+    apply_infshapes()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.mup.set_base_shapes" class="md-nav__link">
+    set_base_shapes()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-file" class="md-nav__link">
+    Read File
+  </a>
+  
+    <nav class="md-nav" aria-label="Read File">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file" class="md-nav__link">
+    read_file
+  </a>
+  
+    <nav class="md-nav" aria-label="read_file">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.file_opener" class="md-nav__link">
+    file_opener()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.parse_sdf_to_dataframe" class="md-nav__link">
+    parse_sdf_to_dataframe()
+  </a>
+  
+    <nav class="md-nav" aria-label="parse_sdf_to_dataframe()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.parse_sdf_to_dataframe--arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.read_file" class="md-nav__link">
+    read_file()
+  </a>
+  
+    <nav class="md-nav" aria-label="read_file()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.read_file--arguments" class="md-nav__link">
+    Arguments
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.read_file.read_file--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#safe-run" class="md-nav__link">
+    Safe Run
+  </a>
+  
+    <nav class="md-nav" aria-label="Safe Run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run" class="md-nav__link">
+    safe_run
+  </a>
+  
+    <nav class="md-nav" aria-label="safe_run">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun" class="md-nav__link">
+    SafeRun
+  </a>
+  
+    <nav class="md-nav" aria-label="SafeRun">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun.__enter__" class="md-nav__link">
+    __enter__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun.__exit__" class="md-nav__link">
+    __exit__()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.safe_run.SafeRun.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#spaces" class="md-nav__link">
+    Spaces
+  </a>
+  
+    <nav class="md-nav" aria-label="Spaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.spaces" class="md-nav__link">
+    spaces
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tensor" class="md-nav__link">
+    Tensor
+  </a>
+  
+    <nav class="md-nav" aria-label="Tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor" class="md-nav__link">
+    tensor
+  </a>
+  
+    <nav class="md-nav" aria-label="tensor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleListConcat" class="md-nav__link">
+    ModuleListConcat
+  </a>
+  
+    <nav class="md-nav" aria-label="ModuleListConcat">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleListConcat.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleWrap" class="md-nav__link">
+    ModuleWrap
+  </a>
+  
+    <nav class="md-nav" aria-label="ModuleWrap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.ModuleWrap.forward" class="md-nav__link">
+    forward()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.arg_in_func" class="md-nav__link">
+    arg_in_func()
+  </a>
+  
+    <nav class="md-nav" aria-label="arg_in_func()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.arg_in_func--parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.arg_in_func--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.is_device_cuda" class="md-nav__link">
+    is_device_cuda()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.is_dtype_numpy_array" class="md-nav__link">
+    is_dtype_numpy_array()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.is_dtype_torch_tensor" class="md-nav__link">
+    is_dtype_torch_tensor()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_mad" class="md-nav__link">
+    nan_mad()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_mean" class="md-nav__link">
+    nan_mean()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_median" class="md-nav__link">
+    nan_median()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_std" class="md-nav__link">
+    nan_std()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.nan_var" class="md-nav__link">
+    nan_var()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.one_of_k_encoding" class="md-nav__link">
+    one_of_k_encoding()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.parse_valid_args" class="md-nav__link">
+    parse_valid_args()
+  </a>
+  
+    <nav class="md-nav" aria-label="parse_valid_args()">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.parse_valid_args--parameters" class="md-nav__link">
+    Parameters
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.utils.tensor.parse_valid_args--returns" class="md-nav__link">
+    Returns
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+  
+  
+
+
+<h1 id="graphiumutils">graphium.utils<a class="headerlink" href="#graphiumutils" title="Permanent link">&para;</a></h1>
+<p>module for utility functions</p>
+<div class="tabbed-set" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><label for="__tabbed_1_1">Contents</label><div class="tabbed-content">
+<ul>
+<li><a href="#argument-checker">Argument Checker</a></li>
+<li><a href="#decorators">Decorators</a></li>
+<li><a href="#dictionary-of-tensors">Dictionary of Tensors</a></li>
+<li><a href="#file-system">File System</a></li>
+<li><a href="#hashing">Hashing</a></li>
+<li><a href="#moving-average-tracker">Moving Average Tracker</a></li>
+<li><a href="#mup">MUP</a></li>
+<li><a href="#read-file">Read File</a></li>
+<li><a href="#safe-run">Safe Run</a></li>
+<li><a href="#spaces">Spaces</a></li>
+<li><a href="#tensor">Tensor</a></li>
+</ul>
+</div>
+</div>
+<h2 id="argument-checker">Argument Checker<a class="headerlink" href="#argument-checker" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.arg_checker" class="doc doc-heading">
+          <code>graphium.utils.arg_checker</code>
+
+
+<a href="#graphium.utils.arg_checker" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+  
+      <p>Argument checker module</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.arg_checker.check_arg_iterator" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_arg_iterator</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">enforce_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enforce_subtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cast_subtype</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.arg_checker.check_arg_iterator" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Verify if the type is an iterator. If it is <code>None</code>, convert to an empty list/tuple. If it is
+not a list/tuple/str, try to convert to an iterator. If it is a str or cannot be converted to
+an iterator, then put the <code>arg</code> inside an iterator.
+Possibly enforce the iterator type to <code>list</code> or <code>tuple</code>, if <code>enfoce_type</code> is not None.
+Possibly enforce the subtype to any given type if <code>enforce_subtype</code> is not None,
+and decide whether to cast the subtype or to throw an error.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>arg</code></td>
+          <td>
+                <code>any type</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input to verify/convert to an iterator (list or tuple). If None, an empty iterator
+is returned.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>enforce_type</code></td>
+          <td>
+                <code>str or type</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The type to enforce the iterator. The valid choices are :
+<code>None</code>, <code>list</code>, <code>tuple</code>, <code>'none'</code>, <code>'list'</code>, <code>'tuple'</code>.
+If <code>None</code>, then the iterator type is not enforced.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>enforce_subtype</code></td>
+          <td>
+                <code>type, np.dtype or str representing basic type</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Verify if all the elements inside the iterator are the desired type.
+If <code>None</code>, then the sub-type is not enforced.
+Accepted strings are ['none', 'str', 'list', 'tuple', 'dict', 'int',
+'float', 'complex', 'bool', 'callable']</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>cast_subtype</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>If True, then the type specified by <code>enforce_subtype</code> is used to cast the
+elements inside the iterator. If False, then an error is thrown if the
+types do not match.</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output</code></td>          <td>
+                <code>iterator</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>An iterator based on the input of the desired type (list or tuple) and
+the desired subtypes.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.arg_checker.check_columns_choice" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_columns_choice</span><span class="p">(</span><span class="n">dataframe</span><span class="p">,</span> <span class="n">columns_choice</span><span class="p">,</span> <span class="n">extra_accepted_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">enforce_type</span><span class="o">=</span><span class="s1">&#39;list&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.arg_checker.check_columns_choice" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Verify if the choice of column <code>columns_choice</code> is inside the dataframe or
+the extra_accepted_cols. Otherwise, errors are thrown by the sub-functions.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dataframe</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(pd.DataFrame)
+The dataframe on which to verify if the column choice is valid.
+columns_choice: str, iterator(str)
+The columns chosen from the dataframe</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>extra_accepted_cols</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>str, iterator(str)
+A list</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>enforce_type</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>str or type
+The type to enforce the iterator. The valid choices are :
+<code>None</code>, <code>list</code>, <code>tuple</code>, <code>'none'</code>, <code>'list'</code>, <code>'tuple'</code>.
+If <code>None</code>, then the iterator type is not enforced.</p>
+            </div>
+          </td>
+          <td>
+                <code>&#39;list&#39;</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output</code></td>          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>iterator
+A str iterator based on the input of the desired type (list or tuple)</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.arg_checker.check_list1_in_list2" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">check_list1_in_list2</span><span class="p">(</span><span class="n">list1</span><span class="p">,</span> <span class="n">list2</span><span class="p">,</span> <span class="n">throw_error</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.arg_checker.check_list1_in_list2" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Verify if the list1 (iterator) is included in list2 (iterator). If not, raise an error.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>list1,</code></td>
+          <td>
+                <code>list2</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>list, tuple or object
+A list or tuple containing the elements to verify the inclusion.
+If an object is provided other than a list or tuple,
+then it is considered as a list of a single element.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>throw_error</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool
+Whether to throw an error if list1 is not in list2</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>list1_in_list2</code></td>          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool
+A boolean representing the inclusion of list1 in list2. It is returned if
+throw_error is set to false</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="decorators">Decorators<a class="headerlink" href="#decorators" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.decorators" class="doc doc-heading">
+          <code>graphium.utils.decorators</code>
+
+
+<a href="#graphium.utils.decorators" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.utils.decorators.classproperty" class="doc doc-heading">
+        <code>classproperty</code>
+
+
+<a href="#graphium.utils.decorators.classproperty" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code>property</code></p>
+
+  
+      <p>Decorator used to declare a class property, defined for the class
+without needing to instanciate an object.</p>
+<div class="admonition example">
+<p class="admonition-title">Example</p>
+<div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">1</span>
+<span class="normal">2</span>
+<span class="normal">3</span></pre></div></td><td class="code"><div><pre><span></span><code>    <span class="nd">@classproperty</span>
+    <span class="k">def</span> <span class="nf">my_class_property</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">5</span>
+</code></pre></div></td></tr></table></div>
+</div>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="dictionary-of-tensors">Dictionary of Tensors<a class="headerlink" href="#dictionary-of-tensors" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.dict_tensor" class="doc doc-heading">
+          <code>graphium.utils.dict_tensor</code>
+
+
+<a href="#graphium.utils.dict_tensor" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.utils.dict_tensor.DictTensor" class="doc doc-heading">
+        <code>DictTensor</code>
+
+
+<a href="#graphium.utils.dict_tensor.DictTensor" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code>dict</code></p>
+
+  
+      <p>A class that combines the functionality of <code>dict</code> and <code>torch.Tensor</code>.
+Specifically, it is a dict of Tensor, but it has all the methods and attributes of a Tensor.
+When a given method or attribute is called, it will be called on each element
+of the dict, and a new dict is returned.</p>
+<p>All methods from <code>torch.Tensor</code> and other functions are expected to work on <code>DictTensor</code></p>
+
+<details class="with-the-following-rules" open>
+  <summary>with the following rules</summary>
+  <ul>
+<li>The function receives one <code>DictTensor</code>: The function will be applied on
+  all values of the dictionary. Examples are <code>torch.sum</code> or <code>torch.abs</code>.</li>
+<li>The function receives two <code>DictTensor</code>: The function will be applied on
+  each pair of Tensor with matching keys. If the keys don't match, an error
+  will be thrown. Example are operators such as <code>dict_tensor1 + dict_tensor2</code>
+  or <code>dict_tensor1 == dict_tensor2</code>.</li>
+</ul>
+</details>      <p>The output of the functions that act on the <code>torch.Tensor</code> level is a <code>dict[Any]</code>.
+If the output is a <code>dict[torch.Tensor]</code>, it is converted automatically to <code>DictTensor</code>.</p>
+<p>If a given method is available in both <code>dict</code> and <code>torch.Tensor</code>, then the one
+from <code>Tensor</code> is not available. Exceptions to the above rules are the <code>__dict__</code>
+and all comparison methods:</p>
+<ul>
+<li><code>__dict__</code>: Not available for this class.</li>
+<li><code>__lt__</code> or <code>&lt;</code>: Supports two-way comparison between <code>DictTensor</code> and number, <code>torch.Tensor</code> or <code>DictTensor</code>.</li>
+<li><code>__le__</code> or <code>&lt;=</code>: Supports two-way comparison between <code>DictTensor</code> and number, <code>torch.Tensor</code> or <code>DictTensor</code>.</li>
+<li><code>__eq__</code> or <code>==</code>: Supports two-way comparison between <code>DictTensor</code> and number, <code>torch.Tensor</code> or <code>DictTensor</code>.</li>
+<li><code>__ne__</code> or <code>!=</code>: Supports two-way comparison between <code>DictTensor</code> and number, <code>torch.Tensor</code> or <code>DictTensor</code>.</li>
+<li><code>__gt__</code> or <code>&gt;</code>: Supports two-way comparison between <code>DictTensor</code> and number, <code>torch.Tensor</code> or <code>DictTensor</code>.</li>
+<li><code>__ge__</code> or <code>&gt;=</code>: Supports two-way comparison between <code>DictTensor</code> and number, <code>torch.Tensor</code> or <code>DictTensor</code>.</li>
+</ul>
+<p>The only major function from <code>torch.Tensor</code> that doesn't work (to my knowledge) is the indexing.
+Indexing has to be done by manually looping the dictionary.</p>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <div class="highlight"><pre><span></span><code># Summing a float to a DictTensor
+dict_ten = DictTensor({
+        &quot;a&quot;: torch.zeros(5),
+        &quot;b&quot;: torch.zeros(2, 3),
+        &quot;c&quot;: torch.zeros(1, 2),
+    })
+dict_ten + 2
+&gt;&gt;
+{&#39;a&#39;: tensor([2., 2., 2., 2., 2.]),
+&#39;b&#39;: tensor([[2., 2., 2.],
+        [2., 2., 2.]]),
+&#39;c&#39;: tensor([[2., 2.]])}
+
+# Summing a DictTensor to a DictTensor
+dict_ten = DictTensor({
+        &quot;a&quot;: torch.zeros(5),
+        &quot;b&quot;: torch.zeros(2, 3) + 0.1,
+        &quot;c&quot;: torch.zeros(1, 2) + 0.5,
+    })
+dict_ten2 = DictTensor({
+        &quot;a&quot;: torch.zeros(5) + 0.2,
+        &quot;b&quot;: torch.zeros(2, 3) + 0.3,
+        &quot;c&quot;: torch.zeros(1, 2) + 0.4,
+    })
+dict_ten + dict_ten2
+&gt;&gt;
+{&#39;a&#39;: tensor([0.2000, 0.2000, 0.2000, 0.2000, 0.2000]),
+&#39;b&#39;: tensor([[0.4000, 0.4000, 0.4000],
+        [0.4000, 0.4000, 0.4000]]),
+&#39;c&#39;: tensor([[0.9000, 0.9000]])}
+
+
+# Summing a accross the first axis
+dict_ten = DictTensor({
+        &quot;a&quot;: torch.zeros(5) + 0.1,
+        &quot;b&quot;: torch.zeros(2, 3) + 0.2,
+        &quot;c&quot;: torch.zeros(1, 2) + 0.5,
+    })
+dict_ten.sum(axis=0)
+&gt;&gt;
+{&#39;a&#39;: tensor(0.5000),
+&#39;b&#39;: tensor([0.4000, 0.4000, 0.4000]),
+&#39;c&#39;: tensor([0.5000, 0.5000])}
+
+# Getting the shape of each tensor
+dict_ten = DictTensor({
+        &quot;a&quot;: torch.zeros(5) + 0.1,
+        &quot;b&quot;: torch.zeros(2, 3) + 0.2,
+        &quot;c&quot;: torch.zeros(1, 2) + 0.5,
+    })
+dict_ten.shape
+&gt;&gt;
+{&#39;a&#39;: torch.Size([5]), &#39;b&#39;: torch.Size([2, 3]), &#39;c&#39;: torch.Size([1, 2])}
+</code></pre></div>
+</details>
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.utils.dict_tensor.DictTensor.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">dic</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.dict_tensor.DictTensor.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Take a dictionary of <code>torch.Tensors</code>, and transform it into a <code>DictTensor</code>.
+Register all the required methods from <code>torch.Tensors</code>, but modify them
+to work on dictionary instead.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.utils.dict_tensor.DictTensor.apply" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">apply</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.dict_tensor.DictTensor.apply" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Apply a function on every Tensor "value" of the current dictionary</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>func</code></td>
+          <td>
+                <code><span title="typing.Callable">Callable</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>function to be called on each Tensor</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>*args,</code></td>
+          <td>
+                <code>**kwargs</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Additional parameters to the function. Note that
+the Tensor should be the first input to the function.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="graphium.utils.dict_tensor.DictTensor" href="#graphium.utils.dict_tensor.DictTensor">DictTensor</a>, <span title="typing.Dict">Dict</span>[<span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p><code>DictTensor</code> if the output of the function is a <code>torch.Tensor</code>,</p>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+                <code><span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="graphium.utils.dict_tensor.DictTensor" href="#graphium.utils.dict_tensor.DictTensor">DictTensor</a>, <span title="typing.Dict">Dict</span>[<span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>or <code>dict[X]</code> if the output of the function is of type<code>X</code>.</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="file-system">File System<a class="headerlink" href="#file-system" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.fs" class="doc doc-heading">
+          <code>graphium.utils.fs</code>
+
+
+<a href="#graphium.utils.fs" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.copy" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">copy</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">,</span> <span class="n">chunk_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">progress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">leave_progress</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.copy" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Copy one file to another location across different filesystem (local, S3, GCS, etc).</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>source</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>, io.<span title="io.IOBase">IOBase</span>, fsspec.<span title="fsspec.core">core</span>.<span title="fsspec.core.OpenFile">OpenFile</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>path or file-like object to copy from.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>destination</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>, io.<span title="io.IOBase">IOBase</span>, fsspec.<span title="fsspec.core">core</span>.<span title="fsspec.core.OpenFile">OpenFile</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>path or file-like object to copy to.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>chunk_size</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the chunk size to use. If progress is enabled the chunk
+size is <code>None</code>, it is set to 2048.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>force</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to overwrite the destination file it it exists.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>progress</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to display a progress bar.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>leave_progress</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to hide the progress bar once the copy is done.</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.exists" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.exists" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check whether a file exists.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>path</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>, fsspec.<span title="fsspec.core">core</span>.<span title="fsspec.core.OpenFile">OpenFile</span>, io.<span title="io.IOBase">IOBase</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.exists_and_not_empty" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">exists_and_not_empty</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.exists_and_not_empty" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check whether a directory exists and is not empty.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.get_basename" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_basename</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.get_basename" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the basename of a file or a folder.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>path</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.get_cache_dir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_cache_dir</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">create</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.get_cache_dir" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get a local cache directory. You can append a suffix folder to it and optionnaly create
+the folder if it doesn't exist.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.get_extension" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_extension</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.get_extension" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the extension of a file.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>path</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.get_mapper" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_mapper</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.get_mapper" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the fsspec mapper.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>path</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[str, os.<span title="os.PathLike">PathLike</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a path supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.get_size" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_size</span><span class="p">(</span><span class="n">file</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.get_size" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Get the size of a file given its path. Return None if the
+size can't be retrieved.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.join" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">join</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.join" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Join paths together. The first element determine the
+filesystem to use (and so the separator.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>paths</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>a list of paths supported by <code>fsspec</code> such as local, s3, gcs, etc.</p>
+            </div>
+          </td>
+          <td>
+                <code>()</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.mkdir" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">mkdir</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.mkdir" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Create directory including potential parents.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.fs.rm" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">rm</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">recursive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">maxdepth</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.fs.rm" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Delete a file or a directory with all nested files.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="hashing">Hashing<a class="headerlink" href="#hashing" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.hashing" class="doc doc-heading">
+          <code>graphium.utils.hashing</code>
+
+
+<a href="#graphium.utils.hashing" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.hashing.get_md5_hash" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">get_md5_hash</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.hashing.get_md5_hash" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>MD5 hash of any object.
+The object is converted to a YAML string before being hashed.
+This allows for nested dictionaries/lists and for hashing of classes and their attributes.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="moving-average-tracker">Moving Average Tracker<a class="headerlink" href="#moving-average-tracker" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.moving_average_tracker" class="doc doc-heading">
+          <code>graphium.utils.moving_average_tracker</code>
+
+
+<a href="#graphium.utils.moving_average_tracker" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="mup">MUP<a class="headerlink" href="#mup" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.mup" class="doc doc-heading">
+          <code>graphium.utils.mup</code>
+
+
+<a href="#graphium.utils.mup" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.mup.apply_infshapes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">apply_infshapes</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">infshapes</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.mup.apply_infshapes" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Modified from the regular <code>mup.apply_infshapes</code> by explicitly adding <code>base_dim</code> to the <code>MuReadoutGraphium</code>.
+This allows the code to work on IPUs.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.mup.set_base_shapes" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">set_base_shapes</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">rescale_params</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">savefile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">do_assert</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.mup.set_base_shapes" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Sets the <code>p.infshape</code> attribute for each parameter <code>p</code> of <code>model</code>.</p>
+<p>Code taken from the <code>mup</code> package from Microsoft <a href="https://github.com/microsoft/mup">https://github.com/microsoft/mup</a>.
+No change except in the <code>apply_inf_shapes</code>, using the one from Graphium instead of <code>mup</code></p>
+
+<details class="inputs" open>
+  <summary>Inputs</summary>
+  <p>model: nn.Module instance
+base: The base model.
+    Can be nn.Module, a dict of shapes, a str, or None.
+    If None, then defaults to <code>model</code>
+    If str, then treated as filename for yaml encoding of a dict of base shapes.
+rescale_params:
+    assuming the model is initialized using the default pytorch init (or
+    He initialization etc that scale the same way with fanin): If True
+    (default), rescales parameters to have the correct (μP) variances.
+do_assert:</p>
+</details>
+<details class="output" open>
+  <summary>Output</summary>
+  <p>same object as <code>model</code>, after setting the <code>infshape</code> attribute of each parameter.</p>
+</details>
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="read-file">Read File<a class="headerlink" href="#read-file" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.read_file" class="doc doc-heading">
+          <code>graphium.utils.read_file</code>
+
+
+<a href="#graphium.utils.read_file" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+  
+      <p>Utiles for data parsing</p>
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.read_file.file_opener" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">file_opener</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r&#39;</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.read_file.file_opener" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>File reader stream</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.read_file.parse_sdf_to_dataframe" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parse_sdf_to_dataframe</span><span class="p">(</span><span class="n">sdf_path</span><span class="p">,</span> <span class="n">as_cxsmiles</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.read_file.parse_sdf_to_dataframe" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Allows to read an SDF file containing molecular informations, convert
+it to a pandas DataFrame and convert the molecules to SMILES. It also
+lists a warning of all the molecules that couldn't be read.</p>
+<h6 id="graphium.utils.read_file.parse_sdf_to_dataframe--arguments">Arguments<a class="headerlink" href="#graphium.utils.read_file.parse_sdf_to_dataframe--arguments" title="Permanent link">&para;</a></h6>
+<pre><code>sdf_path: str
+    The full path and name of the sdf file to read
+as_cxsmiles: bool, optional
+    Whether to use the CXSMILES notation, which preserves atomic coordinates,
+    stereocenters, and much more.
+    See `https://dl.chemaxon.com/marvin-archive/latest/help/formats/cxsmiles-doc.html`
+    (Default = True)
+skiprows: int, list
+    The rows to skip from dataset. The enumerate index starts from 1 insted of 0.
+    (Default = None)
+</code></pre>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.read_file.read_file" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">read_file</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">as_ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.read_file.read_file" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Allow to read different file format and parse them into a MolecularDataFrame.
+Supported formats are:
+* csv (.csv, .smile, .smiles, .tsv)
+* txt (.txt)
+* xls (.xls, .xlsx, .xlsm, .xls*)
+* sdf (.sdf)
+* pkl (.pkl)</p>
+<h6 id="graphium.utils.read_file.read_file--arguments">Arguments<a class="headerlink" href="#graphium.utils.read_file.read_file--arguments" title="Permanent link">&para;</a></h6>
+<pre><code>filepath: str
+    The full path and name of the file to read.
+    It also supports the s3 url path.
+as_ext: str, Optional
+    The file extension used to read the file. If None, the extension is deduced
+    from the extension of the file. Otherwise, no matter the file extension,
+    the file will be read according to the specified ``as_ext``.
+    (Default=None)
+**kwargs: All the optional parameters required for the desired file reader.
+</code></pre>
+<p>TODO: unit test to make sure it works well with all extensions</p>
+<h6 id="graphium.utils.read_file.read_file--returns">Returns<a class="headerlink" href="#graphium.utils.read_file.read_file--returns" title="Permanent link">&para;</a></h6>
+<pre><code>df: pandas.DataFrame
+    The ``pandas.DataFrame`` containing the parsed data
+</code></pre>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="safe-run">Safe Run<a class="headerlink" href="#safe-run" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.safe_run" class="doc doc-heading">
+          <code>graphium.utils.safe_run</code>
+
+
+<a href="#graphium.utils.safe_run" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.utils.safe_run.SafeRun" class="doc doc-heading">
+        <code>SafeRun</code>
+
+
+<a href="#graphium.utils.safe_run.SafeRun" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.utils.safe_run.SafeRun.__enter__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__enter__</span><span class="p">()</span></code>
+
+<a href="#graphium.utils.safe_run.SafeRun.__enter__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Print that the with-statement started, if <code>self.verbose &gt;= 2</code></p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.utils.safe_run.SafeRun.__exit__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__exit__</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">traceback</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.safe_run.SafeRun.__exit__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Handle the error. Raise it if <code>self.raise_error==True</code>, otherwise ignore it
+and print it if <code>self.verbose &gt;= 1</code>. Also print that the with-statement is
+completed if <code>self.verbose &gt;= 2</code>.</p>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.utils.safe_run.SafeRun.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.safe_run.SafeRun.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Run some code with error handling and some printing, using the with statment.</p>
+
+<details class="example" open>
+  <summary>Example</summary>
+  <p>In the example below, the <code>2+None</code>, an error will be caught and printed.
+<div class="highlight"><pre><span></span><code>with SafeRun(name=&quot;Addition that fails&quot;, raise_error=False):
+    2 + None
+</code></pre></div></p>
+</details>
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>name</code></td>
+          <td>
+                <code>str</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Name of the code, used for printing</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>raise_error</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>Whether to raise an error, or to catch it and print instead</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>verbose</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The level of verbosity
+0: Do not print anything
+1: Print only the traced stack when an error is caught and <code>raise_error</code> is False
+2: Print headers and footers at the start and exit of the with statement.</p>
+            </div>
+          </td>
+          <td>
+                <code>2</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="spaces">Spaces<a class="headerlink" href="#spaces" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.spaces" class="doc doc-heading">
+          <code>graphium.utils.spaces</code>
+
+
+<a href="#graphium.utils.spaces" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div><h2 id="tensor">Tensor<a class="headerlink" href="#tensor" title="Permanent link">&para;</a></h2>
+<hr />
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h3 id="graphium.utils.tensor" class="doc doc-heading">
+          <code>graphium.utils.tensor</code>
+
+
+<a href="#graphium.utils.tensor" class="headerlink" title="Permanent link">&para;</a></h3>
+
+  <div class="doc doc-contents first">
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.utils.tensor.ModuleListConcat" class="doc doc-heading">
+        <code>ModuleListConcat</code>
+
+
+<a href="#graphium.utils.tensor.ModuleListConcat" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.ModuleList">ModuleList</span></code></p>
+
+  
+      <p>A list of neural modules similar to <code>torch.nn.ModuleList</code>,
+but where the modules are applied on the same input and
+concatenated together, instead of being applied sequentially.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dim</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension for the concatenation</p>
+            </div>
+          </td>
+          <td>
+                <code>-1</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.utils.tensor.ModuleListConcat.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.ModuleListConcat.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Apply all layers on the <code>args</code> and <code>kwargs</code>, and concatenate
+their output alongside the dimension <code>self.dim</code>.</p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.utils.tensor.ModuleWrap" class="doc doc-heading">
+        <code>ModuleWrap</code>
+
+
+<a href="#graphium.utils.tensor.ModuleWrap" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+
+  
+      <p>Wrap a function into a <code>torch.nn.Module</code>, with possible <code>*args</code> and <code>**kwargs</code></p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>func</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>function to wrap into a module</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h5 id="graphium.utils.tensor.ModuleWrap.forward" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.ModuleWrap.forward" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Calls the function <code>self.func</code> with the arguments <code>self.func(*self.args, *args, **self.kwargs, **kwargs)</code></p>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.arg_in_func" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">arg_in_func</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">arg</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.arg_in_func" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check if a function takes the given argument.</p>
+<h6 id="graphium.utils.tensor.arg_in_func--parameters">Parameters<a class="headerlink" href="#graphium.utils.tensor.arg_in_func--parameters" title="Permanent link">&para;</a></h6>
+
+<details class="fn" open>
+  <summary>func</summary>
+  <p>The function to check the argument.</p>
+</details>
+<details class="arg" open>
+  <summary>str</summary>
+  <p>The name of the argument.</p>
+</details>      <h6 id="graphium.utils.tensor.arg_in_func--returns">Returns<a class="headerlink" href="#graphium.utils.tensor.arg_in_func--returns" title="Permanent link">&para;</a></h6>
+<pre><code>res: bool
+    True if the function contains the argument, otherwise False.
+</code></pre>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.is_device_cuda" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_device_cuda</span><span class="p">(</span><span class="n">device</span><span class="p">,</span> <span class="n">ignore_errors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.is_device_cuda" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check wheter the given device is a cuda device.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>device</code></td>
+          <td>
+                <code>torch.<span title="torch.device">device</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>str, torch.device
+object to check for cuda</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>ignore_errors</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool
+Whether to ignore the error if the device is not recognized.
+Otherwise, <code>False</code> is returned in case of errors.</p>
+            </div>
+          </td>
+          <td>
+                <code>False</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>is_cuda</code></td>          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>bool</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.is_dtype_numpy_array" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_dtype_numpy_array</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.is_dtype_numpy_array" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Verify if the dtype is a numpy dtype</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.dtype">dtype</span>, torch.<span title="torch.dtype">dtype</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>dtype
+The dtype of a value. E.g. np.int32, str, torch.float</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A boolean saying if the dtype is a numpy dtype</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.is_dtype_torch_tensor" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">is_dtype_torch_tensor</span><span class="p">(</span><span class="n">dtype</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.is_dtype_torch_tensor" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Verify if the dtype is a torch dtype</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code><span title="typing.Union">Union</span>[<span title="numpy">np</span>.<span title="numpy.dtype">dtype</span>, torch.<span title="torch.dtype">dtype</span>]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>dtype
+The dtype of a value. E.g. np.int32, str, torch.float</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A boolean saying if the dtype is a torch dtype</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.nan_mad" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">nan_mad</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">normal</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.nan_mad" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the median absolute deviation of all elements, while ignoring the NaNs.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>normal</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to multiply the result by 1.4826 to mimic the
+standard deviation for normal distributions.</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dim</code></td>
+          <td>
+                <code>int or tuple(int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>keepdim</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>torch.<span title="torch.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
+If specified, the input tensor is casted to dtype before the operation is performed.
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting median absolute deviation of the tensor</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.nan_mean" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">nan_mean</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.nan_mean" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the mean of all elements, while ignoring the NaNs.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dim</code></td>
+          <td>
+                <code>int or tuple(int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>keepdim</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>torch.<span title="torch.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
+If specified, the input tensor is casted to dtype before the operation is performed.
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting mean of the tensor</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.nan_median" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">nan_median</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.nan_median" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the median of all elements, while ignoring the NaNs.
+Contrarily to <code>torch.nanmedian</code>, this function supports a list
+of dimensions, or <code>dim=None</code>, and does not return the index of the median</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dim</code></td>
+          <td>
+                <code>int or tuple(int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>keepdim</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>torch.<span title="torch.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
+If specified, the input tensor is casted to dtype before the operation is performed.
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting median of the tensor.
+Contrarily to <code>torch.median</code>, it does not return the index of the median</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.nan_std" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">nan_std</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">unbiased</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.nan_std" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the standard deviation of all elements, while ignoring the NaNs.
+If unbiased is True, Bessel’s correction will be used.
+Otherwise, the sample deviation is calculated, without any correction.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>unbiased</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to use Bessel’s correction (δN=1\delta N = 1δN=1).</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dim</code></td>
+          <td>
+                <code>int or tuple(int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>keepdim</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>torch.<span title="torch.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
+If specified, the input tensor is casted to dtype before the operation is performed.
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting standard deviation of the tensor</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.nan_var" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">nan_var</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">unbiased</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.nan_var" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Return the variace of all elements, while ignoring the NaNs.
+If unbiased is True, Bessel’s correction will be used.
+Otherwise, the sample deviation is calculated, without any correction.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>input</code></td>
+          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The input tensor.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>unbiased</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether to use Bessel’s correction (δN=1\delta N = 1δN=1).</p>
+            </div>
+          </td>
+          <td>
+                <code>True</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dim</code></td>
+          <td>
+                <code>int or tuple(int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The dimension or dimensions to reduce.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>keepdim</code></td>
+          <td>
+                <code>bool</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>whether the output tensor has dim retained or not.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>dtype</code></td>
+          <td>
+                <code>torch.<span title="torch.dtype">dtype</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The desired data type of returned tensor.
+If specified, the input tensor is casted to dtype before the operation is performed.
+This is useful for preventing data type overflows. Default: None.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+<th>Name</th>        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+<td><code>output</code></td>          <td>
+                <code><span title="torch.Tensor">Tensor</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The resulting variance of the tensor</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.one_of_k_encoding" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">one_of_k_encoding</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">classes</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.one_of_k_encoding" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Converts a single value to a one-hot vector.</p>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>val</code></td>
+          <td>
+                <code><span title="typing.Any">Any</span></code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>int
+class to be converted into a one hot vector
+(integers from 0 to num_classes).</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+        <tr>
+          <td><code>num_classes</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>iterator
+a list or 1D array of allowed
+choices for val to take</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  <p><strong>Returns:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Type</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td>
+                <code><span title="typing.List">List</span>[int]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>A list of length len(num_classes) + 1</p>
+            </div>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<h4 id="graphium.utils.tensor.parse_valid_args" class="doc doc-heading">
+<code class="highlight language-python"><span class="n">parse_valid_args</span><span class="p">(</span><span class="n">param_dict</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span></code>
+
+<a href="#graphium.utils.tensor.parse_valid_args" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+  
+      <p>Check if a function takes the given argument.</p>
+<h6 id="graphium.utils.tensor.parse_valid_args--parameters">Parameters<a class="headerlink" href="#graphium.utils.tensor.parse_valid_args--parameters" title="Permanent link">&para;</a></h6>
+
+<details class="fn" open>
+  <summary>func</summary>
+  <p>The function to check the argument.</p>
+</details>
+<details class="param_dict" open>
+  <summary>dict</summary>
+  <p>Dictionary of the argument.</p>
+</details>      <h6 id="graphium.utils.tensor.parse_valid_args--returns">Returns<a class="headerlink" href="#graphium.utils.tensor.parse_valid_args--returns" title="Permanent link">&para;</a></h6>
+<pre><code>param_dict: dict
+    Valid paramter dictionary for the given fucntions.
+</code></pre>
+
+  </div>
+
+</div>
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright 2020 - 2023 datamol.io
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
+      
+        
+          <script src="../javascripts/config.js"></script>
+        
+      
+        
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        
+      
+        
+          <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        
+      
+    
+  </body>
+</html>
