@@ -313,7 +313,7 @@ predictor:
     l1000_mcf7: []
     pcba_1328: []
     pcqm4m_g25: []
-    pcqm4m_n4: []  
+    pcqm4m_n4: []
   loss_fun:
     l1000_vcap:
       name: hybrid_ce_ipu
@@ -394,11 +394,6 @@ trainer:
     save_dir: logs/neurips2023-large/
     name: *name
     project: *name
-  #early_stopping:
-  #  monitor: *monitor
-  #  min_delta: 0
-  #  patience: 10
-  #  mode: &mode min
   model_checkpoint:
     dirpath: models_checkpoints/neurips2023-large-gcn/
     filename: *name

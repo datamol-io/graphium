@@ -11,15 +11,15 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 35 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 44 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 80
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 35 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 44 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 80
         # Data handling-related
-        batch_size_training: 5
-        batch_size_inference: 5
+        batch_size_training: 50
+        batch_size_inference: 50
     predictor:
       optim_kwargs:
         loss_scaling: 1024
@@ -36,6 +36,17 @@ accelerator:
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
+
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     datamodule:
+#       batch_size_training: 64
+#       batch_size_inference: 256
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
 
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
@@ -54,6 +65,7 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       tox21:
@@ -80,6 +92,7 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
@@ -172,7 +185,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 128
+    out_dim: &gnn_dim 64
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
@@ -273,6 +286,11 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
+    - name: r2_score
+      metric: r2_score_ipu
+      target_nan_mask: null
+      multitask_handling: mean-per-label
+      threshold_kwargs: null
   tox21:
     - name: auroc
       metric: auroc_ipu
@@ -286,7 +304,7 @@ metrics:
       threshold_kwargs: null
     - name: f1 > 0.5
       metric: f1
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       target_to_int: True
       num_classes: 2
       average: micro
@@ -297,7 +315,7 @@ metrics:
         th_on_target: True
     - name: precision > 0.5
       metric: precision
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       average: micro
       threshold_kwargs: *threshold_05
   zinc: *qm9_metrics
