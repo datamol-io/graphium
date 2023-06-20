@@ -1,12 +1,16 @@
-from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable
+import os
+
+import numcodecs
+import zarr
 
 from multiprocessing import Manager
-import numpy as np
 from functools import lru_cache
+from typing import List, Dict, Union, Any, Optional, Tuple
+
 from loguru import logger
 from copy import deepcopy
-import os
 import numpy as np
+import datamol.utils.fs as fs
 
 import torch
 from torch.utils.data.dataloader import Dataset
@@ -134,7 +138,20 @@ class SingleTaskDataset(Dataset):
 
 
 class MultitaskDataset(Dataset):
-    pass
+
+    """
+    When saving the dataset to a file, these attributes will be saved to the metadata file
+    """
+    _METADATA_ATTRS_TO_SAVE = [
+        "mol_ids",
+        "smiles",
+        "labels_size",
+        "dataset_length",
+        "_num_nodes_list",
+        "_num_edges_list",
+    ]
+
+    _ZARR_FILENAME = "multitask.zarr"
 
     def __init__(
         self,
@@ -211,38 +228,87 @@ class MultitaskDataset(Dataset):
                 self.features = None
                 self.labels = None
 
+    def to_zarr(self, directory: str) -> str:
+        """
+        Saves the dataset to a .zarr hierarchy.
+        """
+
+        fs.mkdir(directory, exist_ok=True)
+
+        def _initialize_group(group, example):
+            """Helper function to initialize the group with the correct shape and dtype."""
+
+            for k_, v_ in example.items():
+                if isinstance(v_, torch.Tensor):
+                    v_ = v_.detach().cpu().numpy()
+
+                if not isinstance(v_, np.ndarray):
+                    group.empty(k_, shape=(self.num_graphs_total,), chunks=2048, dtype=int)
+
+                else:
+                    # I chose to save the data as variable length arrays.
+                    # TODO (cwognum): Instead try to pad the arrays to a max length
+                    #  and see if it improves compression.
+                    group.empty(
+                        k_,
+                        shape=(self.num_graphs_total,),
+                        dtype=object,
+                        object_codec=numcodecs.VLenArray(v_.dtype),
+                        chunks=2048,
+                    )
+                    group.attrs["shape"] = v_.shape
+
+            return group
+
+        # This assumes the dtype and keys across the data are the same.
+        exemplary_datum = self[0]
+
+        # Create the zarr file
+        path = fs.join(directory, self._ZARR_FILENAME)
+        with zarr.open(path, mode="w") as root:
+
+            # Save the metadata to the user attributes
+            for attr in self._METADATA_ATTRS_TO_SAVE:
+                root.attrs[attr] = getattr(self, attr)
+
+            # Create the groups
+            for name in ["features", "labels"]:
+
+                with root.create_group(name) as group:
+                    _initialize_group(group, exemplary_datum[name])
+
+                    for idx, datum in enumerate(self):
+                        for k, v in datum[name].items():
+                            if isinstance(v, torch.Tensor):
+                                v = v.detach().cpu().numpy()
+                            if isinstance(v, np.ndarray):
+                                v = v.flatten()
+                            # Save the data
+                            group[k][idx] = v
+        return path
+
     def save_metadata(self, directory: str):
         """
         Save everything other than features/labels
         """
-        attrs_to_save = [
-            "mol_ids",
-            "smiles",
-            "labels_size",
-            "dataset_length",
-            "_num_nodes_list",
-            "_num_edges_list",
-        ]
-        attrs = {attr: getattr(self, attr) for attr in attrs_to_save}
-
+        attrs = {attr: getattr(self, attr) for attr in self._METADATA_ATTRS_TO_SAVE}
         path = os.path.join(directory, "multitask_metadata.pkl")
-
         torch.save(attrs, path, pickle_protocol=4)
 
     def _load_metadata(self):
         """
         Load everything other than features/labels
         """
-        attrs_to_load = [
-            "mol_ids",
-            "smiles",
-            "labels_size",
-            "dataset_length",
-            "_num_nodes_list",
-            "_num_edges_list",
-        ]
-        path = os.path.join(self.data_path, "multitask_metadata.pkl")
-        attrs = torch.load(path)
+        # Prioritize loading from a pickle file if it exists
+        pkl_path = os.path.join(self.data_path, "multitask_metadata.pkl")
+        if fs.exists(pkl_path):
+            attrs = torch.load(pkl_path)
+
+        # Another possibility is to load from a .zarr file
+        else:
+            zarr_path = fs.join(self.data_path, self._ZARR_FILENAME)
+            with zarr.open(zarr_path, mode="r") as root:
+                attrs = root.attrs
 
         for attr, value in attrs.items():
             setattr(self, attr, value)
@@ -364,6 +430,8 @@ class MultitaskDataset(Dataset):
             A dictionary containing the data for the specified index with keys "mol_ids", "smiles", "labels", and "features"
         """
         datum = {}
+        if idx >= len(self):
+            raise StopIteration
         if self.load_from_file:
             data_dict = self.load_graph_from_index(idx)
             datum["features"] = data_dict["graph_with_features"]
@@ -400,10 +468,24 @@ class MultitaskDataset(Dataset):
         Returns:
             A dictionary containing the data for the specified index with keys "graph_with_features", "labels" and "smiles" (optional).
         """
-        filename = os.path.join(
+
+        # Prioritize loading from a pickle path if it exists
+        path = os.path.join(
             self.data_path, format(data_idx // 1000, "04d"), format(data_idx, "07d") + ".pkl"
         )
-        data_dict = torch.load(filename)
+        if fs.exists(path):
+            data_dict = torch.load(path)
+            return data_dict
+
+        # Otherwise, assume the data is in a .zarr hierarchy
+        data_dict = {}
+        zarr_path = fs.join(self.data_path, self._ZARR_FILENAME)
+        with zarr.open(zarr_path, mode="r") as root:
+            for name in ["features", "labels"]:
+                datum = {}
+                for k, v in root[name].items():
+                    datum[k] = v[data_idx]
+                data_dict[name] = datum
         return data_dict
 
     def merge(
