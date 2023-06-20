@@ -256,7 +256,7 @@ class MultitaskDataset(Dataset):
                         object_codec=numcodecs.VLenArray(v_.dtype),
                         chunks=2048,
                     )
-                    group.attrs["shape"] = v_.shape
+                    group.attrs[k_] = v_.shape
 
             return group
 
@@ -274,7 +274,8 @@ class MultitaskDataset(Dataset):
             # Create the groups
             for name in ["features", "labels"]:
 
-                with root.create_group(name) as group:
+                label = name if name == "labels" else "graph_with_features"
+                with root.create_group(label) as group:
                     _initialize_group(group, exemplary_datum[name])
 
                     for idx, datum in enumerate(self):
@@ -481,10 +482,13 @@ class MultitaskDataset(Dataset):
         data_dict = {}
         zarr_path = fs.join(self.data_path, self._ZARR_FILENAME)
         with zarr.open(zarr_path, mode="r") as root:
-            for name in ["features", "labels"]:
+            for name in ["graph_with_features", "labels"]:
                 datum = {}
                 for k, v in root[name].items():
                     datum[k] = v[data_idx]
+                    if k in root[name].attrs:
+                        datum[k] = datum[k].reshape(root[name].attrs[k])
+                datum = Data.from_dict(datum)
                 data_dict[name] = datum
         return data_dict
 
