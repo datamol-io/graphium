@@ -36,8 +36,8 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
-# CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gine.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
@@ -111,6 +111,9 @@ if __name__ == "__main__":
     parser.add_argument("--config", help="Path to the config file", default=None)
 
     args, unknown_args = parser.parse_known_args()
+    # Optionally parse the config with the command line
+    if args.config is not None:
+        CONFIG_FILE = args.config
     cfg = load_yaml_config(CONFIG_FILE, MAIN_DIR, unknown_args)
 
     main(cfg)
