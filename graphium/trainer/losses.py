@@ -11,7 +11,7 @@ class HybridCELoss(_WeightedLoss):
         self,
         n_brackets,
         regression_loss: str = "mse",
-        alpha: float = 1.0,
+        alpha: float = 0.5,
         weight: Optional[Tensor] = None,
         reduction: str = "mean",
     ) -> None:
@@ -62,12 +62,12 @@ class HybridCELoss(_WeightedLoss):
         target = target.flatten()
         # regression loss needs normalized logits to probability as input to do inner product with self.brackets
         # we apply softmax on the raw logits first
-        # softmax_input =  self.softmax(input)
+        softmax_input = self.softmax(input)
         # [batch_size, n_classes] * [n_classes] ([0, 1, 2...n_brakets-1]) -> [batch_size]
-        regression_input = torch.inner(input, self.brackets.to(input.device))
+        regression_input = torch.inner(softmax_input, self.brackets.to(input.device))
         regression_loss = self.regression_loss(regression_input, target.float(), reduction=self.reduction)
 
-        # cross_entropy loss needs rwo logits as input
+        # cross_entropy loss needs raw logits as input
         ce_loss = F.cross_entropy(input, target.long(), weight=self.weight, reduction=self.reduction)
 
         return self.alpha * ce_loss + (1 - self.alpha) * regression_loss
