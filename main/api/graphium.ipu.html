@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.visualization.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
     
     
       
@@ -749,6 +749,13 @@
   
     <nav class="md-nav" aria-label="HybridCELossIPU">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.forward" class="md-nav__link">
@@ -1775,6 +1782,13 @@
   
     <nav class="md-nav" aria-label="HybridCELossIPU">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="md-nav__link">
+    __init__()
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#graphium.ipu.ipu_losses.HybridCELossIPU.forward" class="md-nav__link">
@@ -3079,6 +3093,51 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 
+<h5 id="graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="doc doc-heading">
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">n_brackets</span><span class="p">)</span></code>
+
+<a href="#graphium.ipu.ipu_losses.HybridCELossIPU.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
+
+
+  <div class="doc doc-contents ">
+  
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>n_brackets</code></td>
+          <td>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>the number of brackets that will be used to group the regression targets.
+Expected to have the same size as the number of classes in the transformed regression task.</p>
+            </div>
+          </td>
+          <td>
+              <em>required</em>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
 <h5 id="graphium.ipu.ipu_losses.HybridCELossIPU.forward" class="doc doc-heading">
 <code class="highlight language-python"><span class="n">forward</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span></code>
 
@@ -3840,7 +3899,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h4 id="graphium.ipu.ipu_metrics.average_precision_ipu" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">average_precision_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s1">&#39;multiclass&#39;</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">average_precision_ipu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pos_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">average</span><span class="o">=</span><span class="s1">&#39;macro&#39;</span><span class="p">,</span> <span class="n">sample_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.ipu.ipu_metrics.average_precision_ipu" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -5871,13 +5930,19 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
     <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
       
-        <script src="../javascripts/config.js"></script>
+        
+          <script src="../javascripts/config.js"></script>
+        
       
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        
+          <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        
       
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        
+          <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+        
       
     
   </body>
