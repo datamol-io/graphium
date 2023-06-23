@@ -160,7 +160,7 @@ class test_DataLoading(ut.TestCase):
             strategy=strategy,
             num_sanity_val_steps=0,
             accelerator="ipu",
-            devices=1
+            devices=1,
         )
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
