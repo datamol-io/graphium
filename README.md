@@ -59,7 +59,7 @@ source PATH_TO_SDK/enable
 PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
 
 # Install Graphium in dev mode
-pip install -e .
+pip install --no-deps -e .
 ```
 
 ## Training a model
