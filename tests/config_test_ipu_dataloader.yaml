@@ -45,6 +45,7 @@ datamodule:
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
+        task_level: graph
       alpha:
         df: null
         df_path: *df_path
@@ -58,6 +59,7 @@ datamodule:
         idx_col: null                     # This may not always be provided
         weights_col: null                 # This may not always be provided
         weights_type: null                # This may not always be provided
+        task_level: graph
     # Featurization
     prepare_dict_or_graph: pyg:graph
     featurization_n_jobs: 0

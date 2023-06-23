@@ -7,6 +7,7 @@ loguru
 tqdm
 numpy
 scipy >==1.4
+sympy
 pandas >==1.0
 scikit-learn
 seaborn
@@ -24,6 +25,7 @@ mordred
 umap-learn
 pytest >==6.0
 pytest-cov
+pytest-xdist
 black >=23
 jupyterlab
 ipywidgets
