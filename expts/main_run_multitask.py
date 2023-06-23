@@ -111,6 +111,8 @@ if __name__ == "__main__":
     parser.add_argument("--config", help="Path to the config file", default=None)
 
     args, unknown_args = parser.parse_known_args()
+    if args.config is not None:
+        CONFIG_FILE = args.config
     cfg = load_yaml_config(CONFIG_FILE, MAIN_DIR, unknown_args)
 
     main(cfg)
