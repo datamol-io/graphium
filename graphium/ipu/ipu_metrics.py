@@ -69,7 +69,7 @@ def average_precision_ipu(
     preds: Tensor,
     target: Tensor,
     num_classes: Optional[int] = None,
-    task: Optional[str] = "multiclass",
+    task: Optional[Literal["binary", "multiclass", "multilabel"]] = None,
     ignore_index: Optional[int] = None,
     pos_label: Optional[int] = None,
     average: Optional[str] = "macro",

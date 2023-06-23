@@ -313,10 +313,14 @@ class PredictorModule(lightning.LightningModule):
         # preds = {k: preds[ii] for ii, k in enumerate(targets_dict.keys())}
         for task, pred in preds.items():
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
-            if step_name != "train":
+            if hasattr(task_specific_norm, "normalize_val_test"):
+                normalize_val_test = task_specific_norm.normalize_val_test
+            else:
+                normalize_val_test = False
+            if step_name != "train" and not normalize_val_test:
                 # apply denormalization for val and test predictions for correct loss and metrics evaluation
-                # targets for val and test were not normalized
-                # train loss will stay as the normalized version
+                # if normalize_val_test is not true, only train loss will stay as the normalized version
+                # if normalize_val_test is true, no denormalization is applied, all losses and metrics are normalized version
                 preds[task] = task_specific_norm.denormalize(pred)
             targets_dict[task] = targets_dict[task].to(dtype=pred.dtype)
         weights = batch.get("weights", None)
@@ -333,9 +337,14 @@ class PredictorModule(lightning.LightningModule):
         device = "cpu" if to_cpu else None
         for task in preds:
             task_specific_norm = self.task_norms[task] if self.task_norms is not None else None
-            if step_name == "train":
-                # apply denormalization for targets and predictions for the evaluation of metrics (excluding loss)
-                # train loss will stay as the normalized version
+            if hasattr(task_specific_norm, "normalize_val_test"):
+                normalize_val_test = task_specific_norm.normalize_val_test
+            else:
+                normalize_val_test = False
+            if step_name == "train" and not normalize_val_test:
+                # apply denormalization for targets and predictions for the evaluation of training metrics (excluding loss)
+                # if normalize_val_test is not true, train loss will stay as the normalized version
+                # if normalize_val_test is true, no denormalization is applied, all losses and metrics are normalized version
                 preds[task] = task_specific_norm.denormalize(preds[task])
                 targets_dict[task] = task_specific_norm.denormalize(targets_dict[task])
             preds[task] = preds[task].detach().to(device=device)
@@ -450,12 +459,17 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
 
-        concatenated_metrics_logs = self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        concatenated_metrics_logs = {}  # self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["loss"] = outputs["loss"]
         outputs["grad_norm"] = self.get_gradient_norm()
         concatenated_metrics_logs["train/grad_norm"] = outputs["grad_norm"]
         concatenated_metrics_logs["train/batch_time"] = train_batch_time
         concatenated_metrics_logs["train/batch_tput"] = tput
+
+        for key in concatenated_metrics_logs:
+            if isinstance(concatenated_metrics_logs[key], torch.Tensor):
+                if concatenated_metrics_logs[key].numel() > 1:
+                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
 
         if self.logger is not None:
             self.logger.log_metrics(
@@ -562,8 +576,9 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs["val/mean_time"] = torch.tensor(self.mean_val_time_tracker.mean_value)
         concatenated_metrics_logs["val/mean_tput"] = self.mean_val_tput_tracker.mean_value
 
-        lr = self.optimizers().param_groups[0]["lr"]
-        concatenated_metrics_logs["lr"] = torch.tensor(lr)
+        if hasattr(self.optimizers(), "param_groups"):
+            lr = self.optimizers().param_groups[0]["lr"]
+            concatenated_metrics_logs["lr"] = torch.tensor(lr)
         concatenated_metrics_logs["n_epochs"] = torch.tensor(self.current_epoch, dtype=torch.float32)
         self.log_dict(concatenated_metrics_logs)
 

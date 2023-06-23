@@ -9,6 +9,7 @@ from copy import deepcopy
 import time
 import gc
 from rdkit import Chem
+import re
 
 from loguru import logger
 import fsspec
@@ -440,7 +441,7 @@ class BaseDataModule(lightning.LightningDataModule):
         """
         files = self._glob(path)
         if len(files) == 0:
-            raise FileNotFoundError("No such file or directory `{path}`")
+            raise FileNotFoundError(f"No such file or directory `{path}`")
 
         if len(files) > 1:
             files = tqdm(sorted(files), desc=f"Reading files at `{path}`")
@@ -550,6 +551,7 @@ class BaseDataModule(lightning.LightningDataModule):
         max_num_nodes = 0
         # Max number of nodes in the training dataset
         if (self.train_ds is not None) and ("train" in stages):
+            logger.info("Max num nodes being calcuated train")
             max_num_nodes = max(max_num_nodes, self.train_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the validation dataset
@@ -558,6 +560,7 @@ class BaseDataModule(lightning.LightningDataModule):
             and ("val" in stages)
             and (self.val_ds.max_num_nodes_per_graph is not None)
         ):
+            logger.info("Max num nodes being calcuated val")
             max_num_nodes = max(max_num_nodes, self.val_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the test dataset
@@ -566,6 +569,7 @@ class BaseDataModule(lightning.LightningDataModule):
             and ("test" in stages)
             and (self.test_ds.max_num_nodes_per_graph is not None)
         ):
+            logger.info("Max num nodes being calcuated test")
             max_num_nodes = max(max_num_nodes, self.test_ds.max_num_nodes_per_graph)
 
         # Max number of nodes in the predict dataset
@@ -918,6 +922,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             - Create a corresponding SingletaskDataset
             - Split the SingletaskDataset according to the task-specific splits for train, val and test
         """
+
+        def has_atoms_after_h_removal(smiles):
+            # Remove all 'H' characters from the SMILES
+            smiles_without_h = re.sub("H", "", smiles)
+            # Check if any letters are remaining in the modified string
+            has_atoms = bool(re.search("[a-zA-Z]", smiles_without_h))
+            if has_atoms == False:
+                logger.info(f"Removed Hydrogen molecule: {smiles}")
+            return has_atoms
+
         if self._data_is_prepared:
             logger.info("Data is already prepared. Skipping the preparation")
             return
@@ -982,6 +996,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
             logger.info(f"Prepare single-task dataset for task '{task}' with {len(df)} data points.")
 
+            logger.info("Filtering the molecules for Hydrogen")
+            logger.info(f"Looking at column {df.columns[0]}")
+            # Filter the DataFrame based on the function
+            # need this for pcba dataset
+            # df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
+            logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
             smiles, labels, sample_idx, extras = self._extract_smiles_labels(
@@ -1220,11 +1240,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             files_ready=files_ready,
         )  # type: ignore
 
+        # calculate statistics for the train split and used for all splits normalization
         if stage == "train":
             self.get_label_statistics(
                 self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
             )
-            self.normalize_label(multitask_dataset)
+        if not load_from_file:
+            self.normalize_label(multitask_dataset, stage)
 
         return multitask_dataset
 
@@ -1334,7 +1356,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             else:
                 self.task_norms = torch.load(filename)
 
-    def normalize_label(self, dataset: Datasets.MultitaskDataset) -> Datasets.MultitaskDataset:
+    def normalize_label(self, dataset: Datasets.MultitaskDataset, stage) -> Datasets.MultitaskDataset:
         """
         Normalize the labels in the dataset using the statistics in `self.task_norms`.
 
@@ -1345,9 +1367,13 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             the dataset with normalized labels
         """
         for task in dataset.labels_size.keys():
-            for i in range(len(dataset)):
-                if task in dataset[i]["labels"]:
-                    dataset[i]["labels"][task] = self.task_norms[task].normalize(dataset[i]["labels"][task])
+            # we normalize the dataset if (it is train split) or (it is val/test splits and normalize_val_test is set to true)
+            if (stage == "train") or (stage in ["val", "test"] and self.task_norms[task].normalize_val_test):
+                for i in range(len(dataset)):
+                    if task in dataset[i]["labels"]:
+                        dataset[i]["labels"][task] = self.task_norms[task].normalize(
+                            dataset[i]["labels"][task]
+                        )
         return dataset
 
     def save_featurized_data(self, dataset: Datasets.MultitaskDataset, processed_data_path):

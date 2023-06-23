@@ -29,6 +29,7 @@ from graphium.trainer.predictor import PredictorModule
 from graphium.utils.spaces import DATAMODULE_DICT
 from graphium.ipu.ipu_utils import import_poptorch, load_ipu_options
 from graphium.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
+from graphium.utils.command_line_utils import update_config, get_anchors_and_aliases
 
 
 def get_accelerator(
@@ -384,6 +385,7 @@ def load_trainer(
 
     # Define the early model checkpoing parameters
     if "model_checkpoint" in cfg_trainer.keys():
+        cfg_trainer["model_checkpoint"]["dirpath"] += str(cfg_trainer["seed"]) + "/"
         callbacks.append(ModelCheckpoint(**cfg_trainer["model_checkpoint"]))
 
     # Define the logger parameters
@@ -395,7 +397,6 @@ def load_trainer(
         trainer_kwargs["logger"] = WandbLogger(name=name, **logger)
 
     trainer_kwargs["callbacks"] = callbacks
-
     trainer = Trainer(
         detect_anomaly=True,
         strategy=strategy,
@@ -404,7 +405,6 @@ def load_trainer(
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )
-
     return trainer
 
 
@@ -458,7 +458,56 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tup
     return config, accelerator_type
 
 
-def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_path: str = "") -> None:
+def load_config_override(
+    config: Union[omegaconf.DictConfig, Dict[str, Any]], main_dir: Optional[Union[str, os.PathLike]] = None
+) -> Dict[str, Any]:
+    config = deepcopy(config)
+    config_override_path = config["constants"].get("config_override", None)
+    if config_override_path is not None:
+        if main_dir is not None:
+            config_override_path = os.path.join(main_dir, config_override_path)
+        with open(config_override_path, "r") as f:
+            cfg_override = yaml.safe_load(f)
+        config = merge_dicts(cfg_override, config, on_exist="overwrite")
+    return config
+
+
+def load_yaml_config(
+    config_path: Union[str, os.PathLike],
+    main_dir: Optional[Union[str, os.PathLike]] = None,
+    unknown_args=None,
+) -> Dict[str, Any]:
+    """
+    Load a YAML config file and return it as a dictionary.
+    Also returns the anchors `&` and aliases `*` of the YAML file.
+    Then, update the config with the unknown arguments.
+    Finally, update the config with the config override file specified in `constants.config_override`.
+
+    Parameters:
+        config_path: The path to the YAML config file
+        main_dir: The main directory of the project. If specified, the config override file will be loaded from this directory
+        unknown_args: The unknown arguments to update the config with, taken from `argparse.parse_known_args`
+
+    Returns:
+        config: The config dictionary
+
+    """
+    if main_dir is not None:
+        config_path = os.path.join(main_dir, config_path)
+
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+        refs = get_anchors_and_aliases(config_path)
+        if unknown_args is not None:
+            config = update_config(config, unknown_args, refs)
+    config = load_config_override(config, main_dir)  # This goes here to avoid overriding the hparam search
+
+    return config
+
+
+def merge_dicts(
+    dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_path: str = "", on_exist: str = "raise"
+) -> None:
     """
     Recursively merges dict_b into dict_a. If a key is missing from dict_a,
     it is added from dict_b. If a key exists in both, an error is raised.
@@ -469,11 +518,18 @@ def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_pa
         dict_b: The dictionary to merge from.
         previous_dict_path: The key path of the parent dictionary,
         used to track the recursive calls.
+        on_exist: What to do if a key already exists in dict_a. Options are "raise", "overwrite", "ignore".
 
     Raises:
         ValueError: If a key path already exists in dict_a.
 
     """
+    assert on_exist in [
+        "raise",
+        "overwrite",
+        "ignore",
+    ], f"on_exist must be one of ['raise', 'overwrite', 'ignore'], got {on_exist}"
+
     for key, value_b in dict_b.items():
         if key not in dict_a:
             dict_a[key] = value_b
@@ -484,7 +540,13 @@ def merge_dicts(dict_a: Dict[str, Any], dict_b: Dict[str, Any], previous_dict_pa
             else:
                 previous_dict_path = f"{previous_dict_path}/{key}"
             if isinstance(value_a, dict) and isinstance(value_b, dict):
-                merge_dicts(value_a, value_b, previous_dict_path=previous_dict_path)
+                merge_dicts(value_a, value_b, previous_dict_path=previous_dict_path, on_exist=on_exist)
             else:
                 if value_a != value_b:
-                    raise ValueError(f"Dict path already exists: {previous_dict_path}")
+                    if on_exist == "raise":
+                        raise ValueError(f"Dict path already exists: {previous_dict_path}")
+                    elif on_exist == "overwrite":
+                        dict_a[key] = value_b
+                    elif on_exist == "ignore":
+                        pass
+    return dict_a
