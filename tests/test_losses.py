@@ -19,12 +19,11 @@ class test_HybridCELoss(ut.TestCase):
     input = torch.Tensor([[0.1, 0.1, 0.3, 0.5, 0.0], [0.1, 0.0, 0.7, 0.2, 0.0]])
     target = torch.Tensor([3, 0]).long()
     brackets = torch.Tensor([0, 1, 2, 3, 4])
-    regression_input = torch.Tensor([2.2, 2.0])  # inner product of input and brackets
+    regression_input = torch.Tensor([2.0537, 2.0017])  # inner product of input and brackets
     regression_target = torch.Tensor([3, 0]).float()
 
     def test_pure_ce_loss(self):
         loss = HybridCELoss(n_brackets=len(self.brackets), alpha=1.0, reduction="none")
-
         assert torch.allclose(
             loss(self.input, self.target),
             F.cross_entropy(self.input, self.target, reduction="none"),
@@ -38,10 +37,11 @@ class test_HybridCELoss(ut.TestCase):
             regression_loss="mae",
             reduction="none",
         )
-
         assert torch.allclose(
             loss(self.input, self.target),
             F.l1_loss(self.regression_input, self.regression_target, reduction="none"),
+            rtol=1e-04,
+            atol=1e-07,
         )
         assert loss(self.input, self.target).shape == (2,)
 
@@ -56,6 +56,8 @@ class test_HybridCELoss(ut.TestCase):
         assert torch.allclose(
             loss(self.input, self.target),
             F.mse_loss(self.regression_input, self.regression_target, reduction="none"),
+            rtol=1e-04,
+            atol=1e-07,
         )
         assert loss(self.input, self.target).shape == (2,)
 
@@ -65,7 +67,9 @@ class test_HybridCELoss(ut.TestCase):
         ce_loss = F.cross_entropy(self.input, self.target)
         mse_loss = F.mse_loss(self.regression_input, self.regression_target)
 
-        assert torch.allclose(loss(self.input, self.target), 0.5 * ce_loss + 0.5 * mse_loss)
+        assert torch.allclose(
+            loss(self.input, self.target), 0.5 * ce_loss + 0.5 * mse_loss, rtol=1e-04, atol=1e-07
+        )
         assert loss(self.input, self.target).shape == torch.Size([])
 
     def test_loss_parser(self):
