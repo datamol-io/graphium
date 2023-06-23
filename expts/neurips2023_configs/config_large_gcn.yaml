@@ -11,12 +11,12 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 40 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 80
+          max_num_nodes_per_graph: 60 # train max nodes: 20, max_edges: 54
+          max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 80
+          max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 100
         # Data handling-related
         batch_size_training: 10
         batch_size_inference: 10
@@ -97,6 +97,7 @@ datamodule:
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       pcqm4m_n4:
@@ -111,6 +112,7 @@ datamodule:
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: *seed
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
@@ -118,7 +120,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "../datacache/neurips2023-large/"
+    processed_graph_data_path: "/net/group/software-apps/datacache/neurips2023-large/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -203,7 +205,7 @@ architecture:
 
   gnn:  # Set as null to avoid a post-nn network
     in_dim: 64 # or otherwise the correct value
-    out_dim: &gnn_dim 1024
+    out_dim: &gnn_dim 768
     hidden_dims: *gnn_dim
     depth: 4
     activation: gelu
@@ -248,7 +250,7 @@ architecture:
       hidden_dims: 128
       depth: 2
       activation: none
-      last_activation: sigmoid
+      last_activation: none
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
@@ -259,7 +261,7 @@ architecture:
       hidden_dims: 128
       depth: 2
       activation: none
-      last_activation: sigmoid
+      last_activation: none
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
@@ -306,19 +308,29 @@ predictor:
     pcba_1328: []
     pcqm4m_g25: []
     pcqm4m_n4: []
+  metrics_on_training_set:
+    l1000_vcap: []
+    l1000_mcf7: []
+    pcba_1328: []
+    pcqm4m_g25: []
+    pcqm4m_n4: []
   loss_fun:
-    l1000_vcap: hybrid_ce_ipu
-    l1000_mcf7: hybrid_ce_ipu
+    l1000_vcap:
+      name: hybrid_ce_ipu
+      n_brackets: 5
+    l1000_mcf7:
+      name: hybrid_ce_ipu
+      n_brackets: 5
     pcba_1328: bce_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
   random_seed: *seed
   optim_kwargs:
-    lr: 4.e-5 # warmup can be scheduled using torch_scheduler_kwargs
+    lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
+    max_num_epochs: &max_epochs 20
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -331,32 +343,32 @@ predictor:
 # Task-specific
 metrics:
   l1000_vcap: &classif_metrics
-    - name: auroc_flat
+    - name: auroc
       metric: auroc_ipu
       num_classes: 5
       task: multiclass
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
-    - name: avpr_flat
+    - name: avpr
       metric: average_precision_ipu
       num_classes: 5
       task: multiclass
       target_to_int: True
       target_nan_mask: -1000
       ignore_index: -1000
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
   l1000_mcf7: *classif_metrics
   pcba_1328:
-    - name: auroc_flat
+    - name: auroc
       metric: auroc_ipu
       task: binary
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
-    - name: avpr_flat
+    - name: avpr
       metric: average_precision_ipu
       task: binary
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
   pcqm4m_g25: &pcqm_metrics
     - name: mae
@@ -369,25 +381,26 @@ metrics:
       threshold_kwargs: null
       target_nan_mask: null
       multitask_handling: mean-per-label
+    - name: r2
+      metric: r2_score_ipu
+      threshold_kwargs: null
+      target_nan_mask: null
+      multitask_handling: mean-per-label
   pcqm4m_n4: *pcqm_metrics
 
 trainer:
+  seed: *seed
   logger:
     save_dir: logs/neurips2023-large/
     name: *name
     project: *name
-  #early_stopping:
-  #  monitor: *monitor
-  #  min_delta: 0
-  #  patience: 10
-  #  mode: &mode min
   model_checkpoint:
-    dirpath: models_checkpoints/neurips2023-large/
+    dirpath: models_checkpoints/neurips2023-large-gcn/
     filename: *name
-    #monitor: *monitor
-    #mode: *mode
-    save_top_k: 1
-    every_n_epochs: 100
+    # monitor: *monitor
+    # mode: *mode
+    # save_top_k: 1
+    save_last: True
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1

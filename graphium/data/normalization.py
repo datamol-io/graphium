@@ -11,6 +11,7 @@ class LabelNormalization:
         method: Optional[str] = None,
         min_clipping: Optional[int] = None,
         max_clipping: Optional[int] = None,
+        normalize_val_test: Optional[bool] = False,
         verbose: Optional[bool] = True,
     ):
         """
@@ -35,6 +36,7 @@ class LabelNormalization:
         self.method = method
         self.min_clipping = min_clipping
         self.max_clipping = max_clipping
+        self.normalize_val_test = normalize_val_test
         self.verbose = verbose
         self.data_max = None
         self.data_min = None
