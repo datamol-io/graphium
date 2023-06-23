@@ -15,9 +15,9 @@ import torch
 import mup
 
 # Lightning
-from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
-from pytorch_lightning import Trainer
-from pytorch_lightning.loggers import WandbLogger, Logger
+from lightning import Trainer
+from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint
+from lightning.pytorch.loggers import WandbLogger, Logger
 
 # Graphium
 from graphium.utils.mup import set_base_shapes
@@ -31,37 +31,24 @@ from graphium.ipu.ipu_utils import import_poptorch, load_ipu_options
 from graphium.data.datamodule import MultitaskFromSmilesDataModule, BaseDataModule
 from graphium.utils.command_line_utils import update_config, get_anchors_and_aliases
 
-# Weights and Biases
-from pytorch_lightning import Trainer
-
 
 def get_accelerator(
     config_acc: Union[omegaconf.DictConfig, Dict[str, Any]],
 ) -> str:
     """
     Get the accelerator from the config file, and ensure that they are
-    consistant. For example, specifying `cpu` as the accelerators, but
-    `gpus>0` as a Trainer option will yield an error.
+    consistant.
     """
 
     # Get the accelerator type
     accelerator_type = config_acc["type"]
 
     # Get the GPU info
-    gpus = config_acc["config_override"].get("trainer", {}).get("trainer", {}).get("gpus", 0)
-    if gpus > 0:
-        assert (accelerator_type is None) or (accelerator_type == "gpu"), "Accelerator mismatch"
-        accelerator_type = "gpu"
-
     if (accelerator_type == "gpu") and (not torch.cuda.is_available()):
         logger.warning(f"GPUs selected, but will be ignored since no GPU are available on this device")
         accelerator_type = "cpu"
 
     # Get the IPU info
-    ipus = config_acc["config_override"].get("trainer", {}).get("trainer", {}).get("ipus", 0)
-    if ipus > 0:
-        assert (accelerator_type is None) or (accelerator_type == "ipu"), "Accelerator mismatch"
-        accelerator_type = "ipu"
     if accelerator_type == "ipu":
         poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
@@ -280,7 +267,7 @@ def load_predictor(
     task_norms: Optional[Dict[Callable, Any]] = None,
 ) -> PredictorModule:
     """
-    Defining the predictor module, which handles the training logic from `pytorch_lightning.LighningModule`
+    Defining the predictor module, which handles the training logic from `lightning.LighningModule`
     Parameters:
         model_class: The torch Module containing the main forward function
         accelerator_type: The accelerator type, e.g. "cpu", "gpu", "ipu"
@@ -365,7 +352,7 @@ def load_trainer(
     cfg_trainer = deepcopy(config["trainer"])
 
     # Define the IPU plugin if required
-    strategy = None
+    strategy = "auto"
     if accelerator_type == "ipu":
         ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
@@ -377,22 +364,14 @@ def load_trainer(
             gradient_accumulation=config["trainer"]["trainer"].get("accumulate_grad_batches", None),
         )
 
-        from graphium.ipu.ipu_wrapper import DictIPUStrategy
+        from lightning_graphcore import IPUStrategy
 
-        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
-    # Set the number of gpus to 0 if no GPU is available
-    _ = cfg_trainer["trainer"].pop("accelerator", None)
-    gpus = cfg_trainer["trainer"].pop("gpus", None)
-    ipus = cfg_trainer["trainer"].pop("ipus", None)
-    if (accelerator_type == "gpu") and (gpus is None):
-        gpus = 1
-    if (accelerator_type == "ipu") and (ipus is None):
-        ipus = 1
-    if accelerator_type != "gpu":
-        gpus = 0
-    if accelerator_type != "ipu":
-        ipus = 0
+    # Get devices
+    devices = cfg_trainer["trainer"].pop("devices", 1)
+    if accelerator_type == "ipu":
+        devices = 1  # number of IPUs used is defined in the ipu options files
 
     # Remove the gradient accumulation from IPUs, since it's handled by the device
     if accelerator_type == "ipu":
@@ -422,8 +401,7 @@ def load_trainer(
         detect_anomaly=True,
         strategy=strategy,
         accelerator=accelerator_type,
-        ipus=ipus,
-        gpus=gpus,
+        devices=devices,
         **cfg_trainer["trainer"],
         **trainer_kwargs,
     )

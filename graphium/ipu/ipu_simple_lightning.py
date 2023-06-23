@@ -1,7 +1,7 @@
 # Copyright (c) 2021 Graphcore Ltd. All rights reserved.
-import pytorch_lightning as pl
-from pytorch_lightning.strategies import IPUStrategy
-from pytorch_lightning.loggers import WandbLogger
+import lightning
+from lightning_graphcore import IPUStrategy
+from lightning.pytorch.loggers import WandbLogger
 
 import torch
 from torch import nn
@@ -60,7 +60,7 @@ class SimpleTorchModel(torch.nn.Module):
 # This class shows a minimal lightning example. This example uses our own
 # SimpleTorchModel which is a basic 2 conv, 2 FC torch network. It can be
 # found in simple_torch_model.py.
-class SimpleLightning(pl.LightningModule):
+class SimpleLightning(lightning.LightningModule):
     def __init__(self, in_dim, hidden_dim, kernel_size, num_classes, on_ipu):
         super().__init__()
         self.model = SimpleTorchModel(
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         ipus = 1
         strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
 
-    trainer = pl.Trainer(
+    trainer = lightning.Trainer(
         logger=WandbLogger(),
         ipus=ipus,
         max_epochs=3,

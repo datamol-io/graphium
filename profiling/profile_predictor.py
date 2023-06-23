@@ -11,7 +11,7 @@ from graphium.config._loader import (
     load_predictor,
     load_architecture,
 )
-from pytorch_lightning import Trainer
+from lightning import Trainer
 
 
 def main():

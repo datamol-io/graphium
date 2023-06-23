@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import torch
 import fsspec
-from pytorch_lightning.utilities.model_summary import ModelSummary
+from lightning.pytorch.utilities.model_summary import ModelSummary
 
 # Current project imports
 import graphium

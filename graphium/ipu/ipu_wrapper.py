@@ -2,9 +2,9 @@ from typing import Dict, Any, Optional, Callable, Union, Type, Tuple, Iterable
 
 from torch_geometric.data import Batch
 from torch import Tensor
-from pytorch_lightning.strategies import IPUStrategy
-from pytorch_lightning.utilities.types import STEP_OUTPUT
-from pytorch_lightning.trainer.states import RunningStage
+from lightning_graphcore import IPUStrategy
+from lightning.pytorch.utilities.types import STEP_OUTPUT
+from lightning.pytorch.trainer.states import RunningStage
 
 from graphium.trainer.predictor import PredictorModule
 from graphium.ipu.ipu_utils import import_poptorch
@@ -17,17 +17,6 @@ import functools
 import collections
 
 poptorch = import_poptorch()
-
-
-class DictIPUStrategy(IPUStrategy):
-    def _step(self, stage: RunningStage, *args: Any, **kwargs: Any) -> STEP_OUTPUT:
-        args = self._prepare_input(args)
-        args = args[0]
-        poptorch_model = self.poptorch_models[stage]
-        self.lightning_module._running_torchscript = True
-        out = poptorch_model(**args)
-        self.lightning_module._running_torchscript = False
-        return out
 
 
 class PyGArgsParser(poptorch.ICustomArgParser):
@@ -114,7 +103,8 @@ class PredictorModuleIPU(PredictorModule):
         outputs["loss"] = outputs["loss"].mean()
         super().on_train_batch_end(outputs, batch, batch_idx)
 
-    def training_step(self, features, labels) -> Dict[str, Any]:
+    def training_step(self, batch, batch_idx) -> Dict[str, Any]:
+        features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
         step_dict = super().training_step(dict_input, to_cpu=False)
@@ -123,15 +113,17 @@ class PredictorModuleIPU(PredictorModule):
         step_dict["loss"] = self.poptorch.identity_loss(loss, reduction="mean")
         return step_dict
 
-    def validation_step(self, features, labels) -> Dict[str, Any]:
+    def validation_step(self, batch, batch_idx) -> Dict[str, Any]:
+        features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
         step_dict = super().validation_step(dict_input, to_cpu=False)
 
         return step_dict
 
-    def test_step(self, features, labels) -> Dict[str, Any]:
+    def test_step(self, batch, batch_idx) -> Dict[str, Any]:
         # Build a dictionary from the tuples
+        features, labels = batch["features"], batch["labels"]
         features, labels = self.squeeze_input_dims(features, labels)
         dict_input = {"features": features, "labels": labels}
         step_dict = super().test_step(dict_input, to_cpu=False)
@@ -145,17 +137,18 @@ class PredictorModuleIPU(PredictorModule):
 
         return step_dict
 
-    def validation_epoch_end(self, outputs: Dict[str, Any]):
+    def on_validation_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
+        # convert data that will be tracked
         outputs = self.convert_from_fp16(outputs)
-        super().validation_epoch_end(outputs)
+        super().on_validation_batch_end(outputs, batch, batch_idx)
 
-    def evaluation_epoch_end(self, outputs: Dict[str, Any]):
+    def evaluation_epoch_end(self, outputs: Any):
         outputs = self.convert_from_fp16(outputs)
         super().evaluation_epoch_end(outputs)
 
-    def test_epoch_end(self, outputs: Dict[str, Any]):
+    def on_test_batch_end(self, outputs: Any, batch: Any, batch_idx: int) -> None:
         outputs = self.convert_from_fp16(outputs)
-        super().test_epoch_end(outputs)
+        super().on_test_batch_end(outputs, batch, batch_idx)
 
     def configure_optimizers(self, impl=None):
         if impl is None:
@@ -211,7 +204,7 @@ class PredictorModuleIPU(PredictorModule):
         return feats
 
     def precision_to_dtype(self, precision):
-        return torch.half if precision in (16, "16") else torch.float
+        return torch.half if precision == "16-true" else torch.float
 
     def get_num_graphs(self, data: Batch):
         """

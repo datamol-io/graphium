@@ -24,8 +24,8 @@ from fastparquet import ParquetFile
 
 from sklearn.model_selection import train_test_split
 
-import pytorch_lightning as pl
-from pytorch_lightning.trainer.states import RunningStage
+import lightning
+from lightning.pytorch.trainer.states import RunningStage
 
 import torch
 from torch_geometric.data import Data
@@ -81,7 +81,7 @@ PCQM4Mv2_meta.update(
 )
 
 
-class BaseDataModule(pl.LightningDataModule):
+class BaseDataModule(lightning.LightningDataModule):
     def __init__(
         self,
         batch_size_training: int = 16,

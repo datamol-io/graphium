@@ -25,7 +25,7 @@ accelerator:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
+        precision: 16-true
         accumulate_grad_batches: 4
 
   ipu_config:

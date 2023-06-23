@@ -8,7 +8,7 @@ from omegaconf import DictConfig
 import timeit
 from loguru import logger
 from datetime import datetime
-from pytorch_lightning.utilities.model_summary import ModelSummary
+from lightning.pytorch.utilities.model_summary import ModelSummary
 
 # Current project imports
 import graphium

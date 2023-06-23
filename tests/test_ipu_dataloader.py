@@ -4,8 +4,8 @@ import unittest as ut
 import numpy as np
 from copy import deepcopy
 from warnings import warn
-from pytorch_lightning import Trainer, LightningModule
-from pytorch_lightning.strategies import IPUStrategy
+from lightning import Trainer, LightningModule
+from lightning_graphcore import IPUStrategy
 from functools import partial
 
 import torch
@@ -159,7 +159,8 @@ class test_DataLoading(ut.TestCase):
             max_epochs=2,
             strategy=strategy,
             num_sanity_val_steps=0,
-            ipus=1,
+            accelerator="ipu",
+            devices=1,
         )
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
@@ -239,18 +240,6 @@ class test_DataLoading(ut.TestCase):
             def get_progress_bar_dict(self):
                 return {}
 
-            def on_train_batch_end(self, *args, **kwargs):
-                return
-
-            def on_validation_batch_end(self, *args, **kwargs):
-                return
-
-            def validation_epoch_end(self, *args, **kwargs):
-                return
-
-            def on_train_epoch_end(self) -> None:
-                return
-
             def configure_optimizers(self):
                 return torch.optim.Adam(self.parameters(), lr=1e-3)
 
@@ -263,8 +252,6 @@ class test_DataLoading(ut.TestCase):
                     labels[key] = labels[key].squeeze(0)
 
                 return features, labels
-
-        from graphium.ipu.ipu_wrapper import DictIPUStrategy
 
         gradient_accumulation = 3
         device_iterations = 5
@@ -306,7 +293,7 @@ class test_DataLoading(ut.TestCase):
             metrics=metrics,
             **cfg["predictor"],
         )
-        strategy = DictIPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
+        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
         trainer = Trainer(
             logger=False, enable_checkpointing=False, max_epochs=2, strategy=strategy, num_sanity_val_steps=0
         )

@@ -35,7 +35,7 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
         data = data.to_list()
         data = [np.array([np.nan]) if not isinstance(d, np.ndarray) and math.isnan(d) else d for d in data]
         padded_data = itertools.zip_longest(*data, fillvalue=np.nan)
-        data = np.stack(padded_data, 1).T
+        data = np.stack(list(padded_data), 1).T
         return data
 
     unpacked_df: pd.DataFrame = df[label_cols].apply(unpack_column)
