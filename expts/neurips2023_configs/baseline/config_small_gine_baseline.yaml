@@ -65,6 +65,7 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
       tox21:
@@ -91,6 +92,7 @@ datamodule:
         seed: *seed
         task_level: graph
         label_normalization:
+          normalize_val_test: True
           method: "normal"
 
     # Featurization
