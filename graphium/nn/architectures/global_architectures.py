@@ -1152,7 +1152,7 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
         g["feat"] = g["feat"]
         e = None
-        if "edge_feat" in g.keys:
+        if "edge_feat" in g.keys():
             g["edge_feat"] = g["edge_feat"]
 
         # Run the pre-processing network on node features

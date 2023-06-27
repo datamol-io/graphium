@@ -33,7 +33,7 @@ class PyGArgsParser(poptorch.ICustomArgParser):
         Find all the keys that map to a tensor value in struct. The keys
         are returned in sorted order.
         """
-        all_keys = sorted(struct.keys)
+        all_keys = sorted(struct.keys())
 
         def isTensor(k: str) -> bool:
             return isinstance(struct[k], torch.Tensor)
@@ -57,7 +57,7 @@ class PyGArgsParser(poptorch.ICustomArgParser):
         tensor_keys = self.sortedTensorKeys(original_structure)
         kwargs = {k: next(tensor_iterator) for k in tensor_keys}
 
-        for k in original_structure.keys:
+        for k in original_structure.keys():
             if k not in kwargs:
                 # copy non-tensor properties to the new instance
                 kwargs[k] = original_structure[k]

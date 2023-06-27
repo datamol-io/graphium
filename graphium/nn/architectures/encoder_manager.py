@@ -169,7 +169,7 @@ class EncoderManager(nn.Module):
         # If the key is already present, concatenate the pe_pooled to the pre-existing feature.
         for pe_key, this_pe in pe_pooled.items():
             feat = this_pe
-            if pe_key in g.keys:
+            if pe_key in g.keys():
                 feat = torch.cat((feat, g[pe_key]), dim=-1)
             g[pe_key] = feat
         return g
