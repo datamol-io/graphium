@@ -539,7 +539,6 @@ class MultitaskDataset(Dataset):
 
         return valid_label
 
-
     def set_label_size_dict(self, datasets: Dict[str, SingleTaskDataset]):
         r"""
         This gives the number of labels to predict for a given task.
