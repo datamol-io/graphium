@@ -289,7 +289,8 @@ class GPSLayerPyg(BaseGraphModule):
         """
         Check if we should use packing for the batch of graphs.
         """
-        return "pack_from_node_idx" in batch.keys and "pack_attn_mask" in batch.keys
+        batch_keys = batch.keys() if isinstance(batch, object) else batch.keys
+        return "pack_from_node_idx" in batch_keys and "pack_attn_mask" in batch_keys
 
     def _to_dense_batch(
         self,
