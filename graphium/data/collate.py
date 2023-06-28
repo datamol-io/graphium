@@ -16,6 +16,7 @@ from loguru import logger
 def graphium_collate_fn(
     elements: Union[List[Any], Dict[str, List[Any]]],
     labels_size_dict: Optional[Dict[str, Any]] = None,
+    labels_dtype_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
     batch_size_per_pack: Optional[int] = None,
@@ -41,6 +42,11 @@ def graphium_collate_fn(
             A dictionary of the form Dict[tasks, sizes] which has task names as keys
             and the size of the label tensor as value. The size of the tensor corresponds to how many
             labels/values there are to predict for that task.
+
+        labels_dtype_dict:
+            (Note): This is an attribute of the `MultitaskDataset`.
+            A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+            and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype
 
         mask_nan:
             Deal with the NaN/Inf when calling the function `make_pyg_graph`.
@@ -72,7 +78,7 @@ def graphium_collate_fn(
             # Multitask setting: We have to pad the missing labels
             if key == "labels":
                 labels = [d[key] for d in elements]
-                batch[key] = collate_labels(labels, labels_size_dict)
+                batch[key] = collate_labels(labels, labels_size_dict, labels_dtype_dict)
 
             # If the features are a dictionary containing GraphDict elements,
             # Convert to pyg graphs and use the pyg batching.
@@ -223,6 +229,7 @@ def get_expected_label_size(label_data: Data, task: str, label_size: List[int]):
 def collate_labels(
     labels: List[Data],
     labels_size_dict: Optional[Dict[str, Any]] = None,
+    labels_dtype_dict: Optional[Dict[str, Any]] = None,
 ):
     """Collate labels for multitask learning.
 
@@ -231,6 +238,10 @@ def collate_labels(
         labels_size_dict: Dict of the form Dict[tasks, sizes] which has task names as keys
             and the size of the label tensor as value. The size of the tensor corresponds to how many
             labels/values there are to predict for that task.
+        labels_dtype_dict:
+            (Note): This is an attribute of the `MultitaskDataset`.
+            A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+            and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype
 
     Returns:
         A dictionary of the form Dict[tasks, labels] where tasks is the name of the task and labels
@@ -248,7 +259,8 @@ def collate_labels(
             empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys)
             for task in empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
-                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
+                dtype = labels_dtype_dict[task]
+                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan, dtype=dtype)
 
             for task in set(this_label.keys) - set(["x", "edge_index"]) - empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
