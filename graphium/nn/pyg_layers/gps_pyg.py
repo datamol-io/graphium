@@ -13,6 +13,7 @@ from graphium.nn.pyg_layers import (
     PNAMessagePassingPyg,
     MPNNPlusPyg,
 )
+from graphium.data.utils import get_keys
 from graphium.utils.decorators import classproperty
 from graphium.ipu.to_dense_batch import (
     to_dense_batch,
@@ -289,7 +290,7 @@ class GPSLayerPyg(BaseGraphModule):
         """
         Check if we should use packing for the batch of graphs.
         """
-        batch_keys = batch.keys() if isinstance(batch, object) else batch.keys
+        batch_keys = get_keys(batch)
         return "pack_from_node_idx" in batch_keys and "pack_attn_mask" in batch_keys
 
     def _to_dense_batch(

@@ -98,3 +98,10 @@ def download_graphium_dataset(
         dataset_path_destination = dataset_path_destination.split(".")[0]
 
     return dataset_path_destination
+
+
+def get_keys(pyg_data):
+    if isinstance(type(pyg_data).keys, property):
+        return pyg_data.keys
+    else:
+        return pyg_data.keys()

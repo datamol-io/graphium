@@ -15,6 +15,7 @@ from torch_geometric.data.data import BaseData
 from loguru import logger
 import functools
 import collections
+from graphium.data.utils import get_keys
 
 poptorch = import_poptorch()
 
@@ -33,7 +34,7 @@ class PyGArgsParser(poptorch.ICustomArgParser):
         Find all the keys that map to a tensor value in struct. The keys
         are returned in sorted order.
         """
-        all_keys = sorted(struct.keys() if isinstance(struct, object) else struct.keys)
+        all_keys = sorted(get_keys(struct))
 
         def isTensor(k: str) -> bool:
             return isinstance(struct[k], torch.Tensor)
@@ -57,9 +58,7 @@ class PyGArgsParser(poptorch.ICustomArgParser):
         tensor_keys = self.sortedTensorKeys(original_structure)
         kwargs = {k: next(tensor_iterator) for k in tensor_keys}
 
-        for k in (
-            original_structure.keys() if isinstance(original_structure, object) else original_structure.keys
-        ):
+        for k in get_keys(original_structure):
             if k not in kwargs:
                 # copy non-tensor properties to the new instance
                 kwargs[k] = original_structure[k]

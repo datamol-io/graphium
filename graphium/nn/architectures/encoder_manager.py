@@ -9,6 +9,7 @@ from copy import deepcopy
 from torch import Tensor, nn
 import torch
 
+from graphium.data.utils import get_keys
 from graphium.nn.encoders import (
     laplace_pos_encoder,
     mlp_encoder,
@@ -169,7 +170,7 @@ class EncoderManager(nn.Module):
         # If the key is already present, concatenate the pe_pooled to the pre-existing feature.
         for pe_key, this_pe in pe_pooled.items():
             feat = this_pe
-            if pe_key in g.keys() if isinstance(g, object) else g.keys:
+            if pe_key in get_keys(g):
                 feat = torch.cat((feat, g[pe_key]), dim=-1)
             g[pe_key] = feat
         return g
