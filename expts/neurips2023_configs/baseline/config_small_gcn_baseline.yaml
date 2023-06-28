@@ -37,6 +37,17 @@ accelerator:
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
 
+# accelerator:
+#   type: cpu  # cpu or ipu or gpu
+#   config_override:
+#     datamodule:
+#       batch_size_training: 64
+#       batch_size_inference: 256
+#     trainer:
+#       trainer:
+#         precision: 32
+#         accumulate_grad_batches: 1
+
 datamodule:
   module_type: "MultitaskFromSmilesDataModule"
   # module_type: "FakeDataModule"  # Option to use generated data
