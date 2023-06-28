@@ -16,6 +16,7 @@ from loguru import logger
 def graphium_collate_fn(
     elements: Union[List[Any], Dict[str, List[Any]]],
     labels_size_dict: Optional[Dict[str, Any]] = None,
+    labels_dtype_dict: Optional[Dict[str, Any]] = None,
     mask_nan: Union[str, float, Type[None]] = "raise",
     do_not_collate_keys: List[str] = [],
     batch_size_per_pack: Optional[int] = None,
@@ -41,6 +42,11 @@ def graphium_collate_fn(
             A dictionary of the form Dict[tasks, sizes] which has task names as keys
             and the size of the label tensor as value. The size of the tensor corresponds to how many
             labels/values there are to predict for that task.
+
+        labels_dtype_dict:
+            (Note): This is an attribute of the `MultitaskDataset`.
+            A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+            and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype
 
         mask_nan:
             Deal with the NaN/Inf when calling the function `make_pyg_graph`.
@@ -72,7 +78,7 @@ def graphium_collate_fn(
             # Multitask setting: We have to pad the missing labels
             if key == "labels":
                 labels = [d[key] for d in elements]
-                batch[key] = collate_labels(labels, labels_size_dict)
+                batch[key] = collate_labels(labels, labels_size_dict, labels_dtype_dict)
 
             # If the features are a dictionary containing GraphDict elements,
             # Convert to pyg graphs and use the pyg batching.
@@ -124,7 +130,7 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
     pyg_batch = []
     for pyg_graph in pyg_graphs:
-        for pyg_key in pyg_graph.keys:
+        for pyg_key in pyg_graph.keys():
             tensor = pyg_graph[pyg_key]
 
             # Convert numpy/scipy to Pytorch
@@ -192,7 +198,7 @@ def collate_pyg_graph_labels(pyg_labels: List[Data]):
     """
     pyg_batch = []
     for pyg_label in pyg_labels:
-        for pyg_key in set(pyg_label.keys) - set(["x", "edge_index"]):
+        for pyg_key in set(pyg_label.keys()) - set(["x", "edge_index"]):
             tensor = pyg_label[pyg_key]
             # Convert numpy/scipy to Pytorch
             if isinstance(tensor, (ndarray, spmatrix)):
@@ -201,6 +207,12 @@ def collate_pyg_graph_labels(pyg_labels: List[Data]):
             pyg_label[pyg_key] = tensor
 
         pyg_batch.append(pyg_label)
+
+    dtypes = [p.graph_tox21.dtype for p in pyg_batch]
+    x = torch.cat([p.graph_tox21 for p in pyg_batch], dim=0)
+    # print(x.shape)
+    if x.dtype == torch.float32 and x.shape[1] == 21:
+        breakpoint()
 
     return Batch.from_data_list(pyg_batch)
 
@@ -223,6 +235,7 @@ def get_expected_label_size(label_data: Data, task: str, label_size: List[int]):
 def collate_labels(
     labels: List[Data],
     labels_size_dict: Optional[Dict[str, Any]] = None,
+    labels_dtype_dict: Optional[Dict[str, Any]] = None,
 ):
     """Collate labels for multitask learning.
 
@@ -231,6 +244,10 @@ def collate_labels(
         labels_size_dict: Dict of the form Dict[tasks, sizes] which has task names as keys
             and the size of the label tensor as value. The size of the tensor corresponds to how many
             labels/values there are to predict for that task.
+        labels_dtype_dict:
+            (Note): This is an attribute of the `MultitaskDataset`.
+            A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+            and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype
 
     Returns:
         A dictionary of the form Dict[tasks, labels] where tasks is the name of the task and labels
@@ -245,12 +262,13 @@ def collate_labels(
                 elif not task.startswith("graph_"):
                     labels_size_dict[task] = [1]
 
-            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys)
+            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
             for task in empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
-                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
+                dtype = labels_dtype_dict[task]
+                this_label[task] = torch.full([*labels_size_dict[task]], torch.nan, dtype=dtype)
 
-            for task in set(this_label.keys) - set(["x", "edge_index"]) - empty_task_labels:
+            for task in set(this_label.keys()) - set(["x", "edge_index"]) - empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
 
                 if not isinstance(this_label[task], (torch.Tensor)):
