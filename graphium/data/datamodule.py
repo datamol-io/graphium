@@ -1666,7 +1666,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
-        g_keys = graph.keys()
+        g_keys = graph.keys
 
         # ignore the normal keys for node feat and edge feat etc.
         for key in g_keys:
