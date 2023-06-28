@@ -155,9 +155,13 @@ class CombinedBatchingCollator:
         out_batch = {}
 
         # Stack tensors in the first dimension to allow IPUs to differentiate between local and global graph
+        all_keys = (
+            all_batches[0]["labels"].keys()
+            if isinstance(all_batches[0]["labels"], object)
+            else all_batches[0]["labels"].keys
+        )
         out_batch["labels"] = {
-            key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0)
-            for key in all_batches[0]["labels"].keys()
+            key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0) for key in all_keys
         }
         out_graphs = [this_batch["features"] for this_batch in all_batches]
         stacked_features = deepcopy(out_graphs[0])

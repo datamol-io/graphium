@@ -124,7 +124,7 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
     pyg_batch = []
     for pyg_graph in pyg_graphs:
-        for pyg_key in pyg_graph.keys():
+        for pyg_key in pyg_graph.keys() if isinstance(pyg_graph, object) else pyg_graph.keys:
             tensor = pyg_graph[pyg_key]
 
             # Convert numpy/scipy to Pytorch
@@ -192,7 +192,9 @@ def collate_pyg_graph_labels(pyg_labels: List[Data]):
     """
     pyg_batch = []
     for pyg_label in pyg_labels:
-        for pyg_key in set(pyg_label.keys()) - set(["x", "edge_index"]):
+        for pyg_key in set(pyg_label.keys() if isinstance(pyg_label, object) else pyg_label.keys) - set(
+            ["x", "edge_index"]
+        ):
             tensor = pyg_label[pyg_key]
             # Convert numpy/scipy to Pytorch
             if isinstance(tensor, (ndarray, spmatrix)):
@@ -244,13 +246,13 @@ def collate_labels(
                     labels_size_dict[task] = labels_size_dict[task][1:]
                 elif not task.startswith("graph_"):
                     labels_size_dict[task] = [1]
-
-            empty_task_labels = set(labels_size_dict.keys()) - set(this_label.keys())
+            label_keys_set = set(this_label.keys() if isinstance(this_label, object) else this_label.keys)
+            empty_task_labels = set(labels_size_dict.keys()) - label_keys_set
             for task in empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
                 this_label[task] = torch.full([*labels_size_dict[task]], torch.nan)
 
-            for task in set(this_label.keys()) - set(["x", "edge_index"]) - empty_task_labels:
+            for task in label_keys_set - set(["x", "edge_index"]) - empty_task_labels:
                 labels_size_dict[task] = get_expected_label_size(this_label, task, labels_size_dict[task])
 
                 if not isinstance(this_label[task], (torch.Tensor)):
