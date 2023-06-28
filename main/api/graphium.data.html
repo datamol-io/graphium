@@ -2179,8 +2179,8 @@
 <code class="highlight language-python"><span class="n">predict_ds</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-property"><code>property</code></small>
       <small class="doc doc-label doc-label-writable"><code>writable</code></small>
+      <small class="doc doc-label doc-label-property"><code>property</code></small>
   </span>
 
 <a href="#graphium.data.datamodule.BaseDataModule.predict_ds" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -5199,7 +5199,7 @@ This is useful for using packing with the Transformer,</p>
 
 
 <h4 id="graphium.data.collate.collate_labels" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">collate_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">collate_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels_dtype_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.data.collate.collate_labels" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -5243,6 +5243,22 @@ This is useful for using packing with the Transformer,</p>
               <p>Dict of the form Dict[tasks, sizes] which has task names as keys
 and the size of the label tensor as value. The size of the tensor corresponds to how many
 labels/values there are to predict for that task.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>labels_dtype_dict</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(Note): This is an attribute of the <code>MultitaskDataset</code>.
+A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype</p>
             </div>
           </td>
           <td>
@@ -5357,7 +5373,7 @@ and the number of targets in the task-dataset.</p>
 
 
 <h4 id="graphium.data.collate.graphium_collate_fn" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">graphium_collate_fn</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">do_not_collate_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">graphium_collate_fn</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels_dtype_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">do_not_collate_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.data.collate.graphium_collate_fn" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -5411,6 +5427,22 @@ for them should be added to this single collate function.</p>
 A dictionary of the form Dict[tasks, sizes] which has task names as keys
 and the size of the label tensor as value. The size of the tensor corresponds to how many
 labels/values there are to predict for that task.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>labels_dtype_dict</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(Note): This is an attribute of the <code>MultitaskDataset</code>.
+A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype</p>
             </div>
           </td>
           <td>
