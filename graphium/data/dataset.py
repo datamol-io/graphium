@@ -524,6 +524,22 @@ class MultitaskDataset(Dataset):
         mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         return mol_ids, inv
 
+    def _find_valid_label(self, task, ds):
+        r"""
+        For a given dataset, find a genuine label for that dataset
+        """
+        valid_label = None
+        for i in range(len(ds)):
+            if ds[i] is not None:
+                valid_label = ds[i]["labels"]
+                break
+
+        if valid_label is None:
+            raise ValueError(f"Dataset for task {task} has no valid labels.")
+
+        return valid_label
+
+
     def set_label_size_dict(self, datasets: Dict[str, SingleTaskDataset]):
         r"""
         This gives the number of labels to predict for a given task.
@@ -533,14 +549,7 @@ class MultitaskDataset(Dataset):
             if len(ds) == 0:
                 continue
 
-            valid_label = None
-            for i in range(len(ds)):
-                if ds[i] is not None:
-                    valid_label = ds[i]["labels"]
-                    break
-
-            if valid_label is None:
-                raise ValueError(f"Dataset for task {task} has no valid labels.")
+            valid_label = self._find_valid_label(task, ds)
 
             # Assume for a fixed task, the label dimension is the same across data points
             torch_label = torch.as_tensor(valid_label)
@@ -558,14 +567,7 @@ class MultitaskDataset(Dataset):
             if len(ds) == 0:
                 continue
 
-            valid_label = None
-            for i in range(len(ds)):
-                if ds[i] is not None:
-                    valid_label = ds[i]["labels"]
-                    break
-
-            if valid_label is None:
-                raise ValueError(f"Dataset for task {task} has no valid labels.")
+            valid_label = self._find_valid_label(task, ds)
 
             torch_label = torch.as_tensor(valid_label)
             task_labels_dtype[task] = torch_label.dtype
