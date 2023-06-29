@@ -10,6 +10,7 @@ import time
 import gc
 from rdkit import Chem
 import re
+from graphium.data.utils import get_keys
 
 from loguru import logger
 import fsspec
@@ -1666,8 +1667,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
-        g_keys = graph.keys
-
+        g_keys = get_keys(graph)
         # ignore the normal keys for node feat and edge feat etc.
         for key in g_keys:
             prop = graph.get(key, None)
