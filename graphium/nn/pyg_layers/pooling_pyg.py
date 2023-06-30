@@ -33,7 +33,7 @@ def scatter_logsum_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Op
     Returns:
         the pooled features tensor
     """
-    dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
+    dim_size = int(batch.max().detach() + 1) if dim_size is None else dim_size
     mean_pool = scatter(x, batch, dim=dim, dim_size=dim_size, reduce="mean")
     num_nodes = scatter(
         torch.ones(x.shape[:-1], dtype=x.dtype, device=x.device),
@@ -65,7 +65,7 @@ def scatter_std_pool(x: Tensor, batch: LongTensor, dim: int = 0, dim_size: Optio
     Returns:
         the pooled features tensor
     """
-    dim_size = int(batch.max().item() + 1) if dim_size is None else dim_size
+    dim_size = int(batch.max().detach() + 1) if dim_size is None else dim_size
     mean = scatter(x, batch, dim=dim, out=None, dim_size=dim_size, reduce="mean")
     mean_squares = scatter(x * x, batch, dim=dim, out=None, dim_size=dim_size, reduce="mean")
     out = mean_squares - mean * mean

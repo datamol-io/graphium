@@ -39,6 +39,7 @@ class PredictorModule(lightning.LightningModule):
         metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
         task_norms: Optional[Dict[Callable, Any]] = None,
+        metrics_every_n_steps: Optional[bool] = 1,
     ):
         """
         The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
@@ -58,6 +59,7 @@ class PredictorModule(lightning.LightningModule):
             metrics_on_training_set: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the training set
             flag_kwargs: Arguments related to using the FLAG adversarial augmentation
             task_norms: the normalization for each task
+            metrics_every_n_steps: Compute and log metrics every n steps. Set to 1 to log at every step (the default)
         """
         self.save_hyperparameters()
 
@@ -161,6 +163,10 @@ class PredictorModule(lightning.LightningModule):
         self.validation_step_outputs = []
         self.test_step_outputs = []
         self.epoch_start_time = None
+        
+        # Decide whether to log every step or once at the end 
+        # of the epoch.
+        self.metrics_every_n_steps = metrics_every_n_steps
 
     def forward(
         self, inputs: Dict
@@ -442,6 +448,9 @@ class PredictorModule(lightning.LightningModule):
         return super().on_train_batch_start(batch, batch_idx)
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
+        if (batch_idx + 1) % self.metrics_every_n_steps != 0:
+            return
+            
         train_batch_time = time.time() - self.train_batch_start_time
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
@@ -495,7 +504,7 @@ class PredictorModule(lightning.LightningModule):
         for p in self.parameters():
             if p.grad is not None:
                 param_norm = p.grad.detach().data.norm(2)
-                total_norm += param_norm.item() ** 2
+                total_norm += param_norm.detach().cpu() ** 2
         total_norm = total_norm**0.5
         return total_norm
 
@@ -608,7 +617,7 @@ class PredictorModule(lightning.LightningModule):
 
     def get_progress_bar_dict(self) -> Dict[str, float]:
         prog_dict = {}
-        prog_dict["loss"] = self.task_epoch_summary.weighted_loss.item()
+        prog_dict["loss"] = self.task_epoch_summary.weighted_loss.detach().cpu()
         results_on_progress_bar = self.task_epoch_summary.get_results_on_progress_bar("val")
         for task in self.tasks:
             prog_dict[self.task_epoch_summary.metric_log_name(task, "loss", "val")] = (

@@ -1,12 +1,12 @@
 import torch
 from torch import Tensor
-from torch.nn import BCELoss, MSELoss, L1Loss
+from torch.nn import BCELoss, BCEWithLogitsLoss, MSELoss, L1Loss
 from torch._C import _infer_size
 from loguru import logger
 from graphium.trainer.losses import HybridCELoss
 
 
-class BCELossIPU(BCELoss):
+class BCELossIPU(BCEWithLogitsLoss):
     """
     A modified version of the `torch.nn.BCELoss` that can ignore NaNs
     by giving them a weight of `0`. This allows it to work with compilation

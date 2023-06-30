@@ -29,6 +29,8 @@ from graphium.utils.command_line_utils import update_config, get_anchors_and_ali
 # WandB
 import wandb
 
+import torch; torch.set_float32_matmul_precision("medium")
+
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 
@@ -36,14 +38,14 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gine.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
-
+CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn_luis.yaml"
 os.chdir(MAIN_DIR)
 
 
@@ -54,7 +56,7 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
     if add_date_time:
         date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
-    wandb.init(entity="multitask-gnn", project=cfg["constants"]["name"], config=cfg)
+    wandb.init(entity=cfg["constants"]["entity"], project=cfg["constants"]["name"], config=cfg)
 
     # Initialize the accelerator
     cfg, accelerator_type = load_accelerator(cfg)

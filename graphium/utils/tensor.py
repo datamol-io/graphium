@@ -179,7 +179,7 @@ def nan_median(input: Tensor, **kwargs) -> Tensor:
                 median = median.squeeze(d)
     else:
         if dim is None:
-            median = torch.nanmedian(input.flatten())
+            median = torch.nanmedian(input.flatten().float())
         else:
             median, _ = torch.nanmedian(input, dim=dim, keepdim=keepdim)
 
@@ -251,7 +251,7 @@ def nan_std(input: Tensor, unbiased: bool = True, **kwargs) -> Tensor:
         output: The resulting standard deviation of the tensor
     """
 
-    return torch.sqrt(nan_var(input=input, unbiased=unbiased, **kwargs))
+    return torch.sqrt(nan_var(input=input, unbiased=unbiased, **kwargs).float())
 
 
 def nan_mad(input: Tensor, normal: bool = True, **kwargs) -> Tensor:
