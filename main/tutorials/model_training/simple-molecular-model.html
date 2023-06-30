@@ -16,7 +16,7 @@
         <link rel="prev" href="../gnn/using_gnn_layers.html">
       
       
-        <link rel="next" href="ipu_training.html">
+        <link rel="next" href="../../design.html">
       
       <link rel="icon" href="../../images/logo.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
@@ -952,8 +952,8 @@
   
   
     <li class="md-nav__item">
-      <a href="ipu_training.html" class="md-nav__link">
-        Building and training on IPU from configurations
+      <a href="ipu_training.ipynb" class="md-nav__link">
+        Training on IPU
       </a>
     </li>
   
@@ -2250,12 +2250,12 @@ Licensed under the Apache License, Version 2.0.
 <h1 id="building-and-training-a-simple-model-from-configurations">Building and training a simple model from configurations<a class="anchor-link" href="#building-and-training-a-simple-model-from-configurations">&#182;</a></h1><p>This tutorial will walk you through how to use a configuration file to define all the parameters of a model and of the trainer. This tutorial focuses on training from SMILES data in a CSV format.</p>
 <p>The work flow of testing your code on the entire pipeline is as follows:</p>
 <ol>
-<li>select a corresponding yaml file in the <a href="https://github.com/datamol-io/graphium/blob/master/expts/main_run_multitask.py">expts/main_run_multitask.py</a> i.e. by <code>CONFIG_FILE = &quot;expts/configs/config_gps_10M_pcqm4m.yaml&quot;</code></li>
+<li>select a corresponding yaml file in the <a href="https://github.com/datamol-io/graphium/blob/master/expts/main_run_multitask.py">expts/main_run_multitask.py</a> i.e. by <code>CONFIG_FILE = &quot;expts/configs/config_gps_10M_pcqm4m_mod.yaml&quot;</code></li>
 <li>modify the yaml config file</li>
 <li><code>python expts/main_run_multitask.py</code></li>
 </ol>
-<p>There are multiple examples of YAML files located in the folder <code>graphium/expts/configs</code> that one can refer to when training a new model. The file <code>config_gps_10M_pcqm4m.yaml</code> shows an example of running the GPS model on the pcqm4m dataset.</p>
-<h2 id="creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#creating-the-yaml-file">&#182;</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>graphium/expts/config_gps_10M_pcqm4m.yaml</code>. We will go through each part of the configurations.</p>
+<p>There are multiple examples of YAML files located in the folder <code>graphium/expts/configs</code> that one can refer to when training a new model. The file <code>config_gps_10M_pcqm4m_mod.yaml</code> shows an example of running the GPS model on the pcqm4m dataset.</p>
+<h2 id="creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#creating-the-yaml-file">&#182;</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>graphium/expts/config_gps_10M_pcqm4m_mod.yaml</code>. We will go through each part of the configurations.</p>
 
 </div>
 </div>
@@ -2352,13 +2352,13 @@ import omegaconf</div>
                 </clipboard-copy>
             </div>
             <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># First, let&#39;s read the yaml configuration file</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;../../../expts/configs/config_gps_10M_pcqm4m.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;../../../expts/configs/config_gps_10M_pcqm4m_mod.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
     <span class="n">yaml_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Yaml file loaded&quot;</span><span class="p">)</span>
 </pre></div>
 <div id="cell-3" class="clipboard-copy-txt"># First, let's read the yaml configuration file
-with open("../../../expts/configs/config_gps_10M_pcqm4m.yaml", "r") as file:
+with open("../../../expts/configs/config_gps_10M_pcqm4m_mod.yaml", "r") as file:
     yaml_config = yaml.load(file, Loader=yaml.FullLoader)
 
 print("Yaml file loaded")</div>
@@ -2451,7 +2451,7 @@ print("Yaml file loaded")</div>
   seed: 42
   raise_train_error: true
   accelerator:
-    type: cpu
+    type: gpu
 
 </pre>
 </div>
@@ -2524,7 +2524,8 @@ print("Yaml file loaded")</div>
     task_specific_args:
       homolumo:
         df: null
-        df_path: graphium/data/PCQM4M/pcqm4mv2-20k.csv
+        task_level: graph
+        df_path: ~/scratch/data/graphium/data/PCQM4M/pcqm4mv2-20k.csv
         smiles_col: cxsmiles
         label_cols:
         - homo_lumo_gap
@@ -2535,6 +2536,7 @@ print("Yaml file loaded")</div>
     featurization_progress: true
     featurization_backend: loky
     featurization:
+      mask_nan: 0
       atom_property_list_onehot:
       - atomic-number
       - group
@@ -2557,14 +2559,44 @@ print("Yaml file loaded")</div>
       use_bonds_weights: false
       pos_encoding_as_features:
         pos_types:
-          la_pos:
-            pos_type: laplacian_eigvec_eigval
+          node_laplacian_eigvec:
+            pos_type: laplacian_eigvec
+            pos_level: node
             num_pos: 8
             normalization: none
             disconnected_comp: true
-          rw_pos:
-            pos_type: rwse
-            ksteps: 16
+          node_laplacian_eigval:
+            pos_type: laplacian_eigval
+            pos_level: node
+            num_pos: 8
+            normalization: none
+            disconnected_comp: true
+          rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: node
+            ksteps:
+            - 4
+            - 8
+          nodepair_rw_transition_probs:
+            pos_type: rw_transition_probs
+            pos_level: edge
+            ksteps:
+            - 2
+            - 4
+          nodepair_rw_return_probs:
+            pos_type: rw_return_probs
+            pos_level: nodepair
+            ksteps:
+            - 4
+          electrostatic:
+            pos_type: electrostatic
+            pos_level: node
+          edge_commute:
+            pos_type: commute
+            pos_level: edge
+          nodepair_graphormer:
+            pos_type: graphormer
+            pos_level: nodepair
     batch_size_training: 64
     batch_size_inference: 16
     num_workers: 0
@@ -2668,35 +2700,66 @@ Here, we define all the layers for the model, including the layers for the pre-p
     residual_type: none
   pe_encoders:
     out_dim: 32
+    edge_out_dim: 16
     pool: sum
     last_norm: None
     encoders:
-      la_pos:
+      emb_la_pos:
         encoder_type: laplacian_pe
         input_keys:
-        - eigvecs
-        - eigvals
+        - laplacian_eigvec
+        - laplacian_eigval
         output_keys:
         - feat
-        hidden_dim: 64
-        out_dim: 32
+        hidden_dim: 32
         model_type: DeepSet
         num_layers: 2
         num_layers_post: 1
         dropout: 0.1
         first_normalization: none
-      rw_pos:
+      emb_rwse:
         encoder_type: mlp
         input_keys:
-        - rwse
+        - rw_return_probs
         output_keys:
         - feat
-        hidden_dim: 64
-        out_dim: 32
+        hidden_dim: 32
         num_layers: 2
         dropout: 0.1
         normalization: layer_norm
         first_normalization: layer_norm
+      emb_electrostatic:
+        encoder_type: mlp
+        input_keys:
+        - electrostatic
+        output_keys:
+        - feat
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: layer_norm
+        first_normalization: layer_norm
+      emb_edge_rwse:
+        encoder_type: mlp
+        input_keys:
+        - edge_rw_transition_probs
+        output_keys:
+        - edge_feat
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: layer_norm
+      emb_edge_pes:
+        encoder_type: cat_mlp
+        input_keys:
+        - edge_rw_transition_probs
+        - edge_commute
+        output_keys:
+        - edge_feat
+        hidden_dim: 32
+        num_layers: 1
+        dropout: 0.1
+        normalization: layer_norm
       gaussian_pos:
         encoder_type: gaussian_kernel
         input_keys:
@@ -2706,7 +2769,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
         - nodepair_gaussian_bias_3d
         num_heads: 2
         num_layers: 2
-        embed_dim: 16
+        embed_dim: 32
         use_input_keys_prefix: false
   gnn:
     out_dim: 32
@@ -2731,7 +2794,9 @@ Here, we define all the layers for the model, including the layers for the pre-p
         in_dim_edges: 16
         out_dim_edges: 16
       attn_type: full-attention
-      attn_kwargs: null
+      attn_kwargs:
+        num_heads: 2
+      biased_attention_key: nodepair_gaussian_bias_3d
   post_nn: null
   task_heads:
     homolumo:
@@ -2821,7 +2886,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
     lr: 0.0004
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: 100
+    max_num_epochs: 5
     warmup_epochs: 10
     verbose: false
   scheduler_kwargs: null
@@ -2984,7 +3049,7 @@ Here, we define all the layers for the model, including the layers for the pre-p
     every_n_epochs: 100
   trainer:
     precision: 32
-    max_epochs: 100
+    max_epochs: 5
     min_epochs: 1
     accumulate_grad_batches: 2
     check_val_every_n_epoch: 20
