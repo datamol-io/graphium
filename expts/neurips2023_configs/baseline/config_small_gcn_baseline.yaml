@@ -15,11 +15,11 @@ accelerator:
           max_num_edges_per_graph: 80
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 44 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 80
+          max_num_nodes_per_graph: 100 # valid max nodes: 51, max_edges: 118
+          max_num_edges_per_graph: 200
         # Data handling-related
         batch_size_training: 5
-        batch_size_inference: 5
+        batch_size_inference: 2
     predictor:
       optim_kwargs:
         loss_scaling: 1024
@@ -30,7 +30,7 @@ accelerator:
 
   ipu_config:
     - deviceIterations(5) # IPU would require large batches to be ready for the model.
-    - replicationFactor(16)
+    - replicationFactor(4)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
