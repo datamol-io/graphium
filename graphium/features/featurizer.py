@@ -886,6 +886,14 @@ class GraphDict(dict):
         # default_dic.update(edata)
         super().__init__(default_dic)
 
+    @property
+    def keys(self):
+        return list(super().keys())
+
+    @property
+    def values(self):
+        return list(super().self.values())
+
     def make_pyg_graph(self, **kwargs) -> Data:
         """
         Convert the current dictionary of parameters, containing an adjacency matrix with node/edge data

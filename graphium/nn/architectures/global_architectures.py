@@ -12,6 +12,7 @@ import torch
 from torch_geometric.data import Data
 
 # graphium imports
+from graphium.data.utils import get_keys
 from graphium.nn.base_layers import FCLayer, get_activation, get_norm
 from graphium.nn.architectures.encoder_manager import EncoderManager
 from graphium.nn.pyg_layers import VirtualNodePyg, parse_pooling_layer_pyg
@@ -1152,7 +1153,8 @@ class FullGraphMultiTaskNetwork(nn.Module, MupMixin):
 
         g["feat"] = g["feat"]
         e = None
-        if "edge_feat" in g.keys:
+
+        if "edge_feat" in get_keys(g):
             g["edge_feat"] = g["edge_feat"]
 
         # Run the pre-processing network on node features
