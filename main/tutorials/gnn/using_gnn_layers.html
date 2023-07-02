@@ -840,8 +840,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#gat-layer" class="md-nav__link">
-    GAT Layer
+  <a href="#gine-layer" class="md-nav__link">
+    GINE Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gps-layer" class="md-nav__link">
+    GPS Layer
   </a>
   
 </li>
@@ -849,6 +856,13 @@
         <li class="md-nav__item">
   <a href="#gated-gcn-layer" class="md-nav__link">
     Gated-GCN Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pna" class="md-nav__link">
+    PNA
   </a>
   
 </li>
@@ -1084,8 +1098,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#gat-layer" class="md-nav__link">
-    GAT Layer
+  <a href="#gine-layer" class="md-nav__link">
+    GINE Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#gps-layer" class="md-nav__link">
+    GPS Layer
   </a>
   
 </li>
@@ -1093,6 +1114,13 @@
         <li class="md-nav__item">
   <a href="#gated-gcn-layer" class="md-nav__link">
     Gated-GCN Layer
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pna" class="md-nav__link">
+    PNA
   </a>
   
 </li>
@@ -2152,8 +2180,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="using-gnn-layers">Using GNN layers<a class="anchor-link" href="#using-gnn-layers">&#182;</a></h1><p>The current library implements multiple state-of-the-art graph neural networks. In this tutorial, you will learn how to use the <strong>GCN</strong>, <strong>GIN</strong>, <strong>Gated-GCN</strong> and <strong>PNA</strong> layers in a simple <code>forward</code> context.</p>
-<p>Other layers such as <strong>DGN</strong> require additional positional encoding to work.</p>
+<h1 id="using-gnn-layers">Using GNN layers<a class="anchor-link" href="#using-gnn-layers">&#182;</a></h1><p>The current library implements multiple state-of-the-art graph neural networks. In this tutorial, you will learn how to use the <strong>GCN</strong>, <strong>GIN</strong>, <strong>GINE</strong>, <strong>GPS</strong>, <strong>Gated-GCN</strong> and <strong>PNA</strong> layers in a simple <code>forward</code> context.</p>
 
 </div>
 </div>
@@ -2164,7 +2191,7 @@ Licensed under the Apache License, Version 2.0.
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[53]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2183,16 +2210,19 @@ Licensed under the Apache License, Version 2.0.
 <span class="o">%</span><span class="n">autoreload</span> <span class="mi">2</span>
 
 <span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">import</span> <span class="nn">dgl</span>
+
+<span class="kn">import</span> <span class="nn">torch_geometric</span> <span class="k">as</span> <span class="nn">pyg</span>
+<span class="kn">from</span> <span class="nn">torch_geometric.data</span> <span class="kn">import</span> <span class="n">Data</span><span class="p">,</span> <span class="n">Batch</span>
+
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 
-<span class="kn">from</span> <span class="nn">goli.nn.dgl_layers</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">GCNLayer</span><span class="p">,</span>
-    <span class="n">GINLayer</span><span class="p">,</span>
-    <span class="n">GATLayer</span><span class="p">,</span>
-    <span class="n">GatedGCNLayer</span><span class="p">,</span>
-    <span class="n">PNAConvolutionalLayer</span><span class="p">,</span>
-    <span class="n">PNAMessagePassingLayer</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">graphium.nn.pyg_layers</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">GCNConvPyg</span><span class="p">,</span>
+    <span class="n">GINConvPyg</span><span class="p">,</span>
+    <span class="n">GatedGCNPyg</span><span class="p">,</span>
+    <span class="n">GINEConvPyg</span><span class="p">,</span>
+    <span class="n">GPSLayerPyg</span><span class="p">,</span>
+    <span class="n">PNAMessagePassingPyg</span>
 <span class="p">)</span>
 
 <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
@@ -2201,16 +2231,19 @@ Licensed under the Apache License, Version 2.0.
 %autoreload 2
 
 import torch
-import dgl
+
+import torch_geometric as pyg
+from torch_geometric.data import Data, Batch
+
 from copy import deepcopy
 
-from goli.nn.dgl_layers import (
-    GCNLayer,
-    GINLayer,
-    GATLayer,
-    GatedGCNLayer,
-    PNAConvolutionalLayer,
-    PNAMessagePassingLayer,
+from graphium.nn.pyg_layers import (
+    GCNConvPyg,
+    GINConvPyg,
+    GatedGCNPyg,
+    GINEConvPyg,
+    GPSLayerPyg,
+    PNAMessagePassingPyg
 )
 
 _ = torch.manual_seed(42)</div>
@@ -2232,8 +2265,9 @@ _ = torch.manual_seed(42)</div>
     <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 
 
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>Using backend: pytorch
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload
 </pre>
 </div>
 </div>
@@ -2250,7 +2284,7 @@ _ = torch.manual_seed(42)</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<p>We will first create some simple batched graphs that will be used accross the examples. Here, <code>bg</code> is a batch of 2 graphs containing random node features <code>bg.ndata[&quot;h&quot;]</code> and edge features <code>bg.edata[&quot;e&quot;]</code>.</p>
+<p>We will first create some simple batched graphs that will be used accross the examples. Here, <code>bg</code> is a batch containing 2 graphs with random node features.</p>
 
 </div>
 </div>
@@ -2261,7 +2295,7 @@ _ = torch.manual_seed(42)</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[54]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2277,51 +2311,66 @@ _ = torch.manual_seed(42)</div>
                 </clipboard-copy>
             </div>
             <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">in_dim</span> <span class="o">=</span> <span class="mi">5</span>          <span class="c1"># Input node-feature dimensions</span>
-<span class="n">out_dim</span> <span class="o">=</span> <span class="mi">11</span>        <span class="c1"># Desired output node-feature dimensions</span>
 <span class="n">in_dim_edges</span> <span class="o">=</span> <span class="mi">13</span>   <span class="c1"># Input edge-feature dimensions</span>
+<span class="n">out_dim</span> <span class="o">=</span> <span class="mi">11</span>        <span class="c1"># Desired output node-feature dimensions</span>
+<span class="n">out_dim_edges</span> <span class="o">=</span> <span class="mi">15</span>  <span class="c1"># Desired output edge-feature dimensions</span>
 
-<span class="c1"># Let&#39;s create 2 simple graphs. Here the tensors represent the connectivity between nodes</span>
-<span class="n">g1</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])))</span>
-<span class="n">g2</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">graph</span><span class="p">((</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])))</span>
 
-<span class="c1"># We add some node features to the graphs</span>
-<span class="n">g1</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">g2</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_nodes</span><span class="p">(),</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="c1"># Let&#39;s create 2 simple pyg graphs. </span>
+<span class="c1"># start by specifying the edges with edge index</span>
+<span class="n">edge_idx1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                          <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
+<span class="n">edge_idx2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                          <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
 
-<span class="c1"># We also add some edge features to the graphs</span>
-<span class="n">g1</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g1</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">g2</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="n">g2</span><span class="o">.</span><span class="n">num_edges</span><span class="p">(),</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="c1"># specify the node features, convention with variable x</span>
+<span class="n">x1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">edge_idx1</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">x2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">edge_idx2</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-<span class="c1"># Finally we batch the graphs in a way compatible with the DGL library</span>
-<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">batch</span><span class="p">([</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">])</span>
-<span class="n">bg</span> <span class="o">=</span> <span class="n">dgl</span><span class="o">.</span><span class="n">add_self_loop</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="c1"># specify the edge features in e</span>
+<span class="n">e1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">edge_idx1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">e2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">edge_idx2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="c1"># make the pyg graph objects with our constructed features</span>
+<span class="n">g1</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">feat</span><span class="o">=</span><span class="n">x1</span><span class="p">,</span> <span class="n">edge_index</span><span class="o">=</span><span class="n">edge_idx1</span><span class="p">,</span> <span class="n">edge_feat</span><span class="o">=</span><span class="n">e1</span><span class="p">)</span>
+<span class="n">g2</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">feat</span><span class="o">=</span><span class="n">x2</span><span class="p">,</span> <span class="n">edge_index</span><span class="o">=</span><span class="n">edge_idx2</span><span class="p">,</span> <span class="n">edge_feat</span><span class="o">=</span><span class="n">e2</span><span class="p">)</span>
+
+<span class="c1"># put the two graphs into a Batch graph</span>
+<span class="n">bg</span> <span class="o">=</span> <span class="n">Batch</span><span class="o">.</span><span class="n">from_data_list</span><span class="p">([</span><span class="n">g1</span><span class="p">,</span> <span class="n">g2</span><span class="p">])</span>
 
 <span class="c1"># The batched graph will show as a single graph with 7 nodes</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
 </pre></div>
 <div id="cell-2" class="clipboard-copy-txt">in_dim = 5          # Input node-feature dimensions
-out_dim = 11        # Desired output node-feature dimensions
 in_dim_edges = 13   # Input edge-feature dimensions
+out_dim = 11        # Desired output node-feature dimensions
+out_dim_edges = 15  # Desired output edge-feature dimensions
 
-# Let's create 2 simple graphs. Here the tensors represent the connectivity between nodes
-g1 = dgl.graph((torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])))
-g2 = dgl.graph((torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])))
 
-# We add some node features to the graphs
-g1.ndata["h"] = torch.rand(g1.num_nodes(), in_dim, dtype=float)
-g2.ndata["h"] = torch.rand(g2.num_nodes(), in_dim, dtype=float)
+# Let's create 2 simple pyg graphs. 
+# start by specifying the edges with edge index
+edge_idx1 = torch.tensor([[0, 1, 2],
+                          [1, 2, 3]])
+edge_idx2 = torch.tensor([[2, 0, 0, 1],
+                          [0, 1, 2, 0]])
 
-# We also add some edge features to the graphs
-g1.edata["e"] = torch.rand(g1.num_edges(), in_dim_edges, dtype=float)
-g2.edata["e"] = torch.rand(g2.num_edges(), in_dim_edges, dtype=float)
+# specify the node features, convention with variable x
+x1 = torch.randn(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
+x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
 
-# Finally we batch the graphs in a way compatible with the DGL library
-bg = dgl.batch([g1, g2])
-bg = dgl.add_self_loop(bg)
+# specify the edge features in e
+e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
+e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
+
+# make the pyg graph objects with our constructed features
+g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
+g2 = Data(feat=x2, edge_index=edge_idx2, edge_feat=e2)
+
+# put the two graphs into a Batch graph
+bg = Batch.from_data_list([g1, g2])
 
 # The batched graph will show as a single graph with 7 nodes
-print(bg)
-</div>
+print(bg)</div>
         
         </div>
     </div>
@@ -2341,9 +2390,7 @@ print(bg)
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Graph(num_nodes=7, num_edges=14,
-      ndata_schemes={&#39;h&#39;: Scheme(shape=(5,), dtype=torch.float64)}
-      edata_schemes={&#39;e&#39;: Scheme(shape=(13,), dtype=torch.float64)})
+<pre>DataBatch(edge_index=[2, 7], feat=[7, 5], edge_feat=[7, 13], batch=[7], ptr=[3])
 </pre>
 </div>
 </div>
@@ -2372,7 +2419,7 @@ print(bg)
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[55]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2387,41 +2434,37 @@ print(bg)
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># We first need to extract the node features from the graph.</span>
-<span class="c1"># The GCN method doesn&#39;t support edge features, so we ignore them</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># The GCN method doesn&#39;t support edge features, so we ignore them</span>
 <span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
 <span class="c1"># We create the layer</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">GCNLayer</span><span class="p">(</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GCNConvPyg</span><span class="p">(</span>
             <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
-            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
 
 <span class="c1"># We apply the forward loop on the node features</span>
-<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
 
 <span class="c1"># 7 is the number of nodes, 5 number of input features and 11 number of output features</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
-<div id="cell-3" class="clipboard-copy-txt"># We first need to extract the node features from the graph.
-# The GCN method doesn't support edge features, so we ignore them
+<div id="cell-3" class="clipboard-copy-txt"># The GCN method doesn't support edge features, so we ignore them
 graph = deepcopy(bg)
-h_in = graph.ndata["h"]
+print(graph.feat.shape)
 
 # We create the layer
-layer = GCNLayer(
+layer = GCNConvPyg(
             in_dim=in_dim, out_dim=out_dim, 
-            activation="relu", dropout=.3, normalization="batch_norm").to(float)
+            activation="relu", dropout=.3, normalization="batch_norm")
 
 # We apply the forward loop on the node features
-h_out = layer(graph, h_in)
+graph = layer(graph)
 
 # 7 is the number of nodes, 5 number of input features and 11 number of output features
 print(layer)
-print(h_in.shape)
-print(h_out.shape)</div>
+print(graph.feat.shape)</div>
         
         </div>
     </div>
@@ -2441,8 +2484,8 @@ print(h_out.shape)</div>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>GCNLayer(5 -&gt; 11, activation=relu)
-torch.Size([7, 5])
+<pre>torch.Size([7, 5])
+GCNConvPyg(5 -&gt; 11, activation=relu)
 torch.Size([7, 11])
 </pre>
 </div>
@@ -2472,7 +2515,7 @@ torch.Size([7, 11])
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[56]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2488,26 +2531,34 @@ torch.Size([7, 11])
                 </clipboard-copy>
             </div>
             <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">GINLayer</span><span class="p">(</span>
-            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
-            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
+<span class="c1"># We create the layer</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GINConvPyg</span><span class="p">(</span>
+            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
+
+<span class="c1"># We apply the forward loop on the node features</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+
+<span class="c1"># 7 is the number of nodes, 5 number of input features and 11 number of output features</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 <div id="cell-4" class="clipboard-copy-txt">graph = deepcopy(bg)
-h_in = graph.ndata["h"]
-layer = GINLayer(
-            in_dim=in_dim, out_dim=out_dim, 
-            activation="relu", dropout=.3, normalization="batch_norm").to(float)
-h_out = layer(graph, h_in)
+print(graph.feat.shape)
 
+# We create the layer
+layer = GINConvPyg(
+            in_dim=in_dim, out_dim=out_dim, 
+            activation="relu", dropout=.3, normalization="batch_norm")
+
+# We apply the forward loop on the node features
+graph = layer(graph)
+
+# 7 is the number of nodes, 5 number of input features and 11 number of output features
 print(layer)
-print(h_in.shape)
-print(h_out.shape)</div>
+print(graph.feat.shape)</div>
         
         </div>
     </div>
@@ -2527,8 +2578,8 @@ print(h_out.shape)</div>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>GINLayer(5 -&gt; 11, activation=relu)
-torch.Size([7, 5])
+<pre>torch.Size([7, 5])
+GINConvPyg(5 -&gt; 11, activation=relu)
 torch.Size([7, 11])
 </pre>
 </div>
@@ -2546,8 +2597,8 @@ torch.Size([7, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="gat-layer">GAT Layer<a class="anchor-link" href="#gat-layer">&#182;</a></h2><p>To use the GAT layer from the <em>Velickovic et al.</em> paper, the steps are identical to GCN, but the output dimension is multiplied by the number of heads.</p>
-<p><sub>Velickovic, Petar, et al. &quot;Graph attention networks.&quot; arXiv preprint arXiv:1710.10903 (2017).</sub></p>
+<h2 id="gine-layer">GINE Layer<a class="anchor-link" href="#gine-layer">&#182;</a></h2><p>To use the GINE layer from the <em>Hu et al.</em> paper, we also need to provide additional edge features as inputs.</p>
+<p><sub>Hu, Weihua, et al. &quot;Strategies for Pre-training Graph Neural Networks.&quot; arXiv preprint arXiv:1905.12265 (2019).</sub></p>
 
 </div>
 </div>
@@ -2558,7 +2609,7 @@ torch.Size([7, 11])
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[57]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2573,27 +2624,43 @@ torch.Size([7, 11])
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">GATLayer</span><span class="p">(</span>
-            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> <span class="n">num_heads</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;elu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
-<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># The GINE method uses edge features, so we have to pass the input dimension</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edge_feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
+<span class="c1"># We create the layer</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GINEConvPyg</span><span class="p">(</span>
+            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span>
+            <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
+
+<span class="c1"># We apply the forward loop on the node features</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
+
+<span class="c1"># 7 is the number of nodes, 5 number of input features and 11 number of output features</span>
+<span class="c1"># 7 is the number of edges, 13 number of input edge features</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
-<div id="cell-5" class="clipboard-copy-txt">graph = deepcopy(bg)
-h_in = graph.ndata["h"]
-layer = GATLayer(
-            in_dim=in_dim, out_dim=out_dim, num_heads=5,
-            activation="elu", dropout=.3, normalization="batch_norm").to(float)
-h_out = layer(graph, h_in)
+<div id="cell-5" class="clipboard-copy-txt"># The GINE method uses edge features, so we have to pass the input dimension
+graph = deepcopy(bg)
+print(graph.feat.shape)
+print(graph.edge_feat.shape)
 
+# We create the layer
+layer = GINEConvPyg(
+            in_dim=in_dim, out_dim=out_dim,
+            in_dim_edges=in_dim_edges,
+            activation="relu", dropout=.3, normalization="batch_norm")
+
+# We apply the forward loop on the node features
+graph = layer(graph)
+
+# 7 is the number of nodes, 5 number of input features and 11 number of output features
+# 7 is the number of edges, 13 number of input edge features
 print(layer)
-print(h_in.shape)
-print(h_out.shape)</div>
+print(graph.feat.shape)</div>
         
         </div>
     </div>
@@ -2613,9 +2680,10 @@ print(h_out.shape)</div>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>GATLayer(5 -&gt; 11 * 5, activation=elu)
-torch.Size([7, 5])
-torch.Size([7, 55])
+<pre>torch.Size([7, 5])
+torch.Size([7, 13])
+GINEConvPyg(5 -&gt; 11, activation=relu)
+torch.Size([7, 11])
 </pre>
 </div>
 </div>
@@ -2632,8 +2700,8 @@ torch.Size([7, 55])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="gated-gcn-layer">Gated-GCN Layer<a class="anchor-link" href="#gated-gcn-layer">&#182;</a></h2><p>To use the Gated-GCN layer from the <em>Bresson et al.</em> paper, the steps are different since the layer requires edge features as inputs, and outputs new edge features.</p>
-<p><sub>Bresson, Xavier, and Thomas Laurent. &quot;Residual gated graph convnets.&quot; arXiv preprint arXiv:1711.07553 (2017).</sub></p>
+<h2 id="gps-layer">GPS Layer<a class="anchor-link" href="#gps-layer">&#182;</a></h2><p>To use the GPS layer from the <em>Rampášek et al.</em> paper, we also need to provide additional edge features as inputs. It is a hybrid approach using both a GNN and transformer in conjunction. Therefore, we further need to specify the GNN type and attention type used in the layer.</p>
+<p><sub>Rampášek, Ladislav, et al. &quot;Recipe for a General, Powerful, Scalable Graph Transformer.&quot; arXiv preprint arXiv:2205.12454 (2022).</sub></p>
 
 </div>
 </div>
@@ -2644,7 +2712,7 @@ torch.Size([7, 55])
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[58]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2659,49 +2727,45 @@ torch.Size([7, 55])
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># We first need to extract the node and edge features from the graph.</span>
-<span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-<span class="n">e_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edge_feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
 <span class="c1"># We create the layer</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">GatedGCNLayer</span><span class="p">(</span>
-        <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
-        <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span>
-        <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GPSLayerPyg</span><span class="p">(</span>
+            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span>
+            <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span>
+            <span class="n">mpnn_type</span> <span class="o">=</span> <span class="s2">&quot;pyg:gine&quot;</span><span class="p">,</span> <span class="n">attn_type</span> <span class="o">=</span> <span class="s2">&quot;full-attention&quot;</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
 
 <span class="c1"># We apply the forward loop on the node features</span>
-<span class="n">h_out</span><span class="p">,</span> <span class="n">e_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">,</span> <span class="n">e_in</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
 
 <span class="c1"># 7 is the number of nodes, 5 number of input features and 11 number of output features</span>
-<span class="c1"># 13 is the number of input edge features</span>
+<span class="c1"># 7 is the number of edges, 13 number of input edge features</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">e_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">e_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edge_feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
-<div id="cell-6" class="clipboard-copy-txt"># We first need to extract the node and edge features from the graph.
-graph = deepcopy(bg)
-h_in = graph.ndata["h"]
-e_in = graph.edata["e"]
+<div id="cell-6" class="clipboard-copy-txt">graph = deepcopy(bg)
+print(graph.feat.shape)
+print(graph.edge_feat.shape)
 
 # We create the layer
-layer = GatedGCNLayer(
-        in_dim=in_dim, out_dim=out_dim, 
-        in_dim_edges=in_dim_edges, out_dim_edges=out_dim,
-        activation="relu", dropout=.3, normalization="batch_norm").to(float)
+layer = GPSLayerPyg(
+            in_dim=in_dim, out_dim=out_dim,
+            in_dim_edges=in_dim_edges,
+            mpnn_type = "pyg:gine", attn_type = "full-attention",
+            activation="relu", dropout=.3, normalization="batch_norm")
 
 # We apply the forward loop on the node features
-h_out, e_out = layer(graph, h_in, e_in)
+graph = layer(graph)
 
 # 7 is the number of nodes, 5 number of input features and 11 number of output features
-# 13 is the number of input edge features
+# 7 is the number of edges, 13 number of input edge features
 print(layer)
-print(h_in.shape)
-print(h_out.shape)
-print(e_in.shape)
-print(e_out.shape)</div>
+print(graph.feat.shape)
+print(graph.edge_feat.shape)</div>
         
         </div>
     </div>
@@ -2721,11 +2785,11 @@ print(e_out.shape)</div>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>GatedGCNLayer(5 -&gt; 11, activation=relu)
-torch.Size([7, 5])
+<pre>torch.Size([7, 5])
+torch.Size([7, 13])
+GPSLayerPyg(5 -&gt; 11, activation=relu)
 torch.Size([7, 11])
-torch.Size([14, 13])
-torch.Size([14, 11])
+torch.Size([7, 13])
 </pre>
 </div>
 </div>
@@ -2742,11 +2806,8 @@ torch.Size([14, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="pna">PNA<a class="anchor-link" href="#pna">&#182;</a></h1><p>PNA is a multi-aggregator method proposed by <em>Corso et al.</em>. It supports 2 types of aggregations, convolutional <em>PNA-conv</em> or message passing <em>PNA-msgpass</em>.</p>
-<p><sub>PNA: Principal Neighbourhood Aggregation
-Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
-<a href="https://arxiv.org/abs/2004.05718">https://arxiv.org/abs/2004.05718</a></sub></p>
-<h2 id="pna-conv">PNA-conv<a class="anchor-link" href="#pna-conv">&#182;</a></h2><p>First, let's focus on the PNA-conv. In this case, it works exactly as the GCN and GIN methods. Although not presented in the example, PNA-conv also supports edge features by concatenating them to the node features during convolution.</p>
+<h2 id="gated-gcn-layer">Gated-GCN Layer<a class="anchor-link" href="#gated-gcn-layer">&#182;</a></h2><p>To use the Gated-GCN layer from the <em>Bresson et al.</em> paper, the steps are different since the layer not only requires edge features as inputs, but also outputs new edge features. Therefore, we have to further specify the number of output edge features</p>
+<p><sub>Bresson, Xavier, and Thomas Laurent. &quot;Residual gated graph convnets.&quot; arXiv preprint arXiv:1711.07553 (2017).</sub></p>
 
 </div>
 </div>
@@ -2757,7 +2818,7 @@ Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[59]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2773,36 +2834,42 @@ Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
                 </clipboard-copy>
             </div>
             <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edge_feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
-<span class="c1"># We create the layer, and need to specify the aggregators and scalers</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">PNAConvolutionalLayer</span><span class="p">(</span>
-    <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
-    <span class="n">aggregators</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">],</span>
-    <span class="n">scalers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="s2">&quot;amplification&quot;</span><span class="p">,</span> <span class="s2">&quot;attenuation&quot;</span><span class="p">],</span>
-    <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="c1"># We create the layer</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">GatedGCNPyg</span><span class="p">(</span>
+            <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span>
+            <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">out_dim_edges</span><span class="o">=</span><span class="n">out_dim_edges</span><span class="p">,</span>
+            <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
 
-<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">)</span>
+<span class="c1"># We apply the forward loop on the node features</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
 
+<span class="c1"># 7 is the number of nodes, 5 number of input features and 11 number of output features</span>
+<span class="c1"># 7 is the number of edges, 13 number of input edge features and 15 the the number of output edge features</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edge_feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 <div id="cell-7" class="clipboard-copy-txt">graph = deepcopy(bg)
-h_in = graph.ndata["h"]
+print(graph.feat.shape)
+print(graph.edge_feat.shape)
 
-# We create the layer, and need to specify the aggregators and scalers
-layer = PNAConvolutionalLayer(
-    in_dim=in_dim, out_dim=out_dim, 
-    aggregators=["mean", "max", "min", "std"],
-    scalers=["identity", "amplification", "attenuation"],
-    activation="relu", dropout=.3, normalization="batch_norm").to(float)
+# We create the layer
+layer = GatedGCNPyg(
+            in_dim=in_dim, out_dim=out_dim,
+            in_dim_edges=in_dim_edges, out_dim_edges=out_dim_edges,
+            activation="relu", dropout=.3, normalization="batch_norm")
 
-h_out = layer(graph, h_in)
+# We apply the forward loop on the node features
+graph = layer(graph)
 
+# 7 is the number of nodes, 5 number of input features and 11 number of output features
+# 7 is the number of edges, 13 number of input edge features and 15 the the number of output edge features
 print(layer)
-print(h_in.shape)
-print(h_out.shape)</div>
+print(graph.feat.shape)
+print(graph.edge_feat.shape)</div>
         
         </div>
     </div>
@@ -2822,9 +2889,11 @@ print(h_out.shape)</div>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>PNAConvolutionalLayer(5 -&gt; 11, activation=relu)
-torch.Size([7, 5])
+<pre>torch.Size([7, 5])
+torch.Size([7, 13])
+GatedGCNPyg()
 torch.Size([7, 11])
+torch.Size([7, 15])
 </pre>
 </div>
 </div>
@@ -2841,7 +2910,9 @@ torch.Size([7, 11])
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="pna-msgpass">PNA-msgpass<a class="anchor-link" href="#pna-msgpass">&#182;</a></h2><p>The PNA message passing is typically more powerful that the convolutional one, and it supports edges as inputs, but doesn't output edges. It's usage is very similar to the <em>PNA-conv</em>. Here, we also present the option to specify the edge dimensions and features.</p>
+<h2 id="pna">PNA<a class="anchor-link" href="#pna">&#182;</a></h2><p>PNA is a multi-aggregator method proposed by <em>Corso et al.</em>. It supports 2 types of aggregations, convolutional <em>PNA-conv</em> or message passing <em>PNA-msgpass</em>. Here, we provide the typically more powerful <em>PNA-msgpass</em>. It supports edges as inputs, but doesn't output edges. Here, we need to further specify the aggregators and scalers specific to this layer.</p>
+<p><sub>Corso, Gabriele, et al. &quot;Principal Neighbourhood Aggregation for Graph Nets.&quot;
+arXiv preprint arXiv:2004.05718 (2020).</sub></p>
 
 </div>
 </div>
@@ -2852,7 +2923,7 @@ torch.Size([7, 11])
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[60]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2868,38 +2939,38 @@ torch.Size([7, 11])
                 </clipboard-copy>
             </div>
             <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
-<span class="n">h_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">ndata</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">]</span>
-<span class="n">e_in</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">edata</span><span class="p">[</span><span class="s2">&quot;e&quot;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edge_feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
 <span class="c1"># We create the layer, and need to specify the aggregators and scalers</span>
-<span class="n">layer</span> <span class="o">=</span> <span class="n">PNAMessagePassingLayer</span><span class="p">(</span>
-    <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span>
+<span class="n">layer</span> <span class="o">=</span> <span class="n">PNAMessagePassingPyg</span><span class="p">(</span>
+    <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span>
+    <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span>
     <span class="n">aggregators</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;max&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;std&quot;</span><span class="p">],</span>
     <span class="n">scalers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;identity&quot;</span><span class="p">,</span> <span class="s2">&quot;amplification&quot;</span><span class="p">,</span> <span class="s2">&quot;attenuation&quot;</span><span class="p">],</span>
-    <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
 
-<span class="n">h_out</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">,</span> <span class="n">h_in</span><span class="p">,</span> <span class="n">e_in</span><span class="p">)</span>
+<span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_in</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">h_out</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 <div id="cell-8" class="clipboard-copy-txt">graph = deepcopy(bg)
-h_in = graph.ndata["h"]
-e_in = graph.edata["e"]
+print(graph.feat.shape)
+print(graph.edge_feat.shape)
 
 # We create the layer, and need to specify the aggregators and scalers
-layer = PNAMessagePassingLayer(
-    in_dim=in_dim, out_dim=out_dim, in_dim_edges=in_dim_edges,
+layer = PNAMessagePassingPyg(
+    in_dim=in_dim, out_dim=out_dim,
+    in_dim_edges=in_dim_edges,
     aggregators=["mean", "max", "min", "std"],
     scalers=["identity", "amplification", "attenuation"],
-    activation="relu", dropout=.3, normalization="batch_norm").to(float)
+    activation="relu", dropout=.3, normalization="batch_norm")
 
-h_out = layer(graph, h_in, e_in)
+graph = layer(graph)
 
 print(layer)
-print(h_in.shape)
-print(h_out.shape)</div>
+print(graph.feat.shape)</div>
         
         </div>
     </div>
@@ -2919,8 +2990,9 @@ print(h_out.shape)</div>
 
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>PNAMessagePassingLayer(5 -&gt; 11, activation=relu)
-torch.Size([7, 5])
+<pre>torch.Size([7, 5])
+torch.Size([7, 13])
+PNAMessagePassingPyg()
 torch.Size([7, 11])
 </pre>
 </div>
