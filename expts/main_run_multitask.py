@@ -38,11 +38,7 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE = "expts/configs/config_mpnn_10M_pcqm4m.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_mpnn.yaml"
-<<<<<<< HEAD
 # CONFIG_FILE = "expts/neurips2023_configs/debug/config_large_gcn_debug.yaml"
-=======
-CONFIG_FILE = "expts/neurips2023_configs/debug/config_small_gcn_debug.yaml"
->>>>>>> 095147a9d277792a0446dcbbd8a7d1b4e71b0e51
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_large_gine.yaml"
@@ -111,6 +107,8 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
 
     return trainer.callback_metrics
 
+import multiprocessing
+TIMEOUT = 10
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -121,4 +119,9 @@ if __name__ == "__main__":
         CONFIG_FILE = args.config
     cfg = load_yaml_config(CONFIG_FILE, MAIN_DIR, unknown_args)
 
-    main(cfg)
+    for num_workers in [4, 8, 16, 24]:
+        for batch_size in [128, 256, 384, 512]:
+            cfg["datamodule"]["args"]["num_workers"] = num_workers
+            cfg["accelerator"]["config_override"]["datamodule"]["args"]["batch_size_training"] = batch_size
+            cfg["accelerator"]["config_override"]["datamodule"]["args"]["batch_size_inference"] = batch_size
+            main(cfg)

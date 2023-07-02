@@ -19,10 +19,10 @@ accelerator:
           max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
-        batch_size_training: 256 # NOTE: There is roughly a 3 in 1000 chance that a vcap or mcf7 graph
+        batch_size_training: 256 # 128, 256, 384, 512, 1024 # NOTE: There is roughly a 3 in 1000 chance that a vcap or mcf7 graph
         # is in the batch and hence a 1 in 1000 chance that both are. 1024 is chosen such that each
         # batch is likely to contain at least one graph of each dataset.
-        batch_size_inference: 256
+        batch_size_inference: 256 # 128, 256, 384, 512, 1024
     predictor:
       optim_kwargs: {}
       #loss_scaling: 1024 Not a parameter for AdamW optimizer
@@ -31,7 +31,7 @@ accelerator:
       trainer:
         precision: 32
         accumulate_grad_batches: 8
-        profiler: simple # Enable to get a breakdown of computation times of different parts of training and inference
+        #profiler: simple # Enable to get a breakdown of computation times of different parts of training and inference
 
   ipu_config:
     - deviceIterations(10) # IPU would require large batches to be ready for the model.
@@ -157,7 +157,7 @@ datamodule:
             ksteps: 16
 
     # cache_data_path: .
-    num_workers: 8 # -1 to use all
+    num_workers: 8 # 4, 8, 16, 24 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
