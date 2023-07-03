@@ -49,10 +49,10 @@ mkdir ~/.venv                               # Create the folder for the environm
 python3 -m venv ~/.venv/graphium_ipu        # Create the environment
 source ~/.venv/graphium_ipu/bin/activate    # Activate the environment
 
-# Installing the poptorch SDK. Make sure to change the path
+# Install the PopTorch wheel
 pip install PATH_TO_SDK/poptorch-3.2.0+109946_bb50ce43ab_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
 
-# Activate poplar SDK.
+# Enable Poplar SDK (including Poplar and PopART)
 source PATH_TO_SDK/enable
 
 # Install the IPU specific and graphium requirements
