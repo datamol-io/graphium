@@ -201,6 +201,7 @@ class MultitaskDataset(Dataset):
                 self.mol_ids = None
                 self.smiles = None
             self.labels_size = self.set_label_size_dict(datasets)
+            self.labels_dtype = self.set_label_dtype_dict(datasets)
             self.dataset_length = len(self.labels)
             self._num_nodes_list = None
             self._num_edges_list = None
@@ -219,6 +220,7 @@ class MultitaskDataset(Dataset):
             "mol_ids",
             "smiles",
             "labels_size",
+            "labels_dtype",
             "dataset_length",
             "_num_nodes_list",
             "_num_edges_list",
@@ -237,12 +239,22 @@ class MultitaskDataset(Dataset):
             "mol_ids",
             "smiles",
             "labels_size",
+            "labels_dtype",
             "dataset_length",
             "_num_nodes_list",
             "_num_edges_list",
         ]
         path = os.path.join(self.data_path, "multitask_metadata.pkl")
         attrs = torch.load(path)
+
+        if not set(attrs_to_load).issubset(set(attrs.keys())):
+            raise ValueError(
+                f"The metadata in the cache at {self.data_path} does not contain the right information. "
+                f"This may be because the cache was prepared using an earlier version of Graphium. "
+                f"You can try deleting the cache and running the data preparation again. "
+                f"\nMetadata keys found: {attrs.keys()}"
+                f"\nMetadata keys required: {attrs_to_load}"
+            )
 
         for attr, value in attrs.items():
             setattr(self, attr, value)
@@ -512,6 +524,21 @@ class MultitaskDataset(Dataset):
         mol_ids, inv = np.unique(all_mol_ids, return_inverse=True)
         return mol_ids, inv
 
+    def _find_valid_label(self, task, ds):
+        r"""
+        For a given dataset, find a genuine label for that dataset
+        """
+        valid_label = None
+        for i in range(len(ds)):
+            if ds[i] is not None:
+                valid_label = ds[i]["labels"]
+                break
+
+        if valid_label is None:
+            raise ValueError(f"Dataset for task {task} has no valid labels.")
+
+        return valid_label
+
     def set_label_size_dict(self, datasets: Dict[str, SingleTaskDataset]):
         r"""
         This gives the number of labels to predict for a given task.
@@ -521,14 +548,7 @@ class MultitaskDataset(Dataset):
             if len(ds) == 0:
                 continue
 
-            valid_label = None
-            for i in range(len(ds)):
-                if ds[i] is not None:
-                    valid_label = ds[i]["labels"]
-                    break
-
-            if valid_label is None:
-                raise ValueError(f"Dataset for task {task} has no valid labels.")
+            valid_label = self._find_valid_label(task, ds)
 
             # Assume for a fixed task, the label dimension is the same across data points
             torch_label = torch.as_tensor(valid_label)
@@ -536,6 +556,21 @@ class MultitaskDataset(Dataset):
             # First dimension is graph-specific
             task_labels_size[task] = torch_label.size()
         return task_labels_size
+
+    def set_label_dtype_dict(self, datasets: Dict[str, SingleTaskDataset]):
+        r"""
+        Gets correct dtype for a given label
+        """
+        task_labels_dtype = {}
+        for task, ds in datasets.items():
+            if len(ds) == 0:
+                continue
+
+            valid_label = self._find_valid_label(task, ds)
+
+            torch_label = torch.as_tensor(valid_label)
+            task_labels_dtype[task] = torch_label.dtype
+        return task_labels_dtype
 
     def __repr__(self) -> str:
         """
@@ -619,6 +654,7 @@ class FakeDataset(MultitaskDataset):
                 )
 
         self.labels_size = self.set_label_size_dict(datasets)
+        self.labels_dtype = self.set_label_dtype_dict(datasets)
         self.features = self.features
 
     def _get_inv_of_mol_ids(self, all_mol_ids):

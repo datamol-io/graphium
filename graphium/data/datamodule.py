@@ -10,6 +10,7 @@ import time
 import gc
 from rdkit import Chem
 import re
+from graphium.data.utils import get_keys
 
 from loguru import logger
 import fsspec
@@ -1141,6 +1142,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # Can possibly get rid of setup because a single dataset will have molecules exclusively in train, val or test
         # Produce the label sizes to update the collate function
         labels_size = {}
+        labels_dtype = {}
         if stage == "fit" or stage is None:
             if self.load_from_file:
                 processed_train_data_path = self._path_to_load_from_file("train")
@@ -1163,6 +1165,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 self.train_ds.labels_size
             )  # Make sure that all task label sizes are contained in here. Maybe do the update outside these if statements.
             labels_size.update(self.val_ds.labels_size)
+            labels_dtype.update(self.train_ds.labels_dtype)
+            labels_dtype.update(self.val_ds.labels_dtype)
 
         if stage == "test" or stage is None:
             if self.load_from_file:
@@ -1176,11 +1180,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info(self.test_ds)
 
             labels_size.update(self.test_ds.labels_size)
+            labels_dtype.update(self.test_ds.labels_dtype)
 
         default_labels_size_dict = self.collate_fn.keywords.get("labels_size_dict", None)
 
         if default_labels_size_dict is None:
             self.collate_fn.keywords["labels_size_dict"] = labels_size
+
+        default_labels_dtype_dict = self.collate_fn.keywords.get("labels_dtype_dict", None)
+
+        if default_labels_dtype_dict is None:
+            self.collate_fn.keywords["labels_dtype_dict"] = labels_dtype
 
     def _make_multitask_dataset(
         self,
@@ -1657,8 +1667,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # get list of all keys corresponding to positional encoding
         pe_dim_dict = {}
-        g_keys = graph.keys
-
+        g_keys = get_keys(graph)
         # ignore the normal keys for node feat and edge feat etc.
         for key in g_keys:
             prop = graph.get(key, None)

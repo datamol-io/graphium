@@ -11,6 +11,7 @@ import torch
 from torch_geometric.data import Data, Batch, Dataset
 from torch_geometric.transforms import BaseTransform
 
+from graphium.data.utils import get_keys
 from graphium.ipu.ipu_utils import import_poptorch
 from graphium.utils.packing import (
     fast_packing,
@@ -155,9 +156,9 @@ class CombinedBatchingCollator:
         out_batch = {}
 
         # Stack tensors in the first dimension to allow IPUs to differentiate between local and global graph
+        all_keys = get_keys(all_batches[0]["labels"])
         out_batch["labels"] = {
-            key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0)
-            for key in all_batches[0]["labels"].keys
+            key: torch.stack([this_batch["labels"][key] for this_batch in all_batches], 0) for key in all_keys
         }
         out_graphs = [this_batch["features"] for this_batch in all_batches]
         stacked_features = deepcopy(out_graphs[0])
