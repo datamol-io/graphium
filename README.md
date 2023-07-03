@@ -26,7 +26,7 @@ Visit https://graphium-docs.datamol.io/.
 
 [![Run on Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/sdGggS)
 
-You can try running Graphium on Graphcore IPUs for free on Gradient by clicking on the button above. 
+You can try running Graphium on Graphcore IPUs for free on Gradient by clicking on the button above.
 
 ## Installation for developers
 
