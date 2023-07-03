@@ -4,11 +4,12 @@
 </div>
 
 ---
-
+[![Run on Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/sdGggS)
 [![test](https://github.com/datamol-io/graphium/actions/workflows/test.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test.yml)
 [![release](https://github.com/datamol-io/graphium/actions/workflows/release.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/release.yml)
 [![code-check](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml)
 [![doc](https://github.com/datamol-io/graphium/actions/workflows/doc.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/doc.yml)
+
 
 A deep learning library focused on graph representation learning for real-world chemical tasks.
 
@@ -22,6 +23,10 @@ A deep learning library focused on graph representation learning for real-world 
 ## Documentation
 
 Visit https://graphium-docs.datamol.io/.
+
+[![Run on Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/sdGggS)
+
+You can try running Graphium on Graphcore IPUs for free on Gradient by clicking on the button above.
 
 ## Installation for developers
 
