@@ -39,6 +39,7 @@ source PATH_TO_SDK/enable
 
 # Install the IPU specific and graphium requirements
 PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
+pip install -r lightning.txt
 
 # Install Graphium in dev mode
 pip install --no-deps -e .
