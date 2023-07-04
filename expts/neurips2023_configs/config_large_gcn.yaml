@@ -167,7 +167,7 @@ architecture:
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
+    dropout: &dropout 0.1
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
@@ -330,7 +330,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 20
+    max_num_epochs: &max_epochs 100
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -374,7 +374,7 @@ metrics:
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
