@@ -1,4 +1,4 @@
-# Benchmark
+# ToyMix Baseline
 
 From the paper to be released soon. Below, you can see the baselines for the `ToyMix` dataset, a multitasking dataset comprising of `QM9`, `Zinc12k` and `Tox21`. The datasets and their splits are available on [this link](https://zenodo.org/record/7998401).
 
