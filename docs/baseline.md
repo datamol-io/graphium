@@ -6,7 +6,7 @@ One can observe that the smaller datasets (`Zinc12k` and `Tox21`) beneficiate fr
 
 | Dataset   | Model | MAE ↓     | Pearson ↑ | R² ↑     | MAE ↓   | Pearson ↑ | R² ↑   |
 |-----------|-------|-----------|-----------|-----------|---------|-----------|---------|
-|    | <td colspan="2">Singletask model</td>     | <td colspan="2">Multitask model</td>   |
+|    | <th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th>   |
 | <hi> | <hi> | <hi> | <hi> | <hi> | <hi> | <hi> | <hi> |
 | **QM9**   | GCN   | 0.102 ± 0.0003 | 0.958 ± 0.0007 | 0.920 ± 0.002 | 0.119 ± 0.01 | 0.955 ± 0.001 | 0.915 ± 0.001 |
 |           | GIN   | 0.0976 ± 0.0006 | **0.959 ± 0.0002** | **0.922 ± 0.0004** | 0.117 ± 0.01 | 0.950 ± 0.002 | 0.908 ± 0.003 |
@@ -18,7 +18,7 @@ One can observe that the smaller datasets (`Zinc12k` and `Tox21`) beneficiate fr
 
 |           |       | BCE ↓     | AUROC ↑ | AP ↑     | BCE ↓   | AUROC ↑ | AP ↑   |
 |-----------|-------|-----------|-----------|-----------|---------|-----------|---------|
-|    | <td colspan="2">Singletask model</td>     | <td colspan="2">Multitask model</td>   |
+|    | <th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th>   |
 | <hi> | <hi> | <hi> | <hi> | <hi> | <hi> | <hi> | <hi> |
 | **Tox21**   | GCN   | 0.202 ± 0.005 | 0.773 ± 0.006 | 0.334 ± 0.03 | **0.176 ± 0.001** | **0.850 ± 0.006** | 0.446 ± 0.01 |
 |           | GIN   | 0.200 ± 0.002 | 0.789 ± 0.009 | 0.350 ± 0.01 | 0.176 ± 0.001 | 0.841 ± 0.005 | 0.454 ± 0.009 |
