@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.data.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -645,13 +645,6 @@
           <li class="md-nav__item">
   <a href="#graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="md-nav__link">
     load_pretrained_models()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#graphium.trainer.predictor.PredictorModule.training_epoch_end" class="md-nav__link">
-    training_epoch_end()
   </a>
   
 </li>
@@ -1386,8 +1379,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorials/model_training/ipu_training.html" class="md-nav__link">
-        Building and training on IPU from configurations
+      <a href="../tutorials/model_training/ipu_training.ipynb" class="md-nav__link">
+        Training on IPU
       </a>
     </li>
   
@@ -1613,13 +1606,6 @@
           <li class="md-nav__item">
   <a href="#graphium.trainer.predictor.PredictorModule.load_pretrained_models" class="md-nav__link">
     load_pretrained_models()
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#graphium.trainer.predictor.PredictorModule.training_epoch_end" class="md-nav__link">
-    training_epoch_end()
   </a>
   
 </li>
@@ -2102,7 +2088,7 @@
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="pytorch_lightning">pl</span>.<span title="pytorch_lightning.LightningModule">LightningModule</span></code></p>
+        Bases: <code>lightning.<span title="lightning.LightningModule">LightningModule</span></code></p>
 
 
 
@@ -2672,26 +2658,6 @@ from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
         </tr>
     </tbody>
   </table>
-
-  </div>
-
-</div>
-
-<div class="doc doc-object doc-function">
-
-
-
-<h5 id="graphium.trainer.predictor.PredictorModule.training_epoch_end" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">training_epoch_end</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span></code>
-
-<a href="#graphium.trainer.predictor.PredictorModule.training_epoch_end" class="headerlink" title="Permanent link">&para;</a></h5>
-
-
-  <div class="doc doc-contents ">
-  
-      <p>Nothing happens at the end of the training epoch.
-It serves no purpose to do a general step for the training,
-but it can explode the RAM when using a large dataset.</p>
 
   </div>
 
@@ -5184,10 +5150,10 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
+      <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
       
         
           <script src="../javascripts/config.js"></script>

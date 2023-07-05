@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.utils.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -1403,8 +1403,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorials/model_training/ipu_training.html" class="md-nav__link">
-        Building and training on IPU from configurations
+      <a href="../tutorials/model_training/ipu_training.ipynb" class="md-nav__link">
+        Training on IPU
       </a>
     </li>
   
@@ -2135,7 +2135,7 @@
 
   <div class="doc doc-contents ">
       <p class="doc doc-class-bases">
-        Bases: <code><span title="pytorch_lightning">pl</span>.<span title="pytorch_lightning.LightningDataModule">LightningDataModule</span></code></p>
+        Bases: <code>lightning.<span title="lightning.LightningDataModule">LightningDataModule</span></code></p>
 
 
 
@@ -2367,7 +2367,7 @@
         <tr>
           <td><code>stage</code></td>
           <td>
-                <code><span title="pytorch_lightning.trainer.states.RunningStage">RunningStage</span></code>
+                <code><span title="lightning.pytorch.trainer.states.RunningStage">RunningStage</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2435,7 +2435,7 @@
         <tr>
           <td><code>stage</code></td>
           <td>
-                <code><span title="pytorch_lightning.trainer.states.RunningStage">RunningStage</span></code>
+                <code><span title="lightning.pytorch.trainer.states.RunningStage">RunningStage</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4375,7 +4375,7 @@ Useful to cache the pre-processed data.</p>
         <tr>
           <td><code>stage</code></td>
           <td>
-                <code><span title="pytorch_lightning.trainer.states.RunningStage">RunningStage</span></code>
+                <code><span title="lightning.pytorch.trainer.states.RunningStage">RunningStage</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4443,7 +4443,7 @@ Useful to cache the pre-processed data.</p>
         <tr>
           <td><code>stage</code></td>
           <td>
-                <code><span title="pytorch_lightning.trainer.states.RunningStage">RunningStage</span></code>
+                <code><span title="lightning.pytorch.trainer.states.RunningStage">RunningStage</span></code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -4844,7 +4844,7 @@ hash is available at the path given by <code>self.cache_data_path</code>.</p>
 
 
 <h5 id="graphium.data.datamodule.MultitaskFromSmilesDataModule.normalize_label" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">normalize_label</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">normalize_label</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">stage</span><span class="p">)</span></code>
 
 <a href="#graphium.data.datamodule.MultitaskFromSmilesDataModule.normalize_label" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -5199,7 +5199,7 @@ This is useful for using packing with the Transformer,</p>
 
 
 <h4 id="graphium.data.collate.collate_labels" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">collate_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">collate_labels</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels_dtype_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.data.collate.collate_labels" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -5243,6 +5243,22 @@ This is useful for using packing with the Transformer,</p>
               <p>Dict of the form Dict[tasks, sizes] which has task names as keys
 and the size of the label tensor as value. The size of the tensor corresponds to how many
 labels/values there are to predict for that task.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>labels_dtype_dict</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(Note): This is an attribute of the <code>MultitaskDataset</code>.
+A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype</p>
             </div>
           </td>
           <td>
@@ -5357,7 +5373,7 @@ and the number of targets in the task-dataset.</p>
 
 
 <h4 id="graphium.data.collate.graphium_collate_fn" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">graphium_collate_fn</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">do_not_collate_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">graphium_collate_fn</span><span class="p">(</span><span class="n">elements</span><span class="p">,</span> <span class="n">labels_size_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">labels_dtype_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mask_nan</span><span class="o">=</span><span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="n">do_not_collate_keys</span><span class="o">=</span><span class="p">[],</span> <span class="n">batch_size_per_pack</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.data.collate.graphium_collate_fn" class="headerlink" title="Permanent link">&para;</a></h4>
 
@@ -5411,6 +5427,22 @@ for them should be added to this single collate function.</p>
 A dictionary of the form Dict[tasks, sizes] which has task names as keys
 and the size of the label tensor as value. The size of the tensor corresponds to how many
 labels/values there are to predict for that task.</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>labels_dtype_dict</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>(Note): This is an attribute of the <code>MultitaskDataset</code>.
+A dictionary of the form Dict[tasks, dtypes] which has task names as keys
+and the dtype of the label tensor as value. This is necessary to ensure the missing labels are added with NaNs of the right dtype</p>
             </div>
           </td>
           <td>
@@ -5944,10 +5976,10 @@ with <code>torch.nan</code> accordingly.</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["navigation.tabs", "navigation.expand"], "search": "../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.a51614de.min.js"></script>
+      <script src="../assets/javascripts/bundle.220ee61c.min.js"></script>
       
         
           <script src="../javascripts/config.js"></script>

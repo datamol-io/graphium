@@ -19,7 +19,7 @@
         <link rel="next" href="api/graphium.nn/graphium.nn.html">
       
       <link rel="icon" href="images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -71,7 +71,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#benchmark" class="md-skip">
+        <a href="#toymix-baseline" class="md-skip">
           Skip to content
         </a>
       
@@ -866,8 +866,8 @@
   
   
     <li class="md-nav__item">
-      <a href="tutorials/model_training/ipu_training.html" class="md-nav__link">
-        Building and training on IPU from configurations
+      <a href="tutorials/model_training/ipu_training.ipynb" class="md-nav__link">
+        Training on IPU
       </a>
     </li>
   
@@ -1027,9 +1027,181 @@
   
 
 
-<h1 id="benchmark">Benchmark<a class="headerlink" href="#benchmark" title="Permanent link">&para;</a></h1>
-<p>From the paper xxx.</p>
-<p><em>put benchmark table here.</em></p>
+<h1 id="toymix-baseline">ToyMix Baseline<a class="headerlink" href="#toymix-baseline" title="Permanent link">&para;</a></h1>
+<p>From the paper to be released soon. Below, you can see the baselines for the <code>ToyMix</code> dataset, a multitasking dataset comprising of <code>QM9</code>, <code>Zinc12k</code> and <code>Tox21</code>. The datasets and their splits are available on <a href="https://zenodo.org/record/7998401">this link</a>.</p>
+<p>One can observe that the smaller datasets (<code>Zinc12k</code> and <code>Tox21</code>) beneficiate from adding another unrelated task (<code>QM9</code>), where the labels are computed from DFT simulations.</p>
+<table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Model</th>
+<th>MAE ↓</th>
+<th>Pearson ↑</th>
+<th>R² ↑</th>
+<th>MAE ↓</th>
+<th>Pearson ↑</th>
+<th>R² ↑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+</tr>
+<tr>
+<td><strong>QM9</strong></td>
+<td>GCN</td>
+<td>0.102 ± 0.0003</td>
+<td>0.958 ± 0.0007</td>
+<td>0.920 ± 0.002</td>
+<td>0.119 ± 0.01</td>
+<td>0.955 ± 0.001</td>
+<td>0.915 ± 0.001</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.0976 ± 0.0006</td>
+<td><strong>0.959 ± 0.0002</strong></td>
+<td><strong>0.922 ± 0.0004</strong></td>
+<td>0.117 ± 0.01</td>
+<td>0.950 ± 0.002</td>
+<td>0.908 ± 0.003</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td><strong>0.0959 ± 0.0002</strong></td>
+<td>0.955 ± 0.002</td>
+<td>0.918 ± 0.004</td>
+<td>0.102 ± 0.01</td>
+<td>0.956 ± 0.0009</td>
+<td>0.918 ± 0.002</td>
+</tr>
+<tr>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+</tr>
+<tr>
+<td><strong>Zinc12k</strong></td>
+<td>GCN</td>
+<td>0.348 ± 0.02</td>
+<td>0.941 ± 0.002</td>
+<td>0.863 ± 0.01</td>
+<td>0.226 ± 0.004</td>
+<td>0.973 ± 0.0005</td>
+<td>0.940 ± 0.003</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.303 ± 0.007</td>
+<td>0.950 ± 0.003</td>
+<td>0.889 ± 0.003</td>
+<td>0.189 ± 0.004</td>
+<td>0.978 ± 0.006</td>
+<td>0.953 ± 0.002</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td>0.266 ± 0.02</td>
+<td>0.961 ± 0.003</td>
+<td>0.915 ± 0.01</td>
+<td><strong>0.147 ± 0.009</strong></td>
+<td><strong>0.987 ± 0.001</strong></td>
+<td><strong>0.971 ± 0.003</strong></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th>BCE ↓</th>
+<th>AUROC ↑</th>
+<th>AP ↑</th>
+<th>BCE ↓</th>
+<th>AUROC ↑</th>
+<th>AP ↑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td><th colspan="3" style="text-align: center;">Single-Task Model</th>  <th colspan="3" style="text-align: center;">Multi-Task Model</th></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+<td><hi></td>
+</tr>
+<tr>
+<td><strong>Tox21</strong></td>
+<td>GCN</td>
+<td>0.202 ± 0.005</td>
+<td>0.773 ± 0.006</td>
+<td>0.334 ± 0.03</td>
+<td><strong>0.176 ± 0.001</strong></td>
+<td><strong>0.850 ± 0.006</strong></td>
+<td>0.446 ± 0.01</td>
+</tr>
+<tr>
+<td></td>
+<td>GIN</td>
+<td>0.200 ± 0.002</td>
+<td>0.789 ± 0.009</td>
+<td>0.350 ± 0.01</td>
+<td>0.176 ± 0.001</td>
+<td>0.841 ± 0.005</td>
+<td>0.454 ± 0.009</td>
+</tr>
+<tr>
+<td></td>
+<td>GINE</td>
+<td>0.201 ± 0.007</td>
+<td>0.783 ± 0.007</td>
+<td>0.345 ± 0.02</td>
+<td>0.177 ± 0.0008</td>
+<td>0.836 ± 0.004</td>
+<td><strong>0.455 ± 0.008</strong></td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -1071,10 +1243,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "navigation.expand"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "navigation.expand"], "search": "assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="assets/javascripts/bundle.a51614de.min.js"></script>
+      <script src="assets/javascripts/bundle.220ee61c.min.js"></script>
       
         
           <script src="javascripts/config.js"></script>

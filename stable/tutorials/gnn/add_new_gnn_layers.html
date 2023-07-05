@@ -19,7 +19,7 @@
         <link rel="next" href="making_gnn_networks.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
@@ -932,8 +932,8 @@
   
   
     <li class="md-nav__item">
-      <a href="../model_training/ipu_training.html" class="md-nav__link">
-        Building and training on IPU from configurations
+      <a href="../model_training/ipu_training.ipynb" class="md-nav__link">
+        Training on IPU
       </a>
     </li>
   
@@ -2180,7 +2180,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="creating-gnn-layers">Creating GNN layers<a class="anchor-link" href="#creating-gnn-layers">&#182;</a></h1><p>One of the primary advantage of the current library is the fact that GNN layers are independant from model architecture, thus allowing more flexibility with the code by easily swapping different layer types as hyper-parameters. However, this requires that the layers be implemented using the PyG library, and must be inherited from the class <a href="https://graphium-docs.datamol.io/stable/api/graphium.nn/graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphStructure"><code>BaseGraphStructure</code></a>, which standardizes the inputs, outputs and properties of the layers. Thus, the architecture can be handled independantly using the class <a href="https://graphium-docs.datamol.io/stable/api/graphium.nn/architectures.html#graphium.nn.architectures.pyg_architectures.FeedForwardPyg"><code>FeedForwardPyg</code></a> or other custom classes.</p>
+<h1 id="creating-gnn-layers">Creating GNN layers<a class="anchor-link" href="#creating-gnn-layers">&#182;</a></h1><p>One of the primary advantage of this library is the fact that GNN layers are independent from model architecture, thus allowing more flexibility with the code by easily swapping different layer types as hyper-parameters. However, this requires that the layers be implemented using the PyG library, and must be inherited from the class <a href="https://graphium-docs.datamol.io/stable/api/graphium.nn/graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphStructure"><code>BaseGraphStructure</code></a>, which standardizes the inputs, outputs and properties of the layers. Thus, the architecture can be handled independantly using the class <a href="https://graphium-docs.datamol.io/stable/api/graphium.nn/architectures.html#graphium.nn.architectures.pyg_architectures.FeedForwardPyg"><code>FeedForwardPyg</code></a> or other custom classes.</p>
 <p>We will first start by a simple layer that does not use edges, to a more complex layer that uses edges.</p>
 <p>Since these examples are built on top of PyG, we recommend looking at their <a href="https://pytorch-geometric.readthedocs.io/en/latest/">Docs</a> and <a href="https://pytorch-geometric.readthedocs.io/en/latest/get_started/introduction.html">Tutorials</a> for more info.</p>
 
@@ -2195,23 +2195,23 @@ Licensed under the Apache License, Version 2.0.
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
 <h3 id="table-of-content">Table of content<a class="anchor-link" href="#table-of-content">&#182;</a></h3><ol>
-<li><a href="#Define-synthetic-test-graph">define test graph</a></li>
-<li><a href="#Creating-a-simple-layer">create simple layer</a></li>
-<li><a href="#Test-our-simple-layer">test simple layer</a></li>
-<li><a href="#Creating-a-complex-layer-with-edges">create complex layer</a></li>
-<li><a href="#Test-our-complex-layer">test complex layer</a></li>
+<li><a href="#Define-synthetic-test-graph">Define test graph</a></li>
+<li><a href="#Creating-a-simple-layer">Create simple layer</a></li>
+<li><a href="#Test-our-simple-layer">Test simple layer</a></li>
+<li><a href="#Creating-a-complex-layer-with-edges">Create complex layer</a></li>
+<li><a href="#Test-our-complex-layer">Test complex layer</a></li>
 </ol>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[81]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2231,26 +2231,19 @@ Licensed under the Apache License, Version 2.0.
 
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">from</span> <span class="nn">torch</span> <span class="kn">import</span> <span class="n">Tensor</span>
-<span class="kn">import</span> <span class="nn">torch_geometric</span> <span class="k">as</span> <span class="nn">pyg</span>
 <span class="kn">from</span> <span class="nn">torch_geometric.data</span> <span class="kn">import</span> <span class="n">Data</span><span class="p">,</span> <span class="n">Batch</span>
 <span class="kn">from</span> <span class="nn">torch_geometric.nn.conv</span> <span class="kn">import</span> <span class="n">MessagePassing</span>
 <span class="kn">from</span> <span class="nn">torch_scatter</span> <span class="kn">import</span> <span class="n">scatter</span>
 <span class="kn">from</span> <span class="nn">torch_geometric.typing</span> <span class="kn">import</span> <span class="p">(</span>
-    <span class="n">Adj</span><span class="p">,</span>
     <span class="n">OptPairTensor</span><span class="p">,</span>
-    <span class="n">OptTensor</span><span class="p">,</span>
-    <span class="n">Size</span><span class="p">,</span>
-    <span class="n">SparseTensor</span><span class="p">,</span>
+    <span class="n">OptTensor</span>
 <span class="p">)</span>
-
-
 
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span>
 <span class="kn">from</span> <span class="nn">graphium.nn.base_graph_layer</span> <span class="kn">import</span> <span class="n">BaseGraphStructure</span>
 <span class="kn">from</span> <span class="nn">graphium.nn.base_layers</span> <span class="kn">import</span> <span class="n">FCLayer</span>
 <span class="kn">from</span> <span class="nn">graphium.utils.decorators</span> <span class="kn">import</span> <span class="n">classproperty</span>
-
 
 <span class="n">_</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
 </pre></div>
@@ -2259,19 +2252,13 @@ Licensed under the Apache License, Version 2.0.
 
 import torch
 from torch import Tensor
-import torch_geometric as pyg
 from torch_geometric.data import Data, Batch
 from torch_geometric.nn.conv import MessagePassing
 from torch_scatter import scatter
 from torch_geometric.typing import (
-    Adj,
     OptPairTensor,
-    OptTensor,
-    Size,
-    SparseTensor,
+    OptTensor
 )
-
-
 
 from copy import deepcopy
 from typing import Callable, Union, Optional, List
@@ -2279,13 +2266,34 @@ from graphium.nn.base_graph_layer import BaseGraphStructure
 from graphium.nn.base_layers import FCLayer
 from graphium.utils.decorators import classproperty
 
-
 _ = torch.manual_seed(42)</div>
         
         </div>
     </div>
 
 </div>
+</div>
+
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+
+
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+    
+    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+
+
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
+<pre>The autoreload extension is already loaded. To reload it, use:
+  %reload_ext autoreload
+</pre>
+</div>
+</div>
+
+</div>
+
 </div>
 
 </div>
@@ -2307,7 +2315,7 @@ _ = torch.manual_seed(42)</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[82]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2329,8 +2337,10 @@ _ = torch.manual_seed(42)</div>
 
 <span class="c1"># Let&#39;s create 2 simple pyg graphs. </span>
 <span class="c1"># start by specifying the edges with edge index</span>
-<span class="n">edge_idx1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])])</span>
-<span class="n">edge_idx2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">])])</span>
+<span class="n">edge_idx1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+                          <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]])</span>
+<span class="n">edge_idx2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                          <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
 
 <span class="c1"># specify the node features, convention with variable x</span>
 <span class="n">x1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">edge_idx1</span><span class="o">.</span><span class="n">max</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
@@ -2339,7 +2349,6 @@ _ = torch.manual_seed(42)</div>
 <span class="c1"># specify the edge features in e</span>
 <span class="n">e1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">edge_idx1</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">e2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">edge_idx2</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">in_dim_edges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-
 
 <span class="c1"># make the pyg graph objects with our constructed features</span>
 <span class="n">g1</span> <span class="o">=</span> <span class="n">Data</span><span class="p">(</span><span class="n">feat</span><span class="o">=</span><span class="n">x1</span><span class="p">,</span> <span class="n">edge_index</span><span class="o">=</span><span class="n">edge_idx1</span><span class="p">,</span> <span class="n">edge_feat</span><span class="o">=</span><span class="n">e1</span><span class="p">)</span>
@@ -2358,8 +2367,10 @@ in_dim_edges = 13   # Input edge-feature dimensions
 
 # Let's create 2 simple pyg graphs. 
 # start by specifying the edges with edge index
-edge_idx1 = torch.stack([torch.tensor([0, 1, 2]), torch.tensor([1, 2, 3])])
-edge_idx2 = torch.stack([torch.tensor([0, 0, 0, 1]), torch.tensor([0, 1, 2, 0])])
+edge_idx1 = torch.tensor([[0, 1, 2],
+                          [1, 2, 3]])
+edge_idx2 = torch.tensor([[2, 0, 0, 1],
+                          [0, 1, 2, 0]])
 
 # specify the node features, convention with variable x
 x1 = torch.randn(edge_idx1.max() + 1, in_dim, dtype=torch.float32)
@@ -2368,7 +2379,6 @@ x2 = torch.randn(edge_idx2.max() + 1, in_dim, dtype=torch.float32)
 # specify the edge features in e
 e1 = torch.randn(edge_idx1.shape[-1], in_dim_edges, dtype=torch.float32)
 e2 = torch.randn(edge_idx2.shape[-1], in_dim_edges, dtype=torch.float32)
-
 
 # make the pyg graph objects with our constructed features
 g1 = Data(feat=x1, edge_index=edge_idx1, edge_feat=e1)
@@ -2435,7 +2445,7 @@ print(bg)</div>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[83]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2450,8 +2460,8 @@ print(bg)</div>
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1">#inherent from message passing class from pyg </span>
-<span class="c1">#inherent from BaseGraphStructure</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># inherit from message passing class from pyg </span>
+<span class="c1"># inherit from BaseGraphStructure</span>
 <span class="c1"># this example is also based of : https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/conv/simple_conv.html#SimpleConv.forward</span>
 
 <span class="k">class</span> <span class="nc">SimpleMeanLayer</span><span class="p">(</span><span class="n">MessagePassing</span><span class="p">,</span> <span class="n">BaseGraphStructure</span><span class="p">):</span>
@@ -2461,7 +2471,7 @@ print(bg)</div>
                  <span class="n">activation</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> 
                  <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> 
                  <span class="n">normalization</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
-                 <span class="n">aggr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+                 <span class="n">aggr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
                 <span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        add documentation in the format shown here for this layer to be automatically added to the graphium api reference</span>
@@ -2489,10 +2499,10 @@ print(bg)</div>
 <span class="sd">                - &quot;layer_norm&quot;: Layer normalization</span>
 <span class="sd">                - `Callable`: Any callable function</span>
 <span class="sd">            aggr:</span>
-<span class="sd">                what aggregation to use</span>
+<span class="sd">                what aggregation to use (&quot;add&quot;, &quot;mean&quot; or &quot;max&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Initialize the parent class</span>
-        <span class="n">MessagePassing</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">MessagePassing</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">aggr</span><span class="o">=</span><span class="n">aggr</span><span class="p">)</span>
         <span class="n">BaseGraphStructure</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                     <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> 
                                     <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
@@ -2518,7 +2528,6 @@ print(bg)</div>
 <span class="sd">        Returns:</span>
 <span class="sd">            batch: pyg Batch graphs</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># We first apply the mean aggregation</span>
         
         <span class="n">x</span> <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">feat</span>
         <span class="n">edge_index</span> <span class="o">=</span> <span class="n">batch</span><span class="o">.</span><span class="n">edge_index</span>
@@ -2527,16 +2536,15 @@ print(bg)</div>
             <span class="n">x</span><span class="p">:</span> <span class="n">OptPairTensor</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 
         <span class="c1"># propagate_type: (x: OptPairTensor, edge_weight: OptTensor)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="n">batch_idx</span><span class="o">=</span><span class="n">batch</span><span class="o">.</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">batch_idx</span><span class="o">=</span><span class="n">batch</span><span class="o">.</span><span class="n">batch</span><span class="p">)</span>
         <span class="n">batch</span><span class="o">.</span><span class="n">feat</span> <span class="o">=</span> <span class="n">out</span>
         <span class="k">return</span> <span class="n">batch</span>
     
-    <span class="k">def</span> <span class="nf">message_and_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
-                              <span class="n">adj_t</span><span class="p">:</span> <span class="n">SparseTensor</span><span class="p">,</span>
-                              <span class="n">x</span><span class="p">:</span> <span class="n">OptPairTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">spmm</span><span class="p">(</span><span class="n">adj_t</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">reduce</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">aggr</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_j</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="n">x_j</span>
 
     <span class="c1"># Finally, we define all the virtual properties according to how the class works with proper documentation of course</span>
     <span class="nd">@classproperty</span>
@@ -2585,8 +2593,8 @@ print(bg)</div>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mi">1</span>
 </pre></div>
-<div id="cell-3" class="clipboard-copy-txt">#inherent from message passing class from pyg 
-#inherent from BaseGraphStructure
+<div id="cell-3" class="clipboard-copy-txt"># inherit from message passing class from pyg 
+# inherit from BaseGraphStructure
 # this example is also based of : https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/nn/conv/simple_conv.html#SimpleConv.forward
 
 class SimpleMeanLayer(MessagePassing, BaseGraphStructure):
@@ -2596,7 +2604,7 @@ class SimpleMeanLayer(MessagePassing, BaseGraphStructure):
                  activation: Union[Callable, str] = "relu", 
                  dropout: float = 0.0, 
                  normalization: Union[str, Callable] = "none",
-                 aggr: str = "sum",
+                 aggr: str = "mean",
                 ):
         r"""
         add documentation in the format shown here for this layer to be automatically added to the graphium api reference
@@ -2624,10 +2632,10 @@ class SimpleMeanLayer(MessagePassing, BaseGraphStructure):
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
             aggr:
-                what aggregation to use
+                what aggregation to use ("add", "mean" or "max")
         """
         # Initialize the parent class
-        MessagePassing.__init__(self, node_dim=0)
+        MessagePassing.__init__(self, node_dim=0, aggr=aggr)
         BaseGraphStructure.__init__(self,
                                     in_dim=in_dim, 
                                     out_dim=out_dim, 
@@ -2653,7 +2661,6 @@ class SimpleMeanLayer(MessagePassing, BaseGraphStructure):
         Returns:
             batch: pyg Batch graphs
         """
-        # We first apply the mean aggregation
         
         x = batch.feat
         edge_index = batch.edge_index
@@ -2662,16 +2669,15 @@ class SimpleMeanLayer(MessagePassing, BaseGraphStructure):
             x: OptPairTensor = (x, x)
 
         # propagate_type: (x: OptPairTensor, edge_weight: OptTensor)
-        h = self.propagate(edge_index, x=x)
-        out = self.transform(h)
-        out = self.apply_norm_activation_dropout(out,batch_idx=batch.batch)
+        out = self.propagate(edge_index, x=x)
+        out = self.transform(out)
+        out = self.apply_norm_activation_dropout(out, batch_idx=batch.batch)
         batch.feat = out
         return batch
     
-    def message_and_aggregate(self, 
-                              adj_t: SparseTensor,
-                              x: OptPairTensor) -> Tensor:
-        return spmm(adj_t, x[0], reduce=self.aggr)
+    def message(self, x_j):
+
+        return x_j
 
     # Finally, we define all the virtual properties according to how the class works with proper documentation of course
     @classproperty
@@ -2745,7 +2751,7 @@ class SimpleMeanLayer(MessagePassing, BaseGraphStructure):
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[84]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2768,8 +2774,7 @@ class SimpleMeanLayer(MessagePassing, BaseGraphStructure):
             <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
             <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> 
             <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> 
-            <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">,</span>
-            <span class="n">aggr</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+            <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
 
 <span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -2782,8 +2787,7 @@ layer = SimpleMeanLayer(
             out_dim=out_dim, 
             activation="relu", 
             dropout=.3, 
-            normalization="batch_norm",
-            aggr="sum")
+            normalization="batch_norm")
 
 graph = layer(graph)
 print(graph.feat.shape)</div>
@@ -2843,7 +2847,7 @@ torch.Size([7, 11])
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[85]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2858,8 +2862,8 @@ torch.Size([7, 11])
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1">#inherent from message passing class from pyg </span>
-<span class="c1">#inherent from BaseGraphStructure</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># inherent from message passing class from pyg </span>
+<span class="c1"># inherent from BaseGraphStructure</span>
 <span class="c1"># adapting example from graphium/nn/pyg_layers/png_pyg.py</span>
 
 <span class="k">class</span> <span class="nc">ComplexMeanLayer</span><span class="p">(</span><span class="n">MessagePassing</span><span class="p">,</span> <span class="n">BaseGraphStructure</span><span class="p">):</span>
@@ -2870,7 +2874,7 @@ torch.Size([7, 11])
                  <span class="n">activation</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Callable</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;relu&quot;</span><span class="p">,</span> 
                  <span class="n">dropout</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> 
                  <span class="n">normalization</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
-                 <span class="n">aggr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;sum&quot;</span><span class="p">,</span>
+                 <span class="n">aggr</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;mean&quot;</span><span class="p">,</span>
                 <span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        add documentation in the format shown here for this layer to be automatically added to the graphium api reference</span>
@@ -2901,10 +2905,10 @@ torch.Size([7, 11])
 <span class="sd">                - &quot;layer_norm&quot;: Layer normalization</span>
 <span class="sd">                - `Callable`: Any callable function</span>
 <span class="sd">            aggr:</span>
-<span class="sd">                what aggregation to use</span>
+<span class="sd">                what aggregation to use (&quot;add&quot;, &quot;mean&quot; or &quot;max&quot;)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Initialize the parent class</span>
-        <span class="n">MessagePassing</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">MessagePassing</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node_dim</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">aggr</span><span class="o">=</span><span class="n">aggr</span><span class="p">)</span>
         <span class="n">BaseGraphStructure</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                     <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> 
                                     <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">,</span> 
@@ -2916,7 +2920,7 @@ torch.Size([7, 11])
         <span class="bp">self</span><span class="o">.</span><span class="n">_initialize_activation_dropout_norm</span><span class="p">()</span>
         <span class="c1"># Create the mlp layer </span>
         <span class="c1"># https://graphium-docs.datamol.io/stable/api/graphium.nn/graphium.nn.html#graphium.nn.base_layers.MLP</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">FCLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="p">(</span><span class="n">in_dim</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span><span class="n">in_dim_edges</span><span class="p">),</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">transform</span> <span class="o">=</span> <span class="n">FCLayer</span><span class="p">(</span><span class="n">in_dim</span><span class="o">=</span><span class="p">(</span><span class="n">in_dim</span> <span class="o">+</span> <span class="n">in_dim_edges</span><span class="p">),</span> <span class="n">out_dim</span><span class="o">=</span><span class="n">out_dim</span><span class="p">)</span>
             
     <span class="c1"># define the forward function </span>
     <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> 
@@ -2938,13 +2942,13 @@ torch.Size([7, 11])
             <span class="n">x</span><span class="p">:</span> <span class="n">OptPairTensor</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 
         <span class="c1"># propagate_type: (x: OptPairTensor, edge_weight: OptTensor)</span>
-        <span class="n">h</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">edge_feat</span><span class="o">=</span><span class="n">edge_feat</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="n">batch_idx</span><span class="o">=</span><span class="n">batch</span><span class="o">.</span><span class="n">batch</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">propagate</span><span class="p">(</span><span class="n">edge_index</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">edge_feat</span><span class="o">=</span><span class="n">edge_feat</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_norm_activation_dropout</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">batch_idx</span><span class="o">=</span><span class="n">batch</span><span class="o">.</span><span class="n">batch</span><span class="p">)</span>
         <span class="n">batch</span><span class="o">.</span><span class="n">feat</span> <span class="o">=</span> <span class="n">out</span>
         <span class="k">return</span> <span class="n">batch</span>
     
-    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_i</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">x_j</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">:</span> <span class="n">OptTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_j</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">:</span> <span class="n">OptTensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        message function</span>
 
@@ -2955,7 +2959,7 @@ torch.Size([7, 11])
 <span class="sd">        Returns:</span>
 <span class="sd">            feat: the message</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">feat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x_i</span><span class="p">,</span> <span class="n">x_j</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">feat</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">x_j</span><span class="p">,</span> <span class="n">edge_feat</span><span class="p">],</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">feat</span>
     
     <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span>
@@ -3026,8 +3030,8 @@ torch.Size([7, 11])
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mi">1</span>
 </pre></div>
-<div id="cell-5" class="clipboard-copy-txt">#inherent from message passing class from pyg 
-#inherent from BaseGraphStructure
+<div id="cell-5" class="clipboard-copy-txt"># inherent from message passing class from pyg 
+# inherent from BaseGraphStructure
 # adapting example from graphium/nn/pyg_layers/png_pyg.py
 
 class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
@@ -3038,7 +3042,7 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
                  activation: Union[Callable, str] = "relu", 
                  dropout: float = 0.0, 
                  normalization: Union[str, Callable] = "none",
-                 aggr: str = "sum",
+                 aggr: str = "mean",
                 ):
         r"""
         add documentation in the format shown here for this layer to be automatically added to the graphium api reference
@@ -3069,10 +3073,10 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
                 - "layer_norm": Layer normalization
                 - `Callable`: Any callable function
             aggr:
-                what aggregation to use
+                what aggregation to use ("add", "mean" or "max")
         """
         # Initialize the parent class
-        MessagePassing.__init__(self, node_dim=0)
+        MessagePassing.__init__(self, node_dim=0, aggr=aggr)
         BaseGraphStructure.__init__(self,
                                     in_dim=in_dim, 
                                     out_dim=out_dim, 
@@ -3084,7 +3088,7 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
         self._initialize_activation_dropout_norm()
         # Create the mlp layer 
         # https://graphium-docs.datamol.io/stable/api/graphium.nn/graphium.nn.html#graphium.nn.base_layers.MLP
-        self.transform = FCLayer(in_dim=(in_dim * 2 +in_dim_edges), out_dim=out_dim)
+        self.transform = FCLayer(in_dim=(in_dim + in_dim_edges), out_dim=out_dim)
             
     # define the forward function 
     def forward(self, 
@@ -3106,13 +3110,13 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
             x: OptPairTensor = (x, x)
 
         # propagate_type: (x: OptPairTensor, edge_weight: OptTensor)
-        h = self.propagate(edge_index, x=x, edge_feat=edge_feat, size=None)
-        out = self.transform(h)
-        out = self.apply_norm_activation_dropout(out,batch_idx=batch.batch)
+        out = self.propagate(edge_index, x=x, edge_feat=edge_feat, size=None)
+        out = self.transform(out)
+        out = self.apply_norm_activation_dropout(out, batch_idx=batch.batch)
         batch.feat = out
         return batch
     
-    def message(self, x_i: Tensor, x_j: Tensor, edge_feat: OptTensor) -> Tensor:
+    def message(self, x_j: Tensor, edge_feat: OptTensor) -> Tensor:
         r"""
         message function
 
@@ -3123,7 +3127,7 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
         Returns:
             feat: the message
         """
-        feat = torch.cat([x_i, x_j, edge_feat], dim=-1)
+        feat = torch.cat([x_j, edge_feat], dim=-1)
         return feat
     
     def aggregate(
@@ -3219,7 +3223,7 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[86]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3236,6 +3240,7 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
             </div>
             <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">graph</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">bg</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">edge_feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
 <span class="n">layer</span> <span class="o">=</span> <span class="n">ComplexMeanLayer</span><span class="p">(</span>
             <span class="n">in_dim</span><span class="o">=</span><span class="n">in_dim</span><span class="p">,</span> 
@@ -3243,14 +3248,14 @@ class ComplexMeanLayer(MessagePassing, BaseGraphStructure):
             <span class="n">in_dim_edges</span><span class="o">=</span><span class="n">in_dim_edges</span><span class="p">,</span>
             <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;relu&quot;</span><span class="p">,</span> 
             <span class="n">dropout</span><span class="o">=</span><span class="mf">.3</span><span class="p">,</span> 
-            <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">,</span>
-            <span class="n">aggr</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+            <span class="n">normalization</span><span class="o">=</span><span class="s2">&quot;batch_norm&quot;</span><span class="p">)</span>
 
 <span class="n">graph</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">feat</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 </pre></div>
 <div id="cell-6" class="clipboard-copy-txt">graph = deepcopy(bg)
 print(graph.feat.shape)
+print(graph.edge_feat.shape)
 
 layer = ComplexMeanLayer(
             in_dim=in_dim, 
@@ -3258,8 +3263,7 @@ layer = ComplexMeanLayer(
             in_dim_edges=in_dim_edges,
             activation="relu", 
             dropout=.3, 
-            normalization="batch_norm",
-            aggr="sum")
+            normalization="batch_norm")
 
 graph = layer(graph)
 print(graph.feat.shape)</div>
@@ -3283,6 +3287,7 @@ print(graph.feat.shape)</div>
 
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
 <pre>torch.Size([7, 5])
+torch.Size([7, 13])
 torch.Size([7, 11])
 </pre>
 </div>
@@ -3290,6 +3295,38 @@ torch.Size([7, 11])
 
 </div>
 
+</div>
+
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+        
+        
+        <div class="CodeMirror cm-s-jupyter">
+            <div class="zeroclipboard-container">
+                <clipboard-copy for="cell-7">
+                <div>
+                    <span class="notice" hidden>Copied!</span>
+                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
+                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
+                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
+                    </svg>
+                    </div>
+                </clipboard-copy>
+            </div>
+            <div class="highlight-ipynb hl-python "><pre><span></span>
+</pre></div>
+<div id="cell-7" class="clipboard-copy-txt"></div>
+        
+        </div>
+    </div>
+
+</div>
 </div>
 
 </div>
@@ -3338,10 +3375,10 @@ torch.Size([7, 11])
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.expand"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.expand"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.a51614de.min.js"></script>
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
       
         
           <script src="../../javascripts/config.js"></script>

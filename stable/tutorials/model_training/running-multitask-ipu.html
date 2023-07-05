@@ -10,20 +10,16 @@
       
       
       
-        <link rel="canonical" href="https://github.com/datamol-io/graphium/stable/tutorials/model_training/ipu_training.html">
+        <link rel="canonical" href="https://github.com/datamol-io/graphium/stable/tutorials/model_training/running-multitask-ipu.html">
       
       
-        <link rel="prev" href="simple-molecular-model.html">
-      
-      
-        <link rel="next" href="../../design.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.16">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
     
     
       
-        <title>Building and training on IPU from configurations - graphium</title>
+        <title>Multitask Molecular Modelling with Graphium on the IPU - graphium</title>
       
     
     
@@ -71,7 +67,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#building-and-training-on-ipu-from-configurations" class="md-skip">
+        <a href="#multitask-molecular-modelling-with-graphium-on-the-ipu" class="md-skip">
           Skip to content
         </a>
       
@@ -107,7 +103,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Building and training on IPU from configurations
+              Multitask Molecular Modelling with Graphium on the IPU
             
           </span>
         </div>
@@ -226,8 +222,6 @@
         
   
   
-    
-  
 
 
   
@@ -239,7 +233,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../feature_processing/add_new_positional_encoding.html" class="md-tabs__link md-tabs__link--active">
+      <a href="../feature_processing/add_new_positional_encoding.html" class="md-tabs__link">
         Tutorials
       </a>
     </li>
@@ -626,16 +620,16 @@
 
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
       
       
       
@@ -644,7 +638,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4">
           <span class="md-nav__icon md-icon"></span>
           Tutorials
@@ -811,16 +805,16 @@
               
   
   
-    
-  
   
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
       
       
       
-      <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" checked>
+        
+      
+      <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
       
       
       
@@ -829,7 +823,7 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="true">
+      <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
         <label class="md-nav__title" for="__nav_4_3">
           <span class="md-nav__icon md-icon"></span>
           model_training
@@ -854,223 +848,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Building and training on IPU from configurations
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="ipu_training.html" class="md-nav__link md-nav__link--active">
-        Building and training on IPU from configurations
+    <li class="md-nav__item">
+      <a href="ipu_training.ipynb" class="md-nav__link">
+        Training on IPU
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#the-ipu-config-file" class="md-nav__link">
-    The ipu config file
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#creating-the-yaml-file" class="md-nav__link">
-    Creating the yaml file
-  </a>
-  
-    <nav class="md-nav" aria-label="Creating the yaml file">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#constants" class="md-nav__link">
-    Constants
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#datamodule" class="md-nav__link">
-    Datamodule
-  </a>
-  
-    <nav class="md-nav" aria-label="Datamodule">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reading-a-csv-file-and-trainvaltest-splits" class="md-nav__link">
-    Reading a CSV file and train/val/test splits
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#featurizing-a-molecule" class="md-nav__link">
-    Featurizing a molecule
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    Architecture
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-node-pre-processing-nn" class="md-nav__link">
-    Parameters for the node pre-processing NN
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-edge-pre-processing-nn" class="md-nav__link">
-    Parameters for the edge pre-processing NN
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-gnn" class="md-nav__link">
-    Parameters for the GNN
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-node-post-processing-nn-after-the-gnn" class="md-nav__link">
-    Parameters for the node post-processing NN (after the GNN)
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-multi-task-output-heads" class="md-nav__link">
-    Parameters for the multi-task output heads
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#predictor" class="md-nav__link">
-    Predictor
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#metrics" class="md-nav__link">
-    Metrics
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#trainer" class="md-nav__link">
-    Trainer
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#training-the-model" class="md-nav__link">
-    Training the model
-  </a>
-  
-    <nav class="md-nav" aria-label="Training the model">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#first-lets-do-our-imports" class="md-nav__link">
-    First, let's do our imports
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#then-lets-load-the-configuration-file" class="md-nav__link">
-    Then, let's load the configuration file
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#now-lets-process-the-data" class="md-nav__link">
-    Now let's process the data
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#lets-build-the-architecture-metrics-and-set-up-the-trainer" class="md-nav__link">
-    Let's build the architecture, metrics, and set-up the trainer
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#finally-lets-run-the-model" class="md-nav__link">
-    Finally, let's run the model
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#testing-the-model" class="md-nav__link">
-    Testing the model
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1220,179 +1002,64 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-ipu-config-file" class="md-nav__link">
-    The ipu config file
+  <a href="#summary-table" class="md-nav__link">
+    Summary table
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#creating-the-yaml-file" class="md-nav__link">
-    Creating the yaml file
+  <a href="#learning-outcomes" class="md-nav__link">
+    Learning outcomes
   </a>
-  
-    <nav class="md-nav" aria-label="Creating the yaml file">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#constants" class="md-nav__link">
-    Constants
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#datamodule" class="md-nav__link">
-    Datamodule
-  </a>
-  
-    <nav class="md-nav" aria-label="Datamodule">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#reading-a-csv-file-and-trainvaltest-splits" class="md-nav__link">
-    Reading a CSV file and train/val/test splits
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#featurizing-a-molecule" class="md-nav__link">
-    Featurizing a molecule
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#architecture" class="md-nav__link">
-    Architecture
-  </a>
-  
-    <nav class="md-nav" aria-label="Architecture">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-node-pre-processing-nn" class="md-nav__link">
-    Parameters for the node pre-processing NN
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-edge-pre-processing-nn" class="md-nav__link">
-    Parameters for the edge pre-processing NN
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-gnn" class="md-nav__link">
-    Parameters for the GNN
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-node-post-processing-nn-after-the-gnn" class="md-nav__link">
-    Parameters for the node post-processing NN (after the GNN)
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#parameters-for-the-multi-task-output-heads" class="md-nav__link">
-    Parameters for the multi-task output heads
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#predictor" class="md-nav__link">
-    Predictor
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#metrics" class="md-nav__link">
-    Metrics
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#trainer" class="md-nav__link">
-    Trainer
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#training-the-model" class="md-nav__link">
-    Training the model
+  <a href="#links-to-other-resources" class="md-nav__link">
+    Links to other resources
   </a>
-  
-    <nav class="md-nav" aria-label="Training the model">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#first-lets-do-our-imports" class="md-nav__link">
-    First, let's do our imports
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#then-lets-load-the-configuration-file" class="md-nav__link">
-    Then, let's load the configuration file
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#now-lets-process-the-data" class="md-nav__link">
-    Now let's process the data
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#lets-build-the-architecture-metrics-and-set-up-the-trainer" class="md-nav__link">
-    Let's build the architecture, metrics, and set-up the trainer
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#finally-lets-run-the-model" class="md-nav__link">
-    Finally, let's run the model
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#testing-the-model" class="md-nav__link">
-    Testing the model
+  <a href="#dependencies" class="md-nav__link">
+    Dependencies
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#running-on-paperspace" class="md-nav__link">
+    Running on Paperspace
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dataset-toymix-benchmark" class="md-nav__link">
+    Dataset: ToyMix Benchmark
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multitask-learning" class="md-nav__link">
+    Multitask learning
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-the-dataset-and-splits" class="md-nav__link">
+    Download the dataset and splits
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#graphium-model-configuration" class="md-nav__link">
+    Graphium model configuration
   </a>
   
 </li>
@@ -1575,33 +1242,6 @@
           notice.hidden = true
         }, 1000)
       })
-</script><script>
-(function() {
-  function addWidgetsRenderer() {
-    var mimeElement = document.querySelector('script[type="application/vnd.jupyter.widget-view+json"]');
-    var scriptElement = document.createElement('script');
-    
-    var widgetRendererSrc = 'https://unpkg.com/@jupyter-widgets/html-manager@*/dist/embed-amd.js';
-    
-    var widgetState;
-
-    // Fallback for older version:
-    try {
-      widgetState = mimeElement && JSON.parse(mimeElement.innerHTML);
-
-      if (widgetState && (widgetState.version_major < 2 || !widgetState.version_major)) {
-        
-        var widgetRendererSrc = 'https://unpkg.com/@jupyter-js-widgets@*/dist/embed.js';
-        
-      }
-    } catch(e) {}
-
-    scriptElement.src = widgetRendererSrc;
-    document.body.appendChild(scriptElement);
-  }
-
-  document.addEventListener('DOMContentLoaded', addWidgetsRenderer);
-}());
 </script>
 
 
@@ -2479,9 +2119,7 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h1 id="building-and-training-on-ipu-from-configurations">Building and training on IPU from configurations<a class="anchor-link" href="#building-and-training-on-ipu-from-configurations">&#182;</a></h1><p>This tutorial will walk you through how to use a configuration file to define all the parameters of a model and of the trainer. This tutorial focuses on training from SMILES data in a CSV format.</p>
-<p>There are multiple examples of YAML files located in the folder <code>graphium/expts</code> that one can refer to when training a new model. The file <code>docs/tutorials/model_training/config_ipu_tutorials.yaml</code> shows an example of multi-task regression from a CSV file provided by graphium.</p>
-<p>If you are not familiar with <a href="https://pytorch.org/docs">PyTorch</a> or <a href="https://pytorch-lightning.readthedocs.io/en/latest/">PyTorch-Lightning</a>, we highly recommend going through their tutorial first.</p>
+<p>Copyright (c) 2023 Graphcore Ltd. All rights reserved.</p>
 
 </div>
 </div>
@@ -2493,18 +2131,80 @@ Licensed under the Apache License, Version 2.0.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="the-ipu-config-file">The ipu config file<a class="anchor-link" href="#the-ipu-config-file">&#182;</a></h3><p>The IPU config file can be found at <code>expts/configs/ipu.config</code>. And is given below.</p>
+<h1 id="multitask-molecular-modelling-with-graphium-on-the-ipu">Multitask Molecular Modelling with Graphium on the IPU<a class="anchor-link" href="#multitask-molecular-modelling-with-graphium-on-the-ipu">&#182;</a></h1><p><a href="https://ipu.dev/sdGggS"><img src="https://assets.paperspace.io/img/gradient-badge.svg" alt="Run on Gradient" /></a>
+<a href="https://www.graphcore.ai/join-community"><img src="https://img.shields.io/badge/Slack-Join%20Graphcore%27s%20Community-blue?style=flat-square&amp;logo=slack" alt="Join our Slack Community" /></a></p>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<p>Graphium is a high-performance deep learning library specializing in graph representation learning for diverse chemical tasks. Graphium integrates state-of-the-art Graph Neural Network (GNN) architectures and a user-friendly API, enabling the easy construction and training of custom GNN models.</p>
+<p>Graphium's distinctive feature is its robust featurization capabilities, enabling the extraction of comprehensive features from molecular structures for a range of applications, including property prediction, virtual screening, and drug discovery.</p>
+<p>Applicable to a wide array of chemical tasks like property prediction, toxicity evaluation, molecular generation, and graph regression, Graphium provides efficient tools and models, regardless of whether you're working with simple molecules or intricate chemical graphs.</p>
+<p>In this notebook, we'll illustrate Graphium's capabilities using the ToyMix dataset, an amalgamation of the QM9, Tox21, and ZINC12k datasets. We'll delve into the multitask scenario and display how Graphium trains models to concurrently predict multiple properties with chemical awareness.</p>
+<h3 id="summary-table">Summary table<a class="anchor-link" href="#summary-table">&#182;</a></h3><table>
+<thead>
+<tr>
+  <th>Domain</th>
+  <th>Tasks</th>
+  <th>Model</th>
+  <th>Datasets</th>
+  <th>Workflow</th>
+  <th>Number of IPUs</th>
+  <th>Execution time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Molecules</td>
+  <td>Multitask</td>
+  <td>GCN/GIN/GINE</td>
+  <td>QM9, Zinc, Tox21</td>
+  <td>Training, Validation, Inference</td>
+  <td>recommended: 4x (min: 1x, max: 16x)</td>
+  <td>20 mins</td>
+</tr>
+</tbody>
+</table>
+<h3 id="learning-outcomes">Learning outcomes<a class="anchor-link" href="#learning-outcomes">&#182;</a></h3><p>In this notebook you will learn how to:</p>
+<ul>
+<li>Run multitask training for a variety of GNN models using the Graphium library on IPUs.</li>
+<li>Compare the results to the single task performance</li>
+<li>Learn how to modify the Graphium config files</li>
+</ul>
+<h3 id="links-to-other-resources">Links to other resources<a class="anchor-link" href="#links-to-other-resources">&#182;</a></h3><p>For this notebook, it is best if you are already familiarity with GNNs and PyTorch Geometric. If you need a quick introduction, we suggest you refer to the <a href="https://github.com/graphcore/Gradient-Pytorch-Geometric/tree/main/learning-pytorch-geometric-on-ipus">Graphcore tutorials for using PyTorch Geometric on the IPU</a>, which cover the basics of GNNs and PyTorch Geometric while introducing you to running models on the IPU.</p>
+<p><a href="https://www.graphcore.ai/join-community"><img src="https://img.shields.io/badge/Slack-Join%20Graphcore%27s%20Community-blue?style=flat-square&amp;logo=slack" alt="Join our Slack
+Community" /></a></p>
+
+</div>
+</div>
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="dependencies">Dependencies<a class="anchor-link" href="#dependencies">&#182;</a></h2><p>We install the following dependencies for this notebook:</p>
+<p>(This may take 5 - 10 minutes the first time.)</p>
+
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[1]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2519,52 +2219,22 @@ Licensed under the Apache License, Version 2.0.
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
-<span class="kn">import</span> <span class="nn">graphium</span>
-<span class="n">GRAPHIUM_PATH</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">graphium</span><span class="o">.</span><span class="vm">__file__</span><span class="p">))</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">GRAPHIUM_PATH</span><span class="p">,</span> <span class="s2">&quot;expts/configs/ipu.config&quot;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">))</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="n">git</span><span class="o">+</span><span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">datamol</span><span class="o">-</span><span class="n">io</span><span class="o">/</span><span class="n">graphium</span><span class="o">.</span><span class="n">git</span>
+<span class="err">!</span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+<span class="kn">from</span> <span class="nn">examples_utils</span> <span class="kn">import</span> <span class="n">notebook_logging</span>
+
+<span class="o">%</span><span class="n">load_ext</span> <span class="n">gc_logger</span>
 </pre></div>
-<div id="cell-1" class="clipboard-copy-txt">from os.path import dirname, join
-import graphium
-GRAPHIUM_PATH = dirname(dirname(graphium.__file__))
-with open(join(GRAPHIUM_PATH, "expts/configs/ipu.config")) as f:
-    lines = f.readlines()
-print("".join(lines))</div>
+<div id="cell-1" class="clipboard-copy-txt">!pip install git+https://github.com/datamol-io/graphium.git
+!pip install -r requirements.txt
+from examples_utils import notebook_logging
+
+%load_ext gc_logger</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>deviceIterations(16)
-replicationFactor(1)
-Training.gradientAccumulation(1)    # How many gradient steps to accumulate
-modelName(&#34;reproduce_mixed&#34;)        # TODO: Use the name from the main file, and add date/time
-enableProfiling(&#34;pro_vision&#34;)       # The folder where the profile will be stored
-Jit.traceModel(True)
-enableExecutableCaching(&#34;pop_compiler_cache&#34;)
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -2575,7 +2245,11 @@ enableExecutableCaching(&#34;pop_compiler_cache&#34;)
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="creating-the-yaml-file">Creating the yaml file<a class="anchor-link" href="#creating-the-yaml-file">&#182;</a></h2><p>The first step is to create a YAML file containing all the required configurations, with an example given at <code>graphium/docs/tutorials/model_training/config_ipu_tutorials.yaml</code>. We will go through each part of the configurations.</p>
+<h2 id="running-on-paperspace">Running on Paperspace<a class="anchor-link" href="#running-on-paperspace">&#182;</a></h2><p>The Paperspace environment lets you run this notebook with no set up.  If a problem persists or you want to give us feedback on the content of this notebook, please reach out through our community of developers using <a href="https://www.graphcore.ai/join-community">Slack</a> or raise a <a href="https://github.com/graphcore/examples">GitHub issue</a>.</p>
+<p>Requirements:</p>
+<ul>
+<li>Python packages installed with <code>pip install -r ./requirements.txt</code></li>
+</ul>
 
 </div>
 </div>
@@ -2586,7 +2260,7 @@ enableExecutableCaching(&#34;pop_compiler_cache&#34;)
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[2]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2601,11 +2275,71 @@ enableExecutableCaching(&#34;pop_compiler_cache&#34;)
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">import</span> <span class="nn">omegaconf</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># General imports</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
+<span class="kn">from</span> <span class="nn">loguru</span> <span class="kn">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">lightning.pytorch.utilities.model_summary</span> <span class="kn">import</span> <span class="n">ModelSummary</span>
+
+<span class="c1"># Current project imports</span>
+<span class="kn">import</span> <span class="nn">graphium</span>
+<span class="kn">from</span> <span class="nn">graphium.config._loader</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">load_datamodule</span><span class="p">,</span>
+    <span class="n">load_metrics</span><span class="p">,</span>
+    <span class="n">load_architecture</span><span class="p">,</span>
+    <span class="n">load_predictor</span><span class="p">,</span>
+    <span class="n">load_trainer</span><span class="p">,</span>
+    <span class="n">load_accelerator</span><span class="p">,</span>
+    <span class="n">load_yaml_config</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">graphium.utils.safe_run</span> <span class="kn">import</span> <span class="n">SafeRun</span>
+<span class="kn">from</span> <span class="nn">graphium.utils.command_line_utils</span> <span class="kn">import</span> <span class="n">update_config</span><span class="p">,</span> <span class="n">get_anchors_and_aliases</span>
+
+<span class="kn">import</span> <span class="nn">poptorch</span>
+<span class="kn">from</span> <span class="nn">tqdm.auto</span> <span class="kn">import</span> <span class="n">tqdm</span>
+
+<span class="c1"># WandB</span>
+<span class="kn">import</span> <span class="nn">wandb</span>
+
+<span class="c1"># Set up the working directory</span>
+<span class="n">MAIN_DIR</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">graphium</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)))</span>
+
+<span class="n">poptorch</span><span class="o">.</span><span class="n">setLogLevel</span><span class="p">(</span><span class="s2">&quot;ERR&quot;</span><span class="p">)</span>
 </pre></div>
-<div id="cell-2" class="clipboard-copy-txt">import yaml
-import omegaconf</div>
+<div id="cell-2" class="clipboard-copy-txt"># General imports
+import argparse
+import os
+from os.path import dirname, abspath
+from loguru import logger
+from datetime import datetime
+from lightning.pytorch.utilities.model_summary import ModelSummary
+
+# Current project imports
+import graphium
+from graphium.config._loader import (
+    load_datamodule,
+    load_metrics,
+    load_architecture,
+    load_predictor,
+    load_trainer,
+    load_accelerator,
+    load_yaml_config,
+)
+from graphium.utils.safe_run import SafeRun
+from graphium.utils.command_line_utils import update_config, get_anchors_and_aliases
+
+import poptorch
+from tqdm.auto import tqdm
+
+# WandB
+import wandb
+
+# Set up the working directory
+MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
+
+poptorch.setLogLevel("ERR")</div>
         
         </div>
     </div>
@@ -2614,13 +2348,48 @@ import omegaconf</div>
 </div>
 
 </div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="dataset-toymix-benchmark">Dataset: ToyMix Benchmark<a class="anchor-link" href="#dataset-toymix-benchmark">&#182;</a></h2><p>The ToyMix dataset is an amalgamation of three widely recognized datasets in the field of machine learning for chemistry:</p>
+<ul>
+<li>QM9</li>
+<li>Tox21</li>
+<li>ZINC12K.</li>
+</ul>
+<p>Each of these datasets contributes different aspects, ensuring a comprehensive benchmarking tool.</p>
+<p>QM9, known in the realm of 3D GNNs, provides 19 graph-level quantum properties tied to the energy-minimized 3D conformation of molecules. Given that these molecules have at most nine heavy atoms, it's simpler and enables fast model iterations, much like the larger proposed quantum datasets, but on a smaller scale.</p>
+<p>The Tox21 dataset is notable among researchers in machine learning for drug discovery. It is a multi-label classification task with 12 labels, exhibiting a high degree of missing labels and imbalance towards the negative class. This mirrors the characteristics of larger datasets, specifically in terms of sparsity and imbalance, making it invaluable for learning to handle real-world, skewed datasets.</p>
+<p>Finally, the ZINC12K dataset is recognized in the study of GNN expressivity, an essential feature for large-scale data performance. It's included in ToyMix with the expectation that successful performance on this task will correlate well with success on larger datasets.</p>
+<h2 id="multitask-learning">Multitask learning<a class="anchor-link" href="#multitask-learning">&#182;</a></h2><p>In multi-task learning, related tasks share information with each other during training, leading to a shared representation. This can often improve the model's performance on individual tasks, as information learned from one task can assist with others.
+Here the ToyMix dataset provides a sandbox to develop these models for molecular tasks.</p>
+
+</div>
+</div>
+</div>
+</div>
+<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
+<div class="jp-Cell-inputWrapper">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
+<h2 id="download-the-dataset-and-splits">Download the dataset and splits<a class="anchor-link" href="#download-the-dataset-and-splits">&#182;</a></h2><p>The ToyMix dataset requires downloading the three datasets. Here we will create the expected data directory and download both the raw dataset CSV files, and the split files to specify training, validation and test splits.</p>
+
+</div>
+</div>
+</div>
 </div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[3]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2635,13 +2404,35 @@ import omegaconf</div>
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="k">def</span> <span class="nf">print_config_with_key</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
-    <span class="n">new_config</span> <span class="o">=</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">config</span><span class="p">[</span><span class="n">key</span><span class="p">]}</span>
-    <span class="nb">print</span><span class="p">(</span><span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_yaml</span><span class="p">(</span><span class="n">new_config</span><span class="p">))</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># And for compatibility with the Paperspace environment variables we will do the following:</span>
+<span class="n">dataset_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;DATASETS_DIR&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dataset_directory</span> <span class="o">+</span> <span class="s2">&quot;/data/neurips2023/small-dataset&quot;</span><span class="p">):</span>
+    <span class="err">!</span><span class="n">wget</span> <span class="o">-</span><span class="n">P</span> <span class="err">$</span><span class="n">DATASETS_DIR</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">neurips2023</span><span class="o">/</span><span class="n">small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">storage</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">graphium</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">neurips_2023</span><span class="o">/</span><span class="n">Small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span><span class="n">qm9</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">gz</span>
+    <span class="err">!</span><span class="n">wget</span> <span class="o">-</span><span class="n">P</span> <span class="err">$</span><span class="n">DATASETS_DIR</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">neurips2023</span><span class="o">/</span><span class="n">small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">storage</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">graphium</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">neurips_2023</span><span class="o">/</span><span class="n">Small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span><span class="n">Tox21</span><span class="o">-</span><span class="mi">7</span><span class="n">k</span><span class="o">-</span><span class="mi">12</span><span class="o">-</span><span class="n">labels</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">gz</span>
+    <span class="err">!</span><span class="n">wget</span> <span class="o">-</span><span class="n">P</span> <span class="err">$</span><span class="n">DATASETS_DIR</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">neurips2023</span><span class="o">/</span><span class="n">small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">storage</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">graphium</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">neurips_2023</span><span class="o">/</span><span class="n">Small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span><span class="n">ZINC12k</span><span class="o">.</span><span class="n">csv</span><span class="o">.</span><span class="n">gz</span>
+
+    <span class="err">!</span><span class="n">wget</span> <span class="o">-</span><span class="n">P</span> <span class="err">$</span><span class="n">DATASETS_DIR</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">neurips2023</span><span class="o">/</span><span class="n">small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">storage</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">graphium</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">neurips_2023</span><span class="o">/</span><span class="n">Small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span><span class="n">qm9_random_splits</span><span class="o">.</span><span class="n">pt</span>
+    <span class="err">!</span><span class="n">wget</span> <span class="o">-</span><span class="n">P</span> <span class="err">$</span><span class="n">DATASETS_DIR</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">neurips2023</span><span class="o">/</span><span class="n">small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">storage</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">graphium</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">neurips_2023</span><span class="o">/</span><span class="n">Small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span><span class="n">Tox21_random_splits</span><span class="o">.</span><span class="n">pt</span>
+    <span class="err">!</span><span class="n">wget</span> <span class="o">-</span><span class="n">P</span> <span class="err">$</span><span class="n">DATASETS_DIR</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">neurips2023</span><span class="o">/</span><span class="n">small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">storage</span><span class="o">.</span><span class="n">googleapis</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">graphium</span><span class="o">-</span><span class="n">public</span><span class="o">/</span><span class="n">datasets</span><span class="o">/</span><span class="n">neurips_2023</span><span class="o">/</span><span class="n">Small</span><span class="o">-</span><span class="n">dataset</span><span class="o">/</span><span class="n">ZINC12k_random_splits</span><span class="o">.</span><span class="n">pt</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Datasets have been successfully downloaded.&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Datasets are already downloaded.&quot;</span><span class="p">)</span>
 </pre></div>
-<div id="cell-3" class="clipboard-copy-txt">def print_config_with_key(config, key):
-    new_config = {key: config[key]}
-    print(omegaconf.OmegaConf.to_yaml(new_config))</div>
+<div id="cell-3" class="clipboard-copy-txt"># And for compatibility with the Paperspace environment variables we will do the following:
+dataset_directory = os.getenv("DATASETS_DIR")
+
+if not os.path.exists(dataset_directory + "/data/neurips2023/small-dataset"):
+    !wget -P $DATASETS_DIR/data/neurips2023/small-dataset/ https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9.csv.gz
+    !wget -P $DATASETS_DIR/data/neurips2023/small-dataset/ https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21-7k-12-labels.csv.gz
+    !wget -P $DATASETS_DIR/data/neurips2023/small-dataset/ https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k.csv.gz
+
+    !wget -P $DATASETS_DIR/data/neurips2023/small-dataset/ https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt
+    !wget -P $DATASETS_DIR/data/neurips2023/small-dataset/ https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt
+    !wget -P $DATASETS_DIR/data/neurips2023/small-dataset/ https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt
+    print("Datasets have been successfully downloaded.")
+else:
+    print("Datasets are already downloaded.")</div>
         
         </div>
     </div>
@@ -2650,13 +2441,13 @@ import omegaconf</div>
 </div>
 
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[4]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2671,43 +2462,20 @@ import omegaconf</div>
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># First, let&#39;s read the yaml configuration file</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;config_ipu_tutorials.yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-    <span class="n">yaml_config</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">Loader</span><span class="o">=</span><span class="n">yaml</span><span class="o">.</span><span class="n">FullLoader</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="kn">from</span> <span class="nn">IPython.core.display</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">display</span>
+<span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">IFrame</span><span class="p">,</span> <span class="n">display</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Yaml file loaded&quot;</span><span class="p">)</span>
+<span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;ToyMix.png&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">600</span><span class="p">))</span>
 </pre></div>
-<div id="cell-4" class="clipboard-copy-txt"># First, let's read the yaml configuration file
-with open("config_ipu_tutorials.yaml", "r") as file:
-    yaml_config = yaml.load(file, Loader=yaml.FullLoader)
+<div id="cell-4" class="clipboard-copy-txt">from IPython.core.display import Image, display
+from IPython.display import IFrame, display
 
-print("Yaml file loaded")</div>
+display(Image(filename="ToyMix.png", width=600))</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>Yaml file loaded
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -2718,20 +2486,25 @@ print("Yaml file loaded")</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="constants">Constants<a class="anchor-link" href="#constants">&#182;</a></h3><p>First, we define the constants such as the random seed and whether the model should raise or ignore an error.
-The <code>name</code> here will be used to log the metrics into WandB and log the models.
-The <code>accelerator</code> is used to define the device. It supports <code>cpu</code>, <code>ipu</code> or <code>gpu</code>. This is the only part that needs to change when working with IPUs.</p>
+<p>The representation of the datasets above shows that QM9 and ZINC are densely populated datasets with regression tasks and each label provided for each molecule. We also see that the Tox21 dataset is sparsely populated with binary labels.
+The relative sizes of these datasets is important. QM9 is approximately 10x larger than the other datasets, and so we would expect it to dominate the training.</p>
+<p>It is interesting to note the differences in the datasets, where the molecules are from fairly different domains in terms of their sizes and composition.
+Additionally, the quantum properties of molecules calculated using DFT is a very different type of property compared to results obtained from a wet lab, particularly in the content of complex systems.</p>
+<p>To get a sense of the dataset overlap, a Uniform Manifold Approximation and Projection (UMAP) is shown below.
+Here we can see the 2D projection of the molecule similarity, with the purple QM9 results being largely separate from the Tox21 and ZINC results.</p>
+<p>The question now is: how much can the large dataset of quantum properties be used to improve the prediction power of smaller datasets?</p>
+<p>This approach of using a larger dataset to improve predictions for smaller datasets has yielded impressive results in the world of large language models, but it is unknown whether the same can be done with molecules.</p>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[5]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2746,9 +2519,9 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">,</span> <span class="s2">&quot;constants&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;UMAP.png&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">600</span><span class="p">))</span>
 </pre></div>
-<div id="cell-5" class="clipboard-copy-txt">print_config_with_key(yaml_config, "constants")</div>
+<div id="cell-5" class="clipboard-copy-txt">display(Image(filename="UMAP.png", width=600))</div>
         
         </div>
     </div>
@@ -2756,33 +2529,6 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>constants:
-  name: tutorial_model
-  seed: 42
-  raise_train_error: true
-  accelerator:
-    type: ipu
-
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
 </div>
 </div>
 <div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -2791,32 +2537,26 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="datamodule">Datamodule<a class="anchor-link" href="#datamodule">&#182;</a></h3><p>Here, we define all the parameters required by the datamodule to run correctly, such as the dataset path, whether to cache, the columns for the training, the molecular featurization to use, the train/val/test splits and the batch size.</p>
-<p>The <code>MultitaskFromSmilesDataModule</code> allows us to define a set of tasks within different CSV or parquet files, and use them to train the model simultaneously via the path <code>datamodule: args: task_specific_args</code></p>
-<p>For more details, see class <code>graphium.data.datamodule.MultitaskFromSmilesDataModule</code></p>
+<h2 id="graphium-model-configuration">Graphium model configuration<a class="anchor-link" href="#graphium-model-configuration">&#182;</a></h2><p>The Graphium model is made up of the following components:</p>
+<ul>
+<li>Processing input features of the molecules</li>
+<li>A set of encoders used for positional and structural features</li>
+<li>Featurization to produce a PyG Graph dataset</li>
+<li>A stack of GNN layers - the backbone of the model - made up of MPNN and transformer layers</li>
+<li>The output node, graph and edge embeddings. These are processed with MLPs to yield multitask predictions.</li>
+</ul>
+<p>This is shown in the flowchart below.</p>
 
 </div>
 </div>
 </div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="reading-a-csv-file-and-trainvaltest-splits">Reading a CSV file and train/val/test splits<a class="anchor-link" href="#reading-a-csv-file-and-trainvaltest-splits">&#182;</a></h4><p>Here is an example of configuration regarding the task named &quot;homo&quot;, which reads the file located in <code>https://storage.googleapis.com/graphium-public/datasets/QM9/norm_mini_qm9.csv</code> , selects the columns &quot;homo&quot; and &quot;lumo&quot;, and splits into validation and test set with rations of 20% each</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[6]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2831,50 +2571,14 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">],</span> <span class="s2">&quot;homo&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">display</span><span class="p">(</span><span class="n">Image</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="s2">&quot;flowchart.png&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">900</span><span class="p">))</span>
 </pre></div>
-<div id="cell-6" class="clipboard-copy-txt">print_config_with_key(yaml_config["datamodule"]["args"]["task_specific_args"], "homo")</div>
+<div id="cell-6" class="clipboard-copy-txt">display(Image(filename="flowchart.png", width=900))</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>homo:
-  df: null
-  df_path: https://storage.googleapis.com/graphium-public/datasets/QM9/norm_micro_qm9.csv
-  smiles_col: smiles
-  label_cols:
-  - homo
-  - lumo
-  split_val: 0.2
-  split_test: 0.2
-  split_seed: 42
-  splits_path: null
-  sample_size: null
-  idx_col: null
-  weights_col: null
-  weights_type: null
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -2885,26 +2589,20 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="featurizing-a-molecule">Featurizing a molecule<a class="anchor-link" href="#featurizing-a-molecule">&#182;</a></h4><p>Molecules can be featurized using various properties and positional / structural encoding. A list of all features is available here:</p>
-<ul>
-<li><code>graphium.features.featurizer.get_mol_atomic_features_onehot</code></li>
-<li><code>graphium.features.featurizer.get_mol_atomic_features_float</code></li>
-<li><code>graphium.features.featurizer.get_mol_edge_features</code></li>
-<li><code>graphium.features.spectral.compute_laplacian_positional_eigvecs</code></li>
-<li><code>graphium.features.rw.compute_rwse</code></li>
-</ul>
-<p>Example of a configuration for featurization below. Notice the list of atomic and edge properties. Notice <code>pos_encoding_as_features</code> that defines both the laplacian and random-walk positional encodings.</p>
+<p>The available configs are shown in the cell below, you can swap between them easily by uncommenting the desired line.
+The first set show the full multitask training on the ToyMix dataset for the three GNN architectures.</p>
+<p>The final two configs show the same GCN model trained on only the QM9 and Zinc datasets.</p>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[7]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -2919,9 +2617,27 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">],</span> <span class="s2">&quot;featurization&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1">## Multi-Task Training - ToyMix Dataset</span>
+<span class="n">CONFIG_FILE</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;small_gcn&quot;</span><span class="p">:</span> <span class="s2">&quot;config_small_gcn.yaml&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;small_gcn_qm9&quot;</span><span class="p">:</span> <span class="s2">&quot;config_small_gcn_qm9.yaml&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;small_gcn_zinc&quot;</span><span class="p">:</span> <span class="s2">&quot;config_small_gcn_zinc.yaml&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;small_gin&quot;</span><span class="p">:</span> <span class="s2">&quot;config_small_gin.yaml&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;small_gine&quot;</span><span class="p">:</span> <span class="s2">&quot;config_small_gine.yaml&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="n">cfg</span> <span class="o">=</span> <span class="n">load_yaml_config</span><span class="p">(</span><span class="n">CONFIG_FILE</span><span class="p">[</span><span class="s2">&quot;small_gcn&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
 </pre></div>
-<div id="cell-7" class="clipboard-copy-txt">print_config_with_key(yaml_config["datamodule"]["args"], "featurization")</div>
+<div id="cell-7" class="clipboard-copy-txt">## Multi-Task Training - ToyMix Dataset
+CONFIG_FILE = {
+    "small_gcn": "config_small_gcn.yaml",
+    "small_gcn_qm9": "config_small_gcn_qm9.yaml",
+    "small_gcn_zinc": "config_small_gcn_zinc.yaml",
+    "small_gin": "config_small_gin.yaml",
+    "small_gine": "config_small_gine.yaml",
+}
+
+cfg = load_yaml_config(CONFIG_FILE["small_gcn"], None)</div>
         
         </div>
     </div>
@@ -2929,52 +2645,6 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>featurization:
-  atom_property_list_onehot:
-  - atomic-number
-  - valence
-  atom_property_list_float:
-  - mass
-  - electronegativity
-  - in-ring
-  edge_property_list:
-  - bond-type-onehot
-  - stereo
-  - in-ring
-  add_self_loop: false
-  explicit_H: false
-  use_bonds_weights: false
-  pos_encoding_as_features:
-    pos_types:
-      la_pos:
-        pos_type: laplacian_eigvec_eigval
-        num_pos: 3
-        normalization: none
-        disconnected_comp: true
-      rw_pos:
-        pos_type: rwse
-        ksteps: 16
-
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
 </div>
 </div>
 <div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
@@ -2983,36 +2653,25 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="architecture">Architecture<a class="anchor-link" href="#architecture">&#182;</a></h3><p>In the architecture, we define all the layers for the model, including the layers for the pre-processing MLP (input layers <code>pre-nn</code>), the post-processing MLP (output layers <code>post-nn</code>), and the main GNN (graph neural network <code>gnn</code>).</p>
-<p>The parameters allow to chose the feature size, the depth, the skip connections, the pooling and the virtual node. It also support different GNN layers such as <code>pyg:gcn</code>, <code>pyg:gin</code>, <code>pyg:gine</code>,  <code>pyg:gated-gcn</code>, <code>pyg:pna-msgpass</code>, and <code>pyg:gps</code>.</p>
-<p>For more details, see the following classes:</p>
-<ul>
-<li><code>graphium.nn.global_architecture.FullGraphMultiTaskNetwork</code>: Main class for the architecture</li>
-<li><code>graphium.nn.global_architecture.FeedForwardNN</code>: Main class for the inputs and outputs MLP</li>
-<li><code>graphium.nn.pyg_architecture.FeedForwardPyg</code>: Main class for the GNN layers</li>
-</ul>
+<h1 id="updating-the-config">Updating the config<a class="anchor-link" href="#updating-the-config">&#182;</a></h1><p>The Graphium library is designed to be used with a config file.
+This tutorial contains three examples (GCN, GIN, and GINE models) for training on the multitask ToyMix dataset.</p>
+<p>The configs are split into groups, with the key options in <code>accelerator</code>, <code>datamodule</code>, <code>archtecture</code>, <code>predictor</code>, <code>metrics</code> and <code>trainer</code>. It is recommended to have a look at the files to see how the model is structured.</p>
+<p>For some parameters, it makes more sense to set them in the notebook or via the command line arguments.
+You can also set these values by hand in the notebook, as shown below.</p>
+<p>(<code>--predictor.torch_scheduler_kwargs.max_num_epochs=200</code> will set the number of epochs).</p>
+<p>In the cell below, we can set the number of replicas to speed up training. The default value is 4, but if you are using a POD 16, we can increase the replica count for a significantly faster training.</p>
+<p>We can also set the number of epochs and learning rate. For the number of epochs, the <code>yaml</code> config file has been loaded into a <code>dict</code>, so we can't rely on the anchor and reference system in the YAML config file to keep parameters in sync, so this is done manually here.</p>
 
 </div>
 </div>
 </div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-node-pre-processing-nn">Parameters for the node pre-processing NN<a class="anchor-link" href="#parameters-for-the-node-pre-processing-nn">&#182;</a></h4>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[8]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3027,45 +2686,78 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;architecture&quot;</span><span class="p">],</span> <span class="s2">&quot;pre_nn&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;accelerator&quot;</span><span class="p">][</span><span class="s2">&quot;ipu_config&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;deviceIterations(5)&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;replicationFactor(4)&quot;</span><span class="p">,</span>  <span class="c1"># &lt;------ 4x IPUs for a Pod-4, increase to 16 if using a Pod-16</span>
+    <span class="s2">&quot;TensorLocations.numIOTiles(128)&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;_Popart.set(&quot;defaultBufferingDepth&quot;, 128)&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;Precision.enableStochasticRounding(True)&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+<span class="c1"># For Paperspace we need to update the paths to the downloaded data / splits files</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;qm9&quot;</span><span class="p">][</span><span class="s2">&quot;df_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">dataset_directory</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="o">+</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;qm9&quot;</span><span class="p">][</span><span class="s2">&quot;df_path&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;qm9&quot;</span><span class="p">][</span><span class="s2">&quot;splits_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">dataset_directory</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="o">+</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;qm9&quot;</span><span class="p">][</span><span class="s2">&quot;splits_path&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;tox21&quot;</span><span class="p">][</span><span class="s2">&quot;df_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">dataset_directory</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="o">+</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;tox21&quot;</span><span class="p">][</span><span class="s2">&quot;df_path&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;tox21&quot;</span><span class="p">][</span><span class="s2">&quot;df_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">dataset_directory</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="o">+</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;tox21&quot;</span><span class="p">][</span><span class="s2">&quot;df_path&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;zinc&quot;</span><span class="p">][</span><span class="s2">&quot;splits_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">dataset_directory</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="o">+</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;zinc&quot;</span><span class="p">][</span><span class="s2">&quot;splits_path&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;zinc&quot;</span><span class="p">][</span><span class="s2">&quot;splits_path&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">dataset_directory</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span>
+    <span class="o">+</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;datamodule&quot;</span><span class="p">][</span><span class="s2">&quot;args&quot;</span><span class="p">][</span><span class="s2">&quot;task_specific_args&quot;</span><span class="p">][</span><span class="s2">&quot;zinc&quot;</span><span class="p">][</span><span class="s2">&quot;splits_path&quot;</span><span class="p">]</span>
+<span class="p">)</span>
 </pre></div>
-<div id="cell-8" class="clipboard-copy-txt">print_config_with_key(yaml_config["architecture"], "pre_nn")</div>
+<div id="cell-8" class="clipboard-copy-txt">cfg["accelerator"]["ipu_config"] = [
+    "deviceIterations(5)",
+    "replicationFactor(4)",  # <------ 4x IPUs for a Pod-4, increase to 16 if using a Pod-16
+    "TensorLocations.numIOTiles(128)",
+    '_Popart.set("defaultBufferingDepth", 128)',
+    "Precision.enableStochasticRounding(True)",
+]
+
+# For Paperspace we need to update the paths to the downloaded data / splits files
+cfg["datamodule"]["args"]["task_specific_args"]["qm9"]["df_path"] = (
+    dataset_directory + "/"
+    + cfg["datamodule"]["args"]["task_specific_args"]["qm9"]["df_path"]
+)
+cfg["datamodule"]["args"]["task_specific_args"]["qm9"]["splits_path"] = (
+    dataset_directory + "/"
+    + cfg["datamodule"]["args"]["task_specific_args"]["qm9"]["splits_path"]
+)
+cfg["datamodule"]["args"]["task_specific_args"]["tox21"]["df_path"] = (
+    dataset_directory + "/"
+    + cfg["datamodule"]["args"]["task_specific_args"]["tox21"]["df_path"]
+)
+cfg["datamodule"]["args"]["task_specific_args"]["tox21"]["df_path"] = (
+    dataset_directory + "/"
+    + cfg["datamodule"]["args"]["task_specific_args"]["tox21"]["df_path"]
+)
+cfg["datamodule"]["args"]["task_specific_args"]["zinc"]["splits_path"] = (
+    dataset_directory + "/"
+    + cfg["datamodule"]["args"]["task_specific_args"]["zinc"]["splits_path"]
+)
+cfg["datamodule"]["args"]["task_specific_args"]["zinc"]["splits_path"] = (
+    dataset_directory + "/"
+    + cfg["datamodule"]["args"]["task_specific_args"]["zinc"]["splits_path"]
+)</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>pre_nn:
-  out_dim: 32
-  hidden_dims: 32
-  depth: 1
-  activation: relu
-  last_activation: none
-  dropout: 0.1
-  normalization: none
-  last_normalization: none
-  residual_type: none
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -3076,17 +2768,19 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-edge-pre-processing-nn">Parameters for the edge pre-processing NN<a class="anchor-link" href="#parameters-for-the-edge-pre-processing-nn">&#182;</a></h4>
+<h4 id="key-hyper-parameters">Key Hyper-Parameters:<a class="anchor-link" href="#key-hyper-parameters">&#182;</a></h4><p>Shown here for simplicity - for testing you can change the values here / add other parameters
+When building a full training script it is recommended to use either the config file or the command line to set values.</p>
+
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[9]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3101,9 +2795,17 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;architecture&quot;</span><span class="p">],</span> <span class="s2">&quot;pre_nn_edges&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;trainer&quot;</span><span class="p">][</span><span class="s2">&quot;trainer&quot;</span><span class="p">][</span><span class="s2">&quot;max_epochs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;predictor&quot;</span><span class="p">][</span><span class="s2">&quot;torch_scheduler_kwargs&quot;</span><span class="p">][</span><span class="s2">&quot;max_num_epochs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;trainer&quot;</span><span class="p">][</span>
+    <span class="s2">&quot;trainer&quot;</span>
+<span class="p">][</span><span class="s2">&quot;max_epochs&quot;</span><span class="p">]</span>
+<span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;predictor&quot;</span><span class="p">][</span><span class="s2">&quot;optim_kwargs&quot;</span><span class="p">][</span><span class="s2">&quot;lr&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">4e-5</span>
 </pre></div>
-<div id="cell-9" class="clipboard-copy-txt">print_config_with_key(yaml_config["architecture"], "pre_nn_edges")</div>
+<div id="cell-9" class="clipboard-copy-txt">cfg["trainer"]["trainer"]["max_epochs"] = 5
+cfg["predictor"]["torch_scheduler_kwargs"]["max_num_epochs"] = cfg["trainer"][
+    "trainer"
+]["max_epochs"]
+cfg["predictor"]["optim_kwargs"]["lr"] = 4e-5</div>
         
         </div>
     </div>
@@ -3111,57 +2813,14 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>pre_nn_edges:
-  out_dim: 16
-  hidden_dims: 16
-  depth: 1
-  activation: relu
-  last_activation: none
-  dropout: 0.1
-  normalization: none
-  last_normalization: none
-  residual_type: none
-
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-gnn">Parameters for the GNN<a class="anchor-link" href="#parameters-for-the-gnn">&#182;</a></h4><p>Here is an example of a GraphGPS layer, with it's MPNN being a GINE model</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[10]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3176,56 +2835,36 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;architecture&quot;</span><span class="p">],</span> <span class="s2">&quot;gnn&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Initialize the accelerator</span>
+<span class="n">cfg</span><span class="p">,</span> <span class="n">accelerator_type</span> <span class="o">=</span> <span class="n">load_accelerator</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">wandb</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;disabled&quot;</span><span class="p">)</span>
+
+<span class="c1"># Load and initialize the dataset</span>
+<span class="n">datamodule</span> <span class="o">=</span> <span class="n">load_datamodule</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">accelerator_type</span><span class="p">)</span>
+
+<span class="c1"># Initialize the network</span>
+<span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span> <span class="o">=</span> <span class="n">load_architecture</span><span class="p">(</span>
+    <span class="n">cfg</span><span class="p">,</span>
+    <span class="n">in_dims</span><span class="o">=</span><span class="n">datamodule</span><span class="o">.</span><span class="n">in_dims</span><span class="p">,</span>
+<span class="p">)</span>
 </pre></div>
-<div id="cell-10" class="clipboard-copy-txt">print_config_with_key(yaml_config["architecture"], "gnn")</div>
+<div id="cell-10" class="clipboard-copy-txt"># Initialize the accelerator
+cfg, accelerator_type = load_accelerator(cfg)
+wandb.init(mode="disabled")
+
+# Load and initialize the dataset
+datamodule = load_datamodule(cfg, accelerator_type)
+
+# Initialize the network
+model_class, model_kwargs = load_architecture(
+    cfg,
+    in_dims=datamodule.in_dims,
+)</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>gnn:
-  out_dim: 32
-  hidden_dims: 32
-  depth: 3
-  activation: relu
-  last_activation: none
-  dropout: 0.1
-  normalization: none
-  last_normalization: none
-  residual_type: simple
-  pooling:
-  - sum
-  - mean
-  - max
-  virtual_node: none
-  layer_type: pyg:gps
-  layer_kwargs:
-    mpnn_type: pyg:gine
-    mpnn_kwargs: null
-    attn_type: full-attention
-    attn_kwargs: null
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -3236,17 +2875,18 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-node-post-processing-nn-after-the-gnn">Parameters for the node post-processing NN (after the GNN)<a class="anchor-link" href="#parameters-for-the-node-post-processing-nn-after-the-gnn">&#182;</a></h4>
+<p>First build the predictor - this is the model, look at the printed summary to see the layer types and number of parameters.</p>
+
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[11]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3261,45 +2901,32 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;architecture&quot;</span><span class="p">],</span> <span class="s2">&quot;graph_output_nn&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">datamodule</span><span class="o">.</span><span class="n">prepare_data</span><span class="p">()</span>
+
+<span class="n">metrics</span> <span class="o">=</span> <span class="n">load_metrics</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
+
+<span class="n">predictor</span> <span class="o">=</span> <span class="n">load_predictor</span><span class="p">(</span>
+    <span class="n">cfg</span><span class="p">,</span> <span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">metrics</span><span class="p">,</span> <span class="n">accelerator_type</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">.</span><span class="n">task_norms</span>
+<span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ModelSummary</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
 </pre></div>
-<div id="cell-11" class="clipboard-copy-txt">print_config_with_key(yaml_config["architecture"], "graph_output_nn")</div>
+<div id="cell-11" class="clipboard-copy-txt">datamodule.prepare_data()
+
+metrics = load_metrics(cfg)
+logger.info(metrics)
+
+predictor = load_predictor(
+    cfg, model_class, model_kwargs, metrics, accelerator_type, datamodule.task_norms
+)
+logger.info(predictor.model)
+logger.info(ModelSummary(predictor, max_depth=4))</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>graph_output_nn:
-  out_dim: 32
-  hidden_dims: 32
-  depth: 1
-  activation: relu
-  last_activation: none
-  dropout: 0.1
-  normalization: none
-  last_normalization: none
-  residual_type: none
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -3310,18 +2937,18 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h4 id="parameters-for-the-multi-task-output-heads">Parameters for the multi-task output heads<a class="anchor-link" href="#parameters-for-the-multi-task-output-heads">&#182;</a></h4><p>Here is the example for the task heads. Notice that <code>&quot;task_name&quot;</code> should match the tasks in the section <code>datamodule: args: task_specific_args</code>.</p>
+<p>Then build the trainer - which controls the actual training loop.</p>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[12]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3336,67 +2963,20 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">[</span><span class="s2">&quot;architecture&quot;</span><span class="p">],</span> <span class="s2">&quot;task_heads&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">date_time_suffix</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2">.%m.%Y_%H.%M.%S&quot;</span><span class="p">)</span>
+<span class="n">run_name</span> <span class="o">=</span> <span class="s2">&quot;main&quot;</span>
+
+<span class="n">trainer</span> <span class="o">=</span> <span class="n">load_trainer</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">run_name</span><span class="p">,</span> <span class="n">accelerator_type</span><span class="p">,</span> <span class="n">date_time_suffix</span><span class="p">)</span>
 </pre></div>
-<div id="cell-12" class="clipboard-copy-txt">print_config_with_key(yaml_config["architecture"], "task_heads")
-</div>
+<div id="cell-12" class="clipboard-copy-txt">date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
+run_name = "main"
+
+trainer = load_trainer(cfg, run_name, accelerator_type, date_time_suffix)</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>task_heads:
-- task_name: homo
-  out_dim: 2
-  hidden_dims: 32
-  depth: 2
-  activation: relu
-  last_activation: none
-  dropout: 0.1
-  normalization: none
-  last_normalization: none
-  residual_type: none
-- task_name: alpha
-  out_dim: 1
-  hidden_dims: 32
-  depth: 2
-  activation: relu
-  last_activation: none
-  dropout: 0.1
-  normalization: none
-  last_normalization: none
-  residual_type: none
-- task_name: cv
-  out_dim: 1
-  hidden_dims: 32
-  depth: 2
-  activation: relu
-  last_activation: none
-  dropout: 0.1
-  normalization: none
-  last_normalization: none
-  residual_type: none
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -3407,19 +2987,23 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="predictor">Predictor<a class="anchor-link" href="#predictor">&#182;</a></h3><p>In the predictor, we define the loss functions, the metrics to track on the progress bar, and all the parameters necessary for the optimizer.</p>
-<p>Again, each of these arguments depend on the task. And the <code>task_name</code> should match the ones from <code>datamodule: args: task_specific_args</code></p>
+<h2 id="train-the-model">Train the model<a class="anchor-link" href="#train-the-model">&#182;</a></h2><p>Now we can start training the model.
+The training is handled with PyTorch Lightning making it simple to set up the training loop.</p>
+<p>This will set up the training loop after calculating the maximum number of nodes and edges in the batch. We use fixed size batches on the IPU so we need to add some padding to account for variable molecule sizes before we compile the model.</p>
+<p>The training is displayed in a progress bar.</p>
+<p><strong>Exercise for the reader:</strong>
+We currently only run training for 10 epochs to illustrate training the model and so you can see the validation and test output format. Try increasingthe number of epochs for better results. Using around 30 epochs should give results ~95% of the performance of the model trained for a full 300 epochs.</p>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[13]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3434,58 +3018,30 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">,</span> <span class="s2">&quot;predictor&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Determine the max num nodes and edges in training and validation</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;About to set the max nodes etc.&quot;</span><span class="p">)</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">set_max_nodes_edges_per_graph</span><span class="p">(</span><span class="n">datamodule</span><span class="p">,</span> <span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;val&quot;</span><span class="p">])</span>
+
+<span class="c1"># Run the model training</span>
+<span class="k">with</span> <span class="n">SafeRun</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;TRAINING&quot;</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;constants&quot;</span><span class="p">][</span><span class="s2">&quot;raise_train_error&quot;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
+    <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">predictor</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">datamodule</span><span class="p">)</span>
 </pre></div>
-<div id="cell-13" class="clipboard-copy-txt">print_config_with_key(yaml_config, "predictor")</div>
+<div id="cell-13" class="clipboard-copy-txt"># Determine the max num nodes and edges in training and validation
+logger.info("About to set the max nodes etc.")
+predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
+
+# Run the model training
+with SafeRun(
+    name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True
+):
+    trainer.fit(model=predictor, datamodule=datamodule)</div>
         
         </div>
     </div>
 
 </div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>predictor:
-  metrics_on_progress_bar:
-    homo:
-    - mae
-    - pearsonr
-    alpha:
-    - mae
-    cv:
-    - mae
-    - pearsonr
-  loss_fun:
-    homo: mse_ipu
-    alpha: mse_ipu
-    cv: mse_ipu
-  random_seed: 42
-  optim_kwargs:
-    lr: 0.001
-  torch_scheduler_kwargs: null
-  scheduler_kwargs: null
-  target_nan_mask: null
-  flag_kwargs:
-    n_steps: 0
-    alpha: 0.0
-
-</pre>
-</div>
-</div>
-
-</div>
-
 </div>
 
 </div>
@@ -3496,21 +3052,18 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="metrics">Metrics<a class="anchor-link" href="#metrics">&#182;</a></h3><p>All the metrics can be defined there. If we want to use a classification metric, we can also define a threshold.</p>
-<p>See class <code>graphium.trainer.metrics.MetricWrapper</code> for more details.</p>
-<p>See <code>graphium.trainer.metrics.METRICS_CLASSIFICATION</code> and <code>graphium.trainer.metrics.METRICS_REGRESSION</code> for a dictionnary of accepted metrics.</p>
-<p>Again, the metrics are task-dependant and must match the names in <code>datamodule: args: task_specific_args</code></p>
+<h2 id="validation-and-test-dataset-splits">Validation and test dataset splits<a class="anchor-link" href="#validation-and-test-dataset-splits">&#182;</a></h2><p>Finally we can look at the validation and test dataset splits, where the trained model is loaded from the checkpoint and evaluated against the hold out sets.</p>
 
 </div>
 </div>
 </div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[14]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3525,9 +3078,23 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">,</span> <span class="s2">&quot;metrics&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Determine the max num nodes and edges in training and validation</span>
+<span class="n">predictor</span><span class="o">.</span><span class="n">set_max_nodes_edges_per_graph</span><span class="p">(</span><span class="n">datamodule</span><span class="p">,</span> <span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;val&quot;</span><span class="p">])</span>
+
+<span class="c1"># Run the model validation</span>
+<span class="k">with</span> <span class="n">SafeRun</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;VALIDATING&quot;</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;constants&quot;</span><span class="p">][</span><span class="s2">&quot;raise_train_error&quot;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
+    <span class="n">trainer</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">predictor</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">datamodule</span><span class="p">)</span>
 </pre></div>
-<div id="cell-14" class="clipboard-copy-txt">print_config_with_key(yaml_config, "metrics")</div>
+<div id="cell-14" class="clipboard-copy-txt"># Determine the max num nodes and edges in training and validation
+predictor.set_max_nodes_edges_per_graph(datamodule, stages=["val"])
+
+# Run the model validation
+with SafeRun(
+    name="VALIDATING", raise_error=cfg["constants"]["raise_train_error"], verbose=True
+):
+    trainer.validate(model=predictor, datamodule=datamodule)</div>
         
         </div>
     </div>
@@ -3535,70 +3102,14 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
 </div>
 </div>
 
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
 </div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>metrics:
-  homo:
-  - name: mae
-    metric: mae
-    threshold_kwargs: null
-  - name: pearsonr
-    metric: pearsonr
-    threshold_kwargs: null
-    target_nan_mask: ignore-mean-label
-  alpha:
-  - name: mae
-    metric: mae
-    threshold_kwargs: null
-  - name: pearsonr
-    metric: pearsonr
-    threshold_kwargs: null
-  cv:
-  - name: mae
-    metric: mae
-    threshold_kwargs: null
-  - name: pearsonr
-    metric: pearsonr
-    threshold_kwargs: null
-
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="trainer">Trainer<a class="anchor-link" href="#trainer">&#182;</a></h3><p>Finally, the Trainer defines the parameters for the number of epochs to train, the checkpoints, and the patience.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
+<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
 <div class="jp-Cell-inputWrapper">
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[15]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[&nbsp;]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
         
         
         <div class="CodeMirror cm-s-jupyter">
@@ -3613,119 +3124,23 @@ The <code>accelerator</code> is used to define the device. It supports <code>cpu
                     </div>
                 </clipboard-copy>
             </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">print_config_with_key</span><span class="p">(</span><span class="n">yaml_config</span><span class="p">,</span> <span class="s2">&quot;trainer&quot;</span><span class="p">)</span>
+            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Run the model testing</span>
+<span class="k">with</span> <span class="n">SafeRun</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;TESTING&quot;</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;constants&quot;</span><span class="p">][</span><span class="s2">&quot;raise_train_error&quot;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">):</span>
+    <span class="n">trainer</span><span class="o">.</span><span class="n">test</span><span class="p">(</span>
+        <span class="n">model</span><span class="o">=</span><span class="n">predictor</span><span class="p">,</span>
+        <span class="n">datamodule</span><span class="o">=</span><span class="n">datamodule</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
-<div id="cell-15" class="clipboard-copy-txt">print_config_with_key(yaml_config, "trainer")</div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>trainer:
-  logger:
-    save_dir: logs/QM9
-    name: tutorial_model
-  model_checkpoint:
-    dirpath: models_checkpoints/QM9/
-    filename: tutorial_model
-    save_top_k: 1
-    every_n_epochs: 1
-  trainer:
-    precision: 32
-    max_epochs: 5
-    min_epochs: 1
-
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="training-the-model">Training the model<a class="anchor-link" href="#training-the-model">&#182;</a></h2><p>Now that we defined all the configuration files, we want to train the model. The steps are fairly easy using the config loaders, and are given below.</p>
-<h3 id="first-lets-do-our-imports">First, let's do our imports<a class="anchor-link" href="#first-lets-do-our-imports">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[16]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-16">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># General imports</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">abspath</span>
-<span class="kn">import</span> <span class="nn">yaml</span>
-<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">deepcopy</span>
-<span class="kn">from</span> <span class="nn">omegaconf</span> <span class="kn">import</span> <span class="n">DictConfig</span>
-<span class="kn">import</span> <span class="nn">timeit</span>
-<span class="kn">from</span> <span class="nn">loguru</span> <span class="kn">import</span> <span class="n">logger</span>
-<span class="kn">from</span> <span class="nn">pytorch_lightning.utilities.model_summary</span> <span class="kn">import</span> <span class="n">ModelSummary</span>
-
-<span class="c1"># Current project imports</span>
-<span class="kn">import</span> <span class="nn">graphium</span>
-<span class="kn">from</span> <span class="nn">graphium.config._loader</span> <span class="kn">import</span> <span class="n">load_datamodule</span><span class="p">,</span> <span class="n">load_metrics</span><span class="p">,</span> <span class="n">load_architecture</span><span class="p">,</span> <span class="n">load_predictor</span><span class="p">,</span> <span class="n">load_trainer</span>
-<span class="kn">from</span> <span class="nn">graphium.utils.safe_run</span> <span class="kn">import</span> <span class="n">SafeRun</span>
-
-<span class="c1"># WandB</span>
-<span class="kn">import</span> <span class="nn">wandb</span>
-</pre></div>
-<div id="cell-16" class="clipboard-copy-txt"># General imports
-import os
-from os.path import dirname, abspath
-import yaml
-from copy import deepcopy
-from omegaconf import DictConfig
-import timeit
-from loguru import logger
-from pytorch_lightning.utilities.model_summary import ModelSummary
-
-# Current project imports
-import graphium
-from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_predictor, load_trainer
-from graphium.utils.safe_run import SafeRun
-
-# WandB
-import wandb</div>
+<div id="cell-15" class="clipboard-copy-txt"># Run the model testing
+with SafeRun(
+    name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True
+):
+    trainer.test(
+        model=predictor,
+        datamodule=datamodule,
+    )</div>
         
         </div>
     </div>
@@ -3741,992 +3156,19 @@ import wandb</div>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="then-lets-load-the-configuration-file">Then, let's load the configuration file<a class="anchor-link" href="#then-lets-load-the-configuration-file">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs  ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[17]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-17">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Set up the working directory</span>
-<span class="n">MAIN_DIR</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">dirname</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="n">graphium</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)))</span>
-<span class="n">CONFIG_FILE</span> <span class="o">=</span> <span class="s2">&quot;docs/tutorials/model_training/config_ipu_tutorials.yaml&quot;</span>
-<span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">MAIN_DIR</span><span class="p">)</span>
-
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">MAIN_DIR</span><span class="p">,</span> <span class="n">CONFIG_FILE</span><span class="p">),</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="n">cfg</span> <span class="o">=</span> <span class="n">yaml</span><span class="o">.</span><span class="n">safe_load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-</pre></div>
-<div id="cell-17" class="clipboard-copy-txt">
-# Set up the working directory
-MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
-CONFIG_FILE = "docs/tutorials/model_training/config_ipu_tutorials.yaml"
-os.chdir(MAIN_DIR)
-
-with open(os.path.join(MAIN_DIR, CONFIG_FILE), "r") as f:
-    cfg = yaml.safe_load(f)</div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="now-lets-process-the-data">Now let's process the data<a class="anchor-link" href="#now-lets-process-the-data">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[18]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-18">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Load and initialize the dataset</span>
-<span class="n">datamodule</span> <span class="o">=</span> <span class="n">load_datamodule</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">datamodule</span><span class="o">.</span><span class="n">prepare_data</span><span class="p">()</span>
-</pre></div>
-<div id="cell-18" class="clipboard-copy-txt"># Load and initialize the dataset
-datamodule = load_datamodule(cfg)
-datamodule.prepare_data()</div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>[17:16:35.918] [poptorch::python] [warning] trace_model=True is deprecated since version 3.0 and will be removed in a future release
-2022-09-20 17:16:35.920 | INFO     | graphium.data.datamodule:prepare_data:699 - Reading data for task &#39;homo&#39;
-2022-09-20 17:16:36.462 | INFO     | graphium.data.datamodule:prepare_data:699 - Reading data for task &#39;alpha&#39;
-2022-09-20 17:16:36.585 | INFO     | graphium.data.datamodule:prepare_data:699 - Reading data for task &#39;cv&#39;
-2022-09-20 17:16:36.707 | INFO     | graphium.data.datamodule:prepare_data:721 - Done reading datasets
-2022-09-20 17:16:36.707 | INFO     | graphium.data.datamodule:prepare_data:733 - Prepare single-task dataset for task &#39;homo&#39; with 1005 data points.
-2022-09-20 17:16:36.708 | INFO     | graphium.data.datamodule:prepare_data:733 - Prepare single-task dataset for task &#39;alpha&#39; with 1005 data points.
-2022-09-20 17:16:36.709 | INFO     | graphium.data.datamodule:prepare_data:733 - Prepare single-task dataset for task &#39;cv&#39; with 1005 data points.
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>mols to ids:   0%|          | 0/3015 [00:00&lt;?, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>featurizing_smiles:   0%|          | 0/1005 [00:00&lt;?, ?it/s]</pre>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="lets-build-the-architecture-metrics-and-set-up-the-trainer">Let's build the architecture, metrics, and set-up the trainer<a class="anchor-link" href="#lets-build-the-architecture-metrics-and-set-up-the-trainer">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[19]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-19">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Initialize the network</span>
-<span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span> <span class="o">=</span> <span class="n">load_architecture</span><span class="p">(</span>
-    <span class="n">cfg</span><span class="p">,</span>
-    <span class="n">in_dims</span><span class="o">=</span><span class="n">datamodule</span><span class="o">.</span><span class="n">in_dims</span><span class="p">,</span>
-<span class="p">)</span>
-
-<span class="n">metrics</span> <span class="o">=</span> <span class="n">load_metrics</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
-
-<span class="n">predictor</span> <span class="o">=</span> <span class="n">load_predictor</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">metrics</span><span class="p">)</span>
-<span class="n">predictor</span><span class="o">.</span><span class="n">set_max_nodes_edges_per_graph</span><span class="p">(</span><span class="n">datamodule</span><span class="p">,</span> <span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;val&quot;</span><span class="p">])</span>
-
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">predictor</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
-<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">ModelSummary</span><span class="p">(</span><span class="n">predictor</span><span class="p">,</span> <span class="n">max_depth</span><span class="o">=</span><span class="mi">4</span><span class="p">))</span>
-
-<span class="n">trainer</span> <span class="o">=</span> <span class="n">load_trainer</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="s2">&quot;tutorial-run&quot;</span><span class="p">)</span>
-</pre></div>
-<div id="cell-19" class="clipboard-copy-txt"># Initialize the network
-model_class, model_kwargs = load_architecture(
-    cfg,
-    in_dims=datamodule.in_dims,
-)
-
-metrics = load_metrics(cfg)
-logger.info(metrics)
-
-predictor = load_predictor(cfg, model_class, model_kwargs, metrics)
-predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
-
-logger.info(predictor.model)
-logger.info(ModelSummary(predictor, max_depth=4))
-
-trainer = load_trainer(cfg, "tutorial-run")</div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>2022-09-20 17:16:46.768 | INFO     | __main__:&lt;cell line: 8&gt;:8 - {&#39;homo&#39;: {&#39;mae&#39;: mean_absolute_error, &#39;pearsonr&#39;: pearson_corrcoef}, &#39;alpha&#39;: {&#39;mae&#39;: mean_absolute_error, &#39;pearsonr&#39;: pearson_corrcoef}, &#39;cv&#39;: {&#39;mae&#39;: mean_absolute_error, &#39;pearsonr&#39;: pearson_corrcoef}}
-2022-09-20 17:16:46.812 | INFO     | __main__:&lt;cell line: 12&gt;:12 - Multitask_GNN
----------------
-    pre-NN(depth=1, ResidualConnectionNone)
-        [FCLayer[87 -&gt; 32]
-    
-    pre-NN-edges(depth=1, ResidualConnectionNone)
-        [FCLayer[13 -&gt; 16]
-    
-    GNN(depth=3, ResidualConnectionSimple(skip_steps=1))
-        GPSLayerPyg[32 -&gt; 32 -&gt; 32 -&gt; 32]
-        -&gt; Pooling([&#39;sum&#39;, &#39;mean&#39;, &#39;max&#39;]) -&gt; FCLayer(96 -&gt; 32, activation=None)
-    
-    post-NN(depth=1, ResidualConnectionNone)
-        [FCLayer[32 -&gt; 32]
-2022-09-20 17:16:46.813 | INFO     | __main__:&lt;cell line: 13&gt;:13 -    | Name                                | Type                      | Params
------------------------------------------------------------------------------------
-0  | model                               | FullGraphMultiTaskNetwork | 47.6 K
-1  | model.pe_encoders                   | ModuleDict                | 681   
-2  | model.pe_encoders.la_pos            | LapPENodeEncoder          | 137   
-3  | model.pe_encoders.la_pos.linear_A   | Linear                    | 9     
-4  | model.pe_encoders.la_pos.pe_encoder | MLP                       | 128   
-5  | model.pe_encoders.rw_pos            | MLPEncoder                | 544   
-6  | model.pe_encoders.rw_pos.pe_encoder | MLP                       | 544   
-7  | model.pre_nn                        | FeedForwardNN             | 2.8 K 
-8  | model.pre_nn.activation             | ReLU                      | 0     
-9  | model.pre_nn.residual_layer         | ResidualConnectionNone    | 0     
-10 | model.pre_nn.layers                 | ModuleList                | 2.8 K 
-11 | model.pre_nn.layers.0               | FCLayer                   | 2.8 K 
-12 | model.pre_nn_edges                  | FeedForwardNN             | 224   
-13 | model.pre_nn_edges.activation       | ReLU                      | 0     
-14 | model.pre_nn_edges.residual_layer   | ResidualConnectionNone    | 0     
-15 | model.pre_nn_edges.layers           | ModuleList                | 224   
-16 | model.pre_nn_edges.layers.0         | FCLayer                   | 224   
-17 | model.gnn                           | FeedForwardPyg            | 39.5 K
-18 | model.gnn.activation                | ReLU                      | 0     
-19 | model.gnn.layers                    | ModuleList                | 36.4 K
-20 | model.gnn.layers.0                  | GPSLayerPyg               | 12.1 K
-21 | model.gnn.layers.1                  | GPSLayerPyg               | 12.1 K
-22 | model.gnn.layers.2                  | GPSLayerPyg               | 12.1 K
-23 | model.gnn.virtual_node_layers       | ModuleList                | 0     
-24 | model.gnn.virtual_node_layers.0     | VirtualNodePyg            | 0     
-25 | model.gnn.virtual_node_layers.1     | VirtualNodePyg            | 0     
-26 | model.gnn.residual_layer            | ResidualConnectionSimple  | 0     
-27 | model.gnn.global_pool_layer         | ModuleListConcat          | 0     
-28 | model.gnn.global_pool_layer.0       | PoolingWrapperPyg         | 0     
-29 | model.gnn.global_pool_layer.1       | PoolingWrapperPyg         | 0     
-30 | model.gnn.global_pool_layer.2       | PoolingWrapperPyg         | 0     
-31 | model.gnn.out_linear                | FCLayer                   | 3.1 K 
-32 | model.gnn.out_linear.linear         | Linear                    | 3.1 K 
-33 | model.gnn.out_linear.dropout        | Dropout                   | 0     
-34 | model.graph_output_nn                       | FeedForwardNN             | 1.1 K 
-35 | model.graph_output_nn.activation            | ReLU                      | 0     
-36 | model.graph_output_nn.residual_layer        | ResidualConnectionNone    | 0     
-37 | model.graph_output_nn.layers                | ModuleList                | 1.1 K 
-38 | model.graph_output_nn.layers.0              | FCLayer                   | 1.1 K 
-39 | model.task_heads                    | TaskHeads                 | 3.3 K 
-40 | model.task_heads.task_heads         | ModuleDict                | 3.3 K 
-41 | model.task_heads.task_heads.homo    | TaskHead                  | 1.1 K 
-42 | model.task_heads.task_heads.alpha   | TaskHead                  | 1.1 K 
-43 | model.task_heads.task_heads.cv      | TaskHead                  | 1.1 K 
------------------------------------------------------------------------------------
-47.6 K    Trainable params
-0         Non-trainable params
-47.6 K    Total params
-0.190     Total estimated model params size (MB)
-[17:16:46.843] [poptorch::python] [warning] trace_model=True is deprecated since version 3.0 and will be removed in a future release
-/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/plugins/training_type/ipu.py:20: LightningDeprecationWarning: The `pl.plugins.training_type.ipu.IPUPlugin` is deprecated in v1.6 and will be removed in v1.8. Use `pl.strategies.ipu.IPUStrategy` instead.
-  rank_zero_deprecation(
-Failed to detect the name of this notebook, you can set it manually with the WANDB_NOTEBOOK_NAME environment variable to enable code saving.
-<span class="ansi-blue-intense-fg ansi-bold">wandb</span>: Currently logged in as: <span class="ansi-yellow-fg">dbeaini_mila</span> (<span class="ansi-yellow-fg">multitask-gnn</span>). Use <span class="ansi-bold">`wandb login --relogin`</span> to force relogin
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-wandb version 0.13.3 is available!  To upgrade, please run:
- $ pip install wandb --upgrade
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-Tracking run with wandb version 0.13.2
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-Run data is saved locally in <code>/home/dom/graphium/wandb/run-20220920_171648-1ss172i9</code>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-Syncing run <strong><a href="https://wandb.ai/multitask-gnn/multitask-gnn/runs/1ss172i9" target="_blank">tutorial-run</a></strong> to <a href="https://wandb.ai/multitask-gnn/multitask-gnn" target="_blank">Weights & Biases</a> (<a href="https://wandb.me/run" target="_blank">docs</a>)<br/>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:317: LightningDeprecationWarning: Passing &lt;graphium.ipu.ipu_wrapper.IPUPluginGraphium object at 0x7f4431dfc220&gt; `strategy` to the `plugins` flag in Trainer has been deprecated in v1.5 and will be removed in v1.7. Use `Trainer(strategy=&lt;graphium.ipu.ipu_wrapper.IPUPluginGraphium object at 0x7f4431dfc220&gt;)` instead.
-  rank_zero_deprecation(
-/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py:469: UserWarning: more than one device specific flag has been set
-  rank_zero_warn(&#34;more than one device specific flag has been set&#34;)
-GPU available: False, used: False
-TPU available: False, using: 0 TPU cores
-IPU available: True, using: 1 IPUs
-HPU available: False, using: 0 HPUs
-</pre>
-</div>
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h3 id="finally-lets-run-the-model">Finally, let's run the model<a class="anchor-link" href="#finally-lets-run-the-model">&#182;</a></h3>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[20]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-20">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="c1"># Run the model training</span>
-<span class="k">with</span> <span class="n">SafeRun</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;TRAINING&quot;</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="n">cfg</span><span class="p">[</span><span class="s2">&quot;constants&quot;</span><span class="p">][</span><span class="s2">&quot;raise_train_error&quot;</span><span class="p">],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="n">trainer</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">predictor</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">datamodule</span><span class="p">)</span>
-
-<span class="c1"># Exit WandB</span>
-<span class="n">wandb</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
-</pre></div>
-<div id="cell-20" class="clipboard-copy-txt"># Run the model training
-with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
-    trainer.fit(model=predictor, datamodule=datamodule)
-
-# Exit WandB
-wandb.finish()</div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/trainer/configuration_validator.py:326: LightningDeprecationWarning: Base `LightningModule.on_train_batch_end` hook signature has changed in v1.5. The `dataloader_idx` argument will be removed in v1.7.
-  rank_zero_deprecation(
-/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/trainer/configuration_validator.py:154: LightningDeprecationWarning: The `LightningModule.get_progress_bar_dict` method was deprecated in v1.5 and will be removed in v1.7. Please use the `ProgressBarBase.get_metrics` instead.
-  rank_zero_deprecation(
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>mols to ids:   0%|          | 0/1809 [00:00&lt;?, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>mols to ids:   0%|          | 0/603 [00:00&lt;?, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/callbacks/model_checkpoint.py:611: UserWarning: Checkpoint directory /home/dom/graphium/models_checkpoints/QM9 exists and is not empty.
-  rank_zero_warn(f&#34;Checkpoint directory {dirpath} exists and is not empty.&#34;)
-
-  | Name  | Type                      | Params
-----------------------------------------------------
-0 | model | FullGraphMultiTaskNetwork | 47.6 K
-----------------------------------------------------
-47.6 K    Trainable params
-0         Non-trainable params
-47.6 K    Total params
-0.190     Total estimated model params size (MB)
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>-------------------
-MultitaskDataset
-	about = training set
-	num_graphs_total = 603
-	num_nodes_total = 5285
-	max_num_nodes_per_graph = 9
-	min_num_nodes_per_graph = 1
-	std_num_nodes_per_graph = 0.6989218547197285
-	mean_num_nodes_per_graph = 8.764510779436153
-	num_edges_total = 11316
-	max_num_edges_per_graph = 26
-	min_num_edges_per_graph = 0
-	std_num_edges_per_graph = 2.6821780989470896
-	mean_num_edges_per_graph = 18.766169154228855
--------------------
-
--------------------
-MultitaskDataset
-	about = validation set
-	num_graphs_total = 201
-	num_nodes_total = 1756
-	max_num_nodes_per_graph = 9
-	min_num_nodes_per_graph = 2
-	std_num_nodes_per_graph = 0.7949619835770694
-	mean_num_nodes_per_graph = 8.7363184079602
-	num_edges_total = 3736
-	max_num_edges_per_graph = 24
-	min_num_edges_per_graph = 2
-	std_num_edges_per_graph = 2.7704251592456193
-	mean_num_edges_per_graph = 18.587064676616915
--------------------
-
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<h2 id="conclusions-and-next-steps">Conclusions and next steps<a class="anchor-link" href="#conclusions-and-next-steps">&#182;</a></h2><p>We have demonstrated how you can use Graphium for multitask molecular modelling on the IPU. We used the ToyMix dataset, which combines the QM9, Tox21, and ZINC12k datasets to show how Graphium trains models to concurrently predict multiple properties with chemical awareness.</p>
+<p>Looking at the validation and test results we can see the impact of the larger QM9 dataset in improving the single task performance of the smaller datasets. The accuracy and MAE scores are much better than we would expect just from training on the small datasets, confirming the training benefit from a multitask setting even on a very short training run.
+To further verify this we can look at the same model trained for the full number of epochs on the multitask dataset and the individual datasets and compare the final validation results.</p>
+<p>You can try out the following:</p>
+<ul>
+<li>Increase the number of epochs for training to around 30. This should yield reasonably good results. If you train for 300 epochs, your results should match the benchmarking results.</li>
+<li>Change the config file to use a different model. GIN will achieve higher accuracy than GCN, and GINE will have a higher accuracy than GIN.</li>
+<li>Adapt the multitask config to only use a single dataset. You can use this to compare the results of the multitask performance with a single task performance. Rremember to remove the relevant sections from the dataset, the losses and the metrics. Example YAML config files showing how to do this for GCN with the QM9 (<code>config_small_gcn_qm9.yaml</code>) and ZINC12K (<code>config_small_gcn_zinc.yaml</code>) datasets are given.</li>
+<li>Explore more molecular featurisers in the <code>molfeat</code> notebook <a href="https://github.com/graphcore/Gradient-Pytorch-Geometric/blob/main/molfeat/pytorch_geometric_molfeat.ipynb"><code>pytorch_geometric_molfeat.ipynb</code></a></li>
+</ul>
 
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Sanity Checking: 0it [00:00, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>2022-09-20 17:16:59.088 | INFO     | graphium.ipu.ipu_dataloader:create_ipu_dataloader:230 - Estimating pack max_pack_size=54 or max_pack_size_per_graph=9.0
-2022-09-20 17:16:59.089 | INFO     | graphium.ipu.ipu_dataloader:create_ipu_dataloader:233 - Provided `max_num_nodes=72`
-[17:17:02.052] [poptorch:cpp] [warning] Graph contains an unused input %this_input : Long(1, strides=[1], requires_grad=0, device=cpu)
-[17:17:02.054] [poptorch:cpp] [warning] %value.3 : Long(2, 144, strides=[144, 1], requires_grad=0, device=cpu) = aten::to(%tensor.1, %111, %112, %113, %114) # /home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/poptorch/_poplar_executor.py:1315:0: torch.int64 is not supported natively on IPU, loss of range/precision may occur. We will only warn on the first instance.
-Graph compilation: 100%|██████████| 100/100 [00:01&lt;00:00]
-2022-09-20 17:17:07.541 | INFO     | graphium.ipu.ipu_dataloader:create_ipu_dataloader:230 - Estimating pack max_pack_size=54 or max_pack_size_per_graph=9.0
-2022-09-20 17:17:07.542 | INFO     | graphium.ipu.ipu_dataloader:create_ipu_dataloader:233 - Provided `max_num_nodes=72`
-/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/trainer/trainer.py:1933: PossibleUserWarning: The number of training batches (6) is smaller than the logging interval Trainer(log_every_n_steps=50). Set a lower value for log_every_n_steps if you want to see logs for the training epoch.
-  rank_zero_warn(
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Training: 0it [00:00, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>/home/dom/graphium/graphium/ipu/ipu_wrapper.py:274: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  if all([this_input.shape[0] == 1 for this_input in inputs]):
-/home/dom/graphium/graphium/ipu/ipu_wrapper.py:307: TracerWarning: Converting a tensor to a Python number might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  batch_idx = batch.pop(&#34;_batch_idx&#34;).item()
-/home/dom/graphium/graphium/nn/base_layers.py:169: TracerWarning: torch.as_tensor results are registered as constants in the trace. You can safely ignore this warning if you use this function to create tensors out of constant variables that would be the same every time you call this function. In any other case, this might cause the trace to be incorrect.
-  if torch.prod(torch.as_tensor(h.shape[:-1])) == 0:
-/home/dom/graphium/graphium/nn/base_layers.py:169: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  if torch.prod(torch.as_tensor(h.shape[:-1])) == 0:
-/home/dom/graphium/graphium/nn/architectures/pyg_architectures.py:139: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  assert node_feats.shape[0] == g.num_nodes
-/home/dom/graphium/graphium/nn/architectures/pyg_architectures.py:154: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  assert edge_feats.shape[0] == g.num_edges
-/home/dom/graphium/graphium/nn/architectures/global_architectures.py:1190: TracerWarning: torch.as_tensor results are registered as constants in the trace. You can safely ignore this warning if you use this function to create tensors out of constant variables that would be the same every time you call this function. In any other case, this might cause the trace to be incorrect.
-  if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
-/home/dom/graphium/graphium/nn/architectures/global_architectures.py:1190: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  if torch.prod(torch.as_tensor(e.shape[:-1])) == 0:
-/home/dom/graphium/graphium/nn/base_graph_layer.py:277: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  assert edge_index.min() &gt;= 0
-/home/dom/graphium/graphium/nn/base_graph_layer.py:278: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  assert edge_index.max() &lt; torch.iinfo(edge_index.dtype).max
-/home/dom/graphium/graphium/nn/base_graph_layer.py:281: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  assert edge_index.size(0) == 2
-/home/dom/graphium/graphium/nn/pyg_layers/gps_pyg.py:144: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  on_ipu = (&#34;graph_is_true&#34; in batch.keys) and (not batch.graph_is_true.all())
-/home/dom/graphium/graphium/nn/pyg_layers/gps_pyg.py:146: TracerWarning: Converting a tensor to a Python number might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  max_num_nodes_per_graph = batch.dataset_max_nodes_per_graph[0].item()
-/home/dom/graphium/graphium/ipu/to_dense_batch.py:57: TracerWarning: Converting a tensor to a Python integer might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  batch_size = int(batch.max()) + 1
-/home/dom/graphium/graphium/ipu/to_dense_batch.py:80: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  assert (
-/home/dom/graphium/graphium/ipu/ipu_wrapper.py:20: TracerWarning: Converting a tensor to a Python boolean might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  if targets[task].shape == preds[task].shape:
-/home/dom/graphium/graphium/trainer/predictor.py:422: TracerWarning: torch.tensor results are registered as constants in the trace. You can safely ignore this warning if you use this function to create tensors out of constant variables that would be the same every time you call this function. In any other case, this might cause the trace to be incorrect.
-  total_norm = torch.tensor(0.0)
-/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/wandb/util.py:604: TracerWarning: Converting a tensor to a Python number might cause the trace to be incorrect. We can&#39;t record the data flow of Python values, so this value will be treated as a constant in the future. This means that the trace might not generalize to other inputs!
-  return obj.item(), True
-[17:17:11.240] [poptorch:cpp] [warning] Graph contains an unused input %this_input : Long(1, strides=[1], requires_grad=0, device=cpu)
-Graph compilation: 100%|██████████| 100/100 [00:02&lt;00:00]
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Validation: 0it [00:00, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Validation: 0it [00:00, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Validation: 0it [00:00, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Validation: 0it [00:00, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Validation: 0it [00:00, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-Waiting for W&B process to finish... <strong style="color:green">(success).</strong>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>VBox(children=(Label(value=&#39;0.001 MB of 0.001 MB uploaded (0.000 MB deduped)\r&#39;), FloatProgress(value=1.0, max…</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-<style>
-    table.wandb td:nth-child(1) { padding: 0 10px; text-align: left ; width: auto;} td:nth-child(2) {text-align: left ; width: 100%}
-    .wandb-row { display: flex; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; width: 100% }
-    .wandb-col { display: flex; flex-direction: column; flex-basis: 100%; flex: 1; padding: 10px; }
-    </style>
-<div class="wandb-row"><div class="wandb-col"><h3>Run history:</h3><br/><table class="wandb"><tr><td>alpha/MSELossIPU/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/MSELossIPU/val</td><td>▄█▃▄▁</td></tr><tr><td>alpha/loss/val</td><td>▄█▃▄▁</td></tr><tr><td>alpha/mae/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/mae/val</td><td>▅█▃▄▁</td></tr><tr><td>alpha/mean_pred/train</td><td>█▆▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/mean_pred/val</td><td>▄█▂▂▁</td></tr><tr><td>alpha/mean_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/mean_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>alpha/median_pred/train</td><td>██▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/median_pred/val</td><td>▁█▃▃▁</td></tr><tr><td>alpha/median_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/median_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>alpha/pearsonr/train</td><td>▁█▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆</td></tr><tr><td>alpha/pearsonr/val</td><td>▁▇▆▇█</td></tr><tr><td>alpha/std_pred/train</td><td>█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/std_pred/val</td><td>█▃▂▁▃</td></tr><tr><td>alpha/std_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>alpha/std_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>cv/MSELossIPU/train</td><td>▁█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/MSELossIPU/val</td><td>▄█▄▃▁</td></tr><tr><td>cv/loss/val</td><td>▄█▄▃▁</td></tr><tr><td>cv/mae/train</td><td>█▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/mae/val</td><td>▅█▄▃▁</td></tr><tr><td>cv/mean_pred/train</td><td>█▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/mean_pred/val</td><td>▁█▅▄▂</td></tr><tr><td>cv/mean_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/mean_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>cv/median_pred/train</td><td>█▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/median_pred/val</td><td>▁█▄▃▂</td></tr><tr><td>cv/median_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/median_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>cv/pearsonr/train</td><td>█▆▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/pearsonr/val</td><td>▁▇▆██</td></tr><tr><td>cv/std_pred/train</td><td>█▄▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/std_pred/val</td><td>█▄▄▁▅</td></tr><tr><td>cv/std_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>cv/std_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>epoch</td><td>▁▃▅▆█</td></tr><tr><td>grad_norm</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>homo/MSELossIPU/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>homo/MSELossIPU/val</td><td>█▅▁▂▂</td></tr><tr><td>homo/loss/val</td><td>█▅▁▂▂</td></tr><tr><td>homo/mae/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>homo/mae/val</td><td>█▅▁▃▃</td></tr><tr><td>homo/mean_pred/train</td><td>▁▄███████████████████████████████</td></tr><tr><td>homo/mean_pred/val</td><td>▁█▄▄▄</td></tr><tr><td>homo/mean_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>homo/mean_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>homo/median_pred/train</td><td>█▁▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅▅</td></tr><tr><td>homo/median_pred/val</td><td>▁▅▄▇█</td></tr><tr><td>homo/median_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>homo/median_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>homo/pearsonr/train</td><td>█▁▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆▆</td></tr><tr><td>homo/pearsonr/val</td><td>███▅▁</td></tr><tr><td>homo/std_pred/train</td><td>█▃▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>homo/std_pred/val</td><td>█▃▂▁▂</td></tr><tr><td>homo/std_target/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>homo/std_target/val</td><td>▁▁▁▁▁</td></tr><tr><td>loss</td><td>▁▁▁</td></tr><tr><td>loss/train</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>loss/val</td><td>▅█▃▃▁</td></tr><tr><td>train/grad_norm</td><td>▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁</td></tr><tr><td>trainer/global_step</td><td>▁▁▁▁▁▂▂▂▂▂▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▇▆▇▇▇████</td></tr></table><br/></div><div class="wandb-col"><h3>Run summary:</h3><br/><table class="wandb"><tr><td>alpha/MSELossIPU/train</td><td>10.27925</td></tr><tr><td>alpha/MSELossIPU/val</td><td>0.90438</td></tr><tr><td>alpha/loss/val</td><td>0.90438</td></tr><tr><td>alpha/mae/train</td><td>1.92692</td></tr><tr><td>alpha/mae/val</td><td>0.5743</td></tr><tr><td>alpha/mean_pred/train</td><td>-0.0</td></tr><tr><td>alpha/mean_pred/val</td><td>0.05032</td></tr><tr><td>alpha/mean_target/train</td><td>-1.47591</td></tr><tr><td>alpha/mean_target/val</td><td>-0.05393</td></tr><tr><td>alpha/median_pred/train</td><td>-0.0</td></tr><tr><td>alpha/median_pred/val</td><td>0.09372</td></tr><tr><td>alpha/median_target/train</td><td>-0.81494</td></tr><tr><td>alpha/median_target/val</td><td>-0.04535</td></tr><tr><td>alpha/pearsonr/train</td><td>0.24189</td></tr><tr><td>alpha/pearsonr/val</td><td>0.70787</td></tr><tr><td>alpha/std_pred/train</td><td>0.0</td></tr><tr><td>alpha/std_pred/val</td><td>0.63476</td></tr><tr><td>alpha/std_target/train</td><td>3.11787</td></tr><tr><td>alpha/std_target/val</td><td>1.28429</td></tr><tr><td>cv/MSELossIPU/train</td><td>7.34846</td></tr><tr><td>cv/MSELossIPU/val</td><td>0.71549</td></tr><tr><td>cv/loss/val</td><td>0.71549</td></tr><tr><td>cv/mae/train</td><td>1.7832</td></tr><tr><td>cv/mae/val</td><td>0.59933</td></tr><tr><td>cv/mean_pred/train</td><td>-0.0</td></tr><tr><td>cv/mean_pred/val</td><td>0.02737</td></tr><tr><td>cv/mean_target/train</td><td>-1.33105</td></tr><tr><td>cv/mean_target/val</td><td>-0.08344</td></tr><tr><td>cv/median_pred/train</td><td>-0.0</td></tr><tr><td>cv/median_pred/val</td><td>0.08583</td></tr><tr><td>cv/median_target/train</td><td>-0.73486</td></tr><tr><td>cv/median_target/val</td><td>-0.0361</td></tr><tr><td>cv/pearsonr/train</td><td>-0.84246</td></tr><tr><td>cv/pearsonr/val</td><td>0.61503</td></tr><tr><td>cv/std_pred/train</td><td>0.0</td></tr><tr><td>cv/std_pred/val</td><td>0.60702</td></tr><tr><td>cv/std_target/train</td><td>2.58691</td></tr><tr><td>cv/std_target/val</td><td>1.06456</td></tr><tr><td>epoch</td><td>4</td></tr><tr><td>grad_norm</td><td>0.0</td></tr><tr><td>homo/MSELossIPU/train</td><td>3.00724</td></tr><tr><td>homo/MSELossIPU/val</td><td>1.10813</td></tr><tr><td>homo/loss/val</td><td>1.10813</td></tr><tr><td>homo/mae/train</td><td>0.92035</td></tr><tr><td>homo/mae/val</td><td>0.81845</td></tr><tr><td>homo/mean_pred/train</td><td>0.0</td></tr><tr><td>homo/mean_pred/val</td><td>0.02063</td></tr><tr><td>homo/mean_target/train</td><td>-0.43686</td></tr><tr><td>homo/mean_target/val</td><td>-0.0837</td></tr><tr><td>homo/median_pred/train</td><td>0.0</td></tr><tr><td>homo/median_pred/val</td><td>0.00169</td></tr><tr><td>homo/median_target/train</td><td>0.04636</td></tr><tr><td>homo/median_target/val</td><td>-0.10706</td></tr><tr><td>homo/pearsonr/train</td><td>0.01569</td></tr><tr><td>homo/pearsonr/val</td><td>0.11083</td></tr><tr><td>homo/std_pred/train</td><td>0.0</td></tr><tr><td>homo/std_pred/val</td><td>0.2037</td></tr><tr><td>homo/std_target/train</td><td>1.75284</td></tr><tr><td>homo/std_target/val</td><td>1.05716</td></tr><tr><td>loss</td><td>6.87832</td></tr><tr><td>loss/train</td><td>6.87832</td></tr><tr><td>loss/val</td><td>0.90933</td></tr><tr><td>train/grad_norm</td><td>0.0</td></tr><tr><td>trainer/global_step</td><td>29</td></tr></table><br/></div></div>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-Synced <strong style="color:#cdcd00">tutorial-run</strong>: <a href="https://wandb.ai/multitask-gnn/multitask-gnn/runs/1ss172i9" target="_blank">https://wandb.ai/multitask-gnn/multitask-gnn/runs/1ss172i9</a><br/>Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 1 other file(s)
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-<div class="jp-RenderedHTMLCommon jp-RenderedHTML jp-OutputArea-output " data-mime-type="text/html">
-Find logs at: <code>./wandb/run-20220920_171648-1ss172i9/logs</code>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-</div>
-<div  class="jp-Cell jp-MarkdownCell jp-Notebook-cell">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
-</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput " data-mime-type="text/markdown">
-<h2 id="testing-the-model">Testing the model<a class="anchor-link" href="#testing-the-model">&#182;</a></h2><p>Once the model is trained, we can use the same datamodule to get the results on the test set. Here, <code>ckpt_path</code> refers to the checkpoint path where the model at the best validation step was saved. Thus, the results on the test set represent the early stopping.</p>
-<p>All the metrics that were computed on the validation set are then computed on the test set, printed, and saved into the <code>metrics.yaml</code> file.</p>
-
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div  class="jp-Cell jp-CodeCell jp-Notebook-cell   ">
-<div class="jp-Cell-inputWrapper">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In&nbsp;[21]:</div><div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-        
-        
-        <div class="CodeMirror cm-s-jupyter">
-            <div class="zeroclipboard-container">
-                <clipboard-copy for="cell-21">
-                <div>
-                    <span class="notice" hidden>Copied!</span>
-                    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 16 16" version="1.1"  data-view-component="true" class="clipboard-copy-icon">
-                        <path fill="currentColor" fill-rule="evenodd" d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"></path>
-                        <path fill="currentColor" fill-rule="evenodd" d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"></path>
-                    </svg>
-                    </div>
-                </clipboard-copy>
-            </div>
-            <div class="highlight-ipynb hl-python "><pre><span></span><span class="n">ckpt_path</span> <span class="o">=</span> <span class="n">trainer</span><span class="o">.</span><span class="n">checkpoint_callbacks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">best_model_path</span>
-<span class="n">predictor</span><span class="o">.</span><span class="n">set_max_nodes_edges_per_graph</span><span class="p">(</span><span class="n">datamodule</span><span class="p">,</span> <span class="n">stages</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">])</span>
-<span class="n">trainer</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">predictor</span><span class="p">,</span> <span class="n">datamodule</span><span class="o">=</span><span class="n">datamodule</span><span class="p">,</span> <span class="n">ckpt_path</span><span class="o">=</span><span class="n">ckpt_path</span><span class="p">)</span>
-</pre></div>
-<div id="cell-21" class="clipboard-copy-txt">ckpt_path = trainer.checkpoint_callbacks[0].best_model_path
-predictor.set_max_nodes_edges_per_graph(datamodule, stages=['test'])
-trainer.test(model=predictor, datamodule=datamodule, ckpt_path=ckpt_path)</div>
-        
-        </div>
-    </div>
-
-</div>
-</div>
-
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-
-
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/pytorch_lightning/trainer/configuration_validator.py:154: LightningDeprecationWarning: The `LightningModule.get_progress_bar_dict` method was deprecated in v1.5 and will be removed in v1.7. Please use the `ProgressBarBase.get_metrics` instead.
-  rank_zero_deprecation(
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>mols to ids:   0%|          | 0/603 [00:00&lt;?, ?it/s]</pre>
-</div>
-
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>Restoring states from the checkpoint path at /home/dom/graphium/models_checkpoints/QM9/tutorial_model.ckpt
-Loaded model weights from checkpoint at /home/dom/graphium/models_checkpoints/QM9/tutorial_model.ckpt
-2022-09-20 17:18:37.268 | INFO     | graphium.ipu.ipu_dataloader:create_ipu_dataloader:230 - Estimating pack max_pack_size=54 or max_pack_size_per_graph=9.0
-2022-09-20 17:18:37.268 | INFO     | graphium.ipu.ipu_dataloader:create_ipu_dataloader:233 - Provided `max_num_nodes=72`
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>-------------------
-MultitaskDataset
-	about = test set
-	num_graphs_total = 201
-	num_nodes_total = 1751
-	max_num_nodes_per_graph = 9
-	min_num_nodes_per_graph = 1
-	std_num_nodes_per_graph = 0.9443829267824616
-	mean_num_nodes_per_graph = 8.711442786069652
-	num_edges_total = 3748
-	max_num_edges_per_graph = 26
-	min_num_edges_per_graph = 0
-	std_num_edges_per_graph = 3.0647412282392468
-	mean_num_edges_per_graph = 18.64676616915423
--------------------
-
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output " data-mime-type="text/plain">
-<pre>Testing: 0it [00:00, ?it/s]</pre>
-</div>
-
 </div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="application/vnd.jupyter.stderr">
-<pre>[17:18:40.730] [poptorch:cpp] [warning] Graph contains an unused input %this_input : Long(1, strides=[1], requires_grad=0, device=cpu)
-Graph compilation: 100%|██████████| 100/100 [00:01&lt;00:00]
-Exception in thread SockSrvRdThr:
-Traceback (most recent call last):
-  File &#34;/usr/lib/python3.8/threading.py&#34;, line 932, in _bootstrap_inner
-    self.run()
-  File &#34;/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/wandb/sdk/service/server_sock.py&#34;, line 113, in run
-    shandler(sreq)
-  File &#34;/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/wandb/sdk/service/server_sock.py&#34;, line 172, in server_record_publish
-    iface = self._mux.get_stream(stream_id).interface
-  File &#34;/home/dom/.venv/graphium_ipu/lib/python3.8/site-packages/wandb/sdk/service/streams.py&#34;, line 186, in get_stream
-    stream = self._streams[stream_id]
-KeyError: &#39;1ss172i9&#39;
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-
-
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain">
-<pre>────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-       Test metric             DataLoader 0
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  alpha/MSELossIPU/test     1.0208719968795776
-     alpha/loss/test        1.0208719968795776
-     alpha/mae/test         0.5369145274162292
-  alpha/mean_pred/test     -0.043575093150138855
- alpha/mean_target/test     -0.1731886863708496
- alpha/median_pred/test    0.020035069435834885
-alpha/median_target/test     -0.05999755859375
-   alpha/pearsonr/test      0.6431294679641724
-   alpha/std_pred/test      0.6613938808441162
-  alpha/std_target/test     1.2930139303207397
-   cv/MSELossIPU/test       0.7984611392021179
-      cv/loss/test          0.7984611392021179
-       cv/mae/test          0.5717160701751709
-    cv/mean_pred/test      -0.06430188566446304
-   cv/mean_target/test     -0.08974086493253708
-   cv/median_pred/test     0.014351803809404373
-  cv/median_target/test      -0.06439208984375
-    cv/pearsonr/test         0.663591742515564
-    cv/std_pred/test         0.63597571849823
-   cv/std_target/test        1.180733561515808
-  homo/MSELossIPU/test       1.14460027217865
-     homo/loss/test          1.14460027217865
-      homo/mae/test         0.7968456149101257
-   homo/mean_pred/test     0.004068718757480383
-  homo/mean_target/test     0.1092241033911705
-  homo/median_pred/test    0.0017465166747570038
- homo/median_target/test      0.1390380859375
-   homo/pearsonr/test       0.1387491226196289
-   homo/std_pred/test       0.2090565264225006
-  homo/std_target/test       1.07249116897583
-        loss/test           0.9879778027534485
-────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-</pre>
-</div>
-</div>
-<div class="jp-OutputArea-child jp-OutputArea-executeResult">
-    
-    <div class="jp-OutputPrompt jp-OutputArea-prompt">Out[21]:</div>
-
-
-
-
-<div class="jp-RenderedText jp-OutputArea-output jp-OutputArea-executeResult" data-mime-type="text/plain">
-<pre>[{&#39;homo/mean_pred/test&#39;: 0.004068718757480383,
-  &#39;homo/std_pred/test&#39;: 0.2090565264225006,
-  &#39;homo/median_pred/test&#39;: 0.0017465166747570038,
-  &#39;homo/mean_target/test&#39;: 0.1092241033911705,
-  &#39;homo/std_target/test&#39;: 1.07249116897583,
-  &#39;homo/median_target/test&#39;: 0.1390380859375,
-  &#39;homo/mae/test&#39;: 0.7968456149101257,
-  &#39;homo/pearsonr/test&#39;: 0.1387491226196289,
-  &#39;homo/MSELossIPU/test&#39;: 1.14460027217865,
-  &#39;homo/loss/test&#39;: 1.14460027217865,
-  &#39;alpha/mean_pred/test&#39;: -0.043575093150138855,
-  &#39;alpha/std_pred/test&#39;: 0.6613938808441162,
-  &#39;alpha/median_pred/test&#39;: 0.020035069435834885,
-  &#39;alpha/mean_target/test&#39;: -0.1731886863708496,
-  &#39;alpha/std_target/test&#39;: 1.2930139303207397,
-  &#39;alpha/median_target/test&#39;: -0.05999755859375,
-  &#39;alpha/mae/test&#39;: 0.5369145274162292,
-  &#39;alpha/pearsonr/test&#39;: 0.6431294679641724,
-  &#39;alpha/MSELossIPU/test&#39;: 1.0208719968795776,
-  &#39;alpha/loss/test&#39;: 1.0208719968795776,
-  &#39;cv/mean_pred/test&#39;: -0.06430188566446304,
-  &#39;cv/std_pred/test&#39;: 0.63597571849823,
-  &#39;cv/median_pred/test&#39;: 0.014351803809404373,
-  &#39;cv/mean_target/test&#39;: -0.08974086493253708,
-  &#39;cv/std_target/test&#39;: 1.180733561515808,
-  &#39;cv/median_target/test&#39;: -0.06439208984375,
-  &#39;cv/mae/test&#39;: 0.5717160701751709,
-  &#39;cv/pearsonr/test&#39;: 0.663591742515564,
-  &#39;cv/MSELossIPU/test&#39;: 0.7984611392021179,
-  &#39;cv/loss/test&#39;: 0.7984611392021179,
-  &#39;loss/test&#39;: 0.9879778027534485}]</pre>
-</div>
-
 </div>
-
-</div>
-
-</div>
-
 </div>
 </div>
 </div>
@@ -4773,10 +3215,10 @@ alpha/median_target/test     -0.05999755859375
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.expand"], "search": "../../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.expand"], "search": "../../assets/javascripts/workers/search.74e28a9f.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.a51614de.min.js"></script>
+      <script src="../../assets/javascripts/bundle.220ee61c.min.js"></script>
       
         
           <script src="../../javascripts/config.js"></script>
