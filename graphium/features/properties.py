@@ -3,7 +3,6 @@ from typing import Union, List, Callable
 import numpy as np
 import datamol as dm
 
-from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors as rdMD
 
 
