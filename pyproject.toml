@@ -100,4 +100,5 @@ filterwarnings = [
     "ignore::DeprecationWarning:numba.*:",
     "ignore::DeprecationWarning:lightning_fabric.*:",
     "ignore::DeprecationWarning:pytorch_lightning.*:",
+    "ignore::DeprecationWarning:pkg_resources.*:",
 ]
