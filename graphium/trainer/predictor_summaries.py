@@ -1,8 +1,6 @@
 r"""Classes to store information about resulting evaluation metrics when using a Predictor Module."""
 
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional, Type, Union
-from mordred import Result
+from typing import Any, Callable, Dict, List, Optional, Union
 from loguru import logger
 
 import numpy as np

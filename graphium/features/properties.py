@@ -3,10 +3,7 @@ from typing import Union, List, Callable
 import numpy as np
 import datamol as dm
 
-from rdkit import Chem
 from rdkit.Chem import rdMolDescriptors as rdMD
-
-from mordred import Calculator, descriptors
 
 
 def get_prop_or_none(
@@ -29,7 +26,8 @@ def get_prop_or_none(
 
 
 def get_props_from_mol(
-    mol: Union[dm.Mol, str], properties: Union[List[str], str] = "autocorr3d"
+    mol: Union[dm.Mol, str],
+    properties: Union[List[str], str] = "autocorr3d",
 ) -> np.ndarray:
     r"""
     Function to get a given set of desired properties from a molecule,
@@ -77,15 +75,7 @@ def get_props_from_mol(
     classes_names = []
 
     # Generate a 3D structure for the molecule
-    mol = Chem.AddHs(mol)  # type: ignore
-
-    if ("descriptors" in properties) or ("all" in properties):
-        # Calculate the descriptors of the molecule
-        for desc in descriptors.all:
-            classes_names.append(desc.__name__.replace("mordred.", ""))
-            classes_start_idx.append(len(props))
-            calc = Calculator(desc, ignore_3D=True)
-            props.extend(calc(mol))
+    mol = dm.add_hs(mol)
 
     if ("autocorr3d" in properties) or ("all" in properties):
         # Some kind of 3D description of the molecule
