@@ -29,8 +29,6 @@ from graphium.utils.command_line_utils import update_config, get_anchors_and_ali
 # WandB
 import wandb
 
-import torch; torch.set_float32_matmul_precision("medium")
-
 # Set up the working directory
 MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 
@@ -45,7 +43,8 @@ MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
-CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn_luis.yaml"
+CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn_luis.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_pcqm4m_gcn.yaml"
 os.chdir(MAIN_DIR)
 
 
@@ -56,7 +55,7 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
     if add_date_time:
         date_time_suffix = datetime.now().strftime("%d.%m.%Y_%H.%M.%S")
 
-    wandb.init(entity=cfg["constants"]["entity"], project=cfg["constants"]["name"], config=cfg)
+    wandb.init(entity="lmueller", project=cfg["constants"]["name"], config=cfg)
 
     # Initialize the accelerator
     cfg, accelerator_type = load_accelerator(cfg)
@@ -107,8 +106,6 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
 
     return trainer.callback_metrics
 
-import multiprocessing
-TIMEOUT = 10
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -118,10 +115,4 @@ if __name__ == "__main__":
     if args.config is not None:
         CONFIG_FILE = args.config
     cfg = load_yaml_config(CONFIG_FILE, MAIN_DIR, unknown_args)
-
-    for num_workers in [4, 8, 16, 24]:
-        for batch_size in [128, 256, 384, 512]:
-            cfg["datamodule"]["args"]["num_workers"] = num_workers
-            cfg["accelerator"]["config_override"]["datamodule"]["args"]["batch_size_training"] = batch_size
-            cfg["accelerator"]["config_override"]["datamodule"]["args"]["batch_size_inference"] = batch_size
-            main(cfg)
+    main(cfg)

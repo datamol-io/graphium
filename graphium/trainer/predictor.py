@@ -163,8 +163,8 @@ class PredictorModule(lightning.LightningModule):
         self.validation_step_outputs = []
         self.test_step_outputs = []
         self.epoch_start_time = None
-        
-        # Decide whether to log every step or once at the end 
+
+        # Decide whether to log every step or once at the end
         # of the epoch.
         self.metrics_every_n_steps = metrics_every_n_steps
 
@@ -450,7 +450,7 @@ class PredictorModule(lightning.LightningModule):
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
         if (batch_idx + 1) % self.metrics_every_n_steps != 0:
             return
-            
+
         train_batch_time = time.time() - self.train_batch_start_time
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time

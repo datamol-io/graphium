@@ -7,27 +7,29 @@ constants:
 
 accelerator:
   type: gpu  # cpu or ipu or gpu
+  float32_matmul_precision: highest # Set lower to improve performance
   config_override:
     datamodule:
       args:
-        ipu_dataloader_training_opts:
-          mode: async
-          max_num_nodes_per_graph: 44 # train max nodes: 20, max_edges: 54
-          max_num_edges_per_graph: 80
-        ipu_dataloader_inference_opts:
-          mode: async
-          max_num_nodes_per_graph: 44 # valid max nodes: 51, max_edges: 118
-          max_num_edges_per_graph: 80
+        # ipu_dataloader_training_opts:
+        #   mode: async
+        #   max_num_nodes_per_graph: 44 # train max nodes: 20, max_edges: 54
+        #   max_num_edges_per_graph: 80
+        # ipu_dataloader_inference_opts:
+        #   mode: async
+        #   max_num_nodes_per_graph: 44 # valid max nodes: 51, max_edges: 118
+        #   max_num_edges_per_graph: 80
         # Data handling-related
-        batch_size_training: 50
-        batch_size_inference: 50
+        batch_size_training: 200 #50
+        batch_size_inference: 200 #50
     predictor:
       optim_kwargs: {}
         #loss_scaling: 1024
+      metrics_every_n_steps: 100
     trainer:
       trainer:
-        precision: 32 #16-mixed
-        accumulate_grad_batches: 4
+        precision: 16-mixed
+        accumulate_grad_batches: 1
         #profiler: simple
 
   ipu_config:
@@ -103,6 +105,7 @@ datamodule:
     featurization_progress: True
     featurization_backend: "loky"
     processed_graph_data_path: "/volume/luis.mueller/graphium/datacache/neurips2023-small/"
+    #cache_data_path: "/volume/luis.mueller/graphium/datacache/cache/neurips2023-small/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -133,8 +136,7 @@ datamodule:
             pos_type: rw_return_probs
             ksteps: 16
 
-    # cache_data_path: .
-    num_workers: 24 # -1 to use all
+    num_workers: 2 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
     featurization_backend: "loky"
@@ -232,7 +234,7 @@ architecture:
       hidden_dims: 64
       depth: 2
       activation: relu
-      last_activation: sigmoid
+      last_activation: none #sigmoid
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
@@ -257,7 +259,7 @@ predictor:
     zinc: ["mae"]
   loss_fun:
     qm9: mae_ipu
-    tox21: bce_ipu
+    tox21: bce_logits_ipu
     zinc: mae_ipu
   random_seed: *seed
   optim_kwargs:
@@ -265,8 +267,8 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 2 #100
-    warmup_epochs: 0
+    max_num_epochs: &max_epochs 300
+    warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
   #  monitor: &monitor qm9/mae/train

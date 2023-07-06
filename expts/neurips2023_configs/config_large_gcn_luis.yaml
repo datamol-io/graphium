@@ -30,7 +30,7 @@ accelerator:
     trainer:
       trainer:
         precision: 32
-        accumulate_grad_batches: 8
+        accumulate_grad_batches: 4
         #profiler: simple # Enable to get a breakdown of computation times of different parts of training and inference
 
   ipu_config:

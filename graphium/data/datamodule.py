@@ -1252,9 +1252,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         # calculate statistics for the train split and used for all splits normalization
         if stage == "train":
-            self.get_label_statistics(
-                self.processed_graph_data_path, self.data_hash, multitask_dataset, train=True
-            )
+            if self.processed_graph_data_path is not None:
+                data_path = self.processed_graph_data_path
+            elif self.cache_data_path is not None:
+                data_path = self.cache_data_path
+            else:
+                data_path = None
+
+            if data_path is not None:
+                logger.info(f"Loading label statistics from path {data_path}")
+
+            self.get_label_statistics(data_path, self.data_hash, multitask_dataset, train=True)
         if not load_from_file:
             self.normalize_label(multitask_dataset, stage)
 
