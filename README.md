@@ -1,7 +1,3 @@
-
-**IMPORTANT: Goli has been renamed and moved to Graphium at <https://github.com/datamol-io/graphium>.**
----
-
 <div align="center">
     <img src="docs/images/logo.png" height="200px">
     <h3>Scaling molecular GNNs to infinity</h3>
@@ -9,6 +5,14 @@
 
 ---
 
+[![Run on Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/sdGggS)
+[![PyPI](https://img.shields.io/pypi/v/graphium)](https://pypi.org/project/graphium/)
+[![Conda](https://img.shields.io/conda/v/conda-forge/graphium?label=conda&color=success)](https://anaconda.org/conda-forge/graphium)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/graphium)](https://pypi.org/project/graphium/)
+[![Conda](https://img.shields.io/conda/dn/conda-forge/graphium)](https://anaconda.org/conda-forge/graphium)
+[![license](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/datamol-io/graphium/blob/main/LICENSE)
+[![GitHub Repo stars](https://img.shields.io/github/stars/datamol-io/graphium)](https://github.com/datamol-io/graphium/stargazers)
+[![GitHub Repo stars](https://img.shields.io/github/forks/datamol-io/graphium)](https://github.com/datamol-io/graphium/network/members)
 [![test](https://github.com/datamol-io/graphium/actions/workflows/test.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test.yml)
 [![release](https://github.com/datamol-io/graphium/actions/workflows/release.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/release.yml)
 [![code-check](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml)
@@ -26,6 +30,10 @@ A deep learning library focused on graph representation learning for real-world 
 ## Documentation
 
 Visit https://graphium-docs.datamol.io/.
+
+[![Run on Gradient](https://assets.paperspace.io/img/gradient-badge.svg)](https://ipu.dev/sdGggS)
+
+You can try running Graphium on Graphcore IPUs for free on Gradient by clicking on the button above.
 
 ## Installation for developers
 
@@ -49,10 +57,10 @@ mkdir ~/.venv                               # Create the folder for the environm
 python3 -m venv ~/.venv/graphium_ipu        # Create the environment
 source ~/.venv/graphium_ipu/bin/activate    # Activate the environment
 
-# Installing the poptorch SDK. Make sure to change the path
+# Install the PopTorch wheel
 pip install PATH_TO_SDK/poptorch-3.2.0+109946_bb50ce43ab_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
 
-# Activate poplar SDK.
+# Enable Poplar SDK (including Poplar and PopART)
 source PATH_TO_SDK/enable
 
 # Install the IPU specific and graphium requirements

@@ -25,11 +25,9 @@ def import_poptorch(raise_error=True) -> Optional[ModuleType]:
         import poptorch
 
         return poptorch
-    except ImportError:
+    except ImportError as e:
         if raise_error:
-            raise ImportError(
-                "You must install poptorch and have IPU hardware. Check the GraphCore support https://www.graphcore.ai/support"
-            )
+            raise e
         return
 
 
