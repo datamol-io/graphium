@@ -7,7 +7,7 @@ from warnings import warn
 from lightning import Trainer, LightningModule
 from lightning_graphcore import IPUStrategy
 from functools import partial
-
+import pytest
 import torch
 from torch.utils.data.dataloader import default_collate
 
@@ -32,6 +32,7 @@ def global_batch_collator(batch_size, batches):
     return global_batch
 
 
+@pytest.mark.ipu
 class test_DataLoading(ut.TestCase):
     class TestSimpleLightning(LightningModule):
         # Create a basic Ligthning for testing the batch sizes
