@@ -6,6 +6,7 @@ from copy import deepcopy
 from graphium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
 
 
+@pytest.mark.ipu
 class test_Losses(ut.TestCase):
     torch.manual_seed(42)
     preds = torch.rand((100, 10), dtype=torch.float32)
