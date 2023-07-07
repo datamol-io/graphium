@@ -17,7 +17,7 @@
 [![release](https://github.com/datamol-io/graphium/actions/workflows/release.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/release.yml)
 [![code-check](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml)
 [![doc](https://github.com/datamol-io/graphium/actions/workflows/doc.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/doc.yml)
-[![coverage](https://github.com/datamol-io/graphium/actions/workflows/test.yml/coverage.svg)](https://github.com/datamol-io/graphium/actions/workflows/test.yml)
+[![coverage](tests/coverage.svg)](https://github.com/datamol-io/graphium/actions/workflows/test.yml)
 
 A deep learning library focused on graph representation learning for real-world chemical tasks.
 
