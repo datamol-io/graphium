@@ -57,7 +57,9 @@ jobs:
       #     coverage report -m
       
       - name: Coverage Badge
-        run: coverage-badge -o "coverage.svg"
+        run: |
+          pip install -U coverage-badge
+          coverage-badge -o "coverage.svg"
 
       # - name: Verify Changed files
       #   uses: tj-actions/verify-changed-files@v16
