@@ -51,6 +51,11 @@ jobs:
       - name: Run tests
         run: pytest --cov=. --cov-report term --cov-report html
       
+      - name: Run coverage
+        run: |
+          coverage run
+          coverage report -m
+      
       - uses: actions/checkout@v2
       - name: Coverage Badge
         uses: tj-actions/coverage-badge-py@v2
