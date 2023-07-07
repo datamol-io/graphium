@@ -15,6 +15,7 @@ from torchmetrics.functional import (
     mean_absolute_error,
 )
 from copy import deepcopy
+import pytest
 
 from graphium.ipu.ipu_metrics import (
     auroc_ipu,
@@ -31,7 +32,7 @@ from graphium.ipu.ipu_metrics import (
     mean_absolute_error_ipu,
 )
 
-
+@pytest.mark.ipu
 class test_Metrics(ut.TestCase):
     torch.manual_seed(42)
     preds = torch.rand((100, 10), dtype=torch.float32)
