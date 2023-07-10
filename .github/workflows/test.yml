@@ -72,4 +72,4 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: GPU
-        uses: datamol-io/graphium/blob/pytest_coverage_update/.github/workflows/test_gpu.yml
+        uses: datamol-io/graphium/blob/pytest_coverage_update/.github/workflows/test_gpu.yml@b5a34ebe19fb3134ac8a8d468cea114f2de669b2
