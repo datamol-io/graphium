@@ -69,5 +69,6 @@ jobs:
         run: mkdocs build
   
   reusable_workflow_job:
-    call-workflow-1-in-local-repo:
-      uses: datamol-io/graphium/blob/pytest_coverage_update/.github/workflows/test_gpu.yml@v1
+    steps:
+      - name: GPU
+        uses: datamol-io/graphium/blob/pytest_coverage_update/.github/workflows/test_gpu.yml@v1
