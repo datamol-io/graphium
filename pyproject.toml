@@ -93,7 +93,7 @@ include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --durations=10 -n auto"
+addopts = "--verbose --durations=10 -n auto --cov=graphium --cov-fail-under=60 --cov-report xml --cov-report term"
 testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:ray.*:",
@@ -102,3 +102,21 @@ filterwarnings = [
     "ignore::DeprecationWarning:pytorch_lightning.*:",
     "ignore::DeprecationWarning:pkg_resources.*:",
 ]
+markers = [
+    slow: marks tests as slow (deselect with '-m "not slow"')
+    fast: marks tests as fast (select with '-m "fast"')
+    cpu: marks tests that are specific to the CPU (deselect with '-m "not cpu"')
+    gpu: marks tests that are specific to the GPU (deselect with '-m "not gpu"')
+    ipu: marks tests that are specific to the IPU (deselect with '-m "not ipu"')
+    ]
+
+[tool.coverage.run]
+source = ["graphium/"]
+disable_warnings = ["no-data-collected"]
+data_file = ".coverage/coverage"
+
+[tool.coverage.report]
+omit = ["graphium/__init__.py", "graphium/_version.py"]
+
+[tool.coverage.xml]
+output = "coverage.xml"
