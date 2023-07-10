@@ -24,6 +24,8 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
@@ -32,6 +34,7 @@ dependencies = [
     "loguru",
     "omegaconf >=2.0.0",
     "tqdm",
+    "platformdirs",
     # scientific
     "numpy",
     "scipy >=1.4",
@@ -45,9 +48,8 @@ dependencies = [
     "fsspec >=2021.6",
     "s3fs >=2021.6",
     "gcsfs >=2021.6",
-    "platformdirs",
     # ML packages
-    "pytorch-lightning >=1.9",
+    "lightning >=2.0",
     "torchmetrics >=0.7.0,<0.11",
     "ogb",
     "torch-geometric >=2.0",
@@ -58,7 +60,6 @@ dependencies = [
     "torch_scatter >=2.0",
     # chemistry
     "datamol >=0.10",
-    "mordred",
 ]
 
 [project.scripts]
@@ -92,11 +93,23 @@ include = '\.pyi?$'
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--verbose --durations=10 -n auto"
+addopts = "--verbose --durations=10 -n auto --cov=graphium --cov-fail-under=60 --cov-report xml --cov-report term"
 testpaths = ["tests"]
 filterwarnings = [
     "ignore::DeprecationWarning:ray.*:",
     "ignore::DeprecationWarning:numba.*:",
     "ignore::DeprecationWarning:lightning_fabric.*:",
     "ignore::DeprecationWarning:pytorch_lightning.*:",
+    "ignore::DeprecationWarning:pkg_resources.*:",
 ]
+
+[tool.coverage.run]
+source = ["graphium/"]
+disable_warnings = ["no-data-collected"]
+data_file = ".coverage/coverage"
+
+[tool.coverage.report]
+omit = ["graphium/__init__.py", "graphium/_version.py"]
+
+[tool.coverage.xml]
+output = "coverage.xml"
