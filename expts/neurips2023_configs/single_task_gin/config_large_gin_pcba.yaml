@@ -252,4 +252,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 40
+    check_val_every_n_epoch: 20
