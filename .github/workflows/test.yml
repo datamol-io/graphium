@@ -18,7 +18,10 @@ jobs:
       matrix:
         python-version: ["3.10"]
         pytorch-version: ["1.13"]
-        accelerator-type: ["'not gpu and not ipu'", "'gpu'", "'ipu'"]
+        pytest-args: ["'--verbose --durations=10 -n auto -m not gpu and not ipu'",
+                      "'--verbose --durations=10 -n auto -m gpu'",
+                      "'--verbose --durations=10 -n auto -m ipu'",
+                      "'--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term --collect-only'"]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
@@ -50,26 +53,32 @@ jobs:
         run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
 
       - name: Run tests
-        run: pytest --verbose --durations=10 -n auto --cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m ${{ matrix.accelerator-type  }}
-
-      - name: Codecov Upload
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
-          verbose: false
-          env_vars: ${{ matrix.python-version }},${{ matrix.pytorch-version }}
+        run: pytest ${{ matrix.pytest-args  }}
 
       - name: Test CLI
         run: graphium --help
 
       - name: Test building the doc
         run: mkdocs build
-  
-  reusable_workflow_job:
-    runs-on: "ubuntu-latest"
-    steps:
-      - name: GPU
-        uses: datamol-io/graphium/blob/pytest_coverage_update/.github/workflows/test_gpu.yml@b5a34ebe19fb3134ac8a8d468cea114f2de669b2
+  # codecov:
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       python-version: ["3.10"]
+  #       pytorch-version: ["1.13"]
+  #   runs-on: "ubuntu-latest"
+  #   timeout-minutes: 30
+
+  #   defaults:
+  #     run:
+  #       shell: bash -l {0}
+  #   steps:
+  #     - name: Codecov Upload
+  #       uses: codecov/codecov-action@v3
+  #       with:
+  #         files: ./coverage.xml
+  #         flags: unittests
+  #         name: codecov-umbrella
+  #         fail_ci_if_error: false
+  #         verbose: false
+  #         env_vars: ${{ matrix.python-version }},${{ matrix.pytorch-version }}
