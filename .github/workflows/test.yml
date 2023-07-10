@@ -18,7 +18,7 @@ jobs:
       matrix:
         python-version: ["3.8", "3.10"]
         pytorch-version: ["1.13"]
-        accelerator-type: ["not gpu and not ipu", "gpu", ipu]
+        accelerator-type: ["'not gpu and not ipu'", "'gpu'", "'ipu'"]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
