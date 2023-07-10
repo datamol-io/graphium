@@ -103,12 +103,12 @@ filterwarnings = [
     "ignore::DeprecationWarning:pkg_resources.*:",
 ]
 markers = [
-    slow: marks tests as slow (deselect with '-m "not slow"')
-    fast: marks tests as fast (select with '-m "fast"')
-    cpu: marks tests that are specific to the CPU (deselect with '-m "not cpu"')
-    gpu: marks tests that are specific to the GPU (deselect with '-m "not gpu"')
-    ipu: marks tests that are specific to the IPU (deselect with '-m "not ipu"')
-    ]
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "fast: marks tests as fast (select with '-m \"fast\"')",
+    "cpu: marks tests that are specific to the CPU (deselect with '-m \"not cpu\"')",
+    "gpu: marks tests that are specific to the GPU (deselect with '-m \"not gpu\"')",
+    "ipu: marks tests that are specific to the IPU (deselect with '-m \"not ipu\"')",
+]
 
 [tool.coverage.run]
 source = ["graphium/"]
