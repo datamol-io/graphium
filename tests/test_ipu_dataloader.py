@@ -122,6 +122,7 @@ class test_DataLoading(ut.TestCase):
 
         # Initialize the batch info and poptorch options
         opts = poptorch.Options()
+        opts.useIpuModel(True)
         opts.deviceIterations(device_iterations)
         training_opts = deepcopy(opts)
         training_opts.Training.gradientAccumulation(gradient_accumulation)
