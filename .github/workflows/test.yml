@@ -69,6 +69,7 @@ jobs:
         run: mkdocs build
   
   reusable_workflow_job:
+    runs-on: "ubuntu-latest"
     steps:
       - name: GPU
         uses: datamol-io/graphium/blob/pytest_coverage_update/.github/workflows/test_gpu.yml@v1
