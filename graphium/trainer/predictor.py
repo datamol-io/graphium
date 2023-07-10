@@ -468,7 +468,7 @@ class PredictorModule(lightning.LightningModule):
         # report the training loss for each individual tasks
         for task in self.tasks:
             concatenated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
-        # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication
+        # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
         for key in concatenated_metrics_logs:
             if isinstance(concatenated_metrics_logs[key], torch.Tensor):
                 if concatenated_metrics_logs[key].numel() > 1:
