@@ -16,8 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.8", "3.10"]
         pytorch-version: ["1.13"]
+        accelerator-type: ["not gpu and not ipu", "gpu", ipu]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
@@ -49,7 +50,7 @@ jobs:
         run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
 
       - name: Run tests
-        run: pytest 
+        run: pytest -m ${{ matrix.accelerator-type  }}
       
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
