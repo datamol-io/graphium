@@ -51,6 +51,7 @@ jobs:
 
       - name: Run tests
         run: pytest --verbose --durations=10 -n auto --cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m ${{ matrix.accelerator-type  }}
+
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
         with:
@@ -60,7 +61,13 @@ jobs:
           fail_ci_if_error: false
           verbose: false
           env_vars: ${{ matrix.python-version }},${{ matrix.pytorch-version }}
+
       - name: Test CLI
         run: graphium --help
+
       - name: Test building the doc
         run: mkdocs build
+  
+  reusable_workflow_job:
+    call-workflow-1-in-local-repo:
+      uses: datamol-io/graphium/blob/pytest_coverage_update/.github/workflows/test_gpu.yml@v1

@@ -1,15 +1,16 @@
 name: test-gpu
+  on:
+    workflow_call:
 
-on:
-  push:
-    branches: ["main"]
-    tags: ["*"]
-  pull_request:
-    branches:
-      - "*"
-      - "!gh-pages"
-  schedule:
-    - cron: "0 4 * * MON"
+    push:
+      branches: ["main"]
+      tags: ["*"]
+    pull_request:
+      branches:
+        - "*"
+        - "!gh-pages"
+    schedule:
+      - cron: "0 4 * * MON"
 
 jobs:
   test:
