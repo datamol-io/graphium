@@ -51,7 +51,6 @@ jobs:
 
       - name: Run tests
         run: pytest --verbose --durations=10 -n auto --cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m ${{ matrix.accelerator-type  }}
-  cov:
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
         with:
@@ -61,9 +60,7 @@ jobs:
           fail_ci_if_error: false
           verbose: false
           env_vars: ${{ matrix.python-version }},${{ matrix.pytorch-version }}
-  cli:
       - name: Test CLI
         run: graphium --help
-  docs:
       - name: Test building the doc
         run: mkdocs build
