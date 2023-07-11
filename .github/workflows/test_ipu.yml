@@ -1,10 +1,7 @@
 name: test-ipu
 
 on:
-  workflow_run:
-    workflows: ["test"]
-      types: [requested]
-  
+  workflow_call:
 jobs:
   test-ipu:
     strategy:

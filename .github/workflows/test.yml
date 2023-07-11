@@ -1,8 +1,6 @@
 name: test
 
 on:
-  repository_dispatch:
-    types: [test-ipu]
   push:
     branches: ["main"]
     tags: ["*"]
@@ -64,6 +62,8 @@ jobs:
       - name: Test building the doc
         run: mkdocs build
   
+  call_ipu_test:
+    uses: ./.github/workflows/test_ipu.yml
   codecov:
     strategy:
       fail-fast: false
