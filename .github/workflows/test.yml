@@ -21,7 +21,8 @@ jobs:
         pytest-args: [{name: cpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'not gpu and not ipu'"},
                       {name: gpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'gpu'"},
                       {name: ipu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'ipu'"},
-                      # {name: cov, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term --collect-only"}]
+                      # {name: cov, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term --collect-only"}
+                      ]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
