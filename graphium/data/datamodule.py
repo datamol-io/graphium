@@ -40,6 +40,7 @@ from graphium.features import (
     mol_to_pyggraph,
 )
 from graphium.data.utils import graphium_package_path
+from graphium.data.sampler import CustomSampler
 from graphium.utils.arg_checker import check_arg_iterator
 from graphium.utils.hashing import get_md5_hash
 from graphium.data.smiles_transform import (
@@ -766,6 +767,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
         featurization_batch_size: int = 1000,
+        sampler_task_dict: Optional[dict] = None,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         **kwargs,
@@ -868,6 +870,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
         self.featurization_batch_size = featurization_batch_size
+
+        self.sampler_task_dict = sampler_task_dict
 
         self.task_train_indices = None
         self.task_val_indices = None
@@ -1001,7 +1005,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info(f"Looking at column {df.columns[0]}")
             # Filter the DataFrame based on the function
             # need this for pcba dataset
-            # df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
+            df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
             logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
@@ -1461,11 +1465,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             The poptorch dataloader to sample from
         """
         kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
+        sampler = CustomSampler(self.sampler_task_dict)
         is_ipu = ("ipu_options" in kwargs.keys()) and (kwargs.get("ipu_options") is not None)
         if is_ipu:
-            loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, **kwargs)
+            loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
         else:
-            loader = BaseDataModule._dataloader(self, dataset=dataset, **kwargs)
+            loader = BaseDataModule._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
 
         return loader
 

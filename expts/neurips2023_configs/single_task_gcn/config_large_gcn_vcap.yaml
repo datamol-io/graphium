@@ -203,6 +203,7 @@ predictor:
     l1000_vcap:
       name: hybrid_ce_ipu
       n_brackets: 5
+      alpha: 0.9
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs

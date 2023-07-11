@@ -155,6 +155,7 @@ datamodule:
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
+    sampler_task_dict: {"graph_l1000_vcap": 1.0, "graph_l1000_mcf7": 1.0, "graph_pcba_1328": 0.5, "graph_pcqm4m_g25": 0.5, "node_pcqm4m_n4": 0.5}
     featurization_backend: "loky"
 
 
@@ -318,11 +319,11 @@ predictor:
     l1000_vcap:
       name: hybrid_ce_ipu
       n_brackets: 5
-      alpha: 0.5
+      alpha: 0.9
     l1000_mcf7:
       name: hybrid_ce_ipu
       n_brackets: 5
-      alpha: 0.5
+      alpha: 0.9
     pcba_1328: bce_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
@@ -332,7 +333,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 10
+    max_num_epochs: &max_epochs 100
     warmup_epochs: 5
     verbose: False
   scheduler_kwargs:

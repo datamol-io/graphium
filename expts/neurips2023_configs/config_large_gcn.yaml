@@ -273,7 +273,7 @@ architecture:
       hidden_dims: 64
       depth: 2
       activation: relu
-      last_activation: sigmoid
+      last_activation: none
       dropout: *dropout
       normalization: *normalization
       last_normalization: "none"
@@ -319,10 +319,12 @@ predictor:
     l1000_vcap:
       name: hybrid_ce_ipu
       n_brackets: 5
+      alpha: 0.5
     l1000_mcf7:
       name: hybrid_ce_ipu
       n_brackets: 5
-    pcba_1328: bce_ipu
+      alpha: 0.5
+    pcba_1328: bce_logits_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
   random_seed: *seed
