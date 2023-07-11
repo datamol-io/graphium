@@ -83,7 +83,7 @@ jobs:
       - name: Combine Coverage Reports
         run: |
           pip install coverage
-          coverage combine coverage_1.xml coverage_2.xml coverage_3.xml 
+          coverage combine .coverage/coverage_1.xml .coverage/coverage_2.xml .coverage/coverage_3.xml 
 
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
