@@ -18,10 +18,10 @@ jobs:
       matrix:
         python-version: ["3.10"]
         pytorch-version: ["1.13"]
-        pytest-args: [{cmd: "--verbose --durations=10 -n auto -m 'not gpu and not ipu'"},
-                      {cmd: "--verbose --durations=10 -n auto -m 'gpu'"},
-                      {cmd: "--verbose --durations=10 -n auto -m 'ipu'"},
-                      {cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term --collect-only"}]
+        pytest-args: [{name: cpu, cmd: "--verbose --durations=10 -n auto -m 'not gpu and not ipu'"},
+                      {name: gpu, cmd: "--verbose --durations=10 -n auto -m 'gpu'"},
+                      {name: ipu, cmd: "--verbose --durations=10 -n auto -m 'ipu'"},
+                      {name: cov, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term --collect-only"}]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
@@ -30,9 +30,10 @@ jobs:
       run:
         shell: bash -l {0}
 
-    name: |
-      python=${{ matrix.python-version }} -
-      pytorch=${{ matrix.pytorch-version }}
+    # name: |
+    #   python=${{ matrix.python-version }} -
+    #   pytorch=${{ matrix.pytorch-version }}
+    name: ${{ matrix.pytest-args.name }}
 
     steps:
       - name: Checkout the code
