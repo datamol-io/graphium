@@ -81,8 +81,10 @@ jobs:
     needs: [test, call_ipu_test]
     steps:
       - name: Combine Coverage Reports
-        run: coverage combine coverage_1.xml coverage_2.xml coverage_3.xml 
-        
+        run: |
+          pip install coverage
+          coverage combine coverage_1.xml coverage_2.xml coverage_3.xml 
+
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
         with:
