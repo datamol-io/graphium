@@ -36,6 +36,7 @@ accelerator:
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 128)
     - Precision.enableStochasticRounding(True)
+    # - Precision.enableFloatingPointExceptions(True)
 
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
@@ -120,7 +121,7 @@ datamodule:
     featurization_n_jobs: 30
     featurization_progress: True
     featurization_backend: "loky"
-    processed_graph_data_path: "/net/group/software-apps/datacache/neurips2023-large/"
+    processed_graph_data_path: "../datacache/neurips2023-large/"
     featurization:
     # OGB: ['atomic_num', 'degree', 'possible_formal_charge', 'possible_numH' (total-valence),
     # 'possible_number_radical_e', 'possible_is_aromatic', 'possible_is_in_ring',
@@ -167,7 +168,7 @@ architecture:
     depth: 2
     activation: relu
     last_activation: none
-    dropout: &dropout 0.18
+    dropout: &dropout 0.1
     normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
@@ -330,7 +331,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 20
+    max_num_epochs: &max_epochs 100
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -374,7 +375,7 @@ metrics:
     - name: mae
       metric: mae_ipu
       target_nan_mask: null
-      multitask_handling: flatten
+      multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: pearsonr
       metric: pearsonr_ipu
@@ -404,4 +405,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 20
+    check_val_every_n_epoch: 10

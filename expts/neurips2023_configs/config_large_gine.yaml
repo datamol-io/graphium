@@ -10,8 +10,8 @@ architecture:
     depth: 2
     activation: relu
     last_activation: none
-    dropout: *dropout
-    normalization: *normalization
+    dropout: 0.1
+    normalization: &normalization layer_norm
     last_normalization: *normalization
     residual_type: none
 
@@ -27,10 +27,6 @@ architecture:
     node:
       out_dim: *gnn_dim
       hidden_dims: *gnn_dim
-
-predictor:
-  optim_kwargs:
-    lr: 8.e-5 # warmup can be scheduled using torch_scheduler_kwargs
 
 trainer:
   logger:
