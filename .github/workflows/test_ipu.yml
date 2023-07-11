@@ -3,6 +3,7 @@ name: test-ipu
 on:
   workflow_run:
     workflows: ["test"]
+      types: [requested]
   
 jobs:
   test-ipu:
@@ -31,7 +32,8 @@ jobs:
     steps:
       - name: Checkout the code
         uses: actions/checkout@v3
-      
+
+    #  IPU setup will have to replace this here 
       - name: Setup mamba
         uses: mamba-org/setup-micromamba@v1
         with:
