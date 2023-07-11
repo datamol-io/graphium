@@ -31,11 +31,11 @@
 }
 
 .md-header {
-  background-image: linear-gradient(to right, #70ad47, #70ad47);
+  background-color: #70ad47;
 }
 
 .md-footer {
-  background-image: linear-gradient(to right, #70ad47, #70ad47);
+  background-color: #70ad47;
 }
 
 .md-tabs {
@@ -43,7 +43,7 @@
 }
 
 .md-header__topic {
-  color: rgb(255, 255, 255);
+  color: #fff;
 }
 
 .md-source__repository,
@@ -56,7 +56,7 @@
 .md-copyright,
 .md-footer-meta.md-typeset a,
 .md-version {
-  color: rgb(255, 255, 255) !important;
+  color: #fff !important;
 }
 
 .md-search__form {
@@ -64,11 +64,11 @@
 }
 
 .md-search__input {
-  color: #222222 !important;
+  color: #222 !important;
 }
 
 .md-header__topic {
-  color: rgb(255, 255, 255);
+  color: #fff;
   font-size: 1.4em;
 }
 
