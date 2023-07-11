@@ -18,9 +18,9 @@ jobs:
       matrix:
         python-version: ["3.10"]
         pytorch-version: ["1.13"]
-        pytest-args: [{name: cpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'not gpu and not ipu'"},
-                      {name: gpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'gpu'"},
-                      {name: ipu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'ipu'"},
+        pytest-args: [{name: cpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml:coverage_1.xml --cov-report term -m 'not gpu and not ipu'"},
+                      {name: gpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml:coverage_2.xml --cov-report term -m 'gpu'"},
+                      {name: ipu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml:coverage_3.xml --cov-report term -m 'ipu'"},
                       ]
 
     runs-on: "ubuntu-latest"
@@ -78,8 +78,10 @@ jobs:
         shell: bash -l {0}
     
     name: codecov
-    needs: [test, test-ipu]
+    needs: [test, call_ipu_test]
     steps:
+      - name: Combine Coverage Reports
+      run: coverage combine coverage_1.xml coverage_2.xml coverage_3.xml 
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
         with:
