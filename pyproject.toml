@@ -114,7 +114,7 @@ markers = [
 source = ["graphium/"]
 disable_warnings = ["no-data-collected"]
 data_file = ".coverage/coverage"
-append = True
+append = true
 
 [tool.coverage.report]
 omit = ["graphium/__init__.py", "graphium/_version.py"]
