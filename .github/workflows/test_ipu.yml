@@ -30,6 +30,7 @@ jobs:
 
       - name: Download Poplar SDK
         run: |
+          rm -rf poplar_sdk-ubuntu_20_04-3.2.0+1277-7cd8ade3cd 
           wget -O 'poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz' 'https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.2.0_7cd8ade3cd-3.2.0&file=poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz'
           tar -xzf poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz
       - name: Install Poplar SDK
