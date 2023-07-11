@@ -1,0 +1,50 @@
+name: test-ipu
+
+on:
+  workflow_run:
+    workflows: ["test"]
+  
+jobs:
+  test-ipu:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+        pytorch-version: ["1.13"]
+        pytest-args: [{name: cpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'not gpu and not ipu'"},
+                          {name: gpu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'gpu'"},
+                          {name: ipu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term -m 'ipu'"},
+                          ]
+
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        shell: bash -l {0}
+
+    name: |
+        ${{ matrix.pytest-args.name }} - 
+        python=${{ matrix.python-version }} -
+        pytorch=${{ matrix.pytorch-version }}
+
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v3
+      
+      - name: Setup mamba
+        uses: mamba-org/setup-micromamba@v1
+        with:
+          environment-file: env.yml
+          environment-name: graphium
+          cache-environment: true
+          cache-downloads: true
+          create-args: >-
+            python=${{ matrix.python-version }}
+            pytorch=${{ matrix.pytorch-version }}
+
+      - name: Install library
+        run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
+
+      - name: Test CLI
+        run: graphium --help
