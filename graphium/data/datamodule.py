@@ -1005,7 +1005,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             logger.info(f"Looking at column {df.columns[0]}")
             # Filter the DataFrame based on the function
             # need this for pcba dataset
-            df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
+            # df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
             logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
@@ -1465,7 +1465,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             The poptorch dataloader to sample from
         """
         kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
-        sampler = CustomSampler(self.sampler_task_dict)
+        sampler = None
+        # use sampler only when sampler_task_dict is set in the config and during training
+        if self.sampler_task_dict is not None and stage in [RunningStage.TRAINING]:
+            sampler = CustomSampler(dataset, self.sampler_task_dict)
         is_ipu = ("ipu_options" in kwargs.keys()) and (kwargs.get("ipu_options") is not None)
         if is_ipu:
             loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)

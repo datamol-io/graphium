@@ -8,7 +8,7 @@ class CustomSampler(data_utils.Sampler):
         self.sampler_task_dict = sampler_task_dict
         self.task_indices = {}
         for i in range(len(dataset)):
-            task_name = dataset[i]["label"].name()
+            task_name = dataset[i]["labels"].keys()[-1]
             if task_name not in self.task_indices:
                 self.task_indices[task_name] = []
             self.task_indices[task_name].append(i)
