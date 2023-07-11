@@ -28,19 +28,41 @@ jobs:
         uses: actions/checkout@v3
 
     #  IPU setup will have to replace this here 
-      - name: Setup mamba
-        uses: mamba-org/setup-micromamba@v1
+      - name: Setup Poplar SDK
         with:
           environment-file: env.yml
           environment-name: graphium
           cache-environment: true
           cache-downloads: true
-          create-args: >-
-            python=${{ matrix.python-version }}
-            pytorch=${{ matrix.pytorch-version }}
+        run: |
+          wget -O 'poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz' 'https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.2.0_7cd8ade3cd-3.2.0&file=poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz'
+          tar -xzf poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz
 
-      - name: Install library
-        run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
+          pip install poplar_sdk-ubuntu_20_04-3.2.0+1277-7cd8ade3cd/poptorch-3.2.0+109946_bb50ce43ab_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
+
+          # Enable Poplar SDK (including Poplar and PopART)
+          source poplar_sdk-ubuntu_20_04-3.2.0+1277-7cd8ade3cd/enable
+
+          # Install the IPU specific and graphium requirements
+          PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
+          pip install -r lightning.txt
+
+          # Install Graphium in dev mode
+          pip install --no-deps -e .
+
+      # - name: Setup mamba
+      #   uses: mamba-org/setup-micromamba@v1
+      #   with:
+      #     environment-file: env.yml
+      #     environment-name: graphium
+      #     cache-environment: true
+      #     cache-downloads: true
+      #     create-args: >-
+      #       python=${{ matrix.python-version }}
+      #       pytorch=${{ matrix.pytorch-version }}
+
+      # - name: Install library
+      #   run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
 
       - name: Test CLI
         run: graphium --help
