@@ -13,20 +13,20 @@ on:
 
 jobs:
   test:
-    strategy:
+    strategy: &strategy
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
-        pytorch-version: ["1.13"]
-        pytest-args: ["--verbose --durations=10 -n auto -m 'not gpu and not ipu'",
-                      "--verbose --durations=10 -n auto -m 'gpu'",
-                      "--verbose --durations=10 -n auto -m 'ipu'",
-                      "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term --collect-only"]
+        python-version: &pythonversion ["3.10"]
+        pytorch-version: &pytorchversion  ["1.13"]
+        pytest-args: [{cmd: "--verbose --durations=10 -n auto -m 'not gpu and not ipu'"},
+                      {cmd: "--verbose --durations=10 -n auto -m 'gpu'"},
+                      {cmd: "--verbose --durations=10 -n auto -m 'ipu'"},
+                      {cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml --cov-report term --collect-only"}]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
 
-    defaults:
+    defaults: &defaults
       run:
         shell: bash -l {0}
 
@@ -53,32 +53,33 @@ jobs:
         run: python -m pip install --no-deps -e . # `-e` required for correct `coverage` run.
 
       - name: Run tests
-        run: pytest ${{ matrix.pytest-args  }}
+        run: pytest ${{ matrix.pytest-args.cmd  }}
 
       - name: Test CLI
         run: graphium --help
 
       - name: Test building the doc
         run: mkdocs build
-  # codecov:
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       python-version: ["3.10"]
-  #       pytorch-version: ["1.13"]
-  #   runs-on: "ubuntu-latest"
-  #   timeout-minutes: 30
+  
+  codecov:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: *pythonversion
+        pytorch-version: *pytorchversion
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 30
 
-  #   defaults:
-  #     run:
-  #       shell: bash -l {0}
-  #   steps:
-  #     - name: Codecov Upload
-  #       uses: codecov/codecov-action@v3
-  #       with:
-  #         files: ./coverage.xml
-  #         flags: unittests
-  #         name: codecov-umbrella
-  #         fail_ci_if_error: false
-  #         verbose: false
-  #         env_vars: ${{ matrix.python-version }},${{ matrix.pytorch-version }}
+    defaults: *defaults
+    
+    name: codecov
+    steps:
+      - name: Codecov Upload
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: false
+          env_vars: ${{ matrix.python-version }},${{ matrix.pytorch-version }}
