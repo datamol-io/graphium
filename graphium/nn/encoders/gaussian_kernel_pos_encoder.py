@@ -15,7 +15,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
         out_dim: int,
         embed_dim: int,
         num_layers: int,
-        max_num_nodes_per_graph: Optional[int] = None,
+        batch_num_nodes_per_graph: Optional[int] = None,
         activation: Union[str, Callable] = "gelu",
         first_normalization="none",
         use_input_keys_prefix: bool = True,
@@ -32,7 +32,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
             out_dim: The output dimension of the encodings
             embed_dim: The dimension of the embedding
             num_layers: The number of layers of the encoder
-            max_num_nodes_per_graph: The maximum number of nodes per graph
+            batch_num_nodes_per_graph: The maximum number of nodes per graph
             activation: The activation function to use
             first_normalization: The normalization to use before the first layer
             use_input_keys_prefix: Whether to use the `key_prefix` argument in the `forward` method.
@@ -51,7 +51,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
 
         self.embed_dim = embed_dim
         self.num_heads = num_heads
-        self.max_num_nodes_per_graph = max_num_nodes_per_graph
+        self.batch_num_nodes_per_graph = batch_num_nodes_per_graph
 
         # parameters for preprocessing 3d positions
         self.preprocess_3d_positions = PreprocessPositions(
@@ -117,12 +117,12 @@ class GaussianKernelPosEncoder(BaseEncoder):
         input_keys = self.parse_input_keys_with_prefix(key_prefix)
 
         on_ipu = is_running_on_ipu()
-        max_num_nodes_per_graph = None
+        batch_num_nodes_per_graph = None
         if on_ipu:
-            max_num_nodes_per_graph = self.max_num_nodes_per_graph
+            batch_num_nodes_per_graph = self.batch_num_nodes_per_graph
 
         attn_bias_3d, node_feature_3d = self.preprocess_3d_positions(
-            batch, max_num_nodes_per_graph, on_ipu, positions_3d_key=input_keys[0]
+            batch, batch_num_nodes_per_graph, on_ipu, positions_3d_key=input_keys[0]
         )
 
         # Return `attn_bias_3d` if the key starts with 'nodepair_'
@@ -159,7 +159,7 @@ class GaussianKernelPosEncoder(BaseEncoder):
             dict(
                 num_heads=self.num_heads,
                 embed_dim=round(self.embed_dim / divide_factor),
-                max_num_nodes_per_graph=self.max_num_nodes_per_graph,
+                batch_num_nodes_per_graph=self.batch_num_nodes_per_graph,
             )
         )
         return base_kwargs

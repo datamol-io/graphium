@@ -647,7 +647,7 @@ class PredictorModule(lightning.LightningModule):
 
         return PredictorModule.load_from_checkpoint(GRAPHIUM_PRETRAINED_MODELS[name])
 
-    def set_max_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
+    def set_max_num_nodes_edges_per_graph(self, datamodule: BaseDataModule, stages: Optional[List[str]] = None):
         datamodule.setup()
 
         max_nodes = datamodule.get_max_num_nodes_datamodule(stages)

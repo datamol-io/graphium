@@ -11,12 +11,12 @@ constants:
 #      args:
 #        ipu_dataloader_training_opts:
 #          mode: async
-#          max_num_nodes_per_graph: 24 # train max nodes: 20, max_edges: 54
-#          max_num_edges_per_graph: 60
+#          batch_num_nodes_per_graph: 24 # train max nodes: 20, max_edges: 54
+#          batch_num_edges_per_graph: 60
 #        ipu_dataloader_inference_opts:
 #          mode: async
-#          max_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
-#          max_num_edges_per_graph: 60
+#          batch_num_nodes_per_graph: 24 # valid max nodes: 51, max_edges: 118
+#          batch_num_edges_per_graph: 60
 #        # Data handling-related
 #        batch_size_training: 50
 #        batch_size_inference: 50

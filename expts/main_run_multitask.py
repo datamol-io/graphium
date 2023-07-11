@@ -85,14 +85,14 @@ def main(cfg: dict, run_name: str = "main", add_date_time: bool = True) -> None:
 
     # Determine the max num nodes and edges in training and validation
     logger.info("About to set the max nodes etc.")
-    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["train", "val"])
+    predictor.set_max_num_nodes_edges_per_graph(datamodule, stages=["train", "val"])
 
     # Run the model training
     with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
         trainer.fit(model=predictor, datamodule=datamodule)
 
     # Determine the max num nodes and edges in testing
-    predictor.set_max_nodes_edges_per_graph(datamodule, stages=["test"])
+    predictor.set_max_num_nodes_edges_per_graph(datamodule, stages=["test"])
 
     # Run the model testing
     with SafeRun(name="TESTING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):

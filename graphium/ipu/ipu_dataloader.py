@@ -37,37 +37,37 @@ class IPUDataloaderOptions:
 
     batch_size: int
     max_num_nodes: Optional[int] = None
-    max_num_nodes_per_graph: Optional[int] = None
+    batch_num_nodes_per_graph: Optional[int] = None
     max_num_edges: Optional[int] = None
-    max_num_edges_per_graph: Optional[int] = None
+    batch_num_edges_per_graph: Optional[int] = None
     mode: "poptorch.DataLoaderMode" = "Sync"
 
     def set_kwargs(self):
         # Get the maximum number of nodes
         if self.max_num_nodes is not None:
             assert (
-                self.max_num_nodes_per_graph is None
-            ), "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
-        elif self.max_num_nodes_per_graph is not None:
+                self.batch_num_nodes_per_graph is None
+            ), "Cannot use `max_num_nodes` and `batch_num_nodes_per_graph` simultaneously"
+        elif self.batch_num_nodes_per_graph is not None:
             assert (
                 self.max_num_nodes is None
-            ), "Cannot use `max_num_nodes` and `max_num_nodes_per_graph` simultaneously"
-            self.max_num_nodes = self.max_num_nodes_per_graph * self.batch_size
+            ), "Cannot use `max_num_nodes` and `batch_num_nodes_per_graph` simultaneously"
+            self.max_num_nodes = self.batch_num_nodes_per_graph * self.batch_size
         else:
-            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
+            raise ValueError("Must provide either `max_num_nodes` or `batch_num_nodes_per_graph`")
 
         # Get the maximum number of edges
         if self.max_num_edges is not None:
             assert (
-                self.max_num_edges_per_graph is None
-            ), "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
-        elif self.max_num_edges_per_graph is not None:
+                self.batch_num_edges_per_graph is None
+            ), "Cannot use `max_num_edges` and `batch_num_edges_per_graph` simultaneously"
+        elif self.batch_num_edges_per_graph is not None:
             assert (
                 self.max_num_edges is None
-            ), "Cannot use `max_num_edges` and `max_num_edges_per_graph` simultaneously"
-            self.max_num_edges = self.max_num_edges_per_graph * self.batch_size
+            ), "Cannot use `max_num_edges` and `batch_num_edges_per_graph` simultaneously"
+            self.max_num_edges = self.batch_num_edges_per_graph * self.batch_size
         else:
-            raise ValueError("Must provide either `max_num_nodes` or `max_num_nodes_per_graph`")
+            raise ValueError("Must provide either `max_num_nodes` or `batch_num_nodes_per_graph`")
 
         # poptorch mode
         poptorch = import_poptorch()

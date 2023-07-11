@@ -271,8 +271,8 @@ class test_DataLoading(ut.TestCase):
         cfg, accelerator = load_accelerator(cfg)
         cfg["datamodule"]["args"]["batch_size_training"] = batch_size
         cfg["datamodule"]["args"]["batch_size_inference"] = batch_size
-        node_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_nodes_per_graph"]
-        edge_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_edges_per_graph"]
+        node_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["batch_num_nodes_per_graph"]
+        edge_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["batch_num_edges_per_graph"]
 
         # Load the datamodule, and prepare the data
         datamodule = load_datamodule(cfg, accelerator_type="ipu")

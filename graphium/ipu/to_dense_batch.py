@@ -23,7 +23,7 @@ def to_dense_batch(
     x: Tensor,
     batch: Optional[Tensor] = None,
     fill_value: float = 0.0,
-    max_num_nodes_per_graph: Optional[int] = None,
+    batch_num_nodes_per_graph: Optional[int] = None,
     batch_size: Optional[int] = None,
     drop_nodes_last_graph=False,
 ) -> Tuple[Tensor, Tensor]:
@@ -45,15 +45,15 @@ def to_dense_batch(
             node to a specific example. Must be ordered. (default: :obj:`None`)
         fill_value: The value for invalid entries in the
             resulting dense output tensor. (default: :obj:`0`)
-        max_num_nodes_per_graph: The size of the output node dimension.
+        batch_num_nodes_per_graph: The size of the output node dimension.
             (default: :obj:`None`)
         batch_size: The batch size. (default: :obj:`None`)
         drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
-            the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
+            the `batch_num_nodes_per_graph`. Useful when the last graph is a padding.
 
     :rtype: (:class:`Tensor`, :class:`BoolTensor`)
     """
-    if batch is None and max_num_nodes_per_graph is None:
+    if batch is None and batch_num_nodes_per_graph is None:
         mask = torch.ones(1, x.size(0), dtype=torch.bool, device=x.device)
         return x.unsqueeze(0), mask
 
@@ -74,13 +74,13 @@ def to_dense_batch(
         num_nodes = batch.eq(arange).sum(dim=-1)
     cum_nodes = torch.cat([batch.new_zeros(1), num_nodes.cumsum(dim=0)])
 
-    if max_num_nodes_per_graph is None:  # Must be provided on IPU
-        max_num_nodes_per_graph = int(num_nodes.max())
+    if batch_num_nodes_per_graph is None:  # Must be provided on IPU
+        batch_num_nodes_per_graph = int(num_nodes.max())
 
     idx = torch.arange(batch.size(0), dtype=torch.long, device=x.device)
-    idx = (idx - cum_nodes[batch]) + (batch * max_num_nodes_per_graph)
+    idx = (idx - cum_nodes[batch]) + (batch * batch_num_nodes_per_graph)
 
-    size = [batch_size * max_num_nodes_per_graph] + list(x.size())[1:]
+    size = [batch_size * batch_num_nodes_per_graph] + list(x.size())[1:]
 
     out = x.new_full(size, fill_value)
 
@@ -94,14 +94,14 @@ def to_dense_batch(
     # Raise error if num_nodes > max_num_nodes
     if x.device.type != "ipu":
         assert (
-            num_nodes <= max_num_nodes_per_graph
-        ).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {max_num_nodes_per_graph}`"
+            num_nodes <= batch_num_nodes_per_graph
+        ).all(), f"Encountered graphs with {num_nodes.max()} nodes, greater than `max_num_nodes = {batch_num_nodes_per_graph}`"
 
     out[idx] = x
-    out = out.view([batch_size, max_num_nodes_per_graph] + list(x.size())[1:])
+    out = out.view([batch_size, batch_num_nodes_per_graph] + list(x.size())[1:])
 
     # Create a zero-mask on the right device
-    mask_sz = batch_size * max_num_nodes_per_graph
+    mask_sz = batch_size * batch_num_nodes_per_graph
     if x.device.type in ("ipu", "xla"):
         mask = torch.zeros(mask_sz, dtype=torch.int32, device="cpu")
         mask = mask.to(x.device)
@@ -113,7 +113,7 @@ def to_dense_batch(
         else:
             num_nodes_with_padding = num_nodes
 
-        arange = torch.arange(max_num_nodes_per_graph)
+        arange = torch.arange(batch_num_nodes_per_graph)
         mask = num_nodes_with_padding.unsqueeze(-1).gt(arange).flatten()
 
     else:
@@ -122,7 +122,7 @@ def to_dense_batch(
 
     ##### END CHANGES FROM PYG #####
 
-    mask = mask.view(batch_size, max_num_nodes_per_graph)
+    mask = mask.view(batch_size, batch_num_nodes_per_graph)
 
     return out, mask, idx  # Added `idx` as a return
 
@@ -132,7 +132,7 @@ def to_packed_dense_batch(
     pack_from_node_idx: Tensor,
     pack_attn_mask: Tensor,
     fill_value: float = 0.0,
-    max_num_nodes_per_pack: Optional[int] = None,
+    batch_num_nodes_per_pack: Optional[int] = None,
 ) -> Tuple[Tensor, Tensor]:
     r"""Given a sparse batch of node features
     :math:`\mathbf{X} \in \mathbb{R}^{(N_1 + \ldots + N_B) \times F}` (with
@@ -152,16 +152,16 @@ def to_packed_dense_batch(
             node to a specific example. Must be ordered. (default: :obj:`None`)
         fill_value: The value for invalid entries in the
             resulting dense output tensor. (default: :obj:`0`)
-        max_num_nodes_per_graph: The size of the output node dimension.
+        batch_num_nodes_per_graph: The size of the output node dimension.
             (default: :obj:`None`)
         batch_size: The batch size. (default: :obj:`None`)
         drop_nodes_last_graph: Whether to drop the nodes of the last graphs that exceed
-            the `max_num_nodes_per_graph`. Useful when the last graph is a padding.
+            the `batch_num_nodes_per_graph`. Useful when the last graph is a padding.
 
     :rtype: (:class:`Tensor`, :class:`BoolTensor`)
     """
 
-    if max_num_nodes_per_pack is None:  # Must be provided on IPU
+    if batch_num_nodes_per_pack is None:  # Must be provided on IPU
         max_num_nodes_per_pack = pack_attn_mask.shape[-1]
 
     size = [pack_attn_mask[0], max_num_nodes_per_pack] + list(x.size())[1:]

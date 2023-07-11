@@ -73,8 +73,8 @@ class BaseGraphStructure:
         self.layer_idx = layer_idx
         self.layer_depth = layer_depth
         self.droppath_rate = droppath_rate
-        self._max_num_nodes_per_graph = None
-        self._max_num_edges_per_graph = None
+        self._batch_num_nodes_per_graph = None
+        self._batch_num_edges_per_graph = None
 
     def _initialize_activation_dropout_norm(self):
         if not isinstance(self, nn.Module):
@@ -242,14 +242,14 @@ class BaseGraphStructure:
         ...
 
     @property
-    def max_num_nodes_per_graph(self) -> Optional[int]:
+    def batch_num_nodes_per_graph(self) -> Optional[int]:
         """
         Get the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
         """
-        return self._max_num_nodes_per_graph
+        return self._batch_num_nodes_per_graph
 
-    @max_num_nodes_per_graph.setter
-    def max_num_nodes_per_graph(self, value: Optional[int]):
+    @batch_num_nodes_per_graph.setter
+    def batch_num_nodes_per_graph(self, value: Optional[int]):
         """
         Set the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
         """
@@ -257,17 +257,17 @@ class BaseGraphStructure:
             assert isinstance(value, int) and (
                 value > 0
             ), f"Value should be a positive integer, provided f{value} of type {type(value)}"
-        self._max_num_nodes_per_graph = value
+        self._batch_num_nodes_per_graph = value
 
     @property
-    def max_num_edges_per_graph(self) -> Optional[int]:
+    def batch_num_edges_per_graph(self) -> Optional[int]:
         """
         Get the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
         """
-        return self._max_num_edges_per_graph
+        return self._batch_max_num_edges_per_graph
 
-    @max_num_edges_per_graph.setter
-    def max_num_edges_per_graph(self, value: Optional[int]):
+    @batch_num_edges_per_graph.setter
+    def batch_num_edges_per_graph(self, value: Optional[int]):
         """
         Set the maximum number of nodes per graph. Useful for reshaping a compiled model (IPU)
         """
@@ -275,7 +275,7 @@ class BaseGraphStructure:
             assert isinstance(value, int) and (
                 value > 0
             ), f"Value should be a positive integer, provided f{value} of type {type(value)}"
-        self._max_num_edges_per_graph = value
+        self._batch_num_edges_per_graph = value
 
     def __repr__(self):
         r"""

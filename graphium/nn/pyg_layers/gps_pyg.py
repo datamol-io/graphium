@@ -298,7 +298,7 @@ class GPSLayerPyg(BaseGraphModule):
         h: Tensor,
         batch: Batch,
         batch_size: Optional[int] = None,
-        max_num_nodes_per_graph: Optional[int] = None,
+        batch_num_nodes_per_graph: Optional[int] = None,
         on_ipu: bool = False,
     ) -> Tensor:
         """
@@ -321,7 +321,7 @@ class GPSLayerPyg(BaseGraphModule):
                 h,
                 batch=batch.batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
                 batch_size=batch_size,
-                max_num_nodes_per_graph=max_num_nodes_per_graph,
+                batch_num_nodes_per_graph=batch_num_nodes_per_graph,
                 drop_nodes_last_graph=on_ipu,
             )
             key_padding_mask = ~key_padding_mask
@@ -353,9 +353,9 @@ class GPSLayerPyg(BaseGraphModule):
 
         # Multi-head attention.
         on_ipu = is_running_on_ipu()
-        max_num_nodes_per_graph = None
+        batch_num_nodes_per_graph = None
         if on_ipu:
-            max_num_nodes_per_graph = self.max_num_nodes_per_graph
+            batch_num_nodes_per_graph = self.batch_num_nodes_per_graph
 
         # Convert the tensor to a dense batch, then back to a sparse batch
         batch_size = None if feat.device.type != "ipu" else batch.graph_is_true.shape[0]
@@ -365,7 +365,7 @@ class GPSLayerPyg(BaseGraphModule):
             feat,
             batch=batch,  # The batch index as a vector that indicates for nodes of which graph it belongs to
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            batch_num_nodes_per_graph=batch_num_nodes_per_graph,
             on_ipu=on_ipu,
         )
 

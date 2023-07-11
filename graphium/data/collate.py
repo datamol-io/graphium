@@ -127,7 +127,7 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
     num_nodes_list = []
     for pyg_graph in pyg_graphs:
         num_nodes_list.append(pyg_graph["num_nodes"])
-    max_num_nodes_per_graph = max(num_nodes_list)
+    batch_num_nodes_per_graph = max(num_nodes_list)
 
     pyg_batch = []
     for pyg_graph in pyg_graphs:
@@ -140,7 +140,7 @@ def collage_pyg_graph(pyg_graphs: Iterable[Union[Data, Dict]], batch_size_per_pa
 
             # pad nodepair-level positional encodings
             if pyg_key.startswith("nodepair_"):
-                pyg_graph[pyg_key] = pad_nodepairs(tensor, pyg_graph["num_nodes"], max_num_nodes_per_graph)
+                pyg_graph[pyg_key] = pad_nodepairs(tensor, pyg_graph["num_nodes"], batch_num_nodes_per_graph)
             else:
                 pyg_graph[pyg_key] = tensor
 
@@ -289,19 +289,19 @@ def collate_labels(
     return collate_pyg_graph_labels(labels)
 
 
-def pad_nodepairs(pe: torch.Tensor, num_nodes: int, max_num_nodes_per_graph: int):
+def pad_nodepairs(pe: torch.Tensor, num_nodes: int, batch_num_nodes_per_graph: int):
     """
     This function zero-pads nodepair-level positional encodings to conform with the batching logic.
 
     Parameters:
         pe (torch.Tensor, [num_nodes, num_nodes, num_feat]): Nodepair pe
         num_nodes (int): Number of nodes of processed graph
-        max_num_nodes_per_graph (int): Maximum number of nodes among graphs in current batch
+        batch_num_nodes_per_graph (int): Maximum number of nodes among graphs in current batch
 
     Returns:
-        padded_pe (torch.Tensor, [num_nodes, max_num_nodes_per_graph, num_feat]): padded nodepair pe tensor
+        padded_pe (torch.Tensor, [num_nodes, batch_num_nodes_per_graph, num_feat]): padded nodepair pe tensor
     """
-    padded_pe = torch.zeros((num_nodes, max_num_nodes_per_graph, pe.size(-1)), dtype=pe.dtype)
+    padded_pe = torch.zeros((num_nodes, batch_num_nodes_per_graph, pe.size(-1)), dtype=pe.dtype)
     padded_pe[:, :num_nodes] = pe[:, :num_nodes]
     # Above, pe[:, :num_nodes] in the rhs is needed to "overwrite" zero-padding from previous epoch
 

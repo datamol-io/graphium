@@ -1514,7 +1514,7 @@ class GraphOutputNN(nn.Module, MupMixin):
             batch=batch,
             fill_value=fill_value,
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes,
+            batch_num_nodes_per_graph=max_num_nodes,
             drop_nodes_last_graph=drop_nodes_last_graph,
         )
         n = dense_feat.size(1)

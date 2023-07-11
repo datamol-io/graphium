@@ -55,7 +55,7 @@ class test_MultiHeadAttention(ut.TestCase):
             bg.feat,
             batch=bg.batch,
             batch_size=None,
-            max_num_nodes_per_graph=None,
+            batch_num_nodes_per_graph=None,
             drop_nodes_last_graph=False,
         )
         # attn_bias [batch, num_heads, nodes, nodes]

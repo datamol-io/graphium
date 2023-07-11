@@ -1,5 +1,9 @@
 ############ graphium Custom GitIgnore ##############
 
+# Personal
+expts/neurips2023/debug/config_small_gcn_mod.yaml
+expts/neurips2023/config_small_gcn_mod.yaml
+
 # Workspace
 *.code-workspace
 .vscode/

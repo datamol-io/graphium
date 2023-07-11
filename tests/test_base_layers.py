@@ -29,7 +29,7 @@ class test_Base_Layers(ut.TestCase):
     bg = Batch.from_data_list([g1, g2])
 
     batch_size = 2
-    max_num_nodes_per_graph = max(x1.shape[0], x2.shape[0])
+    batch_num_nodes_per_graph = max(x1.shape[0], x2.shape[0])
 
     # for drop_rate=0.5, test if the output shape is correct
     def test_droppath_layer_0p5(self):
@@ -68,7 +68,7 @@ class test_Base_Layers(ut.TestCase):
             feat_in,
             batch=bg.batch,
             batch_size=self.batch_size,
-            max_num_nodes_per_graph=self.max_num_nodes_per_graph,
+            batch_num_nodes_per_graph=self.batch_num_nodes_per_graph,
             drop_nodes_last_graph=False,
         )
         attn_mask = None

@@ -60,14 +60,14 @@ class PreprocessPositions(nn.Module):
         self.node_proj = nn.Linear(self.num_kernel, self.embed_dim)
 
     def forward(
-        self, batch: Batch, max_num_nodes_per_graph: int, on_ipu: bool, positions_3d_key: str
+        self, batch: Batch, batch_num_nodes_per_graph: int, on_ipu: bool, positions_3d_key: str
     ) -> Tuple[Tensor, Tensor]:
         r"""
         Inputs:
             batch:
                 Batch object.
-            max_num_nodes_per_graph:
-                Maximum number of nodes per graph.
+            batch_num_nodes_per_graph:
+                Maximum number of nodes per graph in batch.
             on_ipu:
                 If model rus on IPU.
             positions_3d_key:
@@ -87,7 +87,7 @@ class PreprocessPositions(nn.Module):
             pos,
             batch=batch.batch,
             batch_size=batch_size,
-            max_num_nodes_per_graph=max_num_nodes_per_graph,
+            batch_num_nodes_per_graph=batch_num_nodes_per_graph,
             drop_nodes_last_graph=on_ipu,
         )
         # check nan with the pos from to_dense_batch,

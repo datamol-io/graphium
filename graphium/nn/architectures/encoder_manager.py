@@ -30,7 +30,7 @@ class EncoderManager(nn.Module):
     def __init__(
         self,
         pe_encoders_kwargs: Optional[Dict[str, Any]] = None,
-        max_num_nodes_per_graph: Optional[int] = None,
+        batch_num_nodes_per_graph: Optional[int] = None,
         name: str = "encoder_manager",
     ):
         r"""
@@ -48,15 +48,15 @@ class EncoderManager(nn.Module):
 
         super().__init__()
         self.name = name
-        self.max_num_nodes_per_graph = max_num_nodes_per_graph
+        self.batch_num_nodes_per_graph = batch_num_nodes_per_graph
         if pe_encoders_kwargs is not None:
-            max_nodes = pe_encoders_kwargs.pop("max_num_nodes_per_graph", None)
+            max_nodes = pe_encoders_kwargs.pop("batch_num_nodes_per_graph", None)
             if max_nodes is not None:
-                if self.max_num_nodes_per_graph is not None:
+                if self.batch_num_nodes_per_graph is not None:
                     assert (
-                        self.max_num_nodes_per_graph == max_nodes
-                    ), f"max_num_nodes_per_graph mismatch {self.max_num_nodes_per_graph}!={max_nodes}"
-                self.max_num_nodes_per_graph = max_nodes
+                        self.batch_num_nodes_per_graph == max_nodes
+                    ), f"batch_num_nodes_per_graph mismatch {self.batch_num_nodes_per_graph}!={max_nodes}"
+                self.batch_num_nodes_per_graph = max_nodes
 
         self.pe_encoders_kwargs = deepcopy(pe_encoders_kwargs)
         self.pe_encoders = self._initialize_positional_encoders(pe_encoders_kwargs)
@@ -120,9 +120,9 @@ class EncoderManager(nn.Module):
                     f"`in_dim` not understood for encoder {encoder_name}. Provided: {this_in_dims}. Accepted keys are: {accepted_keys}"
                 )
 
-            # Add the max_num_nodes_per_graph if it's in the accepted input keys
-            if "max_num_nodes_per_graph" in accepted_keys:
-                encoder_kwargs["max_num_nodes_per_graph"] = self.max_num_nodes_per_graph
+            # Add the batch_num_nodes_per_graph if it's in the accepted input keys
+            if "batch_num_nodes_per_graph" in accepted_keys:
+                encoder_kwargs["batch_num_nodes_per_graph"] = self.batch_num_nodes_per_graph
 
             # Initialize the pe_encoder layer
             if output_keys[0] == "feat":
