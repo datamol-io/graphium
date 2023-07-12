@@ -45,15 +45,17 @@ def get_accelerator(
 
     # Get the GPU info
     if (accelerator_type == "gpu") and (not torch.cuda.is_available()):
-        logger.warning(f"GPUs selected, but will be ignored since no GPU are available on this device")
-        accelerator_type = "cpu"
+        raise ValueError(f"GPUs selected, but GPUs are not available on this device")
 
     # Get the IPU info
     if accelerator_type == "ipu":
         poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
-            logger.warning(f"IPUs selected, but will be ignored since no IPU are available on this device")
-            accelerator_type = "cpu"
+            logger.warning(
+                "IPUs selected, but no IPU is available/visible on this device. "
+                "If you do have IPUs, please check that the IPUOF_VIPU_API_PARTITION_ID and "
+                "IPUOF_VIPU_API_HOST environment variables are set."
+            )
 
     # Fall on cpu at the end
     if accelerator_type is None:
