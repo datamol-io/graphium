@@ -40,5 +40,11 @@ jobs:
           # Install Graphium in dev mode
           python -m pip install --no-deps -e .
 
+      - name: Run tests
+        run: pytest 
+
       - name: Test CLI
         run: graphium --help
+
+      - name: Test building the doc
+        run: mkdocs build
