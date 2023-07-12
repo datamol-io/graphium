@@ -50,6 +50,8 @@ def get_accelerator(
     # Get the IPU info
     if accelerator_type == "ipu":
         poptorch = import_poptorch()
+        if poptorch is None:
+            raise ValueError("IPUs selected, but PopTorch is not available")
         if not poptorch.ipuHardwareIsAvailable():
             raise ValueError(
                 "IPUs selected, but no IPU is available/visible on this device. "
