@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.10"]
+        python-version: ["3.8"]
         pytorch-version: ["1.13"]
 
     runs-on: "ubuntu-latest"
@@ -27,22 +27,17 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - name: Install Poplar SDK
-        run: |
-          pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.2.0_7cd8ade3cd-3.2.0&file=poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz
-
       - name: Activate SDK + Install Requirements
         run: |
+          pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.2.0_7cd8ade3cd-3.2.0&file=poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz
           # Enable Poplar SDK (including Poplar and PopART)
           source poplar_sdk-ubuntu_20_04-3.2.0+1277-7cd8ade3cd/enable
 
           # Install the IPU specific and graphium requirements
           PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
           pip install -r lightning.txt
-      - name: Install Graphium
-        run: |
           # Install Graphium in dev mode
-          python -m pip install --no-deps .
+          python -m pip install --no-deps -e .
 
       - name: Test CLI
         run: graphium --help
