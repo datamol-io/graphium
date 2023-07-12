@@ -30,13 +30,12 @@ jobs:
       - name: Activate SDK + Install Requirements
         run: |
           python3 -m pip install --upgrade pip
-          pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.2.0_7cd8ade3cd-3.2.0&file=poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz
+          pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.3.0_208993bbb7-3.3.0&file=poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz
           # Enable Poplar SDK (including Poplar and PopART)
-          source poplar_sdk-ubuntu_20_04-3.2.0+1277-7cd8ade3cd/enable
+          source poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7/enable
 
           # Install the IPU specific and graphium requirements
-          PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
-          pip install -r lightning.txt
+          pip install -r requirements_ipu.txt
           # Install Graphium in dev mode
           python -m pip install --no-deps -e .
 
