@@ -27,7 +27,7 @@ jobs:
         shell: bash -l {0}
 
     name: |
-        regulat_env - 
+        regular_env - 
         python=${{ matrix.python-version }} -
         pytorch=${{ matrix.pytorch-version }}
 

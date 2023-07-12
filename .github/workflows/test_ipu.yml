@@ -42,7 +42,7 @@ jobs:
       - name: Install Graphium
         run: |
           # Install Graphium in dev mode
-          python -m pip install --no-deps -e .
+          python -m pip install --no-deps .
 
       - name: Test CLI
         run: graphium --help
