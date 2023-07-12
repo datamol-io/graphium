@@ -1,14 +1,16 @@
+import tempfile
+from contextlib import redirect_stderr, redirect_stdout
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
 
 import os
-import glob
 from functools import partial
 import importlib.resources
 import zipfile
 from copy import deepcopy
 import time
 import gc
-from rdkit import Chem
+
+import platformdirs
 import re
 from graphium.data.utils import get_keys
 
@@ -29,7 +31,6 @@ import lightning
 from lightning.pytorch.trainer.states import RunningStage
 
 import torch
-from torch_geometric.data import Data
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
@@ -752,7 +753,7 @@ class IPUDataModuleModifier:
 class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def __init__(
         self,
-        task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
+        task_specific_args: Union[DatasetProcessingParams, Dict[str, Any]],
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
@@ -859,11 +860,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         self.task_specific_args = task_specific_args
 
-        # TODO: Have the input argument to the Data Module be of type DatasetParams
-        self.task_dataset_processing_params = {
-            self._get_task_key(ds_args["task_level"], task): DatasetProcessingParams(**ds_args)
-            for task, ds_args in task_specific_args.items()
-        }
+        self.task_dataset_processing_params = {}
+        for task, ds_args in task_specific_args.items():
+            if not isinstance(ds_args, DatasetProcessingParams):
+                # This is needed as long as not all classes have been migrated
+                # to use the new `DatasetProcessingParams` class
+                ds_args = DatasetProcessingParams(**ds_args)
+
+            key = self._get_task_key(ds_args.task_level, task)
+            self.task_dataset_processing_params[key] = ds_args
+
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
@@ -1859,15 +1865,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             elif file_type in ["csv", "tsv"]:
                 with fsspec.open(str(splits_path)) as f:
                     splits = self._read_csv(splits_path)
-                splits = splits.dropna()
             else:
                 raise ValueError(
                     f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
                 )
             train, val, test = split_names
-            train_indices = np.asarray(splits[train]).astype("int").tolist()
-            val_indices = np.asarray(splits[val]).astype("int").tolist()
-            test_indices = np.asarray(splits[test]).astype("int").tolist()
+            train_indices = np.asarray(splits[train].dropna()).astype("int").tolist()
+            val_indices = np.asarray(splits[val].dropna()).astype("int").tolist()
+            test_indices = np.asarray(splits[test].dropna()).astype("int").tolist()
 
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
@@ -2114,7 +2119,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 class GraphOGBDataModule(MultitaskFromSmilesDataModule):
     def __init__(
         self,
-        task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
+        task_specific_args: Dict[str, Union[DatasetProcessingParams, Dict[str, Any]]],
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
@@ -2335,6 +2340,153 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
 
         return ogb_metadata
+
+
+class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
+    """
+    Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons) molecular data repository
+
+    Citation:
+    Huang, K., Fu, T., Gao, W., Zhao, Y., Roohani, Y., Leskovec, J., Coley, C., Xiao, C., Sun, J., & Zitnik, M. (2021).
+    Therapeutics Data Commons: Machine Learning Datasets and Tasks for Drug Discovery and Development.
+    Proceedings of Neural Information Processing Systems, NeurIPS Datasets and Benchmarks.
+    """
+
+    def __init__(
+        self,
+        # TDC-specific
+        tdc_benchmark_names: Optional[List[str]] = None,
+        tdc_train_val_seed: int = 0,
+        # Inherited arguments from superclass
+        cache_data_path: Optional[Union[str, os.PathLike]] = None,
+        featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
+        batch_size_per_pack: Optional[int] = None,
+        num_workers: int = 0,
+        pin_memory: bool = True,
+        persistent_workers: bool = False,
+        featurization_n_jobs: int = -1,
+        featurization_progress: bool = False,
+        featurization_backend: str = "loky",
+        collate_fn: Optional[Callable] = None,
+        prepare_dict_or_graph: str = "pyg:graph",
+        **kwargs,
+    ):
+        try:
+            from tdc.benchmark_group import admet_group
+            from tdc.utils import retrieve_benchmark_names
+        except ImportError as error:
+            # To make sure we use the exact same train-test set and preprocessing as other benchmark entries,
+            # we rely on the PyTDC library.
+            raise RuntimeError(
+                f"To use {self.__class__.__name__}, `PyTDC` needs to be installed. "
+                f"Please install it with `pip install PyTDC`"
+            ) from error
+
+        # Pick a path to save the TDC data to
+        if cache_data_path is not None:
+            tdc_cache_dir = osp.join(cache_data_path, "TDC")
+        else:
+            tdc_cache_dir = platformdirs.user_cache_dir("TDC")
+        tdc_cache_dir = osp.join(tdc_cache_dir, "ADMET_Benchmark")
+        os.makedirs(tdc_cache_dir, exist_ok=True)
+
+        # Create the benchmark group object
+        # NOTE (cwognum): We redirect stderr and stdout to None since TDC uses print statements,
+        #  which quickly pollute the logs.
+        with redirect_stderr(None):
+            with redirect_stdout(None):
+                self.group = admet_group(path=tdc_cache_dir)
+
+        # By default, use all available benchmarks in a benchmark group
+        if tdc_benchmark_names is None:
+            tdc_benchmark_names = retrieve_benchmark_names("admet_group")
+
+        # Create the task-specific arguments
+        logger.info(
+            f"Preparing the TDC ADMET Benchmark Group splits for each of the {len(tdc_benchmark_names)} benchmarks."
+        )
+
+        task_specific_args = {
+            t: self._get_task_specific_arguments(t, tdc_train_val_seed, tdc_cache_dir)
+            for t in tdc_benchmark_names
+        }
+
+        super().__init__(
+            task_specific_args=task_specific_args,
+            cache_data_path=cache_data_path,
+            featurization=featurization,
+            batch_size_training=batch_size_training,
+            batch_size_inference=batch_size_inference,
+            batch_size_per_pack=batch_size_per_pack,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            featurization_n_jobs=featurization_n_jobs,
+            featurization_progress=featurization_progress,
+            featurization_backend=featurization_backend,
+            collate_fn=collate_fn,
+            prepare_dict_or_graph=prepare_dict_or_graph,
+            **kwargs,
+        )
+
+    def _get_task_specific_arguments(self, name: str, seed: int, cache_dir: str) -> DatasetProcessingParams:
+        """
+        Loads the data and split from the TDC benchmark group object.
+
+        For the train-test split, this is fixed.
+
+        For the train-val split, this does not have to be fixed. Here we use the default splitting method
+        from TDC to do the train-val split and allow the seed to be changed. This is likely to best match
+        other entries in the benchmarking group.
+        """
+
+        benchmark = self.group.get(name)
+
+        # Get the default train-val-test split
+
+        # NOTE (cwognum): TDC prints by default to stderr, which pollutes the logs quite a bit.
+        #  This context manager mutes these by temporarily writing to a file.
+        #  Ideally, we would use `redirect_stderr(None)`, but that breaks TQDM.
+
+        with tempfile.TemporaryFile("w") as f:
+            with redirect_stderr(f):
+                train, val = self.group.get_train_valid_split(seed, name)
+        test = benchmark["test"]
+
+        # Convert to the Graphium format
+        n_val = len(val)
+        n_test = len(test)
+        n_train = len(train)
+        max_len = max(n_train, n_val, n_test)
+        total_len = n_train + n_val + n_test
+
+        data = pd.concat([train, val, test], ignore_index=True)
+
+        # NOTE (cwognum): We need to convert the labels to float, since we use NaNs down the line.
+        #  If you uncomment this line, collating the labels will raise an overflow by converting a NaN to the int dtype.
+        data["Y"] = data["Y"].astype(float)
+
+        split = pd.DataFrame(
+            {
+                "train": list(range(n_train)),
+                "val": list(range(n_train, n_train + n_val)) + [float("nan")] * (max_len - n_val),
+                "test": list(range(n_train + n_val, total_len)) + [float("nan")] * (max_len - n_test),
+            }
+        )
+        split_path = osp.join(cache_dir, f"{name}_split.csv")
+        split.to_csv(split_path, index=False)
+
+        return DatasetProcessingParams(
+            df=data,
+            idx_col="Drug_ID",
+            smiles_col="Drug",
+            label_cols=["Y"],
+            splits_path=split_path,
+            split_names=["train", "val", "test"],
+            task_level="graph",
+        )
 
 
 class FakeDataModule(MultitaskFromSmilesDataModule):
