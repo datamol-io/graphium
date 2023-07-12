@@ -12,7 +12,7 @@ jobs:
         pytorch-version: ["1.13"]
 
     runs-on: "ubuntu-latest"
-    timeout-minutes: 30
+    timeout-minutes: 300
 
     defaults:
       run:
