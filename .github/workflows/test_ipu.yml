@@ -10,7 +10,6 @@ jobs:
       matrix:
         python-version: ["3.10"]
         pytorch-version: ["1.13"]
-        pytest-args: [{name: ipu, cmd: "--verbose --durations=10 -n auto -cov=graphium --cov-fail-under=0 --cov-report xml:coverage_4.xml --cov-report term -m 'ipu'"}]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
@@ -20,7 +19,7 @@ jobs:
         shell: bash -l {0}
 
     name: |
-        ${{ matrix.pytest-args.name }} - 
+        poptorch_env - 
         python=${{ matrix.python-version }} -
         pytorch=${{ matrix.pytorch-version }}
 
