@@ -27,14 +27,9 @@ jobs:
       - name: Checkout the code
         uses: actions/checkout@v3
 
-      - name: Download Poplar SDK
-        run: |
-          rm -rf poplar_sdk-ubuntu_20_04-3.2.0+1277-7cd8ade3cd 
-          wget -O 'poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz' 'https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.2.0_7cd8ade3cd-3.2.0&file=poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz'
-          tar -xzf poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz
       - name: Install Poplar SDK
         run: |
-          pip install poplar_sdk-ubuntu_20_04-3.2.0+1277-7cd8ade3cd/poptorch-3.2.0+109946_bb50ce43ab_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
+          pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.2.0_7cd8ade3cd-3.2.0&file=poplar_sdk-ubuntu_20_04-3.2.0-7cd8ade3cd.tar.gz
 
       - name: Activate SDK + Install Requirements
         run: |
