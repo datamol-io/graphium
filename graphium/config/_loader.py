@@ -51,7 +51,7 @@ def get_accelerator(
     if accelerator_type == "ipu":
         poptorch = import_poptorch()
         if not poptorch.ipuHardwareIsAvailable():
-            logger.warning(
+            raise ValueError(
                 "IPUs selected, but no IPU is available/visible on this device. "
                 "If you do have IPUs, please check that the IPUOF_VIPU_API_PARTITION_ID and "
                 "IPUOF_VIPU_API_HOST environment variables are set."
