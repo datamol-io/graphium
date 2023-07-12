@@ -1469,6 +1469,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         # use sampler only when sampler_task_dict is set in the config and during training
         if self.sampler_task_dict is not None and stage in [RunningStage.TRAINING]:
             sampler = CustomSampler(dataset, self.sampler_task_dict)
+            # turn shuffle off when sampler is used as sampler option is mutually exclusive with shuffle
+            kwargs["shuffle"] = False
         is_ipu = ("ipu_options" in kwargs.keys()) and (kwargs.get("ipu_options") is not None)
         if is_ipu:
             loader = IPUDataModuleModifier._dataloader(self, dataset=dataset, sampler=sampler, **kwargs)
