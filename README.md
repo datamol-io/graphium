@@ -65,8 +65,7 @@ pip install PATH_TO_SDK/poptorch-3.2.0+109946_bb50ce43ab_ubuntu_20_04-cp38-cp38-
 source PATH_TO_SDK/enable
 
 # Install the IPU specific and graphium requirements
-PACKAGE_NAME=pytorch pip install -r requirements_ipu.txt
-pip install -r lightning.txt
+pip install -r requirements_ipu.txt
 
 # Install Graphium in dev mode
 pip install --no-deps -e .
