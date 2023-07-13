@@ -2344,18 +2344,36 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
 class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
     """
-    Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons) molecular data repository
+    Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons).
 
-    Citation:
-    Huang, K., Fu, T., Gao, W., Zhao, Y., Roohani, Y., Leskovec, J., Coley, C., Xiao, C., Sun, J., & Zitnik, M. (2021).
-    Therapeutics Data Commons: Machine Learning Datasets and Tasks for Drug Discovery and Development.
-    Proceedings of Neural Information Processing Systems, NeurIPS Datasets and Benchmarks.
+    !!! warning "Dependency"
+
+        This class requires [PyTDC](https://pypi.org/project/PyTDC/) to be installed.
+
+    !!! note "Citation"
+
+        Huang, K., Fu, T., Gao, W., Zhao, Y., Roohani, Y., Leskovec, J., Coley, C., Xiao, C., Sun, J., & Zitnik, M. (2021).
+        Therapeutics Data Commons: Machine Learning Datasets and Tasks for Drug Discovery and Development.
+        Proceedings of Neural Information Processing Systems, NeurIPS Datasets and Benchmarks.
+
+
+    Parameters:
+        tdc_benchmark_names: This can be any subset of the benchmark names that make up the ADMET benchmarking group.
+            If `None`, uses the complete benchmarking group. For all full list of options, see
+            [the TDC website](https://tdcommons.ai/benchmark/admet_group/overview/) or use:
+
+           ```python
+           import tdc.utils.retrieve_benchmark_names
+           retrieve_benchmark_names("admet_group")
+           ```
+        tdc_train_val_seed: TDC recommends a default splitting method for the train-val split. This parameter
+          is used to seed that splitting method.
     """
 
     def __init__(
         self,
         # TDC-specific
-        tdc_benchmark_names: Optional[List[str]] = None,
+        tdc_benchmark_names: Optional[Union[str, List[str]]] = None,
         tdc_train_val_seed: int = 0,
         # Inherited arguments from superclass
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
@@ -2385,23 +2403,23 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
             ) from error
 
         # Pick a path to save the TDC data to
-        if cache_data_path is not None:
-            tdc_cache_dir = osp.join(cache_data_path, "TDC")
-        else:
-            tdc_cache_dir = platformdirs.user_cache_dir("TDC")
-        tdc_cache_dir = osp.join(tdc_cache_dir, "ADMET_Benchmark")
-        os.makedirs(tdc_cache_dir, exist_ok=True)
+        tdc_cache_dir = fs.get_cache_dir("tdc")
+        tdc_cache_dir = fs.join(tdc_cache_dir, "ADMET_Benchmark")
+        fs.mkdir(tdc_cache_dir, exist_ok=True)
 
         # Create the benchmark group object
-        # NOTE (cwognum): We redirect stderr and stdout to None since TDC uses print statements,
-        #  which quickly pollute the logs.
-        with redirect_stderr(None):
-            with redirect_stdout(None):
-                self.group = admet_group(path=tdc_cache_dir)
+        # NOTE (cwognum): We redirect stderr and stdout to a file since TDC uses print statements,
+        #  which quickly pollute the logs. Ideally, we would use `redirect_stderr(None)`, but that breaks TQDM.
+        with tempfile.TemporaryFile("w") as f:
+            with redirect_stderr(f):
+                with redirect_stdout(f):
+                    self.group = admet_group(path=tdc_cache_dir)
 
         # By default, use all available benchmarks in a benchmark group
         if tdc_benchmark_names is None:
             tdc_benchmark_names = retrieve_benchmark_names("admet_group")
+        if isinstance(tdc_benchmark_names, str):
+            tdc_benchmark_names = [tdc_benchmark_names]
 
         # Create the task-specific arguments
         logger.info(
@@ -2475,12 +2493,12 @@ class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
                 "test": list(range(n_train + n_val, total_len)) + [float("nan")] * (max_len - n_test),
             }
         )
-        split_path = osp.join(cache_dir, f"{name}_split.csv")
+        split_path = fs.join(cache_dir, f"{name}_split.csv")
         split.to_csv(split_path, index=False)
 
         return DatasetProcessingParams(
             df=data,
-            idx_col="Drug_ID",
+            idx_col=None,
             smiles_col="Drug",
             label_cols=["Y"],
             splits_path=split_path,
