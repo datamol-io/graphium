@@ -9,6 +9,7 @@ import torch
 import unittest as ut
 from torch_geometric.data import Data, Batch
 from copy import deepcopy
+import pytest
 
 from graphium.nn.pyg_layers import (
     GINConvPyg,
@@ -216,6 +217,7 @@ class test_Pyg_Layers(ut.TestCase):
         self.assertEqual(bg2.feat.shape[1], self.out_dim * layer.out_dim_factor)
         self.assertTrue((bg2.edge_feat == self.bg.edge_feat).all)
 
+    @pytest.mark.skip_ipu
     def test_dimenetlayer(self):
         from graphium.nn.encoders.bessel_pos_encoder import BesselSphericalPosEncoder
 

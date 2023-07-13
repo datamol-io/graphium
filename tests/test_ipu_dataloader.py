@@ -12,7 +12,15 @@ import torch
 from torch.utils.data.dataloader import default_collate
 
 # Current library imports
-from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
+from graphium.config._loader import (
+    load_datamodule,
+    load_metrics,
+    load_architecture,
+    load_accelerator,
+    load_predictor,
+    load_trainer,
+)
+from graphium.utils.safe_run import SafeRun
 
 
 def random_packing(num_nodes, batch_size):
@@ -179,127 +187,26 @@ class test_DataLoading(ut.TestCase):
             warn(f"Skipping this test because poptorch is not available.\n{e}")
             return
 
-        from graphium.ipu.ipu_wrapper import PredictorModuleIPU
-
-        class TestPredictor(PredictorModuleIPU):
-            # Create a basic Ligthning for testing the batch sizes
-            def __init__(self, batch_size, node_batch_size, edge_batch_size, in_dims, **kwargs) -> None:
-                super().__init__(**kwargs)
-                self.in_dims = in_dims
-                self.batch_size = batch_size
-                self.node_batch_size = node_batch_size
-                self.edge_batch_size = edge_batch_size
-
-                import poptorch
-
-                self.pop = poptorch
-
-            def validation_step(self, features, labels):
-                features, labels = self.squeeze_input_dims(features, labels)
-                dict_input = {"features": features, "labels": labels}
-                self.assert_shapes(dict_input, "val")
-                preds = self.forward(dict_input)["preds"]
-                loss = self.compute_loss(
-                    preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None
-                )
-                loss = loss[0]
-                return loss
-
-            def training_step(self, features, labels):
-                features, labels = self.squeeze_input_dims(features, labels)
-                dict_input = {"features": features, "labels": labels}
-                preds = self.forward(dict_input)["preds"]
-                loss = self.compute_loss(
-                    preds, dict_input["labels"], weights=None, loss_fun=self.loss_fun, target_nan_mask=None
-                )
-                loss = self.pop.identity_loss(loss[0], reduction="mean")
-                return loss
-
-            def assert_shapes(self, dict_input, step):
-                msg = f", step=`{step}`"
-
-                # Test the shape of the labels
-                this_shape = list(dict_input["labels"]["homo"].shape)
-                true_shape = [self.batch_size, 2]
-                assert (
-                    this_shape == true_shape
-                ), f"Shape of the labels is `{this_shape}` but should be {true_shape}. {msg}"
-
-                # Test the shape of the node feature
-                this_shape = list(dict_input["features"]["feat"].shape)
-                true_shape = [self.node_batch_size, self.in_dims["feat"]]
-                assert (
-                    this_shape == true_shape
-                ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}. {msg}"
-
-                # Test the shape of the node feature
-                this_shape = list(dict_input["features"]["edge_feat"].shape)
-                true_shape = [self.edge_batch_size, self.in_dims["edge_feat"]]
-                assert (
-                    this_shape == true_shape
-                ), f"Shape of the feature 0 is `{this_shape}` but should be {true_shape}. {msg}"
-
-            def get_progress_bar_dict(self):
-                return {}
-
-            def configure_optimizers(self):
-                return torch.optim.Adam(self.parameters(), lr=1e-3)
-
-            def squeeze_input_dims(self, features, labels):
-                for key, tensor in features:
-                    if isinstance(tensor, torch.Tensor):
-                        features[key] = features[key].squeeze(0)
-
-                for key in labels:
-                    labels[key] = labels[key].squeeze(0)
-
-                return features, labels
-
-        gradient_accumulation = 3
-        device_iterations = 5
-        batch_size = 7
-
-        # Initialize the batch info and poptorch options
-        opts = poptorch.Options()
-        opts.deviceIterations(device_iterations)
-        training_opts = deepcopy(opts)
-        training_opts.Training.gradientAccumulation(gradient_accumulation)
-        inference_opts = deepcopy(opts)
-
-        # Load the configuration file for the model
-        CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
+        # Simplified testing config - reflecting the toymix requirements
+        # CONFIG_FILE = "tests/config_test_ipu_dataloader.yaml"
+        CONFIG_FILE = "tests/config_test_ipu_dataloader_multitask.yaml"
         with open(CONFIG_FILE, "r") as f:
             cfg = yaml.safe_load(f)
         cfg, accelerator = load_accelerator(cfg)
-        cfg["datamodule"]["args"]["batch_size_training"] = batch_size
-        cfg["datamodule"]["args"]["batch_size_inference"] = batch_size
-        node_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_nodes_per_graph"]
-        edge_factor = cfg["datamodule"]["args"]["ipu_dataloader_training_opts"]["max_num_edges_per_graph"]
 
         # Load the datamodule, and prepare the data
-        datamodule = load_datamodule(cfg, accelerator_type="ipu")
+        datamodule = load_datamodule(cfg, accelerator_type=accelerator)
         datamodule.prepare_data()
-        datamodule.setup()
-        datamodule.ipu_training_opts = training_opts
-        datamodule.ipu_inference_opts = inference_opts
-
-        model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
         metrics = load_metrics(cfg)
-        predictor = TestPredictor(
-            batch_size=batch_size,
-            node_batch_size=node_factor * batch_size,
-            edge_batch_size=edge_factor * batch_size,
-            in_dims=datamodule.in_dims,
-            model_class=model_class,
-            model_kwargs=model_kwargs,
-            metrics=metrics,
-            **cfg["predictor"],
+        model_class, model_kwargs = load_architecture(cfg, in_dims=datamodule.in_dims)
+        # datamodule.setup()
+        predictor = load_predictor(
+            cfg, model_class, model_kwargs, metrics, accelerator, datamodule.task_norms
         )
-        strategy = IPUStrategy(training_opts=training_opts, inference_opts=inference_opts)
-        trainer = Trainer(
-            logger=False, enable_checkpointing=False, max_epochs=2, strategy=strategy, num_sanity_val_steps=0
-        )
-        trainer.fit(model=predictor, datamodule=datamodule)
+        trainer = load_trainer(cfg, "test", accelerator, "date_time_suffix")
+        # Run the model training
+        with SafeRun(name="TRAINING", raise_error=cfg["constants"]["raise_train_error"], verbose=True):
+            trainer.fit(model=predictor, datamodule=datamodule)
 
 
 if __name__ == "__main__":
