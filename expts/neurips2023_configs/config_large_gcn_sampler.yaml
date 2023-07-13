@@ -1,0 +1,21 @@
+# Running the gcn model with largemix dataset with sampler.
+constants:
+  name: &name neurips2023_large_data_gcn_sampler
+  config_override: "expts/neurips2023_configs/config_large_gcn.yaml"
+
+datamodule:
+  args: # Matches that in the test_multitask_datamodule.py case.
+    sampler_task_dict: {"graph_l1000_vcap": 1.0, "graph_l1000_mcf7": 1.0, "graph_pcba_1328": 0.1, "graph_pcqm4m_g25": 0.1, "node_pcqm4m_n4": 0.1}
+
+#Task-specific
+predictor:
+  torch_scheduler_kwargs:
+    max_num_epochs: &max_epochs 1000
+    warmup_epochs: 100
+    verbose: False
+
+trainer:
+  trainer:
+    max_epochs: *max_epochs
+    min_epochs: 1
+    check_val_every_n_epoch: 100

@@ -205,7 +205,7 @@ predictor:
     l1000_mcf7:
       name: hybrid_ce_ipu
       n_brackets: 5
-      alpha: 0.9
+      alpha: 0.5
   random_seed: *seed
   optim_kwargs:
     lr: 1.e-4 # warmup can be scheduled using torch_scheduler_kwargs

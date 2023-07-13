@@ -1,4 +1,4 @@
-# Testing the gcn model with the PCQMv2 dataset on IPU.
+# Running the gcn model with the largemix dataset on IPU.
 constants:
   name: &name neurips2023_large_data_gcn
   seed: &seed 42
@@ -407,4 +407,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 10
+    check_val_every_n_epoch: 20
