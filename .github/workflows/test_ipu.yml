@@ -1,7 +1,15 @@
 name: test-ipu
 
 on:
-  workflow_call:
+  push:
+    branches: ["main"]
+    tags: ["*"]
+  pull_request:
+    branches:
+      - "*"
+      - "!gh-pages"
+  schedule:
+    - cron: "0 4 * * MON"
 
 jobs:
   test-ipu:
@@ -45,3 +53,28 @@ jobs:
       - name: Test CLI
         run: graphium --help
 
+  codecov:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10"]
+        pytorch-version: ["1.13"]
+    runs-on: "ubuntu-latest"
+    timeout-minutes: 30
+
+    defaults:
+      run:
+        shell: bash -l {0}
+    
+    name: codecov
+    needs: [test, call_ipu_test]
+    steps:
+      - name: Codecov Upload
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          verbose: false
+          env_vars: ${{ matrix.python-version }},${{ matrix.pytorch-version }}
