@@ -76,11 +76,6 @@ jobs:
     name: codecov
     needs: [test, call_ipu_test]
     steps:
-      - name: Combine Coverage Reports
-        run: |
-          pip install coverage
-          coverage combine 
-
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
         with:
