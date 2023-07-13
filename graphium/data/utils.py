@@ -1,9 +1,17 @@
+from typing import Union, List, Callable, Dict, Tuple, Any, Optional
+
 import importlib.resources
 import zipfile
 
+from loguru import logger
+
 import pandas as pd
+import numpy as np
 
 import graphium
+
+from torch_geometric.data import Data
+from graphium.features.featurizer import GraphDict
 
 GRAPHIUM_DATASETS_BASE_URL = "gs://graphium-public/datasets"
 GRAPHIUM_DATASETS = {
@@ -105,3 +113,42 @@ def get_keys(pyg_data):
         return pyg_data.keys
     else:
         return pyg_data.keys()
+
+
+def found_size_mismatch(task: str, features: Union[Data, GraphDict], labels: np.ndarray, smiles: str):
+    """
+    Check if a size mismatch exists between features and labels with respect to node/edge/nodepair.
+   
+    """
+
+    mismatch = False
+
+    if task.startswith("graph_"):
+        pass
+
+    elif task.startswith("node_"):
+        if labels.shape[0] != features.num_nodes:
+            mismatch = True
+            logger.warning(
+                (f"Inconsistent number of nodes between labels and features for {smiles}: {labels.shape[0]} vs {features.num_nodes}")
+            )
+
+
+    elif task.startswith("edge_"):
+        if labels.shape[0] != features.num_edges:
+            mismatch = True
+            logger.warning(
+                (f"Inconsistent number of edges between labels and features for {smiles}: {labels.shape[0]} vs {features.num_edges}")
+            )
+
+    elif task.startswith("nodepair_"):
+        if list(labels.shape[:2]) != 2 * [features.num_nodes]:
+            mismatch = True
+            logger.warning(
+                (f"Inconsistent shape of nodepairs between labels and features for {smiles}: {list(labels.shape[:2])} vs {2 * [features.num_nodes]}")
+            )
+
+    else:
+        raise ValueError("Unkown task level")
+    
+    return mismatch
