@@ -22,9 +22,10 @@ class SingleTaskDataset(Dataset):
         labels: List[Union[torch.Tensor, np.ndarray]],
         features: Optional[List[Union[Data, "GraphDict"]]] = None,
         smiles: Optional[List[str]] = None,
-        indices: Optional[List[str]] = None,
+        indices: Optional[List[int]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
         unique_ids: Optional[List[str]] = None,
+        mol_ids: Optional[List[str]] = None,
     ):
         r"""
         dataset for a single task
@@ -34,7 +35,8 @@ class SingleTaskDataset(Dataset):
             smiles: A list of smiles
             indices: A list of indices
             weights: A list of weights
-            unique_ids: A list of unique ids
+            unique_ids: A list of unique ids for each molecule generated from `datamol.unique_id`
+            mol_ids: A list of ids coming from the original dataset. Useful to identify the molecule in the original dataset.
         """
 
         # Verify that all lists are the same length
@@ -59,6 +61,10 @@ class SingleTaskDataset(Dataset):
             assert (
                 len(unique_ids) == numel
             ), f"unique_ids must be the same length as labels, got {len(unique_ids)} and {numel}"
+        if mol_ids is not None:
+            assert (
+                len(mol_ids) == numel
+            ), f"mol_ids must be the same length as labels, got {len(mol_ids)} and {numel}"
 
         self.labels = labels
         if smiles is not None:
@@ -74,6 +80,7 @@ class SingleTaskDataset(Dataset):
             )  # Avoid memory leaks with `num_workers > 0` by using numpy array
         self.weights = weights
         self.unique_ids = unique_ids
+        self.mol_ids = mol_ids
 
     def __len__(self):
         r"""
@@ -111,6 +118,9 @@ class SingleTaskDataset(Dataset):
         if self.unique_ids is not None:
             datum["unique_ids"] = self.unique_ids[idx]
 
+        if self.mol_ids is not None:
+            datum["mol_ids"] = self.mol_ids[idx]
+
         return datum
 
     def __getstate__(self):
@@ -122,6 +132,7 @@ class SingleTaskDataset(Dataset):
         state["indices"] = self.indices
         state["weights"] = self.weights
         state["unique_ids"] = self.unique_ids
+        state["mol_ids"] = self.mol_ids
         return state
 
     def __setstate__(self, state: dict):

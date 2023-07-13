@@ -643,14 +643,15 @@ class BaseDataModule(lightning.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
-        task_level: str = None,
-        df: pd.DataFrame = None,
+        task_level: Optional[str] = None,
+        df: Optional[pd.DataFrame] = None,
         df_path: Optional[Union[str, os.PathLike]] = None,
-        smiles_col: str = None,
+        smiles_col: Optional[str] = None,
         label_cols: List[str] = None,
-        weights_col: str = None,  # Not needed
-        weights_type: str = None,  # Not needed
-        idx_col: str = None,
+        weights_col: Optional[str] = None,  # Not needed
+        weights_type: Optional[str] = None,  # Not needed
+        idx_col: Optional[str] = None,
+        mol_ids_col: Optional[str] = None,
         sample_size: Union[int, float, Type[None]] = None,
         split_val: float = 0.2,
         split_test: float = 0.2,
@@ -670,12 +671,17 @@ class DatasetProcessingParams:
             weights_col: The column name of the weights
             weights_type: The type of weights
             idx_col: The column name of the indices
+            mol_ids_col: The column name of the molecule ids
             sample_size: The size of the sample
             split_val: The fraction of the data to use for validation
             split_test: The fraction of the data to use for testing
             seed: The seed to use for the splits and subsampling
             splits_path: The path to the splits
         """
+
+        if df is None:
+            assert df_path is not None, "Either df or df_path must be provided"
+
         self.df = df
         self.task_level = task_level
         self.df_path = df_path
@@ -684,6 +690,7 @@ class DatasetProcessingParams:
         self.weights_col = weights_col
         self.weights_type = weights_type
         self.idx_col = idx_col
+        self.mol_ids_col = mol_ids_col
         self.sample_size = sample_size
         self.split_val = split_val
         self.split_test = split_test
@@ -1040,15 +1047,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids = smiles_to_unique_mol_ids(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
             backend=self.featurization_backend,
         )
-        unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
+        _, unique_ids_idx, unique_ids_inv = np.unique(
+            all_unique_mol_ids, return_index=True, return_inverse=True
+        )
 
-        smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
+        smiles_to_featurize = [all_smiles[ii] for ii in unique_ids_idx]
 
         # Convert SMILES to features
         features, _ = self._featurize_molecules(smiles_to_featurize)
@@ -1058,7 +1067,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["features"] = []
             task_dataset_args[task]["idx_none"] = []
         # Create a list of features matching up with the original smiles
-        all_features = [features[unique_idx] for unique_idx in inv]
+        all_features = [features[unique_idx] for unique_idx in unique_ids_inv]
 
         # Add the features to the task-specific data
         for all_idx, task in enumerate(all_tasks):
@@ -1072,7 +1081,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             for idx, feat in enumerate(args["features"]):
                 if did_featurization_fail(feat):
                     idx_none.append(idx)
-            this_unique_ids = all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
+            this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
             df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
                 idx_none,
                 task_df[task],
@@ -1719,11 +1728,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         df: pd.DataFrame,
         task_level: str,
-        smiles_col: str = None,
+        smiles_col: Optional[str] = None,
         label_cols: List[str] = [],
-        idx_col: str = None,
-        weights_col: str = None,
-        weights_type: str = None,
+        idx_col: Optional[str] = None,
+        mol_ids_col: Optional[str] = None,
+        weights_col: Optional[str] = None,
+        weights_type: Optional[str] = None,
     ) -> Tuple[
         np.ndarray, np.ndarray, Union[Type[None], np.ndarray], Dict[str, Union[Type[None], np.ndarray]]
     ]:
@@ -1736,6 +1746,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             smiles_col: Name of the column containing the SMILES
             label_cols: List of column names containing the labels
             idx_col: Name of the column containing the index
+            mol_ids_col: Name of the column containing the molecule ids
             weights_col: Name of the column containing the weights
             weights_type: Type of weights to use.
         Returns:
@@ -1772,10 +1783,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             labels = float("nan") + np.zeros([len(smiles), 0])
 
+        # Get the indices, used for sub-sampling and splitting the dataset
         if idx_col is not None:
             df = df.set_index(idx_col)
-
         sample_idx = df.index.values
+
+        # Get the molecule ids
+        mol_ids = None
+        if mol_ids_col is not None:
+            mol_ids = df[mol_ids_col].values
 
         # Extract the weights
         weights = None
@@ -1803,7 +1819,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
             weights /= np.max(weights)  # Put the max weight to 1
 
-        extras = {"weights": weights}
+        extras = {"weights": weights, "mol_ids": mol_ids}
         return smiles, labels, sample_idx, extras
 
     def _get_split_indices(
@@ -2177,12 +2193,12 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             # Get OGB metadata
             this_metadata = self._get_dataset_metadata(task_args["dataset_name"])
             # Get dataset
-            df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(
+            df, mol_ids_col, smiles_col, label_cols, splits_path = self._load_dataset(
                 this_metadata, sample_size=task_args.get("sample_size", None)
             )
             new_task_specific_args[task_name] = {
                 "df": df,
-                "idx_col": idx_col,
+                "mol_ids_col": mol_ids_col,
                 "smiles_col": smiles_col,
                 "label_cols": label_cols,
                 "splits_path": splits_path,
@@ -2236,7 +2252,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 meaning that all molecules will be considered.
         Returns:
             df: Pandas dataframe containing the dataset.
-            idx_col: Name of the column containing the molecule index.
+            mol_ids_col: Name of the column containing the molecule ids.
             smiles_col: Name of the column containing the SMILES.
             label_cols: List of column names containing the labels.
             splits_path: Path to the file containing the train/val/test splits.
@@ -2305,15 +2321,15 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
         # Get column names: OGB columns are predictable
         if metadata["download_name"].startswith("pcqm4m"):
-            idx_col = df.columns[0]
+            mol_ids_col = df.columns[0]
             smiles_col = df.columns[-2]
             label_cols = df.columns[-1:].to_list()
         else:
-            idx_col = df.columns[-1]
+            mol_ids_col = df.columns[-1]
             smiles_col = df.columns[-2]
             label_cols = df.columns[:-2].to_list()
 
-        return df, idx_col, smiles_col, label_cols, splits_path
+        return df, mol_ids_col, smiles_col, label_cols, splits_path
 
     def _get_dataset_metadata(self, dataset_name: str) -> Dict[str, Any]:
         ogb_metadata = self._get_ogb_metadata()
@@ -2641,7 +2657,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             idx_per_task[task] = (total_len, total_len + num_smiles)
             total_len += num_smiles
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids = smiles_to_unique_mol_ids(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
@@ -2658,7 +2674,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 indices=task_dataset_args[task]["sample_idx"],
-                unique_ids=all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
+                unique_ids=all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
                 **task_dataset_args[task]["extras"],
             )
 
