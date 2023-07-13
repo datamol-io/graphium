@@ -48,8 +48,8 @@ class DatasetSubSampler(data_utils.Sampler):
         indices = []
         for task_name in self.task_indices.keys():
             task_size = int(len(self.task_indices[task_name]) * self.sampler_task_dict[task_name])
-            indices += np.random.choice(self.task_indices[task_name], task_size, replace=False)
-            indices_set = set(indices.tolist())
+            indices += np.random.choice(self.task_indices[task_name], task_size, replace=False).tolist()
+            indices_set = set(indices)
             self.total_size = len(indices_set)
         return iter(indices_set)
 
@@ -62,7 +62,4 @@ class DatasetSubSampler(data_utils.Sampler):
         Check if we need subsampling: if all items in the sampler_task_dict are 1.0,
         skip subsampling.
         """
-        if all(value == 1.0 for value in sampler_task_dict.values()):
-            return False
-        else:
-            return True
+        return not all(value == 1.0 for value in sampler_task_dict.values())

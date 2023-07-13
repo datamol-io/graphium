@@ -868,10 +868,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             for task, ds_args in task_specific_args.items()
         }
         self.sampler_task_dict = {
-            self._get_task_key(ds_args["task_level"], task): task_specific_args[task][
-                "epoch_sampling_fraction"
-            ]
-            for task, ds_args in task_specific_args.items()
+            task: self.task_dataset_processing_params[task].epoch_sampling_fraction
+            for task in self.task_dataset_processing_params.keys()
         }
 
         self.featurization_n_jobs = featurization_n_jobs
