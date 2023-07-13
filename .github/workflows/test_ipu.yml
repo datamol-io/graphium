@@ -45,5 +45,3 @@ jobs:
       - name: Test CLI
         run: graphium --help
 
-      - name: Test building the doc
-        run: mkdocs build
