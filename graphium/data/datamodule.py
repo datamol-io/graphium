@@ -1095,6 +1095,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 unique_ids=this_unique_ids,
+                indices=task_dataset_args[task]["sample_idx"],
                 **task_dataset_args[task]["extras"],
             )
 
@@ -1771,9 +1772,8 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             labels = float("nan") + np.zeros([len(smiles), 0])
 
-        indices = None  # What are indices for?
         if idx_col is not None:
-            indices = df[idx_col].values
+            df = df.set_index(idx_col)
 
         sample_idx = df.index.values
 
@@ -1803,7 +1803,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
             weights /= np.max(weights)  # Put the max weight to 1
 
-        extras = {"indices": indices, "weights": weights}
+        extras = {"weights": weights}
         return smiles, labels, sample_idx, extras
 
     def _get_split_indices(
@@ -2657,6 +2657,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
+                indices=task_dataset_args[task]["sample_idx"],
                 unique_ids=all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
                 **task_dataset_args[task]["extras"],
             )
