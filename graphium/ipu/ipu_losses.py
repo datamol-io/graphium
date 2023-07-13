@@ -180,7 +180,7 @@ class HybridCELossIPU(HybridCELoss):
         target[nan_targets] = 0.0
 
         # Compute the loss, and rescale by the number of nan elements
-        loss = super().forward(input, target)
+        loss = super().forward(input, target, nan_targets)
         num_real_targets = (~nan_targets).sum()
         factor1 = torch.where(num_real_targets > 0, 1, 0)
         factor2 = torch.where(num_real_targets > 0, 0, 1)

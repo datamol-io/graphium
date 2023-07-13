@@ -52,7 +52,7 @@ class HybridCELoss(_WeightedLoss):
         self.alpha = alpha
         self.softmax = torch.nn.Softmax(dim=1)
 
-    def forward(self, input: Tensor, target: Tensor) -> Tensor:
+    def forward(self, input: Tensor, target: Tensor, nan_targets: Tensor) -> Tensor:
         """
         Parameters:
             input: (batch_size x n_classes) tensor of logits predicted for each bracket.
@@ -63,6 +63,8 @@ class HybridCELoss(_WeightedLoss):
         # regression loss needs normalized logits to probability as input to do inner product with self.brackets
         # we apply softmax on the raw logits first
         softmax_input = self.softmax(input)
+        # the softmax of a tensor of 0s would not be 0s anymore, so need to apply nan_targets here again to filter out
+        softmax_input[nan_targets] = 0.0
         # [batch_size, n_classes] * [n_classes] ([0, 1, 2...n_brakets-1]) -> [batch_size]
         regression_input = torch.inner(softmax_input, self.brackets.to(input.device))
         regression_loss = self.regression_loss(regression_input, target.float(), reduction=self.reduction)

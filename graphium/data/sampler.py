@@ -1,3 +1,6 @@
+from typing import Dict, Optional
+from torch.utils.data.dataloader import Dataset
+
 import torch.utils.data as data_utils
 import numpy as np
 import time
@@ -5,8 +8,19 @@ import os
 import torch
 
 
-class CustomSampler(data_utils.Sampler):
-    def __init__(self, dataset, sampler_task_dict, data_path, data_hash):
+class DatasetSubSampler(data_utils.Sampler):
+    def __init__(
+        self, dataset: Dataset, sampler_task_dict: Dict[str, Optional[float]], data_path: str, data_hash: str
+    ):
+        """
+        Random sample a subset of the dataset for each task each epoch and combine them for training.
+
+        Parameters:
+            dataset: the whole training dataset
+            sampler_task_dict: a dict which indicates the sampled amount of data for each task.
+            data_path: path to save the data indices.
+            data_hash: hash folder name for the data indices.
+        """
         self.dataset = dataset
         self.sampler_task_dict = sampler_task_dict
         self.task_indices = {}
@@ -34,10 +48,21 @@ class CustomSampler(data_utils.Sampler):
         indices = []
         for task_name in self.task_indices.keys():
             task_size = int(len(self.task_indices[task_name]) * self.sampler_task_dict[task_name])
-            indices += np.random.choice(self.task_indices[task_name], task_size, replace=False).tolist()
-            indices_set = set(indices)
+            indices += np.random.choice(self.task_indices[task_name], task_size, replace=False)
+            indices_set = set(indices.tolist())
             self.total_size = len(indices_set)
         return iter(indices_set)
 
     def __len__(self):
         return self.total_size
+
+    @classmethod
+    def check_sampling_required(cls, sampler_task_dict):
+        """
+        Check if we need subsampling: if all items in the sampler_task_dict are 1.0,
+        skip subsampling.
+        """
+        if all(value == 1.0 for value in sampler_task_dict.values()):
+            return False
+        else:
+            return True

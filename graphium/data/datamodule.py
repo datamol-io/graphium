@@ -40,7 +40,7 @@ from graphium.features import (
     mol_to_pyggraph,
 )
 from graphium.data.utils import graphium_package_path
-from graphium.data.sampler import CustomSampler
+from graphium.data.sampler import DatasetSubSampler
 from graphium.utils.arg_checker import check_arg_iterator
 from graphium.utils.hashing import get_md5_hash
 from graphium.data.smiles_transform import (
@@ -658,6 +658,7 @@ class DatasetProcessingParams:
         splits_path: Optional[Union[str, os.PathLike]] = None,
         split_names: Optional[List[str]] = ["train", "val", "test"],
         label_normalization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
+        epoch_sampling_fraction: Optional[float] = 1.0,
     ):
         """
         object to store the parameters for the dataset processing
@@ -691,6 +692,7 @@ class DatasetProcessingParams:
         self.splits_path = splits_path
         self.split_names = split_names
         self.label_normalization = label_normalization
+        self.epoch_sampling_fraction = epoch_sampling_fraction
 
 
 class IPUDataModuleModifier:
@@ -767,7 +769,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         featurization_progress: bool = False,
         featurization_backend: str = "loky",
         featurization_batch_size: int = 1000,
-        sampler_task_dict: Optional[dict] = None,
         collate_fn: Optional[Callable] = None,
         prepare_dict_or_graph: str = "pyg:graph",
         **kwargs,
@@ -866,12 +867,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             self._get_task_key(ds_args["task_level"], task): DatasetProcessingParams(**ds_args)
             for task, ds_args in task_specific_args.items()
         }
+        self.sampler_task_dict = {
+            self._get_task_key(ds_args["task_level"], task): task_specific_args[task][
+                "epoch_sampling_fraction"
+            ]
+            for task, ds_args in task_specific_args.items()
+        }
+
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
         self.featurization_batch_size = featurization_batch_size
-
-        self.sampler_task_dict = sampler_task_dict
 
         self.task_train_indices = None
         self.task_val_indices = None
@@ -1467,8 +1473,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         kwargs = self.get_dataloader_kwargs(stage=stage, shuffle=shuffle)
         sampler = None
         # use sampler only when sampler_task_dict is set in the config and during training
-        if self.sampler_task_dict is not None and stage in [RunningStage.TRAINING]:
-            sampler = CustomSampler(
+        if DatasetSubSampler.check_sampling_required(self.sampler_task_dict) and stage in [
+            RunningStage.TRAINING
+        ]:
+            sampler = DatasetSubSampler(
                 dataset, self.sampler_task_dict, self.processed_graph_data_path, self.data_hash
             )
             # turn shuffle off when sampler is used as sampler option is mutually exclusive with shuffle

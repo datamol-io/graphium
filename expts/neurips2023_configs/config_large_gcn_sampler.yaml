@@ -5,7 +5,15 @@ constants:
 
 datamodule:
   args: # Matches that in the test_multitask_datamodule.py case.
-    sampler_task_dict: {"graph_l1000_vcap": 1.0, "graph_l1000_mcf7": 1.0, "graph_pcba_1328": 0.1, "graph_pcqm4m_g25": 0.1, "node_pcqm4m_n4": 0.1}
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      pcba_1328:
+        epoch_sampling_fraction: 0.1
+
+      pcqm4m_g25:
+        epoch_sampling_fraction: 0.1
+
+      pcqm4m_n4:
+        epoch_sampling_fraction: 0.1
 
 #Task-specific
 predictor:

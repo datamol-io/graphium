@@ -41,8 +41,9 @@ accelerator:
 #   type: cpu  # cpu or ipu or gpu
 #   config_override:
 #     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
+#       args:
+#         batch_size_training: 320
+#         batch_size_inference: 256
 #     trainer:
 #       trainer:
 #         precision: 32
@@ -60,9 +61,10 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       l1000_mcf7:
         df: null
@@ -71,9 +73,10 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       pcba_1328:
         df: null
@@ -82,9 +85,10 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: assayID-*  # assayID-* means all columns starting with "assayID-"
-        sample_size: 20000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        epoch_sampling_fraction: 0.5
 
       pcqm4m_g25:
         df: null
@@ -93,12 +97,13 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: graph_*  # graph_* means all columns starting with "graph_"
-        sample_size: 20000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 0.5
 
       pcqm4m_n4:
         df: null
@@ -107,13 +112,14 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "ordered_smiles"
         label_cols: node_* # node_* means all columns starting with "node_"
-        sample_size: 20000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: node
         splits_path: graphium/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
         seed: *seed
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 0.5
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -155,7 +161,6 @@ datamodule:
     num_workers: 30 # -1 to use all
     persistent_workers: False # if use persistent worker at the start of each epoch.
     # Using persistent_workers false might make the start of each epoch very long.
-    sampler_task_dict: {"graph_l1000_vcap": 1.0, "graph_l1000_mcf7": 1.0, "graph_pcba_1328": 0.5, "graph_pcqm4m_g25": 0.5, "node_pcqm4m_n4": 0.5}
     featurization_backend: "loky"
 
 
