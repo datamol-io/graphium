@@ -171,6 +171,8 @@ class MultitaskDataset(Dataset):
             about: A description of the dataset
             progress: Whether to display the progress bar
             about: A description of the dataset
+            data_path: The location of the data if saved on disk
+            load_from_file: Whether to load the data from disk
             files_ready: Whether the files to load from were prepared ahead of time
         """
         super().__init__()
