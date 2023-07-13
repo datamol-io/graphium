@@ -253,12 +253,12 @@ metrics:
       threshold_kwargs: null
   hia_hou: &classification_metrics
     - name: auroc
-      metric: auroc_ipu
+      metric: auroc
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null
     - name: auprc
-      metric: average_precision_ipu
+      metric: average_precision
       task: binary
       multitask_handling: mean-per-label
       threshold_kwargs: null
