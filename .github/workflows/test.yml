@@ -72,7 +72,7 @@ jobs:
         shell: bash -l {0}
     
     name: codecov
-    needs: [test, call_ipu_test]
+    needs: [test]
     steps:
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
