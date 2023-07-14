@@ -22,9 +22,10 @@ class SingleTaskDataset(Dataset):
         labels: List[Union[torch.Tensor, np.ndarray]],
         features: Optional[List[Union[Data, "GraphDict"]]] = None,
         smiles: Optional[List[str]] = None,
-        indices: Optional[List[str]] = None,
+        indices: Optional[List[int]] = None,
         weights: Optional[Union[torch.Tensor, np.ndarray]] = None,
         unique_ids: Optional[List[str]] = None,
+        mol_ids: Optional[List[str]] = None,
     ):
         r"""
         dataset for a single task
@@ -34,31 +35,25 @@ class SingleTaskDataset(Dataset):
             smiles: A list of smiles
             indices: A list of indices
             weights: A list of weights
-            unique_ids: A list of unique ids
+            unique_ids: A list of unique ids for each molecule generated from `datamol.unique_id`
+            mol_ids: A list of ids coming from the original dataset. Useful to identify the molecule in the original dataset.
         """
 
         # Verify that all lists are the same length
         numel = len(labels)
-        if features is not None:
-            assert (
-                len(features) == numel
-            ), f"features must be the same length as labels, got {len(features)} and {numel}"
-        if smiles is not None:
-            assert (
-                len(smiles) == numel
-            ), f"smiles must be the same length as labels, got {len(smiles)} and {numel}"
-        if indices is not None:
-            assert (
-                len(indices) == numel
-            ), f"indices must be the same length as labels, got {len(indices)} and {numel}"
-        if weights is not None:
-            assert (
-                len(weights) == numel
-            ), f"weights must be the same length as labels, got {len(weights)} and {numel}"
-        if unique_ids is not None:
-            assert (
-                len(unique_ids) == numel
-            ), f"unique_ids must be the same length as labels, got {len(unique_ids)} and {numel}"
+
+        def _check_if_same_length(to_check, label):
+            """Simple utility method to throw an error if the length is not as expected."""
+            if to_check is not None and len(to_check) != numel:
+                raise ValueError(
+                    f"{label} must be the same length as `labels`, got {len(to_check)} and {numel}"
+                )
+
+        _check_if_same_length(features, "features")
+        _check_if_same_length(indices, "indices")
+        _check_if_same_length(weights, "weights")
+        _check_if_same_length(unique_ids, "unique_ids")
+        _check_if_same_length(mol_ids, "mol_ids")
 
         self.labels = labels
         if smiles is not None:
@@ -74,6 +69,7 @@ class SingleTaskDataset(Dataset):
             )  # Avoid memory leaks with `num_workers > 0` by using numpy array
         self.weights = weights
         self.unique_ids = unique_ids
+        self.mol_ids = mol_ids
 
     def __len__(self):
         r"""
@@ -111,6 +107,9 @@ class SingleTaskDataset(Dataset):
         if self.unique_ids is not None:
             datum["unique_ids"] = self.unique_ids[idx]
 
+        if self.mol_ids is not None:
+            datum["mol_ids"] = self.mol_ids[idx]
+
         return datum
 
     def __getstate__(self):
@@ -122,6 +121,7 @@ class SingleTaskDataset(Dataset):
         state["indices"] = self.indices
         state["weights"] = self.weights
         state["unique_ids"] = self.unique_ids
+        state["mol_ids"] = self.mol_ids
         return state
 
     def __setstate__(self, state: dict):

@@ -1,4 +1,8 @@
+import shutil
+import tempfile
 import unittest as ut
+
+import pytest
 from omegaconf import OmegaConf
 import pandas as pd
 import numpy as np
@@ -6,6 +10,14 @@ import graphium
 
 
 class Test_Multitask_DataModule(ut.TestCase):
+    def setUp(self):
+        # Create a temporary directory
+        self.tmp_test_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        # Remove the directory after the test
+        shutil.rmtree(self.tmp_test_dir)
+
     def test_multitask_fromsmiles_dm(
         self,
     ):  # TODO: I think we can remove this as it tests tiny_zinc which only contain graph level labels
@@ -339,6 +351,56 @@ class Test_Multitask_DataModule(ut.TestCase):
                     if replace == 1:
                         non_missing_col = label_cols[1]
                         assert output[idx].shape[0] == len(df[non_missing_col][idx])
+
+    def test_tdc_admet_benchmark_data_module(self):
+        """
+        Verifies that the ADMET-specific subclass of the MultiTaskDataModule works.
+        Checks if all main endpoints can be run and if the split is correct.
+        """
+
+        try:
+            from tdc.benchmark_group import admet_group
+            from tdc.utils import retrieve_benchmark_names
+        except ImportError:
+            self.skipTest("PyTDC needs to be installed to run this test. Use `pip install PyTDC`.")
+            raise
+
+        # Make sure we can initialize the module and run the main endpoints
+        data_module = graphium.data.ADMETBenchmarkDataModule()
+        data_module.prepare_data()
+        data_module.setup()
+
+        for dl in [
+            data_module.train_dataloader(),
+            data_module.val_dataloader(),
+            data_module.test_dataloader(),
+        ]:
+            batch = next(iter(dl))
+            assert set(batch.keys()) == {"labels", "features"}
+
+        # # Validate the split
+        group = admet_group(path=self.tmp_test_dir)
+        benchmark_names = retrieve_benchmark_names("admet_group")
+
+        # For each of the endpoints...
+        for name in benchmark_names:
+            # Get the split from the benchmark group (ground truth)
+            benchmark = group.get(name)
+            train, val = group.get_train_valid_split(0, name)
+            test = benchmark["test"]
+
+            # Get the split from the data module
+            params = data_module._get_task_specific_arguments(name, 0, self.tmp_test_dir)
+            split = pd.read_csv(params.splits_path)
+            data = params.df
+
+            # Check that the split is the same
+            for ground_truth, label in [(train, "train"), (val, "val"), (test, "test")]:
+                y_true = ground_truth["Y"].values
+                y_module = data.loc[split[label].dropna(), "Y"].values
+
+                assert len(y_true) == len(y_module)
+                assert np.allclose(np.sort(y_true), np.sort(y_module))
 
 
 if __name__ == "__main__":
