@@ -600,6 +600,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#graphium.data.datamodule.ADMETBenchmarkDataModule" class="md-nav__link">
+    ADMETBenchmarkDataModule
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.data.datamodule.BaseDataModule" class="md-nav__link">
     BaseDataModule
   </a>
@@ -1571,6 +1578,13 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#graphium.data.datamodule.ADMETBenchmarkDataModule" class="md-nav__link">
+    ADMETBenchmarkDataModule
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.data.datamodule.BaseDataModule" class="md-nav__link">
     BaseDataModule
   </a>
@@ -2126,6 +2140,104 @@
 
 
 
+<h4 id="graphium.data.datamodule.ADMETBenchmarkDataModule" class="doc doc-heading">
+        <code>ADMETBenchmarkDataModule</code>
+
+
+<a href="#graphium.data.datamodule.ADMETBenchmarkDataModule" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><a class="autorefs autorefs-internal" title="graphium.data.datamodule.MultitaskFromSmilesDataModule" href="#graphium.data.datamodule.MultitaskFromSmilesDataModule">MultitaskFromSmilesDataModule</a></code></p>
+
+  
+      <p>Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons).</p>
+<div class="admonition warning">
+<p class="admonition-title">Dependency</p>
+<p>This class requires <a href="https://pypi.org/project/PyTDC/">PyTDC</a> to be installed.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Citation</p>
+<p>Huang, K., Fu, T., Gao, W., Zhao, Y., Roohani, Y., Leskovec, J., Coley, C., Xiao, C., Sun, J., &amp; Zitnik, M. (2021).
+Therapeutics Data Commons: Machine Learning Datasets and Tasks for Drug Discovery and Development.
+Proceedings of Neural Information Processing Systems, NeurIPS Datasets and Benchmarks.</p>
+</div>
+
+  <p><strong>Parameters:</strong></p>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Description</th>
+        <th>Default</th>
+      </tr>
+    </thead>
+    <tbody>
+        <tr>
+          <td><code>tdc_benchmark_names</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[<span title="typing.Union">Union</span>[str, <span title="typing.List">List</span>[str]]]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>This can be any subset of the benchmark names that make up the ADMET benchmarking group.
+If <code>None</code>, uses the complete benchmarking group. For all full list of options, see
+<a href="https://tdcommons.ai/benchmark/admet_group/overview/">the TDC website</a> or use:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span> <span class="nn">tdc.utils.retrieve_benchmark_names</span>
+<span class="n">retrieve_benchmark_names</span><span class="p">(</span><span class="s2">&quot;admet_group&quot;</span><span class="p">)</span>
+</code></pre></div>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>tdc_train_val_seed</code></td>
+          <td>
+                <code>int</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>TDC recommends a default splitting method for the train-val split. This parameter
+is used to seed that splitting method.</p>
+            </div>
+          </td>
+          <td>
+                <code>0</code>
+          </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
 <h4 id="graphium.data.datamodule.BaseDataModule" class="doc doc-heading">
         <code>BaseDataModule</code>
 
@@ -2179,8 +2291,8 @@
 <code class="highlight language-python"><span class="n">predict_ds</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
   </span>
 
 <a href="#graphium.data.datamodule.BaseDataModule.predict_ds" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -2768,7 +2880,7 @@ If None, all stages are considered.</p>
 
 
 <h5 id="graphium.data.datamodule.DatasetProcessingParams.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">idx_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_val</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">split_test</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splits_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="n">label_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">task_level</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">df_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">smiles_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label_cols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">weights_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">idx_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mol_ids_col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sample_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_val</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">split_test</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">splits_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_names</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="s1">&#39;val&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">],</span> <span class="n">label_normalization</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.data.datamodule.DatasetProcessingParams.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2791,7 +2903,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>task_level</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2805,7 +2917,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>df</code></td>
           <td>
-                <code><span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span></code>
+                <code><span title="typing.Optional">Optional</span>[<span title="pandas">pd</span>.<span title="pandas.DataFrame">DataFrame</span>]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2833,7 +2945,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>smiles_col</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2861,7 +2973,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>weights_col</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2875,7 +2987,7 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>weights_type</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
@@ -2889,11 +3001,25 @@ If None, all stages are considered.</p>
         <tr>
           <td><code>idx_col</code></td>
           <td>
-                <code>str</code>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
           </td>
           <td>
             <div class="doc-md-description">
               <p>The column name of the indices</p>
+            </div>
+          </td>
+          <td>
+                <code>None</code>
+          </td>
+        </tr>
+        <tr>
+          <td><code>mol_ids_col</code></td>
+          <td>
+                <code><span title="typing.Optional">Optional</span>[str]</code>
+          </td>
+          <td>
+            <div class="doc-md-description">
+              <p>The column name of the molecule ids</p>
             </div>
           </td>
           <td>
@@ -3225,7 +3351,7 @@ graph to not fail is returned.</p>
         <tr>
           <td><code>task_specific_args</code></td>
           <td>
-                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]</code>
+                <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Union">Union</span>[<a class="autorefs autorefs-internal" title="graphium.data.datamodule.DatasetProcessingParams" href="#graphium.data.datamodule.DatasetProcessingParams">DatasetProcessingParams</a>, <span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>]]]</code>
           </td>
           <td>
             <div class="doc-md-description">
