@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.10"]
-        pytorch-version: ["1.13"]
+        pytorch-version: ["2.0"]
 
     runs-on: "ubuntu-latest"
     timeout-minutes: 30
@@ -27,7 +27,7 @@ jobs:
         shell: bash -l {0}
 
     name: |
-        regular_env - 
+        regular_env -
         python=${{ matrix.python-version }} -
         pytorch=${{ matrix.pytorch-version }}
 
@@ -57,7 +57,7 @@ jobs:
 
       - name: Test building the doc
         run: mkdocs build
-    
+
       - name: Codecov Upload
         uses: codecov/codecov-action@v3
         with:
