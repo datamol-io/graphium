@@ -2,7 +2,29 @@ import pytest
 import torch
 from torch_geometric.data import Data, Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
-from poptorch_geometric.dataloader import DataLoader
+from warnings import warn
+try:
+    import poptorch
+except Exception as e:
+    warn(f"Skipping this test because poptorch is not available.\n{e}")
+# General imports
+import yaml
+import unittest as ut
+import numpy as np
+from copy import deepcopy
+from warnings import warn
+from lightning import Trainer, LightningModule
+from lightning_graphcore import IPUStrategy
+from functools import partial
+
+import torch
+from torch.utils.data.dataloader import default_collate
+
+# Current library imports
+from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
+
+from graphium.ipu.ipu_wrapper import PredictorModuleIPU
+
 
 
 class TestIPUBatch:
@@ -28,6 +50,26 @@ class TestIPUBatch:
         self.attn_kwargs = {"embed_dim": self.in_dim, "num_heads": 2, "batch_first": True}
 
     def test_ipu_to_dense_batch(self):
+        opts = poptorch.Options()
+
+        # train_dataloader = poptorch.DataLoader(
+        #     opts, [self.g1, self.g2], batch_size=1, shuffle=True, num_workers=1
+        # )
+        class MyModel(torch.nn.Module):
+            def __init__(self):
+                super(MyModel, self).__init__()
+                
+            def forward(self, x, batch):
+                # Implement your function here
+                return to_dense_batch(x, batch=batch)
+
+        model = MyModel()
+        model = model.eval()
+        poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
+        # for data in train_dataloader:
+        import ipdb; ipdb.set_trace()
+        # poptorch_model_inf(data.x, data.batch)
+        import ipdb; ipdb.set_trace()
         h_dense, mask, _ = to_dense_batch(
             self.bg.feat,
             batch=self.bg.batch,
@@ -64,3 +106,5 @@ class TestIPUBatch:
         assert torch.sum(mask) == 7
         assert torch.equal(id, torch.arange(7))
         assert h_dense.size() == (1, max_nodes_per_graph, self.bg.feat.size(-1))
+
+
