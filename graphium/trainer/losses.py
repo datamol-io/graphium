@@ -60,6 +60,10 @@ class HybridCELoss(_WeightedLoss):
         """
 
         target = target.flatten()
+
+        # set input and target with nans to 0s for regression loss
+        input[nan_targets] = 0.0
+        target[nan_targets] = 0.0
         # regression loss needs normalized logits to probability as input to do inner product with self.brackets
         # we apply softmax on the raw logits first
         softmax_input = self.softmax(input)
@@ -69,8 +73,19 @@ class HybridCELoss(_WeightedLoss):
         # [batch_size, n_classes] * [n_classes] ([0, 1, 2...n_brakets-1]) -> [batch_size]
         regression_input = torch.inner(softmax_input, self.brackets.to(input.device))
         regression_loss = self.regression_loss(regression_input, target.float(), reduction=self.reduction)
+        # regression_loss needs some scaling by total_targets/num_real_targets
+        num_real_targets = (~nan_targets).sum()
+        factor1 = torch.where(num_real_targets > 0, 1, 0)
+        factor2 = torch.where(num_real_targets > 0, 0, 1)
+        regression_loss = factor1 * regression_loss * nan_targets.numel() / (num_real_targets + factor2)
 
+        # set input and target with nans to -1000s for ce loss
+        input[nan_targets] = -1000
+        target[nan_targets] = -1000
         # cross_entropy loss needs raw logits as input
-        ce_loss = F.cross_entropy(input, target.long(), weight=self.weight, reduction=self.reduction)
+        # ce_loss does not need scaling as it already ignores -1000 masked nan values
+        ce_loss = F.cross_entropy(
+            input, target.long(), weight=self.weight, ignore_index=-1000, reduction=self.reduction
+        )
 
         return self.alpha * ce_loss + (1 - self.alpha) * regression_loss
