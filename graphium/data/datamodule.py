@@ -679,8 +679,8 @@ class DatasetProcessingParams:
             splits_path: The path to the splits
         """
 
-        if df is None:
-            assert df_path is not None, "Either df or df_path must be provided"
+        if df is None and df_path is None:
+            raise ValueError("Either `df` or `df_path` must be provided")
 
         self.df = df
         self.task_level = task_level
