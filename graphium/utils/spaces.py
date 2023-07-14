@@ -56,6 +56,7 @@ LOSS_DICT = {
     "mae": torch.nn.L1Loss,
     "hybrid_ce": Losses.HybridCELoss,
     "bce_ipu": IPULosses.BCELossIPU,
+    "bce_logits_ipu": IPULosses.BCEWithLogitsLossIPU,
     "mse_ipu": IPULosses.MSELossIPU,
     "mae_ipu": IPULosses.L1LossIPU,
     "l1_ipu": IPULosses.L1LossIPU,
