@@ -743,6 +743,13 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="md-nav__link">
+    BCEWithLogitsLossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#graphium.ipu.ipu_losses.HybridCELossIPU" class="md-nav__link">
     HybridCELossIPU
   </a>
@@ -1771,6 +1778,13 @@
           <li class="md-nav__item">
   <a href="#graphium.ipu.ipu_losses.BCELossIPU" class="md-nav__link">
     BCELossIPU
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="md-nav__link">
+    BCEWithLogitsLossIPU
   </a>
   
 </li>
@@ -3034,6 +3048,48 @@ poptorch.DataLoader. Will use the default options if not provided.</p>
 
   
       <p>A modified version of the <code>torch.nn.BCELoss</code> that can ignore NaNs
+by giving them a weight of <code>0</code>. This allows it to work with compilation
+and IPUs since it doesn't modify the tensor's shape.</p>
+
+
+
+  
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+  </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<h4 id="graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="doc doc-heading">
+        <code>BCEWithLogitsLossIPU</code>
+
+
+<a href="#graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
+
+
+  <div class="doc doc-contents ">
+      <p class="doc doc-class-bases">
+        Bases: <code><span title="torch.nn.BCEWithLogitsLoss">BCEWithLogitsLoss</span></code></p>
+
+  
+      <p>A modified version of the <code>torch.nn.BCEWithLogitsLoss</code> that can ignore NaNs
 by giving them a weight of <code>0</code>. This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
 
