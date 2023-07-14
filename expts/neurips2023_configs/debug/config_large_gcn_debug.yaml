@@ -18,7 +18,7 @@ accelerator:
           max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 80
         # Data handling-related
-        batch_size_training: 20
+        batch_size_training: 30
         batch_size_inference: 20
     predictor:
       optim_kwargs:
@@ -26,7 +26,7 @@ accelerator:
     trainer:
       trainer:
         precision: 16
-        accumulate_grad_batches: 4
+        accumulate_grad_batches: 2
 
   ipu_config:
     - deviceIterations(2) # IPU would require large batches to be ready for the model.

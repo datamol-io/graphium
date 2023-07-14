@@ -11,14 +11,14 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 60 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
           max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
-        batch_size_training: 20
+        batch_size_training: 30
         batch_size_inference: 10
     predictor:
       optim_kwargs:
@@ -29,7 +29,7 @@ accelerator:
         accumulate_grad_batches: 2
 
   ipu_config:
-    - deviceIterations(20) # IPU would require large batches to be ready for the model.
+    - deviceIterations(60) # IPU would require large batches to be ready for the model.
     - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
