@@ -14,8 +14,6 @@
 [![GitHub Repo stars](https://img.shields.io/github/stars/datamol-io/graphium)](https://github.com/datamol-io/graphium/stargazers)
 [![GitHub Repo stars](https://img.shields.io/github/forks/datamol-io/graphium)](https://github.com/datamol-io/graphium/network/members)
 [![test](https://github.com/datamol-io/graphium/actions/workflows/test.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test.yml)
-[![test-cpu](https://github.com/datamol-io/graphium/actions/workflows/test_cpu.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test_cpu.yml)
-[![test-gpu](https://github.com/datamol-io/graphium/actions/workflows/test_gpu.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test_gpu.yml)
 [![test-ipu](https://github.com/datamol-io/graphium/actions/workflows/test_ipu.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/test_ipu.yml)
 [![release](https://github.com/datamol-io/graphium/actions/workflows/release.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/release.yml)
 [![code-check](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml/badge.svg)](https://github.com/datamol-io/graphium/actions/workflows/code-check.yml)
