@@ -1,0 +1,63 @@
+# Testing GCN on LargeMix with FP16/32 on GPU
+constants:
+  name: &name neurips2023_large_data_gcn_gpu
+  config_override: "expts/neurips2023_configs/config_large_gcn.yaml"
+
+accelerator:
+  type: gpu
+  float32_matmul_precision: medium
+  config_override:
+    datamodule:
+      args:
+        batch_size_training: 80
+        batch_size_inference: 80
+    predictor:
+      metrics_every_n_steps: 1000
+    trainer:
+      trainer:
+        precision: 32 # 16-mixed
+        accumulate_grad_batches: 1
+
+datamodule:
+  args:
+    task_specific_args:
+      l1000_vcap:
+        df_path: expts/data/neurips2023/large-dataset/LINCS_L1000_VCAP_0-4.csv.gz # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_VCAP_0-4.csv.gz
+        splits_path: expts/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+      
+      l1000_mcf7:
+        df_path: expts/data/neurips2023/large-dataset/LINCS_L1000_MCF7_0-4.csv.gz # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/LINCS_L1000_MCF7_0-4.csv.gz
+        splits_path: expts/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+      
+      pcba_1328:
+        df_path: expts/data/neurips2023/large-dataset/PCBA_1328_1564k.parquet # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCBA_1328_1564k.parquet
+        splits_path: expts/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+
+      pcqm4m_g25:
+        df_path: expts/data/neurips2023/large-dataset/PCQM4M_G25_N4.parquet # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
+        splits_path: expts/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+
+      pcqm4m_n4:
+        df_path: expts/data/neurips2023/large-dataset/PCQM4M_G25_N4.parquet # wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/PCQM4M_G25_N4.parquet
+        splits_path: expts/data/neurips2023/large-dataset/pcqm4m_g25_n4_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcqm4m_g25_n4_random_splits.pt`
+
+    featurization_n_jobs: 4 # 30
+    processed_graph_data_path: "../datacache/neurips2023-small/"
+    num_workers: 4 # 30
+
+architecture:
+  task_heads:
+    pcba_1328:
+      last_activation: null
+
+predictor:
+  loss_fun:
+    pcba_1328: bce_logits_ipu
+
+  torch_scheduler_kwargs:
+    max_num_epochs: &max_epochs 20
+
+trainer:
+  trainer:
+    max_epochs: *max_epochs
+    check_val_every_n_epoch: 1
