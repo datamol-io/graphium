@@ -223,7 +223,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm.setup()
 
         # self.assertEqual(len(dm), 100)                      # Should this have a fixed value for when it's initialized? MTL dataset only gets created after.
-        self.assertEqual(len(dm.train_ds), 601)  # type: ignore
+        self.assertEqual(len(dm.train_ds), 602)  # type: ignore
         self.assertEqual(len(dm.val_ds), 201)  # type: ignore
         self.assertEqual(len(dm.test_ds), 201)  # type: ignore
         # assert dm.num_node_feats == 50
@@ -257,9 +257,9 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm.setup()
 
         # self.assertEqual(len(dm), 100)                      # Should this have a fixed value for when it's initialized? MTL dataset only gets created after.
-        self.assertEqual(len(dm.train_ds), 596)  # type: ignore
-        self.assertEqual(len(dm.val_ds), 199)  # type: ignore
-        self.assertEqual(len(dm.test_ds), 199)  # type: ignore
+        self.assertEqual(len(dm.train_ds), 602)  # type: ignore
+        self.assertEqual(len(dm.val_ds), 201)  # type: ignore
+        self.assertEqual(len(dm.test_ds), 201)  # type: ignore
         # assert dm.num_node_feats == 50
         # assert dm.num_edge_feats == 6
 
@@ -280,6 +280,17 @@ class Test_Multitask_DataModule(ut.TestCase):
                 batch["features"].edge_feat.size(0),
                 2,
             )  # test edge level
+
+    def test_combine_data_with_overlap(self):
+        config = graphium.load_config(name="fake_combine_data_with_overlap")
+
+        dm_args = OmegaConf.to_container(config.datamodule.args, resolve=True)
+        dm = graphium.data.MultitaskFromSmilesDataModule(**dm_args)
+
+        dm.prepare_data()
+        dm.setup()
+
+        self.assertEqual(len(dm.train_ds) + len(dm.val_ds) + len(dm.test_ds), 30)
 
     def test_extract_graph_level_singletask(self):
         df = pd.read_parquet(f"tests/converted_fake_multilevel_data.parquet")
