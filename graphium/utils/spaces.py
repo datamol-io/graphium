@@ -56,6 +56,7 @@ LOSS_DICT = {
     "mae": torch.nn.L1Loss,
     "hybrid_ce": Losses.HybridCELoss,
     "bce_ipu": IPULosses.BCELossIPU,
+    "bce_logits_ipu": IPULosses.BCEWithLogitsLossIPU,
     "mse_ipu": IPULosses.MSELossIPU,
     "mae_ipu": IPULosses.L1LossIPU,
     "l1_ipu": IPULosses.L1LossIPU,
@@ -119,5 +120,6 @@ METRICS_DICT.update(METRICS_REGRESSION)
 DATAMODULE_DICT = {
     "GraphOGBDataModule": Datamodules.GraphOGBDataModule,
     "MultitaskFromSmilesDataModule": Datamodules.MultitaskFromSmilesDataModule,
+    "ADMETBenchmarkDataModule": Datamodules.ADMETBenchmarkDataModule,
     "FakeDataModule": Datamodules.FakeDataModule,
 }

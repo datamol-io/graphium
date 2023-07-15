@@ -1,14 +1,16 @@
+import tempfile
+from contextlib import redirect_stderr, redirect_stdout
 from typing import Type, List, Dict, Union, Any, Callable, Optional, Tuple, Iterable, Literal
 
 import os
-import glob
 from functools import partial
 import importlib.resources
 import zipfile
 from copy import deepcopy
 import time
 import gc
-from rdkit import Chem
+
+import platformdirs
 import re
 from graphium.data.utils import get_keys
 
@@ -29,7 +31,6 @@ import lightning
 from lightning.pytorch.trainer.states import RunningStage
 
 import torch
-from torch_geometric.data import Data
 from torch.utils.data.dataloader import DataLoader, Dataset
 from torch.utils.data import Subset
 
@@ -642,14 +643,15 @@ class BaseDataModule(lightning.LightningDataModule):
 class DatasetProcessingParams:
     def __init__(
         self,
-        task_level: str = None,
-        df: pd.DataFrame = None,
+        task_level: Optional[str] = None,
+        df: Optional[pd.DataFrame] = None,
         df_path: Optional[Union[str, os.PathLike]] = None,
-        smiles_col: str = None,
+        smiles_col: Optional[str] = None,
         label_cols: List[str] = None,
-        weights_col: str = None,  # Not needed
-        weights_type: str = None,  # Not needed
-        idx_col: str = None,
+        weights_col: Optional[str] = None,  # Not needed
+        weights_type: Optional[str] = None,  # Not needed
+        idx_col: Optional[str] = None,
+        mol_ids_col: Optional[str] = None,
         sample_size: Union[int, float, Type[None]] = None,
         split_val: float = 0.2,
         split_test: float = 0.2,
@@ -669,12 +671,17 @@ class DatasetProcessingParams:
             weights_col: The column name of the weights
             weights_type: The type of weights
             idx_col: The column name of the indices
+            mol_ids_col: The column name of the molecule ids
             sample_size: The size of the sample
             split_val: The fraction of the data to use for validation
             split_test: The fraction of the data to use for testing
             seed: The seed to use for the splits and subsampling
             splits_path: The path to the splits
         """
+
+        if df is None and df_path is None:
+            raise ValueError("Either `df` or `df_path` must be provided")
+
         self.df = df
         self.task_level = task_level
         self.df_path = df_path
@@ -683,6 +690,7 @@ class DatasetProcessingParams:
         self.weights_col = weights_col
         self.weights_type = weights_type
         self.idx_col = idx_col
+        self.mol_ids_col = mol_ids_col
         self.sample_size = sample_size
         self.split_val = split_val
         self.split_test = split_test
@@ -752,7 +760,7 @@ class IPUDataModuleModifier:
 class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
     def __init__(
         self,
-        task_specific_args: Dict[str, Any],  # TODO: Replace this with DatasetParams
+        task_specific_args: Union[DatasetProcessingParams, Dict[str, Any]],
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         processed_graph_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
@@ -859,11 +867,16 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
         self.task_specific_args = task_specific_args
 
-        # TODO: Have the input argument to the Data Module be of type DatasetParams
-        self.task_dataset_processing_params = {
-            self._get_task_key(ds_args["task_level"], task): DatasetProcessingParams(**ds_args)
-            for task, ds_args in task_specific_args.items()
-        }
+        self.task_dataset_processing_params = {}
+        for task, ds_args in task_specific_args.items():
+            if not isinstance(ds_args, DatasetProcessingParams):
+                # This is needed as long as not all classes have been migrated
+                # to use the new `DatasetProcessingParams` class
+                ds_args = DatasetProcessingParams(**ds_args)
+
+            key = self._get_task_key(ds_args.task_level, task)
+            self.task_dataset_processing_params[key] = ds_args
+
         self.featurization_n_jobs = featurization_n_jobs
         self.featurization_progress = featurization_progress
         self.featurization_backend = featurization_backend
@@ -1034,15 +1047,17 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             for count in range(len(dataset_args["smiles"])):
                 all_tasks.append(task)
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids = smiles_to_unique_mol_ids(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
             backend=self.featurization_backend,
         )
-        unique_mol_ids, unique_idx, inv = np.unique(all_mol_ids, return_index=True, return_inverse=True)
+        _, unique_ids_idx, unique_ids_inv = np.unique(
+            all_unique_mol_ids, return_index=True, return_inverse=True
+        )
 
-        smiles_to_featurize = [all_smiles[ii] for ii in unique_idx]
+        smiles_to_featurize = [all_smiles[ii] for ii in unique_ids_idx]
 
         # Convert SMILES to features
         features, _ = self._featurize_molecules(smiles_to_featurize)
@@ -1052,7 +1067,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             task_dataset_args[task]["features"] = []
             task_dataset_args[task]["idx_none"] = []
         # Create a list of features matching up with the original smiles
-        all_features = [features[unique_idx] for unique_idx in inv]
+        all_features = [features[unique_idx] for unique_idx in unique_ids_inv]
 
         # Add the features to the task-specific data
         for all_idx, task in enumerate(all_tasks):
@@ -1070,7 +1085,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         idx_none = list(set(idx_none))
 
         for task, args in task_dataset_args.items():
-            this_unique_ids = all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
+            this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
             df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
                 idx_none,
                 task_df[task],
@@ -1093,6 +1108,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
                 unique_ids=this_unique_ids,
+                indices=task_dataset_args[task]["sample_idx"],
                 **task_dataset_args[task]["extras"],
             )
 
@@ -1716,11 +1732,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         self,
         df: pd.DataFrame,
         task_level: str,
-        smiles_col: str = None,
+        smiles_col: Optional[str] = None,
         label_cols: List[str] = [],
-        idx_col: str = None,
-        weights_col: str = None,
-        weights_type: str = None,
+        idx_col: Optional[str] = None,
+        mol_ids_col: Optional[str] = None,
+        weights_col: Optional[str] = None,
+        weights_type: Optional[str] = None,
     ) -> Tuple[
         np.ndarray, np.ndarray, Union[Type[None], np.ndarray], Dict[str, Union[Type[None], np.ndarray]]
     ]:
@@ -1733,6 +1750,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             smiles_col: Name of the column containing the SMILES
             label_cols: List of column names containing the labels
             idx_col: Name of the column containing the index
+            mol_ids_col: Name of the column containing the molecule ids
             weights_col: Name of the column containing the weights
             weights_type: Type of weights to use.
         Returns:
@@ -1769,11 +1787,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         else:
             labels = float("nan") + np.zeros([len(smiles), 0])
 
-        indices = None  # What are indices for?
+        # Get the indices, used for sub-sampling and splitting the dataset
         if idx_col is not None:
-            indices = df[idx_col].values
-
+            df = df.set_index(idx_col)
         sample_idx = df.index.values
+
+        # Get the molecule ids
+        mol_ids = None
+        if mol_ids_col is not None:
+            mol_ids = df[mol_ids_col].values
 
         # Extract the weights
         weights = None
@@ -1801,7 +1823,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
             weights /= np.max(weights)  # Put the max weight to 1
 
-        extras = {"indices": indices, "weights": weights}
+        extras = {"weights": weights, "mol_ids": mol_ids}
         return smiles, labels, sample_idx, extras
 
     def _get_split_indices(
@@ -1863,15 +1885,14 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
             elif file_type in ["csv", "tsv"]:
                 with fsspec.open(str(splits_path)) as f:
                     splits = self._read_csv(splits_path)
-                splits = splits.dropna()
             else:
                 raise ValueError(
                     f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
                 )
             train, val, test = split_names
-            train_indices = np.asarray(splits[train]).astype("int").tolist()
-            val_indices = np.asarray(splits[val]).astype("int").tolist()
-            test_indices = np.asarray(splits[test]).astype("int").tolist()
+            train_indices = np.asarray(splits[train].dropna()).astype("int").tolist()
+            val_indices = np.asarray(splits[val].dropna()).astype("int").tolist()
+            test_indices = np.asarray(splits[test].dropna()).astype("int").tolist()
 
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
@@ -2118,7 +2139,7 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 class GraphOGBDataModule(MultitaskFromSmilesDataModule):
     def __init__(
         self,
-        task_specific_args: Dict[str, Dict[str, Any]],  # TODO: Replace this with DatasetParams
+        task_specific_args: Dict[str, Union[DatasetProcessingParams, Dict[str, Any]]],
         cache_data_path: Optional[Union[str, os.PathLike]] = None,
         featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
         batch_size_training: int = 16,
@@ -2176,12 +2197,12 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
             # Get OGB metadata
             this_metadata = self._get_dataset_metadata(task_args["dataset_name"])
             # Get dataset
-            df, idx_col, smiles_col, label_cols, splits_path = self._load_dataset(
+            df, mol_ids_col, smiles_col, label_cols, splits_path = self._load_dataset(
                 this_metadata, sample_size=task_args.get("sample_size", None)
             )
             new_task_specific_args[task_name] = {
                 "df": df,
-                "idx_col": idx_col,
+                "mol_ids_col": mol_ids_col,
                 "smiles_col": smiles_col,
                 "label_cols": label_cols,
                 "splits_path": splits_path,
@@ -2235,7 +2256,7 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
                 meaning that all molecules will be considered.
         Returns:
             df: Pandas dataframe containing the dataset.
-            idx_col: Name of the column containing the molecule index.
+            mol_ids_col: Name of the column containing the molecule ids.
             smiles_col: Name of the column containing the SMILES.
             label_cols: List of column names containing the labels.
             splits_path: Path to the file containing the train/val/test splits.
@@ -2304,15 +2325,15 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
 
         # Get column names: OGB columns are predictable
         if metadata["download_name"].startswith("pcqm4m"):
-            idx_col = df.columns[0]
+            mol_ids_col = df.columns[0]
             smiles_col = df.columns[-2]
             label_cols = df.columns[-1:].to_list()
         else:
-            idx_col = df.columns[-1]
+            mol_ids_col = df.columns[-1]
             smiles_col = df.columns[-2]
             label_cols = df.columns[:-2].to_list()
 
-        return df, idx_col, smiles_col, label_cols, splits_path
+        return df, mol_ids_col, smiles_col, label_cols, splits_path
 
     def _get_dataset_metadata(self, dataset_name: str) -> Dict[str, Any]:
         ogb_metadata = self._get_ogb_metadata()
@@ -2339,6 +2360,171 @@ class GraphOGBDataModule(MultitaskFromSmilesDataModule):
         ogb_metadata = ogb_metadata[ogb_metadata["data type"] == "mol"]
 
         return ogb_metadata
+
+
+class ADMETBenchmarkDataModule(MultitaskFromSmilesDataModule):
+    """
+    Wrapper to use the ADMET benchmark group from the TDC (Therapeutics Data Commons).
+
+    !!! warning "Dependency"
+
+        This class requires [PyTDC](https://pypi.org/project/PyTDC/) to be installed.
+
+    !!! note "Citation"
+
+        Huang, K., Fu, T., Gao, W., Zhao, Y., Roohani, Y., Leskovec, J., Coley, C., Xiao, C., Sun, J., & Zitnik, M. (2021).
+        Therapeutics Data Commons: Machine Learning Datasets and Tasks for Drug Discovery and Development.
+        Proceedings of Neural Information Processing Systems, NeurIPS Datasets and Benchmarks.
+
+
+    Parameters:
+        tdc_benchmark_names: This can be any subset of the benchmark names that make up the ADMET benchmarking group.
+            If `None`, uses the complete benchmarking group. For all full list of options, see
+            [the TDC website](https://tdcommons.ai/benchmark/admet_group/overview/) or use:
+
+           ```python
+           import tdc.utils.retrieve_benchmark_names
+           retrieve_benchmark_names("admet_group")
+           ```
+        tdc_train_val_seed: TDC recommends a default splitting method for the train-val split. This parameter
+          is used to seed that splitting method.
+    """
+
+    def __init__(
+        self,
+        # TDC-specific
+        tdc_benchmark_names: Optional[Union[str, List[str]]] = None,
+        tdc_train_val_seed: int = 0,
+        # Inherited arguments from superclass
+        cache_data_path: Optional[Union[str, os.PathLike]] = None,
+        featurization: Optional[Union[Dict[str, Any], omegaconf.DictConfig]] = None,
+        batch_size_training: int = 16,
+        batch_size_inference: int = 16,
+        batch_size_per_pack: Optional[int] = None,
+        num_workers: int = 0,
+        pin_memory: bool = True,
+        persistent_workers: bool = False,
+        featurization_n_jobs: int = -1,
+        featurization_progress: bool = False,
+        featurization_backend: str = "loky",
+        collate_fn: Optional[Callable] = None,
+        prepare_dict_or_graph: str = "pyg:graph",
+        **kwargs,
+    ):
+        try:
+            from tdc.benchmark_group import admet_group
+            from tdc.utils import retrieve_benchmark_names
+        except ImportError as error:
+            # To make sure we use the exact same train-test set and preprocessing as other benchmark entries,
+            # we rely on the PyTDC library.
+            raise RuntimeError(
+                f"To use {self.__class__.__name__}, `PyTDC` needs to be installed. "
+                f"Please install it with `pip install PyTDC`"
+            ) from error
+
+        # Pick a path to save the TDC data to
+        tdc_cache_dir = fs.get_cache_dir("tdc")
+        tdc_cache_dir = fs.join(tdc_cache_dir, "ADMET_Benchmark")
+        fs.mkdir(tdc_cache_dir, exist_ok=True)
+
+        # Create the benchmark group object
+        # NOTE (cwognum): We redirect stderr and stdout to a file since TDC uses print statements,
+        #  which quickly pollute the logs. Ideally, we would use `redirect_stderr(None)`, but that breaks TQDM.
+        with tempfile.TemporaryFile("w") as f:
+            with redirect_stderr(f):
+                with redirect_stdout(f):
+                    self.group = admet_group(path=tdc_cache_dir)
+
+        # By default, use all available benchmarks in a benchmark group
+        if tdc_benchmark_names is None:
+            tdc_benchmark_names = retrieve_benchmark_names("admet_group")
+        if isinstance(tdc_benchmark_names, str):
+            tdc_benchmark_names = [tdc_benchmark_names]
+
+        # Create the task-specific arguments
+        logger.info(
+            f"Preparing the TDC ADMET Benchmark Group splits for each of the {len(tdc_benchmark_names)} benchmarks."
+        )
+
+        task_specific_args = {
+            t: self._get_task_specific_arguments(t, tdc_train_val_seed, tdc_cache_dir)
+            for t in tdc_benchmark_names
+        }
+
+        super().__init__(
+            task_specific_args=task_specific_args,
+            cache_data_path=cache_data_path,
+            featurization=featurization,
+            batch_size_training=batch_size_training,
+            batch_size_inference=batch_size_inference,
+            batch_size_per_pack=batch_size_per_pack,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+            persistent_workers=persistent_workers,
+            featurization_n_jobs=featurization_n_jobs,
+            featurization_progress=featurization_progress,
+            featurization_backend=featurization_backend,
+            collate_fn=collate_fn,
+            prepare_dict_or_graph=prepare_dict_or_graph,
+            **kwargs,
+        )
+
+    def _get_task_specific_arguments(self, name: str, seed: int, cache_dir: str) -> DatasetProcessingParams:
+        """
+        Loads the data and split from the TDC benchmark group object.
+
+        For the train-test split, this is fixed.
+
+        For the train-val split, this does not have to be fixed. Here we use the default splitting method
+        from TDC to do the train-val split and allow the seed to be changed. This is likely to best match
+        other entries in the benchmarking group.
+        """
+
+        benchmark = self.group.get(name)
+
+        # Get the default train-val-test split
+
+        # NOTE (cwognum): TDC prints by default to stderr, which pollutes the logs quite a bit.
+        #  This context manager mutes these by temporarily writing to a file.
+        #  Ideally, we would use `redirect_stderr(None)`, but that breaks TQDM.
+
+        with tempfile.TemporaryFile("w") as f:
+            with redirect_stderr(f):
+                train, val = self.group.get_train_valid_split(seed, name)
+        test = benchmark["test"]
+
+        # Convert to the Graphium format
+        n_val = len(val)
+        n_test = len(test)
+        n_train = len(train)
+        max_len = max(n_train, n_val, n_test)
+        total_len = n_train + n_val + n_test
+
+        data = pd.concat([train, val, test], ignore_index=True)
+
+        # NOTE (cwognum): We need to convert the labels to float, since we use NaNs down the line.
+        #  If you uncomment this line, collating the labels will raise an overflow by converting a NaN to the int dtype.
+        data["Y"] = data["Y"].astype(float)
+
+        split = pd.DataFrame(
+            {
+                "train": list(range(n_train)),
+                "val": list(range(n_train, n_train + n_val)) + [float("nan")] * (max_len - n_val),
+                "test": list(range(n_train + n_val, total_len)) + [float("nan")] * (max_len - n_test),
+            }
+        )
+        split_path = fs.join(cache_dir, f"{name}_split.csv")
+        split.to_csv(split_path, index=False)
+
+        return DatasetProcessingParams(
+            df=data,
+            idx_col=None,
+            smiles_col="Drug",
+            label_cols=["Y"],
+            splits_path=split_path,
+            split_names=["train", "val", "test"],
+            task_level="graph",
+        )
 
 
 class FakeDataModule(MultitaskFromSmilesDataModule):
@@ -2475,7 +2661,7 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
             idx_per_task[task] = (total_len, total_len + num_smiles)
             total_len += num_smiles
         # Get all unique mol ids
-        all_mol_ids = smiles_to_unique_mol_ids(
+        all_unique_mol_ids = smiles_to_unique_mol_ids(
             all_smiles,
             n_jobs=self.featurization_n_jobs,
             featurization_batch_size=self.featurization_batch_size,
@@ -2491,7 +2677,8 @@ class FakeDataModule(MultitaskFromSmilesDataModule):
                 features=task_dataset_args[task]["features"],
                 labels=task_dataset_args[task]["labels"],
                 smiles=task_dataset_args[task]["smiles"],
-                unique_ids=all_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
+                indices=task_dataset_args[task]["sample_idx"],
+                unique_ids=all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]],
                 **task_dataset_args[task]["extras"],
             )
 

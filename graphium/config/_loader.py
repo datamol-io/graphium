@@ -459,6 +459,14 @@ def load_accelerator(config: Union[omegaconf.DictConfig, Dict[str, Any]]) -> Tup
     merge_dicts(config, config_override)
     accelerator_type = get_accelerator(config_acc)
 
+    if accelerator_type == "gpu":
+        precision = config_acc.get("float32_matmul_precision", None)
+        if precision is not None:
+            torch.set_float32_matmul_precision(precision)
+
+    if accelerator_type != "ipu":
+        del config["predictor"]["optim_kwargs"]["loss_scaling"]
+
     return config, accelerator_type
 
 

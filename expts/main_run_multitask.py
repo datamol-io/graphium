@@ -43,6 +43,8 @@ CONFIG_FILE = "expts/neurips2023_configs/debug/config_small_gcn_debug.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gin.yaml"
 # CONFIG_FILE = "expts/neurips2023_configs/config_small_gine.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_small_gcn_gpu.yaml"
+# CONFIG_FILE = "expts/neurips2023_configs/config_large_gcn_gpu.yaml"
 
 os.chdir(MAIN_DIR)
 

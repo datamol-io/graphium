@@ -1,0 +1,55 @@
+# Testing GCN on ToyMix with FP16/32 on GPU
+constants:
+  name: &name neurips2023_small_data_gcn_gpu
+  config_override: "expts/neurips2023_configs/config_small_gcn.yaml"
+
+accelerator:
+  type: gpu  # cpu or ipu or gpu
+  float32_matmul_precision: medium
+  config_override:
+    datamodule:
+      args:
+        # Data handling-related
+        batch_size_training: 200
+        batch_size_inference: 200
+    predictor:
+      metrics_every_n_steps: 300
+    trainer:
+      trainer:
+        precision: 32 # 16-mixed
+        accumulate_grad_batches: 1
+
+datamodule:
+  args:
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      qm9:
+        df_path: expts/data/neurips2023/small-dataset/qm9.csv.gz
+        splits_path: expts/data/neurips2023/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
+      
+      tox21:
+        df_path: expts/data/neurips2023/small-dataset/Tox21-7k-12-labels.csv.gz
+        splits_path: expts/data/neurips2023/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
+
+      zinc:
+        df_path: expts/data/neurips2023/small-dataset/ZINC12k.csv.gz
+        splits_path: expts/data/neurips2023/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+    featurization_n_jobs: 4 # 30
+    processed_graph_data_path: "../datacache/neurips2023-small/"
+    num_workers: 4 # 30
+
+architecture:
+  task_heads:
+    tox21:
+      last_activation: none
+
+predictor:
+  loss_fun:
+    tox21: bce_logits_ipu
+
+  torch_scheduler_kwargs:
+    max_num_epochs: &max_epochs 300
+
+trainer:
+  trainer:
+    max_epochs: *max_epochs
+
