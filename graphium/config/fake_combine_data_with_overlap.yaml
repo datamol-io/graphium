@@ -5,7 +5,7 @@ datamodule:
       score1:
         df: null
         task_level: "node"
-        df_path: "../tests/fake_data_with_overlap1.parquet"
+        df_path: "./tests/fake_data_with_overlap1.parquet"
         smiles_col: "ordered_smiles"
         label_cols: ["node_label_list", "node_label_np"]
         split_val: 0.1
@@ -19,7 +19,7 @@ datamodule:
       score2:
         df: null
         task_level: "node"
-        df_path: "../tests/fake_data_with_overlap2.parquet"
+        df_path: "./tests/fake_data_with_overlap2.parquet"
         smiles_col: "ordered_smiles"
         label_cols: ["node_label_list", "node_label_np"]
         split_val: 0.1
