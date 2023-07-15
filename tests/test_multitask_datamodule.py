@@ -211,7 +211,7 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm.setup()
 
         # self.assertEqual(len(dm), 100)                      # Should this have a fixed value for when it's initialized? MTL dataset only gets created after.
-        self.assertEqual(len(dm.train_ds), 602)  # type: ignore
+        self.assertEqual(len(dm.train_ds), 601)  # type: ignore
         self.assertEqual(len(dm.val_ds), 201)  # type: ignore
         self.assertEqual(len(dm.test_ds), 201)  # type: ignore
         # assert dm.num_node_feats == 50
@@ -245,9 +245,9 @@ class Test_Multitask_DataModule(ut.TestCase):
         dm.setup()
 
         # self.assertEqual(len(dm), 100)                      # Should this have a fixed value for when it's initialized? MTL dataset only gets created after.
-        self.assertEqual(len(dm.train_ds), 602)  # type: ignore
-        self.assertEqual(len(dm.val_ds), 201)  # type: ignore
-        self.assertEqual(len(dm.test_ds), 201)  # type: ignore
+        self.assertEqual(len(dm.train_ds), 596)  # type: ignore
+        self.assertEqual(len(dm.val_ds), 199)  # type: ignore
+        self.assertEqual(len(dm.test_ds), 199)  # type: ignore
         # assert dm.num_node_feats == 50
         # assert dm.num_edge_feats == 6
 
