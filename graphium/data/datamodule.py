@@ -1928,9 +1928,15 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         Get a hash specific to a dataset and smiles_transformer.
         Useful to cache the pre-processed data.
         """
+        args = deepcopy(self.task_specific_args)
+        # pop epoch_sampling_fraction out when creating hash 
+        # so that the data cache does not need to be regenerated
+        # when epoch_sampling_fraction has changed.
+        for task in self.task_specific_args.keys():
+            args[task].pop("epoch_sampling_fraction")
         hash_dict = {
             "smiles_transformer": self.smiles_transformer,
-            "task_specific_args": self.task_specific_args,
+            "task_specific_args": args,
         }
         data_hash = get_md5_hash(hash_dict)
         return data_hash

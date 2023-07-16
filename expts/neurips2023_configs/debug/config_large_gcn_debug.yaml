@@ -88,7 +88,7 @@ datamodule:
         sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
-        epoch_sampling_fraction: 0.5
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_g25:
         df: null
@@ -103,7 +103,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
-        epoch_sampling_fraction: 0.5
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_n4:
         df: null
@@ -119,7 +119,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
-        epoch_sampling_fraction: 0.5
+        epoch_sampling_fraction: 1.0
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -338,7 +338,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 200
+    max_num_epochs: &max_epochs 100
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
