@@ -1,0 +1,7 @@
+defaults:
+  - accelerator: ipu
+  - datamodule: toymix
+  - experiment: ${datamodule}_gcn
+
+  # Put last to override
+  - datamodule/accelerator: ${datamodule}_${accelerator}
