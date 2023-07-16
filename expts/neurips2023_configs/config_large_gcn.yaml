@@ -21,6 +21,7 @@ accelerator:
         batch_size_training: 30
         batch_size_inference: 10
     predictor:
+      metrics_every_n_steps: 3000
       optim_kwargs:
         loss_scaling: 1024
     trainer:
@@ -34,7 +35,7 @@ accelerator:
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
+    - _Popart.set("defaultBufferingDepth", 64)
     - Precision.enableStochasticRounding(True)
     # - Precision.enableFloatingPointExceptions(True)
 
@@ -65,6 +66,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       l1000_mcf7:
         df: null
@@ -76,6 +78,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       pcba_1328:
         df: null
@@ -87,6 +90,7 @@ datamodule:
         # sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_g25:
         df: null
@@ -101,6 +105,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_n4:
         df: null
@@ -116,6 +121,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 1.0
 
     # Featurization
     prepare_dict_or_graph: pyg:graph

@@ -72,7 +72,7 @@ class HybridCELoss(_WeightedLoss):
         if nan_targets is not None:
             softmax_input[nan_targets] = 0.0
         # [batch_size, n_classes] * [n_classes] ([0, 1, 2...n_brakets-1]) -> [batch_size]
-        regression_input = torch.inner(softmax_input, self.brackets.to(input.device))
+        regression_input = torch.inner(softmax_input.to(self.brackets.dtype), self.brackets.to(input.device))
         regression_loss = self.regression_loss(regression_input, target.float(), reduction=self.reduction)
         # regression_loss needs some scaling by total_targets/num_real_targets
         if nan_targets is not None:

@@ -2,10 +2,12 @@ import unittest as ut
 import torch
 from torch.nn import BCELoss, MSELoss, L1Loss
 from copy import deepcopy
+import pytest
 
 from graphium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
 
 
+@pytest.mark.ipu
 class test_Losses(ut.TestCase):
     torch.manual_seed(42)
     preds = torch.rand((100, 10), dtype=torch.float32)

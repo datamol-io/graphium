@@ -1,5 +1,4 @@
---find-links https://data.pyg.org/whl/torch-1.13.0+cpu.html
---find-links https://download.pytorch.org/whl/cpu/torch_stable.html
+--find-links https://data.pyg.org/whl/torch-2.0.1+cpu.html
 
 pip
 click
@@ -11,12 +10,11 @@ sympy
 pandas >==1.0
 scikit-learn
 seaborn
-fsspec >==2021.6
-s3fs >==2021.6
-gcsfs >==2021.6
+fsspec >==2023.6.0
+s3fs >==2023.6.0
+gcsfs >==2023.6.0
 appdirs
 tensorboard
-torch <2.0
 torchmetrics >=0.7.0,<0.11
 hydra-core >==1.0
 ogb
@@ -49,9 +47,10 @@ wandb
 optuna
 google-cloud-storage
 mup
+networkx
 pyg-nightly
 fastparquet
-torch-scatter==2.1.0
-torch-sparse==0.6.15
-torchvision==0.14.1+cpu
+torch-scatter==2.1.1
+torch-sparse==0.6.17
+lightning @ git+https://github.com/Lightning-AI/lightning@ca30fd7752582201a3966806c92e3acbbaf2a045
 lightning-graphcore @ git+https://github.com/Lightning-AI/lightning-Graphcore

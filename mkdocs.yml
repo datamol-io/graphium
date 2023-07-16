@@ -48,7 +48,7 @@ nav:
 theme:
   name: material
   # NOTE(hadim): to customize the material primary and secondary
-  # color check `docs/assets/css/datamol-custom.css`.
+  # color check `docs/_assets/css/custom-graphium.css`.
   features:
     - navigation.tabs
     - navigation.expand
@@ -60,9 +60,9 @@ extra_css:
   - _assets/css/custom-graphium.css
 
 extra_javascript:
-  - javascripts/config.js
   - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - _assets/js/google-analytics.js
 
 markdown_extensions:
   - admonition

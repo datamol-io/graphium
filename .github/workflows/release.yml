@@ -76,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           toTag: "main"
-    
+
       - name: Configure git
         run: |
           git config --global user.name "${GITHUB_ACTOR}"
@@ -110,12 +110,6 @@ jobs:
           password: ${{ secrets.PYPI_API_TOKEN }}
           packages-dir: dist/
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
-        with:
-          tag_name: ${{ inputs.release-version }}
-          body: ${{steps.github_release.outputs.changelog}}
-
       - name: Deploy the doc
         run: |
           echo "Get the gh-pages branch"
@@ -124,3 +118,9 @@ jobs:
           echo "Build and deploy the doc on ${{ inputs.release-version }}"
           mike deploy --push --force stable
           mike deploy --push --force ${{ inputs.release-version }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844
+        with:
+          tag_name: ${{ inputs.release-version }}
+          body: ${{steps.github_release.outputs.changelog}}
