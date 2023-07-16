@@ -21,7 +21,6 @@ accelerator:
         batch_size_training: 30
         batch_size_inference: 20
     predictor:
-      metrics_every_n_steps: 1000
       optim_kwargs:
         loss_scaling: 1024
     trainer:
