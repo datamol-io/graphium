@@ -47,43 +47,45 @@ class TestIPUBatch:
 
     @pytest.mark.parametrize("max_num_nodes_per_graph, batch_size", [(10, 5), (20, 10), (30, 15)])
     def test_ipu_to_dense_batch(self, max_num_nodes_per_graph, batch_size):
+        # Run this test only if poptorch is available
         try:
             import poptorch
-        except Exception as e:
-            warn(f"Skipping this test because poptorch is not available.\n{e}")
-        opts = poptorch.Options()
 
-        class MyModel(torch.nn.Module):
-            def __init__(self):
-                super(MyModel, self).__init__()
+            opts = poptorch.Options()
 
-            def forward(self, x, batch):
-                return to_dense_batch(
-                    x,
-                    batch=batch,
-                    batch_size=batch_size,
-                    max_num_nodes_per_graph=max_num_nodes_per_graph,
-                    drop_nodes_last_graph=False,
-                )
+            class MyModel(torch.nn.Module):
+                def __init__(self):
+                    super(MyModel, self).__init__()
 
-        model = MyModel()
-        model = model.eval()
-        poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
-        # for data in train_dataloader:
-        out, mask, idx = poptorch_model_inf(self.bg.feat, self.bg.batch)
-        # Check the output sizes
-        assert out.size() == torch.Size([batch_size, max_num_nodes_per_graph, 12])
-        # Check the mask for true / false values
-        assert mask.size() == torch.Size([batch_size, max_num_nodes_per_graph])
-        assert torch.sum(mask) == 7
-        assert (mask[0][:4] == True).all()
-        assert (mask[0][4:] == False).all()
-        assert (mask[1][:3] == True).all()
-        assert (mask[1][3:] == False).all()
-        assert (mask[2:] == False).all()
+                def forward(self, x, batch):
+                    return to_dense_batch(
+                        x,
+                        batch=batch,
+                        batch_size=batch_size,
+                        max_num_nodes_per_graph=max_num_nodes_per_graph,
+                        drop_nodes_last_graph=False,
+                    )
 
-        # Check the idx are all the true values in the mask
-        assert (mask.flatten()[idx] == True).all()
+            model = MyModel()
+            model = model.eval()
+            poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
+            # for data in train_dataloader:
+            out, mask, idx = poptorch_model_inf(self.bg.feat, self.bg.batch)
+            # Check the output sizes
+            assert out.size() == torch.Size([batch_size, max_num_nodes_per_graph, 12])
+            # Check the mask for true / false values
+            assert mask.size() == torch.Size([batch_size, max_num_nodes_per_graph])
+            assert torch.sum(mask) == 7
+            assert (mask[0][:4] == True).all()
+            assert (mask[0][4:] == False).all()
+            assert (mask[1][:3] == True).all()
+            assert (mask[1][3:] == False).all()
+            assert (mask[2:] == False).all()
+
+            # Check the idx are all the true values in the mask
+            assert (mask.flatten()[idx] == True).all()
+        except ImportError:
+            pytest.skip("Skipping this test because poptorch is not available")
 
     def test_ipu_to_dense_batch_no_batch_no_max_nodes(self):
         h_dense, mask = to_dense_batch(

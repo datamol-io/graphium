@@ -50,53 +50,59 @@ CONFIG_EXTRACT = {
 
 @pytest.mark.ipu
 def test_ipu_options():
-    ipu_opts, ipu_inference_opts = _get_ipu_opts(CONFIG_EXTRACT)
+    try:
+        import poptorch
 
-    # Define the expected IPU options for comparison
-    expected_ipu_opts = [
-        "deviceIterations(5)",
-        "replicationFactor(16)",
-        "TensorLocations.numIOTiles(128)",
-        '_Popart.set("defaultBufferingDepth", 128)',
-        "Precision.enableStochasticRounding(True)",
-    ]
-    expected_ipu_inference_opts = [
-        "deviceIterations(1)",
-        "replicationFactor(4)",
-        "TensorLocations.numIOTiles(32)",
-        '_Popart.set("defaultBufferingDepth", 16)',
-        "Precision.enableStochasticRounding(True)",
-    ]
+        ipu_opts, ipu_inference_opts = _get_ipu_opts(CONFIG_EXTRACT)
 
-    # Test the _get_ipu_opts method
-    ipu_opts, ipu_inference_opts = _get_ipu_opts(CONFIG_EXTRACT)
-    assert ipu_opts == expected_ipu_opts, f"Expected {expected_ipu_opts}, but got {ipu_opts}"
-    assert (
-        ipu_inference_opts == expected_ipu_inference_opts
-    ), f"Expected {expected_ipu_inference_opts}, but got {ipu_inference_opts}"
+        # Define the expected IPU options for comparison
+        expected_ipu_opts = [
+            "deviceIterations(5)",
+            "replicationFactor(16)",
+            "TensorLocations.numIOTiles(128)",
+            '_Popart.set("defaultBufferingDepth", 128)',
+            "Precision.enableStochasticRounding(True)",
+        ]
+        expected_ipu_inference_opts = [
+            "deviceIterations(1)",
+            "replicationFactor(4)",
+            "TensorLocations.numIOTiles(32)",
+            '_Popart.set("defaultBufferingDepth", 16)',
+            "Precision.enableStochasticRounding(True)",
+        ]
 
-    # Test the load_ipu_options method
-    ipu_training_opts, ipu_inference_opts = load_ipu_options(
-        ipu_opts=ipu_opts,
-        seed=42,
-        model_name="test_model",
-        gradient_accumulation=CONFIG_EXTRACT["trainer"]["trainer"].get("accumulate_grad_batches", None),
-        ipu_inference_opts=ipu_inference_opts,
-    )
+        # Test the _get_ipu_opts method
+        ipu_opts, ipu_inference_opts = _get_ipu_opts(CONFIG_EXTRACT)
+        assert ipu_opts == expected_ipu_opts, f"Expected {expected_ipu_opts}, but got {ipu_opts}"
+        assert (
+            ipu_inference_opts == expected_ipu_inference_opts
+        ), f"Expected {expected_ipu_inference_opts}, but got {ipu_inference_opts}"
 
-    # Ensure that the options objects are not None
-    assert ipu_training_opts is not None, "Expected ipu_training_opts not to be None"
-    assert ipu_inference_opts is not None, "Expected ipu_inference_opts not to be None"
+        # Test the load_ipu_options method
+        ipu_training_opts, ipu_inference_opts = load_ipu_options(
+            ipu_opts=ipu_opts,
+            seed=42,
+            model_name="test_model",
+            gradient_accumulation=CONFIG_EXTRACT["trainer"]["trainer"].get("accumulate_grad_batches", None),
+            ipu_inference_opts=ipu_inference_opts,
+        )
 
-    # Test the properties of the options objects
-    assert (
-        ipu_training_opts.replication_factor == 16
-    ), "Expected replication_factor of ipu_training_opts to be 16"
-    assert (
-        ipu_inference_opts.replication_factor == 4
-    ), "Expected replication_factor of ipu_inference_opts to be 4"
-    assert ipu_training_opts._popart, "Expected _popart of ipu_training_opts to be True"
-    assert ipu_inference_opts._popart, "Expected _popart of ipu_inference_opts to be True"
+        # Ensure that the options objects are not None
+        assert ipu_training_opts is not None, "Expected ipu_training_opts not to be None"
+        assert ipu_inference_opts is not None, "Expected ipu_inference_opts not to be None"
+
+        # Test the properties of the options objects
+        assert (
+            ipu_training_opts.replication_factor == 16
+        ), "Expected replication_factor of ipu_training_opts to be 16"
+        assert (
+            ipu_inference_opts.replication_factor == 4
+        ), "Expected replication_factor of ipu_inference_opts to be 4"
+        assert ipu_training_opts._popart, "Expected _popart of ipu_training_opts to be True"
+        assert ipu_inference_opts._popart, "Expected _popart of ipu_inference_opts to be True"
+
+    except ImportError:
+        pytest.skip("Skipping this test because poptorch is not available")
 
 
 @pytest.mark.ipu
