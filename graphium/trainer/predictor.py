@@ -40,6 +40,7 @@ class PredictorModule(lightning.LightningModule):
         flag_kwargs: Dict[str, Any] = None,
         task_norms: Optional[Dict[Callable, Any]] = None,
         metrics_every_n_steps: Optional[int] = 1,
+        save_preds_and_targets: Optional[bool] = False,
     ):
         """
         The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
@@ -60,6 +61,7 @@ class PredictorModule(lightning.LightningModule):
             flag_kwargs: Arguments related to using the FLAG adversarial augmentation
             task_norms: the normalization for each task
             metrics_every_n_steps: Compute and log metrics every n steps. Set to 1 to log at every step (the default)
+            save_preds_and_targets: Wether save preds and targets for each training step, turned off for optimization purpose.
         """
         self.save_hyperparameters()
 
@@ -167,6 +169,8 @@ class PredictorModule(lightning.LightningModule):
         # Decide whether to log every step or once at the end
         # of the epoch.
         self.metrics_every_n_steps = metrics_every_n_steps
+        # Wether save preds and targets for each training step.
+        self.save_preds_and_targets = save_preds_and_targets
 
     def forward(
         self, inputs: Dict
@@ -454,19 +458,19 @@ class PredictorModule(lightning.LightningModule):
         train_batch_time = time.time() - self.train_batch_start_time
         num_graphs = self.get_num_graphs(batch["features"])
         tput = num_graphs / train_batch_time
-
-        # this code is likely repeated for validation and testing, this should be moved to a function
-        self.task_epoch_summary.update_predictor_state(
-            step_name="train",
-            targets=outputs["targets"],
-            predictions=outputs["preds"],
-            loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
-            task_losses=outputs["task_losses"],
-            n_epochs=self.current_epoch,
-        )
-        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
-        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
-        outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
+        if self.save_preds_and_targets:
+            # this code is likely repeated for validation and testing, this should be moved to a function
+            self.task_epoch_summary.update_predictor_state(
+                step_name="train",
+                targets=outputs["targets"],
+                predictions=outputs["preds"],
+                loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
+                task_losses=outputs["task_losses"],
+                n_epochs=self.current_epoch,
+            )
+            metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
+            metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
+            outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
 
         concatenated_metrics_logs = {}  # self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
         concatenated_metrics_logs["train/loss"] = outputs["loss"]
@@ -497,6 +501,9 @@ class PredictorModule(lightning.LightningModule):
         elif self.flag_kwargs["n_steps"] == 0:
             # step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
             step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
+        if not self.save_preds_and_targets:
+            step_dict.pop("preds")
+            step_dict.pop("targets")
         return step_dict  # Returning the metrics_logs with the loss
 
     def get_gradient_norm(self):
