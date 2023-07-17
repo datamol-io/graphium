@@ -34,7 +34,7 @@ accelerator:
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 64)
+    - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
 
 # accelerator:
