@@ -47,6 +47,7 @@ wandb
 optuna
 google-cloud-storage
 mup
+networkx
 pyg-nightly
 fastparquet
 torch-scatter==2.1.1

@@ -64,7 +64,7 @@ class HybridCELoss(_WeightedLoss):
         # we apply softmax on the raw logits first
         softmax_input = self.softmax(input)
         # [batch_size, n_classes] * [n_classes] ([0, 1, 2...n_brakets-1]) -> [batch_size]
-        regression_input = torch.inner(softmax_input, self.brackets.to(input.device))
+        regression_input = torch.inner(softmax_input.to(self.brackets.dtype), self.brackets.to(input.device))
         regression_loss = self.regression_loss(regression_input, target.float(), reduction=self.reduction)
 
         # cross_entropy loss needs raw logits as input

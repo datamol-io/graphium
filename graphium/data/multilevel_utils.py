@@ -22,6 +22,11 @@ def extract_labels(df: pd.DataFrame, task_level: str, label_cols: List[str]):
         elif isinstance(graph_data, list):
             return np.array(graph_data)
         elif isinstance(graph_data, np.ndarray):
+            if len(graph_data.shape) == 0:
+                graph_data = np.expand_dims(graph_data, 0)
+            if graph_data.shape[0] == 0:
+                graph_data = np.array([np.nan])
+                # TODO: Warning
             return graph_data
         else:
             raise ValueError(
