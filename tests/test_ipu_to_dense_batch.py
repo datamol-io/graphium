@@ -52,6 +52,7 @@ class TestIPUBatch:
             import poptorch
 
             opts = poptorch.Options()
+            opts.useIpuModel(True)
 
             class MyModel(torch.nn.Module):
                 def __init__(self):
