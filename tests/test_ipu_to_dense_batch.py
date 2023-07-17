@@ -26,7 +26,7 @@ from graphium.config._loader import load_datamodule, load_metrics, load_architec
 from graphium.ipu.ipu_wrapper import PredictorModuleIPU
 
 
-
+@pytest.mark.ipu
 class TestIPUBatch:
     @pytest.fixture(autouse=True)
     def setup_class(self):
@@ -49,37 +49,43 @@ class TestIPUBatch:
         self.bg = Batch.from_data_list([self.g1, self.g2])
         self.attn_kwargs = {"embed_dim": self.in_dim, "num_heads": 2, "batch_first": True}
 
-    def test_ipu_to_dense_batch(self):
+
+    @pytest.mark.parametrize("max_num_nodes_per_graph, batch_size", [
+        (10, 5),
+        (20, 10),
+        (30, 15)
+    ])
+    def test_ipu_to_dense_batch(self, max_num_nodes_per_graph, batch_size):
         opts = poptorch.Options()
 
-        # train_dataloader = poptorch.DataLoader(
-        #     opts, [self.g1, self.g2], batch_size=1, shuffle=True, num_workers=1
-        # )
         class MyModel(torch.nn.Module):
             def __init__(self):
                 super(MyModel, self).__init__()
                 
             def forward(self, x, batch):
-                # Implement your function here
-                return to_dense_batch(x, batch=batch)
+                return to_dense_batch(x, batch=batch,  batch_size=batch_size,
+                                        max_num_nodes_per_graph=max_num_nodes_per_graph,
+                                        drop_nodes_last_graph=False)
 
         model = MyModel()
         model = model.eval()
         poptorch_model_inf = poptorch.inferenceModel(model, options=opts)
         # for data in train_dataloader:
-        import ipdb; ipdb.set_trace()
-        # poptorch_model_inf(data.x, data.batch)
-        import ipdb; ipdb.set_trace()
-        h_dense, mask, _ = to_dense_batch(
-            self.bg.feat,
-            batch=self.bg.batch,
-            batch_size=None,
-            max_num_nodes_per_graph=None,
-            drop_nodes_last_graph=False,
-        )
-        # import ipdb; ipdb.set_trace()
-        # Add assertions to check the output as needed
-
+        out, mask, idx = poptorch_model_inf(self.bg.feat, self.bg.batch)
+        # Check the output sizes
+        assert out.size() == torch.Size([batch_size, max_num_nodes_per_graph, 12])
+        # Check the mask for true / false values 
+        assert mask.size() == torch.Size([batch_size, max_num_nodes_per_graph])
+        assert torch.sum(mask) == 7
+        assert (mask[0][:4] == True).all()
+        assert (mask[0][4:] == False).all()
+        assert (mask[1][:3] == True).all()
+        assert (mask[1][3:] == False).all()
+        assert (mask[2:] == False).all()
+        
+        # Check the idx are all the true values in the mask
+        assert (mask.flatten()[idx] == True).all()
+    
     def test_ipu_to_dense_batch_no_batch_no_max_nodes(self):
         h_dense, mask = to_dense_batch(
             self.bg.feat,
@@ -106,5 +112,19 @@ class TestIPUBatch:
         assert torch.sum(mask) == 7
         assert torch.equal(id, torch.arange(7))
         assert h_dense.size() == (1, max_nodes_per_graph, self.bg.feat.size(-1))
+    
+    def test_ipu_to_dense_batch_drop_last(self):
+        out, mask, idx = to_dense_batch(
+            self.bg.feat,
+            batch=None,
+            batch_size=None,
+            max_num_nodes_per_graph=3,
+            drop_nodes_last_graph=True,
+        )
+        # Add assertions to check the output as needed
+        assert mask.size(1) == out.size(1)
+        # Check the mask and output have been clipped
+        assert mask.size() == torch.Size([1, 3])
+        assert mask.all().item(), "Not all values in the tensor are True"
 
 
