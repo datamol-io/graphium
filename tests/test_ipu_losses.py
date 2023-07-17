@@ -4,7 +4,8 @@ from torch.nn import BCELoss, MSELoss, L1Loss, BCEWithLogitsLoss
 from copy import deepcopy
 import pytest
 
-from graphium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU, BCEWithLogitsLossIPU
+from graphium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU, BCEWithLogitsLossIPU, HybridCELossIPU
+from graphium.trainer.losses import HybridCELoss
 
 
 @pytest.mark.ipu
@@ -155,7 +156,3 @@ class test_Losses(ut.TestCase):
             places=6,
             msg="Weighted BCEWithLogitsLoss with NaN is different",
         )
-        pass
-
-    def test_hybrid_bce(self):
-        pass
