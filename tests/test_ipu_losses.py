@@ -156,37 +156,3 @@ class test_Losses(ut.TestCase):
             places=6,
             msg="Weighted BCEWithLogitsLoss with NaN is different",
         )
-
-    # @pytest.mark.skip
-    def test_hybrid_bce(self):
-        preds = torch.rand((100, 10), dtype=torch.float32)
-        target = torch.rand((100, 10), dtype=torch.float32)
-
-        th = 0.7
-        nan_th = 0.2
-        preds_greater = preds > th
-        target_greater = (target > th).to(torch.float32)
-        target_greater_nan = deepcopy(target_greater)
-        is_nan = target < nan_th
-        target_greater_nan[target < nan_th] = torch.nan
-        target_nan = deepcopy(target)
-        target_nan[target < nan_th] = torch.nan
-
-        # Regular loss
-        import ipdb; ipdb.set_trace()
-        loss_true = HybridCELoss(n_brackets=10)(preds, target)
-        loss_ipu = HybridCELossIPU(n_brackets=10)(preds, target)
-        self.assertFalse(loss_true.isnan(), "Regular HybridCELoss is NaN")
-        self.assertAlmostEqual(
-            loss_true.item(), loss_ipu.item(), places=6, msg="Regular HybridCELoss is different"
-        )
-
-        # Regular loss with NaNs in target
-        # not_nan = ~target_nan.isnan()
-        # loss_true = HybridCELoss(n_brackets=10)(preds[not_nan], target[not_nan])
-        # loss_ipu = HybridCELossIPU(n_brackets=10)(preds, target_nan)
-        # self.assertFalse(loss_true.isnan(), "Regular HybridCELoss with target_nan is NaN")
-        # self.assertFalse(loss_ipu.isnan(), "Regular HybridCELossIPU with target_nan is NaN")
-        # self.assertAlmostEqual(
-        #     loss_true.item(), loss_ipu.item(), places=6, msg="Regular HybridCELoss with NaN is different"
-        # )

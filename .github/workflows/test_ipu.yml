@@ -42,7 +42,7 @@ jobs:
           tar -xzf poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz
           python3 -m pip install poplar_sdk-ubuntu_20_04-3.3.0+1403-208993bbb7/poptorch-3.3.0+113432_960e9c294b_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
           # Enable Poplar SDK (including Poplar and PopART)
-          source poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7/enable
+          source poplar_sdk-ubuntu_20_04-3.3.0+1403-208993bbb7/enable 
           
           python -c "import poptorch"
 
