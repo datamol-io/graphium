@@ -164,6 +164,7 @@ class test_Losses(ut.TestCase):
         target_nan = deepcopy(self.target_nan)
 
         # Regular loss
+        import ipdb; ipdb.set_trace()
         loss_true = HybridCELoss(n_brackets=1)(preds, target)
         loss_ipu = HybridCELossIPU(n_brackets=1)(preds, target)
         self.assertFalse(loss_true.isnan(), "Regular HybridCELoss is NaN")

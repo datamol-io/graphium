@@ -41,12 +41,9 @@ jobs:
           wget -O 'poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz' 'https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.3.0_208993bbb7-3.3.0&file=poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz'
           tar -xzf poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz
           python3 -m pip install poplar_sdk-ubuntu_20_04-3.3.0+1403-208993bbb7/poptorch-3.3.0+113432_960e9c294b_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
-      - name: Enable the SDK
-        run: |
           # Enable Poplar SDK (including Poplar and PopART)
           source poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7/enable
-      - name: Install Graphium requirements for IPU
-        run: |
+
           # Install the IPU specific and graphium requirements
           pip install -r requirements_ipu.txt
           # Install Graphium in dev mode
