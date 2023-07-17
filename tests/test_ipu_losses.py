@@ -1,10 +1,10 @@
 import unittest as ut
 import torch
-from torch.nn import BCELoss, MSELoss, L1Loss
+from torch.nn import BCELoss, MSELoss, L1Loss, BCEWithLogitsLoss
 from copy import deepcopy
 import pytest
 
-from graphium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU
+from graphium.ipu.ipu_losses import BCELossIPU, MSELossIPU, L1LossIPU, BCEWithLogitsLossIPU
 
 
 @pytest.mark.ipu
