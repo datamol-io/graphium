@@ -3,6 +3,7 @@ import torch
 from torch_geometric.data import Data, Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
 from warnings import warn
+
 try:
     import poptorch
 except Exception as e:
@@ -49,23 +50,22 @@ class TestIPUBatch:
         self.bg = Batch.from_data_list([self.g1, self.g2])
         self.attn_kwargs = {"embed_dim": self.in_dim, "num_heads": 2, "batch_first": True}
 
-
-    @pytest.mark.parametrize("max_num_nodes_per_graph, batch_size", [
-        (10, 5),
-        (20, 10),
-        (30, 15)
-    ])
+    @pytest.mark.parametrize("max_num_nodes_per_graph, batch_size", [(10, 5), (20, 10), (30, 15)])
     def test_ipu_to_dense_batch(self, max_num_nodes_per_graph, batch_size):
         opts = poptorch.Options()
 
         class MyModel(torch.nn.Module):
             def __init__(self):
                 super(MyModel, self).__init__()
-                
+
             def forward(self, x, batch):
-                return to_dense_batch(x, batch=batch,  batch_size=batch_size,
-                                        max_num_nodes_per_graph=max_num_nodes_per_graph,
-                                        drop_nodes_last_graph=False)
+                return to_dense_batch(
+                    x,
+                    batch=batch,
+                    batch_size=batch_size,
+                    max_num_nodes_per_graph=max_num_nodes_per_graph,
+                    drop_nodes_last_graph=False,
+                )
 
         model = MyModel()
         model = model.eval()
@@ -74,7 +74,7 @@ class TestIPUBatch:
         out, mask, idx = poptorch_model_inf(self.bg.feat, self.bg.batch)
         # Check the output sizes
         assert out.size() == torch.Size([batch_size, max_num_nodes_per_graph, 12])
-        # Check the mask for true / false values 
+        # Check the mask for true / false values
         assert mask.size() == torch.Size([batch_size, max_num_nodes_per_graph])
         assert torch.sum(mask) == 7
         assert (mask[0][:4] == True).all()
@@ -82,10 +82,10 @@ class TestIPUBatch:
         assert (mask[1][:3] == True).all()
         assert (mask[1][3:] == False).all()
         assert (mask[2:] == False).all()
-        
+
         # Check the idx are all the true values in the mask
         assert (mask.flatten()[idx] == True).all()
-    
+
     def test_ipu_to_dense_batch_no_batch_no_max_nodes(self):
         h_dense, mask = to_dense_batch(
             self.bg.feat,
@@ -112,7 +112,7 @@ class TestIPUBatch:
         assert torch.sum(mask) == 7
         assert torch.equal(id, torch.arange(7))
         assert h_dense.size() == (1, max_nodes_per_graph, self.bg.feat.size(-1))
-    
+
     def test_ipu_to_dense_batch_drop_last(self):
         out, mask, idx = to_dense_batch(
             self.bg.feat,
@@ -126,5 +126,3 @@ class TestIPUBatch:
         # Check the mask and output have been clipped
         assert mask.size() == torch.Size([1, 3])
         assert mask.all().item(), "Not all values in the tensor are True"
-
-
