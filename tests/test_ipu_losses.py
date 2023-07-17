@@ -156,3 +156,27 @@ class test_Losses(ut.TestCase):
             places=6,
             msg="Weighted BCEWithLogitsLoss with NaN is different",
         )
+
+    @pytest.mark.skip
+    def test_hybrid_bce(self):
+        preds = deepcopy(self.preds)
+        target = deepcopy(self.target)
+        target_nan = deepcopy(self.target_nan)
+
+        # Regular loss
+        loss_true = HybridCELoss(n_brackets=1)(preds, target)
+        loss_ipu = HybridCELossIPU(n_brackets=1)(preds, target)
+        self.assertFalse(loss_true.isnan(), "Regular HybridCELoss is NaN")
+        self.assertAlmostEqual(
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular HybridCELoss is different"
+        )
+
+        # Regular loss with NaNs in target
+        not_nan = ~target_nan.isnan()
+        loss_true = HybridCELoss(n_brackets=1)(preds[not_nan], target[not_nan])
+        loss_ipu = HybridCELossIPU(n_brackets=1)(preds, target_nan)
+        self.assertFalse(loss_true.isnan(), "Regular HybridCELoss with target_nan is NaN")
+        self.assertFalse(loss_ipu.isnan(), "Regular HybridCELossIPU with target_nan is NaN")
+        self.assertAlmostEqual(
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular HybridCELoss with NaN is different"
+        )

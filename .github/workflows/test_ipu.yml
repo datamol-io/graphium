@@ -38,7 +38,7 @@ jobs:
       - name: Activate SDK + Install Requirements
         run: |
           python3 -m pip install --upgrade pip
-          pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.3.0_208993bbb7-3.3.0&file=poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz
+          python3 -m pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.3.0_208993bbb7-3.3.0&file=poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz
       - name: Enable the SDK
         run: |
           # Enable Poplar SDK (including Poplar and PopART)
