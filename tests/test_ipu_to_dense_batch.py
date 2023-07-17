@@ -4,10 +4,7 @@ from torch_geometric.data import Data, Batch
 from graphium.ipu.to_dense_batch import to_dense_batch
 from warnings import warn
 
-try:
-    import poptorch
-except Exception as e:
-    warn(f"Skipping this test because poptorch is not available.\n{e}")
+
 # General imports
 import yaml
 import unittest as ut
@@ -20,15 +17,21 @@ from functools import partial
 
 import torch
 from torch.utils.data.dataloader import default_collate
+try:
+    import poptorch
+    from graphium.ipu.ipu_wrapper import PredictorModuleIPU
+except Exception as e:
+    warn(f"Skipping this test because poptorch is not available.\n{e}")
 
 # Current library imports
 from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
 
-from graphium.ipu.ipu_wrapper import PredictorModuleIPU
+
 
 
 @pytest.mark.ipu
 class TestIPUBatch:
+    
     @pytest.fixture(autouse=True)
     def setup_class(self):
         self.in_dim = 12
