@@ -109,3 +109,53 @@ class test_Losses(ut.TestCase):
         self.assertAlmostEqual(
             loss_true.item(), loss_ipu.item(), places=6, msg="Regular MAELoss with NaN is different"
         )
+
+    def test_bce_logits(self):
+        preds = deepcopy(self.preds)
+        target = deepcopy(self.target_greater)
+        target_nan = deepcopy(self.target_greater_nan)
+
+        # Regular loss
+        loss_true = BCEWithLogitsLoss()(preds, target)
+        loss_ipu = BCEWithLogitsLossIPU()(preds, target)
+        self.assertFalse(loss_true.isnan(), "Regular BCEWithLogitsLoss is NaN")
+        self.assertAlmostEqual(
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular BCEWithLogitsLoss is different"
+        )
+
+        # Weighted loss
+        weight = torch.rand(preds.shape[1], dtype=torch.float32)
+        loss_true = BCEWithLogitsLoss(weight=weight)(preds, target)
+        loss_ipu = BCEWithLogitsLossIPU(weight=weight)(preds, target)
+        self.assertFalse(loss_true.isnan(), "Regular BCEWithLogitsLoss is NaN")
+        self.assertAlmostEqual(
+            loss_true.item(), loss_ipu.item(), msg="Weighted BCEWithLogitsLoss is different"
+        )
+
+        # Regular loss with NaNs in target
+        not_nan = ~target_nan.isnan()
+        loss_true = BCEWithLogitsLoss()(preds[not_nan], target[not_nan])
+        loss_ipu = BCEWithLogitsLossIPU()(preds, target_nan)
+        self.assertFalse(loss_true.isnan(), "Regular test_bce_logits with target_nan is NaN")
+        self.assertFalse(loss_ipu.isnan(), "Regular test_bce_logits with target_nan is NaN")
+        self.assertAlmostEqual(
+            loss_true.item(), loss_ipu.item(), places=6, msg="Regular BCELoss with NaN is different"
+        )
+
+        # Weighted loss with NaNs in target
+        not_nan = ~target_nan.isnan()
+        weight = torch.rand(preds.shape, dtype=torch.float32)
+        loss_true = BCEWithLogitsLoss(weight=weight[not_nan])(preds[not_nan], target_nan[not_nan])
+        loss_ipu = BCEWithLogitsLossIPU(weight=weight)(preds, target_nan)
+        self.assertFalse(loss_true.isnan(), "Weighted test_bce_logits with target_nan is NaN")
+        self.assertFalse(loss_ipu.isnan(), "Weighted test_bce_logits with target_nan is NaN")
+        self.assertAlmostEqual(
+            loss_true.item(),
+            loss_ipu.item(),
+            places=6,
+            msg="Weighted BCEWithLogitsLoss with NaN is different",
+        )
+        pass
+
+    def test_hybrid_bce(self):
+        pass
