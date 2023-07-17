@@ -50,7 +50,10 @@ jobs:
           python -m pip install --no-deps -e .
 
       - name: Run tests
-        run: python3 -m pytest -m 'not skip_ipu'
+        run: |
+          # Enable Poplar SDK (including Poplar and PopART)
+          source poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7/enable
+          python3 -m pytest -m 'not skip_ipu'
 
       - name: Test CLI
         run: graphium --help
