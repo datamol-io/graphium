@@ -19,7 +19,7 @@ jobs:
         python-version: ["3.8"]
         pytorch-version: ["2.0"]
 
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     timeout-minutes: 30
 
     defaults:
