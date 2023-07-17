@@ -17,6 +17,7 @@ from functools import partial
 
 import torch
 from torch.utils.data.dataloader import default_collate
+
 try:
     import poptorch
     from graphium.ipu.ipu_wrapper import PredictorModuleIPU
@@ -27,11 +28,8 @@ except Exception as e:
 from graphium.config._loader import load_datamodule, load_metrics, load_architecture, load_accelerator
 
 
-
-
 @pytest.mark.ipu
 class TestIPUBatch:
-    
     @pytest.fixture(autouse=True)
     def setup_class(self):
         self.in_dim = 12
