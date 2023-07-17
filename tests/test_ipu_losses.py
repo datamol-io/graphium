@@ -157,11 +157,18 @@ class test_Losses(ut.TestCase):
             msg="Weighted BCEWithLogitsLoss with NaN is different",
         )
 
-    # @pytest.mark.skip
+    @pytest.mark.skip
     def test_hybrid_bce(self):
-        nan_th = 0.2
-        preds = deepcopy(self.preds)
+        preds = torch.rand((100, 10), dtype=torch.float32)
         target = torch.rand((100, 1), dtype=torch.float32)
+
+        th = 0.7
+        nan_th = 0.2
+        preds_greater = preds > th
+        target_greater = (target > th).to(torch.float32)
+        target_greater_nan = deepcopy(target_greater)
+        is_nan = target < nan_th
+        target_greater_nan[target < nan_th] = torch.nan
         target_nan = deepcopy(target)
         target_nan[target < nan_th] = torch.nan
 
