@@ -117,7 +117,7 @@ def get_keys(pyg_data):
 
 def found_size_mismatch(task: str, features: Union[Data, GraphDict], labels: np.ndarray, smiles: str) -> bool:
     """Check if a size mismatch exists between features and labels with respect to node/edge/nodepair.
-   
+
     Args:
         task: The task name is needed to determine the task level (graph, node, edge or nodepair)
         features: Features/information of molecule/graph (e.g., edge_index, feat, edge_feat, num_nodes, etc.)
@@ -140,24 +140,30 @@ def found_size_mismatch(task: str, features: Union[Data, GraphDict], labels: np.
         if labels.shape[0] != features.num_nodes:
             mismatch = True
             logger.warning(
-                (f"Inconsistent number of nodes between labels and features in {task} task for {smiles}: {labels.shape[0]} vs {features.num_nodes}")
+                (
+                    f"Inconsistent number of nodes between labels and features in {task} task for {smiles}: {labels.shape[0]} vs {features.num_nodes}"
+                )
             )
 
     elif task.startswith("edge_"):
         if labels.shape[0] != features.num_edges:
             mismatch = True
             logger.warning(
-                (f"Inconsistent number of edges between labels and features in {task} task for {smiles}: {labels.shape[0]} vs {features.num_edges}")
+                (
+                    f"Inconsistent number of edges between labels and features in {task} task for {smiles}: {labels.shape[0]} vs {features.num_edges}"
+                )
             )
 
     elif task.startswith("nodepair_"):
         if list(labels.shape[:2]) != 2 * [features.num_nodes]:
             mismatch = True
             logger.warning(
-                (f"Inconsistent shape of nodepairs between labels and features in {task} task for {smiles}: {list(labels.shape[:2])} vs {2 * [features.num_nodes]}")
+                (
+                    f"Inconsistent shape of nodepairs between labels and features in {task} task for {smiles}: {list(labels.shape[:2])} vs {2 * [features.num_nodes]}"
+                )
             )
 
     else:
         raise ValueError("Unkown task level")
-    
+
     return mismatch
