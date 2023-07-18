@@ -25,7 +25,7 @@ accelerator:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
+        precision: 16-true
         accumulate_grad_batches: 2
 
   ipu_config:
@@ -36,6 +36,13 @@ accelerator:
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
+
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to be 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
 
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
@@ -418,4 +425,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 20
+    check_val_every_n_epoch: 3

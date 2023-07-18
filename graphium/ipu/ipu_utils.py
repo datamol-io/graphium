@@ -124,7 +124,7 @@ def load_ipu_options(
     if ipu_inference_opts is not None:
         ipu_inference_opts_file = ipu_options_list_to_file(ipu_inference_opts)
         inference_opts.loadFromFile(ipu_inference_opts_file.name)
-        inference_opts.close()
+        ipu_inference_opts_file.close()
 
     return training_opts, inference_opts
 

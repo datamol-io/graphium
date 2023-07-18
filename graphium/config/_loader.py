@@ -113,7 +113,7 @@ def load_datamodule(
         ipu_opts, ipu_inference_opts = _get_ipu_opts(config)
 
         # Default empty values for the IPU configurations
-        ipu_training_opts, ipu_inference_opts = None, None
+        ipu_training_opts = None
 
         ipu_dataloader_training_opts = cfg_data.pop("ipu_dataloader_training_opts", {})
         ipu_dataloader_inference_opts = cfg_data.pop("ipu_dataloader_inference_opts", {})
