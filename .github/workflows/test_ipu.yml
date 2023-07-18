@@ -19,7 +19,7 @@ jobs:
         python-version: ["3.8"]
         pytorch-version: ["2.0"]
 
-    runs-on: "ubuntu-latest"
+    runs-on: "ubuntu-20.04"
     timeout-minutes: 30
 
     defaults:
@@ -38,17 +38,20 @@ jobs:
       - name: Activate SDK + Install Requirements
         run: |
           python3 -m pip install --upgrade pip
-          pip install https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.3.0_208993bbb7-3.3.0&file=poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz
+          wget -q -O 'poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz' 'https://downloads.graphcore.ai/direct?package=poplar-poplar_sdk_ubuntu_20_04_3.3.0_208993bbb7-3.3.0&file=poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz'
+          tar -xzf poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7.tar.gz
+          python3 -m pip install poplar_sdk-ubuntu_20_04-3.3.0+1403-208993bbb7/poptorch-3.3.0+113432_960e9c294b_ubuntu_20_04-cp38-cp38-linux_x86_64.whl
           # Enable Poplar SDK (including Poplar and PopART)
-          source poplar_sdk-ubuntu_20_04-3.3.0-208993bbb7/enable
+          source poplar_sdk-ubuntu_20_04-3.3.0+1403-208993bbb7/enable 
+          
+          python -c "import poptorch"
 
           # Install the IPU specific and graphium requirements
           pip install -r requirements_ipu.txt
           # Install Graphium in dev mode
           python -m pip install --no-deps -e .
 
-      - name: Run tests
-        run: python3 -m pytest -m 'not skip_ipu'
+          python3 -m pytest -m 'not skip_ipu'
 
       - name: Test CLI
         run: graphium --help
