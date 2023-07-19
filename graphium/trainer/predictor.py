@@ -447,13 +447,12 @@ class PredictorModule(lightning.LightningModule):
 
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
         self.train_batch_start_time = time.time()
-        self.is_log_train_metrics = (self.metrics_every_n_train_steps is None) or (
-            (batch_idx + 1) % self.metrics_every_n_train_steps != 0
+        self.skip_log_train_metrics = (self.metrics_every_n_train_steps is None) or (
+            (batch_idx % self.metrics_every_n_train_steps) != 0
         )
         return super().on_train_batch_start(batch, batch_idx)
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
-
         # Get the throughput of the batch
         train_batch_time = time.time() - self.train_batch_start_time
         num_graphs = self.get_num_graphs(batch["features"])
@@ -467,8 +466,12 @@ class PredictorModule(lightning.LightningModule):
         concatenated_metrics_logs["train/batch_time"] = train_batch_time
         concatenated_metrics_logs["train/batch_tput"] = tput
 
+        # report the training loss for each individual tasks
+        for task in self.tasks:
+            concatenated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
+
         # If logging is skipped for this step, then log the important metrics anyway and return
-        if self.is_log_train_metrics:
+        if self.skip_log_train_metrics:
             if self.logger is not None:
                 self.logger.log_metrics(
                     concatenated_metrics_logs, step=self.global_step
@@ -488,9 +491,6 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
 
-        # report the training loss for each individual tasks
-        for task in self.tasks:
-            concatenated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
         for key in concatenated_metrics_logs:
             if isinstance(concatenated_metrics_logs[key], torch.Tensor):
@@ -513,7 +513,7 @@ class PredictorModule(lightning.LightningModule):
             step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
 
         # Remove the preds and targets if no logging is required
-        if self.is_log_train_metrics:
+        if self.skip_log_train_metrics:
             step_dict.pop("preds")
             step_dict.pop("targets")
         return step_dict  # Returning the metrics_logs with the loss
