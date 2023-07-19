@@ -452,7 +452,7 @@ class PredictorModule(lightning.LightningModule):
         )
         return super().on_train_batch_start(batch, batch_idx)
 
-    def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
+    def on_train_batch_end(self, outputs, batch: Any) -> None:
         # Get the throughput of the batch
         train_batch_time = time.time() - self.train_batch_start_time
         num_graphs = self.get_num_graphs(batch["features"])
@@ -469,6 +469,12 @@ class PredictorModule(lightning.LightningModule):
         # report the training loss for each individual tasks
         for task in self.tasks:
             concatenated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
+
+        # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
+        for key in concatenated_metrics_logs:
+            if isinstance(concatenated_metrics_logs[key], torch.Tensor):
+                if concatenated_metrics_logs[key].numel() > 1:
+                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
 
         # If logging is skipped for this step, then log the important metrics anyway and return
         if self.skip_log_train_metrics:
@@ -491,11 +497,6 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
 
-        # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
-        for key in concatenated_metrics_logs:
-            if isinstance(concatenated_metrics_logs[key], torch.Tensor):
-                if concatenated_metrics_logs[key].numel() > 1:
-                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
         if self.logger is not None:
             self.logger.log_metrics(
                 concatenated_metrics_logs, step=self.global_step
