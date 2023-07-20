@@ -18,8 +18,8 @@ accelerator:
           max_num_nodes_per_graph: 30 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
-        batch_size_training: 40
-        batch_size_inference: 40
+        batch_size_training: 30
+        batch_size_inference: 30
     predictor:
       metrics_every_n_steps: 10
       optim_kwargs:

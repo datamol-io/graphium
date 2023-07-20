@@ -313,9 +313,6 @@ def load_predictor(
     mup_base_path = config["architecture"].pop("mup_base_path", None)
     predictor = load_mup(mup_base_path, predictor)
 
-    if config["trainer"]["trainer"]["precision"] == "16-true":
-        predictor.half()
-
     return predictor
 
 
