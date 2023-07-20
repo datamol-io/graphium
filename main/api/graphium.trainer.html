@@ -2110,7 +2110,7 @@
 
 
 <h5 id="graphium.trainer.predictor.PredictorModule.__init__" class="doc doc-heading">
-<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_every_n_steps</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">model_class</span><span class="p">,</span> <span class="n">model_kwargs</span><span class="p">,</span> <span class="n">loss_fun</span><span class="p">,</span> <span class="n">random_seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">optim_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">torch_scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scheduler_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">target_nan_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">multitask_handling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_on_progress_bar</span><span class="o">=</span><span class="p">[],</span> <span class="n">metrics_on_training_set</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flag_kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">task_norms</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metrics_every_n_train_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
 
 <a href="#graphium.trainer.predictor.PredictorModule.__init__" class="headerlink" title="Permanent link">&para;</a></h5>
 
@@ -2314,17 +2314,18 @@ It works in a multi-task setting, with different losses and metrics per class</p
           </td>
         </tr>
         <tr>
-          <td><code>metrics_every_n_steps</code></td>
+          <td><code>metrics_every_n_train_steps</code></td>
           <td>
-                <code><span title="typing.Optional">Optional</span>[bool]</code>
+                <code><span title="typing.Optional">Optional</span>[int]</code>
           </td>
           <td>
             <div class="doc-md-description">
-              <p>Compute and log metrics every n steps. Set to 1 to log at every step (the default)</p>
+              <p>Compute and log metrics every n training steps.
+Set to <code>None</code> to never log the training metrics and statistics (the default). Set to <code>1</code> to log at every step.</p>
             </div>
           </td>
           <td>
-                <code>1</code>
+                <code>None</code>
           </td>
         </tr>
     </tbody>
