@@ -467,7 +467,9 @@ class PredictorModule(lightning.LightningModule):
         for key in concatenated_metrics_logs:
             if isinstance(concatenated_metrics_logs[key], torch.Tensor):
                 if concatenated_metrics_logs[key].numel() > 1:
-                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
+                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key][
+                        concatenated_metrics_logs[key] != 0
+                    ].mean()
 
         # If logging is skipped for this step, then log the important metrics anyway and return
         if self.skip_log_train_metrics:

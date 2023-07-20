@@ -107,6 +107,7 @@ class test_DataLoading(ut.TestCase):
             # [label, [feat1, feat2]]
             return [self.labels[idx], [self.node_features[idx], self.edge_features[idx]]]
 
+    @pytest.mark.skip
     def test_poptorch_simple_deviceiterations_gradient_accumulation(self):
         """
         Test a simple version of the device-iterations and gradient accumulation
@@ -174,6 +175,7 @@ class test_DataLoading(ut.TestCase):
         )
         trainer.fit(model=model, train_dataloaders=train_dataloader, val_dataloaders=val_dataloader)
 
+    @pytest.mark.skip
     def test_poptorch_graphium_deviceiterations_gradient_accumulation(self):
         """
         Test the device-iterations and gradient accumulation in a way

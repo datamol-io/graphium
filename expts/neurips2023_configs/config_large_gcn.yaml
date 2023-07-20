@@ -15,18 +15,18 @@ accelerator:
           max_num_edges_per_graph: 100
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 60 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 30 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 100
         # Data handling-related
         batch_size_training: 30
-        batch_size_inference: 10
+        batch_size_inference: 30
     predictor:
       metrics_every_n_train_steps: 1000
       optim_kwargs:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
+        precision: 16-true
         accumulate_grad_batches: 2
 
   ipu_config:
@@ -39,13 +39,20 @@ accelerator:
     - Precision.enableStochasticRounding(True)
     # - Precision.enableFloatingPointExceptions(True)
 
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
+
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
 #   config_override:
 #     datamodule:
 #       args:
-#       batch_size_training: 64
-#       batch_size_inference: 256
+#         batch_size_training: 64
+#         batch_size_inference: 256
 #     trainer:
 #       trainer:
 #         precision: 32

@@ -11,32 +11,39 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 40 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 80
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 30 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 80
         # Data handling-related
-        batch_size_training: 30
-        batch_size_inference: 20
+        batch_size_training: 40
+        batch_size_inference: 40
     predictor:
       metrics_every_n_train_steps: 100
       optim_kwargs:
         loss_scaling: 1024
     trainer:
       trainer:
-        precision: 16
+        precision: 16-true
         accumulate_grad_batches: 2
 
   ipu_config:
     - deviceIterations(2) # IPU would require large batches to be ready for the model.
-    - replicationFactor(4)
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
     - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
+
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to be 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
 
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
@@ -339,7 +346,7 @@ predictor:
     # weight_decay: 1.e-7
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
-    max_num_epochs: &max_epochs 100
+    max_num_epochs: &max_epochs 10
     warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
@@ -419,4 +426,4 @@ trainer:
   trainer:
     max_epochs: *max_epochs
     min_epochs: 1
-    check_val_every_n_epoch: 20
+    check_val_every_n_epoch: 10
