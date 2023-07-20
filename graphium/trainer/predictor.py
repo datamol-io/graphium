@@ -453,18 +453,11 @@ class PredictorModule(lightning.LightningModule):
         return super().on_train_batch_start(batch, batch_idx)
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
-        # Get the throughput of the batch
-        train_batch_time = time.time() - self.train_batch_start_time
-        num_graphs = self.get_num_graphs(batch["features"])
-        tput = num_graphs / train_batch_time
+        train_batch_time = time.time() - self.train_batch_start_time  # To be used for throughput calculation
 
         # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
-        concatenated_metrics_logs = {}  # self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        concatenated_metrics_logs = {}
         concatenated_metrics_logs["train/loss"] = outputs["loss"]
-        outputs["grad_norm"] = self.get_gradient_norm()
-        concatenated_metrics_logs["train/grad_norm"] = outputs["grad_norm"]
-        concatenated_metrics_logs["train/batch_time"] = train_batch_time
-        concatenated_metrics_logs["train/batch_tput"] = tput
 
         # report the training loss for each individual tasks
         for task in self.tasks:
@@ -484,7 +477,15 @@ class PredictorModule(lightning.LightningModule):
                 )  # This is a pytorch lightning function call
             return
 
-        # this code is likely repeated for validation and testing, this should be moved to a function
+        ### The code below is not executed if the logging is skipped for this step ###
+
+        # Get the throughput of the batch
+        num_graphs = self.get_num_graphs(batch["features"])
+        tput = num_graphs / train_batch_time
+        concatenated_metrics_logs["train/batch_time"] = train_batch_time
+        concatenated_metrics_logs["train/batch_tput"] = tput
+
+        # Compute all the metrics for the training set
         self.task_epoch_summary.update_predictor_state(
             step_name="train",
             targets=outputs["targets"],
@@ -497,6 +498,7 @@ class PredictorModule(lightning.LightningModule):
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
         concatenated_metrics_logs.update(metrics_logs)
 
+        # Log the metrics
         if self.logger is not None:
             self.logger.log_metrics(
                 concatenated_metrics_logs, step=self.global_step
