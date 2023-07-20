@@ -178,8 +178,29 @@ class CombinedBatchingCollator:
                     if isinstance(sub_val, Tensor) and sub_val.dtype == torch.int64:
                         out_batch[data_key][sub_key] = sub_val.to(torch.int32)
 
+        #####
+        # HERE we should call `get_loss_empty_factor` using each gradient-accumulated batch.
+        # This will return a dictionary of factors, one for each task, that we can use to multiply the loss.
+        # This can then be added to the `out_batch` dictionary as `loss_empty_factor` and used in `Predictor.compute_loss`.
+        # This should only happen for the training batches, not for validation.
+        # I'm also not sure of the ordering of the batches within a global batch, so we should check that, considering
+        # that device_iterations and replication_factor are used along with gradient_accumulation.
+        # #####
+
         return out_batch
 
+def get_loss_empty_factor(self, accum_batch: List[Dict[str, Any]]) -> Dict[str, float]:
+    r"""
+    Compute a factor by which to multiply the losses in case a batch has no label for a given `task`
+    The factor is the ratio of non-empty batches to empty batches. If all batches are empty, the factor is set to 0."""
+    loss_empty_factor = {}
+    for task in self.tasks:
+        num_empty_batches = sum([accum_batch[ii]["labels"][task].isnan().all() for ii in range(len(accum_batch))])
+        this_loss_empty_factor = len(accum_batch) / (len(accum_batch) - num_empty_batches)
+        if num_empty_batches == len(accum_batch):
+            this_loss_empty_factor = 0
+        loss_empty_factor[task] = this_loss_empty_factor
+    return loss_empty_factor
 
 def create_ipu_dataloader(
     dataset: Dataset,

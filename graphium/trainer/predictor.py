@@ -233,6 +233,7 @@ class PredictorModule(lightning.LightningModule):
         loss_fun: Dict[str, Callable],
         target_nan_mask: Optional[Union[str, int]] = None,
         multitask_handling: Optional[str] = None,
+        loss_empty_factor: Optional[Dict[str, float]] = None,
     ) -> Tuple[Tensor, Dict[str, Tensor]]:
         r"""
         Compute the loss using the specified loss function, and dealing with
@@ -272,6 +273,12 @@ class PredictorModule(lightning.LightningModule):
             loss_fun:
                 Loss function to use
 
+            loss_empty_factor:
+                A dictionary used to weight the loss when there are empty batches. The loss empty factor is
+                the ratio of non-empty batches to empty batches. If all batches are empty,
+                the loss empty factor is set to 0.
+                If `None`, the loss empty factor is set to 1 for all tasks.
+
         Returns:
             Tensor:
                 weighted_loss: Resulting weighted loss
@@ -290,10 +297,16 @@ class PredictorModule(lightning.LightningModule):
 
         if weights is not None:
             raise NotImplementedError("Weights are no longer supported in the loss")
-        all_task_losses = {
-            task: wrapped(preds=preds[task], target=targets[task])
-            for task, wrapped in wrapped_loss_fun_dict.items()
-        }
+
+        # Get the loss for each task
+        all_task_losses = {}
+        for task, wrapped in wrapped_loss_fun_dict.items():
+            this_loss = wrapped(preds=preds[task], target=targets[task])
+            if loss_empty_factor is not None:
+                this_loss = this_loss * loss_empty_factor[task]
+            all_task_losses[task] = this_loss
+
+        # Sum the losses
         total_loss = torch.sum(torch.stack(list(all_task_losses.values())), dim=0)
         num_tasks = len(all_task_losses.keys())
         weighted_loss = total_loss / num_tasks
@@ -340,6 +353,7 @@ class PredictorModule(lightning.LightningModule):
             loss_fun=self.loss_fun,
             target_nan_mask=self.target_nan_mask,
             multitask_handling=self.multitask_handling,
+            loss_empty_factor = batch.get("loss_empty_factor", None),
         )
 
         device = "cpu" if to_cpu else None
@@ -408,6 +422,7 @@ class PredictorModule(lightning.LightningModule):
             target_nan_mask=self.target_nan_mask,
             multitask_handling=self.multitask_handling,
             loss_fun=self.loss_fun,
+            loss_empty_factor = batch.get("loss_empty_factor", None),
         )
 
         loss = loss / n_steps
@@ -429,6 +444,7 @@ class PredictorModule(lightning.LightningModule):
                 target_nan_mask=self.target_nan_mask,
                 multitask_handling=self.multitask_handling,
                 loss_fun=self.loss_fun,
+                loss_empty_factor = batch.get("loss_empty_factor", None),
             )
             loss = loss / n_steps
 
@@ -467,9 +483,7 @@ class PredictorModule(lightning.LightningModule):
         for key in concatenated_metrics_logs:
             if isinstance(concatenated_metrics_logs[key], torch.Tensor):
                 if concatenated_metrics_logs[key].numel() > 1:
-                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key][
-                        concatenated_metrics_logs[key] != 0
-                    ].mean()
+                    concatenated_metrics_logs[key] = concatenated_metrics_logs[key].mean()
 
         # If logging is skipped for this step, then log the important metrics anyway and return
         if self.skip_log_train_metrics:
