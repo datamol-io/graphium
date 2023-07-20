@@ -39,8 +39,7 @@ class PredictorModule(lightning.LightningModule):
         metrics_on_training_set: Optional[Dict[str, List[str]]] = None,
         flag_kwargs: Dict[str, Any] = None,
         task_norms: Optional[Dict[Callable, Any]] = None,
-        metrics_every_n_steps: Optional[int] = 1,
-        save_preds_and_targets: Optional[bool] = False,
+        metrics_every_n_train_steps: Optional[int] = None,
     ):
         """
         The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
@@ -60,8 +59,8 @@ class PredictorModule(lightning.LightningModule):
             metrics_on_training_set: A `dict[str, list[str2]`, where `str` is the task name and `str2` the metrics to include on the training set
             flag_kwargs: Arguments related to using the FLAG adversarial augmentation
             task_norms: the normalization for each task
-            metrics_every_n_steps: Compute and log metrics every n steps. Set to 1 to log at every step (the default)
-            save_preds_and_targets: Wether save preds and targets for each training step, turned off for optimization purpose.
+            metrics_every_n_train_steps: Compute and log metrics every n training steps.
+                Set to `None` to never log the training metrics and statistics (the default). Set to `1` to log at every step.
         """
         self.save_hyperparameters()
 
@@ -168,9 +167,8 @@ class PredictorModule(lightning.LightningModule):
 
         # Decide whether to log every step or once at the end
         # of the epoch.
-        self.metrics_every_n_steps = metrics_every_n_steps
+        self.metrics_every_n_train_steps = metrics_every_n_train_steps
         # Wether save preds and targets for each training step.
-        self.save_preds_and_targets = save_preds_and_targets
 
     def forward(
         self, inputs: Dict
@@ -449,38 +447,22 @@ class PredictorModule(lightning.LightningModule):
 
     def on_train_batch_start(self, batch: Any, batch_idx: int) -> Optional[int]:
         self.train_batch_start_time = time.time()
+        self.skip_log_train_metrics = (self.metrics_every_n_train_steps is None) or (
+            (batch_idx % self.metrics_every_n_train_steps) != 0
+        )
         return super().on_train_batch_start(batch, batch_idx)
 
     def on_train_batch_end(self, outputs, batch: Any, batch_idx: int) -> None:
-        if (batch_idx + 1) % self.metrics_every_n_steps != 0:
-            return
+        train_batch_time = time.time() - self.train_batch_start_time  # To be used for throughput calculation
 
-        train_batch_time = time.time() - self.train_batch_start_time
-        num_graphs = self.get_num_graphs(batch["features"])
-        tput = num_graphs / train_batch_time
-        if self.save_preds_and_targets:
-            # this code is likely repeated for validation and testing, this should be moved to a function
-            self.task_epoch_summary.update_predictor_state(
-                step_name="train",
-                targets=outputs["targets"],
-                predictions=outputs["preds"],
-                loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
-                task_losses=outputs["task_losses"],
-                n_epochs=self.current_epoch,
-            )
-            metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
-            metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
-            outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
-
-        concatenated_metrics_logs = {}  # self.task_epoch_summary.concatenate_metrics_logs(metrics_logs)
+        # Get the metrics that are logged at every step (loss, grad_norm, batch_time, batch_tput)
+        concatenated_metrics_logs = {}
         concatenated_metrics_logs["train/loss"] = outputs["loss"]
-        outputs["grad_norm"] = self.get_gradient_norm()
-        concatenated_metrics_logs["train/grad_norm"] = outputs["grad_norm"]
-        concatenated_metrics_logs["train/batch_time"] = train_batch_time
-        concatenated_metrics_logs["train/batch_tput"] = tput
+
         # report the training loss for each individual tasks
         for task in self.tasks:
             concatenated_metrics_logs[f"train/loss/{task}"] = outputs["task_losses"][task]
+
         # get the mean loss value for individual tasks as they are a tensor of size --> gradient accumulation * replication * device_iter
         for key in concatenated_metrics_logs:
             if isinstance(concatenated_metrics_logs[key], torch.Tensor):
@@ -488,6 +470,37 @@ class PredictorModule(lightning.LightningModule):
                     concatenated_metrics_logs[key] = concatenated_metrics_logs[key][
                         concatenated_metrics_logs[key] != 0
                     ].mean()
+
+        # If logging is skipped for this step, then log the important metrics anyway and return
+        if self.skip_log_train_metrics:
+            if self.logger is not None:
+                self.logger.log_metrics(
+                    concatenated_metrics_logs, step=self.global_step
+                )  # This is a pytorch lightning function call
+            return
+
+        ### The code below is not executed if the logging is skipped for this step ###
+
+        # Get the throughput of the batch
+        num_graphs = self.get_num_graphs(batch["features"])
+        tput = num_graphs / train_batch_time
+        concatenated_metrics_logs["train/batch_time"] = train_batch_time
+        concatenated_metrics_logs["train/batch_tput"] = tput
+
+        # Compute all the metrics for the training set
+        self.task_epoch_summary.update_predictor_state(
+            step_name="train",
+            targets=outputs["targets"],
+            predictions=outputs["preds"],
+            loss=outputs["loss"],  # This is the weighted loss for now, but change to task-specific loss
+            task_losses=outputs["task_losses"],
+            n_epochs=self.current_epoch,
+        )
+        metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
+        metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
+        concatenated_metrics_logs.update(metrics_logs)
+
+        # Log the metrics
         if self.logger is not None:
             self.logger.log_metrics(
                 concatenated_metrics_logs, step=self.global_step
@@ -503,7 +516,9 @@ class PredictorModule(lightning.LightningModule):
         elif self.flag_kwargs["n_steps"] == 0:
             # step_dict = self._general_step(batch=batch, step_name="train", to_cpu=True)
             step_dict = self._general_step(batch=batch, step_name="train", to_cpu=to_cpu)
-        if not self.save_preds_and_targets:
+
+        # Remove the preds and targets if no logging is required
+        if self.skip_log_train_metrics:
             step_dict.pop("preds")
             step_dict.pop("targets")
         return step_dict  # Returning the metrics_logs with the loss
