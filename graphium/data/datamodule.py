@@ -40,8 +40,9 @@ from graphium.features import (
     GraphDict,
     mol_to_pyggraph,
 )
-from graphium.data.utils import graphium_package_path
+
 from graphium.data.sampler import DatasetSubSampler
+from graphium.data.utils import graphium_package_path, found_size_mismatch
 from graphium.utils.arg_checker import check_arg_iterator
 from graphium.utils.hashing import get_md5_hash
 from graphium.data.smiles_transform import (
@@ -1022,9 +1023,6 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
 
             logger.info("Filtering the molecules for Hydrogen")
             logger.info(f"Looking at column {df.columns[0]}")
-            # Filter the DataFrame based on the function
-            # need this for pcba dataset
-            # df = df[df[df.columns[0]].apply(lambda x: has_atoms_after_h_removal(x))]
             logger.info("Filtering done")
             # Extract smiles, labels, extras
             args = self.task_dataset_processing_params[task]
@@ -1088,8 +1086,10 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
         for task, args in task_dataset_args.items():
             # Find out which molecule failed featurization, and filter them out
             idx_none = []
-            for idx, feat in enumerate(args["features"]):
-                if did_featurization_fail(feat):
+            for idx, (feat, labels, smiles) in enumerate(
+                zip(args["features"], args["labels"], args["smiles"])
+            ):
+                if did_featurization_fail(feat) or found_size_mismatch(task, feat, labels, smiles):
                     idx_none.append(idx)
             this_unique_ids = all_unique_mol_ids[idx_per_task[task][0] : idx_per_task[task][1]]
             df, features, smiles, labels, sample_idx, extras, this_unique_ids = self._filter_none_molecules(
