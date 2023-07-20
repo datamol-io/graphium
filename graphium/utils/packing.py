@@ -137,13 +137,13 @@ def fast_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     argsort_num_nodes = np.argsort(num_nodes)
     ipu_batch_size = int(len(num_nodes) / batch_size)
 
-    groups = []
-    for ii in range(batch_size):
-        group = argsort_num_nodes[ii * ipu_batch_size : (ii + 1) * ipu_batch_size]
-        np.random.shuffle(group)
-        groups.append(group)
-
-    packed_indices = np.stack(groups, axis=1).tolist()
+    packed_indices = np.stack(
+        [
+            np.random.permutation(argsort_num_nodes[ii * ipu_batch_size : (ii + 1) * ipu_batch_size])
+            for ii in range(batch_size)
+        ],
+        axis=0,
+    ).T.tolist()
     return packed_indices
 
 
@@ -174,12 +174,8 @@ def hybrid_packing(num_nodes: List[int], batch_size: int) -> List[List[int]]:
     smart_packing_complexity = len(num_nodes) ** 2 / batch_size
     if smart_packing_complexity < 1e4:
         return smart_packing(num_nodes=num_nodes, batch_size=batch_size)
-    elif smart_packing_complexity < 1e6:
+    elif smart_packing_complexity < 1e5:
         big, small = 3, 6
-    elif smart_packing_complexity < 1e8:
-        big, small = 2, 4
-    elif smart_packing_complexity < 1e10:
-        big, small = 1, 2
     else:
         return fast_packing(num_nodes=num_nodes, batch_size=batch_size)
 

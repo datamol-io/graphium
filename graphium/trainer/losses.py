@@ -52,7 +52,7 @@ class HybridCELoss(_WeightedLoss):
         self.alpha = alpha
         self.softmax = torch.nn.Softmax(dim=1)
 
-    def forward(self, input: Tensor, target: Tensor) -> Tensor:
+    def forward(self, input: Tensor, target: Tensor, nan_targets: Tensor = None) -> Tensor:
         """
         Parameters:
             input: (batch_size x n_classes) tensor of logits predicted for each bracket.
@@ -60,14 +60,34 @@ class HybridCELoss(_WeightedLoss):
         """
 
         target = target.flatten()
+
+        # set input and target with nans to 0s for regression loss
+        if nan_targets is not None:
+            input = torch.masked_fill(input, nan_targets.unsqueeze(1), 0)
+            target = torch.masked_fill(target, nan_targets, 0)
         # regression loss needs normalized logits to probability as input to do inner product with self.brackets
         # we apply softmax on the raw logits first
         softmax_input = self.softmax(input)
+        # the softmax of a tensor of 0s would not be 0s anymore, so need to apply nan_targets here again to filter out
+        if nan_targets is not None:
+            softmax_input = torch.masked_fill(softmax_input, nan_targets.unsqueeze(1), 0.0)
         # [batch_size, n_classes] * [n_classes] ([0, 1, 2...n_brakets-1]) -> [batch_size]
         regression_input = torch.inner(softmax_input.to(self.brackets.dtype), self.brackets.to(input.device))
         regression_loss = self.regression_loss(regression_input, target.float(), reduction=self.reduction)
+        # regression_loss needs some scaling by total_targets/num_real_targets
+        if nan_targets is not None:
+            num_real_targets = (~nan_targets).sum()
+            factor1 = torch.where(num_real_targets > 0, 1, 0)
+            factor2 = torch.where(num_real_targets > 0, 0, 1)
+            regression_loss = factor1 * regression_loss * nan_targets.numel() / (num_real_targets + factor2)
 
+            # set input and target with nans to -1000s for ce loss
+            input = torch.masked_fill(input, nan_targets.unsqueeze(1), -1000)
+            target = torch.masked_fill(target, nan_targets, -1000)
         # cross_entropy loss needs raw logits as input
-        ce_loss = F.cross_entropy(input, target.long(), weight=self.weight, reduction=self.reduction)
+        # ce_loss does not need scaling as it already ignores -1000 masked nan values
+        ce_loss = F.cross_entropy(
+            input, target.long(), weight=self.weight, ignore_index=-1000, reduction=self.reduction
+        )
 
         return self.alpha * ce_loss + (1 - self.alpha) * regression_loss

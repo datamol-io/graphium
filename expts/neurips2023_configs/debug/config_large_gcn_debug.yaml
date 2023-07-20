@@ -11,38 +11,47 @@ accelerator:
       args:
         ipu_dataloader_training_opts:
           mode: async
-          max_num_nodes_per_graph: 40 # train max nodes: 20, max_edges: 54
+          max_num_nodes_per_graph: 30 # train max nodes: 20, max_edges: 54
           max_num_edges_per_graph: 80
         ipu_dataloader_inference_opts:
           mode: async
-          max_num_nodes_per_graph: 40 # valid max nodes: 51, max_edges: 118
+          max_num_nodes_per_graph: 30 # valid max nodes: 51, max_edges: 118
           max_num_edges_per_graph: 80
         # Data handling-related
-        batch_size_training: 20
-        batch_size_inference: 20
+        batch_size_training: 40
+        batch_size_inference: 40
     predictor:
+      metrics_every_n_train_steps: 100
       optim_kwargs:
         loss_scaling: 1024
     trainer:
       trainer:
         precision: 16-true
-        accumulate_grad_batches: 4
+        accumulate_grad_batches: 2
 
   ipu_config:
     - deviceIterations(2) # IPU would require large batches to be ready for the model.
-    - replicationFactor(4)
+    - replicationFactor(16)
     # - enableProfiling("graph_analyser")       # The folder where the profile will be stored
     # - enableExecutableCaching("pop_compiler_cache")
     - TensorLocations.numIOTiles(128)
-    - _Popart.set("defaultBufferingDepth", 128)
+    - _Popart.set("defaultBufferingDepth", 96)
     - Precision.enableStochasticRounding(True)
+
+  ipu_inference_config:
+  # set device iteration and replication factor to 1 during inference
+  # gradient accumulation was set to be 1 in the code
+    - deviceIterations(1)
+    - replicationFactor(1)
+    - Precision.enableStochasticRounding(False)
 
 # accelerator:
 #   type: cpu  # cpu or ipu or gpu
 #   config_override:
 #     datamodule:
-#       batch_size_training: 64
-#       batch_size_inference: 256
+#       args:
+#         batch_size_training: 320
+#         batch_size_inference: 256
 #     trainer:
 #       trainer:
 #         precision: 32
@@ -60,9 +69,10 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_vcap_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_vcap_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       l1000_mcf7:
         df: null
@@ -71,9 +81,10 @@ datamodule:
         # or set path as the URL directly
         smiles_col: "SMILES"
         label_cols: geneID-*  # geneID-* means all columns starting with "geneID-"
-        # sample_size: 2000 # use sample_size for test
+        sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/l1000_mcf7_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/l1000_mcf7_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       pcba_1328:
         df: null
@@ -85,6 +96,7 @@ datamodule:
         sample_size: 2000 # use sample_size for test
         task_level: graph
         splits_path: graphium/data/neurips2023/large-dataset/pcba_1328_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Large-dataset/pcba_1328_random_splits.pt`
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_g25:
         df: null
@@ -99,6 +111,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 1.0
 
       pcqm4m_n4:
         df: null
@@ -114,6 +127,7 @@ datamodule:
         label_normalization:
           normalize_val_test: True
           method: "normal"
+        epoch_sampling_fraction: 1.0
 
     # Featurization
     prepare_dict_or_graph: pyg:graph
@@ -318,11 +332,11 @@ predictor:
     l1000_vcap:
       name: hybrid_ce_ipu
       n_brackets: 5
-      alpha: 0.5
+      alpha: 0.9
     l1000_mcf7:
       name: hybrid_ce_ipu
       n_brackets: 5
-      alpha: 0.5
+      alpha: 0.9
     pcba_1328: bce_ipu
     pcqm4m_g25: mae_ipu
     pcqm4m_n4: mae_ipu
@@ -333,7 +347,7 @@ predictor:
   torch_scheduler_kwargs:
     module_type: WarmUpLinearLR
     max_num_epochs: &max_epochs 10
-    warmup_epochs: 5
+    warmup_epochs: 10
     verbose: False
   scheduler_kwargs:
   #  monitor: &monitor qm9/mae/train
@@ -407,7 +421,7 @@ trainer:
     # monitor: *monitor
     # mode: *mode
     # save_top_k: 1
-    every_n_epochs: 5
+    every_n_epochs: 20
     save_last: True
   trainer:
     max_epochs: *max_epochs

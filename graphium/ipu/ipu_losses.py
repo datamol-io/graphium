@@ -176,14 +176,7 @@ class HybridCELossIPU(HybridCELoss):
 
         # Replace the nan-targets in the input/target tensors by 0
         nan_targets = target.isnan()
-        input[nan_targets] = 0.0
-        target[nan_targets] = 0.0
 
         # Compute the loss, and rescale by the number of nan elements
-        loss = super().forward(input, target)
-        num_real_targets = (~nan_targets).sum()
-        factor1 = torch.where(num_real_targets > 0, 1, 0)
-        factor2 = torch.where(num_real_targets > 0, 0, 1)
-        loss = factor1 * loss * nan_targets.numel() / (num_real_targets + factor2)
-
+        loss = super().forward(input, target, nan_targets)
         return loss
