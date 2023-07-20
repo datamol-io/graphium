@@ -495,7 +495,7 @@ class PredictorModule(lightning.LightningModule):
         )
         metrics_logs = self.task_epoch_summary.get_metrics_logs()  # Dict[task, metric_logs]
         metrics_logs["_global"]["grad_norm"] = self.get_gradient_norm()
-        outputs.update(metrics_logs)  # Dict[task, metric_logs]. Concatenate them?
+        concatenated_metrics_logs.update(metrics_logs)
 
         if self.logger is not None:
             self.logger.log_metrics(
