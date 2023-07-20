@@ -1885,9 +1885,12 @@ class MultitaskFromSmilesDataModule(BaseDataModule, IPUDataModuleModifier):
                     f"file type `{file_type}` for `{splits_path}` not recognised, please use .pt, .csv or .tsv"
                 )
             train, val, test = split_names
-            train_indices = np.asarray(splits[train].dropna()).astype("int").tolist()
-            val_indices = np.asarray(splits[val].dropna()).astype("int").tolist()
-            test_indices = np.asarray(splits[test].dropna()).astype("int").tolist()
+            train_indices = np.asarray(splits[train]).astype("int")
+            train_indices = train_indices[~np.isnan(train_indices)].tolist()
+            val_indices = np.asarray(splits[val]).astype("int")
+            val_indices = val_indices[~np.isnan(val_indices)].tolist()
+            test_indices = np.asarray(splits[test]).astype("int")
+            test_indices = test_indices[~np.isnan(test_indices)].tolist()
 
         # Filter train, val and test indices
         _, train_idx, _ = np.intersect1d(sample_idx, train_indices, return_indices=True)
