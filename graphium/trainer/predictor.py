@@ -18,7 +18,8 @@ from graphium.data.datamodule import BaseDataModule
 from graphium.utils.moving_average_tracker import MovingAverageTracker
 
 GRAPHIUM_PRETRAINED_MODELS = {
-    "graphium-zinc-micro-dummy-test": "gcs://graphium-public/pretrained-models/graphium-zinc-micro-dummy-test/model.ckpt"
+    "graphium-zinc-micro-dummy-test": "gcs://graphium-public/pretrained-models/graphium-zinc-micro-dummy-test/model.ckpt",
+    "dummy-pretrained-model": "pretrained_models/dummy-pretrained-model.ckpt"  # dummy model (to be deleted later)
 }
 
 
