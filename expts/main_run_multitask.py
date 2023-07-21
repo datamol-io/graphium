@@ -29,6 +29,7 @@ import wandb
 MAIN_DIR = dirname(dirname(abspath(graphium.__file__)))
 os.chdir(MAIN_DIR)
 
+
 @hydra.main(version_base=None, config_path="hydra-configs", config_name="main")
 def main(cfg: DictConfig) -> None:
     cfg = OmegaConf.to_container(cfg, resolve=True)
