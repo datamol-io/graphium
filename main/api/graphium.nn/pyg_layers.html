@@ -19,7 +19,7 @@
         <link rel="next" href="../graphium.features.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -2447,7 +2447,7 @@
 
 
 <h3 id="graphium.nn.pyg_layers.gated_gcn_pyg" class="doc doc-heading">
-          <code>graphium.nn.pyg_layers.gated_gcn_pyg</code>
+            <code>graphium.nn.pyg_layers.gated_gcn_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2474,16 +2474,15 @@
 
 
 <h4 id="graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg" class="doc doc-heading">
-        <code>GatedGCNPyg</code>
+          <code>GatedGCNPyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gated_gcn_pyg.GatedGCNPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch_geometric.nn.conv.MessagePassing">MessagePassing</span></code>, <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch_geometric.nn.conv.MessagePassing">MessagePassing</span></code>, <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code></p>
 
 
 
@@ -2517,6 +2516,8 @@
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2563,6 +2564,8 @@ supports edges can decide to not use them.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2613,6 +2616,8 @@ of the outputs from each head, so the out_dim gets multiplied by
 the number of heads, and this function should return the number
 of heads.</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2640,6 +2645,7 @@ of heads.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2655,6 +2661,8 @@ of heads.</p>
       <p>ResGatedGCN: Residual Gated Graph ConvNets
 An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and Thomas Laurent, ICLR 2018)
 <a href="https://arxiv.org/pdf/1711.07553v2.pdf">https://arxiv.org/pdf/1711.07553v2.pdf</a></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2764,6 +2772,7 @@ An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2777,6 +2786,8 @@ An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and
   <div class="doc doc-contents ">
   
       <p>aggregation function of the layer</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2848,6 +2859,8 @@ An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2874,6 +2887,7 @@ An Experimental Study of Neural Networks for Variable Graphs (Xavier Bresson and
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2891,6 +2905,8 @@ extract the following from the batch:
 x, node features with dim [n_nodes, in_dim]
 e, edge features with dim [n_edges, in_dim]
 edge_index with dim [2, n_edges]</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2920,6 +2936,8 @@ edge_index with dim [2, n_edges]</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2946,6 +2964,7 @@ edge_index with dim [2, n_edges]</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2959,6 +2978,8 @@ edge_index with dim [2, n_edges]</p>
   <div class="doc doc-contents ">
   
       <p>Return a boolean specifying if the layer type supports edges or not.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2986,6 +3007,7 @@ edge_index with dim [2, n_edges]</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2999,6 +3021,8 @@ edge_index with dim [2, n_edges]</p>
   <div class="doc doc-contents ">
   
       <p>message function</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3056,6 +3080,8 @@ edge_index with dim [2, n_edges]</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3082,6 +3108,7 @@ edge_index with dim [2, n_edges]</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3095,6 +3122,8 @@ edge_index with dim [2, n_edges]</p>
   <div class="doc doc-contents ">
   
       <p>update function of the layer</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3137,6 +3166,8 @@ edge_index with dim [2, n_edges]</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3196,7 +3227,7 @@ edge_index with dim [2, n_edges]</p>
 
 
 <h3 id="graphium.nn.pyg_layers.gps_pyg" class="doc doc-heading">
-          <code>graphium.nn.pyg_layers.gps_pyg</code>
+            <code>graphium.nn.pyg_layers.gps_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gps_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3219,16 +3250,15 @@ edge_index with dim [2, n_edges]</p>
 
 
 <h4 id="graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg" class="doc doc-heading">
-        <code>GPSLayerPyg</code>
+          <code>GPSLayerPyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gps_pyg.GPSLayerPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
 
 
 
@@ -3262,6 +3292,8 @@ edge_index with dim [2, n_edges]</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3308,6 +3340,8 @@ supports edges can decide to not use them.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3358,6 +3392,8 @@ of the outputs from each head, so the out_dim gets multiplied by
 the number of heads, and this function should return the number
 of heads.</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3385,6 +3421,7 @@ of heads.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3405,6 +3442,8 @@ Ladislav Rampášek, Mikhail Galkin, Vijay Prakash Dwivedi, Anh Tuan Luu, Guy Wo
 <p>GPS++: An Optimised Hybrid MPNN/Transformer for Molecular Property Prediction
 Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam Sanders, Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
 <a href="https://arxiv.org/abs/2212.02229">https://arxiv.org/abs/2212.02229</a></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3721,6 +3760,7 @@ default: None means biased attention is not used</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3734,6 +3774,8 @@ default: None means biased attention is not used</p>
   <div class="doc doc-contents ">
   
       <p>forward function of the layer</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3763,6 +3805,8 @@ default: None means biased attention is not used</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3789,6 +3833,7 @@ default: None means biased attention is not used</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3802,6 +3847,8 @@ default: None means biased attention is not used</p>
   <div class="doc doc-contents ">
   
       <p>Return a boolean specifying if the layer type supports edges or not.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3854,7 +3901,7 @@ Always <code>True</code> for the current class</p>
 
 
 <h3 id="graphium.nn.pyg_layers.gin_pyg" class="doc doc-heading">
-          <code>graphium.nn.pyg_layers.gin_pyg</code>
+            <code>graphium.nn.pyg_layers.gin_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gin_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3877,16 +3924,15 @@ Always <code>True</code> for the current class</p>
 
 
 <h4 id="graphium.nn.pyg_layers.gin_pyg.GINConvPyg" class="doc doc-heading">
-        <code>GINConvPyg</code>
+          <code>GINConvPyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINConvPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
 
 
 
@@ -3920,6 +3966,8 @@ Always <code>True</code> for the current class</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3966,6 +4014,8 @@ supports edges can decide to not use them.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4016,6 +4066,8 @@ of the outputs from each head, so the out_dim gets multiplied by
 the number of heads, and this function should return the number
 of heads.</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4043,6 +4095,7 @@ of heads.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4059,6 +4112,8 @@ of heads.</p>
 HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and Stefanie Jegelka, ICLR 2019)
 <a href="https://arxiv.org/pdf/1810.00826.pdf">https://arxiv.org/pdf/1810.00826.pdf</a></p>
 <p>[!] code uses the pytorch-geometric implementation of GINConv</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4180,6 +4235,7 @@ HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4193,6 +4249,8 @@ HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and
   <div class="doc doc-contents ">
   
       <p>forward function of the layer</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4222,6 +4280,8 @@ HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4248,6 +4308,7 @@ HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4261,6 +4322,8 @@ HOW POWERFUL ARE GRAPH NEURAL NETWORKS? (Keyulu Xu, Weihua Hu, Jure Leskovec and
   <div class="doc doc-contents ">
   
       <p>Return a boolean specifying if the layer type supports edges or not.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4302,16 +4365,15 @@ Always <code>False</code> for the current class</p>
 
 
 <h4 id="graphium.nn.pyg_layers.gin_pyg.GINEConvPyg" class="doc doc-heading">
-        <code>GINEConvPyg</code>
+          <code>GINEConvPyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.gin_pyg.GINEConvPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
 
 
 
@@ -4345,6 +4407,8 @@ Always <code>False</code> for the current class</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4391,6 +4455,8 @@ supports edges can decide to not use them.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4441,6 +4507,8 @@ of the outputs from each head, so the out_dim gets multiplied by
 the number of heads, and this function should return the number
 of heads.</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4468,6 +4536,7 @@ of heads.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4485,6 +4554,8 @@ Strategies for Pre-training Graph Neural Networks
 Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Jure Leskovec
 <a href="https://arxiv.org/abs/1905.12265">https://arxiv.org/abs/1905.12265</a></p>
 <p>[!] code uses the pytorch-geometric implementation of GINEConv</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4606,6 +4677,7 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4619,6 +4691,8 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
   <div class="doc doc-contents ">
   
       <p>forward function of the layer</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4648,6 +4722,8 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4674,6 +4750,7 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4687,6 +4764,8 @@ Weihua Hu, Bowen Liu, Joseph Gomes, Marinka Zitnik, Percy Liang, Vijay Pande, Ju
   <div class="doc doc-contents ">
   
       <p>Return a boolean specifying if the layer type supports edges or not.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4739,7 +4818,7 @@ Always <code>True</code> for the current class</p>
 
 
 <h3 id="graphium.nn.pyg_layers.mpnn_pyg" class="doc doc-heading">
-          <code>graphium.nn.pyg_layers.mpnn_pyg</code>
+            <code>graphium.nn.pyg_layers.mpnn_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4762,16 +4841,15 @@ Always <code>True</code> for the current class</p>
 
 
 <h4 id="graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg" class="doc doc-heading">
-        <code>MPNNPlusPyg</code>
+          <code>MPNNPlusPyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.mpnn_pyg.MPNNPlusPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphModule" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphModule">BaseGraphModule</a></code></p>
 
 
 
@@ -4805,6 +4883,8 @@ Always <code>True</code> for the current class</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4851,6 +4931,8 @@ supports edges can decide to not use them.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4901,6 +4983,8 @@ of the outputs from each head, so the out_dim gets multiplied by
 the number of heads, and this function should return the number
 of heads.</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4928,6 +5012,7 @@ of heads.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4946,6 +5031,8 @@ Dominic Masters, Josef Dean, Kerstin Klaser, Zhiyi Li, Sam Maddrell-Mander, Adam
 Hatem Helal, Deniz Beker, Ladislav Rampášek, Dominique Beaini
 https://arxiv.org/abs/2212.02229
 </code></pre>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5211,6 +5298,7 @@ supported strings are:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5224,6 +5312,8 @@ supported strings are:</p>
   <div class="doc doc-contents ">
   
       <p>Function to aggregate (scatter) messages built from node and edge features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5323,6 +5413,8 @@ supported strings are:</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5349,6 +5441,7 @@ supported strings are:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5362,6 +5455,8 @@ supported strings are:</p>
   <div class="doc doc-contents ">
   
       <p>Forward function of the MPNN Plus layer</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5391,6 +5486,8 @@ supported strings are:</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5417,6 +5514,7 @@ supported strings are:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5430,6 +5528,8 @@ supported strings are:</p>
   <div class="doc doc-contents ">
   
       <p>Function to gather node features based on the senders and receivers of the edge indices.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5497,6 +5597,7 @@ Gathered receiver features</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5510,6 +5611,8 @@ Gathered receiver features</p>
   <div class="doc doc-contents ">
   
       <p>Return a boolean specifying if the layer type supports edges or not.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5562,7 +5665,7 @@ Always <code>True</code> for the current class</p>
 
 
 <h3 id="graphium.nn.pyg_layers.pna_pyg" class="doc doc-heading">
-          <code>graphium.nn.pyg_layers.pna_pyg</code>
+            <code>graphium.nn.pyg_layers.pna_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.pna_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5585,16 +5688,15 @@ Always <code>True</code> for the current class</p>
 
 
 <h4 id="graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg" class="doc doc-heading">
-        <code>PNAMessagePassingPyg</code>
+          <code>PNAMessagePassingPyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.pna_pyg.PNAMessagePassingPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch_geometric.nn.conv.MessagePassing">MessagePassing</span></code>, <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch_geometric.nn.conv.MessagePassing">MessagePassing</span></code>, <code><a class="autorefs autorefs-internal" title="graphium.nn.base_graph_layer.BaseGraphStructure" href="graphium.nn.html#graphium.nn.base_graph_layer.BaseGraphStructure">BaseGraphStructure</a></code></p>
 
 
 
@@ -5628,6 +5730,8 @@ Always <code>True</code> for the current class</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5674,6 +5778,8 @@ supports edges can decide to not use them.</p>
 uses edges as input or not.
 It is different from <code>layer_supports_edges</code> since a layer that
 supports edges can decide to not use them.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5724,6 +5830,8 @@ of the outputs from each head, so the out_dim gets multiplied by
 the number of heads, and this function should return the number
 of heads.</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5748,6 +5856,7 @@ of heads.</p>
   </div>
 
 </div>
+
 
 
 
@@ -5776,6 +5885,8 @@ features.</p>
 Gabriele Corso, Luca Cavalleri, Dominique Beaini, Pietro Lio, Petar Velickovic
 <a href="https://arxiv.org/abs/2004.05718">https://arxiv.org/abs/2004.05718</a></p>
 <p>[!] code adapted from pytorch-geometric implementation of PNAConv</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5973,6 +6084,7 @@ The results from all scalers will be concatenated</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5986,6 +6098,8 @@ The results from all scalers will be concatenated</p>
   <div class="doc doc-contents ">
   
       <p>aggregate function</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6057,6 +6171,8 @@ The results from all scalers will be concatenated</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6083,6 +6199,7 @@ The results from all scalers will be concatenated</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6096,6 +6213,8 @@ The results from all scalers will be concatenated</p>
   <div class="doc doc-contents ">
   
       <p>forward function of the layer</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6125,6 +6244,8 @@ The results from all scalers will be concatenated</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6151,6 +6272,7 @@ The results from all scalers will be concatenated</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6164,6 +6286,8 @@ The results from all scalers will be concatenated</p>
   <div class="doc doc-contents ">
   
       <p>Return a boolean specifying if the layer type supports edges or not.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -6191,6 +6315,7 @@ The results from all scalers will be concatenated</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6204,6 +6329,8 @@ The results from all scalers will be concatenated</p>
   <div class="doc doc-contents ">
   
       <p>message function</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6261,6 +6388,8 @@ The results from all scalers will be concatenated</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6311,7 +6440,7 @@ The results from all scalers will be concatenated</p>
 
 
 <h3 id="graphium.nn.pyg_layers.pooling_pyg" class="doc doc-heading">
-          <code>graphium.nn.pyg_layers.pooling_pyg</code>
+            <code>graphium.nn.pyg_layers.pooling_pyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -6334,22 +6463,22 @@ The results from all scalers will be concatenated</p>
 
 
 <h4 id="graphium.nn.pyg_layers.pooling_pyg.PoolingWrapperPyg" class="doc doc-heading">
-        <code>PoolingWrapperPyg</code>
+          <code>PoolingWrapperPyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.PoolingWrapperPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.utils.tensor.ModuleWrap" href="../graphium.utils.html#graphium.utils.tensor.ModuleWrap">ModuleWrap</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.utils.tensor.ModuleWrap" href="../graphium.utils.html#graphium.utils.tensor.ModuleWrap">ModuleWrap</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -6372,6 +6501,8 @@ The results from all scalers will be concatenated</p>
   <div class="doc doc-contents ">
   
       <p>forward function</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6415,6 +6546,8 @@ The results from all scalers will be concatenated</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6453,22 +6586,22 @@ The results from all scalers will be concatenated</p>
 
 
 <h4 id="graphium.nn.pyg_layers.pooling_pyg.VirtualNodePyg" class="doc doc-heading">
-        <code>VirtualNodePyg</code>
+          <code>VirtualNodePyg</code>
 
 
 <a href="#graphium.nn.pyg_layers.pooling_pyg.VirtualNodePyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -6493,6 +6626,8 @@ The results from all scalers will be concatenated</p>
       <p>The VirtualNode is a layer that pool the features of the graph,
 applies a neural network layer on the pooled features,
 then add the result back to the node features of every node.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6683,6 +6818,7 @@ aggregation and update of features</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6696,6 +6832,8 @@ aggregation and update of features</p>
   <div class="doc doc-contents ">
   
       <p>Apply the virtual node layer.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6771,6 +6909,8 @@ It is added to the result after the MLP, as a residual connection</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -6832,6 +6972,7 @@ Edge feature tensor, after convolution and residual - if edges are used, otherwi
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6846,6 +6987,8 @@ Edge feature tensor, after convolution and residual - if edges are used, otherwi
   
       <p>Select the pooling layers from a list of strings, and put them
 in a Module that concatenates their outputs.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6902,6 +7045,7 @@ in a Module that concatenates their outputs.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -6919,6 +7063,8 @@ but scaled by the log of the number of nodes. This gives the same
 expressive power as the sum, but helps deal with graphs that are
 significantly larger than others by using a logarithmic scale.</p>
 <div class="arithmatex">\[r^{(i)} = \frac{\log N_i}{N_i}\sum_{k=1}^{N_i} x^{(i)}_k\]</div>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -6978,6 +7124,8 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -7005,6 +7153,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -7022,6 +7171,8 @@ minimum across the node dimension, so that for a single graph
 :math:<code>\mathcal{G}_i</code> its output is computed by</p>
 <p>.. math::
     \mathbf{r}<em>i = \mathrm{max}</em>{n=1}^{N_i} \, \mathbf{x}_n</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -7081,6 +7232,8 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -7122,7 +7275,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 <h3 id="graphium.nn.pyg_layers.utils" class="doc doc-heading">
-          <code>graphium.nn.pyg_layers.utils</code>
+            <code>graphium.nn.pyg_layers.utils</code>
 
 
 <a href="#graphium.nn.pyg_layers.utils" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -7145,22 +7298,22 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 <h4 id="graphium.nn.pyg_layers.utils.GaussianLayer" class="doc doc-heading">
-        <code>GaussianLayer</code>
+          <code>GaussianLayer</code>
 
 
 <a href="#graphium.nn.pyg_layers.utils.GaussianLayer" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -7184,6 +7337,8 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
   
       <pre><code>Gaussian kernel function that applied on the all-to-all 3D distances.
 </code></pre>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -7229,24 +7384,24 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 
 <h4 id="graphium.nn.pyg_layers.utils.PreprocessPositions" class="doc doc-heading">
-        <code>PreprocessPositions</code>
+          <code>PreprocessPositions</code>
 
 
 <a href="#graphium.nn.pyg_layers.utils.PreprocessPositions" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch">nn</span>.<span title="torch.Module">Module</span></code></p>
 
   
       <p>Compute 3D attention bias and 3D node features according to the 3D position information.</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -7268,6 +7423,8 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -7365,6 +7522,7 @@ Automatically calculated if not given. (default: :obj:<code>None</code>)</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -7402,6 +7560,7 @@ positions_3d_key:
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -7418,6 +7577,8 @@ positions_3d_key:
     A triplet is defined as a path of length two,
     such that if node A is connected to node B,
     and node B is connected to node C, then there is a triplet (A, B, C).</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -7460,6 +7621,8 @@ positions_3d_key:
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>

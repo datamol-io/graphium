@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.visualization.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -2330,7 +2330,7 @@
 
 
 <h3 id="graphium.ipu.ipu_dataloader" class="doc doc-heading">
-          <code>graphium.ipu.ipu_dataloader</code>
+            <code>graphium.ipu.ipu_dataloader</code>
 
 
 <a href="#graphium.ipu.ipu_dataloader" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2353,7 +2353,7 @@
 
 
 <h4 id="graphium.ipu.ipu_dataloader.CombinedBatchingCollator" class="doc doc-heading">
-        <code>CombinedBatchingCollator</code>
+          <code>CombinedBatchingCollator</code>
 
 
 <a href="#graphium.ipu.ipu_dataloader.CombinedBatchingCollator" class="headerlink" title="Permanent link">&para;</a></h4>
@@ -2370,10 +2370,10 @@
 </details>      <p>This is intended to be used in combination with the poptorch.DataLoader</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2396,6 +2396,8 @@
   <div class="doc doc-contents ">
   
       <p>Stack tensors, batch the pyg graphs, and pad each tensor to be same size.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2425,6 +2427,8 @@
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2451,6 +2455,7 @@
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2463,6 +2468,8 @@
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2579,7 +2586,7 @@
 
 
 <h4 id="graphium.ipu.ipu_dataloader.IPUDataloaderOptions" class="doc doc-heading">
-        <code>IPUDataloaderOptions</code>
+          <code>IPUDataloaderOptions</code>
 
   
   <span class="doc doc-labels">
@@ -2593,6 +2600,8 @@
 
   
       <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2635,7 +2644,6 @@
   </table>
 
 
-
   
 
   <div class="doc doc-children">
@@ -2661,24 +2669,24 @@
 
 
 <h4 id="graphium.ipu.ipu_dataloader.Pad" class="doc doc-heading">
-        <code>Pad</code>
+          <code>Pad</code>
 
 
 <a href="#graphium.ipu.ipu_dataloader.Pad" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch_geometric.transforms.BaseTransform">BaseTransform</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch_geometric.transforms.BaseTransform">BaseTransform</span></code></p>
 
   
       <p>Data transform that applies padding to enforce consistent tensor shapes.</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2700,6 +2708,8 @@
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2801,6 +2811,7 @@
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2821,6 +2832,8 @@
 <li>the number of edges must be &lt;= max_num_edges</li>
 </ul>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2855,6 +2868,7 @@
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2871,6 +2885,8 @@
 Applies the mini-batching method of concatenating multiple graphs into a
 single graph with multiple disconnected subgraphs. See:
 <a href="https://pytorch-geometric.readthedocs.io/en/2.0.2/notes/batching.html">https://pytorch-geometric.readthedocs.io/en/2.0.2/notes/batching.html</a></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2972,6 +2988,8 @@ poptorch.DataLoader. Will use the default options if not provided.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3013,7 +3031,7 @@ poptorch.DataLoader. Will use the default options if not provided.</p>
 
 
 <h3 id="graphium.ipu.ipu_losses" class="doc doc-heading">
-          <code>graphium.ipu.ipu_losses</code>
+            <code>graphium.ipu.ipu_losses</code>
 
 
 <a href="#graphium.ipu.ipu_losses" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3036,21 +3054,20 @@ poptorch.DataLoader. Will use the default options if not provided.</p>
 
 
 <h4 id="graphium.ipu.ipu_losses.BCELossIPU" class="doc doc-heading">
-        <code>BCELossIPU</code>
+          <code>BCELossIPU</code>
 
 
 <a href="#graphium.ipu.ipu_losses.BCELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn.BCELoss">BCELoss</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.BCELoss">BCELoss</span></code></p>
 
   
       <p>A modified version of the <code>torch.nn.BCELoss</code> that can ignore NaNs
 by giving them a weight of <code>0</code>. This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
-
 
 
   
@@ -3078,21 +3095,20 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h4 id="graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="doc doc-heading">
-        <code>BCEWithLogitsLossIPU</code>
+          <code>BCEWithLogitsLossIPU</code>
 
 
 <a href="#graphium.ipu.ipu_losses.BCEWithLogitsLossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn.BCEWithLogitsLoss">BCEWithLogitsLoss</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.BCEWithLogitsLoss">BCEWithLogitsLoss</span></code></p>
 
   
       <p>A modified version of the <code>torch.nn.BCEWithLogitsLoss</code> that can ignore NaNs
 by giving them a weight of <code>0</code>. This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
-
 
 
   
@@ -3120,22 +3136,22 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h4 id="graphium.ipu.ipu_losses.HybridCELossIPU" class="doc doc-heading">
-        <code>HybridCELossIPU</code>
+          <code>HybridCELossIPU</code>
 
 
 <a href="#graphium.ipu.ipu_losses.HybridCELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="graphium.trainer.losses.HybridCELoss">HybridCELoss</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="graphium.trainer.losses.HybridCELoss">HybridCELoss</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3157,6 +3173,8 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3190,6 +3208,7 @@ Expected to have the same size as the number of classes in the transformed regre
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3202,6 +3221,8 @@ Expected to have the same size as the number of classes in the transformed regre
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3262,22 +3283,21 @@ Expected to have the same size as the number of classes in the transformed regre
 
 
 <h4 id="graphium.ipu.ipu_losses.L1LossIPU" class="doc doc-heading">
-        <code>L1LossIPU</code>
+          <code>L1LossIPU</code>
 
 
 <a href="#graphium.ipu.ipu_losses.L1LossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn.L1Loss">L1Loss</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.L1Loss">L1Loss</span></code></p>
 
   
       <p>A modified version of the <code>torch.nn.L1Loss</code> that can ignore NaNs
 by giving them the same value for both <code>input</code> and <code>target</code>.
 This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
-
 
 
   
@@ -3305,22 +3325,21 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h4 id="graphium.ipu.ipu_losses.MSELossIPU" class="doc doc-heading">
-        <code>MSELossIPU</code>
+          <code>MSELossIPU</code>
 
 
 <a href="#graphium.ipu.ipu_losses.MSELossIPU" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn.MSELoss">MSELoss</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn.MSELoss">MSELoss</span></code></p>
 
   
       <p>A modified version of the <code>torch.nn.MSELoss</code> that can ignore NaNs
 by giving them the same value for both <code>input</code> and <code>target</code>.
 This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
-
 
 
   
@@ -3359,7 +3378,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h3 id="graphium.ipu.ipu_metrics" class="doc doc-heading">
-          <code>graphium.ipu.ipu_metrics</code>
+            <code>graphium.ipu.ipu_metrics</code>
 
 
 <a href="#graphium.ipu.ipu_metrics" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3382,22 +3401,21 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h4 id="graphium.ipu.ipu_metrics.NaNTensor" class="doc doc-heading">
-        <code>NaNTensor</code>
+          <code>NaNTensor</code>
 
 
 <a href="#graphium.ipu.ipu_metrics.NaNTensor" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.Tensor">Tensor</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.Tensor">Tensor</span></code></p>
 
   
       <p>Class to create and manage a NaN tensor along it's properties</p>
 <p>The goal of the class is to override the regular tensor such that the basic
 operations (sum, mean, max, etc) ignore the NaNs in the input.
 It also supports NaNs in integer tensors (as the lowest integer possible).</p>
-
 
 
   
@@ -3435,6 +3453,7 @@ In the case of a boolean tensor, this returns a Tensor filled with <code>False</
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3455,12 +3474,13 @@ a Tensor instead of a value, we check that all elements are &gt; 2.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
 
 <h5 id="graphium.ipu.ipu_metrics.NaNTensor.__torch_function__" class="doc doc-heading">
-<code class="highlight language-python"><span class="n">__torch_function__</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">,</span> <span class="n">kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+<code class="highlight language-python"><span class="n">__torch_function__</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">types</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(),</span> <span class="n">kwargs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
   
   <span class="doc doc-labels">
       <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
@@ -3485,6 +3505,7 @@ case when doing the above.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3502,6 +3523,7 @@ case when doing the above.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3521,6 +3543,7 @@ case when doing the above.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3538,6 +3561,7 @@ case when doing the above.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3557,6 +3581,7 @@ case when doing the above.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3574,6 +3599,7 @@ case when doing the above.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3593,6 +3619,7 @@ a specific dimension. Useful for the <code>r2_score</code> metric.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3621,6 +3648,7 @@ a specific dimension. Useful for the <code>r2_score</code> metric.</p>
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3637,6 +3665,8 @@ a specific dimension. Useful for the <code>r2_score</code> metric.</p>
 by giving them the same value for both <code>preds</code> and <code>target</code>.
 This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3852,6 +3882,8 @@ multi-class inputs (has no effect for other input types).</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Raises:</strong></p>
   <table>
     <thead>
@@ -3929,6 +3961,7 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3949,6 +3982,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3971,6 +4005,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3988,6 +4023,8 @@ that can ignore NaNs by giving them the same value for both <code>preds</code> a
 Used to calculate the f1_score on IPU with beta parameter equal to 1.0
 This allows it to work with compilation and IPUs since it doesn't modify the tensor's shape.</p>
 <p>Computes f_beta metric from stat scores: true positives, false positives, true negatives, false negatives.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4117,6 +4154,7 @@ to the returned score, regardless of reduction method</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4133,6 +4171,8 @@ to the returned score, regardless of reduction method</p>
 that can ignore NaNs by giving them the same value for both <code>preds</code> and <code>target</code>.
 This allows it to work with compilation
 and IPUs since it doesn't modify the tensor's shape.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4347,6 +4387,8 @@ multi-class inputs (has no effect for other input types).</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Raises:</strong></p>
   <table>
     <thead>
@@ -4424,6 +4466,7 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4437,6 +4480,8 @@ and <code>ignore_index</code> is not in the range <code>[0, num_classes)</code>.
   <div class="doc doc-contents ">
   
       <p>Calculates the confusion matrix according to the specified average method.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4624,6 +4669,7 @@ to the returned score, regardless of reduction method. If an index is ignored, a
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4638,6 +4684,8 @@ to the returned score, regardless of reduction method. If an index is ignored, a
   
       <p>Computes mean absolute error.</p>
 <p>Handles NaNs without reshaping tensors in order to work on IPU.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4689,6 +4737,7 @@ to the returned score, regardless of reduction method. If an index is ignored, a
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4703,6 +4752,8 @@ to the returned score, regardless of reduction method. If an index is ignored, a
   
       <p>Computes mean squared error.</p>
 <p>Handles NaNs without reshaping tensors in order to work on IPU.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4768,6 +4819,7 @@ to the returned score, regardless of reduction method. If an index is ignored, a
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4782,6 +4834,8 @@ to the returned score, regardless of reduction method. If an index is ignored, a
   
       <p>Computes pearson correlation coefficient.</p>
 <p>Handles NaNs in the target without reshaping tensors in order to work on IPU.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4827,6 +4881,7 @@ to the returned score, regardless of reduction method. If an index is ignored, a
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4847,6 +4902,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -4869,6 +4925,8 @@ adjusted r2 score given by</p>
 <p>where the parameter :math:<code>k</code> (the number of independent regressors) should
 be provided as the <code>adjusted</code> argument.
 Handles NaNs without reshaping tensors in order to work on IPU.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4945,6 +5003,7 @@ Handles NaNs without reshaping tensors in order to work on IPU.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4966,6 +5025,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4980,6 +5040,8 @@ and IPUs since it doesn't modify the tensor's shape.</p>
   
       <p>Computes spearman rank correlation coefficient.</p>
 <p>Handles NaNs in the target without reshaping tensors in order to work on IPU.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5040,7 +5102,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h3 id="graphium.ipu.ipu_simple_lightning" class="doc doc-heading">
-          <code>graphium.ipu.ipu_simple_lightning</code>
+            <code>graphium.ipu.ipu_simple_lightning</code>
 
 
 <a href="#graphium.ipu.ipu_simple_lightning" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5074,7 +5136,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
 
 
 <h3 id="graphium.ipu.ipu_utils" class="doc doc-heading">
-          <code>graphium.ipu.ipu_utils</code>
+            <code>graphium.ipu.ipu_utils</code>
 
 
 <a href="#graphium.ipu.ipu_utils" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5084,6 +5146,7 @@ and IPUs since it doesn't modify the tensor's shape.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5108,6 +5171,8 @@ and IPUs since it doesn't modify the tensor's shape.</p>
       <p>Import poptorch and returns it.
 It is wrapped in a function to avoid breaking the code
 for non-IPU devices which did not install poptorch.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5137,6 +5202,8 @@ If <code>False</code>, return <code>None</code></p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5163,6 +5230,7 @@ If <code>False</code>, return <code>None</code></p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5176,6 +5244,8 @@ If <code>False</code>, return <code>None</code></p>
   <div class="doc doc-contents ">
   
       <p>Create a temporary file from a list of ipu configs, such that it can be read by <code>poptorch.Options.loadFromFile</code></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5205,6 +5275,8 @@ If <code>False</code>, return <code>None</code></p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5231,6 +5303,7 @@ If <code>False</code>, return <code>None</code></p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5250,6 +5323,7 @@ Needs to be used in the <code>forward</code> or <code>backward</code> pass.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5263,6 +5337,8 @@ Needs to be used in the <code>forward</code> or <code>backward</code> pass.</p>
   <div class="doc doc-contents ">
   
       <p>Load the IPU options from the config file.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5354,6 +5430,8 @@ If this is provided, options in this file override those in <code>ipu_file</code
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5406,7 +5484,7 @@ It differs from the <code>training_opts</code> by enforcing <code>gradientAccumu
 
 
 <h3 id="graphium.ipu.ipu_wrapper" class="doc doc-heading">
-          <code>graphium.ipu.ipu_wrapper</code>
+            <code>graphium.ipu.ipu_wrapper</code>
 
 
 <a href="#graphium.ipu.ipu_wrapper" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5429,24 +5507,24 @@ It differs from the <code>training_opts</code> by enforcing <code>gradientAccumu
 
 
 <h4 id="graphium.ipu.ipu_wrapper.PredictorModuleIPU" class="doc doc-heading">
-        <code>PredictorModuleIPU</code>
+          <code>PredictorModuleIPU</code>
 
 
 <a href="#graphium.ipu.ipu_wrapper.PredictorModuleIPU" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor.PredictorModule" href="graphium.trainer.html#graphium.trainer.predictor.PredictorModule">PredictorModule</a></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor.PredictorModule" href="graphium.trainer.html#graphium.trainer.predictor.PredictorModule">PredictorModule</a></code></p>
 
   
       <p>This class wraps around the <code>PredictorModule</code> to make it work with IPU and the <code>IPUPluginGraphium</code>.</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5473,6 +5551,7 @@ It differs from the <code>training_opts</code> by enforcing <code>gradientAccumu
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5507,15 +5586,15 @@ device iterations. Essential to estimate throughput in graphs/s.</p>
 
 
 <h4 id="graphium.ipu.ipu_wrapper.PyGArgsParser" class="doc doc-heading">
-        <code>PyGArgsParser</code>
+          <code>PyGArgsParser</code>
 
 
 <a href="#graphium.ipu.ipu_wrapper.PyGArgsParser" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="graphium.ipu.ipu_wrapper.poptorch">poptorch</span>.<span title="graphium.ipu.ipu_wrapper.poptorch.ICustomArgParser">ICustomArgParser</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="graphium.ipu.ipu_wrapper.poptorch">poptorch</span>.<span title="graphium.ipu.ipu_wrapper.poptorch.ICustomArgParser">ICustomArgParser</span></code></p>
 
   
       <p>This class is responsible for converting a PyG Batch from and to
@@ -5524,10 +5603,10 @@ IPU programs. Copied from poppyg repo, in the future import from
 the repo directly.</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5558,6 +5637,7 @@ yieldTensors() implementation.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5580,6 +5660,7 @@ are returned in sorted order.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -5623,7 +5704,7 @@ are returned in sorted order.</p>
 
 
 <h3 id="graphium.ipu.to_dense_batch" class="doc doc-heading">
-          <code>graphium.ipu.to_dense_batch</code>
+            <code>graphium.ipu.to_dense_batch</code>
 
 
 <a href="#graphium.ipu.to_dense_batch" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -5633,6 +5714,7 @@ are returned in sorted order.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -5663,6 +5745,8 @@ dense node feature tensor
 In addition, a mask of shape :math:<code>\mathbf{M} \in \{ 0, 1 \}^{B \times
 N_{\max}}</code> is returned, holding information about the existence of
 fake-nodes in the dense representation.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5772,6 +5856,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5793,6 +5878,8 @@ dense node feature tensor
 In addition, a mask of shape :math:<code>\mathbf{M} \in \{ 0, 1 \}^{B \times
 N_{\max}}</code> is returned, holding information about the existence of
 fake-nodes in the dense representation.</p>
+
+
 
   <p><strong># TODO: Update docstring</strong></p>
   <table>
@@ -5899,6 +5986,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5916,6 +6004,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 

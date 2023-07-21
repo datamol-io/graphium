@@ -19,7 +19,7 @@
         <link rel="next" href="encoders.html">
       
       <link rel="icon" href="../../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -1992,7 +1992,7 @@
 
 
 <h3 id="graphium.nn.architectures.global_architectures" class="doc doc-heading">
-          <code>graphium.nn.architectures.global_architectures</code>
+            <code>graphium.nn.architectures.global_architectures</code>
 
 
 <a href="#graphium.nn.architectures.global_architectures" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2015,22 +2015,22 @@
 
 
 <h4 id="graphium.nn.architectures.global_architectures.FeedForwardGraph" class="doc doc-heading">
-        <code>FeedForwardGraph</code>
+          <code>FeedForwardGraph</code>
 
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardGraph" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.architectures.global_architectures.FeedForwardNN" href="#graphium.nn.architectures.global_architectures.FeedForwardNN">FeedForwardNN</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.architectures.global_architectures.FeedForwardNN" href="#graphium.nn.architectures.global_architectures.FeedForwardNN">FeedForwardNN</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2058,6 +2058,8 @@ connections.</p>
 <p>This class is meant to work with different graph neural networks
 layers. Any layer must inherit from <code>graphium.nn.base_graph_layer.BaseGraphStructure</code>
 or <code>graphium.nn.base_graph_layer.BaseGraphLayer</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2425,6 +2427,7 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2443,6 +2446,7 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2456,6 +2460,8 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
   <div class="doc doc-contents ">
   
       <p>Apply the full graph neural network on the input graph and node features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2497,6 +2503,8 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2528,6 +2536,7 @@ otherwise it returns graph features and the output dimension is <code>M</code></
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2545,6 +2554,7 @@ otherwise it returns graph features and the output dimension is <code>M</code></
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2567,6 +2577,8 @@ layers width divided by a given factor (2 by default)</p>
   <p>divide_factor: Factor by which to divide the width.
 factor_in_dim: Whether to factor the input dimension for the nodes</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2606,22 +2618,22 @@ factor_in_dim: Whether to factor the input dimension for the nodes</p>
 
 
 <h4 id="graphium.nn.architectures.global_architectures.FeedForwardNN" class="doc doc-heading">
-        <code>FeedForwardNN</code>
+          <code>FeedForwardNN</code>
 
 
 <a href="#graphium.nn.architectures.global_architectures.FeedForwardNN" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2646,6 +2658,8 @@ factor_in_dim: Whether to factor the input dimension for the nodes</p>
       <p>A flexible neural network architecture, with variable hidden dimensions,
 support for multiple layer types, and support for different residual
 connections.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2932,6 +2946,7 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2950,6 +2965,7 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2963,6 +2979,8 @@ Allows to use the <code>mup.MuReadout</code> from the muTransfer method <a href=
   <div class="doc doc-contents ">
   
       <p>Apply the neural network on the input features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2994,6 +3012,8 @@ Input feature tensor, before the network.
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3022,6 +3042,7 @@ Output feature tensor, after the network.
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3039,6 +3060,7 @@ Output feature tensor, after the network.
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3078,16 +3100,15 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 
 <h4 id="graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" class="doc doc-heading">
-        <code>FullGraphMultiTaskNetwork</code>
+          <code>FullGraphMultiTaskNetwork</code>
 
 
 <a href="#graphium.nn.architectures.global_architectures.FullGraphMultiTaskNetwork" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -3188,6 +3209,7 @@ of the network.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3202,6 +3224,8 @@ of the network.</p>
   
       <p>Class that allows to implement a full graph neural network architecture,
 including the pre-processing MLP and the post processing MLP.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3380,6 +3404,7 @@ purposes.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3398,6 +3423,7 @@ purposes.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3412,6 +3438,8 @@ purposes.</p>
   
       <p>Apply the pre-processing neural network, the graph neural network,
 and the post-processing neural network on the graph features.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3459,6 +3487,8 @@ Must contain the following elements:</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3490,6 +3520,7 @@ otherwise it returns graph features and the output dimension is <code>M</code></
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3510,6 +3541,8 @@ layers width divided by a given factor (2 by default)</p>
   <summary>Parameter</summary>
   <p>divide_factor: Factor by which to divide the width.</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3536,6 +3569,7 @@ layers width divided by a given factor (2 by default)</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3549,6 +3583,8 @@ layers width divided by a given factor (2 by default)</p>
   <div class="doc doc-contents ">
   
       <p>Set the maximum number of nodes and edges for all gnn layers and encoder layers</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3611,16 +3647,15 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 <h4 id="graphium.nn.architectures.global_architectures.GraphOutputNN" class="doc doc-heading">
-        <code>GraphOutputNN</code>
+          <code>GraphOutputNN</code>
 
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -3642,8 +3677,8 @@ This will be useful for certain architecture, but ignored by others.</p>
 <code class="highlight language-python"><span class="n">concat_last_layers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Iterable</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span></code>
   
   <span class="doc doc-labels">
-      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
       <small class="doc doc-label doc-label-property"><code>property</code></small>
+      <small class="doc doc-label doc-label-writable"><code>writable</code></small>
   </span>
 
 <a href="#graphium.nn.architectures.global_architectures.GraphOutputNN.concat_last_layers" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -3683,6 +3718,7 @@ concatenate the output of different layers.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3695,6 +3731,8 @@ concatenate the output of different layers.</p>
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3771,6 +3809,7 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3784,6 +3823,8 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
   <div class="doc doc-contents ">
   
       <p>Vectorized implementation of nodepair-level task:</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3885,6 +3926,8 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3921,6 +3964,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3934,6 +3978,8 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
   <div class="doc doc-contents ">
   
       <p>Remove the last layers of the model. Useful for Transfer Learning.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3967,6 +4013,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3980,6 +4027,8 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
   <div class="doc doc-contents ">
   
       <p>Add layers at the end of the model. Useful for Transfer Learning.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4013,6 +4062,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4025,6 +4075,8 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
   <div class="doc doc-contents ">
   
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4054,6 +4106,8 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4079,6 +4133,7 @@ the <code>max_num_nodes_per_graph</code>. Useful when the last graph is a paddin
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4100,6 +4155,8 @@ layers width divided by a given factor (2 by default)</p>
   <p>divide_factor: Factor by which to divide the width.
 factor_in_dim: Whether to factor the input dimension</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4126,6 +4183,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4139,6 +4197,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Set the maximum number of nodes and edges for all gnn layers and encoder layers</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4201,16 +4261,15 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 <h4 id="graphium.nn.architectures.global_architectures.TaskHeads" class="doc doc-heading">
-        <code>TaskHeads</code>
+          <code>TaskHeads</code>
 
 
 <a href="#graphium.nn.architectures.global_architectures.TaskHeads" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code>, <code><span title="graphium.nn.utils.MupMixin">MupMixin</span></code></p>
 
 
 
@@ -4247,6 +4306,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4260,6 +4320,8 @@ This will be useful for certain architecture, but ignored by others.</p>
   <div class="doc doc-contents ">
   
       <p>Class that groups all multi-task output heads together to provide the task-specific outputs.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4352,6 +4414,7 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4370,6 +4433,7 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4383,6 +4447,8 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
   <div class="doc doc-contents ">
   
       <p>forward function of the task head</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4412,6 +4478,8 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4438,6 +4506,7 @@ MLP network after the GNN, using the class <code>FeedForwardNN</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4459,6 +4528,8 @@ layers width divided by a given factor (2 by default)</p>
   <p>divide_factor: Factor by which to divide the width.
 factor_in_dim: Whether to factor the input dimension</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4485,6 +4556,7 @@ factor_in_dim: Whether to factor the input dimension</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4498,6 +4570,8 @@ factor_in_dim: Whether to factor the input dimension</p>
   <div class="doc doc-contents ">
   
       <p>Set the maximum number of nodes and edges for all gnn layers and encoder layers</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4571,7 +4645,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 <h3 id="graphium.nn.architectures.pyg_architectures" class="doc doc-heading">
-          <code>graphium.nn.architectures.pyg_architectures</code>
+            <code>graphium.nn.architectures.pyg_architectures</code>
 
 
 <a href="#graphium.nn.architectures.pyg_architectures" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4594,16 +4668,15 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 <h4 id="graphium.nn.architectures.pyg_architectures.FeedForwardPyg" class="doc doc-heading">
-        <code>FeedForwardPyg</code>
+          <code>FeedForwardPyg</code>
 
 
 <a href="#graphium.nn.architectures.pyg_architectures.FeedForwardPyg" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.architectures.global_architectures.FeedForwardGraph" href="#graphium.nn.architectures.global_architectures.FeedForwardGraph">FeedForwardGraph</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.nn.architectures.global_architectures.FeedForwardGraph" href="#graphium.nn.architectures.global_architectures.FeedForwardGraph">FeedForwardGraph</a></code></p>
 
 
 
@@ -4643,7 +4716,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 <h3 id="graphium.nn.architectures.encoder_manager" class="doc doc-heading">
-          <code>graphium.nn.architectures.encoder_manager</code>
+            <code>graphium.nn.architectures.encoder_manager</code>
 
 
 <a href="#graphium.nn.architectures.encoder_manager" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4666,16 +4739,15 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 <h4 id="graphium.nn.architectures.encoder_manager.EncoderManager" class="doc doc-heading">
-        <code>EncoderManager</code>
+          <code>EncoderManager</code>
 
 
 <a href="#graphium.nn.architectures.encoder_manager.EncoderManager" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
 
 
 
@@ -4706,6 +4778,8 @@ This will be useful for certain architecture, but ignored by others.</p>
   <div class="doc doc-contents ">
   
       <p>Returns the input dimensions for all pe-encoders</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4750,6 +4824,8 @@ This will be useful for certain architecture, but ignored by others.</p>
   
       <p>Returns the input keys for all pe-encoders</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4793,6 +4869,8 @@ This will be useful for certain architecture, but ignored by others.</p>
   
       <p>Returns the output dimension of the pooled embedding from all the pe encoders</p>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4820,6 +4898,7 @@ This will be useful for certain architecture, but ignored by others.</p>
 
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4833,6 +4912,8 @@ This will be useful for certain architecture, but ignored by others.</p>
   <div class="doc doc-contents ">
   
       <p>Class that allows to runs multiple encoders in parallel and concatenate / pool their outputs.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4882,6 +4963,7 @@ purposes.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4895,6 +4977,8 @@ purposes.</p>
   <div class="doc doc-contents ">
   
       <p>forward pass of the pe encoders and pooling</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4942,6 +5026,8 @@ Must contain the following elements:</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4968,6 +5054,7 @@ Must contain the following elements:</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4984,6 +5071,8 @@ Must contain the following elements:</p>
 with each PE having it's own encoder defined in <code>self.pe_encoders</code>.
 All the positional encodings with the same keys are pooled together
 using <code>self.pe_pooling</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5012,6 +5101,8 @@ using <code>self.pe_pooling</code>.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5049,6 +5140,7 @@ using <code>self.pe_pooling</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5062,6 +5154,8 @@ using <code>self.pe_pooling</code>.</p>
   <div class="doc doc-contents ">
   
       <p>Apply sum, mean, or max pooling on a Tensor.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5119,6 +5213,8 @@ using <code>self.pe_pooling</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5145,6 +5241,7 @@ using <code>self.pe_pooling</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5165,6 +5262,8 @@ layers width divided by a given factor (2 by default)</p>
   <summary>Parameter</summary>
   <p>divide_factor: Factor by which to divide the width.</p>
 </details>
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>

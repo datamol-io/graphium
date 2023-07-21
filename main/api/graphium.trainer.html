@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.data.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -2057,7 +2057,7 @@
 
 
 <h3 id="graphium.trainer.predictor" class="doc doc-heading">
-          <code>graphium.trainer.predictor</code>
+            <code>graphium.trainer.predictor</code>
 
 
 <a href="#graphium.trainer.predictor" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2080,22 +2080,22 @@
 
 
 <h4 id="graphium.trainer.predictor.PredictorModule" class="doc doc-heading">
-        <code>PredictorModule</code>
+          <code>PredictorModule</code>
 
 
 <a href="#graphium.trainer.predictor.PredictorModule" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>lightning.<span title="lightning.LightningModule">LightningModule</span></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code>lightning.<span title="lightning.LightningModule">LightningModule</span></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2119,6 +2119,8 @@
   
       <p>The Lightning module responsible for handling the predictions, losses, metrics, optimization, etc.
 It works in a multi-task setting, with different losses and metrics per class</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2335,6 +2337,7 @@ Set to <code>None</code> to never log the training metrics and statistics (the d
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2352,6 +2355,7 @@ Set to <code>None</code> to never log the training metrics and statistics (the d
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2371,6 +2375,8 @@ Set to <code>None</code> to never log the training metrics and statistics (the d
   
       <p>Compute the loss using the specified loss function, and dealing with
 the nans in the <code>targets</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2496,6 +2502,8 @@ the nans in the <code>targets</code>.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2523,6 +2531,7 @@ all_task_losses: Loss per task</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2543,6 +2552,7 @@ Github: <a href="https://github.com/devnkong/FLAG">https://github.com/devnkong/F
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2559,6 +2569,8 @@ Github: <a href="https://github.com/devnkong/FLAG">https://github.com/devnkong/F
 If the output of <code>out = self.model.forward</code> is a dictionary with a <code>"preds"</code> key,
 it is returned directly. Otherwise, a new dictionary is created and
 returns <code>{"preds": out}</code>.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -2586,6 +2598,7 @@ returns <code>{"preds": out}</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2604,6 +2617,7 @@ Essential to estimate throughput in graphs/s.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2627,6 +2641,7 @@ Essential to estimate throughput in graphs/s.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2644,6 +2659,8 @@ Essential to estimate throughput in graphs/s.</p>
   <div class="doc doc-contents ">
   
       <p>Load a pretrained model from its name.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2702,7 +2719,7 @@ from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
 
 
 <h3 id="graphium.trainer.metrics" class="doc doc-heading">
-          <code>graphium.trainer.metrics</code>
+            <code>graphium.trainer.metrics</code>
 
 
 <a href="#graphium.trainer.metrics" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2725,7 +2742,7 @@ from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
 
 
 <h4 id="graphium.trainer.metrics.MetricWrapper" class="doc doc-heading">
-        <code>MetricWrapper</code>
+          <code>MetricWrapper</code>
 
 
 <a href="#graphium.trainer.metrics.MetricWrapper" class="headerlink" title="Permanent link">&para;</a></h4>
@@ -2738,10 +2755,10 @@ from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
 <code>Thresholder</code> in case the metric requires a threshold.</p>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2769,6 +2786,7 @@ from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2786,6 +2804,7 @@ from <code>graphium.trainer.PredictorModule.list_pretrained_models()</code>.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2843,6 +2862,7 @@ kwargs:
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2861,6 +2881,7 @@ kwargs:
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2878,6 +2899,7 @@ kwargs:
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2910,7 +2932,7 @@ kwargs:
 
 
 <h4 id="graphium.trainer.metrics.Thresholder" class="doc doc-heading">
-        <code>Thresholder</code>
+          <code>Thresholder</code>
 
 
 <a href="#graphium.trainer.metrics.Thresholder" class="headerlink" title="Permanent link">&para;</a></h4>
@@ -2920,10 +2942,10 @@ kwargs:
 
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2950,6 +2972,7 @@ kwargs:
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -2993,7 +3016,7 @@ kwargs:
 
 
 <h3 id="graphium.trainer.predictor_summaries" class="doc doc-heading">
-          <code>graphium.trainer.predictor_summaries</code>
+            <code>graphium.trainer.predictor_summaries</code>
 
 
 <a href="#graphium.trainer.predictor_summaries" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3018,16 +3041,15 @@ kwargs:
 
 
 <h4 id="graphium.trainer.predictor_summaries.Summary" class="doc doc-heading">
-        <code>Summary</code>
+          <code>Summary</code>
 
 
 <a href="#graphium.trainer.predictor_summaries.Summary" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor_summaries.SummaryInterface" href="#graphium.trainer.predictor_summaries.SummaryInterface">SummaryInterface</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor_summaries.SummaryInterface" href="#graphium.trainer.predictor_summaries.SummaryInterface">SummaryInterface</a></code></p>
 
 
 
@@ -3047,7 +3069,7 @@ kwargs:
 
 
 <h5 id="graphium.trainer.predictor_summaries.Summary.Results" class="doc doc-heading">
-        <code>Results</code>
+          <code>Results</code>
 
 
 <a href="#graphium.trainer.predictor_summaries.Summary.Results" class="headerlink" title="Permanent link">&para;</a></h5>
@@ -3057,10 +3079,10 @@ kwargs:
 
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3083,6 +3105,8 @@ kwargs:
   <div class="doc doc-contents ">
   
       <p>This inner class is used as a container for storing the results of the summary.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3195,6 +3219,7 @@ kwargs:
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3208,6 +3233,8 @@ kwargs:
   <div class="doc doc-contents ">
   
       <p>A container to be used by the Predictor Module that stores the results for the given metrics on the predictions and targets provided.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3311,6 +3338,7 @@ kwargs:
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3324,6 +3352,8 @@ kwargs:
   <div class="doc doc-contents ">
   
       <p>retrieve the best results for a given step</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3353,6 +3383,8 @@ kwargs:
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3378,6 +3410,7 @@ kwargs:
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3391,6 +3424,8 @@ kwargs:
   <div class="doc doc-contents ">
   
       <p>retrieve the full summary in a dictionary</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3418,6 +3453,7 @@ kwargs:
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3432,6 +3468,8 @@ kwargs:
   
       <p>Get the data about metrics to log.
 Note: This function requires that self.update_predictor_state() be called before it.</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3459,6 +3497,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3472,6 +3511,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>retrieve the results for a given step</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3500,6 +3541,8 @@ Note: This function requires that self.update_predictor_state() be called before
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3526,6 +3569,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3539,6 +3583,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>retrieve the results to be displayed on the progress bar for a given step</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3567,6 +3613,8 @@ Note: This function requires that self.update_predictor_state() be called before
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3594,6 +3642,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3607,6 +3656,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>check if the current epoch is the best epoch based on self.mode criteria</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3668,6 +3719,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3682,6 +3734,8 @@ Note: This function requires that self.update_predictor_state() be called before
   
       <p>set the reults from the metrics
 [!] This function requires that self.update_predictor_state() be called before it.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3715,6 +3769,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3728,6 +3783,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>update the state of the predictor</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3830,19 +3887,18 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 <h4 id="graphium.trainer.predictor_summaries.SummaryInterface" class="doc doc-heading">
-        <code>SummaryInterface</code>
+          <code>SummaryInterface</code>
 
 
 <a href="#graphium.trainer.predictor_summaries.SummaryInterface" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>object</code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code>object</code></p>
 
   
       <p>An interface to define the functions implemented by summary classes that implement SummaryInterface.</p>
-
 
 
   
@@ -3870,22 +3926,22 @@ Note: This function requires that self.update_predictor_state() be called before
 
 
 <h4 id="graphium.trainer.predictor_summaries.TaskSummaries" class="doc doc-heading">
-        <code>TaskSummaries</code>
+          <code>TaskSummaries</code>
 
 
 <a href="#graphium.trainer.predictor_summaries.TaskSummaries" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor_summaries.SummaryInterface" href="#graphium.trainer.predictor_summaries.SummaryInterface">SummaryInterface</a></code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code><a class="autorefs autorefs-internal" title="graphium.trainer.predictor_summaries.SummaryInterface" href="#graphium.trainer.predictor_summaries.SummaryInterface">SummaryInterface</a></code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3908,6 +3964,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>class to store the summaries of the tasks</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4011,6 +4069,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4024,6 +4083,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>concatenate the metrics logs</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4053,6 +4114,8 @@ Note: This function requires that self.update_predictor_state() be called before
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4079,6 +4142,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4092,6 +4156,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>retrieve the best results</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4120,6 +4186,8 @@ Note: This function requires that self.update_predictor_state() be called before
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4147,6 +4215,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4160,6 +4229,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>get task summaries in a dictionary</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4187,6 +4258,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4200,6 +4272,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>get the logs for the metrics</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4227,6 +4301,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4240,6 +4315,8 @@ Note: This function requires that self.update_predictor_state() be called before
   <div class="doc doc-contents ">
   
       <p>retrieve the results</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4269,6 +4346,8 @@ Note: This function requires that self.update_predictor_state() be called before
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4295,6 +4374,7 @@ Note: This function requires that self.update_predictor_state() be called before
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4309,6 +4389,8 @@ Note: This function requires that self.update_predictor_state() be called before
   
       <p>return all results from all tasks for the progress bar
 Combine the dictionaries. Instead of having keys as task names, we merge all the task-specific dictionaries.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4338,6 +4420,8 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4364,6 +4448,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4377,6 +4462,8 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
   <div class="doc doc-contents ">
   
       <p>print the metric name, task name and step name</p>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4404,6 +4491,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4417,6 +4505,8 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
   <div class="doc doc-contents ">
   
       <p>set the results for all tasks</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4450,6 +4540,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4463,6 +4554,8 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
   <div class="doc doc-contents ">
   
       <p>update the state for all predictors</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4590,7 +4683,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 <h3 id="graphium.trainer.predictor_options" class="doc doc-heading">
-          <code>graphium.trainer.predictor_options</code>
+            <code>graphium.trainer.predictor_options</code>
 
 
 <a href="#graphium.trainer.predictor_options" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4615,7 +4708,7 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
 
 <h4 id="graphium.trainer.predictor_options.EvalOptions" class="doc doc-heading">
-        <code>EvalOptions</code>
+          <code>EvalOptions</code>
 
   
   <span class="doc doc-labels">
@@ -4629,6 +4722,8 @@ Combine the dictionaries. Instead of having keys as task names, we merge all the
 
   
       <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4708,10 +4803,10 @@ performance, depending on the number of readouts.</p>
   </table>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4739,6 +4834,7 @@ performance, depending on the number of readouts.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4756,6 +4852,8 @@ performance, depending on the number of readouts.</p>
   <div class="doc doc-contents ">
   
       <p>Parse the loss function from a string or a dict</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4787,6 +4885,8 @@ Accepted strings are: graphium.utils.spaces.LOSS_DICT.keys().</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4827,7 +4927,7 @@ Accepted strings are: graphium.utils.spaces.LOSS_DICT.keys().</p>
 
 
 <h4 id="graphium.trainer.predictor_options.FlagOptions" class="doc doc-heading">
-        <code>FlagOptions</code>
+          <code>FlagOptions</code>
 
   
   <span class="doc doc-labels">
@@ -4841,6 +4941,8 @@ Accepted strings are: graphium.utils.spaces.LOSS_DICT.keys().</p>
 
   
       <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4882,7 +4984,6 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
   </table>
 
 
-
   
 
   <div class="doc doc-children">
@@ -4908,7 +5009,7 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 
 
 <h4 id="graphium.trainer.predictor_options.ModelOptions" class="doc doc-heading">
-        <code>ModelOptions</code>
+          <code>ModelOptions</code>
 
   
   <span class="doc doc-labels">
@@ -4922,6 +5023,8 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 
   
       <p>This data class stores the arguments necessary to instantiate a model for the Predictor.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4966,7 +5069,6 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
   </table>
 
 
-
   
 
   <div class="doc doc-children">
@@ -4992,7 +5094,7 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 
 
 <h4 id="graphium.trainer.predictor_options.OptimOptions" class="doc doc-heading">
-        <code>OptimOptions</code>
+          <code>OptimOptions</code>
 
   
   <span class="doc doc-labels">
@@ -5006,6 +5108,8 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
 
   
       <p>This data class stores the arguments necessary to configure the optimizer for the Predictor.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5093,7 +5197,6 @@ See: <a href="https://arxiv.org/abs/2010.09891">https://arxiv.org/abs/2010.09891
         </tr>
     </tbody>
   </table>
-
 
 
   

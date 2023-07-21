@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.config.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -2430,7 +2430,7 @@
 
 
 <h3 id="graphium.utils.arg_checker" class="doc doc-heading">
-          <code>graphium.utils.arg_checker</code>
+            <code>graphium.utils.arg_checker</code>
 
 
 <a href="#graphium.utils.arg_checker" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2442,6 +2442,7 @@
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -2469,6 +2470,8 @@ an iterator, then put the <code>arg</code> inside an iterator.
 Possibly enforce the iterator type to <code>list</code> or <code>tuple</code>, if <code>enfoce_type</code> is not None.
 Possibly enforce the subtype to any given type if <code>enforce_subtype</code> is not None,
 and decide whether to cast the subtype or to throw an error.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2548,6 +2551,8 @@ types do not match.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2575,6 +2580,7 @@ the desired subtypes.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2589,6 +2595,8 @@ the desired subtypes.</p>
   
       <p>Verify if the choice of column <code>columns_choice</code> is inside the dataframe or
 the extra_accepted_cols. Otherwise, errors are thrown by the sub-functions.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2650,6 +2658,8 @@ If <code>None</code>, then the iterator type is not enforced.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2676,6 +2686,7 @@ A str iterator based on the input of the desired type (list or tuple)</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2689,6 +2700,8 @@ A str iterator based on the input of the desired type (list or tuple)</p>
   <div class="doc doc-contents ">
   
       <p>Verify if the list1 (iterator) is included in list2 (iterator). If not, raise an error.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2735,6 +2748,8 @@ Whether to throw an error if list1 is not in list2</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2777,7 +2792,7 @@ throw_error is set to false</p>
 
 
 <h3 id="graphium.utils.decorators" class="doc doc-heading">
-          <code>graphium.utils.decorators</code>
+            <code>graphium.utils.decorators</code>
 
 
 <a href="#graphium.utils.decorators" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2800,15 +2815,15 @@ throw_error is set to false</p>
 
 
 <h4 id="graphium.utils.decorators.classproperty" class="doc doc-heading">
-        <code>classproperty</code>
+          <code>classproperty</code>
 
 
 <a href="#graphium.utils.decorators.classproperty" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>property</code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code>property</code></p>
 
   
       <p>Decorator used to declare a class property, defined for the class
@@ -2822,7 +2837,6 @@ without needing to instanciate an object.</p>
         <span class="k">return</span> <span class="mi">5</span>
 </code></pre></div></td></tr></table></div>
 </div>
-
 
 
   
@@ -2861,7 +2875,7 @@ without needing to instanciate an object.</p>
 
 
 <h3 id="graphium.utils.dict_tensor" class="doc doc-heading">
-          <code>graphium.utils.dict_tensor</code>
+            <code>graphium.utils.dict_tensor</code>
 
 
 <a href="#graphium.utils.dict_tensor" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -2884,15 +2898,15 @@ without needing to instanciate an object.</p>
 
 
 <h4 id="graphium.utils.dict_tensor.DictTensor" class="doc doc-heading">
-        <code>DictTensor</code>
+          <code>DictTensor</code>
 
 
 <a href="#graphium.utils.dict_tensor.DictTensor" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>dict</code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code>dict</code></p>
 
   
       <p>A class that combines the functionality of <code>dict</code> and <code>torch.Tensor</code>.
@@ -2986,10 +3000,10 @@ dict_ten.shape
 </code></pre></div>
 </details>
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3019,6 +3033,7 @@ to work on dictionary instead.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3032,6 +3047,8 @@ to work on dictionary instead.</p>
   <div class="doc doc-contents ">
   
       <p>Apply a function on every Tensor "value" of the current dictionary</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3075,6 +3092,8 @@ the Tensor should be the first input to the function.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3136,7 +3155,7 @@ the Tensor should be the first input to the function.</p>
 
 
 <h3 id="graphium.utils.fs" class="doc doc-heading">
-          <code>graphium.utils.fs</code>
+            <code>graphium.utils.fs</code>
 
 
 <a href="#graphium.utils.fs" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3146,6 +3165,7 @@ the Tensor should be the first input to the function.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3168,6 +3188,8 @@ the Tensor should be the first input to the function.</p>
   <div class="doc doc-contents ">
   
       <p>Copy one file to another location across different filesystem (local, S3, GCS, etc).</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3272,6 +3294,7 @@ size is <code>None</code>, it is set to 2048.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3285,6 +3308,8 @@ size is <code>None</code>, it is set to 2048.</p>
   <div class="doc doc-contents ">
   
       <p>Check whether a file exists.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3318,6 +3343,7 @@ size is <code>None</code>, it is set to 2048.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3336,6 +3362,7 @@ size is <code>None</code>, it is set to 2048.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3349,6 +3376,8 @@ size is <code>None</code>, it is set to 2048.</p>
   <div class="doc doc-contents ">
   
       <p>Get the basename of a file or a folder.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3381,6 +3410,7 @@ size is <code>None</code>, it is set to 2048.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3401,6 +3431,7 @@ the folder if it doesn't exist.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3414,6 +3445,8 @@ the folder if it doesn't exist.</p>
   <div class="doc doc-contents ">
   
       <p>Get the extension of a file.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3446,6 +3479,7 @@ the folder if it doesn't exist.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3461,6 +3495,8 @@ the folder if it doesn't exist.</p>
   
       <p>Get the fsspec mapper.</p>
 
+
+
   <p><strong>Parameters:</strong></p>
   <table>
     <thead>
@@ -3492,6 +3528,7 @@ the folder if it doesn't exist.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3512,6 +3549,7 @@ size can't be retrieved.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3526,6 +3564,8 @@ size can't be retrieved.</p>
   
       <p>Join paths together. The first element determine the
 filesystem to use (and so the separator.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3558,6 +3598,7 @@ filesystem to use (and so the separator.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3575,6 +3616,7 @@ filesystem to use (and so the separator.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3609,7 +3651,7 @@ filesystem to use (and so the separator.</p>
 
 
 <h3 id="graphium.utils.hashing" class="doc doc-heading">
-          <code>graphium.utils.hashing</code>
+            <code>graphium.utils.hashing</code>
 
 
 <a href="#graphium.utils.hashing" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3619,6 +3661,7 @@ filesystem to use (and so the separator.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3663,7 +3706,7 @@ This allows for nested dictionaries/lists and for hashing of classes and their a
 
 
 <h3 id="graphium.utils.moving_average_tracker" class="doc doc-heading">
-          <code>graphium.utils.moving_average_tracker</code>
+            <code>graphium.utils.moving_average_tracker</code>
 
 
 <a href="#graphium.utils.moving_average_tracker" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3697,7 +3740,7 @@ This allows for nested dictionaries/lists and for hashing of classes and their a
 
 
 <h3 id="graphium.utils.mup" class="doc doc-heading">
-          <code>graphium.utils.mup</code>
+            <code>graphium.utils.mup</code>
 
 
 <a href="#graphium.utils.mup" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3707,6 +3750,7 @@ This allows for nested dictionaries/lists and for hashing of classes and their a
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3734,6 +3778,7 @@ This allows the code to work on IPUs.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3787,7 +3832,7 @@ do_assert:</p>
 
 
 <h3 id="graphium.utils.read_file" class="doc doc-heading">
-          <code>graphium.utils.read_file</code>
+            <code>graphium.utils.read_file</code>
 
 
 <a href="#graphium.utils.read_file" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3799,6 +3844,7 @@ do_assert:</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3825,6 +3871,7 @@ do_assert:</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3857,6 +3904,7 @@ skiprows: int, list
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -3913,7 +3961,7 @@ as_ext: str, Optional
 
 
 <h3 id="graphium.utils.safe_run" class="doc doc-heading">
-          <code>graphium.utils.safe_run</code>
+            <code>graphium.utils.safe_run</code>
 
 
 <a href="#graphium.utils.safe_run" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3936,7 +3984,7 @@ as_ext: str, Optional
 
 
 <h4 id="graphium.utils.safe_run.SafeRun" class="doc doc-heading">
-        <code>SafeRun</code>
+          <code>SafeRun</code>
 
 
 <a href="#graphium.utils.safe_run.SafeRun" class="headerlink" title="Permanent link">&para;</a></h4>
@@ -3946,10 +3994,10 @@ as_ext: str, Optional
 
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3977,6 +4025,7 @@ as_ext: str, Optional
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3996,6 +4045,7 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -4018,6 +4068,8 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
     2 + None
 </code></pre></div></p>
 </details>
+
+
   <p><strong>Parameters:</strong></p>
   <table>
     <thead>
@@ -4105,7 +4157,7 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
 
 
 <h3 id="graphium.utils.spaces" class="doc doc-heading">
-          <code>graphium.utils.spaces</code>
+            <code>graphium.utils.spaces</code>
 
 
 <a href="#graphium.utils.spaces" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4139,7 +4191,7 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
 
 
 <h3 id="graphium.utils.tensor" class="doc doc-heading">
-          <code>graphium.utils.tensor</code>
+            <code>graphium.utils.tensor</code>
 
 
 <a href="#graphium.utils.tensor" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4162,20 +4214,22 @@ completed if <code>self.verbose &gt;= 2</code>.</p>
 
 
 <h4 id="graphium.utils.tensor.ModuleListConcat" class="doc doc-heading">
-        <code>ModuleListConcat</code>
+          <code>ModuleListConcat</code>
 
 
 <a href="#graphium.utils.tensor.ModuleListConcat" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.ModuleList">ModuleList</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.ModuleList">ModuleList</span></code></p>
 
   
       <p>A list of neural modules similar to <code>torch.nn.ModuleList</code>,
 but where the modules are applied on the same input and
 concatenated together, instead of being applied sequentially.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4206,10 +4260,10 @@ concatenated together, instead of being applied sequentially.</p>
   </table>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4251,18 +4305,20 @@ their output alongside the dimension <code>self.dim</code>.</p>
 
 
 <h4 id="graphium.utils.tensor.ModuleWrap" class="doc doc-heading">
-        <code>ModuleWrap</code>
+          <code>ModuleWrap</code>
 
 
 <a href="#graphium.utils.tensor.ModuleWrap" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
+          <p class="doc doc-class-bases">
+            Bases: <code>torch.<span title="torch.nn">nn</span>.<span title="torch.nn.Module">Module</span></code></p>
 
   
       <p>Wrap a function into a <code>torch.nn.Module</code>, with possible <code>*args</code> and <code>**kwargs</code></p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4292,10 +4348,10 @@ their output alongside the dimension <code>self.dim</code>.</p>
   </table>
 
 
-
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4332,6 +4388,7 @@ their output alongside the dimension <code>self.dim</code>.</p>
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4363,6 +4420,7 @@ their output alongside the dimension <code>self.dim</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4376,6 +4434,8 @@ their output alongside the dimension <code>self.dim</code>.</p>
   <div class="doc doc-contents ">
   
       <p>Check wheter the given device is a cuda device.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4422,6 +4482,8 @@ Otherwise, <code>False</code> is returned in case of errors.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4448,6 +4510,7 @@ Otherwise, <code>False</code> is returned in case of errors.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4461,6 +4524,8 @@ Otherwise, <code>False</code> is returned in case of errors.</p>
   <div class="doc doc-contents ">
   
       <p>Verify if the dtype is a numpy dtype</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4490,6 +4555,8 @@ The dtype of a value. E.g. np.int32, str, torch.float</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4517,6 +4584,7 @@ The dtype of a value. E.g. np.int32, str, torch.float</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4530,6 +4598,8 @@ The dtype of a value. E.g. np.int32, str, torch.float</p>
   <div class="doc doc-contents ">
   
       <p>Verify if the dtype is a torch dtype</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4560,6 +4630,8 @@ The dtype of a value. E.g. np.int32, str, torch.float</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4586,6 +4658,7 @@ The dtype of a value. E.g. np.int32, str, torch.float</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4599,6 +4672,8 @@ The dtype of a value. E.g. np.int32, str, torch.float</p>
   <div class="doc doc-contents ">
   
       <p>Return the median absolute deviation of all elements, while ignoring the NaNs.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4687,6 +4762,8 @@ This is useful for preventing data type overflows. Default: None.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4713,6 +4790,7 @@ This is useful for preventing data type overflows. Default: None.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4726,6 +4804,8 @@ This is useful for preventing data type overflows. Default: None.</p>
   <div class="doc doc-contents ">
   
       <p>Return the mean of all elements, while ignoring the NaNs.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4798,6 +4878,8 @@ This is useful for preventing data type overflows. Default: None.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4825,6 +4907,7 @@ This is useful for preventing data type overflows. Default: None.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4840,6 +4923,8 @@ This is useful for preventing data type overflows. Default: None.</p>
       <p>Return the median of all elements, while ignoring the NaNs.
 Contrarily to <code>torch.nanmedian</code>, this function supports a list
 of dimensions, or <code>dim=None</code>, and does not return the index of the median</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4912,6 +4997,8 @@ This is useful for preventing data type overflows. Default: None.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4940,6 +5027,7 @@ Contrarily to <code>torch.median</code>, it does not return the index of the med
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4955,6 +5043,8 @@ Contrarily to <code>torch.median</code>, it does not return the index of the med
       <p>Return the standard deviation of all elements, while ignoring the NaNs.
 If unbiased is True, Bessel’s correction will be used.
 Otherwise, the sample deviation is calculated, without any correction.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5041,6 +5131,8 @@ This is useful for preventing data type overflows. Default: None.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -5068,6 +5160,7 @@ This is useful for preventing data type overflows. Default: None.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5083,6 +5176,8 @@ This is useful for preventing data type overflows. Default: None.</p>
       <p>Return the variace of all elements, while ignoring the NaNs.
 If unbiased is True, Bessel’s correction will be used.
 Otherwise, the sample deviation is calculated, without any correction.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5170,6 +5265,8 @@ This is useful for preventing data type overflows. Default: None.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5196,6 +5293,7 @@ This is useful for preventing data type overflows. Default: None.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -5209,6 +5307,8 @@ This is useful for preventing data type overflows. Default: None.</p>
   <div class="doc doc-contents ">
   
       <p>Converts a single value to a one-hot vector.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -5255,6 +5355,8 @@ choices for val to take</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -5280,6 +5382,7 @@ choices for val to take</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 

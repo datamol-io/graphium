@@ -19,7 +19,7 @@
         <link rel="next" href="graphium.trainer.html">
       
       <link rel="icon" href="../images/logo.png">
-      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.18">
+      <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.19">
     
     
       
@@ -27,7 +27,7 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.eebd395e.min.css">
       
       
 
@@ -1795,7 +1795,7 @@
 
 
 <h3 id="graphium.features.featurizer" class="doc doc-heading">
-          <code>graphium.features.featurizer</code>
+            <code>graphium.features.featurizer</code>
 
 
 <a href="#graphium.features.featurizer" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -1818,22 +1818,22 @@
 
 
 <h4 id="graphium.features.featurizer.GraphDict" class="doc doc-heading">
-        <code>GraphDict</code>
+          <code>GraphDict</code>
 
 
 <a href="#graphium.features.featurizer.GraphDict" class="headerlink" title="Permanent link">&para;</a></h4>
 
 
   <div class="doc doc-contents ">
-      <p class="doc doc-class-bases">
-        Bases: <code>dict</code></p>
-
+          <p class="doc doc-class-bases">
+            Bases: <code>dict</code></p>
 
 
 
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -1891,6 +1891,7 @@ as a dictionary to reduce memory consumption.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -1921,6 +1922,7 @@ for a list of parameters</p>
 </div>
 
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -1941,6 +1943,8 @@ the true one based on a conformer. The vast majority od estimated bond lengths w
 have an error below 5% while some bonds can have an error up to 20%. This function
 is mostly useful when conformer generation fails for some molecules, or for
 increased computation speed.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -1984,6 +1988,8 @@ increased computation speed.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2010,6 +2016,7 @@ increased computation speed.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2027,6 +2034,8 @@ To ensure all properties are at a similar scale, some of the properties
 are divided by a constant.</p>
 <p>There is also the possibility of offseting by the carbon value using
 the <code>offset_carbon</code> parameter.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2141,6 +2150,8 @@ or other properties that are not measured for specific atoms.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2169,6 +2180,7 @@ in <code>mol</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2196,6 +2208,8 @@ in <code>mol</code>.</p>
 <li>One-hot representation of the number of hydrogen atom in the the current atom neighborhood if <code>explicit_H</code> is false</li>
 <li>One-hot encoding of the atom chirality, and whether such configuration is even possible</li>
 </ul>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2254,6 +2268,8 @@ Callables are not supported by this function.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2282,6 +2298,7 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2295,6 +2312,8 @@ in <code>mol</code> and OH the lenght of the one-hot encoding.</p>
   <div class="doc doc-contents ">
   
       <p>obtain the conformer features of a molecule</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2340,6 +2359,8 @@ Accepted properties are:
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2366,6 +2387,7 @@ Accepted properties are:
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2387,6 +2409,8 @@ See <code>graphium.features.nmp</code> for allowed values in one hot encoding</p
 <li>Whether the bond is conjugated</li>
 <li>Whether the bond is in a ring</li>
 </ul>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2441,6 +2465,8 @@ Accepted properties are:</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2469,6 +2495,7 @@ in <code>mol</code>.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2485,6 +2512,8 @@ in <code>mol</code>.</p>
 Otherwise, it generates a simple molecule conformer using <code>rdkit.Chem.rdDistGeom.EmbedMolecule</code>
 and returns it. This is meant to be used in simple functions like <code>GetBondLength</code>,
 not in functions requiring complex 3D structure.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2514,6 +2543,8 @@ not in functions requiring complex 3D structure.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2540,6 +2571,7 @@ not in functions requiring complex 3D structure.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2555,6 +2587,8 @@ not in functions requiring complex 3D structure.</p>
       <p>Transforms a molecule into an adjacency matrix representing the molecular graph
 and a set of atom and bond features.</p>
 <p>It also returns the positional encodings associated to the graph.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -2740,6 +2774,8 @@ or other properties that are not measured for specific atoms.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2828,6 +2864,7 @@ If no properties are given, it returns <code>None</code></p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2850,6 +2887,8 @@ the bond ordering in the bond features.</p>
   <p>Do not use <code>Tensor.coalesce()</code> on the returned adjacency matrix, as it
 will change the ordering of the bonds.</p>
 </details>
+
+
   <p><strong>Parameters:</strong></p>
   <table>
     <thead>
@@ -2923,6 +2962,8 @@ node.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -2949,6 +2990,7 @@ node.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -2966,6 +3008,8 @@ and a set of atom and bond features, and re-organizes them into a dictionary
 that allows to build a <code>pyg.data.Data</code> object.</p>
 <p>Compared to <code>mol_to_pyggraph</code>, this function does not build the graph directly,
 and is thus faster, less memory heavy, and compatible with other frameworks.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3187,6 +3231,8 @@ is give, an error is raised, but catpured according to the rules of
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3227,6 +3273,7 @@ to featurize the molecule, it returns a string with the error.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3242,6 +3289,8 @@ to featurize the molecule, it returns a string with the error.</p>
       <p>Get the default arguments of <code>mol_to_graph_dict</code> and update it
 with a provided dict of arguments in order to get a fulle signature
 of the featurizer args actually used for the features computation.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3271,6 +3320,8 @@ of the featurizer args actually used for the features computation.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3297,6 +3348,7 @@ of the featurizer args actually used for the features computation.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3313,6 +3365,8 @@ of the featurizer args actually used for the features computation.</p>
 and a set of atom and bond features.</p>
 <p>Then, the adjacency matrix and node/edge features are used to build a
 <code>pyg.data.Data</code> with pytorch Tensors.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3534,6 +3588,8 @@ is give, an error is raised, but catpured according to the rules of
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3563,6 +3619,7 @@ There are also additional entries for the positional encodings.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3576,6 +3633,8 @@ There are also additional entries for the positional encodings.</p>
   <div class="doc doc-contents ">
   
       <p>Assign the node data</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3618,6 +3677,8 @@ There are also additional entries for the positional encodings.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3645,6 +3706,7 @@ There are also additional entries for the positional encodings.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3658,6 +3720,8 @@ There are also additional entries for the positional encodings.</p>
   <div class="doc doc-contents ">
   
       <p>Assign the node data</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3699,6 +3763,8 @@ There are also additional entries for the positional encodings.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -3741,7 +3807,7 @@ There are also additional entries for the positional encodings.</p>
 
 
 <h3 id="graphium.features.positional_encoding" class="doc doc-heading">
-          <code>graphium.features.positional_encoding</code>
+            <code>graphium.features.positional_encoding</code>
 
 
 <a href="#graphium.features.positional_encoding" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -3751,6 +3817,7 @@ There are also additional entries for the positional encodings.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -3773,6 +3840,8 @@ There are also additional entries for the positional encodings.</p>
   <div class="doc doc-contents ">
   
       <p>Get features positional encoding.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3830,6 +3899,8 @@ to generate positional encoding for node features.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -3856,6 +3927,7 @@ to generate positional encoding for node features.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -3869,6 +3941,8 @@ to generate positional encoding for node features.</p>
   <div class="doc doc-contents ">
   
       <p>Get a positional encoding that depends on the parameters.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -3978,6 +4052,8 @@ to generate positional encoding for node features.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4029,7 +4105,7 @@ to generate positional encoding for node features.</p>
 
 
 <h3 id="graphium.features.properties" class="doc doc-heading">
-          <code>graphium.features.properties</code>
+            <code>graphium.features.properties</code>
 
 
 <a href="#graphium.features.properties" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4039,6 +4115,7 @@ to generate positional encoding for node features.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4061,6 +4138,8 @@ to generate positional encoding for node features.</p>
   <div class="doc doc-contents ">
   
       <p>return properties. If error, return list of <code>None</code> with lenght <code>n</code>.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4132,6 +4211,8 @@ to generate positional encoding for node features.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4158,6 +4239,7 @@ to generate positional encoding for node features.</p>
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4172,6 +4254,8 @@ to generate positional encoding for node features.</p>
   
       <p>Function to get a given set of desired properties from a molecule,
 and output a property list.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4222,6 +4306,8 @@ and output a property list.</p>
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
@@ -4293,7 +4379,7 @@ Will be usefull to understand what property is the network learning.</p>
 
 
 <h3 id="graphium.features.spectral" class="doc doc-heading">
-          <code>graphium.features.spectral</code>
+            <code>graphium.features.spectral</code>
 
 
 <a href="#graphium.features.spectral" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4303,6 +4389,7 @@ Will be usefull to understand what property is the network learning.</p>
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4325,6 +4412,8 @@ Will be usefull to understand what property is the network learning.</p>
   <div class="doc doc-contents ">
   
       <p>Compute the Laplacian eigenvalues and eigenvectors of the Laplacian of the graph.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4410,6 +4499,8 @@ Will be usefull to understand what property is the network learning.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4459,6 +4550,7 @@ eigvecs [num_nodes, num_pos]: Eigenvectors of the Laplacian</p>
   </div>
 
 </div>
+
 
 <div class="doc doc-object doc-function">
 
@@ -4514,7 +4606,7 @@ normalization: str or None, Default='none'
 
 
 <h3 id="graphium.features.rw" class="doc doc-heading">
-          <code>graphium.features.rw</code>
+            <code>graphium.features.rw</code>
 
 
 <a href="#graphium.features.rw" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4524,6 +4616,7 @@ normalization: str or None, Default='none'
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4546,6 +4639,8 @@ normalization: str or None, Default='none'
   <div class="doc doc-contents ">
   
       <p>Compute Random Walk Spectral Embedding (RWSE) for given list of K steps.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4649,6 +4744,8 @@ steps, if <code>space_dim</code> is the dimension of the euclidean space.</p>
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4697,6 +4794,7 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
 
 </div>
 
+
 <div class="doc doc-object doc-function">
 
 
@@ -4710,6 +4808,8 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
   <div class="doc doc-contents ">
   
       <p>Compute Random Walk landing probabilities for given list of K steps.</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4781,6 +4881,8 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
     </tbody>
   </table>
 
+
+
   <p><strong>Returns:</strong></p>
   <table>
     <thead>
@@ -4822,7 +4924,7 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
 
 
 <h3 id="graphium.features.nmp" class="doc doc-heading">
-          <code>graphium.features.nmp</code>
+            <code>graphium.features.nmp</code>
 
 
 <a href="#graphium.features.nmp" class="headerlink" title="Permanent link">&para;</a></h3>
@@ -4832,6 +4934,7 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
   
 
   <div class="doc doc-children">
+
 
 
 
@@ -4854,6 +4957,8 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
   <div class="doc doc-contents ">
   
       <p>check if a string can be converted to float, return none if it can't</p>
+
+
 
   <p><strong>Parameters:</strong></p>
   <table>
@@ -4882,6 +4987,8 @@ rw_transition_probs [num_nodes, num_nodes, len(ksteps)]:  Random-Walk k-step tra
         </tr>
     </tbody>
   </table>
+
+
 
   <p><strong>Returns:</strong></p>
   <table>
