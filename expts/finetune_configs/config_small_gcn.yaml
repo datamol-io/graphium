@@ -1,0 +1,65 @@
+# Testing GCN on ToyMix with FP16/32 on GPU
+constants:
+  name: &name dummy-model
+  config_override: "expts/neurips2023_configs/config_small_gcn.yaml"
+
+accelerator:
+  type: gpu  # cpu or ipu or gpu
+  float32_matmul_precision: medium
+  config_override:
+    datamodule:
+      args:
+        # Data handling-related
+        batch_size_training: 200
+        batch_size_inference: 200
+    predictor:
+      metrics_every_n_steps: 300
+    trainer:
+      trainer:
+        precision: 32
+        accumulate_grad_batches: 1
+
+datamodule:
+  args:
+    task_specific_args:   # To be replaced by a new class "DatasetParams"
+      qm9:
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/small-dataset/qm9.csv.gz
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/small-dataset/qm9_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/qm9_random_splits.pt`
+        # sample_size: 200 # use sample_size for test
+      tox21:
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/small-dataset/Tox21-7k-12-labels.csv.gz
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/small-dataset/Tox21_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/Tox21_random_splits.pt`
+        # sample_size: 200 # use sample_size for test
+      zinc:
+        df_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/small-dataset/ZINC12k.csv.gz
+        splits_path: /home/mila/f/frederik.wenkel/scratch/data/graphium/small-dataset/ZINC12k_random_splits.pt  # Download with `wget https://storage.googleapis.com/graphium-public/datasets/neurips_2023/Small-dataset/ZINC12k_random_splits.pt`
+        # sample_size: 200 # use sample_size for test
+    featurization_n_jobs: 4 # 30
+    processed_graph_data_path: "/home/mila/f/frederik.wenkel/scratch/data/graphium/datacache/small-dataset/"
+    num_workers: 4 # 30
+
+architecture:
+  # graph_output_nn:
+  #     graph:
+  #       depth: 1
+  task_heads:
+    tox21:
+      last_activation: none
+
+predictor:
+  loss_fun:
+    tox21: bce_logits_ipu
+
+  torch_scheduler_kwargs:
+    max_num_epochs: &max_epochs 300
+
+trainer:
+  model_checkpoint:
+    dirpath: pretrained_models/
+    filename: dummy-pretrained-model-{epoch}
+    # every_n_epochs: 1
+    save_on_train_epoch_end: true
+  trainer:
+    max_epochs: *max_epochs
+    # check_val_every_n_epoch: 1
+
