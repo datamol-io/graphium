@@ -1,7 +1,8 @@
 defaults:
   - accelerator: ipu
-  - datamodule: toymix
-  - experiment: ${datamodule}_gcn
+  - dataset: toymix
+  - model: gcn
 
-  # Put last to override
-  - datamodule/accelerator: ${datamodule}_${accelerator}
+  # Specializations
+  - experiment: ${dataset}_${model}
+  - dataset/accelerator: ${dataset}_${accelerator}
